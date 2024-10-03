@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CascadeInvocationsTest extends LintRuleTest {
   @override
-  String get lintRule => 'cascade_invocations';
+  String get lintRule => LintNames.cascade_invocations;
 
   test_assignmentDependsOnTarget() async {
     await assertNoDiagnostics(r'''

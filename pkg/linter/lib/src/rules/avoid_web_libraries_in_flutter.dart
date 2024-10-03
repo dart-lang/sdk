@@ -35,7 +35,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
   AvoidWebLibrariesInFlutter()
       : super(
-          name: 'avoid_web_libraries_in_flutter',
+          name: LintNames.avoid_web_libraries_in_flutter,
           description: _desc,
         );
 

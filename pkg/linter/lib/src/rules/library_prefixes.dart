@@ -17,7 +17,7 @@ const _desc =
 class LibraryPrefixes extends LintRule {
   LibraryPrefixes()
       : super(
-          name: 'library_prefixes',
+          name: LintNames.library_prefixes,
           description: _desc,
         );
 

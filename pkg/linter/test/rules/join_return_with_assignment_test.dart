@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class JoinReturnWithAssignmentTest extends LintRuleTest {
   @override
-  String get lintRule => 'join_return_with_assignment';
+  String get lintRule => LintNames.join_return_with_assignment;
 
   test_class_field_propertyAccess() async {
     await assertDiagnostics(r'''

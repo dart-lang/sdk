@@ -18,7 +18,7 @@ const _desc = r'DO reference all public properties in debug methods.';
 class DiagnosticDescribeAllProperties extends LintRule {
   DiagnosticDescribeAllProperties()
       : super(
-          name: 'diagnostic_describe_all_properties',
+          name: LintNames.diagnostic_describe_all_properties,
           description: _desc,
         );
 

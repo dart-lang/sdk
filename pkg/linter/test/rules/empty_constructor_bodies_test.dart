@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class EmptyConstructorBodiesTest extends LintRuleTest {
   @override
-  String get lintRule => 'empty_constructor_bodies';
+  String get lintRule => LintNames.empty_constructor_bodies;
 
   test_empty() async {
     await assertDiagnostics(r'''

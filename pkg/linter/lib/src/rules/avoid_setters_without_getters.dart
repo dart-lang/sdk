@@ -14,7 +14,7 @@ const _desc = r'Avoid setters without getters.';
 class AvoidSettersWithoutGetters extends LintRule {
   AvoidSettersWithoutGetters()
       : super(
-          name: 'avoid_setters_without_getters',
+          name: LintNames.avoid_setters_without_getters,
           description: _desc,
         );
 

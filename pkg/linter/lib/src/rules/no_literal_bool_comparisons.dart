@@ -15,7 +15,7 @@ const _desc = r"Don't compare boolean expressions to boolean literals.";
 class NoLiteralBoolComparisons extends LintRule {
   NoLiteralBoolComparisons()
       : super(
-          name: 'no_literal_bool_comparisons',
+          name: LintNames.no_literal_bool_comparisons,
           description: _desc,
         );
 

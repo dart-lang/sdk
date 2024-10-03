@@ -13,7 +13,7 @@ const _desc = r'Put a single newline at end of file.';
 class EolAtEndOfFile extends LintRule {
   EolAtEndOfFile()
       : super(
-          name: 'eol_at_end_of_file',
+          name: LintNames.eol_at_end_of_file,
           description: _desc,
         );
 

@@ -33,6 +33,7 @@ export 'package:analyzer/src/dart/analysis/experiments.dart';
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+export 'package:linter/src/lint_names.dart';
 
 // TODO(srawlins): This is duplicate with
 // pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart and

@@ -22,7 +22,7 @@ class AvoidShadowingTypeParametersTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'avoid_shadowing_type_parameters';
+  String get lintRule => LintNames.avoid_shadowing_type_parameters;
 
   test_enclosingElementsWithoutTypeParameters() async {
     // Make sure we don't hit any null pointers when none of a function or

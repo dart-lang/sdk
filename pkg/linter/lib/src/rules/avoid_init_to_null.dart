@@ -16,7 +16,7 @@ const _desc = r"Don't explicitly initialize variables to `null`.";
 class AvoidInitToNull extends LintRule {
   AvoidInitToNull()
       : super(
-          name: 'avoid_init_to_null',
+          name: LintNames.avoid_init_to_null,
           description: _desc,
         );
 

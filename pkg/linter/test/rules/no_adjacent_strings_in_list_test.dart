@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NoAdjacentStringsInListTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_adjacent_strings_in_list';
+  String get lintRule => LintNames.no_adjacent_strings_in_list;
 
   test_adjacentStrings_three() async {
     await assertDiagnostics(r'''

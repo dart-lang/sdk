@@ -14,7 +14,7 @@ const _desc = r'Sort combinator names alphabetically.';
 class CombinatorsOrdering extends LintRule {
   CombinatorsOrdering()
       : super(
-          name: 'combinators_ordering',
+          name: LintNames.combinators_ordering,
           description: _desc,
         );
 

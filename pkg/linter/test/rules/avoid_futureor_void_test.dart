@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFutureOrVoidTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_futureor_void';
+  String get lintRule => LintNames.avoid_futureor_void;
 
   test_asExpression() async {
     await assertDiagnostics(r'''

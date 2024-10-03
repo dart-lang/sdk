@@ -17,7 +17,7 @@ const _desc = r'Use key in widget constructors.';
 class UseKeyInWidgetConstructors extends LintRule {
   UseKeyInWidgetConstructors()
       : super(
-          name: 'use_key_in_widget_constructors',
+          name: LintNames.use_key_in_widget_constructors,
           description: _desc,
         );
 

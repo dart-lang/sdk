@@ -19,7 +19,7 @@ const _desc = 'Unreachable top-level members in executable libraries.';
 class UnreachableFromMain extends LintRule {
   UnreachableFromMain()
       : super(
-          name: 'unreachable_from_main',
+          name: LintNames.unreachable_from_main,
           description: _desc,
           state: State.stable(since: Version(3, 1, 0)),
         );

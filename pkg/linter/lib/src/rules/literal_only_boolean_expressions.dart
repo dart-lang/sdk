@@ -32,7 +32,7 @@ bool _onlyLiterals(Expression? rawExpression) {
 class LiteralOnlyBooleanExpressions extends LintRule {
   LiteralOnlyBooleanExpressions()
       : super(
-          name: 'literal_only_boolean_expressions',
+          name: LintNames.literal_only_boolean_expressions,
           description: _desc,
         );
 

@@ -14,7 +14,7 @@ const _desc = r'Avoid private typedef functions.';
 class AvoidPrivateTypedefFunctions extends LintRule {
   AvoidPrivateTypedefFunctions()
       : super(
-          name: 'avoid_private_typedef_functions',
+          name: LintNames.avoid_private_typedef_functions,
           description: _desc,
         );
 

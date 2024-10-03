@@ -16,7 +16,7 @@ const _desc = r'Name types using UpperCamelCase.';
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
       : super(
-          name: 'camel_case_types',
+          name: LintNames.camel_case_types,
           description: _desc,
         );
 

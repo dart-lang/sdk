@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseSuperParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_super_parameters';
+  String get lintRule => LintNames.use_super_parameters;
 
   test_functionTypedFormalParameter() async {
     await assertDiagnostics(r'''

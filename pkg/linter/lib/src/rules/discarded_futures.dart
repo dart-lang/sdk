@@ -15,7 +15,7 @@ const _desc = r"Don't invoke asynchronous functions in non-`async` blocks.";
 class DiscardedFutures extends LintRule {
   DiscardedFutures()
       : super(
-          name: 'discarded_futures',
+          name: LintNames.discarded_futures,
           description: _desc,
         );
 

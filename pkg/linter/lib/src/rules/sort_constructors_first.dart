@@ -13,7 +13,7 @@ const _desc = r'Sort constructor declarations before other members.';
 class SortConstructorsFirst extends LintRule {
   SortConstructorsFirst()
       : super(
-          name: 'sort_constructors_first',
+          name: LintNames.sort_constructors_first,
           description: _desc,
         );
 

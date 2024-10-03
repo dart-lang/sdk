@@ -13,7 +13,7 @@ const _desc = r"Don't specify the `late` modifier when it is not needed.";
 class UnnecessaryLate extends LintRule {
   UnnecessaryLate()
       : super(
-          name: 'unnecessary_late',
+          name: LintNames.unnecessary_late,
           description: _desc,
         );
 

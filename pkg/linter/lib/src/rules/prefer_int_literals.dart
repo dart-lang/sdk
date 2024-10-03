@@ -14,7 +14,7 @@ const _desc = 'Prefer int literals over double literals.';
 class PreferIntLiterals extends LintRule {
   PreferIntLiterals()
       : super(
-          name: 'prefer_int_literals',
+          name: LintNames.prefer_int_literals,
           description: _desc,
         );
 

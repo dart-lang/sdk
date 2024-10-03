@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_this';
+  String get lintRule => LintNames.unnecessary_this;
 
   test_closureInMethod() async {
     await assertDiagnostics(r'''

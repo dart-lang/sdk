@@ -13,7 +13,7 @@ const _desc = r'Only reference in-scope identifiers in doc comments.';
 class CommentReferences extends LintRule {
   CommentReferences()
       : super(
-          name: 'comment_references',
+          name: LintNames.comment_references,
           description: _desc,
         );
 

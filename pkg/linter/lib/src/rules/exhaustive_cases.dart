@@ -16,7 +16,7 @@ const _desc = r'Define case clauses for all constants in enum-like classes.';
 class ExhaustiveCases extends LintRule {
   ExhaustiveCases()
       : super(
-          name: 'exhaustive_cases',
+          name: LintNames.exhaustive_cases,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ const _desc = r'Use `??` operators to convert `null`s to `bool`s.';
 class UseIfNullToConvertNullsToBools extends LintRule {
   UseIfNullToConvertNullsToBools()
       : super(
-          name: 'use_if_null_to_convert_nulls_to_bools',
+          name: LintNames.use_if_null_to_convert_nulls_to_bools,
           description: _desc,
         );
 

@@ -14,7 +14,7 @@ const _desc = r'Unnecessary `.new` constructor name.';
 class UnnecessaryConstructorName extends LintRule {
   UnnecessaryConstructorName()
       : super(
-          name: 'unnecessary_constructor_name',
+          name: LintNames.unnecessary_constructor_name,
           description: _desc,
         );
 

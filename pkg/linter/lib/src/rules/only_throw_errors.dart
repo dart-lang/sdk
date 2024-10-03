@@ -39,7 +39,7 @@ bool _isThrowable(DartType? type) {
 class OnlyThrowErrors extends LintRule {
   OnlyThrowErrors()
       : super(
-          name: 'only_throw_errors',
+          name: LintNames.only_throw_errors,
           description: _desc,
         );
 

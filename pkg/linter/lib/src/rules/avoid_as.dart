@@ -10,7 +10,7 @@ const _desc = r'Avoid using `as`.';
 class AvoidAs extends LintRule {
   AvoidAs()
       : super(
-          name: 'avoid_as',
+          name: LintNames.avoid_as,
           description: _desc,
           state: State.removed(since: dart2_12),
         );

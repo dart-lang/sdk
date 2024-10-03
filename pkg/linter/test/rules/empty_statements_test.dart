@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class EmptyStatementsTest extends LintRuleTest {
   @override
-  String get lintRule => 'empty_statements';
+  String get lintRule => LintNames.empty_statements;
 
   test_emptyFor() async {
     await assertDiagnostics(r'''

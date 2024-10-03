@@ -14,7 +14,7 @@ const _desc = r'Prefer `null`-aware method calls.';
 class PreferNullAwareMethodCalls extends LintRule {
   PreferNullAwareMethodCalls()
       : super(
-          name: 'prefer_null_aware_method_calls',
+          name: LintNames.prefer_null_aware_method_calls,
           description: _desc,
         );
 

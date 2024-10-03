@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ValidRegexpsTest extends LintRuleTest {
   @override
-  String get lintRule => 'valid_regexps';
+  String get lintRule => LintNames.valid_regexps;
 
   test_emojis() async {
     // https://stackoverflow.com/questions/61151471/regexp-for-unicode-13-emojis

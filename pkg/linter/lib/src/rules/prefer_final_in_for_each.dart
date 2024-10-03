@@ -15,7 +15,7 @@ const _desc =
 class PreferFinalInForEach extends LintRule {
   PreferFinalInForEach()
       : super(
-          name: 'prefer_final_in_for_each',
+          name: LintNames.prefer_final_in_for_each,
           description: _desc,
         );
 

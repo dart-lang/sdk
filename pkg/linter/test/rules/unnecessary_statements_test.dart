@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryStatementsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_statements';
+  String get lintRule => LintNames.unnecessary_statements;
 
   test_asExpression() async {
     // See https://github.com/dart-lang/linter/issues/2163.

@@ -14,7 +14,7 @@ const _desc = r"Don't put any logic in createState.";
 class NoLogicInCreateState extends LintRule {
   NoLogicInCreateState()
       : super(
-          name: 'no_logic_in_create_state',
+          name: LintNames.no_logic_in_create_state,
           description: _desc,
         );
 

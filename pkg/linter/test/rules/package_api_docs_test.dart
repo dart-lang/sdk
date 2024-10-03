@@ -19,7 +19,7 @@ class PackageApiDocsTest extends LintRuleTest {
   List<AnalyzerErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_ELEMENT];
 
   @override
-  String get lintRule => 'package_api_docs';
+  String get lintRule => LintNames.package_api_docs;
 
   test_privateClass() async {
     await assertNoDiagnostics(r'''

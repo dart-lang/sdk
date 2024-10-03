@@ -16,14 +16,14 @@ const _desc = r'Omit type annotations for local variables.';
 class OmitLocalVariableTypes extends LintRule {
   OmitLocalVariableTypes()
       : super(
-          name: 'omit_local_variable_types',
+          name: LintNames.omit_local_variable_types,
           description: _desc,
         );
 
   @override
   List<String> get incompatibleRules => const [
-        'always_specify_types',
-        'specify_nonobvious_local_variable_types',
+        LintNames.always_specify_types,
+        LintNames.specify_nonobvious_local_variable_types,
       ];
 
   @override

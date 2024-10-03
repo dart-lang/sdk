@@ -14,7 +14,7 @@ const _desc = r'Name extensions using UpperCamelCase.';
 class CamelCaseExtensions extends LintRule {
   CamelCaseExtensions()
       : super(
-          name: 'camel_case_extensions',
+          name: LintNames.camel_case_extensions,
           description: _desc,
         );
 

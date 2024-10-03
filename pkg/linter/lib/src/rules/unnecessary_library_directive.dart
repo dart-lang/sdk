@@ -12,12 +12,10 @@ const _desc =
     'Avoid library directives unless they have documentation comments or '
     'annotations.';
 
-const _name = 'unnecessary_library_directive';
-
 class UnnecessaryLibraryDirective extends LintRule {
   UnnecessaryLibraryDirective()
       : super(
-          name: _name,
+          name: LintNames.unnecessary_library_directive,
           description: _desc,
         );
 

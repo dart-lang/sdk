@@ -16,7 +16,7 @@ const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 class UnnecessaryThis extends LintRule {
   UnnecessaryThis()
       : super(
-          name: 'unnecessary_this',
+          name: LintNames.unnecessary_this,
           description: _desc,
         );
 

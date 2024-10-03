@@ -21,7 +21,7 @@ const _desc =
 class DeprecatedMemberUseFromSamePackage extends LintRule {
   DeprecatedMemberUseFromSamePackage()
       : super(
-          name: 'deprecated_member_use_from_same_package',
+          name: LintNames.deprecated_member_use_from_same_package,
           description: _desc,
         );
 

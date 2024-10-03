@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidPositionalBooleanParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_positional_boolean_parameters';
+  String get lintRule => LintNames.avoid_positional_boolean_parameters;
 
   test_anonymousFunction() async {
     await assertNoDiagnostics(r'''

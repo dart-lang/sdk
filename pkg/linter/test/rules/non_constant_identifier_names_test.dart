@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class NonConstantIdentifierNamesPatternsTest extends LintRuleTest {
   @override
-  String get lintRule => 'non_constant_identifier_names';
+  String get lintRule => LintNames.non_constant_identifier_names;
 
   test_extensionType_representationConstructorName() async {
     await assertDiagnostics(r'''
@@ -141,7 +141,7 @@ void f() {
 @reflectiveTest
 class NonConstantIdentifierNamesRecordsTest extends LintRuleTest {
   @override
-  String get lintRule => 'non_constant_identifier_names';
+  String get lintRule => LintNames.non_constant_identifier_names;
 
   test_recordFields() async {
     await assertDiagnostics(r'''
@@ -228,7 +228,7 @@ class NonConstantIdentifierNamesTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'non_constant_identifier_names';
+  String get lintRule => LintNames.non_constant_identifier_names;
 
   test_42() async {
     // Generic function syntax is OK (#805).

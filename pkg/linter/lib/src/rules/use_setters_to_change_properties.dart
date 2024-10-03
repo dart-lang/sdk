@@ -18,7 +18,7 @@ const _desc =
 class UseSettersToChangeProperties extends LintRule {
   UseSettersToChangeProperties()
       : super(
-          name: 'use_setters_to_change_properties',
+          name: LintNames.use_setters_to_change_properties,
           description: _desc,
         );
 

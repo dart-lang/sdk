@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidDynamicCallsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_dynamic_calls';
+  String get lintRule => LintNames.avoid_dynamic_calls;
 
   test_asDynamic_dynamicBinaryExpression() async {
     await assertNoDiagnostics(r'''

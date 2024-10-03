@@ -9,14 +9,19 @@ library;
 import 'package:analyzer_utilities/tools.dart';
 
 import '../../../analyzer/tool/messages/error_code_info.dart';
+import '../messages_info.dart';
 import '../util/path_utils.dart';
 
 Future<void> main() async {
+  await generateNamesFile().generate(generatedNamesPath);
   await generateCodesFile().generate(linterPackageRoot);
 }
 
 String get generatedCodesPath =>
     pathRelativeToPackageRoot(const ['lib', 'src', 'linter_lint_codes.dart']);
+
+String get generatedNamesPath =>
+    pathRelativeToPackageRoot(const ['lib', 'src', 'lint_names.dart']);
 
 GeneratedFile generateCodesFile() =>
     GeneratedFile(generatedCodesPath, (String pkgPath) async {
@@ -53,7 +58,11 @@ class LinterLintCode extends LintCode {
           out.writeln('  @Deprecated("$deprecatedMessage")');
         }
         out.writeln('  static const LintCode $errorName =');
-        out.writeln(codeInfo.toAnalyzerCode('LinterLintCode', errorName));
+        out.writeln(codeInfo.toAnalyzerCode(
+          'LinterLintCode',
+          errorName,
+          sharedNameReference: 'LintNames.${codeInfo.sharedName ?? errorName}',
+        ));
         out.writeln();
       }
 
@@ -82,5 +91,34 @@ class LinterLintCode extends LintCode {
   }
 }
 ''');
+      return out.toString();
+    });
+
+GeneratedFile generateNamesFile() =>
+    GeneratedFile(generatedNamesPath, (String pkgPath) async {
+      var out = StringBuffer('''
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'pkg/linter/messages.yaml' and run
+// 'dart run pkg/linter/tool/codes/generate.dart' to update.
+
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
+// An enumeration of the names of the analyzer's built-in lint rules.
+abstract final class LintNames {
+''');
+
+      for (var lintName in messagesRuleInfo.keys) {
+        out.writeln("  static const String $lintName = '$lintName';");
+        out.writeln();
+      }
+
+      out.writeln('}');
       return out.toString();
     });

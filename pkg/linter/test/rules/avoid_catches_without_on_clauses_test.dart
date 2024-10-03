@@ -23,7 +23,7 @@ class AvoidCatchesWithoutOnClausesTest extends LintRuleTest {
       [WarningCode.UNUSED_ELEMENT, WarningCode.UNUSED_LOCAL_VARIABLE];
 
   @override
-  String get lintRule => 'avoid_catches_without_on_clauses';
+  String get lintRule => LintNames.avoid_catches_without_on_clauses;
 
   test_hasOnClause() async {
     await assertNoDiagnostics(r'''

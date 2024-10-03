@@ -13,7 +13,7 @@ const _desc = r'Use raw string to avoid escapes.';
 class UseRawStrings extends LintRule {
   UseRawStrings()
       : super(
-          name: 'use_raw_strings',
+          name: LintNames.use_raw_strings,
           description: _desc,
         );
 

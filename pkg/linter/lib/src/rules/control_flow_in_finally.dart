@@ -13,7 +13,7 @@ const _desc = r'Avoid control flow in `finally` blocks.';
 class ControlFlowInFinally extends LintRule {
   ControlFlowInFinally()
       : super(
-          name: 'control_flow_in_finally',
+          name: LintNames.control_flow_in_finally,
           description: _desc,
         );
 

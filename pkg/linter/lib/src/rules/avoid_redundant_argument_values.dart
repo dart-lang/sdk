@@ -16,7 +16,7 @@ const _desc = r'Avoid redundant argument values.';
 class AvoidRedundantArgumentValues extends LintRule {
   AvoidRedundantArgumentValues()
       : super(
-          name: 'avoid_redundant_argument_values',
+          name: LintNames.avoid_redundant_argument_values,
           description: _desc,
         );
 

@@ -14,7 +14,7 @@ const _desc = r"Don't implicitly reopen classes.";
 class ImplicitReopen extends LintRule {
   ImplicitReopen()
       : super(
-          name: 'implicit_reopen',
+          name: LintNames.implicit_reopen,
           description: _desc,
           state: State.experimental(),
         );

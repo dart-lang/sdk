@@ -533,10 +533,11 @@ abstract class ErrorCodeInfo {
   /// Generates a dart declaration for this error code, suitable for inclusion
   /// in the error class [className].  [errorCode] is the name of the error code
   /// to be generated.
-  String toAnalyzerCode(String className, String errorCode) {
+  String toAnalyzerCode(String className, String errorCode,
+      {String? sharedNameReference}) {
     var out = StringBuffer();
     out.writeln('$className(');
-    out.writeln("'${sharedName ?? errorCode}',");
+    out.writeln('${sharedNameReference ?? "'${sharedName ?? errorCode}'"},');
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var placeholderToIndexMap = computePlaceholderToIndexMap();
     var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);

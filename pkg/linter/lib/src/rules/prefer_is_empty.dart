@@ -17,7 +17,7 @@ const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
 class PreferIsEmpty extends LintRule {
   PreferIsEmpty()
       : super(
-          name: 'prefer_is_empty',
+          name: LintNames.prefer_is_empty,
           description: _desc,
         );
 

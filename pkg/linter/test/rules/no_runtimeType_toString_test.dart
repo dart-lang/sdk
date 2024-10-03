@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class NoRuntimeTypeToStringTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_runtimeType_toString';
+  String get lintRule => LintNames.no_runtimeType_toString;
 
   test_extension_onAbstractClass() async {
     await assertNoDiagnostics(r'''

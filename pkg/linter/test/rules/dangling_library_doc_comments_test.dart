@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class DanglingLibraryDocCommentsTest extends LintRuleTest {
   @override
-  String get lintRule => 'dangling_library_doc_comments';
+  String get lintRule => LintNames.dangling_library_doc_comments;
 
   test_docComment_aboveDeclaration() async {
     await assertDiagnostics(

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferFunctionDeclarationsOverVariablesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_function_declarations_over_variables';
+  String get lintRule => LintNames.prefer_function_declarations_over_variables;
 
   test_instanceVariable_final() async {
     await assertDiagnostics(r'''

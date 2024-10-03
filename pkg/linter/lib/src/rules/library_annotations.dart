@@ -17,7 +17,7 @@ const _desc = r'Attach library annotations to library directives.';
 class LibraryAnnotations extends LintRule {
   LibraryAnnotations()
       : super(
-          name: 'library_annotations',
+          name: LintNames.library_annotations,
           description: _desc,
         );
 

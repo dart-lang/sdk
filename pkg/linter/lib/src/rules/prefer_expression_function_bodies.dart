@@ -14,7 +14,7 @@ const _desc =
 class PreferExpressionFunctionBodies extends LintRule {
   PreferExpressionFunctionBodies()
       : super(
-          name: 'prefer_expression_function_bodies',
+          name: LintNames.prefer_expression_function_bodies,
           description: _desc,
         );
 

@@ -13,7 +13,7 @@ const _desc = r'DO use curly braces for all flow control structures.';
 class CurlyBracesInFlowControlStructures extends LintRule {
   CurlyBracesInFlowControlStructures()
       : super(
-          name: 'curly_braces_in_flow_control_structures',
+          name: LintNames.curly_braces_in_flow_control_structures,
           description: _desc,
         );
 

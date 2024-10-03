@@ -13,7 +13,7 @@ const _desc = r'Avoid `bool` literals in conditional expressions.';
 class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
   AvoidBoolLiteralsInConditionalExpressions()
       : super(
-          name: 'avoid_bool_literals_in_conditional_expressions',
+          name: LintNames.avoid_bool_literals_in_conditional_expressions,
           description: _desc,
         );
 

@@ -16,7 +16,7 @@ const _desc =
 class PreferVoidToNull extends LintRule {
   PreferVoidToNull()
       : super(
-          name: 'prefer_void_to_null',
+          name: LintNames.prefer_void_to_null,
           description: _desc,
         );
 

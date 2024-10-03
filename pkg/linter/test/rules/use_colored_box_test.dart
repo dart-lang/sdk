@@ -18,7 +18,7 @@ class UseColoredBoxTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'use_colored_box';
+  String get lintRule => LintNames.use_colored_box;
 
   test_childArgument() async {
     await assertNoDiagnostics(r'''

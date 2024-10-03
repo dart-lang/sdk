@@ -15,7 +15,7 @@ const _desc = r'Use interpolation to compose strings and values.';
 class PreferInterpolationToComposeStrings extends LintRule {
   PreferInterpolationToComposeStrings()
       : super(
-          name: 'prefer_interpolation_to_compose_strings',
+          name: LintNames.prefer_interpolation_to_compose_strings,
           description: _desc,
         );
 

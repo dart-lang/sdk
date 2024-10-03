@@ -16,7 +16,7 @@ const desc =
 class PreferConstLiteralsToCreateImmutables extends LintRule {
   PreferConstLiteralsToCreateImmutables()
       : super(
-          name: 'prefer_const_literals_to_create_immutables',
+          name: LintNames.prefer_const_literals_to_create_immutables,
           description: desc,
         );
 

@@ -120,7 +120,7 @@ const _validHtmlTags = [
 class UnintendedHtmlInDocComment extends LintRule {
   UnintendedHtmlInDocComment()
       : super(
-          name: 'unintended_html_in_doc_comment',
+          name: LintNames.unintended_html_in_doc_comment,
           description: _desc,
         );
 

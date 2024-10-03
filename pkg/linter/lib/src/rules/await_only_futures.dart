@@ -16,7 +16,7 @@ const _desc = r'Await only futures.';
 class AwaitOnlyFutures extends LintRule {
   AwaitOnlyFutures()
       : super(
-          name: 'await_only_futures',
+          name: LintNames.await_only_futures,
           description: _desc,
         );
 

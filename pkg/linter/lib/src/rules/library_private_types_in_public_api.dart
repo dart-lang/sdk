@@ -16,7 +16,7 @@ const _desc = r'Avoid using private types in public APIs.';
 class LibraryPrivateTypesInPublicApi extends LintRule {
   LibraryPrivateTypesInPublicApi()
       : super(
-          name: 'library_private_types_in_public_api',
+          name: LintNames.library_private_types_in_public_api,
           description: _desc,
         );
 

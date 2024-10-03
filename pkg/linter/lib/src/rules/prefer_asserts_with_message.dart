@@ -13,7 +13,7 @@ const _desc = r'Prefer asserts with message.';
 class PreferAssertsWithMessage extends LintRule {
   PreferAssertsWithMessage()
       : super(
-          name: 'prefer_asserts_with_message',
+          name: LintNames.prefer_asserts_with_message,
           description: _desc,
         );
 

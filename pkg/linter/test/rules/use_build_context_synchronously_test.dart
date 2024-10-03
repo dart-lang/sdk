@@ -1918,7 +1918,7 @@ class UseBuildContextSynchronouslyTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'use_build_context_synchronously';
+  String get lintRule => LintNames.use_build_context_synchronously;
 
   /// Ensure we're not run in the test dir.
   @override

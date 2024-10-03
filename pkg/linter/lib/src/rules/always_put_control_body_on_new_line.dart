@@ -13,7 +13,7 @@ const _desc = r'Separate the control structure expression from its statement.';
 class AlwaysPutControlBodyOnNewLine extends LintRule {
   AlwaysPutControlBodyOnNewLine()
       : super(
-          name: 'always_put_control_body_on_new_line',
+          name: LintNames.always_put_control_body_on_new_line,
           description: _desc,
         );
 

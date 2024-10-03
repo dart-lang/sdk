@@ -13,7 +13,7 @@ const _desc = r'Sort pub dependencies alphabetically.';
 class SortPubDependencies extends LintRule {
   SortPubDependencies()
       : super(
-          name: 'sort_pub_dependencies',
+          name: LintNames.sort_pub_dependencies,
           description: _desc,
         );
 

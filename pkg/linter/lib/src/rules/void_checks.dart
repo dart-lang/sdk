@@ -15,7 +15,7 @@ const _desc = r"Don't assign to `void`.";
 class VoidChecks extends LintRule {
   VoidChecks()
       : super(
-          name: 'void_checks',
+          name: LintNames.void_checks,
           description: _desc,
         );
 

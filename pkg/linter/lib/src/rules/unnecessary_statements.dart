@@ -15,7 +15,7 @@ const _desc = r'Avoid using unnecessary statements.';
 class UnnecessaryStatements extends LintRule {
   UnnecessaryStatements()
       : super(
-          name: 'unnecessary_statements',
+          name: LintNames.unnecessary_statements,
           description: _desc,
         );
 

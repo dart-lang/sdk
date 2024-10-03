@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class VoidChecksTest extends LintRuleTest {
   @override
-  String get lintRule => 'void_checks';
+  String get lintRule => LintNames.void_checks;
 
   test_constructorArgument_genericParameter() async {
     await assertDiagnostics(r'''

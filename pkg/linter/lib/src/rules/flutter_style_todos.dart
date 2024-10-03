@@ -20,7 +20,7 @@ class FlutterStyleTodos extends LintRule {
 
   FlutterStyleTodos()
       : super(
-          name: 'flutter_style_todos',
+          name: LintNames.flutter_style_todos,
           description: _desc,
         );
 

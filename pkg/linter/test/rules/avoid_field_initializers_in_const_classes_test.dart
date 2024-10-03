@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_field_initializers_in_const_classes';
+  String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
   test_constClass_constructorInitializer() async {
     await assertDiagnostics(r'''

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferGenericFunctionTypeAliasesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_generic_function_type_aliases';
+  String get lintRule => LintNames.prefer_generic_function_type_aliases;
 
   @FailingTest(reason: '''
     ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]

@@ -26,7 +26,7 @@ class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'library_private_types_in_public_api';
+  String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_abstractFinal_constructorParams() async {
     await assertNoDiagnostics(r'''
@@ -104,7 +104,7 @@ class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'library_private_types_in_public_api';
+  String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_constructorParam() async {
     await assertDiagnostics(r'''
@@ -238,7 +238,7 @@ class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'library_private_types_in_public_api';
+  String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_implicitTypeFieldFormalParam() async {
     await assertDiagnostics(r'''
@@ -296,7 +296,7 @@ class LibraryPrivateTypesInPublicApiTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'library_private_types_in_public_api';
+  String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_class_extendsClassWithPrivateTypeArguments() async {
     await assertNoDiagnostics(r'''

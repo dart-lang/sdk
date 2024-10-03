@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ControlFlowInFinallyTest extends LintRuleTest {
   @override
-  String get lintRule => 'control_flow_in_finally';
+  String get lintRule => LintNames.control_flow_in_finally;
 
   test_break() async {
     await assertDiagnostics(r'''

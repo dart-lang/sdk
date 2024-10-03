@@ -15,7 +15,7 @@ main() {
 
 abstract class BaseNoDuplicateCaseValuesTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_duplicate_case_values';
+  String get lintRule => LintNames.no_duplicate_case_values;
 }
 
 @reflectiveTest

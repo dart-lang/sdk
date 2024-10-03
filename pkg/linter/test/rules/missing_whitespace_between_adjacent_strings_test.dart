@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class MissingWhitespaceBetweenAdjacentStringsTest extends LintRuleTest {
   @override
-  String get lintRule => 'missing_whitespace_between_adjacent_strings';
+  String get lintRule => LintNames.missing_whitespace_between_adjacent_strings;
 
   test_argumentToMatches() async {
     await assertNoDiagnostics(r'''

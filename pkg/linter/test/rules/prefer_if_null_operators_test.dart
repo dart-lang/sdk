@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferIfNullOperatorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_if_null_operators';
+  String get lintRule => LintNames.prefer_if_null_operators;
 
   test_null_eqEq_nullable() async {
     await assertDiagnostics(r'''

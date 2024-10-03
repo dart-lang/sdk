@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryConstructorNameTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_constructor_name';
+  String get lintRule => LintNames.unnecessary_constructor_name;
 
   test_constructorDeclaration_named() async {
     await assertNoDiagnostics(r'''

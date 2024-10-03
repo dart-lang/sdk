@@ -11,7 +11,7 @@ const _desc =
 class SuperGoesLast extends LintRule {
   SuperGoesLast()
       : super(
-          name: 'super_goes_last',
+          name: LintNames.super_goes_last,
           description: _desc,
           state: State.removed(since: dart3),
         );

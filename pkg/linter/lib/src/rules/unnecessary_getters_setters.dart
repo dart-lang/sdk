@@ -16,7 +16,7 @@ const _desc =
 class UnnecessaryGettersSetters extends LintRule {
   UnnecessaryGettersSetters()
       : super(
-          name: 'unnecessary_getters_setters',
+          name: LintNames.unnecessary_getters_setters,
           description: _desc,
         );
 

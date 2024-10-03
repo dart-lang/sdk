@@ -13,12 +13,12 @@ const _desc = r'Only use double quotes for strings containing single quotes.';
 class PreferSingleQuotes extends LintRule {
   PreferSingleQuotes()
       : super(
-          name: 'prefer_single_quotes',
+          name: LintNames.prefer_single_quotes,
           description: _desc,
         );
 
   @override
-  List<String> get incompatibleRules => const ['prefer_double_quotes'];
+  List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_single_quotes;

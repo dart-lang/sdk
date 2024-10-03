@@ -30,7 +30,7 @@ main() {
 @reflectiveTest
 class CancelSubscriptionsTest extends LintRuleTest {
   @override
-  String get lintRule => 'cancel_subscriptions';
+  String get lintRule => LintNames.cancel_subscriptions;
 
   test_localVariable_canceled() async {
     await assertNoDiagnostics(r'''

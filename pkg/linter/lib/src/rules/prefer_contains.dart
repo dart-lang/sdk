@@ -17,7 +17,7 @@ const _desc = r'Use contains for `List` and `String` instances.';
 class PreferContains extends LintRule {
   PreferContains()
       : super(
-          name: 'prefer_contains',
+          name: LintNames.prefer_contains,
           description: _desc,
         );
 

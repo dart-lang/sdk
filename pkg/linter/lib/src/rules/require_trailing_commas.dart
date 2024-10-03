@@ -15,7 +15,7 @@ const _desc =
 class RequireTrailingCommas extends LintRule {
   RequireTrailingCommas()
       : super(
-          name: 'require_trailing_commas',
+          name: LintNames.require_trailing_commas,
           description: _desc,
         );
 

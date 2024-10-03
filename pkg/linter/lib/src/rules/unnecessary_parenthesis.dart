@@ -17,7 +17,7 @@ const _desc = r'Unnecessary parentheses can be removed.';
 class UnnecessaryParenthesis extends LintRule {
   UnnecessaryParenthesis()
       : super(
-          name: 'unnecessary_parenthesis',
+          name: LintNames.unnecessary_parenthesis,
           description: _desc,
         );
 

@@ -20,7 +20,7 @@ const _desc = r'Document all public members.';
 class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
       : super(
-          name: 'public_member_api_docs',
+          name: LintNames.public_member_api_docs,
           description: _desc,
         );
 

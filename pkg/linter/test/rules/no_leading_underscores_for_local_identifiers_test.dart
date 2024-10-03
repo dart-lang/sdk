@@ -24,7 +24,7 @@ class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'no_leading_underscores_for_local_identifiers';
+  String get lintRule => LintNames.no_leading_underscores_for_local_identifiers;
 
   test_catchClause_error() async {
     await assertDiagnostics(r'''

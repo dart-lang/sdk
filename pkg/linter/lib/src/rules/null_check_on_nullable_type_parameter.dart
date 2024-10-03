@@ -17,7 +17,7 @@ const _desc =
 class NullCheckOnNullableTypeParameter extends LintRule {
   NullCheckOnNullableTypeParameter()
       : super(
-          name: 'null_check_on_nullable_type_parameter',
+          name: LintNames.null_check_on_nullable_type_parameter,
           description: _desc,
         );
 

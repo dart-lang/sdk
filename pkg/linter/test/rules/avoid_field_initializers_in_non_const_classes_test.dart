@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_field_initializers_in_const_classes';
+  String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
   test_augmentationClass_nonConstConstructor() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

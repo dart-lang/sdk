@@ -15,7 +15,8 @@ main() {
 @reflectiveTest
 class AvoidBoolLiteralsInConditionalExpressionsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_bool_literals_in_conditional_expressions';
+  String get lintRule =>
+      LintNames.avoid_bool_literals_in_conditional_expressions;
 
   test_elseFalse() async {
     await assertDiagnostics(r'''

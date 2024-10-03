@@ -13,7 +13,7 @@ const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 class EmptyConstructorBodies extends LintRule {
   EmptyConstructorBodies()
       : super(
-          name: 'empty_constructor_bodies',
+          name: LintNames.empty_constructor_bodies,
           description: _desc,
         );
 

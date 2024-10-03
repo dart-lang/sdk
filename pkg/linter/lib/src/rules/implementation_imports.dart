@@ -37,7 +37,7 @@ bool samePackage(Uri? uri1, Uri? uri2) {
 class ImplementationImports extends LintRule {
   ImplementationImports()
       : super(
-          name: 'implementation_imports',
+          name: LintNames.implementation_imports,
           description: _desc,
         );
 

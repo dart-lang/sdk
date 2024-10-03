@@ -16,7 +16,7 @@ const _desc = r'Avoid catches without on clauses.';
 class AvoidCatchesWithoutOnClauses extends LintRule {
   AvoidCatchesWithoutOnClauses()
       : super(
-          name: 'avoid_catches_without_on_clauses',
+          name: LintNames.avoid_catches_without_on_clauses,
           description: _desc,
         );
 

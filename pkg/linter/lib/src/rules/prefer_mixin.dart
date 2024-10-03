@@ -15,7 +15,7 @@ const _desc = r'Prefer using mixins.';
 class PreferMixin extends LintRule {
   PreferMixin()
       : super(
-          name: 'prefer_mixin',
+          name: LintNames.prefer_mixin,
           description: _desc,
         );
 

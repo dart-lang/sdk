@@ -1,4 +1,4 @@
-import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

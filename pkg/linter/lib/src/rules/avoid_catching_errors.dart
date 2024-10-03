@@ -14,7 +14,7 @@ const _desc = r"Don't explicitly catch `Error` or types that implement it.";
 class AvoidCatchingErrors extends LintRule {
   AvoidCatchingErrors()
       : super(
-          name: 'avoid_catching_errors',
+          name: LintNames.avoid_catching_errors,
           description: _desc,
         );
 

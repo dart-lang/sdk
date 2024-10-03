@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidEmptyElseTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_empty_else';
+  String get lintRule => LintNames.avoid_empty_else;
 
   test_else_emptyStatement_hasElseIf() async {
     await assertDiagnostics(r'''

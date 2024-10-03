@@ -14,7 +14,7 @@ const _desc = r'Sort child properties last in widget instance creations.';
 class SortChildPropertiesLast extends LintRule {
   SortChildPropertiesLast()
       : super(
-          name: 'sort_child_properties_last',
+          name: LintNames.sort_child_properties_last,
           description: _desc,
         );
 

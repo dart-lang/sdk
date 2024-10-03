@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class DiscardedFuturesTest extends LintRuleTest {
   @override
-  String get lintRule => 'discarded_futures';
+  String get lintRule => LintNames.discarded_futures;
 
   test_assignment_ok() async {
     await assertNoDiagnostics(r'''

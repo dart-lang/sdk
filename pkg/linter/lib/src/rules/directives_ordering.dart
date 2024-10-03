@@ -67,7 +67,7 @@ class DirectivesOrdering extends LintRule {
 
   DirectivesOrdering()
       : super(
-          name: 'directives_ordering',
+          name: LintNames.directives_ordering,
           description: _desc,
         );
 

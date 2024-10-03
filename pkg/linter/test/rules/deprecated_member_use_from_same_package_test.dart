@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
-  String get lintRule => 'deprecated_member_use_from_same_package';
+  String get lintRule => LintNames.deprecated_member_use_from_same_package;
 
   @override
   Future<void> assertDiagnostics(

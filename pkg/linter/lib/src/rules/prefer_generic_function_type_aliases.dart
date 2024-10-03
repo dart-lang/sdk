@@ -13,7 +13,7 @@ const _desc = r'Prefer generic function type aliases.';
 class PreferGenericFunctionTypeAliases extends LintRule {
   PreferGenericFunctionTypeAliases()
       : super(
-          name: 'prefer_generic_function_type_aliases',
+          name: LintNames.prefer_generic_function_type_aliases,
           description: _desc,
         );
 

@@ -16,7 +16,7 @@ const _desc = r'`Future` results in `async` function bodies must be '
 class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
       : super(
-          name: 'unawaited_futures',
+          name: LintNames.unawaited_futures,
           description: _desc,
         );
 

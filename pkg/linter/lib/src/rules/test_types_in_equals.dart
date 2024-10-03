@@ -13,7 +13,7 @@ const _desc = r'Test type of argument in `operator ==(Object other)`.';
 class TestTypesInEquals extends LintRule {
   TestTypesInEquals()
       : super(
-          name: 'test_types_in_equals',
+          name: LintNames.test_types_in_equals,
           description: _desc,
         );
 

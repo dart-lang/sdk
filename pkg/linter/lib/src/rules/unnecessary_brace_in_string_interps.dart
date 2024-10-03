@@ -19,7 +19,7 @@ bool isIdentifierPart(Token? token) =>
 class UnnecessaryBraceInStringInterps extends LintRule {
   UnnecessaryBraceInStringInterps()
       : super(
-          name: 'unnecessary_brace_in_string_interps',
+          name: LintNames.unnecessary_brace_in_string_interps,
           description: _desc,
         );
 

@@ -135,7 +135,7 @@ DartType? getExpectedType(PostfixExpression node) {
 class UnnecessaryNullChecks extends LintRule {
   UnnecessaryNullChecks()
       : super(
-          name: 'unnecessary_null_checks',
+          name: LintNames.unnecessary_null_checks,
           description: _desc,
           state: State.experimental(),
         );

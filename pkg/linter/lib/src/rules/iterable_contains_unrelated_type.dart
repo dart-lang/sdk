@@ -11,7 +11,7 @@ const _desc = r'Invocation of `Iterable<E>.contains` with references of'
 class IterableContainsUnrelatedType extends LintRule {
   IterableContainsUnrelatedType()
       : super(
-          name: 'iterable_contains_unrelated_type',
+          name: LintNames.iterable_contains_unrelated_type,
           description: _desc,
           state: State.removed(since: dart3_3),
         );

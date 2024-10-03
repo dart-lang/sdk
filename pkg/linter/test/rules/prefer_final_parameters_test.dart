@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PreferFinalParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_final_parameters';
+  String get lintRule => LintNames.prefer_final_parameters;
 
   test_blockBody_reassigned() async {
     await assertNoDiagnostics(r'''

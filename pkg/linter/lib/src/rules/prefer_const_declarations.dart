@@ -15,7 +15,7 @@ const _desc = r'Prefer `const` over `final` for declarations.';
 class PreferConstDeclarations extends LintRule {
   PreferConstDeclarations()
       : super(
-          name: 'prefer_const_declarations',
+          name: LintNames.prefer_const_declarations,
           description: _desc,
         );
 

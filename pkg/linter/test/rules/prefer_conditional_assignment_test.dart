@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferConditionalAssignmentTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_conditional_assignment';
+  String get lintRule => LintNames.prefer_conditional_assignment;
 
   test_field_ifEqNull() async {
     await assertDiagnostics(r'''

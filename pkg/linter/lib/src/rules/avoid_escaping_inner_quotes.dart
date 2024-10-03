@@ -13,7 +13,7 @@ const _desc = r'Avoid escaping inner quotes by converting surrounding quotes.';
 class AvoidEscapingInnerQuotes extends LintRule {
   AvoidEscapingInnerQuotes()
       : super(
-          name: 'avoid_escaping_inner_quotes',
+          name: LintNames.avoid_escaping_inner_quotes,
           description: _desc,
         );
 

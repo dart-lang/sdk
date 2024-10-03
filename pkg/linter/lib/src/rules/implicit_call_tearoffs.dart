@@ -14,7 +14,7 @@ const _desc =
 class ImplicitCallTearoffs extends LintRule {
   ImplicitCallTearoffs()
       : super(
-          name: 'implicit_call_tearoffs',
+          name: LintNames.implicit_call_tearoffs,
           description: _desc,
         );
 

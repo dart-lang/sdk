@@ -15,7 +15,7 @@ const _desc = r"Don't do 'is' checks on DartTypes.";
 class EraseDartTypeExtensionTypes extends LintRule {
   EraseDartTypeExtensionTypes()
       : super(
-          name: 'erase_dart_type_extension_types',
+          name: LintNames.erase_dart_type_extension_types,
           description: _desc,
           state: State.internal(),
         );

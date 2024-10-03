@@ -12,7 +12,7 @@ const _desc =
 class AvoidReturningNull extends LintRule {
   AvoidReturningNull()
       : super(
-          name: 'avoid_returning_null',
+          name: LintNames.avoid_returning_null,
           description: _desc,
           state: State.removed(since: dart3_3),
         );

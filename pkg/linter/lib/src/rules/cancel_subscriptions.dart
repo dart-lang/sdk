@@ -14,7 +14,7 @@ const _desc = r'Cancel instances of `dart:async` `StreamSubscription`.';
 class CancelSubscriptions extends LintRule {
   CancelSubscriptions()
       : super(
-          name: 'cancel_subscriptions',
+          name: LintNames.cancel_subscriptions,
           description: _desc,
         );
 

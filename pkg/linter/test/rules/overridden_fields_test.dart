@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class OverriddenFieldsTest extends LintRuleTest {
   @override
-  String get lintRule => 'overridden_fields';
+  String get lintRule => LintNames.overridden_fields;
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

@@ -66,7 +66,7 @@ void main() {
 @reflectiveTest
 class DirectivesOrderingTest extends LintRuleTest {
   @override
-  String get lintRule => 'directives_ordering';
+  String get lintRule => LintNames.directives_ordering;
 
   test_partOrder_sorted() async {
     newFile('$testPackageLibPath/a.dart', r'''

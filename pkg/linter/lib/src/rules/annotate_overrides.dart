@@ -16,7 +16,7 @@ const _desc = r'Annotate overridden members.';
 class AnnotateOverrides extends LintRule {
   AnnotateOverrides()
       : super(
-          name: 'annotate_overrides',
+          name: LintNames.annotate_overrides,
           description: _desc,
         );
 

@@ -14,7 +14,7 @@ const _desc = r'Name source files using `lowercase_with_underscores`.';
 class FileNames extends LintRule {
   FileNames()
       : super(
-          name: 'file_names',
+          name: LintNames.file_names,
           description: _desc,
         );
 

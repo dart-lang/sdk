@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferInterpolationToComposeStringsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_interpolation_to_compose_strings';
+  String get lintRule => LintNames.prefer_interpolation_to_compose_strings;
 
   test_stringLiteral_stringLiteral() async {
     await assertNoDiagnostics(r'''

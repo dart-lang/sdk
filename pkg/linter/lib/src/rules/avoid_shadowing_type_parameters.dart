@@ -15,7 +15,7 @@ const _desc = r'Avoid shadowing type parameters.';
 class AvoidShadowingTypeParameters extends LintRule {
   AvoidShadowingTypeParameters()
       : super(
-          name: 'avoid_shadowing_type_parameters',
+          name: LintNames.avoid_shadowing_type_parameters,
           description: _desc,
         );
 

@@ -16,7 +16,7 @@ const _desc = r'Avoid defining unused parameters in constructors.';
 class AvoidUnusedConstructorParameters extends LintRule {
   AvoidUnusedConstructorParameters()
       : super(
-          name: 'avoid_unused_constructor_parameters',
+          name: LintNames.avoid_unused_constructor_parameters,
           description: _desc,
         );
 

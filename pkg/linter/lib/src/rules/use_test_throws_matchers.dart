@@ -14,7 +14,7 @@ const _desc = r'Use throwsA matcher instead of fail().';
 class UseTestThrowsMatchers extends LintRule {
   UseTestThrowsMatchers()
       : super(
-          name: 'use_test_throws_matchers',
+          name: LintNames.use_test_throws_matchers,
           description: _desc,
         );
 

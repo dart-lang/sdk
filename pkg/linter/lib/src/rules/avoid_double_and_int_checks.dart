@@ -14,7 +14,7 @@ const _desc = r'Avoid `double` and `int` checks.';
 class AvoidDoubleAndIntChecks extends LintRule {
   AvoidDoubleAndIntChecks()
       : super(
-          name: 'avoid_double_and_int_checks',
+          name: LintNames.avoid_double_and_int_checks,
           description: _desc,
         );
 

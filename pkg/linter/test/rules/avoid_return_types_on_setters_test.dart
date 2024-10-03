@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidReturnTypesOnSettersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_return_types_on_setters';
+  String get lintRule => LintNames.avoid_return_types_on_setters;
 
   test_implicitReturnType() async {
     await assertNoDiagnostics(r'''

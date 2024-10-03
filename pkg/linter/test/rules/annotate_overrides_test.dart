@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AnnotateOverridesTest extends LintRuleTest {
   @override
-  String get lintRule => 'annotate_overrides';
+  String get lintRule => LintNames.annotate_overrides;
 
   @FailingTest(
     reason:

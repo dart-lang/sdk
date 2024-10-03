@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryGettersSettersTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_getters_setters';
+  String get lintRule => LintNames.unnecessary_getters_setters;
 
   test_necessary_differentType() async {
     await assertNoDiagnostics(r'''

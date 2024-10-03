@@ -180,7 +180,7 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
 class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
   InvalidRuntimeCheckWithJSInteropTypes()
       : super(
-          name: 'invalid_runtime_check_with_js_interop_types',
+          name: LintNames.invalid_runtime_check_with_js_interop_types,
           description: _desc,
         );
 

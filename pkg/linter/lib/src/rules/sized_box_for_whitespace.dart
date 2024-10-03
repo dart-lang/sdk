@@ -14,7 +14,7 @@ const _desc = r'`SizedBox` for whitespace.';
 class SizedBoxForWhitespace extends LintRule {
   SizedBoxForWhitespace()
       : super(
-          name: 'sized_box_for_whitespace',
+          name: LintNames.sized_box_for_whitespace,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ConstantIdentifierNamesTest extends LintRuleTest {
   @override
-  String get lintRule => 'constant_identifier_names';
+  String get lintRule => LintNames.constant_identifier_names;
 
   test_augmentationEnum() async {
     newFile('$testPackageLibPath/a.dart', r'''

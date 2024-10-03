@@ -22,7 +22,7 @@ class AlwaysPutControlBodyOnNewLineTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'always_put_control_body_on_new_line';
+  String get lintRule => LintNames.always_put_control_body_on_new_line;
 
   test_doWhile_bodyAdjacent() async {
     await assertDiagnostics(r'''

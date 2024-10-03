@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidTypesOnClosureParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_types_on_closure_parameters';
+  String get lintRule => LintNames.avoid_types_on_closure_parameters;
 
   test_argument() async {
     await assertNoDiagnostics(r'''

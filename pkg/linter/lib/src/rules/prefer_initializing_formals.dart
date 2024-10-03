@@ -45,7 +45,7 @@ Element? _getRightElement(AssignmentExpression assignment) =>
 class PreferInitializingFormals extends LintRule {
   PreferInitializingFormals()
       : super(
-          name: 'prefer_initializing_formals',
+          name: LintNames.prefer_initializing_formals,
           description: _desc,
         );
 

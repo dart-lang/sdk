@@ -18,7 +18,7 @@ class UnreachableFromMainTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'unreachable_from_main';
+  String get lintRule => LintNames.unreachable_from_main;
 
   test_class_instanceField_reachable_matchedInPattern() async {
     await assertNoDiagnostics(r'''

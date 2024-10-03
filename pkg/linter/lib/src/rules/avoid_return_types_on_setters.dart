@@ -13,7 +13,7 @@ const _desc = r'Avoid return types on setters.';
 class AvoidReturnTypesOnSetters extends LintRule {
   AvoidReturnTypesOnSetters()
       : super(
-          name: 'avoid_return_types_on_setters',
+          name: LintNames.avoid_return_types_on_setters,
           description: _desc,
         );
 

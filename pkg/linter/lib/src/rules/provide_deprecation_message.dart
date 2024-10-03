@@ -13,7 +13,7 @@ const _desc = r'Provide a deprecation message, via `@Deprecated("message")`.';
 class ProvideDeprecationMessage extends LintRule {
   ProvideDeprecationMessage()
       : super(
-          name: 'provide_deprecation_message',
+          name: LintNames.provide_deprecation_message,
           description: _desc,
         );
 

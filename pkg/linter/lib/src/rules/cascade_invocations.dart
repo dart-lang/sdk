@@ -69,7 +69,7 @@ class CascadeInvocations extends LintRule {
   /// Default constructor.
   CascadeInvocations()
       : super(
-          name: 'cascade_invocations',
+          name: LintNames.cascade_invocations,
           description: _desc,
         );
 

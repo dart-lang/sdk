@@ -19,7 +19,7 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
 class PackagePrefixedLibraryNames extends LintRule {
   PackagePrefixedLibraryNames()
       : super(
-          name: 'package_prefixed_library_names',
+          name: LintNames.package_prefixed_library_names,
           description: _desc,
         );
 

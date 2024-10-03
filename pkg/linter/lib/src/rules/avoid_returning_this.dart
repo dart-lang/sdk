@@ -18,7 +18,7 @@ bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 class AvoidReturningThis extends LintRule {
   AvoidReturningThis()
       : super(
-          name: 'avoid_returning_this',
+          name: LintNames.avoid_returning_this,
           description: _desc,
         );
 

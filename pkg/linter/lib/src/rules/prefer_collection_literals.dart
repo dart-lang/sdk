@@ -17,7 +17,7 @@ const _desc = r'Use collection literals when possible.';
 class PreferCollectionLiterals extends LintRule {
   PreferCollectionLiterals()
       : super(
-          name: 'prefer_collection_literals',
+          name: LintNames.prefer_collection_literals,
           description: _desc,
         );
 

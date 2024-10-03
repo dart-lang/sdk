@@ -13,7 +13,7 @@ const _desc = r'Avoid relative imports for files in `lib/`.';
 class AvoidRelativeLibImports extends LintRule {
   AvoidRelativeLibImports()
       : super(
-          name: 'avoid_relative_lib_imports',
+          name: LintNames.avoid_relative_lib_imports,
           description: _desc,
         );
 

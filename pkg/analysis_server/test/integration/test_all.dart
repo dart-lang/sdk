@@ -11,7 +11,6 @@ import 'diagnostic/test_all.dart' as diagnostic;
 import 'dtd/test_all.dart' as dtd;
 import 'edit/test_all.dart' as edit;
 import 'execution/test_all.dart' as execution;
-import 'linter/test_all.dart' as linter;
 import 'lsp/test_all.dart' as lsp;
 import 'lsp_server/test_all.dart' as lsp_server;
 import 'search/test_all.dart' as search;
@@ -26,7 +25,6 @@ void main() {
     dtd.main();
     edit.main();
     execution.main();
-    linter.main();
     lsp.main();
     lsp_server.main();
     search.main();

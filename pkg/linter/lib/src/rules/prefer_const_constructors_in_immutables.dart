@@ -17,7 +17,7 @@ const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
       : super(
-          name: 'prefer_const_constructors_in_immutables',
+          name: LintNames.prefer_const_constructors_in_immutables,
           description: _desc,
         );
 

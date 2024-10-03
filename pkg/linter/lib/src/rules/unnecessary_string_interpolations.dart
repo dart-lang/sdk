@@ -14,7 +14,7 @@ const _desc = r'Unnecessary string interpolation.';
 class UnnecessaryStringInterpolations extends LintRule {
   UnnecessaryStringInterpolations()
       : super(
-          name: 'unnecessary_string_interpolations',
+          name: LintNames.unnecessary_string_interpolations,
           description: _desc,
         );
 

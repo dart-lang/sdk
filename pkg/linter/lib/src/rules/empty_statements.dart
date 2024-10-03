@@ -13,7 +13,7 @@ const _desc = r'Avoid empty statements.';
 class EmptyStatements extends LintRule {
   EmptyStatements()
       : super(
-          name: 'empty_statements',
+          name: LintNames.empty_statements,
           description: _desc,
         );
 

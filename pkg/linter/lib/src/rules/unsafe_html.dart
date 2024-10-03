@@ -16,7 +16,7 @@ const _descPrefix = r'Avoid unsafe HTML APIs';
 class UnsafeHtml extends LintRule {
   UnsafeHtml()
       : super(
-          name: 'unsafe_html',
+          name: LintNames.unsafe_html,
           description: _desc,
         );
 

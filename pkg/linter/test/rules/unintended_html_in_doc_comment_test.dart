@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnintendedHtmlInDocCommentTest extends LintRuleTest {
   @override
-  String get lintRule => 'unintended_html_in_doc_comment';
+  String get lintRule => LintNames.unintended_html_in_doc_comment;
 
   test_autolink() async {
     await assertNoDiagnostics(r'''

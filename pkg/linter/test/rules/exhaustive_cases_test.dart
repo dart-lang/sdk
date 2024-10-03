@@ -25,7 +25,7 @@ void ae(ActualEnum e) {
 ''';
 
   @override
-  String get lintRule => 'exhaustive_cases';
+  String get lintRule => LintNames.exhaustive_cases;
 
   test_enumLike() async {
     await assertDiagnostics(r'''

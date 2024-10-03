@@ -11,7 +11,7 @@ const _desc = r'Avoid overriding a final field to return '
 class AvoidUnstableFinalFields extends LintRule {
   AvoidUnstableFinalFields()
       : super(
-            name: 'avoid_unstable_final_fields',
+            name: LintNames.avoid_unstable_final_fields,
             description: _desc,
             state: State.removed());
 

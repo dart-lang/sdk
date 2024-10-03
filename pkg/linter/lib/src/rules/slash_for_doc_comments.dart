@@ -22,7 +22,7 @@ bool isJavaStyle(Comment comment) {
 class SlashForDocComments extends LintRule {
   SlashForDocComments()
       : super(
-          name: 'slash_for_doc_comments',
+          name: LintNames.slash_for_doc_comments,
           description: _desc,
         );
 

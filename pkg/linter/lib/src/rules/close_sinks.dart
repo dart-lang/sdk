@@ -14,7 +14,7 @@ const _desc = r'Close instances of `dart:core` `Sink`.';
 class CloseSinks extends LintRule {
   CloseSinks()
       : super(
-          name: 'close_sinks',
+          name: LintNames.close_sinks,
           description: _desc,
         );
 

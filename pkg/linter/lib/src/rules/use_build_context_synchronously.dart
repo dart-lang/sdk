@@ -904,7 +904,7 @@ class ProtectedFunction {
 class UseBuildContextSynchronously extends LintRule {
   UseBuildContextSynchronously()
       : super(
-          name: 'use_build_context_synchronously',
+          name: LintNames.use_build_context_synchronously,
           description: _desc,
           state: State.stable(since: Version(3, 2, 0)),
         );

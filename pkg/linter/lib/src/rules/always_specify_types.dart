@@ -18,15 +18,15 @@ const _desc = r'Specify type annotations.';
 class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
       : super(
-          name: 'always_specify_types',
+          name: LintNames.always_specify_types,
           description: _desc,
         );
 
   @override
   List<String> get incompatibleRules => const [
-        'avoid_types_on_closure_parameters',
-        'omit_local_variable_types',
-        'omit_obvious_local_variable_types',
+        LintNames.avoid_types_on_closure_parameters,
+        LintNames.omit_local_variable_types,
+        LintNames.omit_obvious_local_variable_types,
       ];
 
   @override

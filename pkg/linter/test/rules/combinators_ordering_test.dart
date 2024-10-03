@@ -19,7 +19,7 @@ class CombinatorsOrderingTest extends LintRuleTest {
   List<AnalyzerErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_IMPORT];
 
   @override
-  String get lintRule => 'combinators_ordering';
+  String get lintRule => LintNames.combinators_ordering;
 
   test_hideCombinator_import_sorted() async {
     await assertNoDiagnostics(r'''

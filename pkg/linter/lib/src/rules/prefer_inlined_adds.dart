@@ -13,7 +13,7 @@ const _desc = r'Inline list item declarations where possible.';
 class PreferInlinedAdds extends LintRule {
   PreferInlinedAdds()
       : super(
-          name: 'prefer_inlined_adds',
+          name: LintNames.prefer_inlined_adds,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidTypesAsParameterNamesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_types_as_parameter_names';
+  String get lintRule => LintNames.avoid_types_as_parameter_names;
 
   test_catchClauseParameter() async {
     await assertDiagnostics(r'''

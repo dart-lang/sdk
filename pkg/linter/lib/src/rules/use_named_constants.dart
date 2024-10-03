@@ -11,14 +11,12 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
 
-const lintName = 'use_named_constants';
-
 const _desc = r'Use predefined named constants.';
 
 class UseNamedConstants extends LintRule {
   UseNamedConstants()
       : super(
-          name: lintName,
+          name: LintNames.use_named_constants,
           description: _desc,
         );
 

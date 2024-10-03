@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class TypeAnnotatePublicApisTest extends LintRuleTest {
   @override
-  String get lintRule => 'type_annotate_public_apis';
+  String get lintRule => LintNames.type_annotate_public_apis;
 
   test_augmentationClass_field() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

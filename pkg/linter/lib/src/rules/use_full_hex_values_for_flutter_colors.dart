@@ -16,7 +16,7 @@ const _desc =
 class UseFullHexValuesForFlutterColors extends LintRule {
   UseFullHexValuesForFlutterColors()
       : super(
-          name: 'use_full_hex_values_for_flutter_colors',
+          name: LintNames.use_full_hex_values_for_flutter_colors,
           description: _desc,
         );
 

@@ -18,7 +18,7 @@ class PreferConstLiteralsToCreateImmutablesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'prefer_const_literals_to_create_immutables';
+  String get lintRule => LintNames.prefer_const_literals_to_create_immutables;
 
   test_boolFromEnvironment() async {
     await assertNoDiagnostics(r'''

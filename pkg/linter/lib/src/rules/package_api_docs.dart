@@ -13,7 +13,7 @@ const _desc = r'Provide doc comments for all public APIs.';
 class PackageApiDocs extends LintRule {
   PackageApiDocs()
       : super(
-          name: 'package_api_docs',
+          name: LintNames.package_api_docs,
           description: _desc,
         );
 
