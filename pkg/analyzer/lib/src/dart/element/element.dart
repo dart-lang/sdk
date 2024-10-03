@@ -5825,6 +5825,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get identifier => '${_definingCompilationUnit.source.uri}';
 
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   @override
   List<LibraryElementImpl> get importedLibraries {
     return libraryImports

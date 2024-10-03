@@ -2,6 +2,7 @@
 * Deprecated `LibraryElement.accessibleExtensions`, use
   `CompilationUnitElement.accessibleExtensions` instead.
 * Deprecated `LibraryElement.exportedLibraries`.
+* Deprecated `LibraryElement.importedLibraries`.
 * Deprecated `LibraryElement.isBrowserApplication`.
 
 ## 6.9.0

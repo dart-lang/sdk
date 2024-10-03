@@ -7,7 +7,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -117,7 +118,7 @@ class CiderCompletionComputer {
           _logger.run('Add imported suggestions', () {
             suggestions.addAll(
               _importedLibrariesSuggestions(
-                target: resolvedUnit.libraryElement,
+                target: resolvedUnit.unitElement,
                 performance: performance,
               ),
             );
@@ -166,7 +167,7 @@ class CiderCompletionComputer {
   // TODO(scheglov): Implement show / hide combinators.
   // TODO(scheglov): Implement prefixes.
   List<CompletionSuggestionBuilder> _importedLibrariesSuggestions({
-    required LibraryElement target,
+    required CompilationUnitElement target,
     required OperationPerformanceImpl performance,
   }) {
     var suggestionBuilders = <CompletionSuggestionBuilder>[];
@@ -261,4 +262,24 @@ class _CiderImportedLibrarySuggestions {
   final List<CompletionSuggestionBuilder> suggestionBuilders;
 
   _CiderImportedLibrarySuggestions(this.signature, this.suggestionBuilders);
+}
+
+extension on CompilationUnitElement {
+  Set<LibraryElement> get importedLibraries {
+    var result = <LibraryElement>{};
+    var current = this;
+    while (true) {
+      result.addAll(
+        current.libraryImports
+            .map((libraryImport) => libraryImport.importedLibrary)
+            .nonNulls,
+      );
+      if (current.enclosingElement3 case var enclosing?) {
+        current = enclosing;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
 }

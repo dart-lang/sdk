@@ -1924,6 +1924,7 @@ abstract class LibraryElement
   ///
   /// This includes all of the libraries that are imported using a prefix, and
   /// those that are imported without a prefix.
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   List<LibraryElement> get importedLibraries;
 
   /// Whether the library is an application that can be run in the browser.
