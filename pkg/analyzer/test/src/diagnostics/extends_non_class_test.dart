@@ -207,6 +207,64 @@ ExtendsClause
 ''');
   }
 
+  test_undefined_ignore_import_prefix_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'x.dart' as p;
+part 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+part of 'a.dart';
+class C extends p.A {}
+''');
+
+    var node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: package:test/a.dart::<fragment>::@prefix::p
+      element2: package:test/a.dart::<fragment>::@prefix2::p
+    name: A
+    element: <null>
+    element2: <null>
+    type: InvalidType
+''');
+  }
+
+  test_undefined_ignore_import_prefix_part2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+part of 'a.dart';
+import 'x.dart' as p;
+class C extends p.A {}
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
+    ]);
+
+    var node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: package:test/a.dart::@fragment::package:test/test.dart::@prefix::p
+      element2: package:test/a.dart::@fragment::package:test/test.dart::@prefix2::p
+    name: A
+    element: <null>
+    element2: <null>
+    type: InvalidType
+''');
+  }
+
   test_undefined_ignore_import_show_it() async {
     await assertErrorsInCode(r'''
 import 'a.dart' show A;
@@ -214,6 +272,70 @@ import 'a.dart' show A;
 class C extends A {}
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
+    ]);
+  }
+
+  test_undefined_ignore_import_show_it_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+import 'x.dart' show A;
+''');
+
+    await assertNoErrorsInCode(r'''
+part of 'a.dart';
+class C extends A {}
+''');
+  }
+
+  test_undefined_ignore_import_show_it_part2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+part of 'a.dart';
+import 'x.dart' show A;
+class C extends A {}
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
+    ]);
+  }
+
+  test_undefined_ignore_import_show_it_part3() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'x.dart' show A;
+part 'test.dart';
+''');
+
+    // This file is on the path with `b.dart`, so no error.
+    await assertNoErrorsInCode(r'''
+part of 'b.dart';
+class C extends A {}
+''');
+  }
+
+  test_undefined_ignore_import_show_it_part4() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'test.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'x.dart' show A;
+''');
+
+    // This file is not on the path with `b.dart`, so the error.
+    await assertErrorsInCode(r'''
+part of 'a.dart';
+class C extends A {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1),
     ]);
   }
 

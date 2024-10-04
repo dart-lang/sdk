@@ -42,6 +42,9 @@ class MethodInvocationResolver with ScopeHelpers {
   /// The URI of [_definingLibrary].
   final Uri _definingLibraryUri;
 
+  /// The library fragment of the compilation unit being visited.
+  final CompilationUnitElementImpl _libraryFragment;
+
   /// The object providing promoted or declared types of variables.
   final LocalVariableTypeProvider _localVariableTypeProvider;
 
@@ -63,6 +66,7 @@ class MethodInvocationResolver with ScopeHelpers {
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
+        _libraryFragment = _resolver.libraryFragment,
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
         _extensionResolver = _resolver.extensionResolver,
         _inferenceHelper = inferenceHelper;
@@ -294,7 +298,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
 
-    if (_definingLibrary.shouldIgnoreUndefined(prefix: prefix, name: name)) {
+    if (_libraryFragment.shouldIgnoreUndefined(prefix: prefix, name: name)) {
       return;
     }
 

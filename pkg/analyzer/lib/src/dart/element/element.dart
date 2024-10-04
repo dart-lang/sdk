@@ -1173,6 +1173,78 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     this.linkedData = linkedData;
   }
 
+  /// Indicates whether it is unnecessary to report an undefined identifier
+  /// error for an identifier reference with the given [name] and optional
+  /// [prefix].
+  ///
+  /// This method is intended to reduce spurious errors in circumstances where
+  /// an undefined identifier occurs as the result of a missing (most likely
+  /// code generated) file.  It will only return `true` in a circumstance where
+  /// the current library is guaranteed to have at least one other error (due to
+  /// a missing part or import), so there is no risk that ignoring the undefined
+  /// identifier would cause an invalid program to be treated as valid.
+  bool shouldIgnoreUndefined({
+    required String? prefix,
+    required String name,
+  }) {
+    for (var libraryFragment in withEnclosing) {
+      for (var importElement in libraryFragment.libraryImports) {
+        if (importElement.prefix?.element.name == prefix &&
+            importElement.importedLibrary?.isSynthetic != false) {
+          var showCombinators = importElement.combinators
+              .whereType<ShowElementCombinator>()
+              .toList();
+          if (prefix != null && showCombinators.isEmpty) {
+            return true;
+          }
+          for (var combinator in showCombinators) {
+            if (combinator.shownNames.contains(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in parts) {
+        var uri = partElement.uri;
+        if (uri is DirectiveUriWithSource &&
+            uri is! DirectiveUriWithUnit &&
+            file_paths.isGenerated(uri.relativeUriString)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) identifier [node].
+  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
+    if (node is PrefixedIdentifier) {
+      return shouldIgnoreUndefined(
+        prefix: node.prefix.name,
+        name: node.identifier.name,
+      );
+    }
+
+    return shouldIgnoreUndefined(
+      prefix: null,
+      name: (node as SimpleIdentifier).name,
+    );
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) named type [node].
+  bool shouldIgnoreUndefinedNamedType(NamedType node) {
+    return shouldIgnoreUndefined(
+      prefix: node.importPrefix?.name.lexeme,
+      name: node.name2.lexeme,
+    );
+  }
+
   List<PrefixElementImpl> _buildLibraryImportPrefixes() {
     var prefixes = <PrefixElementImpl>{};
     for (var import in libraryImports) {
@@ -6099,76 +6171,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     for (var fragment in units) {
       fragment._scope = null;
     }
-  }
-
-  /// Indicates whether it is unnecessary to report an undefined identifier
-  /// error for an identifier reference with the given [name] and optional
-  /// [prefix].
-  ///
-  /// This method is intended to reduce spurious errors in circumstances where
-  /// an undefined identifier occurs as the result of a missing (most likely
-  /// code generated) file.  It will only return `true` in a circumstance where
-  /// the current library is guaranteed to have at least one other error (due to
-  /// a missing part or import), so there is no risk that ignoring the undefined
-  /// identifier would cause an invalid program to be treated as valid.
-  bool shouldIgnoreUndefined({
-    required String? prefix,
-    required String name,
-  }) {
-    for (var importElement in libraryImports) {
-      if (importElement.prefix?.element.name == prefix &&
-          importElement.importedLibrary?.isSynthetic != false) {
-        var showCombinators = importElement.combinators
-            .whereType<ShowElementCombinator>()
-            .toList();
-        if (prefix != null && showCombinators.isEmpty) {
-          return true;
-        }
-        for (var combinator in showCombinators) {
-          if (combinator.shownNames.contains(name)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    if (prefix == null && name.startsWith(r'_$')) {
-      for (var partElement in parts) {
-        var uri = partElement.uri;
-        if (uri is DirectiveUriWithSource &&
-            uri is! DirectiveUriWithUnit &&
-            file_paths.isGenerated(uri.relativeUriString)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
-  /// given (possibly prefixed) identifier [node].
-  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
-    if (node is PrefixedIdentifier) {
-      return shouldIgnoreUndefined(
-        prefix: node.prefix.name,
-        name: node.identifier.name,
-      );
-    }
-
-    return shouldIgnoreUndefined(
-      prefix: null,
-      name: (node as SimpleIdentifier).name,
-    );
-  }
-
-  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
-  /// given (possibly prefixed) named type [node].
-  bool shouldIgnoreUndefinedNamedType(NamedType node) {
-    return shouldIgnoreUndefined(
-      prefix: node.importPrefix?.name.lexeme,
-      name: node.name2.lexeme,
-    );
   }
 
   @Deprecated('Only non-nullable by default mode is supported')
