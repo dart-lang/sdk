@@ -17,6 +17,7 @@ lib/src/rules/avoid_final_parameters.dart
 lib/src/rules/avoid_function_literals_in_foreach_calls.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
+lib/src/rules/avoid_print.dart
 lib/src/rules/avoid_private_typedef_functions.dart
 lib/src/rules/avoid_relative_lib_imports.dart
 lib/src/rules/avoid_return_types_on_setters.dart
@@ -72,11 +73,13 @@ lib/src/rules/no_duplicate_case_values.dart
 lib/src/rules/no_leading_underscores_for_library_prefixes.dart
 lib/src/rules/no_leading_underscores_for_local_identifiers.dart
 lib/src/rules/no_literal_bool_comparisons.dart
+lib/src/rules/no_runtimeType_toString.dart
 lib/src/rules/no_self_assignments.dart
 lib/src/rules/no_wildcard_variable_uses.dart
 lib/src/rules/non_constant_identifier_names.dart
 lib/src/rules/noop_primitive_operations.dart
 lib/src/rules/null_check_on_nullable_type_parameter.dart
+lib/src/rules/null_closures.dart
 lib/src/rules/omit_obvious_local_variable_types.dart
 lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
@@ -93,6 +96,7 @@ lib/src/rules/prefer_contains.dart
 lib/src/rules/prefer_double_quotes.dart
 lib/src/rules/prefer_equal_for_default_values.dart
 lib/src/rules/prefer_expression_function_bodies.dart
+lib/src/rules/prefer_for_elements_to_map_fromIterable.dart
 lib/src/rules/prefer_generic_function_type_aliases.dart
 lib/src/rules/prefer_if_elements_to_conditional_expressions.dart
 lib/src/rules/prefer_if_null_operators.dart
