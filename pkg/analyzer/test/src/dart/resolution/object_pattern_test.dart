@@ -190,7 +190,7 @@ ObjectPattern
         declaredElement: hasImplicitType foo2@90
           type: int
         matchedValueType: int
-      element: PropertyAccessorMember
+      element: GetterMember
         base: <testLibraryFragment>::@class::A::@getter::foo
         substitution: {T: int}
       element2: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -1279,7 +1279,7 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@32
             type: int
           matchedValueType: int
-        element: PropertyAccessorMember
+        element: GetterMember
           base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: int}
         element2: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -1338,7 +1338,7 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@29
             type: int
           matchedValueType: int
-        element: PropertyAccessorMember
+        element: GetterMember
           base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: int}
         element2: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -1404,7 +1404,7 @@ PatternVariableDeclaration
           declaredElement: a@28
             type: int
           matchedValueType: dynamic
-        element: PropertyAccessorMember
+        element: GetterMember
           base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: dynamic}
         element2: <testLibraryFragment>::@class::A::@getter::foo#element

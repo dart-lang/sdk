@@ -3888,14 +3888,14 @@ redeclared
       base: <testLibraryFragment>::@extensionType::A::@method::foo
       substitution: {T: int}
   it
-    PropertyAccessorMember
+    GetterMember
       base: <testLibraryFragment>::@extensionType::A::@getter::it
       substitution: {T: int}
 inheritedMap
   foo: MethodMember
     base: <testLibraryFragment>::@extensionType::A::@method::foo
     substitution: {T: int}
-  it: PropertyAccessorMember
+  it: GetterMember
     base: <testLibraryFragment>::@extensionType::A::@getter::it
     substitution: {T: int}
 ''');

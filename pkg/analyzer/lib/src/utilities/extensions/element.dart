@@ -149,6 +149,10 @@ extension ElementOrNullExtension on Element? {
       return self.declaration.asElement2;
     } else if (self is PrefixElementImpl) {
       return self.element2;
+    } else if (self is ExecutableMember) {
+      return self as ExecutableElement2;
+    } else if (self is FieldMember) {
+      return self as FieldElement2;
     } else {
       return (self as Fragment?)?.element;
     }

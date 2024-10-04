@@ -1444,7 +1444,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
+    staticElement: GetterMember
       base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@getter::foo
       augmentationSubstitution: {U2: U1}
       substitution: {U1: int}
@@ -1505,7 +1505,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
+    staticElement: GetterMember
       base: <testLibraryFragment>::@extension::BiRecordExtension::@getter::foo
       substitution: {T: int, U: String}
     element: <testLibraryFragment>::@extension::BiRecordExtension::@getter::foo#element

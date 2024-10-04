@@ -10688,7 +10688,6 @@ library
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
-          getter: <testLibraryFragment>::@enum::A::@getter::v#element
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
@@ -13593,8 +13592,8 @@ library
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
-augment enum A<T2> {;
-  final T2 foo2;
+augment enum A<T1> {;
+  final T1 foo2;
 }
 ''');
 
@@ -13680,7 +13679,7 @@ library
               <testLibraryFragment>::@enum::A::@field::foo1
               FieldMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
               <testLibraryFragment>::@enum::A::@field::v
               <testLibraryFragment>::@enum::A::@field::values
             constants
@@ -13689,9 +13688,9 @@ library
               <testLibraryFragment>::@enum::A::@constructor::new
             accessors
               <testLibraryFragment>::@enum::A::@getter::foo1
-              PropertyAccessorMember
+              GetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
@@ -13701,21 +13700,21 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @36
+            covariant T1 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
             final foo2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              type: T2
+              type: T1
               id: field_3
               getter: getter_3
           accessors
             synthetic get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              returnType: T2
+              returnType: T1
               id: getter_3
               variable: field_3
 ----------------------------------------
@@ -13769,7 +13768,7 @@ library
           element: <testLibraryFragment>::@enum::A#element
           previousFragment: <testLibraryFragment>::@enum::A
           typeParameters
-            T2 @36
+            T1 @36
               element: <not-implemented>
           fields
             foo2 @54
@@ -13801,7 +13800,7 @@ library
           getter: <testLibraryFragment>::@enum::A::@getter::foo1#element
         final foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-          type: T2
+          type: T1
           getter: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2#element
       constructors
         synthetic const new
@@ -14401,8 +14400,8 @@ library
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
-augment enum A<T2> {;
-  T2 get foo2;
+augment enum A<T1> {;
+  T1 get foo2;
 }
 ''');
 
@@ -14488,7 +14487,7 @@ library
               <testLibraryFragment>::@enum::A::@field::foo1
               FieldMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
               <testLibraryFragment>::@enum::A::@field::v
               <testLibraryFragment>::@enum::A::@field::values
             constants
@@ -14497,9 +14496,9 @@ library
               <testLibraryFragment>::@enum::A::@constructor::new
             accessors
               <testLibraryFragment>::@enum::A::@getter::foo1
-              PropertyAccessorMember
+              GetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
               <testLibraryFragment>::@enum::A::@getter::v
               <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
@@ -14509,21 +14508,21 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @36
+            covariant T1 @36
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@enum::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              type: T2
+              type: T1
               id: field_3
               getter: getter_3
           accessors
             abstract get foo2 @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
-              returnType: T2
+              returnType: T1
               id: getter_3
               variable: field_3
 ----------------------------------------
@@ -14577,7 +14576,7 @@ library
           element: <testLibraryFragment>::@enum::A#element
           previousFragment: <testLibraryFragment>::@enum::A
           typeParameters
-            T2 @36
+            T1 @36
               element: <not-implemented>
           fields
             foo2 @-1
@@ -14609,7 +14608,7 @@ library
           getter: <testLibraryFragment>::@enum::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
-          type: T2
+          type: T1
           getter: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2#element
       constructors
         synthetic const new

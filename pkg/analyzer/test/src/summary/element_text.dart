@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
@@ -447,6 +448,9 @@ class _Element2Writer extends _AbstractElementWriter {
             // throws an exception (because it doesn't have an enclosing
             // element, only an enclosing fragment).
           } else {
+            if (expectedEnclosingElement is Member) {
+              expectedEnclosingElement = expectedEnclosingElement.baseElement!;
+            }
             expect(element.enclosingElement2, expectedEnclosingElement);
           }
           write(element);
@@ -536,8 +540,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeElementReference('getter', e.getter);
-      _writeElementReference('setter', e.setter);
+      _writeElementReference('getter', e.getter2);
+      _writeElementReference('setter', e.setter2);
     });
   }
 
@@ -833,7 +837,10 @@ class _Element2Writer extends _AbstractElementWriter {
       if (variableEnclosing is LibraryElement2) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
       } else if (variableEnclosing is InterfaceElement2) {
-        expect(variableEnclosing.fields2, contains(variable));
+        // TODO(augmentations): Remove the invocations of `field.baseElement`.
+        //  There shouldn't be any members in the list of fields.
+        expect(variableEnclosing.fields2.map((field) => field.baseElement),
+            contains(variable.baseElement));
       }
     }
 
@@ -1605,7 +1612,10 @@ class _Element2Writer extends _AbstractElementWriter {
       if (variableEnclosing is LibraryElement2) {
         expect(variableEnclosing.topLevelVariables, contains(variable));
       } else if (variableEnclosing is InterfaceElement2) {
-        expect(variableEnclosing.fields2, contains(variable));
+        // TODO(augmentations): Remove the invocations of `field.baseElement`.
+        //  There shouldn't be any members in the list of fields.
+        expect(variableEnclosing.fields2.map((field) => field.baseElement),
+            contains(variable.baseElement));
       }
     }
 
@@ -1811,7 +1821,7 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(type, isNotNull);
 
     if (!e.isSynthetic) {
-      expect(e.getter, isNotNull);
+      expect(e.getter2, isNotNull);
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -1852,8 +1862,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeMacroDiagnostics(e);
-      _writeElementReference('getter', e.getter);
-      _writeElementReference('setter', e.setter);
+      _writeElementReference('getter', e.getter2);
+      _writeElementReference('setter', e.setter2);
     });
   }
 

@@ -5808,8 +5808,8 @@ library
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
-augment extension type A<T2>(int it) {
-  T2 get foo2;
+augment extension type A<T1>(int it) {
+  T1 get foo2;
 }
 ''');
 
@@ -5885,15 +5885,15 @@ library
               <testLibraryFragment>::@extensionType::A::@field::foo1
               FieldMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
               <testLibraryFragment>::@extensionType::A::@field::it
             constructors
               <testLibraryFragment>::@extensionType::A::@constructor::new
             accessors
               <testLibraryFragment>::@extensionType::A::@getter::foo1
-              PropertyAccessorMember
+              GetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
               <testLibraryFragment>::@extensionType::A::@getter::it
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
@@ -5902,21 +5902,21 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @46
+            covariant T1 @46
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@extensionType::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-              type: T2
+              type: T1
               id: field_2
               getter: getter_2
           accessors
             abstract get foo2 @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-              returnType: T2
+              returnType: T1
               id: getter_2
               variable: field_2
 ----------------------------------------
@@ -5966,7 +5966,7 @@ library
           element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
-            T2 @46
+            T1 @46
               element: <not-implemented>
           fields
             foo2 @-1
@@ -5994,7 +5994,7 @@ library
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-          type: T2
+          type: T1
           getter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
       constructors
         new

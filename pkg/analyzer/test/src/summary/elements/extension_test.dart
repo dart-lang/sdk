@@ -2246,7 +2246,7 @@ library
                 augmentationSubstitution: {T2: T1}
             accessors
               <testLibraryFragment>::@extension::A::@getter::foo1
-              PropertyAccessorMember
+              GetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
                 augmentationSubstitution: {T2: T1}
     <testLibrary>::@fragment::package:test/a.dart
@@ -2329,7 +2329,7 @@ library
           getter: <testLibraryFragment>::@extension::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-          type: T2
+          type: T1
           getter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
       getters
         abstract get foo1

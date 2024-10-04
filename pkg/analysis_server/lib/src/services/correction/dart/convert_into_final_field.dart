@@ -59,7 +59,7 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
     }
 
     // Check that there is no corresponding setter.
-    if (variable.setter != null) {
+    if (variable.setter2 != null) {
       return;
     }
 

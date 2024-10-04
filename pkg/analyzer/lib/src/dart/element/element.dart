@@ -3918,7 +3918,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
       (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override
-  GetterElement? get getter => firstFragment.getter?.element as GetterElement?;
+  GetterElement? get getter2 => firstFragment.getter?.element as GetterElement?;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -3957,7 +3957,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   String get name => firstFragment.name;
 
   @override
-  SetterElement? get setter => firstFragment.setter?.element as SetterElement?;
+  SetterElement? get setter2 => firstFragment.setter?.element as SetterElement?;
 
   @override
   DartType get type => firstFragment.type;
@@ -6824,7 +6824,7 @@ mixin MaybeAugmentedInstanceElementMixin
 
   @override
   List<FieldElement2> get fields2 =>
-      fields.map((e) => (e as FieldFragment).element).toList();
+      fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
 
   @override
   InstanceFragment get firstFragment => declaration;
@@ -6832,8 +6832,8 @@ mixin MaybeAugmentedInstanceElementMixin
   @override
   List<GetterElement> get getters2 => accessors
       .where((e) => e.isGetter)
-      .map((e) => (e as GetterFragment).element)
-      .cast<GetterElement>()
+      .map((e) => e.asElement2 as GetterElement?)
+      .nonNulls
       .toList();
 
   @override
@@ -6949,7 +6949,7 @@ mixin MaybeAugmentedInstanceElementMixin
 
   @override
   List<MethodElement2> get methods2 =>
-      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+      methods.map((e) => e.asElement2 as MethodElement2?).nonNulls.toList();
 
   @override
   String? get name => declaration.name;
@@ -6964,8 +6964,8 @@ mixin MaybeAugmentedInstanceElementMixin
   @override
   List<SetterElement> get setters2 => accessors
       .where((e) => e.isSetter)
-      .map((e) => (e as SetterFragment).element)
-      .cast<SetterElement>()
+      .map((e) => e.asElement2 as SetterElement?)
+      .nonNulls
       .toList();
 
   @override
@@ -9462,7 +9462,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
       firstFragment.library as LibraryElement2;
 
   @override
-  GetterElement? get getter => firstFragment.getter2?.element as GetterElement?;
+  GetterElement? get getter2 =>
+      firstFragment.getter2?.element as GetterElement?;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -9489,7 +9490,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   String get name => firstFragment.name;
 
   @override
-  SetterElement? get setter => firstFragment.setter2?.element as SetterElement?;
+  SetterElement? get setter2 =>
+      firstFragment.setter2?.element as SetterElement?;
 
   @override
   DartType get type => firstFragment.type;

@@ -2973,7 +2973,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: PropertyAccessorMember
+      staticElement: GetterMember
         base: <testLibraryFragment>::@class::C::@getter::foo
         substitution: {T: void}
       element: <testLibraryFragment>::@class::C::@getter::foo#element
