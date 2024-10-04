@@ -210,6 +210,12 @@ monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engin
 monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
 monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
 monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
+monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", "flutter-web")
+monorepo_builder(
+    "flutter-linux-web_tests-test_bundles-dart2wasm-skwasm-ui",
+    "skwasm-ui-tests",
+    "flutter-web",
+)
 
 def monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
     dart.ci_sandbox_builder(
