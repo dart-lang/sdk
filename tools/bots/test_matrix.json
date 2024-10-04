@@ -2119,7 +2119,7 @@
             "-nddc-${system}-firefox",
             "co19/Language"
           ],
-          "shards": 6,
+          "shards": 3,
           "fileset": "js_platform"
         },
         {
@@ -2128,7 +2128,7 @@
             "-nddc-${system}-firefox",
             "co19/LanguageFeatures"
           ],
-          "shards": 6,
+          "shards": 3,
           "fileset": "js_platform"
         },
         {
@@ -2137,7 +2137,7 @@
             "-nddc-${system}-firefox",
             "co19/LibTest"
           ],
-          "shards": 6,
+          "shards": 3,
           "fileset": "js_platform"
         },
         {
@@ -2146,7 +2146,7 @@
             "-nddc-${system}-firefox",
             "co19/TypeSystem"
           ],
-          "shards": 6,
+          "shards": 3,
           "fileset": "js_platform"
         },
         {
@@ -2155,7 +2155,7 @@
             "-nddc-${system}-firefox",
             "co19/Utils"
           ],
-          "shards": 6,
+          "shards": 3,
           "fileset": "js_platform"
         }
       ]
