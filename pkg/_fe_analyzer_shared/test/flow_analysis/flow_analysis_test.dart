@@ -1434,7 +1434,6 @@ main() {
         getSsaNodes((nodes) {
           var info = nodes[x]!.expressionInfo!;
           var key = h.promotionKeyStore.keyForVariable(y);
-          expect(info.after.promotionInfo!.get(h, key)!.promotedTypes, null);
           expect(info.ifTrue.promotionInfo!.get(h, key)!.promotedTypes, null);
           expect(
               info.ifFalse.promotionInfo!
@@ -11371,7 +11370,7 @@ extension on FlowModel<SharedTypeView<Type>> {
           FlowAnalysisTestHarness h, Var variable) =>
       new TrivialVariableReference<SharedTypeView<Type>>(
           promotionKey: _varRef(h, variable),
-          after: this,
+          model: this,
           type: promotionInfo
                   ?.get(h, h.promotionKeyStore.keyForVariable(variable))
                   ?.promotedTypes

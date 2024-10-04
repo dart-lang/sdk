@@ -3344,21 +3344,17 @@ Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 /**
  * Callback provided by the embedder that is used by the VM to resolve asset
  * paths.
- * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
- * fail.
  *
  * The VM is responsible for looking up the asset path with the asset id in the
- * kernel mapping.
- * The embedder is responsible for providing the asset mapping during kernel
- * compilation and using the asset path to return a library handle in this
- * function.
+ * kernel mapping. The embedder is responsible for providing the asset mapping
+ * during kernel compilation and using the asset path to return a library handle
+ * in this function.
  *
  * \param path The string in the asset path as passed in native_assets.yaml
  *             during kernel compilation.
  *
- * \param error Returns NULL if creation is successful, an error message
- *   otherwise. The caller is responsible for calling free() on the error
- *   message.
+ * \param error Returns NULL if successful, an error message otherwise. The
+ *   caller is responsible for calling free() on the error message.
  *
  * \return The library handle. If |error| is not-null, the return value is
  *         undefined.
@@ -3366,6 +3362,38 @@ Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 typedef void* (*Dart_NativeAssetsDlopenCallback)(const char* path,
                                                  char** error);
 typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
+
+/**
+ * Callback provided by the embedder that is used by the VM to resolve asset
+ * ids.
+ *
+ * The embedder can freely chose how to bundle asset id to asset path mappings
+ * and how to perform this lookup.
+ *
+ * If the embedder provides this callback, it must also provide
+ * `Dart_NativeAssetsAvailableAssets`.
+ *
+ * If provided, takes prescedence over `Dart_NativeAssetsDlopenCallback`.
+ *
+ * \param path The asset id requested in the `@Native` external function.
+ *
+ * \param error Returns NULL if successful, an error message otherwise. The
+ *   caller is responsible for calling free() on the error message.
+ *
+ * \return The library handle. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlopenAssetId)(const char* asset_id,
+                                                char** error);
+
+/**
+ * Callback provided by the embedder that is used  by the VM to request a
+ * description of the available assets
+ *
+ * \return A malloced string containing all asset ids. The caller must free this
+ *   string.
+ */
+typedef char* (*Dart_NativeAssetsAvailableAssets)();
 
 /**
  * Callback provided by the embedder that is used by the VM to lookup symbols
@@ -3397,6 +3425,8 @@ typedef struct {
   Dart_NativeAssetsDlopenCallbackNoPath dlopen_process;
   Dart_NativeAssetsDlopenCallbackNoPath dlopen_executable;
   Dart_NativeAssetsDlsymCallback dlsym;
+  Dart_NativeAssetsDlopenAssetId dlopen;
+  Dart_NativeAssetsAvailableAssets available_assets;
 } NativeAssetsApi;
 
 /**
