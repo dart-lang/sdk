@@ -47,6 +47,10 @@ import 'type_environment.dart';
 import 'type_recipe_generator.dart';
 import 'type_table.dart';
 
+/// Name used as a prefix for extension symbols and the identifier of the object
+/// used to store them.
+final _extensionSymbolHolderName = 'dartx';
+
 /// Symbol data used to map library members kernel nodes to identifiers used
 /// in the compiled JavaScript.
 ///
@@ -120,7 +124,7 @@ class LibraryBundleCompiler implements old.Compiler {
     _ticker?.logMs('Emitting library bundle');
     var compiledLibraries = <js_ast.Program>[];
     for (var library in component.libraries) {
-      var compiler = LibraryCompiler(
+      var libraryCompiler = LibraryCompiler(
         component,
         _hierarchy,
         _options,
@@ -130,8 +134,38 @@ class LibraryBundleCompiler implements old.Compiler {
         ticker: _ticker,
         symbolData: _symbolData,
       );
-      _libraryCompilers[library] = compiler;
-      compiledLibraries.add(compiler.emitLibrary(library));
+      _libraryCompilers[library] = libraryCompiler;
+      compiledLibraries.add(libraryCompiler.emitLibrary(library));
+    }
+    // TODO(nshahan): Nothing about these symbols requires them to be
+    // represented in a library. These could be moved to a construct outside
+    // of the language that is provided to libraries that need it.
+    if (component.libraries.contains(_coreTypes.coreLibrary)) {
+      // Collect all extension symbols from all SDK libraries.
+      var allSymbols = {
+        for (var compiler in _libraryCompilers.values)
+          ...compiler._extensionSymbols
+      };
+      // Create dartx library
+      var id = js_ast.Identifier(_extensionSymbolHolderName);
+      var statements = [
+        for (var entry in allSymbols.entries)
+          js.statement('# = Symbol(#);', [
+            js_ast.PropertyAccess(id, js.string(entry.key)),
+            js.string('$_extensionSymbolHolderName.${entry.key}')
+          ]),
+        js.statement('# = #', [
+          js_ast.PropertyAccess.field(id, 'link'),
+          js_ast.NamedFunction(
+              js_ast.TemporaryId('link__$_extensionSymbolHolderName'),
+              js_ast.Fun(const [], js_ast.Block(const [])))
+        ]),
+      ];
+
+      compiledLibraries.insert(
+          0,
+          js_ast.Program(statements,
+              name: _extensionSymbolHolderName, librarySelfVar: id));
     }
     return js_ast.LibraryBundle(compiledLibraries,
         header: _generateCompilationHeader());
@@ -433,7 +467,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Extension member symbols for adding Dart members to JS types.
   ///
-  /// These are added to the [_extensionSymbolsModule]; see that field for more
+  /// These are added to the [_extensionSymbolsLibraryId]; see that field for more
   /// information.
   final _extensionSymbols = <String, js_ast.TemporaryId>{};
 
@@ -442,7 +476,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final _libraries = <Library, js_ast.Identifier>{};
 
   /// Imported libraries, and the temporaries used to refer to them.
-  final _imports = <Library, js_ast.TemporaryId>{};
+  final _imports = <Library, js_ast.Identifier>{};
 
   /// Incremental mode for expression compilation.
   ///
@@ -455,12 +489,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// The identifier used to reference DDC's core "dart:_runtime" library from
   /// generated JS code, typically called "dart" e.g. `dart.dcall`.
-  late final js_ast.Identifier _runtimeModule;
+  late final js_ast.Identifier _runtimeLibraryId;
+
+  /// The library referred to by [_runtimeLibraryId].
+  final Library _runtimeLibrary;
 
   /// The identifier used to reference DDC's "extension method" symbols, used to
   /// safely add Dart-specific member names to JavaScript classes, such as
   /// primitive types (e.g. String) or DOM types in "dart:html".
-  late final js_ast.Identifier _extensionSymbolsModule;
+  late final js_ast.Identifier _extensionSymbolsLibraryId;
 
   /// The identifier used to reference DDC's core "dart:_rti" library from
   /// generated JS code.
@@ -480,9 +517,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is initialized by [emitModule], which must be called before
   /// accessing this field.
-  // TODO(nshahan): Set to true if needed when the SDK can be compiled with this
-  // compiler.
-  final bool _isBuildingSdk = false;
+  late final bool _isBuildingSdk;
 
   /// Whether or not to move top level symbols into top-level containers.
   ///
@@ -640,6 +675,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _extensionIndex =
             ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment),
         _inlineTester = BasicInlineTester(_constants),
+        _runtimeLibrary = sdk.getLibrary('dart:_runtime'),
         _rtiLibrary = sdk.getLibrary('dart:_rti'),
         _rtiClass = sdk.getClass('dart:_rti', 'Rti');
 
@@ -665,6 +701,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _ticker?.logMs('Emitting library');
     _currentLibrary = library;
     _component = library.enclosingComponent!;
+    _isBuildingSdk = library.importUri.scheme == 'dart';
 
     // For runtime performance reasons, we only containerize SDK symbols in web
     // libraries. Otherwise, we use a 600-member cutoff before a module is
@@ -686,8 +723,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       });
       _containerizeSymbols = uniqueNames.length > 600;
     }
-    // TODO(nshahan): Refactor to use a single library.
-    var items = _startLibrary([library]);
+    var items = _startLibrary(library);
     _nullableInference.allowNotNullDeclarations = _isBuildingSdk;
     _typeTable = TypeTable('T', _runtimeCall);
     _genericClassTable = TypeTable('G', _runtimeCall);
@@ -718,9 +754,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // NOTE: classes are not necessarily emitted in this order.
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
-    if (!_isBuildingSdk) {
-      _forceLibraryImport(_rtiLibrary, _rtiLibraryId);
-    }
     _emitLibrary(library);
     _ticker?.logMs('Emitted library: ${library.importUri}');
 
@@ -2777,7 +2810,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // TODO(nshahan) Don't access values in `runtimeModule` outside of
         // `runtimeCall`.
         js.call('function() { return new #.JsIterator(this.#); }', [
-          _runtimeModule,
+          _emitLibraryName(_runtimeLibrary),
           _emitMemberName('iterator', memberClass: _coreTypes.iterableClass)
         ]) as js_ast.Fun);
   }
@@ -6216,7 +6249,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (args.isEmpty) {
         if (typeArgs.isEmpty && name == 'DART_RUNTIME_LIBRARY') {
-          return _runtimeModule;
+          return _emitLibraryName(_runtimeLibrary);
         }
         if (typeArgs.length == 1) {
           if (name == 'TYPE_REF') {
@@ -7783,14 +7816,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         'Unsupported auxiliary statement $node (${node.runtimeType}).');
   }
 
-  /// Adds an import mapping from [library] to [id].
-  ///
-  /// This is a temporary work around until imports can be manually added in
-  /// [_startLibrary].
-  void _forceLibraryImport(Library library, js_ast.TemporaryId id) {
-    _imports[library] = id;
-  }
-
   void _setEmitIfIncrementalLibrary(Library library) {
     if (_incrementalMode) {
       _setEmitIfIncremental(_libraryToModule(library), _jsLibraryName(library));
@@ -7874,8 +7899,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///     dart.asInt(<expr>)
   ///
   js_ast.Expression _runtimeCall(String code, [List<Object>? args]) {
-    _setEmitIfIncremental(_libraryToModule(_coreLibrary), _runtimeModule.name);
-    return js.call('#.$code', <Object>[_runtimeModule, ...?args]);
+    return js
+        .call('#.$code', <Object>[_emitLibraryName(_runtimeLibrary), ...?args]);
   }
 
   /// Calls [_runtimeCall] and uses `toStatement()` to convert the resulting
@@ -7918,14 +7943,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _addSymbol(
           identifier,
           _runtimeCall('privateName(#, #)',
-              [_emitLibraryName(library), js.string(name)]));
+              [js.string('${library.importUri}'), js.string(name)]));
       if (!_containerizeSymbols) {
         // TODO(vsm): Change back to `const`.
         // See https://github.com/dart-lang/sdk/issues/40380.
         _moduleItems.add(js.statement('var # = #', [
           identifier,
-          _runtimeCall(
-              'privateName(#, #)', [_emitLibraryName(library), js.string(name)])
+          _runtimeCall('privateName(#, #)',
+              [js.string('${library.importUri}'), js.string(name)])
         ]));
       }
       return identifier;
@@ -7935,7 +7960,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var symbolId = privateNames.putIfAbsent(name, initPrivateNameSymbol);
 
     _setEmitIfIncrementalLibrary(library);
-    _setEmitIfIncremental(_libraryToModule(_coreLibrary), _runtimeModule.name);
+    _setEmitIfIncremental(
+        _libraryToModule(_coreLibrary), _runtimeLibraryId.name);
     _symbolContainer.setEmitIfIncremental(symbolId);
 
     return symbolId;
@@ -8001,40 +8027,29 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// symbols into the list returned by this method. Finally, [_finishLibrary]
   /// can be called to complete the module and return the resulting JS AST.
   ///
-  /// This also initializes several fields: [_runtimeModule],
-  /// [_extensionSymbolsModule], and the [_libraries] map needed by
+  /// This also initializes several fields: [_runtimeLibraryId],
+  /// [_extensionSymbolsLibraryId], and the [_libraries] map needed by
   /// [_emitLibraryName].
-  List<js_ast.ModuleItem> _startLibrary(Iterable<Library> libraries) {
-    if (_isBuildingSdk) {
+  List<js_ast.ModuleItem> _startLibrary(Library library) {
+    if (_isSdkInternalRuntime(library)) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
-      _runtimeModule = js_ast.Identifier('dart');
-      _extensionSymbolsModule = js_ast.Identifier('dartx');
+      _runtimeLibraryId = js_ast.Identifier('dart');
+      _extensionSymbolsLibraryId =
+          js_ast.Identifier(_extensionSymbolHolderName);
     } else {
       // Otherwise allow these to be renamed so users can write them.
-      _runtimeModule = js_ast.TemporaryId('dart');
-      _extensionSymbolsModule = js_ast.TemporaryId('dartx');
+      _runtimeLibraryId = js_ast.TemporaryId('dart');
+      _extensionSymbolsLibraryId =
+          js_ast.TemporaryId(_extensionSymbolHolderName);
     }
 
     // Initialize our library variables.
     var items = <js_ast.ModuleItem>[];
     var exports = <js_ast.NameSpecifier>[];
-
-    if (_isBuildingSdk) {
-      // Bootstrap the ability to create Dart library objects.
-      var libraryProto = js_ast.TemporaryId('_library');
-      items.add(js.statement('const # = Object.create(null)', libraryProto));
-      items.add(js.statement(
-          'const # = Object.create(#)', [_runtimeModule, libraryProto]));
-      items.add(js.statement('#.library = #', [_runtimeModule, libraryProto]));
-      exports.add(js_ast.NameSpecifier(_runtimeModule));
-    }
-
-    for (var library in libraries) {
-      if (_isBuildingSdk && _isSdkInternalRuntime(library)) {
-        _libraries[library] = _runtimeModule;
-        continue;
-      }
+    if (_isSdkInternalRuntime(library)) {
+      _libraries[library] = _runtimeLibraryId;
+    } else {
       var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
           ? _rtiLibraryId
           : js_ast.TemporaryId(_jsLibraryName(library));
@@ -8044,33 +8059,22 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
       exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
-
-    // dart:_runtime has a magic module that holds extension method symbols.
-    // TODO(jmesserly): find a cleaner design for this.
-    if (_isBuildingSdk) {
-      var id = _extensionSymbolsModule;
-      // TODO(vsm): Change back to `const`.
-      // See https://github.com/dart-lang/sdk/issues/40380.
-      items.add(js
-          .statement('var # = Object.create(#.library)', [id, _runtimeModule]));
-      exports.add(js_ast.NameSpecifier(id));
-    }
     items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
 
-    if (_isBuildingSdk) {
+    if (_isSdkInternalRuntime(library)) {
       // Initialize the private name function.
       // To bootstrap the SDK, this needs to be emitted before other code.
-      var symbol = js_ast.TemporaryId('_privateNames');
-      items.add(js.statement('const # = Symbol("_privateNames")', symbol));
+      var privateNamesId = _emitTemporaryId('privateNames');
+      items.add(js.statement('const # = new Map()', privateNamesId));
       items.add(_runtimeStatement(r'''
-        privateName = function(library, name) {
-          let names = library[#];
-          if (names == null) names = library[#] = new Map();
+        privateName = function privateName(libraryUri, name) {
+          let names = #.get(libraryUri);
+          if (names == null) #.set(libraryUri, names = new Map());
           let symbol = names.get(name);
           if (symbol == null) names.set(name, symbol = Symbol(name));
           return symbol;
         }
-      ''', [symbol, symbol]));
+      ''', [privateNamesId, privateNamesId]));
     }
 
     return items;
@@ -8080,14 +8084,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Identifier _emitLibraryName(Library library) {
     _setEmitIfIncrementalLibrary(library);
 
-    // Avoid adding the dart:_runtime to _imports when our runtime unit tests
-    // import it explicitly. It will always be implicitly imported.
-    if (_isSdkInternalRuntime(library)) return _runtimeModule;
-
     // It's either one of the libraries in this module, or it's an import.
     return _libraries[library] ??
-        _imports.putIfAbsent(
-            library, () => js_ast.TemporaryId(_jsLibraryName(library)));
+        _imports.putIfAbsent(library, () {
+          if (_isSdkInternalRuntime(library)) return _runtimeLibraryId;
+          if (_isDartLibrary(library, '_rti')) return _rtiLibraryId;
+          return js_ast.TemporaryId(_jsLibraryName(library));
+        });
   }
 
   /// Emits imports into [items].
@@ -8135,16 +8138,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
         if (module == coreModuleName) {
           if (!_incrementalMode ||
-              usedLibraries!.contains(_runtimeModule.name)) {
+              usedLibraries!.contains(_runtimeLibraryId.name)) {
             items.add(js_ast.ImportDeclaration(
                 from: js.string('dart:_runtime'),
-                namedImports: [js_ast.NameSpecifier(_runtimeModule)]));
+                namedImports: [js_ast.NameSpecifier(_runtimeLibraryId)]));
           }
           if (!_incrementalMode ||
-              usedLibraries!.contains(_extensionSymbolsModule.name)) {
+              usedLibraries!.contains(_extensionSymbolsLibraryId.name)) {
             items.add(js_ast.ImportDeclaration(
-                from: js.string('dartx'),
-                namedImports: [js_ast.NameSpecifier(_extensionSymbolsModule)]));
+                from: js.string(_extensionSymbolHolderName),
+                namedImports: [
+                  js_ast.NameSpecifier(_extensionSymbolsLibraryId)
+                ]));
           }
         }
       }
@@ -8156,13 +8161,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       {bool forceExtensionSymbols = false}) {
     // Initialize extension symbols
     _extensionSymbols.forEach((name, id) {
-      js_ast.Expression value =
-          js_ast.PropertyAccess(_extensionSymbolsModule, _propertyName(name));
-      if (_isBuildingSdk) {
-        value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
-      } else if (forceExtensionSymbols) {
-        value = js.call(
-            '# || (# = Symbol(#))', [value, value, js.string('dartx.$name')]);
+      js_ast.Expression value = js_ast.PropertyAccess(
+          _extensionSymbolsLibraryId, _propertyName(name));
+      if (forceExtensionSymbols) {
+        value = js.call('# || (# = Symbol(#))',
+            [value, value, js.string('$_extensionSymbolHolderName.$name')]);
       }
       // Emit hoisted extension symbols that are marked as noEmit in regular as
       // well as incremental mode (if needed) since they are going to be
@@ -8178,7 +8181,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
       if (_symbolContainer.incrementalModuleItems.contains(id)) {
         _setEmitIfIncremental(
-            _libraryToModule(_coreLibrary), _extensionSymbolsModule.name);
+            _libraryToModule(_coreLibrary), _extensionSymbolsLibraryId.name);
       }
       _symbolContainer[id] = value;
     });
