@@ -51,7 +51,7 @@ dart.ci_sandbox_builder(
 
 dart.ci_sandbox_builder(
     "ddc-mac-safari",
-    category = "ddc|safari|s",
+    category = "ddc|s",
     channels = ["try"],
     dimensions = [arm64, mac],
     properties = [chrome, no_android],
