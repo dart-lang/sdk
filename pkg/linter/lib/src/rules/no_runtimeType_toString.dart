@@ -5,7 +5,7 @@
 // ignore_for_file: file_names
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -62,12 +62,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (n is MixinDeclaration) return true;
         if (n is ClassDeclaration && n.abstractKeyword != null) return true;
         if (n is ExtensionDeclaration) {
-          var declaredElement = n.declaredElement;
+          var declaredElement = n.declaredFragment?.element;
           if (declaredElement != null) {
             var extendedType = declaredElement.extendedType;
             if (extendedType is InterfaceType) {
-              var extendedElement = extendedType.element;
-              return !(extendedElement is ClassElement &&
+              var extendedElement = extendedType.element3;
+              return !(extendedElement is ClassElement2 &&
                   !extendedElement.isAbstract);
             }
           }
@@ -83,5 +83,5 @@ class _Visitor extends SimpleAstVisitor<void> {
           target.propertyName.name == 'runtimeType' ||
       target is SimpleIdentifier &&
           target.name == 'runtimeType' &&
-          target.staticElement is PropertyAccessorElement;
+          target.element is GetterElement;
 }
