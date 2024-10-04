@@ -154,10 +154,10 @@ class IndexedLibrary extends IndexedContainerImpl {
   @override
   Reference get reference => library.reference;
 
-  Typedef? lookupTypedef(String name) => _typedefs[name];
+  Reference? lookupTypedef(String name) => _typedefs[name]?.reference;
   IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
 
-  Extension? lookupExtension(String name) => _extensions[name];
+  Reference? lookupExtension(String name) => _extensions[name]?.reference;
 
   IndexedExtensionTypeDeclaration? lookupIndexedExtensionTypeDeclaration(
           String name) =>
@@ -170,19 +170,19 @@ class IndexedLibrary extends IndexedContainerImpl {
 }
 
 class IndexedClass extends IndexedContainerImpl {
-  final Class cls;
+  final Class _cls;
   final Map<Name, Reference> _constructors = {};
   @override
   final Library library;
 
-  IndexedClass._(this.cls, this.library) {
-    for (int i = 0; i < cls.constructors.length; i++) {
-      Constructor constructor = cls.constructors[i];
+  IndexedClass._(this._cls, this.library) {
+    for (int i = 0; i < _cls.constructors.length; i++) {
+      Constructor constructor = _cls.constructors[i];
       constructor.reference.canonicalName = null;
       _constructors[constructor.name] = constructor.reference;
     }
-    for (int i = 0; i < cls.procedures.length; i++) {
-      Procedure procedure = cls.procedures[i];
+    for (int i = 0; i < _cls.procedures.length; i++) {
+      Procedure procedure = _cls.procedures[i];
       if (procedure.isFactory) {
         procedure.reference.canonicalName = null;
         _constructors[procedure.name] = procedure.reference;
@@ -190,11 +190,11 @@ class IndexedClass extends IndexedContainerImpl {
         _addProcedure(procedure);
       }
     }
-    _addFields(cls.fields);
+    _addFields(_cls.fields);
   }
 
   @override
-  Reference get reference => cls.reference;
+  Reference get reference => _cls.reference;
 
   @override
   Reference? lookupConstructorReference(Name name) => _constructors[name];

@@ -25,7 +25,6 @@ import 'package:front_end/src/kernel/expression_generator.dart';
 import 'package:front_end/src/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
-import 'package:front_end/src/source/name_scheme.dart';
 import 'package:front_end/src/source/source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -50,8 +49,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         VariableDeclaration,
         VariableGet,
-        defaultLanguageVersion,
-        dummyReference;
+        defaultLanguageVersion;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -117,7 +115,6 @@ Future<void> main() async {
         isUnsupported: false,
         isAugmentation: false,
         isPatch: false,
-        libraryName: new LibraryName(dummyReference),
         importNameSpace: new NameSpaceImpl(),
         libraryNameSpaceBuilder: new LibraryNameSpaceBuilder());
     libraryBuilder.compilationUnit.markLanguageVersionFinal();

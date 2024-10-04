@@ -1069,8 +1069,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
     _builderFactory.beginClassDeclaration(
         name.lexeme, name.charOffset, typeVariables);
-    _builderFactory.beginIndexedContainer(name.lexeme,
-        isExtensionTypeDeclaration: false);
     inAbstractOrSealedClass = abstractToken != null || sealedToken != null;
     push(abstractToken != null ? abstractMask : 0);
     push(macroToken ?? NullValues.Token);
@@ -1102,8 +1100,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(typeVariables ?? NullValues.NominalVariables);
     _builderFactory.beginMixinDeclaration(
         name.lexeme, name.charOffset, typeVariables);
-    _builderFactory.beginIndexedContainer(name.lexeme,
-        isExtensionTypeDeclaration: false);
   }
 
   @override
@@ -1400,7 +1396,6 @@ class OutlineBuilder extends StackListenerImpl {
           isAugmentation: augmentToken != null,
           isMixinClass: mixinToken != null);
     }
-    _builderFactory.endIndexedContainer();
     popDeclarationContext(DeclarationContext.Class);
   }
 
@@ -1486,7 +1481,6 @@ class OutlineBuilder extends StackListenerImpl {
           isBase: baseToken != null,
           isAugmentation: augmentToken != null);
     }
-    _builderFactory.endIndexedContainer();
     popDeclarationContext(DeclarationContext.Mixin);
   }
 
@@ -1574,8 +1568,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(new SimpleIdentifier(nameToken));
     push(typeVariables ?? NullValues.NominalVariables);
     _builderFactory.beginExtensionTypeDeclaration(name, offset, typeVariables);
-    _builderFactory.beginIndexedContainer(name,
-        isExtensionTypeDeclaration: true);
   }
 
   @override
@@ -1615,7 +1607,6 @@ class OutlineBuilder extends StackListenerImpl {
         startOffset,
         endToken.charOffset);
 
-    _builderFactory.endIndexedContainer();
     popDeclarationContext(DeclarationContext.ExtensionType);
   }
 
@@ -2805,8 +2796,6 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       declarationName = '#enum';
     }
-    _builderFactory.beginIndexedContainer(declarationName,
-        isExtensionTypeDeclaration: false);
     pushDeclarationContext(DeclarationContext.Enum);
     _builderFactory.beginEnumDeclarationHeader(declarationName);
   }
@@ -2977,7 +2966,6 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.endEnumDeclarationForParserRecovery(typeVariables);
     }
 
-    _builderFactory.endIndexedContainer();
     checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }

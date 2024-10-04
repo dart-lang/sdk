@@ -2370,7 +2370,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   LocatedMessage createLocatedMessage(TreeNode? node, Message message) {
     Uri? uri = getFileUri(node);
     if (uri == null) {
-      // Coverage-ignore-block(suite): Not run.
       // TODO(johnniwinther): Ensure that we always have a uri.
       return message.withoutLocation();
     }
@@ -3145,7 +3144,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           constructor, typeArguments, positional, named, node);
       if (error != null) return error;
       if (shouldBeUnevaluated) {
-        // Coverage-ignore-block(suite): Not run.
         return unevaluated(node, instanceBuilder!.buildUnevaluatedInstance());
       }
       return canonicalize(instanceBuilder!.buildInstance());
@@ -3177,7 +3175,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return withNewInstanceBuilder(
         node.classNode, convertTypes(node.typeArguments), () {
       for (AssertStatement statement in node.asserts) {
-        // Coverage-ignore-block(suite): Not run.
         AbortConstant? error = checkAssert(statement);
         if (error != null) return error;
       }
@@ -3635,7 +3632,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (expression is AbortConstant) return expression;
 
     if (shouldBeUnevaluated) {
-      // Coverage-ignore-block(suite): Not run.
       return unevaluated(node,
           new EqualsNull(_wrap(expression))..fileOffset = node.fileOffset);
     }
@@ -4706,10 +4702,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (constant is BoolConstant) {
       return makeBoolConstant(constant != trueConstant);
     }
-    // Coverage-ignore-block(suite): Not run.
     if (shouldBeUnevaluated) {
       return unevaluated(node, new Not(_wrap(constant)));
     }
+    // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
         node,
         templateConstEvalInvalidType.withArguments(

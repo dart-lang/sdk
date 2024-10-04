@@ -268,7 +268,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isAugmentation,
       required bool isPatch,
       Map<String, Builder>? omittedTypes,
-      required LibraryName libraryName,
       required NameSpace importNameSpace,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder}) {
     Library library = target ??
@@ -279,7 +278,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ? null
                     : indexedLibrary?.library.reference)
           ..setLanguageVersion(packageLanguageVersion.version));
-    libraryName.reference = library.reference;
+    LibraryName libraryName = new LibraryName(library.reference);
     LookupScope importScope = new NameSpaceLookupScope(
         importNameSpace, ScopeKind.import, 'import',
         parent: parentScope);
@@ -830,7 +829,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         problemReporting: this,
         enclosingLibraryBuilder: this,
         mixinApplications: _mixinApplications!,
-        unboundNominalVariables: _unboundNominalVariables);
+        unboundNominalVariables: _unboundNominalVariables,
+        indexedLibrary: indexedLibrary);
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;

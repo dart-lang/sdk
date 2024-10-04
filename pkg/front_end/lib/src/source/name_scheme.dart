@@ -229,6 +229,7 @@ class LibraryName {
   /// name scope.
   Reference get reference => _reference;
 
+  // Coverage-ignore(suite): Not run.
   /// Updates the [Reference] that defines the library name scope.
   ///
   /// If changed, the dependent [_memberNames] are updated accordingly.
@@ -236,7 +237,6 @@ class LibraryName {
     if (_reference != value) {
       _reference = value;
       for (MemberName name in _memberNames) {
-        // Coverage-ignore-block(suite): Not run.
         name.updateMemberName();
       }
     }

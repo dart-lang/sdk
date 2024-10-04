@@ -1482,7 +1482,6 @@ class ExtensionTypeInitializerToStatementConverter
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void visitAssertInitializer(AssertInitializer node) {
     statements.add(node.statement);
   }
