@@ -39,6 +39,26 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_extension_notImported_binaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  String operator -(String other) => this;
+}
+''');
+    await resolveTestCode('''
+void f(String s) {
+  s - '2';
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String s) {
+  s - '2';
+}
+''');
+  }
+
   Future<void> test_extension_notImported_field_onThisType_fromClass() async {
     newFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
@@ -83,6 +103,26 @@ import 'package:test/lib.dart';
 
 void f(String s) {
   s.m;
+}
+''');
+  }
+
+  Future<void> test_extension_notImported_getter_nullAware() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  int get m => 0;
+}
+''');
+    await resolveTestCode('''
+void f(String? s) {
+  s?.m;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String? s) {
+  s?.m;
 }
 ''');
   }
@@ -162,6 +202,26 @@ void f(List<int> l) {
 ''');
   }
 
+  Future<void> test_extension_notImported_method_nullAware() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+void f(String? s) {
+  s?.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String? s) {
+  s?.m();
+}
+''');
+  }
+
   Future<void> test_extension_notImported_method_onThisType_fromClass() async {
     newFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
@@ -227,26 +287,6 @@ extension F on C {
 ''');
   }
 
-  Future<void> test_extension_notImported_operator() async {
-    newFile('$testPackageLibPath/lib.dart', '''
-extension E on String {
-  String operator -(String other) => this;
-}
-''');
-    await resolveTestCode('''
-void f(String s) {
-  s - '2';
-}
-''');
-    await assertHasFix('''
-import 'package:test/lib.dart';
-
-void f(String s) {
-  s - '2';
-}
-''');
-  }
-
   Future<void> test_extension_notImported_setter() async {
     newFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
@@ -263,6 +303,26 @@ import 'package:test/lib.dart';
 
 void f(String s) {
   s.m = 2;
+}
+''');
+  }
+
+  Future<void> test_extension_notImported_unaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  String operator ~() => this;
+}
+''');
+    await resolveTestCode('''
+void f(String s) {
+  ~s;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String s) {
+  ~s;
 }
 ''');
   }
