@@ -101,15 +101,15 @@ number, like `.`, `x`, or the `e` in scientific notation.
 - Add the [`use_truncating_division`][] lint rule.
 - Add the experimental [`omit_obvious_local_variable_types`][] lint rule.
 - Add the experimental [`specify_nonobvious_local_variable_types`][] lint rule.
-- Add the experimental `avoid_futureor_void` lint rule.
+- Add the experimental [`avoid_futureor_void`][] lint rule.
 - Add quick fixes for more than 14 diagnostics.
 - Add new assists: "add digit separators", "remove digit separators", and
-  "invert conditional expression"
+  "invert conditional expression".
 
 [`use_truncating_division`]: https://dart.dev/lints/use_truncating_division
 [`omit_obvious_local_variable_types`]: https://dart.dev/lints/omit_obvious_local_variable_types
 [`specify_nonobvious_local_variable_types`]: https://dart.dev/lints/specify_nonobvious_local_variable_types
-[`document_ignores`]: https://dart.dev/lints/document_ignores
+[`avoid_futureor_void`]: https://dart.dev/lints/avoid_futureor_void
 
 ## 3.5.3 - 2024-09-11
 
