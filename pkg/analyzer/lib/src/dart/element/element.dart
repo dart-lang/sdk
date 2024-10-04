@@ -8577,7 +8577,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   }
 
   @override
-  LibraryElementImpl get enclosingElement2 => library2;
+  Null get enclosingElement2 => null;
 
   List<PrefixFragmentImpl> get fragments {
     return [
@@ -8590,7 +8590,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   @override
   List<LibraryImportElementImpl> get imports {
-    return library2.libraryImports
+    return firstFragment.enclosingFragment.libraryImports
         .where((import) => import.prefix2?.element == this)
         .toList();
   }

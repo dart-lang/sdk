@@ -1502,8 +1502,10 @@ abstract class PatternVariableElement2 implements LocalVariableElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement2 implements Element2, FragmentedElement {
+  /// There is no enclosing element for import prefixes, which are elements,
+  /// but exist inside a single [LibraryFragment], not an element.
   @override
-  LibraryElement2 get enclosingElement2;
+  Null get enclosingElement2;
 
   @override
   PrefixFragment get firstFragment;
