@@ -4147,8 +4147,8 @@ library
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
-augment mixin A<T2> {
-  T2 foo2;
+augment mixin A<T1> {
+  T1 foo2;
 }
 ''');
 
@@ -4215,16 +4215,16 @@ library
               <testLibraryFragment>::@mixin::A::@field::foo1
               FieldMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
             accessors
               <testLibraryFragment>::@mixin::A::@getter::foo1
               <testLibraryFragment>::@mixin::A::@setter::foo1
-              PropertyAccessorMember
+              GetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-                augmentationSubstitution: {T2: T1}
-              PropertyAccessorMember
+                augmentationSubstitution: {T1: T1}
+              SetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       mixins
@@ -4232,14 +4232,14 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @37
+            covariant T1 @37
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@mixin::A
           fields
             foo2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-              type: T2
+              type: T1
               id: field_1
               getter: getter_1
               setter: setter_1
@@ -4247,7 +4247,7 @@ library
             synthetic get foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-              returnType: T2
+              returnType: T1
               id: getter_1
               variable: field_1
             synthetic set foo2= @-1
@@ -4255,7 +4255,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
               parameters
                 requiredPositional _foo2 @-1
-                  type: T2
+                  type: T1
               returnType: void
               id: setter_1
               variable: field_1
@@ -4300,7 +4300,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
-            T2 @37
+            T1 @37
               element: <not-implemented>
           fields
             foo2 @48
@@ -4334,7 +4334,7 @@ library
           setter: <testLibraryFragment>::@mixin::A::@setter::foo1#element
         foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-          type: T2
+          type: T1
           getter: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2#element
           setter: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
       getters
@@ -4352,7 +4352,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           formalParameters
             requiredPositional _foo2
-              type: T2
+              type: T1
 ''');
   }
 
@@ -4500,8 +4500,8 @@ library
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
-augment mixin A<T2> {
-  T2 get foo2;
+augment mixin A<T1> {
+  T1 get foo2;
 }
 ''');
 
@@ -4558,12 +4558,12 @@ library
               <testLibraryFragment>::@mixin::A::@field::foo1
               FieldMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
             accessors
               <testLibraryFragment>::@mixin::A::@getter::foo1
-              PropertyAccessorMember
+              GetterMember
                 base: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-                augmentationSubstitution: {T2: T1}
+                augmentationSubstitution: {T1: T1}
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       mixins
@@ -4571,21 +4571,21 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           typeParameters
-            covariant T2 @37
+            covariant T1 @37
               defaultType: dynamic
           augmentationTarget: <testLibraryFragment>::@mixin::A
           fields
             synthetic foo2 @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-              type: T2
+              type: T1
               id: field_1
               getter: getter_1
           accessors
             abstract get foo2 @52
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-              returnType: T2
+              returnType: T1
               id: getter_1
               variable: field_1
 ----------------------------------------
@@ -4621,7 +4621,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
           typeParameters
-            T2 @37
+            T1 @37
               element: <not-implemented>
           fields
             foo2 @-1
@@ -4646,7 +4646,7 @@ library
           getter: <testLibraryFragment>::@mixin::A::@getter::foo1#element
         synthetic foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-          type: T2
+          type: T1
           getter: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2#element
       getters
         abstract get foo1

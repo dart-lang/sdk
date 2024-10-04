@@ -2054,12 +2054,12 @@ MethodInvocation
           period: .
           identifier: SimpleIdentifier
             token: first
-            staticElement: PropertyAccessorMember
+            staticElement: GetterMember
               base: <testLibraryFragment>::@class::Iterable::@getter::first
               substitution: {T: dynamic}
             element: <testLibraryFragment>::@class::Iterable::@getter::first#element
             staticType: dynamic
-          staticElement: PropertyAccessorMember
+          staticElement: GetterMember
             base: <testLibraryFragment>::@class::Iterable::@getter::first
             substitution: {T: dynamic}
           element: <testLibraryFragment>::@class::Iterable::@getter::first#element

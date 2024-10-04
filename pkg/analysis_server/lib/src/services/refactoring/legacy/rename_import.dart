@@ -103,7 +103,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       return null;
     }
     var unit = unitResult.unit;
-    var index = library.libraryImports.indexOf(element);
+    var index = library.definingCompilationUnit.libraryImports.indexOf(element);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 

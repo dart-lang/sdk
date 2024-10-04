@@ -146,6 +146,9 @@ features:
   inference-using-bounds:
     help: "Use type parameter bounds more extensively in type inference."
 
+  inference-update-4:
+    help: "A bundle of updates to type inference."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

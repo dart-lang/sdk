@@ -2122,7 +2122,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return ImportLibraryElementResultImpl(null);
     }
 
-    for (var import in resolvedUnit.libraryElement.libraryImports) {
+    for (var import
+        in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return ImportLibraryElementResultImpl(import.prefix?.element.name);
@@ -2147,7 +2148,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (resolvedUnit.libraryElement.source.uri == uri) return false;
 
     // Existing import.
-    for (var import in resolvedUnit.libraryElement.libraryImports) {
+    for (var import
+        in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return true;
@@ -2669,7 +2671,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ///
   /// The result may be an existing import, or one that is pending.
   _LibraryImport? _getImportElement(Element element) {
-    for (var import in resolvedUnit.libraryElement.libraryImports) {
+    for (var import
+        in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports) {
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return _LibraryImport(
@@ -2695,7 +2698,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   List<LibraryImportElement> _getImportsForUri(Uri uri) {
     return [
-      for (var import in resolvedUnit.libraryElement.libraryImports)
+      for (var import
+          in resolvedUnit.libraryElement.definingCompilationUnit.libraryImports)
         if (import.importedLibrary?.source.uri == uri) import,
     ];
   }
@@ -2779,7 +2783,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           forceAbsolute: forceAbsolute, forceRelative: forceRelative);
       // Collect the list of existing shows and hides for any imports that match
       // the URI and prefix we care about.
-      for (var element in resolvedUnit.libraryElement.libraryImports) {
+      for (var element in resolvedUnit
+          .libraryElement.definingCompilationUnit.libraryImports) {
         var library = element.importedLibrary;
         if (library == null) {
           continue;

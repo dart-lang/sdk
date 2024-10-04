@@ -130,7 +130,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
         }
       }
       // Check elements from imports.
-      for (var importElement in unitResult.libraryElement.libraryImports) {
+      for (var importElement
+          in unitResult.libraryElement.definingCompilationUnit.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
@@ -230,7 +231,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
         }
       }
       // Check unprefixed imports.
-      for (var importElement in unitResult.libraryElement.libraryImports) {
+      for (var importElement
+          in unitResult.libraryElement.definingCompilationUnit.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);

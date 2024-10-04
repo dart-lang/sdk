@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -178,8 +178,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var target = node.target;
     var methodName = node.methodName.name;
-    var element = target is Identifier ? target.staticElement : null;
-    if (element is ClassElement) {
+    var element = target is Identifier ? target.element : null;
+    if (element is ClassElement2) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {
@@ -193,9 +193,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Instance method called, "target" is the instance.
       var targetType = target?.staticType;
       var method = _getInstanceMethod(targetType, methodName);
-      if (method == null) {
-        return;
-      }
+      if (method == null) return;
+
       _checkNullArgForClosure(
           node.argumentList, method.positional, method.named);
     }
@@ -222,35 +221,34 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   NonNullableFunction? _getInstanceMethod(DartType? type, String methodName) {
     var possibleMethods = _instanceMethodsWithNonNullableArguments[methodName];
-    if (possibleMethods == null) {
-      return null;
+    if (possibleMethods == null) return null;
+
+    if (type is! InterfaceType) return null;
+
+    NonNullableFunction? getMethod(String? library, String className) {
+      if (library == null) return null;
+      return possibleMethods
+          .lookup(NonNullableFunction(library, className, methodName));
     }
 
-    if (type is! InterfaceType) {
-      return null;
-    }
+    var element = type.element3;
+    if (element.isSynthetic) return null;
 
-    NonNullableFunction? getMethod(String library, String className) =>
-        possibleMethods
-            .lookup(NonNullableFunction(library, className, methodName));
-
-    var element = type.element;
-    if (element.isSynthetic) {
-      return null;
-    }
-
-    var method = getMethod(element.library.name, element.name);
+    var method = getMethod(element.libraryName, element.name);
     if (method != null) {
       return method;
     }
 
     for (var supertype in element.allSupertypes) {
-      var superElement = supertype.element;
-      method = getMethod(superElement.library.name, superElement.name);
-      if (method != null) {
-        return method;
-      }
+      var superElement = supertype.element3;
+      method = getMethod(superElement.libraryName, superElement.name);
+      if (method != null) return method;
     }
     return null;
   }
+}
+
+extension on InterfaceElement2 {
+  String? get libraryName =>
+      library2.firstFragment.libraryFragment.element.name;
 }

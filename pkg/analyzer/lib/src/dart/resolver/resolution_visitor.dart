@@ -129,6 +129,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
+      unitElement,
       errorReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
@@ -1681,7 +1682,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
     }
 
-    if (_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
+    if (_unitElement.shouldIgnoreUndefinedNamedType(namedType)) {
       return;
     }
 

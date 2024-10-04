@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return the [Element] of the given [node], or `null` if [node] is `null` or
 /// does not have an element.
@@ -68,7 +69,7 @@ ConstructorElement? _getActualConstructorElement(
 /// [element] - the referenced element.
 /// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
 LibraryImportElement? _getImportElement(
-    LibraryElement libraryElement,
+    CompilationUnitElementImpl libraryFragment,
     String prefix,
     Element element,
     Map<LibraryImportElement, Set<Element>> importElementsMap) {
@@ -78,7 +79,10 @@ LibraryImportElement? _getImportElement(
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImportElement>? candidates;
-  for (var importElement in libraryElement.libraryImports) {
+  var libraryImports = libraryFragment.withEnclosing
+      .expand((fragment) => fragment.libraryImports)
+      .toList();
+  for (var importElement in libraryImports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
       continue;
@@ -134,8 +138,8 @@ LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
   var unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
-  var libraryElement = unit?.declaredElement?.library;
-  if (libraryElement == null) {
+  var libraryFragment = unit?.declaredElement as CompilationUnitElementImpl?;
+  if (libraryFragment == null) {
     return null;
   }
   // prepare used element
@@ -159,7 +163,7 @@ LibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
   var prefix = prefixNode.name;
   var importElementsMap = <LibraryImportElement, Set<Element>>{};
   return _getImportElement(
-      libraryElement, prefix, usedElement, importElementsMap);
+      libraryFragment, prefix, usedElement, importElementsMap);
 }
 
 class MatchInfo {

@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 /// The cache that can be reuse for across multiple completion request.
@@ -171,7 +172,12 @@ class CiderCompletionComputer {
     required OperationPerformanceImpl performance,
   }) {
     var suggestionBuilders = <CompletionSuggestionBuilder>[];
-    for (var importedLibrary in target.importedLibraries) {
+    var importedLibraries = target.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .map((import) => import.importedLibrary)
+        .nonNulls
+        .toSet();
+    for (var importedLibrary in importedLibraries) {
       var importedSuggestions = _importedLibrarySuggestions(
         element: importedLibrary,
         performance: performance,
@@ -262,24 +268,4 @@ class _CiderImportedLibrarySuggestions {
   final List<CompletionSuggestionBuilder> suggestionBuilders;
 
   _CiderImportedLibrarySuggestions(this.signature, this.suggestionBuilders);
-}
-
-extension on CompilationUnitElement {
-  Set<LibraryElement> get importedLibraries {
-    var result = <LibraryElement>{};
-    var current = this;
-    while (true) {
-      result.addAll(
-        current.libraryImports
-            .map((libraryImport) => libraryImport.importedLibrary)
-            .nonNulls,
-      );
-      if (current.enclosingElement3 case var enclosing?) {
-        current = enclosing;
-      } else {
-        break;
-      }
-    }
-    return result;
-  }
 }

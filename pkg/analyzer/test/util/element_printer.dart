@@ -79,7 +79,6 @@ class ElementPrinter {
     }
   }
 
-  // TODO(scheglov): We might write `MethodElement2` instead of `MethodMember`.
   void writeElement2(Element2? element) {
     switch (element) {
       case null:
@@ -87,6 +86,11 @@ class ElementPrinter {
       case TypeParameterElementImpl2():
         // TODO(scheglov): update when implemented
         _sink.write('<not-implemented>');
+      case ConstructorElement2 element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
       case DynamicElementImpl():
         _sink.write('dynamic@-1');
       case FormalParameterElementImpl():
@@ -98,6 +102,11 @@ class ElementPrinter {
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;
         writeReference(reference);
+        _sink.write('#element');
+      case GetterElement element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
         _sink.write('#element');
       case LabelElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
@@ -116,12 +125,22 @@ class ElementPrinter {
         var reference = firstFragment.reference!;
         writeReference(reference);
         _sink.write('#element');
+      case MethodElement2 element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
       case MultiplyDefinedElementImpl():
         _sink.write('<null>');
       case NeverElementImpl():
         _sink.write('Never@-1');
       case PrefixElementImpl2 element:
         writeReference(element.reference);
+      case SetterElement element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }

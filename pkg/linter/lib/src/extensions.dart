@@ -557,6 +557,10 @@ extension InterfaceTypeExtension on InterfaceType {
   }
 }
 
+extension LibraryElementExtension2 on LibraryElement2? {
+  Uri? get uri => this?.library2.firstFragment.source.uri;
+}
+
 extension LinterContextExtension on LinterContext {
   /// Whether the given [feature] is enabled in this linter context.
   bool isEnabled(Feature feature) =>

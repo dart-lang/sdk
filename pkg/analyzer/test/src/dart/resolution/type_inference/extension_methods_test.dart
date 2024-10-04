@@ -39,12 +39,12 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
+    staticElement: GetterMember
       base: <testLibraryFragment>::@extension::E::@getter::foo
       substitution: {T: int}
     element: <testLibraryFragment>::@extension::E::@getter::foo#element
     staticType: List<int>
-  staticElement: PropertyAccessorMember
+  staticElement: GetterMember
     base: <testLibraryFragment>::@extension::E::@getter::foo
     substitution: {T: int}
   element: <testLibraryFragment>::@extension::E::@getter::foo#element
@@ -251,7 +251,7 @@ AssignmentExpression
   readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: PropertyAccessorMember
+  writeElement: SetterMember
     base: <testLibraryFragment>::@extension::E::@setter::foo
     substitution: {T: int}
   writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
@@ -323,7 +323,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: test
-    staticElement: PropertyAccessorMember
+    staticElement: GetterMember
       base: <testLibraryFragment>::@extension::Test::@getter::test
       substitution: {T: S}
     element: <testLibraryFragment>::@extension::Test::@getter::test#element
@@ -385,7 +385,7 @@ AssignmentExpression
   readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: PropertyAccessorMember
+  writeElement: SetterMember
     base: <testLibraryFragment>::@extension::Test::@setter::test
     substitution: {T: S}
   writeElement2: <testLibraryFragment>::@extension::Test::@setter::test#element
@@ -487,7 +487,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
+    staticElement: GetterMember
       base: <testLibraryFragment>::@extension::E::@getter::foo
       substitution: {T: num}
     element: <testLibraryFragment>::@extension::E::@getter::foo#element
@@ -680,7 +680,7 @@ AssignmentExpression
   readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: PropertyAccessorMember
+  writeElement: SetterMember
     base: <testLibraryFragment>::@extension::E::@setter::foo
     substitution: {T: num}
   writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element
@@ -745,7 +745,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: PropertyAccessorMember
+    staticElement: GetterMember
       base: <testLibraryFragment>::@extension::E::@getter::foo
       substitution: {T: int}
     element: <testLibraryFragment>::@extension::E::@getter::foo#element
@@ -910,7 +910,7 @@ AssignmentExpression
   readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: PropertyAccessorMember
+  writeElement: SetterMember
     base: <testLibraryFragment>::@extension::E::@setter::foo
     substitution: {T: int}
   writeElement2: <testLibraryFragment>::@extension::E::@setter::foo#element

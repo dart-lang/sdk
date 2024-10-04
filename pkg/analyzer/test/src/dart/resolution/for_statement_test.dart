@@ -418,12 +418,12 @@ ForStatement
       period: .
       identifier: SimpleIdentifier
         token: first
-        staticElement: PropertyAccessorMember
+        staticElement: GetterMember
           base: dart:core::<fragment>::@class::Iterable::@getter::first
           substitution: {E: List<int>, E: List<int>}
         element: dart:core::<fragment>::@class::Iterable::@getter::first#element
         staticType: List<int>
-      staticElement: PropertyAccessorMember
+      staticElement: GetterMember
         base: dart:core::<fragment>::@class::Iterable::@getter::first
         substitution: {E: List<int>, E: List<int>}
       element: dart:core::<fragment>::@class::Iterable::@getter::first#element

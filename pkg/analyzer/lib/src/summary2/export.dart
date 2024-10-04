@@ -80,7 +80,7 @@ class ExportLocation {
   /// library file, a positive value means an included fragment.
   final int fragmentIndex;
 
-  /// The index in [LibraryElementImpl.libraryExports].
+  /// The index in [CompilationUnitElementImpl.libraryExports].
   final int exportIndex;
 
   ExportLocation({

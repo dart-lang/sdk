@@ -26,7 +26,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 ///
 /// The client must set [nameScope] before calling [resolve].
 class NamedTypeResolver with ScopeHelpers {
-  final LibraryElementImpl _libraryElement;
+  final CompilationUnitElementImpl _libraryFragment;
   final TypeSystemImpl typeSystem;
   final TypeSystemOperations typeSystemOperations;
   final bool strictCasts;
@@ -62,11 +62,14 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(this._libraryElement, this.errorReporter,
-      {required this.strictInference,
-      required this.strictCasts,
-      required this.typeSystemOperations})
-      : typeSystem = _libraryElement.typeSystem;
+  NamedTypeResolver(
+    LibraryElementImpl libraryElement,
+    this._libraryFragment,
+    this.errorReporter, {
+    required this.strictInference,
+    required this.strictCasts,
+    required this.typeSystemOperations,
+  }) : typeSystem = libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
       enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
@@ -304,7 +307,7 @@ class NamedTypeResolver with ScopeHelpers {
 
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
-      if (!_libraryElement.shouldIgnoreUndefinedNamedType(node)) {
+      if (!_libraryFragment.shouldIgnoreUndefinedNamedType(node)) {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
       }
       return;

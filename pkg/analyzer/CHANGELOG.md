@@ -4,6 +4,10 @@
 * Deprecated `LibraryElement.exportedLibraries`.
 * Deprecated `LibraryElement.importedLibraries`.
 * Deprecated `LibraryElement.isBrowserApplication`.
+* Deprecated `LibraryElement.libraryExports`,
+  use `CompilationUnitElement.libraryExports` instead.
+* Deprecated `LibraryElement.libraryImports`,
+  use `CompilationUnitElement.libraryImports` instead.
 
 ## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.

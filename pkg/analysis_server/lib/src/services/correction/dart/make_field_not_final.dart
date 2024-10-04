@@ -47,7 +47,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
     if (variable == null) {
       return;
     }
-    if (variable.isSynthetic || variable.setter != null) {
+    if (variable.isSynthetic || variable.setter2 != null) {
       return;
     }
 

@@ -1502,8 +1502,10 @@ abstract class PatternVariableElement2 implements LocalVariableElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement2 implements Element2, FragmentedElement {
+  /// There is no enclosing element for import prefixes, which are elements,
+  /// but exist inside a single [LibraryFragment], not an element.
   @override
-  LibraryElement2 get enclosingElement2;
+  Null get enclosingElement2;
 
   @override
   PrefixFragment get firstFragment;
@@ -1594,7 +1596,7 @@ abstract class PropertyInducingElement2
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
-  GetterElement? get getter;
+  GetterElement? get getter2;
 
   @override
   String get name;
@@ -1609,7 +1611,7 @@ abstract class PropertyInducingElement2
   /// that does not have a corresponding setter. If this variable was
   /// explicitly defined (is not synthetic) then the setter associated with
   /// it will be synthetic.
-  SetterElement? get setter;
+  SetterElement? get setter2;
 }
 
 /// The portion of a [PropertyInducingElement2] contributed by a single

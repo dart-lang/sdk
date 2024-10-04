@@ -1870,7 +1870,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2 as MethodElement2?;
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -4521,12 +4521,8 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @experimental
   @override
-  ConstructorElement2? get element {
-    if (staticElement case ConstructorFragment fragment) {
-      return fragment.element;
-    }
-    return null;
-  }
+  ConstructorElement2? get element =>
+      staticElement?.asElement2 as ConstructorElement2?;
 
   @override
   Token get endToken {
@@ -5674,12 +5670,8 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  ConstructorElement2? get constructorElement2 {
-    if (constructorElement case ConstructorFragment fragment) {
-      return fragment.element;
-    }
-    return null;
-  }
+  ConstructorElement2? get constructorElement2 =>
+      constructorElement?.asElement2 as ConstructorElement2?;
 
   @experimental
   @override
@@ -8680,12 +8672,8 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @experimental
   @override
-  ExecutableElement2? get element {
-    if (staticElement case ExecutableFragment fragment) {
-      return fragment.element;
-    }
-    return null;
-  }
+  ExecutableElement2? get element =>
+      staticElement?.asElement2 as ExecutableElement2?;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -10261,7 +10249,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2 as MethodElement2?;
 
   @override
   Token get endToken => rightBracket;
@@ -15199,12 +15187,8 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElement2? get element {
-    if (staticElement case ConstructorFragment fragment) {
-      return fragment.element;
-    }
-    return null;
-  }
+  ConstructorElement2? get element =>
+      staticElement?.asElement2 as ConstructorElement2?;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -16765,12 +16749,8 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @experimental
   @override
-  ConstructorElement2? get element {
-    if (staticElement case ConstructorFragment fragment) {
-      return fragment.element;
-    }
-    return null;
-  }
+  ConstructorElement2? get element =>
+      staticElement?.asElement2 as ConstructorElement2?;
 
   @override
   Token get endToken => _argumentList.endToken;

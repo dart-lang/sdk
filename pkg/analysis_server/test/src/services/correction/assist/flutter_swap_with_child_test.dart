@@ -115,4 +115,63 @@ class _State extends State<Foo> {
   }
 }''');
   }
+
+  Future<void> test_single_child_multi() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+build() {
+  return Scaffold(
+    body: /*caret*/Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Text('Hello'),
+        ),
+      ],
+    ),
+  );
+}
+startResize() {}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+build() {
+  return Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          Text('Hello'),
+        ],
+      ),
+    ),
+  );
+}
+startResize() {}
+''');
+  }
+
+  Future<void> test_two_children_multi() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+build() {
+  return Scaffold(
+    body: /*caret*/Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Text('Hello'),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Text('Hello'),
+        ),
+      ],
+    ),
+  );
+}
+startResize() {}
+''');
+    await assertNoAssist();
+  }
 }

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../universe/side_effects.dart' show SideEffects;
+import '../universe/side_effects.dart' show SideEffects, SideEffectsFlag;
+import '../util/enumset.dart';
 import 'nodes.dart';
 
 class ValueSet {
@@ -49,9 +50,9 @@ class ValueSet {
     return null;
   }
 
-  void kill(int flags) {
+  void kill(EnumSet<SideEffectsFlag> flags) {
     if (flags == 0) return;
-    int depends = SideEffects.computeDependsOnFlags(flags);
+    final depends = SideEffects.computeDependsOnFlags(flags);
     // Kill in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction? instruction = table[index];

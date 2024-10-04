@@ -180,7 +180,7 @@ vars = {
   "sync_http_rev": "91c0dd5ef9a008f0277aadcfd83036f82e572d09",
   "tar_rev": "32ceb55e673141abff4e84b99483fe5eb881c291",
   "term_glyph_rev": "19d8c08a4e81122639129c62049896021910c932",
-  "test_rev": "22835e2ec81169a5c05ed1ceb4fd6d0e8f4e87d6",
+  "test_rev": "8e8a83607d90a7a6813fa378b2d1962a2fc0d44b",
   "test_descriptor_rev": "a3db1efe3dc725dcae9ee61647d3bfc19b3231ac",
   "test_process_rev": "52ee3f5ab70ed965bb7122c1d499081fbccd0bde",
   "test_reflective_loader_rev": "598af2f503955020af0eaa82558d574a03934078",

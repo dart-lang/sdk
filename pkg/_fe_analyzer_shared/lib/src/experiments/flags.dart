@@ -108,6 +108,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 4),
       experimentReleasedVersion: const Version(3, 4)),
 
+  inferenceUpdate4(
+      name: 'inference-update-4',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   inferenceUsingBounds(
       name: 'inference-using-bounds',
       isEnabledByDefault: false,

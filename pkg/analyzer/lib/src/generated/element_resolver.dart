@@ -386,7 +386,7 @@ class ElementResolver {
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
-        _resolver.definingLibrary
+        _resolver.libraryFragment
             .shouldIgnoreUndefinedNamedType(extendedNamedType)) {
       return;
     }

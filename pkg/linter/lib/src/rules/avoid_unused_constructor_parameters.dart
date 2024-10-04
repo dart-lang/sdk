@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -37,10 +37,10 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
 
   _ConstructorVisitor(this.element)
       : unusedParameters = element.parameters.parameters.where((p) {
-          var element = p.declaredElement;
+          var element = p.declaredFragment?.element;
           return element != null &&
-              element is! FieldFormalParameterElement &&
-              element is! SuperFormalParameterElement &&
+              element is! FieldFormalParameterElement2 &&
+              element is! SuperFormalParameterElement2 &&
               !element.hasDeprecated &&
               !element.name.isJustUnderscores;
         }).toSet();
@@ -48,7 +48,7 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     unusedParameters
-        .removeWhere((p) => node.staticElement == p.declaredElement);
+        .removeWhere((p) => node.element == p.declaredFragment?.element);
   }
 }
 

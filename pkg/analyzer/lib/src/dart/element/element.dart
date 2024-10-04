@@ -1173,6 +1173,78 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     this.linkedData = linkedData;
   }
 
+  /// Indicates whether it is unnecessary to report an undefined identifier
+  /// error for an identifier reference with the given [name] and optional
+  /// [prefix].
+  ///
+  /// This method is intended to reduce spurious errors in circumstances where
+  /// an undefined identifier occurs as the result of a missing (most likely
+  /// code generated) file.  It will only return `true` in a circumstance where
+  /// the current library is guaranteed to have at least one other error (due to
+  /// a missing part or import), so there is no risk that ignoring the undefined
+  /// identifier would cause an invalid program to be treated as valid.
+  bool shouldIgnoreUndefined({
+    required String? prefix,
+    required String name,
+  }) {
+    for (var libraryFragment in withEnclosing) {
+      for (var importElement in libraryFragment.libraryImports) {
+        if (importElement.prefix?.element.name == prefix &&
+            importElement.importedLibrary?.isSynthetic != false) {
+          var showCombinators = importElement.combinators
+              .whereType<ShowElementCombinator>()
+              .toList();
+          if (prefix != null && showCombinators.isEmpty) {
+            return true;
+          }
+          for (var combinator in showCombinators) {
+            if (combinator.shownNames.contains(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in parts) {
+        var uri = partElement.uri;
+        if (uri is DirectiveUriWithSource &&
+            uri is! DirectiveUriWithUnit &&
+            file_paths.isGenerated(uri.relativeUriString)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) identifier [node].
+  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
+    if (node is PrefixedIdentifier) {
+      return shouldIgnoreUndefined(
+        prefix: node.prefix.name,
+        name: node.identifier.name,
+      );
+    }
+
+    return shouldIgnoreUndefined(
+      prefix: null,
+      name: (node as SimpleIdentifier).name,
+    );
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) named type [node].
+  bool shouldIgnoreUndefinedNamedType(NamedType node) {
+    return shouldIgnoreUndefined(
+      prefix: node.importPrefix?.name.lexeme,
+      name: node.name2.lexeme,
+    );
+  }
+
   List<PrefixElementImpl> _buildLibraryImportPrefixes() {
     var prefixes = <PrefixElementImpl>{};
     for (var import in libraryImports) {
@@ -3846,7 +3918,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
       (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override
-  GetterElement? get getter => firstFragment.getter?.element as GetterElement?;
+  GetterElement? get getter2 => firstFragment.getter?.element as GetterElement?;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -3885,7 +3957,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   String get name => firstFragment.name;
 
   @override
-  SetterElement? get setter => firstFragment.setter?.element as SetterElement?;
+  SetterElement? get setter2 => firstFragment.setter?.element as SetterElement?;
 
   @override
   DartType get type => firstFragment.type;
@@ -6101,76 +6173,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
   }
 
-  /// Indicates whether it is unnecessary to report an undefined identifier
-  /// error for an identifier reference with the given [name] and optional
-  /// [prefix].
-  ///
-  /// This method is intended to reduce spurious errors in circumstances where
-  /// an undefined identifier occurs as the result of a missing (most likely
-  /// code generated) file.  It will only return `true` in a circumstance where
-  /// the current library is guaranteed to have at least one other error (due to
-  /// a missing part or import), so there is no risk that ignoring the undefined
-  /// identifier would cause an invalid program to be treated as valid.
-  bool shouldIgnoreUndefined({
-    required String? prefix,
-    required String name,
-  }) {
-    for (var importElement in libraryImports) {
-      if (importElement.prefix?.element.name == prefix &&
-          importElement.importedLibrary?.isSynthetic != false) {
-        var showCombinators = importElement.combinators
-            .whereType<ShowElementCombinator>()
-            .toList();
-        if (prefix != null && showCombinators.isEmpty) {
-          return true;
-        }
-        for (var combinator in showCombinators) {
-          if (combinator.shownNames.contains(name)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    if (prefix == null && name.startsWith(r'_$')) {
-      for (var partElement in parts) {
-        var uri = partElement.uri;
-        if (uri is DirectiveUriWithSource &&
-            uri is! DirectiveUriWithUnit &&
-            file_paths.isGenerated(uri.relativeUriString)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
-  /// given (possibly prefixed) identifier [node].
-  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
-    if (node is PrefixedIdentifier) {
-      return shouldIgnoreUndefined(
-        prefix: node.prefix.name,
-        name: node.identifier.name,
-      );
-    }
-
-    return shouldIgnoreUndefined(
-      prefix: null,
-      name: (node as SimpleIdentifier).name,
-    );
-  }
-
-  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
-  /// given (possibly prefixed) named type [node].
-  bool shouldIgnoreUndefinedNamedType(NamedType node) {
-    return shouldIgnoreUndefined(
-      prefix: node.importPrefix?.name.lexeme,
-      name: node.name2.lexeme,
-    );
-  }
-
   @Deprecated('Only non-nullable by default mode is supported')
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
@@ -6278,6 +6280,11 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   }) : super(null, importKeywordOffset);
 
   @override
+  CompilationUnitElementImpl get enclosingElement3 {
+    return super.enclosingElement3 as CompilationUnitElementImpl;
+  }
+
+  @override
   int get hashCode => identityHashCode(this);
 
   @override
@@ -6346,7 +6353,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   List<Element> get children => [
         ...super.children,
         definingCompilationUnit,
+        // ignore:deprecated_member_use_from_same_package
         ...libraryExports,
+        // ignore:deprecated_member_use_from_same_package
         ...libraryImports,
       ];
 
@@ -6373,11 +6382,13 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   LibraryElementImpl get library;
 
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryExportElementImpl> get libraryExports {
     return definingCompilationUnit.libraryExports;
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   @override
   List<LibraryImportElementImpl> get libraryImports {
     return definingCompilationUnit.libraryImports;
@@ -6813,7 +6824,7 @@ mixin MaybeAugmentedInstanceElementMixin
 
   @override
   List<FieldElement2> get fields2 =>
-      fields.map((e) => (e as FieldFragment).element).toList();
+      fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
 
   @override
   InstanceFragment get firstFragment => declaration;
@@ -6821,8 +6832,8 @@ mixin MaybeAugmentedInstanceElementMixin
   @override
   List<GetterElement> get getters2 => accessors
       .where((e) => e.isGetter)
-      .map((e) => (e as GetterFragment).element)
-      .cast<GetterElement>()
+      .map((e) => e.asElement2 as GetterElement?)
+      .nonNulls
       .toList();
 
   @override
@@ -6938,7 +6949,7 @@ mixin MaybeAugmentedInstanceElementMixin
 
   @override
   List<MethodElement2> get methods2 =>
-      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+      methods.map((e) => e.asElement2 as MethodElement2?).nonNulls.toList();
 
   @override
   String? get name => declaration.name;
@@ -6953,8 +6964,8 @@ mixin MaybeAugmentedInstanceElementMixin
   @override
   List<SetterElement> get setters2 => accessors
       .where((e) => e.isSetter)
-      .map((e) => (e as SetterFragment).element)
-      .cast<SetterElement>()
+      .map((e) => e.asElement2 as SetterElement?)
+      .nonNulls
       .toList();
 
   @override
@@ -8573,7 +8584,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   }
 
   @override
-  LibraryElementImpl get enclosingElement2 => library2;
+  Null get enclosingElement2 => null;
 
   List<PrefixFragmentImpl> get fragments {
     return [
@@ -8586,7 +8597,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
 
   @override
   List<LibraryImportElementImpl> get imports {
-    return library2.libraryImports
+    return firstFragment.enclosingFragment.libraryImports
         .where((import) => import.prefix2?.element == this)
         .toList();
   }
@@ -9451,7 +9462,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
       firstFragment.library as LibraryElement2;
 
   @override
-  GetterElement? get getter => firstFragment.getter2?.element as GetterElement?;
+  GetterElement? get getter2 =>
+      firstFragment.getter2?.element as GetterElement?;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -9478,7 +9490,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   String get name => firstFragment.name;
 
   @override
-  SetterElement? get setter => firstFragment.setter2?.element as SetterElement?;
+  SetterElement? get setter2 =>
+      firstFragment.setter2?.element as SetterElement?;
 
   @override
   DartType get type => firstFragment.type;

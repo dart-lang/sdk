@@ -1125,7 +1125,7 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _t
-          staticElement: PropertyAccessorMember
+          staticElement: GetterMember
             base: <testLibraryFragment>::@class::B::@getter::_t
             substitution: {T: T}
           element: <testLibraryFragment>::@class::B::@getter::_t#element
@@ -1154,7 +1154,7 @@ Block
         operator: .
         propertyName: SimpleIdentifier
           token: _t
-          staticElement: PropertyAccessorMember
+          staticElement: GetterMember
             base: <testLibraryFragment>::@class::B::@getter::_t
             substitution: {T: T}
           element: <testLibraryFragment>::@class::B::@getter::_t#element
@@ -1326,7 +1326,7 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            staticElement: PropertyAccessorMember
+            staticElement: GetterMember
               base: <testLibraryFragment>::@class::B::@getter::_f
               substitution: {T: T}
             element: <testLibraryFragment>::@class::B::@getter::_f#element
@@ -1371,7 +1371,7 @@ Block
           operator: .
           propertyName: SimpleIdentifier
             token: _f
-            staticElement: PropertyAccessorMember
+            staticElement: GetterMember
               base: <testLibraryFragment>::@class::B::@getter::_f
               substitution: {T: T}
             element: <testLibraryFragment>::@class::B::@getter::_f#element

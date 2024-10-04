@@ -420,7 +420,8 @@ class DeclarationBuilder {
     annotation as ElementAnnotationImpl;
     var node = annotation.annotationAst;
 
-    var importPrefixNames = annotation.library.libraryImports
+    var importPrefixNames = annotation.compilationUnit.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
         .map((e) => e.prefix?.element.name)
         .nonNulls
         .toSet();

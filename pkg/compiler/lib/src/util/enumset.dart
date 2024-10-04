@@ -31,10 +31,17 @@ extension type const EnumSet<E extends Enum>(int mask) {
   EnumSet.fromValues(Iterable<E> values) : mask = _fold(values);
 
   /// Returns a set containing all enum values in [this] as well as [enumValue].
+  @useResult
   EnumSet<E> operator +(E enumValue) => EnumSet(mask | enumValue.mask);
 
   /// Returns a set containing all enum values in [this] except for [enumValue].
+  @useResult
   EnumSet<E> operator -(E enumValue) => EnumSet(mask & ~enumValue.mask);
+
+  /// Returns a set with the bit for [value] enabled or disabled depending on
+  /// [state].
+  @useResult
+  EnumSet<E> update(E value, bool state) => state ? this + value : this - value;
 
   /// Returns a new set containing all values in both this and the [other] set.
   @useResult
@@ -82,38 +89,41 @@ extension type const EnumSet<E extends Enum>(int mask) {
   ///     Iterable<EnumClass> iterable = set.iterable(EnumClass.values);
   ///
   Iterable<E> iterable(List<E> values) {
-    return _EnumSetIterable(this, values);
+    // We may store extra data in the bits unused by the enum values, but that
+    // will result in iteration attempting to look up enum values out of bounds.
+    // We can avoid this by masking off such bits.
+    return _EnumSetIterable(mask & ((1 << values.length) - 1), values);
   }
 }
 
 class _EnumSetIterable<E extends Enum> extends IterableBase<E> {
-  final EnumSet<E> _enumSet;
+  final int _mask;
   final List<E> _values;
 
-  _EnumSetIterable(this._enumSet, this._values);
+  _EnumSetIterable(this._mask, this._values);
 
   @override
-  Iterator<E> get iterator => _EnumSetIterator(_enumSet, _values);
+  Iterator<E> get iterator => _EnumSetIterator(_mask, _values);
 }
 
 class _EnumSetIterator<E extends Enum> implements Iterator<E> {
-  EnumSet<E> _enumSet;
+  int _mask;
   final List<E> _values;
   E? _current;
 
-  _EnumSetIterator(this._enumSet, this._values);
+  _EnumSetIterator(this._mask, this._values);
 
   @override
   E get current => _current!;
 
   @override
   bool moveNext() {
-    if (_enumSet.isEmpty) {
+    if (_mask == 0) {
       _current = null;
       return false;
     }
-    final value = _current = _values[_enumSet.mask.bitLength - 1];
-    _enumSet -= value;
+    final value = _current = _values[_mask.bitLength - 1];
+    _mask &= ~value.mask;
     return true;
   }
 }

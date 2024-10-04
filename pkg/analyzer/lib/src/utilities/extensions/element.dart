@@ -11,6 +11,23 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:meta/meta.dart';
 
+extension CompilationUnitElementExtension on CompilationUnitElement {
+  /// Returns this library fragment, and all its enclosing fragments.
+  List<CompilationUnitElement> get withEnclosing {
+    var result = <CompilationUnitElement>[];
+    var current = this;
+    while (true) {
+      result.add(current);
+      if (current.enclosingElement3 case var enclosing?) {
+        current = enclosing;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+}
+
 extension Element2OrNullExtension on Element2? {
   Element? get asElement {
     var self = this;
@@ -132,6 +149,10 @@ extension ElementOrNullExtension on Element? {
       return self.declaration.asElement2;
     } else if (self is PrefixElementImpl) {
       return self.element2;
+    } else if (self is ExecutableMember) {
+      return self as ExecutableElement2;
+    } else if (self is FieldMember) {
+      return self as FieldElement2;
     } else {
       return (self as Fragment?)?.element;
     }
