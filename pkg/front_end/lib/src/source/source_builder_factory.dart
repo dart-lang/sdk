@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart'
-    show IndexedClass, IndexedContainer, IndexedLibrary;
+    show IndexedClass, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../api_prototype/experimental_flags.dart';
@@ -23,15 +23,12 @@ import '../base/messages.dart';
 import '../base/modifier.dart'
     show
         abstractMask,
-        augmentMask,
         constMask,
-        externalMask,
         finalMask,
         declaresConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
         superInitializingFormalMask,
-        lateMask,
         namedMixinApplicationMask,
         staticMask;
 import '../base/problems.dart' show internalProblem, unhandled;
@@ -54,7 +51,6 @@ import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
 import 'builder_factory.dart';
-import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_enum_builder.dart';
@@ -118,8 +114,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<ConstructorFragment> _nativeConstructorFragments = [];
 
-  final LibraryName libraryName;
-
   final LookupScope _compilationUnitScope;
 
   /// Index for building unique lowered names for wildcard variables.
@@ -142,7 +136,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
-      required LibraryName libraryName,
       required IndexedLibrary? indexedLibrary,
       required Map<String, Builder>? omittedTypeDeclarationBuilders})
       : _compilationUnit = compilationUnit,
@@ -150,7 +143,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
         _compilationUnitScope = scope,
-        libraryName = libraryName,
         indexedLibrary = indexedLibrary,
         _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _typeScopes =
@@ -641,28 +633,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "$_structuralParameterScopes.");
   }
 
-  // TODO(johnniwinther): Use [_indexedContainer] for library members and make
-  // it [null] when there is null corresponding [IndexedContainer].
-  IndexedContainer? _indexedContainer;
-
-  @override
-  void beginIndexedContainer(String name,
-      {required bool isExtensionTypeDeclaration}) {
-    if (indexedLibrary != null) {
-      if (isExtensionTypeDeclaration) {
-        _indexedContainer =
-            indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
-      } else {
-        _indexedContainer = indexedLibrary!.lookupIndexedClass(name);
-      }
-    }
-  }
-
-  @override
-  void endIndexedContainer() {
-    _indexedContainer = null;
-  }
-
   @override
   // Coverage-ignore(suite): Not run.
   void registerUnboundStructuralVariables(
@@ -906,8 +876,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.startOffset = startOffset;
     declarationFragment.charOffset = nameOffset;
     declarationFragment.endOffset = endOffset;
-    declarationFragment.indexedLibrary = indexedLibrary;
-    declarationFragment.indexedClass = _indexedContainer as IndexedClass?;
     declarationFragment.isAugmentation = isAugmentation;
     declarationFragment.isBase = isBase;
     declarationFragment.isFinal = isFinal;
@@ -918,8 +886,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment,
-        getterReference: _indexedContainer?.reference);
+    _addFragment(declarationFragment);
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
@@ -937,10 +904,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String name = identifier.name;
     int charOffset = identifier.nameOffset;
 
-    IndexedClass? referencesFromIndexedClass;
-    if (indexedLibrary != null) {
-      referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
-    }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     endEnumDeclaration(name);
 
@@ -962,13 +925,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.startCharOffset = startCharOffset;
     declarationFragment.charOffset = charOffset;
     declarationFragment.charEndOffset = charEndOffset;
-    declarationFragment.indexedLibrary = indexedLibrary;
-    declarationFragment.indexedClass = referencesFromIndexedClass;
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment,
-        getterReference: referencesFromIndexedClass?.reference);
+    _addFragment(declarationFragment);
 
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
@@ -1026,15 +986,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.startOffset = startOffset;
     declarationFragment.charOffset = nameOffset;
     declarationFragment.endOffset = endOffset;
-    declarationFragment.indexedLibrary = indexedLibrary;
-    declarationFragment.indexedClass = _indexedContainer as IndexedClass?;
     declarationFragment.isAugmentation = isAugmentation;
     declarationFragment.isBase = isBase;
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment,
-        getterReference: _indexedContainer?.reference);
+    _addFragment(declarationFragment);
 
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
@@ -1075,32 +1032,26 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    _addFragment(
-        new NamedMixinApplicationFragment(
-          name: name,
-          fileUri: _compilationUnit.fileUri,
-          startCharOffset: startCharOffset,
-          charOffset: charOffset,
-          charEndOffset: charEndOffset,
-          modifiers: modifiers,
-          metadata: metadata,
-          typeParameters: typeVariables,
-          supertype: supertype,
-          mixins: mixinApplication,
-          interfaces: interfaces,
-          isAugmentation: isAugmentation,
-          isBase: isBase,
-          isFinal: isFinal,
-          isInterface: isInterface,
-          isMacro: isMacro,
-          isMixinClass: isMixinClass,
-          isSealed: isSealed,
-          compilationUnitScope: _compilationUnitScope,
-          indexedLibrary: indexedLibrary,
-        ),
-        // References are looked up in [BuilderFactoryImpl.applyMixin] when the
-        // [SourceClassBuilder] is created.
-        getterReference: null);
+    _addFragment(new NamedMixinApplicationFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charEndOffset: charEndOffset,
+        modifiers: modifiers,
+        metadata: metadata,
+        typeParameters: typeVariables,
+        supertype: supertype,
+        mixins: mixinApplication,
+        interfaces: interfaces,
+        isAugmentation: isAugmentation,
+        isBase: isBase,
+        isFinal: isFinal,
+        isInterface: isInterface,
+        isMacro: isMacro,
+        isMixinClass: isMixinClass,
+        isSealed: isSealed,
+        compilationUnitScope: _compilationUnitScope));
   }
 
   static TypeBuilder? applyMixins(
@@ -1340,7 +1291,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset,
-            getterReference: referencesFromIndexedClass?.cls.reference);
+            getterReference: referencesFromIndexedClass?.reference);
         supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             application, const NullabilityBuilder.omitted(),
             arguments: applicationTypeArguments,
@@ -1381,23 +1332,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    Extension? referenceFrom;
-    if (name != null) {
-      referenceFrom = indexedLibrary?.lookupExtension(name);
-    }
-
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.onType = type;
     declarationFragment.startOffset = startOffset;
     declarationFragment.nameOffset = nameOffset;
     declarationFragment.endOffset = endOffset;
-    declarationFragment.reference = referenceFrom?.reference;
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment,
-        getterReference: referenceFrom?.reference);
+    _addFragment(declarationFragment);
 
     if (identifier != null) {
       offsetMap.registerNamedDeclarationFragment(
@@ -1429,9 +1373,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    IndexedContainer? indexedContainer =
-        indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
-
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.interfaces = interfaces;
@@ -1439,12 +1380,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         new List<ConstructorReferenceBuilder>.of(_constructorReferences);
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
-    declarationFragment.indexedContainer = indexedContainer;
 
     _constructorReferences.clear();
 
-    _addFragment(declarationFragment,
-        getterReference: indexedContainer?.reference);
+    _addFragment(declarationFragment);
     offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
@@ -1461,7 +1400,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             VarianceCalculationValue.pending;
       }
     }
-    Reference? reference = indexedLibrary?.lookupTypedef(name)?.reference;
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: true);
@@ -1473,9 +1411,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeVariables: typeVariables,
         type: type,
         fileUri: _compilationUnit.fileUri,
-        fileOffset: charOffset,
-        reference: reference);
-    _addFragment(fragment, getterReference: reference);
+        fileOffset: charOffset);
+    _addFragment(fragment);
   }
 
   @override
@@ -1778,30 +1715,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       {Token? beginInitializers,
       required bool isConst,
       required bool forAbstractClassOrMixin}) {
-    ContainerType containerType = _declarationFragments.current.containerType;
-    ContainerName? containerName = _declarationFragments.current.containerName;
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: false,
-        containerName: containerName,
-        containerType: containerType,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.library.reference)
-            : libraryName);
-
-    Reference? constructorReference;
-    Reference? tearOffReference;
-
-    IndexedContainer? indexedContainer = _indexedContainer;
-    if (indexedContainer != null) {
-      constructorReference = indexedContainer.lookupConstructorReference(
-          nameScheme
-              .getConstructorMemberName(constructorName, isTearOff: false)
-              .name);
-      tearOffReference = indexedContainer.lookupGetterReference(nameScheme
-          .getConstructorMemberName(constructorName, isTearOff: true)
-          .name);
-    }
-
     ConstructorFragment fragment = new ConstructorFragment(
         name: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1814,9 +1727,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         returnType: addInferableType(),
         typeParameters: typeVariables,
         formals: formals,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
-        nameScheme: nameScheme,
         nativeMethodName: nativeMethodName,
         forAbstractClassOrMixin: forAbstractClassOrMixin,
         beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
@@ -1833,8 +1743,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: constructorName, allowNameConflict: true);
-    // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    _addFragment(fragment, getterReference: constructorReference);
+    _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeConstructorFragment(fragment);
     }
@@ -1890,43 +1799,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       procedureName = identifier.name;
     }
 
-    ContainerType containerType = enclosingDeclaration.containerType;
-    ContainerName containerName = enclosingDeclaration.containerName;
-
-    NameScheme procedureNameScheme = new NameScheme(
-        containerName: containerName,
-        containerType: containerType,
-        isInstanceMember: false,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(
-                (_indexedContainer ?? // Coverage-ignore(suite): Not run.
-                        indexedLibrary)!
-                    .library
-                    .reference)
-            : libraryName);
-
-    Reference? constructorReference;
-    Reference? tearOffReference;
-    if (_indexedContainer != null) {
-      constructorReference = _indexedContainer!.lookupConstructorReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = _indexedContainer!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    } else if (indexedLibrary != null) {
-      // Coverage-ignore-block(suite): Not run.
-      constructorReference = indexedLibrary!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = indexedLibrary!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    }
     List<NominalVariableBuilder>? typeVariables = copyTypeVariables(
             _unboundNominalVariables, enclosingDeclaration.typeParameters,
             kind: TypeVariableKind.function,
@@ -1944,10 +1816,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         returnType: returnType,
         typeParameters: typeVariables,
         formals: formals,
-        constructorReference: constructorReference,
-        tearOffReference: tearOffReference,
         asyncModifier: asyncModifier,
-        nameScheme: procedureNameScheme,
         nativeMethodName: nativeMethodName,
         redirectionTarget: redirectionTarget);
 
@@ -1970,7 +1839,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: identifier.name, allowNameConflict: true);
 
-    _addFragment(fragment, getterReference: constructorReference);
+    _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeFactoryFragment(fragment);
     }
@@ -2105,16 +1974,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(!isExtensionTypeMember ||
         enclosingDeclaration?.kind ==
             DeclarationFragmentKind.extensionTypeDeclaration);
-    ContainerType containerType =
-        enclosingDeclaration?.containerType ?? ContainerType.Library;
-    ContainerName? containerName = enclosingDeclaration?.containerName;
-    NameScheme nameScheme = new NameScheme(
-        containerName: containerName,
-        containerType: containerType,
-        isInstanceMember: isInstanceMember,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.library.reference)
-            : libraryName);
 
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
@@ -2124,34 +1983,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         returnType = addVoidType(charOffset);
       }
     }
-    Reference? procedureReference;
-    Reference? tearOffReference;
-    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
 
-    bool isAugmentation =
-        _compilationUnit.isAugmenting && (modifiers & augmentMask) != 0;
-    if (indexedContainer != null && !isAugmentation) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      if (kind == ProcedureKind.Setter) {
-        if ((isExtensionMember || isExtensionTypeMember) && isInstanceMember) {
-          // Extension (type) instance setters are encoded as methods.
-          procedureReference =
-              indexedContainer.lookupGetterReference(nameToLookup);
-        } else {
-          procedureReference =
-              indexedContainer.lookupSetterReference(nameToLookup);
-        }
-      } else {
-        procedureReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        if ((isExtensionMember || isExtensionTypeMember) &&
-            kind == ProcedureKind.Method) {
-          tearOffReference = indexedContainer.lookupGetterReference(nameScheme
-              .getProcedureMemberName(ProcedureKind.Getter, name)
-              .name);
-        }
-      }
-    }
     MethodFragment fragment = new MethodFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
@@ -2165,15 +1997,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameters: typeVariables,
         formals: formals,
         kind: kind,
-        procedureReference: procedureReference,
-        tearOffReference: tearOffReference,
         asyncModifier: asyncModifier,
-        nameScheme: nameScheme,
         nativeMethodName: nativeMethodName);
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: true);
-    _addFragment(fragment, getterReference: procedureReference);
+    _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeMethodFragment(fragment);
     }
@@ -2235,99 +2064,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    bool isLate = (modifiers & lateMask) != 0;
-    bool isFinal = (modifiers & finalMask) != 0;
-    bool isStatic = (modifiers & staticMask) != 0;
-    bool isExternal = (modifiers & externalMask) != 0;
-    final bool fieldIsLateWithLowering = isLate &&
-        (loader.target.backendTarget.isLateFieldLoweringEnabled(
-                hasInitializer: hasInitializer,
-                isFinal: isFinal,
-                isStatic: isTopLevel || isStatic) ||
-            (loader.target.backendTarget.useStaticFieldLowering &&
-                (isStatic || isTopLevel)));
-
-    DeclarationFragment? enclosingDeclaration =
-        _declarationFragments.currentOrNull;
-    final bool isInstanceMember = enclosingDeclaration != null && !isStatic;
-    final bool isExtensionMember = enclosingDeclaration?.kind ==
-        DeclarationFragmentKind.extensionDeclaration;
-    final bool isExtensionTypeMember = enclosingDeclaration?.kind ==
-        DeclarationFragmentKind.extensionTypeDeclaration;
-    ContainerType containerType =
-        enclosingDeclaration?.containerType ?? ContainerType.Library;
-    ContainerName? containerName = enclosingDeclaration?.containerName;
-
-    Reference? fieldReference;
-    Reference? fieldGetterReference;
-    Reference? fieldSetterReference;
-    Reference? lateIsSetFieldReference;
-    Reference? lateIsSetGetterReference;
-    Reference? lateIsSetSetterReference;
-    Reference? lateGetterReference;
-    Reference? lateSetterReference;
-
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: isInstanceMember,
-        containerName: containerName,
-        containerType: containerType,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.reference)
-            : libraryName);
-    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
-    if (indexedContainer != null) {
-      if ((isExtensionMember || isExtensionTypeMember) &&
-          isInstanceMember &&
-          isExternal) {
-        /// An external extension (type) instance field is special. It is
-        /// treated as an external getter/setter pair and is therefore encoded
-        /// as a pair of top level methods using the extension instance member
-        /// naming convention.
-        fieldGetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name);
-        fieldSetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name);
-      } else if (isExtensionTypeMember && isInstanceMember) {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.RepresentationField, name,
-                isSynthesized: true)
-            .name;
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-      } else {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.Field, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        fieldSetterReference =
-            indexedContainer.lookupSetterReference(nameToLookup);
-      }
-
-      if (fieldIsLateWithLowering) {
-        Name lateIsSetName = nameScheme
-            .getFieldMemberName(FieldNameType.IsSetField, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        lateIsSetFieldReference =
-            indexedContainer.lookupFieldReference(lateIsSetName);
-        lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetName);
-        lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetName);
-        lateGetterReference = indexedContainer.lookupGetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Getter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-        lateSetterReference = indexedContainer.lookupSetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Setter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-      }
-    }
-
     FieldFragment fragment = new FieldFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
@@ -2337,20 +2073,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         constInitializerToken: constInitializerToken,
         metadata: metadata,
         type: type,
-        fieldReference: fieldReference,
-        fieldGetterReference: fieldGetterReference,
-        fieldSetterReference: fieldSetterReference,
-        lateGetterReference: lateGetterReference,
-        lateSetterReference: lateSetterReference,
-        lateIsSetFieldReference: lateIsSetFieldReference,
-        lateIsSetGetterReference: lateIsSetGetterReference,
-        lateIsSetSetterReference: lateIsSetSetterReference,
         isTopLevel: isTopLevel,
-        modifiers: modifiers,
-        nameScheme: nameScheme);
-    _addFragment(fragment,
-        getterReference: fieldGetterReference,
-        setterReference: fieldSetterReference);
+        modifiers: modifiers);
+    _addFragment(fragment);
     return fragment;
   }
 
@@ -2593,14 +2318,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
-  void _addFragment(Fragment fragment,
-      {required Reference? getterReference, Reference? setterReference}) {
-    if (getterReference != null) {
-      loader.fragmentsCreatedWithReferences[getterReference] = fragment;
-    }
-    if (setterReference != null) {
-      loader.fragmentsCreatedWithReferences[setterReference] = fragment;
-    }
+  void _addFragment(Fragment fragment) {
     if (_declarationFragments.isEmpty) {
       _libraryNameSpaceBuilder.addFragment(fragment);
     } else {

@@ -30,6 +30,7 @@ import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
 import 'class_declaration.dart';
+import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -132,7 +133,11 @@ class SourceExtensionTypeDeclarationBuilder
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
         enclosingLibraryBuilder: libraryBuilder,
-        declarationBuilder: this);
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        indexedContainer: indexedContainer,
+        containerType: ContainerType.ExtensionType,
+        containerName: new ClassName(name));
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension type $name",
         parent: typeParameterScope);

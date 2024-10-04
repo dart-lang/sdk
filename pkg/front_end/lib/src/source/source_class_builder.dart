@@ -43,6 +43,7 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'class_declaration.dart';
+import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -214,7 +215,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
         enclosingLibraryBuilder: libraryBuilder,
-        declarationBuilder: this);
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        indexedContainer: indexedClass,
+        containerType: ContainerType.Class,
+        containerName: new ClassName(name));
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class $name",
         parent: typeParameterScope);

@@ -4,8 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
-import 'package:kernel/reference_from_index.dart';
 
+import '../base/modifier.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -37,7 +37,6 @@ class TypedefFragment implements Fragment {
   final TypeBuilder type;
   final Uri fileUri;
   final int fileOffset;
-  final Reference? reference;
 
   SourceTypeAliasBuilder? _builder;
 
@@ -47,8 +46,7 @@ class TypedefFragment implements Fragment {
       required this.typeVariables,
       required this.type,
       required this.fileUri,
-      required this.fileOffset,
-      required this.reference});
+      required this.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -72,8 +70,6 @@ class ClassFragment extends DeclarationFragment implements Fragment {
 
   final int nameOffset;
 
-  final ClassName _className;
-
   SourceClassBuilder? _builder;
 
   late final LookupScope compilationUnitScope;
@@ -86,8 +82,6 @@ class ClassFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int charOffset;
   late final int endOffset;
-  late final IndexedLibrary? indexedLibrary;
-  late final IndexedClass? indexedClass;
   late final bool isAugmentation;
   late final bool isBase;
   late final bool isFinal;
@@ -97,8 +91,7 @@ class ClassFragment extends DeclarationFragment implements Fragment {
   late final bool isSealed;
 
   ClassFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
+      super.typeParameterScope, super._nominalParameterNameSpace);
 
   @override
   int get fileOffset => nameOffset;
@@ -113,12 +106,6 @@ class ClassFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.Class;
 
   @override
   DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
@@ -133,8 +120,6 @@ class MixinFragment extends DeclarationFragment implements Fragment {
 
   final int nameOffset;
 
-  final ClassName _className;
-
   SourceClassBuilder? _builder;
 
   late final LookupScope compilationUnitScope;
@@ -147,14 +132,11 @@ class MixinFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int charOffset;
   late final int endOffset;
-  late final IndexedLibrary? indexedLibrary;
-  late final IndexedClass? indexedClass;
   late final bool isAugmentation;
   late final bool isBase;
 
   MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
+      super.typeParameterScope, super._nominalParameterNameSpace);
 
   @override
   int get fileOffset => nameOffset;
@@ -169,12 +151,6 @@ class MixinFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.Class;
 
   @override
   DeclarationFragmentKind get kind => DeclarationFragmentKind.mixinDeclaration;
@@ -203,7 +179,6 @@ class NamedMixinApplicationFragment implements Fragment {
   final bool isMixinClass;
   final bool isSealed;
   final LookupScope compilationUnitScope;
-  final IndexedLibrary? indexedLibrary;
 
   SourceClassBuilder? _builder;
 
@@ -226,8 +201,7 @@ class NamedMixinApplicationFragment implements Fragment {
       required this.isMacro,
       required this.isMixinClass,
       required this.isSealed,
-      required this.compilationUnitScope,
-      required this.indexedLibrary});
+      required this.compilationUnitScope});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -252,8 +226,6 @@ class EnumFragment extends DeclarationFragment implements Fragment {
 
   final int nameOffset;
 
-  final ClassName _className;
-
   SourceEnumBuilder? _builder;
 
   late final LookupScope compilationUnitScope;
@@ -265,12 +237,9 @@ class EnumFragment extends DeclarationFragment implements Fragment {
   late final int startCharOffset;
   late final int charOffset;
   late final int charEndOffset;
-  late final IndexedLibrary? indexedLibrary;
-  late final IndexedClass? indexedClass;
 
   EnumFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
+      super.typeParameterScope, super._nominalParameterNameSpace);
 
   @override
   int get fileOffset => nameOffset;
@@ -285,12 +254,6 @@ class EnumFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.Class;
 
   @override
   DeclarationFragmentKind get kind => DeclarationFragmentKind.enumDeclaration;
@@ -319,7 +282,6 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int nameOffset;
   late final int endOffset;
-  late final Reference? reference;
 
   ExtensionFragment(
       String? name,
@@ -345,12 +307,6 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
 
   @override
   String get name => extensionName.name;
-
-  @override
-  ContainerName get containerName => extensionName;
-
-  @override
-  ContainerType get containerType => ContainerType.Extension;
 
   @override
   DeclarationFragmentKind get kind =>
@@ -394,15 +350,12 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
 
   final int nameOffset;
 
-  final ClassName _className;
-
   late final List<MetadataBuilder>? metadata;
   late final int modifiers;
   late final List<TypeBuilder>? interfaces;
   late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
   late final int endOffset;
-  late final IndexedContainer? indexedContainer;
 
   SourceExtensionTypeDeclarationBuilder? _builder;
 
@@ -412,8 +365,7 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
       this.nameOffset,
       super.typeParameters,
       super.typeParameterScope,
-      super._nominalParameterNameSpace)
-      : _className = new ClassName(name);
+      super._nominalParameterNameSpace);
 
   @override
   int get fileOffset => nameOffset;
@@ -428,12 +380,6 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
-
-  @override
-  ContainerName get containerName => _className;
-
-  @override
-  ContainerType get containerType => ContainerType.ExtensionType;
 
   @override
   DeclarationFragmentKind get kind =>
@@ -452,17 +398,8 @@ class FieldFragment implements Fragment {
   Token? _constInitializerToken;
   final List<MetadataBuilder>? metadata;
   final TypeBuilder type;
-  final Reference? fieldReference;
-  final Reference? fieldGetterReference;
-  final Reference? fieldSetterReference;
-  final Reference? lateGetterReference;
-  final Reference? lateSetterReference;
-  final Reference? lateIsSetFieldReference;
-  final Reference? lateIsSetGetterReference;
-  final Reference? lateIsSetSetterReference;
   final bool isTopLevel;
   final int modifiers;
-  final NameScheme nameScheme;
 
   SourceFieldBuilder? _builder;
 
@@ -475,17 +412,8 @@ class FieldFragment implements Fragment {
       required Token? constInitializerToken,
       required this.metadata,
       required this.type,
-      required this.fieldReference,
-      required this.fieldGetterReference,
-      required this.fieldSetterReference,
-      required this.lateGetterReference,
-      required this.lateSetterReference,
-      required this.lateIsSetFieldReference,
-      required this.lateIsSetGetterReference,
-      required this.lateIsSetSetterReference,
       required this.isTopLevel,
-      required this.modifiers,
-      required this.nameScheme})
+      required this.modifiers})
       : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
@@ -514,6 +442,16 @@ class FieldFragment implements Fragment {
     _builder = value;
   }
 
+  bool get isLate => (modifiers & lateMask) != 0;
+
+  bool get isFinal => (modifiers & finalMask) != 0;
+
+  bool get isStatic => (modifiers & staticMask) != 0;
+
+  bool get isExternal => (modifiers & externalMask) != 0;
+
+  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
+
   @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
@@ -531,10 +469,7 @@ class MethodFragment implements Fragment {
   final List<NominalVariableBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
   final ProcedureKind kind;
-  final Reference? procedureReference;
-  final Reference? tearOffReference;
   final AsyncMarker asyncModifier;
-  final NameScheme nameScheme;
   final String? nativeMethodName;
 
   SourceProcedureBuilder? _builder;
@@ -552,10 +487,7 @@ class MethodFragment implements Fragment {
       required this.typeParameters,
       required this.formals,
       required this.kind,
-      required this.procedureReference,
-      required this.tearOffReference,
       required this.asyncModifier,
-      required this.nameScheme,
       required this.nativeMethodName});
 
   @override
@@ -568,6 +500,10 @@ class MethodFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  bool get isAugment => (modifiers & augmentMask) != 0;
+
+  bool get isStatic => (modifiers & staticMask) != 0;
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
@@ -585,9 +521,6 @@ class ConstructorFragment implements Fragment {
   final OmittedTypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
-  final Reference? constructorReference;
-  final Reference? tearOffReference;
-  final NameScheme nameScheme;
   final String? nativeMethodName;
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
@@ -606,9 +539,6 @@ class ConstructorFragment implements Fragment {
       required this.returnType,
       required this.typeParameters,
       required this.formals,
-      required this.constructorReference,
-      required this.tearOffReference,
-      required this.nameScheme,
       required this.nativeMethodName,
       required this.forAbstractClassOrMixin,
       required Token? beginInitializers})
@@ -648,10 +578,7 @@ class FactoryFragment implements Fragment {
   final TypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
-  final Reference? constructorReference;
-  final Reference? tearOffReference;
   final AsyncMarker asyncModifier;
-  final NameScheme nameScheme;
   final String? nativeMethodName;
   final ConstructorReferenceBuilder? redirectionTarget;
 
@@ -669,10 +596,7 @@ class FactoryFragment implements Fragment {
       required this.returnType,
       required this.typeParameters,
       required this.formals,
-      required this.constructorReference,
-      required this.tearOffReference,
       required this.asyncModifier,
-      required this.nameScheme,
       required this.nativeMethodName,
       required this.redirectionTarget});
 

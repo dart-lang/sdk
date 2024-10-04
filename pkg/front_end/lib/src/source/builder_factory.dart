@@ -177,26 +177,6 @@ abstract class BuilderFactory {
 
   void endTypedefForParserRecovery(List<NominalVariableBuilder>? typeVariables);
 
-  /// Call this when entering a class, mixin, enum, or extension type
-  /// declaration.
-  ///
-  /// This is done to set up the current [_indexedContainer] used to lookup
-  /// references of members from a previous incremental compilation.
-  ///
-  /// Called in `OutlineBuilder.beginClassDeclaration`,
-  /// `OutlineBuilder.beginEnum`, `OutlineBuilder.beginMixinDeclaration` and
-  /// `OutlineBuilder.beginExtensionTypeDeclaration`.
-  void beginIndexedContainer(String name,
-      {required bool isExtensionTypeDeclaration});
-
-  /// Call this when leaving a class, mixin, enum, or extension type
-  /// declaration.
-  ///
-  /// Called in `OutlineBuilder.endClassDeclaration`,
-  /// `OutlineBuilder.endEnum`, `OutlineBuilder.endMixinDeclaration` and
-  /// `OutlineBuilder.endExtensionTypeDeclaration`.
-  void endIndexedContainer();
-
   void checkStacks();
 
   void addScriptToken(int charOffset);

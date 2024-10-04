@@ -98,6 +98,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         problemReporting: libraryBuilder,
         enclosingLibraryBuilder: libraryBuilder,
         declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        // Extensions do not have a corresponding [IndexedContainer] since their
+        // members are stored in the enclosing library.
+        indexedContainer: null,
+        containerType: ContainerType.Extension,
+        containerName: extensionName,
         includeConstructors: false);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",

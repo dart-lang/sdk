@@ -89,8 +89,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final IndexedLibrary? indexedLibrary;
 
-  final LibraryName _libraryName;
-
   late final BuilderFactoryImpl _builderFactory;
 
   late final BuilderFactoryResult _builderFactoryResult;
@@ -138,7 +136,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required bool isUnsupported,
       required SourceLoader loader,
       required bool mayImplementRestrictedTypes}) {
-    LibraryName libraryName = new LibraryName(dummyLibrary.reference);
     LibraryNameSpaceBuilder libraryNameSpaceBuilder =
         new LibraryNameSpaceBuilder();
     NameSpace importNameSpace = new NameSpaceImpl();
@@ -149,7 +146,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         packageLanguageVersion: packageLanguageVersion,
         originImportUri: originImportUri,
         indexedLibrary: indexedLibrary,
-        libraryName: libraryName,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders,
         parentScope: parentScope,
         importNameSpace: importNameSpace,
@@ -171,7 +167,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.packageLanguageVersion,
       required this.originImportUri,
       required this.indexedLibrary,
-      required LibraryName libraryName,
       Map<String, Builder>? omittedTypeDeclarationBuilders,
       LookupScope? parentScope,
       required NameSpace importNameSpace,
@@ -184,8 +179,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.isUnsupported,
       required this.loader,
       required this.mayImplementRestrictedTypes})
-      : _libraryName = libraryName,
-        _languageVersion = packageLanguageVersion,
+      : _languageVersion = packageLanguageVersion,
         _packageUri = packageUri,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
@@ -205,7 +199,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: _problemReporting,
         scope: _scope,
-        libraryName: _libraryName,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
   }
@@ -470,7 +463,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             isAugmentation: forAugmentationLibrary,
             isPatch: forPatchLibrary,
             parentScope: _parentScope,
-            libraryName: _libraryName,
             importNameSpace: _importNameSpace,
             libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
             omittedTypes: _omittedTypeDeclarationBuilders);
@@ -719,7 +711,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   void _becomePart(SourceLibraryBuilder libraryBuilder,
       LibraryNameSpaceBuilder libraryNameSpaceBuilder) {
     libraryNameSpaceBuilder.includeBuilders(_libraryNameSpaceBuilder);
-    _libraryName.reference = libraryBuilder.libraryName.reference;
 
     // TODO(ahe): Include metadata from part?
 

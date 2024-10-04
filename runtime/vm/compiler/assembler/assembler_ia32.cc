@@ -1845,10 +1845,6 @@ void Assembler::Store(const Object& object, const Address& dst) {
   }
 }
 
-void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
-  sarl(reg, Immediate(shift));
-}
-
 void Assembler::CompareWords(Register reg1,
                              Register reg2,
                              intptr_t offset,
@@ -1979,6 +1975,24 @@ void Assembler::SubImmediate(Register reg, const Immediate& imm) {
     }
   } else {
     AddImmediate(reg, Immediate(-value));
+  }
+}
+
+void Assembler::AndImmediate(Register dst,
+                             Register src,
+                             int32_t value,
+                             OperandSize sz) {
+  ASSERT(sz == kFourBytes || sz == kUnsignedFourBytes);
+  if (value == 0) {
+    // No bits set, so all bits cleared.
+    LoadImmediate(dst, 0);
+  } else if (value == -1) {
+    // All bits set, so just copy if necessary. This also allows the instruction
+    // to be a no-op if dst == src.
+    MoveRegister(dst, src);
+  } else {
+    MoveRegister(dst, src);
+    andl(dst, Immediate(value));
   }
 }
 

@@ -2563,13 +2563,19 @@ void Assembler::PopNativeCalleeSavedRegisters() {
 }
 
 void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
+  // For non-word bitsizes, use slli + srli for zero extension and slli + srai
+  // for sign extension when there is no single instruction to perform it.
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
       if (rd == rn) return;  // No operation needed.
       return mv(rd, rn);
     case kUnsignedFourBytes:
-      return UNIMPLEMENTED();
+      if (Supports(RV_Zba)) {
+        return adduw(rd, rn, ZR);
+      }
+      slli(rd, rn, XLEN - 32);
+      return srli(rd, rn, XLEN - 32);
     case kFourBytes:
       return sextw(rd, rn);
 #elif XLEN == 32
@@ -2577,11 +2583,29 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
     case kFourBytes:
       if (rd == rn) return;  // No operation needed.
       return mv(rd, rn);
+#else
+#error Unexpected XLEN.
 #endif
     case kUnsignedTwoBytes:
+      if (Supports(RV_Zbb)) {
+        return zexth(rd, rn);
+      }
+      slli(rd, rn, XLEN - 16);
+      return srli(rd, rn, XLEN - 16);
     case kTwoBytes:
+      if (Supports(RV_Zbb)) {
+        return sexth(rd, rn);
+      }
+      slli(rd, rn, XLEN - 16);
+      return srai(rd, rn, XLEN - 16);
     case kUnsignedByte:
+      return andi(rd, rn, kMaxUint8);
     case kByte:
+      if (Supports(RV_Zbb)) {
+        return sextb(rd, rn);
+      }
+      slli(rd, rn, XLEN - 8);
+      return srai(rd, rn, XLEN - 8);
     default:
       UNIMPLEMENTED();
       break;
@@ -3053,8 +3077,21 @@ void Assembler::BranchIfSmi(Register reg, Label* label, JumpDistance distance) {
   beqz(TMP2, label, distance);
 }
 
-void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
-  srai(reg, reg, shift);
+void Assembler::ArithmeticShiftRightImmediate(Register dst,
+                                              Register src,
+                                              int32_t shift,
+                                              OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+  if (shift == 0) {
+    return ExtendValue(dst, src, sz);
+  }
+#if XLEN >= 64
+  if (sz == kFourBytes) {
+    return sraiw(dst, src, shift);
+  }
+#endif
+  srai(dst, src, shift);
 }
 
 void Assembler::CompareWords(Register reg1,
@@ -3197,11 +3234,18 @@ void Assembler::AndImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
-  uintx_t uimm = imm;
-  if (imm == -1) {
+  ASSERT(sz == kEightBytes || sz == kUnsignedFourBytes || sz == kFourBytes);
+  const intptr_t bit_size = OperandSizeInBits(sz);
+  ASSERT(Utils::IsInt(bit_size, imm) || Utils::IsUint(bit_size, imm));
+  // Clear the upper bits of the immediate for non-word-sized uses.
+  uintx_t uimm = bit_size == XLEN ? imm : static_cast<uint32_t>(imm);
+  if (bit_size == XLEN && imm == -1) {
+    // All bits set, so allow this operation to be a no-op if rd == rs1.
     MoveRegister(rd, rs1);
-  } else if (IsITypeImm(imm)) {
-    andi(rd, rs1, imm);
+  } else if (bit_size < XLEN && static_cast<int32_t>(imm) == -1) {
+    ExtendValue(rd, rs1, kUnsignedFourBytes);
+  } else if (IsITypeImm(uimm)) {
+    andi(rd, rs1, uimm);
   } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(~uimm)) {
     bclri(rd, rs1, Utils::ShiftForPowerOfTwo(~uimm));
   } else if (Utils::IsPowerOfTwo(uimm + 1)) {
@@ -3214,7 +3258,7 @@ void Assembler::AndImmediate(Register rd,
     }
   } else {
     ASSERT(rs1 != TMP2);
-    LoadImmediate(TMP2, imm);
+    LoadImmediate(TMP2, uimm);
     and_(rd, rs1, TMP2);
   }
 }
@@ -3251,6 +3295,32 @@ void Assembler::XorImmediate(Register rd,
     LoadImmediate(TMP2, imm);
     xor_(rd, rs1, TMP2);
   }
+}
+
+void Assembler::LslImmediate(Register rd,
+                             Register rn,
+                             int32_t shift,
+                             OperandSize sz) {
+  ASSERT(sz == kEightBytes || sz == kFourBytes || sz == kUnsignedFourBytes);
+  ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+  if (shift == 0) {
+    return ExtendValue(rd, rn, sz);
+  }
+#if XLEN >= 64
+  if (sz == kFourBytes) {
+    return slliw(rd, rn, shift);
+  }
+  if (sz == kUnsignedFourBytes) {
+    if (Supports(RV_Zba)) {
+      return slliuw(rd, rn, shift);
+    } else {
+      // Clear upper bits in addition to the shift.
+      slli(rd, rn, shift + (XLEN / 2));
+      return srli(rd, rn, XLEN / 2);
+    }
+  }
+#endif
+  slli(rd, rn, shift);
 }
 
 void Assembler::TestImmediate(Register rn, intx_t imm, OperandSize sz) {

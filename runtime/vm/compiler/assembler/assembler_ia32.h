@@ -741,19 +741,33 @@ class Assembler : public AssemblerBase {
       imull(reg, Immediate(imm));
     }
   }
-  void AndImmediate(Register dst, int32_t value) override {
-    andl(dst, Immediate(value));
+  void AndImmediate(Register reg,
+                    int32_t value,
+                    OperandSize sz = kFourBytes) override {
+    AndImmediate(reg, reg, value, sz);
   }
-  void AndImmediate(Register dst, Register src, int32_t value) {
-    MoveRegister(dst, src);
-    andl(dst, Immediate(value));
-  }
+  void AndImmediate(Register dst,
+                    Register src,
+                    int32_t value,
+                    OperandSize sz = kFourBytes) override;
   void AndRegisters(Register dst,
                     Register src1,
                     Register src2 = kNoRegister) override;
   void OrImmediate(Register dst, int32_t value) { orl(dst, Immediate(value)); }
-  void LslImmediate(Register dst, int32_t shift) {
-    shll(dst, Immediate(shift));
+  void LslImmediate(Register dst,
+                    Register src,
+                    int32_t shift,
+                    OperandSize sz = kFourBytes) override {
+    ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+    ExtendValue(dst, src, sz);
+    if (shift != 0) {
+      shll(dst, Immediate(shift));
+    }
+  }
+  void LslImmediate(Register reg,
+                    int32_t shift,
+                    OperandSize sz = kFourBytes) override {
+    LslImmediate(reg, reg, shift, sz);
   }
   void LslRegister(Register dst, Register shift) override {
     ASSERT_EQUAL(shift, ECX);  // IA32 does not have a TMP.
@@ -1020,7 +1034,22 @@ class Assembler : public AssemblerBase {
     j(ZERO, label, distance);
   }
 
-  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void ArithmeticShiftRightImmediate(Register dst,
+                                     Register src,
+                                     int32_t shift,
+                                     OperandSize sz = kFourBytes) override {
+    ASSERT(IsSignedOperand(sz));
+    ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+    ExtendValue(dst, src, sz);
+    if (shift != 0) {
+      sarl(dst, Immediate(shift));
+    }
+  }
+  void ArithmeticShiftRightImmediate(Register reg,
+                                     int32_t shift,
+                                     OperandSize sz = kFourBytes) override {
+    ArithmeticShiftRightImmediate(reg, reg, shift, sz);
+  }
   void CompareWords(Register reg1,
                     Register reg2,
                     intptr_t offset,

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/reference_from_index.dart';
 
 import '../base/messages.dart';
 import '../base/name_space.dart';
@@ -37,7 +38,11 @@ sealed class _Added {
       DeclarationBuilder? declarationBuilder,
       required List<NominalVariableBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
-      required List<_AddBuilder> builders});
+      required List<_AddBuilder> builders,
+      required IndexedLibrary? indexedLibrary,
+      required ContainerType containerType,
+      IndexedContainer? indexedContainer,
+      ContainerName? containerName});
 }
 
 class _AddedFragment implements _Added {
@@ -53,10 +58,15 @@ class _AddedFragment implements _Added {
       DeclarationBuilder? declarationBuilder,
       required List<NominalVariableBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
-      required List<_AddBuilder> builders}) {
+      required List<_AddBuilder> builders,
+      required IndexedLibrary? indexedLibrary,
+      required ContainerType containerType,
+      IndexedContainer? indexedContainer,
+      ContainerName? containerName}) {
     Fragment fragment = this.fragment;
     switch (fragment) {
       case TypedefFragment():
+        Reference? reference = indexedLibrary?.lookupTypedef(fragment.name);
         SourceTypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
             metadata: fragment.metadata,
             name: fragment.name,
@@ -65,11 +75,16 @@ class _AddedFragment implements _Added {
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
             fileOffset: fragment.fileOffset,
-            reference: fragment.reference);
+            reference: reference);
         fragment.builder = typedefBuilder;
         builders.add(new _AddBuilder(fragment.name, typedefBuilder,
             fragment.fileUri, fragment.fileOffset));
+        if (reference != null) {
+          loader.buildersCreatedWithReferences[reference] = typedefBuilder;
+        }
       case ClassFragment():
+        IndexedClass? indexedClass =
+            indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceClassBuilder classBuilder = new SourceClassBuilder(
             fragment.metadata,
             fragment.modifiers,
@@ -82,7 +97,7 @@ class _AddedFragment implements _Added {
                 objectTypeBuilder: loader.target.objectType,
                 enclosingLibraryBuilder: enclosingLibraryBuilder,
                 fileUri: fragment.fileUri,
-                indexedLibrary: fragment.indexedLibrary,
+                indexedLibrary: indexedLibrary,
                 supertype: fragment.supertype,
                 mixinApplicationBuilder: fragment.mixins,
                 mixinApplications: mixinApplications,
@@ -119,7 +134,7 @@ class _AddedFragment implements _Added {
             fragment.startOffset,
             fragment.charOffset,
             fragment.endOffset,
-            fragment.indexedClass,
+            indexedClass,
             isMixinDeclaration: false,
             isMacro: fragment.isMacro,
             isSealed: fragment.isSealed,
@@ -132,7 +147,13 @@ class _AddedFragment implements _Added {
         fragment.bodyScope.declarationBuilder = classBuilder;
         builders.add(new _AddBuilder(fragment.name, classBuilder,
             fragment.fileUri, fragment.fileOffset));
+        if (indexedClass != null) {
+          loader.buildersCreatedWithReferences[indexedClass.reference] =
+              classBuilder;
+        }
       case MixinFragment():
+        IndexedClass? indexedClass =
+            indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceClassBuilder mixinBuilder = new SourceClassBuilder(
             fragment.metadata,
             fragment.modifiers,
@@ -145,7 +166,7 @@ class _AddedFragment implements _Added {
                 objectTypeBuilder: loader.target.objectType,
                 enclosingLibraryBuilder: enclosingLibraryBuilder,
                 fileUri: fragment.fileUri,
-                indexedLibrary: fragment.indexedLibrary,
+                indexedLibrary: indexedLibrary,
                 supertype: fragment.supertype,
                 mixinApplicationBuilder: fragment.mixins,
                 mixinApplications: mixinApplications,
@@ -184,7 +205,7 @@ class _AddedFragment implements _Added {
             fragment.startOffset,
             fragment.charOffset,
             fragment.endOffset,
-            fragment.indexedClass,
+            indexedClass,
             isMixinDeclaration: true,
             isMacro: false,
             isSealed: false,
@@ -197,6 +218,10 @@ class _AddedFragment implements _Added {
         fragment.bodyScope.declarationBuilder = mixinBuilder;
         builders.add(new _AddBuilder(fragment.name, mixinBuilder,
             fragment.fileUri, fragment.fileOffset));
+        if (indexedClass != null) {
+          loader.buildersCreatedWithReferences[indexedClass.reference] =
+              mixinBuilder;
+        }
       case NamedMixinApplicationFragment():
         BuilderFactoryImpl.applyMixins(
             unboundNominalVariables: unboundNominalVariables,
@@ -205,7 +230,7 @@ class _AddedFragment implements _Added {
             objectTypeBuilder: loader.target.objectType,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
-            indexedLibrary: fragment.indexedLibrary,
+            indexedLibrary: indexedLibrary,
             supertype: fragment.supertype,
             mixinApplicationBuilder: fragment.mixins,
             mixinApplications: mixinApplications,
@@ -237,6 +262,8 @@ class _AddedFragment implements _Added {
             });
 
       case EnumFragment():
+        IndexedClass? indexedClass =
+            indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             fragment.metadata,
             fragment.name,
@@ -249,7 +276,7 @@ class _AddedFragment implements _Added {
                 objectTypeBuilder: loader.target.objectType,
                 enclosingLibraryBuilder: enclosingLibraryBuilder,
                 fileUri: fragment.fileUri,
-                indexedLibrary: fragment.indexedLibrary,
+                indexedLibrary: indexedLibrary,
                 supertype: loader.target.underscoreEnumType,
                 mixinApplicationBuilder: fragment.supertypeBuilder,
                 mixinApplications: mixinApplications,
@@ -283,14 +310,22 @@ class _AddedFragment implements _Added {
             fragment.startCharOffset,
             fragment.charOffset,
             fragment.charEndOffset,
-            fragment.indexedClass,
+            indexedClass,
             fragment.typeParameterScope,
             fragment.toDeclarationNameSpaceBuilder());
         fragment.builder = enumBuilder;
         fragment.bodyScope.declarationBuilder = enumBuilder;
         builders.add(new _AddBuilder(
             fragment.name, enumBuilder, fragment.fileUri, fragment.fileOffset));
+        if (indexedClass != null) {
+          loader.buildersCreatedWithReferences[indexedClass.reference] =
+              enumBuilder;
+        }
       case ExtensionFragment():
+        Reference? reference;
+        if (!fragment.extensionName.isUnnamedExtension) {
+          reference = indexedLibrary?.lookupExtension(fragment.name);
+        }
         SourceExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
             metadata: fragment.metadata,
             modifiers: fragment.modifiers,
@@ -304,12 +339,17 @@ class _AddedFragment implements _Added {
             startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
             endOffset: fragment.endOffset,
-            reference: fragment.reference);
+            reference: reference);
         fragment.builder = extensionBuilder;
         fragment.bodyScope.declarationBuilder = extensionBuilder;
         builders.add(new _AddBuilder(fragment.name, extensionBuilder,
             fragment.fileUri, fragment.fileOffset));
+        if (reference != null) {
+          loader.buildersCreatedWithReferences[reference] = extensionBuilder;
+        }
       case ExtensionTypeFragment():
+        IndexedContainer? indexedContainer = indexedLibrary
+            ?.lookupIndexedExtensionTypeDeclaration(fragment.name);
         List<FieldFragment>? primaryConstructorFields =
             fragment.primaryConstructorFields;
         FieldFragment? representationFieldFragment;
@@ -332,7 +372,7 @@ class _AddedFragment implements _Added {
                 startOffset: fragment.startOffset,
                 nameOffset: fragment.nameOffset,
                 endOffset: fragment.endOffset,
-                indexedContainer: fragment.indexedContainer,
+                indexedContainer: indexedContainer,
                 representationFieldFragment: representationFieldFragment);
         fragment.builder = extensionTypeDeclarationBuilder;
         fragment.bodyScope.declarationBuilder = extensionTypeDeclarationBuilder;
@@ -342,10 +382,103 @@ class _AddedFragment implements _Added {
             fragment.fileUri,
             fragment.fileOffset));
       case FieldFragment():
+        String name = fragment.name;
+
+        final bool fieldIsLateWithLowering = fragment.isLate &&
+            (loader.target.backendTarget.isLateFieldLoweringEnabled(
+                    hasInitializer: fragment.hasInitializer,
+                    isFinal: fragment.isFinal,
+                    isStatic: fragment.isTopLevel || fragment.isStatic) ||
+                (loader.target.backendTarget.useStaticFieldLowering &&
+                    // Coverage-ignore(suite): Not run.
+                    (fragment.isStatic || fragment.isTopLevel)));
+
+        final bool isInstanceMember =
+            containerType != ContainerType.Library && !fragment.isStatic;
+        final bool isExtensionMember = containerType == ContainerType.Extension;
+        final bool isExtensionTypeMember =
+            containerType == ContainerType.ExtensionType;
+
+        NameScheme nameScheme = new NameScheme(
+            isInstanceMember: isInstanceMember,
+            containerName: containerName,
+            containerType: containerType,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.reference)
+                : enclosingLibraryBuilder.libraryName);
+        indexedContainer ??= indexedLibrary;
+
+        Reference? fieldReference;
+        Reference? fieldGetterReference;
+        Reference? fieldSetterReference;
+        Reference? lateIsSetFieldReference;
+        Reference? lateIsSetGetterReference;
+        Reference? lateIsSetSetterReference;
+        Reference? lateGetterReference;
+        Reference? lateSetterReference;
+        if (indexedContainer != null) {
+          if ((isExtensionMember || isExtensionTypeMember) &&
+              isInstanceMember &&
+              fragment.isExternal) {
+            /// An external extension (type) instance field is special. It is
+            /// treated as an external getter/setter pair and is therefore
+            /// encoded as a pair of top level methods using the extension
+            /// instance member naming convention.
+            fieldGetterReference = indexedContainer.lookupGetterReference(
+                nameScheme
+                    .getProcedureMemberName(ProcedureKind.Getter, name)
+                    .name);
+            fieldSetterReference = indexedContainer.lookupGetterReference(
+                nameScheme
+                    .getProcedureMemberName(ProcedureKind.Setter, name)
+                    .name);
+          } else if (isExtensionTypeMember && isInstanceMember) {
+            Name nameToLookup = nameScheme
+                .getFieldMemberName(FieldNameType.RepresentationField, name,
+                    isSynthesized: true)
+                .name;
+            fieldGetterReference =
+                indexedContainer.lookupGetterReference(nameToLookup);
+          } else {
+            Name nameToLookup = nameScheme
+                .getFieldMemberName(FieldNameType.Field, name,
+                    isSynthesized: fieldIsLateWithLowering)
+                .name;
+            fieldReference =
+                indexedContainer.lookupFieldReference(nameToLookup);
+            fieldGetterReference =
+                indexedContainer.lookupGetterReference(nameToLookup);
+            fieldSetterReference =
+                indexedContainer.lookupSetterReference(nameToLookup);
+          }
+
+          if (fieldIsLateWithLowering) {
+            Name lateIsSetName = nameScheme
+                .getFieldMemberName(FieldNameType.IsSetField, name,
+                    isSynthesized: fieldIsLateWithLowering)
+                .name;
+            lateIsSetFieldReference =
+                indexedContainer.lookupFieldReference(lateIsSetName);
+            lateIsSetGetterReference =
+                indexedContainer.lookupGetterReference(lateIsSetName);
+            lateIsSetSetterReference =
+                indexedContainer.lookupSetterReference(lateIsSetName);
+            lateGetterReference = indexedContainer.lookupGetterReference(
+                nameScheme
+                    .getFieldMemberName(FieldNameType.Getter, name,
+                        isSynthesized: fieldIsLateWithLowering)
+                    .name);
+            lateSetterReference = indexedContainer.lookupSetterReference(
+                nameScheme
+                    .getFieldMemberName(FieldNameType.Setter, name,
+                        isSynthesized: fieldIsLateWithLowering)
+                    .name);
+          }
+        }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
             fragment.metadata,
             fragment.type,
-            fragment.name,
+            name,
             fragment.modifiers,
             fragment.isTopLevel,
             enclosingLibraryBuilder,
@@ -353,29 +486,86 @@ class _AddedFragment implements _Added {
             fragment.fileUri,
             fragment.charOffset,
             fragment.charEndOffset,
-            fragment.nameScheme,
-            fieldReference: fragment.fieldReference,
-            fieldGetterReference: fragment.fieldGetterReference,
-            fieldSetterReference: fragment.fieldSetterReference,
-            lateIsSetFieldReference: fragment.lateIsSetFieldReference,
-            lateIsSetGetterReference: fragment.lateIsSetGetterReference,
-            lateIsSetSetterReference: fragment.lateIsSetSetterReference,
-            lateGetterReference: fragment.lateGetterReference,
-            lateSetterReference: fragment.lateSetterReference,
+            nameScheme,
+            fieldReference: fieldReference,
+            fieldGetterReference: fieldGetterReference,
+            fieldSetterReference: fieldSetterReference,
+            lateIsSetFieldReference: lateIsSetFieldReference,
+            lateIsSetGetterReference: lateIsSetGetterReference,
+            lateIsSetSetterReference: lateIsSetSetterReference,
+            lateGetterReference: lateGetterReference,
+            lateSetterReference: lateSetterReference,
             initializerToken: fragment.initializerToken,
             constInitializerToken: fragment.constInitializerToken);
         fragment.builder = fieldBuilder;
         builders.add(new _AddBuilder(fragment.name, fieldBuilder,
             fragment.fileUri, fragment.charOffset));
+        if (fieldGetterReference != null) {
+          loader.buildersCreatedWithReferences[fieldGetterReference] =
+              fieldBuilder;
+        }
+        if (fieldSetterReference != null) {
+          loader.buildersCreatedWithReferences[fieldSetterReference] =
+              fieldBuilder;
+        }
       case MethodFragment():
+        String name = fragment.name;
+        ProcedureKind kind = fragment.kind;
+
+        final bool isInstanceMember =
+            containerType != ContainerType.Library && !fragment.isStatic;
+        final bool isExtensionMember = containerType == ContainerType.Extension;
+        final bool isExtensionTypeMember =
+            containerType == ContainerType.ExtensionType;
+
+        NameScheme nameScheme = new NameScheme(
+            containerName: containerName,
+            containerType: containerType,
+            isInstanceMember: isInstanceMember,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? procedureReference;
+        Reference? tearOffReference;
+        indexedContainer ??= indexedLibrary;
+
+        bool isAugmentation =
+            enclosingLibraryBuilder.isAugmenting && fragment.isAugment;
+        if (indexedContainer != null && !isAugmentation) {
+          Name nameToLookup =
+              nameScheme.getProcedureMemberName(kind, name).name;
+          if (kind == ProcedureKind.Setter) {
+            if ((isExtensionMember || isExtensionTypeMember) &&
+                isInstanceMember) {
+              // Extension (type) instance setters are encoded as methods.
+              procedureReference =
+                  indexedContainer.lookupGetterReference(nameToLookup);
+            } else {
+              procedureReference =
+                  indexedContainer.lookupSetterReference(nameToLookup);
+            }
+          } else {
+            procedureReference =
+                indexedContainer.lookupGetterReference(nameToLookup);
+            if ((isExtensionMember || isExtensionTypeMember) &&
+                kind == ProcedureKind.Method) {
+              tearOffReference = indexedContainer.lookupGetterReference(
+                  nameScheme
+                      .getProcedureMemberName(ProcedureKind.Getter, name)
+                      .name);
+            }
+          }
+        }
+
         SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
             fragment.metadata,
             fragment.modifiers,
             fragment.returnType,
-            fragment.name,
+            name,
             fragment.typeParameters,
             fragment.formals,
-            fragment.kind,
+            kind,
             enclosingLibraryBuilder,
             declarationBuilder,
             fragment.fileUri,
@@ -383,22 +573,46 @@ class _AddedFragment implements _Added {
             fragment.charOffset,
             fragment.charOpenParenOffset,
             fragment.charEndOffset,
-            fragment.procedureReference,
-            fragment.tearOffReference,
+            procedureReference,
+            tearOffReference,
             fragment.asyncModifier,
-            fragment.nameScheme,
+            nameScheme,
             nativeMethodName: fragment.nativeMethodName);
         fragment.builder = procedureBuilder;
         builders.add(new _AddBuilder(fragment.name, procedureBuilder,
             fragment.fileUri, fragment.charOffset));
+        if (procedureReference != null) {
+          loader.buildersCreatedWithReferences[procedureReference] =
+              procedureBuilder;
+        }
       case ConstructorFragment():
+        String name = fragment.name;
+
+        NameScheme nameScheme = new NameScheme(
+            isInstanceMember: false,
+            containerName: containerName,
+            containerType: containerType,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? constructorReference;
+        Reference? tearOffReference;
+
+        if (indexedContainer != null) {
+          constructorReference = indexedContainer.lookupConstructorReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+          tearOffReference = indexedContainer.lookupGetterReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        }
+
         AbstractSourceConstructorBuilder constructorBuilder;
         if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
           constructorBuilder = new SourceExtensionTypeConstructorBuilder(
               fragment.metadata,
               fragment.modifiers,
               fragment.returnType,
-              fragment.name,
+              name,
               fragment.typeParameters,
               fragment.formals,
               enclosingLibraryBuilder,
@@ -408,9 +622,9 @@ class _AddedFragment implements _Added {
               fragment.charOffset,
               fragment.charOpenParenOffset,
               fragment.charEndOffset,
-              fragment.constructorReference,
-              fragment.tearOffReference,
-              fragment.nameScheme,
+              constructorReference,
+              tearOffReference,
+              nameScheme,
               nativeMethodName: fragment.nativeMethodName,
               forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
               beginInitializers: fragment.beginInitializers);
@@ -429,9 +643,9 @@ class _AddedFragment implements _Added {
               fragment.charOffset,
               fragment.charOpenParenOffset,
               fragment.charEndOffset,
-              fragment.constructorReference,
-              fragment.tearOffReference,
-              fragment.nameScheme,
+              constructorReference,
+              tearOffReference,
+              nameScheme,
               nativeMethodName: fragment.nativeMethodName,
               forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
               beginInitializers: fragment.beginInitializers);
@@ -439,14 +653,47 @@ class _AddedFragment implements _Added {
         fragment.builder = constructorBuilder;
         builders.add(new _AddBuilder(fragment.name, constructorBuilder,
             fragment.fileUri, fragment.charOffset));
+
+        // TODO(johnniwinther): There is no way to pass the tear off reference
+        //  here.
+        if (constructorReference != null) {
+          loader.buildersCreatedWithReferences[constructorReference] =
+              constructorBuilder;
+        }
       case FactoryFragment():
+        String name = fragment.name;
+
+        NameScheme nameScheme = new NameScheme(
+            containerName: containerName,
+            containerType: containerType,
+            isInstanceMember: false,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? constructorReference;
+        Reference? tearOffReference;
+        if (indexedContainer != null) {
+          constructorReference = indexedContainer.lookupConstructorReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+          tearOffReference = indexedContainer.lookupGetterReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (indexedLibrary != null) {
+          constructorReference = indexedLibrary.lookupGetterReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+          tearOffReference = indexedLibrary.lookupGetterReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        }
+
         SourceFactoryBuilder factoryBuilder;
         if (fragment.redirectionTarget != null) {
           factoryBuilder = new RedirectingFactoryBuilder(
               fragment.metadata,
               fragment.modifiers,
               fragment.returnType,
-              fragment.name,
+              name,
               fragment.typeParameters,
               fragment.formals,
               enclosingLibraryBuilder,
@@ -456,9 +703,9 @@ class _AddedFragment implements _Added {
               fragment.charOffset,
               fragment.charOpenParenOffset,
               fragment.charEndOffset,
-              fragment.constructorReference,
-              fragment.tearOffReference,
-              fragment.nameScheme,
+              constructorReference,
+              tearOffReference,
+              nameScheme,
               fragment.nativeMethodName,
               fragment.redirectionTarget!);
           (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
@@ -468,7 +715,7 @@ class _AddedFragment implements _Added {
               fragment.metadata,
               fragment.modifiers,
               fragment.returnType,
-              fragment.name,
+              name,
               fragment.typeParameters,
               fragment.formals,
               enclosingLibraryBuilder,
@@ -478,15 +725,21 @@ class _AddedFragment implements _Added {
               fragment.charOffset,
               fragment.charOpenParenOffset,
               fragment.charEndOffset,
-              fragment.constructorReference,
-              fragment.tearOffReference,
+              constructorReference,
+              tearOffReference,
               fragment.asyncModifier,
-              fragment.nameScheme,
+              nameScheme,
               nativeMethodName: fragment.nativeMethodName);
         }
         fragment.builder = factoryBuilder;
         builders.add(new _AddBuilder(fragment.name, factoryBuilder,
             fragment.fileUri, fragment.charOffset));
+        // TODO(johnniwinther): There is no way to pass the tear off reference
+        //  here.
+        if (constructorReference != null) {
+          loader.buildersCreatedWithReferences[constructorReference] =
+              factoryBuilder;
+        }
     }
   }
 }
@@ -508,6 +761,7 @@ class LibraryNameSpaceBuilder {
 
   NameSpace toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
+    required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
     required List<NominalVariableBuilder> unboundNominalVariables,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
@@ -603,7 +857,9 @@ class LibraryNameSpaceBuilder {
           enclosingLibraryBuilder: enclosingLibraryBuilder,
           unboundNominalVariables: unboundNominalVariables,
           mixinApplications: mixinApplications,
-          builders: addBuilders);
+          builders: addBuilders,
+          indexedLibrary: indexedLibrary,
+          containerType: ContainerType.Library);
       for (_AddBuilder addBuilder in addBuilders) {
         _addBuilder(addBuilder.name, addBuilder.declaration, addBuilder.fileUri,
             addBuilder.charOffset);
@@ -692,10 +948,6 @@ abstract class DeclarationFragment {
   String get name;
 
   int get fileOffset;
-
-  ContainerName get containerName;
-
-  ContainerType get containerType;
 
   DeclarationFragmentKind get kind;
 
@@ -833,6 +1085,10 @@ class DeclarationNameSpaceBuilder {
       required ProblemReporting problemReporting,
       required SourceLibraryBuilder enclosingLibraryBuilder,
       required DeclarationBuilder declarationBuilder,
+      required IndexedLibrary? indexedLibrary,
+      required IndexedContainer? indexedContainer,
+      required ContainerType containerType,
+      required ContainerName containerName,
       bool includeConstructors = true}) {
     Map<String, Builder> getables = {};
     Map<String, MemberBuilder> setables = {};
@@ -848,7 +1104,11 @@ class DeclarationNameSpaceBuilder {
           builders: addBuilders,
           // TODO(johnniwinther): Avoid passing these:
           unboundNominalVariables: const [],
-          mixinApplications: const {});
+          mixinApplications: const {},
+          indexedLibrary: indexedLibrary,
+          indexedContainer: indexedContainer,
+          containerType: containerType,
+          containerName: containerName);
       for (_AddBuilder addBuilder in addBuilders) {
         _addBuilder(
             problemReporting, getables, setables, constructors, addBuilder);
