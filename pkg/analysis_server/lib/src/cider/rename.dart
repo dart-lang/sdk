@@ -217,7 +217,7 @@ class CheckNameResponse {
       }
     } else if (element is LibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
-      var index = element.library.libraryImports.indexOf(element);
+      var index = element.enclosingElement3.libraryImports.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
       var prefixNode = node.prefix;
       if (newName.isEmpty) {

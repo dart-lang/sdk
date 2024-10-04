@@ -2649,6 +2649,7 @@ class _ElementWriter extends _AbstractElementWriter {
     _writeSinceSdkVersion(e);
 
     if (configuration.withImports) {
+      // ignore:deprecated_member_use_from_same_package
       var imports = e.libraryImports.where((import) {
         return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
       }).toList();

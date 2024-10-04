@@ -6280,6 +6280,11 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   }) : super(null, importKeywordOffset);
 
   @override
+  CompilationUnitElementImpl get enclosingElement3 {
+    return super.enclosingElement3 as CompilationUnitElementImpl;
+  }
+
+  @override
   int get hashCode => identityHashCode(this);
 
   @override
@@ -6350,6 +6355,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
         definingCompilationUnit,
         // ignore:deprecated_member_use_from_same_package
         ...libraryExports,
+        // ignore:deprecated_member_use_from_same_package
         ...libraryImports,
       ];
 
@@ -6382,6 +6388,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return definingCompilationUnit.libraryExports;
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   @override
   List<LibraryImportElementImpl> get libraryImports {
     return definingCompilationUnit.libraryImports;

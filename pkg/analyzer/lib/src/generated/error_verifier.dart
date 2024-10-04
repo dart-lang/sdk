@@ -6287,7 +6287,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (name == null) {
       return '';
     }
-    var imports = _currentLibrary.libraryImports;
+    var imports = _currentUnit.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .toList();
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {

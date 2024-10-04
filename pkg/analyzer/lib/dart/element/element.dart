@@ -2009,6 +2009,9 @@ abstract class LibraryImportElement implements _ExistingElement {
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @override
+  CompilationUnitElement get enclosingElement3;
+
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get importedLibrary;
 
@@ -2077,6 +2080,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   List<LibraryExportElement> get libraryExports;
 
   /// The imports defined in this library.
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   List<LibraryImportElement> get libraryImports;
 
   /// The prefixes used to `import` libraries into this library.

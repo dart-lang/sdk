@@ -300,7 +300,7 @@ class DeclarationHelper {
 
   void addImportPrefixes() {
     var library = request.libraryElement;
-    for (var element in library.libraryImports) {
+    for (var element in library.definingCompilationUnit.libraryImports) {
       var importPrefix = element.prefix;
       if (importPrefix == null) {
         continue;
@@ -824,7 +824,7 @@ class DeclarationHelper {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.libraryImports) {
+    for (var importElement in library.definingCompilationUnit.libraryImports) {
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addConstructorsImportedFrom(
@@ -842,7 +842,7 @@ class DeclarationHelper {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.libraryImports) {
+    for (var importElement in library.definingCompilationUnit.libraryImports) {
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
