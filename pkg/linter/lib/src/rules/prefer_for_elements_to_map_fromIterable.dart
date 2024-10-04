@@ -38,10 +38,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
-    var element = creation.constructorName.staticElement;
+    var element = creation.constructorName.element;
     if (element == null ||
         element.name != 'fromIterable' ||
-        element.enclosingElement3 != context.typeProvider.mapElement) {
+        element.enclosingElement2 != context.typeProvider.mapElement2) {
       return;
     }
 
