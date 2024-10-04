@@ -121,6 +121,7 @@ class LibraryBundleCompiler implements old.Compiler {
 
   @override
   js_ast.Program emitModule(Component component) {
+    assert(_options.emitLibraryBundle);
     _ticker?.logMs('Emitting library bundle');
     var compiledLibraries = <js_ast.Program>[];
     for (var library in component.libraries) {
@@ -889,14 +890,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             [_emitLibraryName(_rtiLibrary)]).toStatement());
       });
     }
-    // Visit directives (for exports)
-    _emitExports(library);
-    _ticker?.logMs('Emitted exports');
-
-    // Declare imports and extension symbols
-    _emitImportsAndExtensionSymbols(items,
-        forceExtensionSymbols: allowedNativeTest(library.importUri));
-    _ticker?.logMs('Emitted imports and extension symbols');
 
     // Insert a check that runs when loading this module to verify that the null
     // safety mode it was compiled in matches the mode used when compiling the
@@ -925,6 +918,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Additional method used by the module system to link class hierarchies.
     _moduleItems.add(_emitLibraryLinkMethod(_currentLibrary!));
     _ticker?.logMs('Emitted library link method');
+
+    // Visit directives (for exports)
+    _emitExports(library);
+    _ticker?.logMs('Emitted exports');
+
+    // Declare imports and extension symbols
+    _emitImportsAndExtensionSymbols(items,
+        forceExtensionSymbols: allowedNativeTest(library.importUri));
+    _ticker?.logMs('Emitted imports and extension symbols');
 
     // Emit the hoisted type table cache variables
     items.addAll(_typeTable.dischargeBoundTypes());
@@ -8023,12 +8025,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     for (var import in _imports.keys) {
       modules.putIfAbsent(_libraryToModule(import), () => []).add(import);
     }
-
-    String? coreModuleName;
-    if (!_libraries.containsKey(_coreLibrary)) {
-      coreModuleName = _libraryToModule(_coreLibrary);
-    }
-
+    // TODO(nshahan): Update this code and the representation of
+    // `ImportDeclaration`s when other module formats are no longer supported.
     modules.forEach((module, libraries) {
       if (!_incrementalMode || _incrementalModules.containsKey(module)) {
         var usedLibraries = _incrementalModules[module];
@@ -8060,24 +8058,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             }
           }
         }
-        if (module == coreModuleName) {
-          if (!_incrementalMode ||
-              usedLibraries!.contains(_runtimeLibraryId.name)) {
-            items.add(js_ast.ImportDeclaration(
-                from: js.string('dart:_runtime'),
-                namedImports: [js_ast.NameSpecifier(_runtimeLibraryId)]));
-          }
-          if (!_incrementalMode ||
-              usedLibraries!.contains(_extensionSymbolsLibraryId.name)) {
-            items.add(js_ast.ImportDeclaration(
-                from: js.string(_extensionSymbolHolderName),
-                namedImports: [
-                  js_ast.NameSpecifier(_extensionSymbolsLibraryId)
-                ]));
-          }
-        }
       }
     });
+    items.add(js_ast.ImportDeclaration(
+        from: js.string(_extensionSymbolHolderName),
+        namedImports: [js_ast.NameSpecifier(_extensionSymbolsLibraryId)]));
   }
 
   /// Emits extension methods into [items].
