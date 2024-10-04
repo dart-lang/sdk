@@ -992,7 +992,15 @@ class Assembler : public MicroAssembler {
                    Label* label,
                    JumpDistance distance = kFarJump) override;
 
-  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void ArithmeticShiftRightImmediate(Register dst,
+                                     Register src,
+                                     int32_t shift,
+                                     OperandSize sz = kWordBytes) override;
+  void ArithmeticShiftRightImmediate(Register reg,
+                                     int32_t shift,
+                                     OperandSize sz = kWordBytes) override {
+    ArithmeticShiftRightImmediate(reg, reg, shift);
+  }
   void CompareWords(Register reg1,
                     Register reg2,
                     intptr_t offset,
@@ -1075,9 +1083,11 @@ class Assembler : public MicroAssembler {
   void AndImmediate(Register rd,
                     Register rn,
                     intx_t imm,
-                    OperandSize sz = kWordBytes);
-  void AndImmediate(Register rd, intx_t imm) override {
-    AndImmediate(rd, rd, imm);
+                    OperandSize sz = kWordBytes) override;
+  void AndImmediate(Register rd,
+                    intx_t imm,
+                    OperandSize sz = kWordBytes) override {
+    AndImmediate(rd, rd, imm, sz);
   }
   void AndRegisters(Register dst,
                     Register src1,
@@ -1097,7 +1107,15 @@ class Assembler : public MicroAssembler {
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
-  void LslImmediate(Register rd, int32_t shift) { slli(rd, rd, shift); }
+  void LslImmediate(Register rd,
+                    Register rn,
+                    int32_t shift,
+                    OperandSize sz = kWordBytes) override;
+  void LslImmediate(Register rd,
+                    int32_t shift,
+                    OperandSize sz = kWordBytes) override {
+    LslImmediate(rd, rd, shift, sz);
+  }
   void LslRegister(Register dst, Register shift) override {
     sll(dst, dst, shift);
   }

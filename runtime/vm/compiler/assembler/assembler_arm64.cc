@@ -859,10 +859,25 @@ void Assembler::AndImmediate(Register rd,
                              Register rn,
                              int64_t imm,
                              OperandSize sz) {
-  ASSERT(sz == kEightBytes || sz == kFourBytes);
+  ASSERT(sz == kEightBytes || sz == kFourBytes || sz == kUnsignedFourBytes);
+  ASSERT(Utils::IsInt(OperandSizeInBits(sz), imm) ||
+         Utils::IsUint(OperandSizeInBits(sz), imm));
   int width = sz == kEightBytes ? kXRegSizeInBits : kWRegSizeInBits;
   Operand imm_op;
-  if (Operand::IsImmLogical(imm, width, &imm_op)) {
+  // Operand::IsImmLogical returns false for no bits set (0) or all bits set
+  // (-1, or kMaxUint32 for sz != kEightBytes), so use a different single
+  // instruction encoding instead of generating a load + and_ pair.
+  if (imm == 0) {
+    LoadImmediate(rd, 0);
+  } else if (sz == kEightBytes && imm == -1) {
+    // This also allows the instruction to be a no-op if rd == rs.
+    MoveRegister(rd, rn);
+  } else if (sz != kEightBytes && static_cast<int32_t>(imm) == -1) {
+    // Zero extend since andi/and_ clear the upper bits for sz != kEightBytes,
+    // so ARM64-specific code can depend on the upper bits being cleared no
+    // matter what the value of `imm` is.
+    ExtendValue(rd, rn, kUnsignedFourBytes);
+  } else if (Operand::IsImmLogical(imm, width, &imm_op)) {
     andi(rd, rn, Immediate(imm), sz);
   } else {
     LoadImmediate(TMP, imm);
@@ -1439,10 +1454,6 @@ void Assembler::RestoreCSP() {
 
 void Assembler::SetReturnAddress(Register value) {
   RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
-}
-
-void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
-  AsrImmediate(reg, reg, shift);
 }
 
 void Assembler::CompareWords(Register reg1,

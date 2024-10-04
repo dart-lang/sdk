@@ -724,9 +724,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        intptr_t pair_index) {
   ASSERT(pair_index == 0);  // No pair representation needed on 64-bit.
   if (destination.IsRegister()) {
-    if (representation() == kUnboxedInt32 ||
-        representation() == kUnboxedUint32 ||
-        representation() == kUnboxedInt64) {
+    if (RepresentationUtils::IsUnboxedInteger(representation())) {
       const int64_t value = Integer::Cast(value_).Value();
       __ LoadImmediate(destination.reg(), value);
     } else {

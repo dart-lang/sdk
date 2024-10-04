@@ -3064,9 +3064,16 @@ void Assembler::SubImmediateSetFlags(Register rd,
 void Assembler::AndImmediate(Register rd,
                              Register rs,
                              int32_t imm,
+                             OperandSize sz,
                              Condition cond) {
+  ASSERT(sz == kFourBytes || sz == kUnsignedFourBytes);
   Operand o;
-  if (Operand::CanHold(imm, &o)) {
+  // Avoid generating a load + and_ pair for all bits set, since
+  // Operand::CanHold returns false for that case. This also allows the
+  // instruction to be a no-op if rd == rs.
+  if (imm == -1) {
+    MoveRegister(rd, rs);
+  } else if (Operand::CanHold(imm, &o)) {
     and_(rd, rs, Operand(o), cond);
   } else {
     LoadImmediate(TMP, imm, cond);
@@ -3152,8 +3159,21 @@ static int NumRegsBelowFP(RegList regs) {
   return count;
 }
 
-void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
-  Asr(reg, reg, Operand(shift));
+void Assembler::ArithmeticShiftRightImmediate(Register dst,
+                                              Register src,
+                                              int32_t shift,
+                                              OperandSize sz) {
+  ASSERT(IsSignedOperand(sz));
+  ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+  if (sz != kFourBytes) {
+    ExtendValue(dst, src, sz);
+    src = dst;
+  }
+  if (shift != 0) {
+    Asr(dst, src, Operand(shift));
+  } else {
+    MoveRegister(dst, src);
+  }
 }
 
 void Assembler::CompareWords(Register reg1,

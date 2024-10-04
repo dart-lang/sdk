@@ -583,13 +583,25 @@ class Assembler : public AssemblerBase {
                      const Immediate& imm,
                      OperandSize width = kEightBytes);
 
-  void AndImmediate(Register dst, const Immediate& imm);
-  void AndImmediate(Register dst, int64_t value) override {
-    AndImmediate(dst, Immediate(value));
+  void AndImmediate(Register dst,
+                    Register src,
+                    const Immediate& imm,
+                    OperandSize sz = kWordBytes);
+  void AndImmediate(Register dst,
+                    Register src,
+                    int64_t value,
+                    OperandSize sz = kWordBytes) override {
+    AndImmediate(dst, src, Immediate(value), sz);
   }
-  void AndImmediate(Register dst, Register src, int64_t value) {
-    MoveRegister(dst, src);
-    AndImmediate(dst, value);
+  void AndImmediate(Register reg,
+                    const Immediate& imm,
+                    OperandSize sz = kWordBytes) {
+    AndImmediate(reg, reg, imm, sz);
+  }
+  void AndImmediate(Register reg,
+                    int64_t value,
+                    OperandSize sz = kWordBytes) override {
+    AndImmediate(reg, reg, value, sz);
   }
   void AndRegisters(Register dst,
                     Register src1,
@@ -599,8 +611,14 @@ class Assembler : public AssemblerBase {
     OrImmediate(dst, Immediate(value));
   }
   void XorImmediate(Register dst, const Immediate& imm);
-  void LslImmediate(Register dst, int32_t shift) {
-    shlq(dst, Immediate(shift));
+  void LslImmediate(Register dst,
+                    Register src,
+                    int32_t shift,
+                    OperandSize sz = kWordBytes) override;
+  void LslImmediate(Register reg,
+                    int32_t shift,
+                    OperandSize sz = kWordBytes) override {
+    LslImmediate(reg, reg, shift, sz);
   }
   void LslRegister(Register dst, Register shift) override;
   void LsrImmediate(Register dst, int32_t shift) override {
@@ -1021,7 +1039,15 @@ class Assembler : public AssemblerBase {
     j(ZERO, label, distance);
   }
 
-  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void ArithmeticShiftRightImmediate(Register dst,
+                                     Register src,
+                                     int32_t shift,
+                                     OperandSize sz = kEightBytes) override;
+  void ArithmeticShiftRightImmediate(Register reg,
+                                     int32_t shift,
+                                     OperandSize sz = kEightBytes) override {
+    ArithmeticShiftRightImmediate(reg, reg, shift, sz);
+  }
   void CompareWords(Register reg1,
                     Register reg2,
                     intptr_t offset,

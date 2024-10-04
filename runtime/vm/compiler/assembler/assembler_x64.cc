@@ -765,13 +765,42 @@ void Assembler::AluQ(uint8_t modrm_opcode,
   }
 }
 
-void Assembler::AndImmediate(Register dst, const Immediate& imm) {
-  if (imm.is_int32() || imm.is_uint32()) {
-    andq(dst, imm);
+void Assembler::AndImmediate(Register dst,
+                             Register src,
+                             const Immediate& imm,
+                             OperandSize sz) {
+  ASSERT(sz == kFourBytes || sz == kUnsignedFourBytes || sz == kEightBytes);
+  ASSERT(sz == kEightBytes || imm.is_int32() || imm.is_uint32());
+  if (imm.value() == 0) {
+    // No bits set, so all bits cleared.
+    LoadImmediate(dst, 0);
+  } else if (sz == kEightBytes && imm.value() == -1) {
+    MoveRegister(dst, src);  // Is a no-op if dst == src.
+  } else if (sz != kEightBytes && static_cast<int32_t>(imm.value()) == -1) {
+    // Clear the upper bits in the result if less than word size.
+    movl(dst, src);
+  } else if (imm.is_int32() || imm.is_uint32()) {
+    MoveRegister(dst, src);
+    if (sz == kEightBytes) {
+      andq(dst, imm);
+    } else {
+      andl(dst, imm);
+    }
+  } else if (dst != src) {
+    LoadImmediate(dst, imm);
+    if (sz == kEightBytes) {
+      andq(dst, src);
+    } else {
+      andl(dst, src);
+    }
   } else {
     ASSERT(dst != TMP);
     LoadImmediate(TMP, imm);
-    andq(dst, TMP);
+    if (sz == kEightBytes) {
+      andq(dst, TMP);
+    } else {
+      andl(dst, TMP);
+    }
   }
 }
 
@@ -818,6 +847,27 @@ void Assembler::XorImmediate(Register dst, const Immediate& imm) {
     ASSERT(dst != TMP);
     LoadImmediate(TMP, imm);
     xorq(dst, TMP);
+  }
+}
+
+void Assembler::LslImmediate(Register dst,
+                             Register src,
+                             int32_t shift,
+                             OperandSize sz) {
+  ASSERT(sz == kFourBytes || sz == kUnsignedFourBytes || sz == kEightBytes);
+  ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+  if (shift != 0) {
+    MoveRegister(dst, src);
+    if (sz == kEightBytes) {
+      shlq(dst, Immediate(shift));
+    } else {
+      shll(dst, Immediate(shift));
+    }
+  } else if (sz == kEightBytes) {
+    MoveRegister(dst, src);  // Is a no-op if dst == src.
+  } else {
+    // The upper 32-bits are cleared for shll, so use movl to match.
+    movl(dst, src);
   }
 }
 
@@ -1804,8 +1854,25 @@ void Assembler::Store(Register reg, const Address& address, OperandSize sz) {
   }
 }
 
-void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
-  sarq(reg, Immediate(shift));
+void Assembler::ArithmeticShiftRightImmediate(Register dst,
+                                              Register src,
+                                              int32_t shift,
+                                              OperandSize sz) {
+  ASSERT(sz == kFourBytes || sz == kEightBytes);
+  ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
+  if (shift != 0) {
+    MoveRegister(dst, src);
+    if (sz == kFourBytes) {
+      sarl(dst, Immediate(shift));
+    } else {
+      sarq(dst, Immediate(shift));
+    }
+  } else if (sz == kEightBytes) {
+    MoveRegister(dst, src);  // Is a no-op if dst == src.
+  } else {
+    // sarl clears the upper 32 bits, so use movl to match.
+    movl(dst, src);
+  }
 }
 
 void Assembler::CompareWords(Register reg1,
