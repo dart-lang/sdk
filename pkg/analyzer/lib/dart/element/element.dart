@@ -1951,6 +1951,7 @@ abstract class LibraryElement
   String get name;
 
   /// The list of `part` directives of this library.
+  @Deprecated('Use CompilationUnitElement.parts')
   List<PartElement> get parts;
 
   /// The public [Namespace] of this library.

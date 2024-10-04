@@ -2094,12 +2094,14 @@ class _ElementWriter extends _AbstractElementWriter {
 
       _writeLibraryOrAugmentationElement(e);
 
+      // ignore:deprecated_member_use_from_same_package
       for (var part in e.parts) {
         if (part.uri case DirectiveUriWithUnitImpl uri) {
           expect(uri.unit.libraryOrAugmentationElement, same(e));
         }
       }
 
+      // ignore:deprecated_member_use_from_same_package
       _writeElements('parts', e.parts, (part) {
         _sink.writelnWithIndent(_idMap[part]);
       });
