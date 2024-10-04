@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -36,6 +37,8 @@ bool isExactWidgetTypeSizedBox(DartType? type) =>
     _flutter.isExactWidgetTypeSizedBox(type);
 
 bool isKDebugMode(Element? element) => _flutter.isKDebugMode(element);
+
+bool isKDebugMode2(Element2? element) => _flutter.isKDebugMode2(element);
 
 bool isState(InterfaceElement element) => _flutter.isState(element);
 
@@ -126,6 +129,11 @@ class _Flutter {
       element != null &&
       element.name == 'kDebugMode' &&
       element.source?.uri == _uriFoundation;
+
+  bool isKDebugMode2(Element2? element) =>
+      element != null &&
+      element.name == 'kDebugMode' &&
+      element.library2.uri == _uriFoundation;
 
   bool isState(InterfaceElement element) =>
       isExactly(element, _nameState, _uriFramework) ||
