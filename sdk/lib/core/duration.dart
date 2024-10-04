@@ -34,12 +34,12 @@ part of dart.core;
 /// as "hours" to the constructor, and can be larger than 59.
 ///
 /// ```dart
-/// const fastestMarathon = Duration(hours: 2, minutes: 3, seconds: 2);
+/// const fastestMarathon = Duration(hours: 2, minutes: 0, seconds: 35);
 /// print(fastestMarathon.inDays); // 0
 /// print(fastestMarathon.inHours); // 2
-/// print(fastestMarathon.inMinutes); // 123
-/// print(fastestMarathon.inSeconds); // 7382
-/// print(fastestMarathon.inMilliseconds); // 7382000
+/// print(fastestMarathon.inMinutes); // 120
+/// print(fastestMarathon.inSeconds); // 7235
+/// print(fastestMarathon.inMilliseconds); // 7235000
 /// ```
 /// The duration can be negative, in which case
 /// all the properties derived from the duration are also non-positive.
