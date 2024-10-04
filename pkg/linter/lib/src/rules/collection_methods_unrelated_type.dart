@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
@@ -69,7 +69,7 @@ abstract class _MethodDefinition {
 
 class _MethodDefinitionForElement extends _MethodDefinition {
   /// The element on which this method is declared.
-  final ClassElement element;
+  final ClassElement2 element;
 
   _MethodDefinitionForElement(
     this.element,
@@ -80,7 +80,7 @@ class _MethodDefinitionForElement extends _MethodDefinition {
 
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) =>
-      targetType.asInstanceOf(element);
+      targetType.asInstanceOf2(element);
 }
 
 class _MethodDefinitionForName extends _MethodDefinition {
@@ -94,10 +94,10 @@ class _MethodDefinitionForName extends _MethodDefinition {
   @override
   InterfaceType? collectionTypeFor(InterfaceType targetType) {
     for (var supertype in [targetType, ...targetType.allSupertypes]) {
-      var element = supertype.element;
+      var element = supertype.element3;
       if (element.name == interfaceName &&
-          element.library.name == libraryName) {
-        return targetType.asInstanceOf(element);
+          element.library2.name == libraryName) {
+        return targetType.asInstanceOf2(element);
       }
     }
     return null;
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get indexOperators => [
         // Argument to `Map<K, V>.[]` should be assignable to `K`.
         _MethodDefinitionForElement(
-          typeProvider.mapElement,
+          typeProvider.mapElement2,
           '[]',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
@@ -123,32 +123,32 @@ class _Visitor extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get methods => [
         // Argument to `Iterable<E>.contains` should be assignable to `E`.
         _MethodDefinitionForElement(
-          typeProvider.iterableElement,
+          typeProvider.iterableElement2,
           'contains',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
         // Argument to `List<E>.remove` should be assignable to `E`.
         _MethodDefinitionForElement(
-          typeProvider.listElement,
+          typeProvider.listElement2,
           'remove',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
         // Argument to `Map<K, V>.containsKey` should be assignable to `K`.
         _MethodDefinitionForElement(
-          typeProvider.mapElement,
+          typeProvider.mapElement2,
           'containsKey',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
         // Argument to `Map<K, V>.containsValue` should be assignable to `V`.
         _MethodDefinitionForElement(
-          typeProvider.mapElement,
+          typeProvider.mapElement2,
           'containsValue',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
           typeArgumentIndex: 1,
         ),
         // Argument to `Map<K, V>.remove` should be assignable to `K`.
         _MethodDefinitionForElement(
-          typeProvider.mapElement,
+          typeProvider.mapElement2,
           'remove',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
@@ -161,13 +161,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         ),
         // Argument to `Set<E>.lookup` should be assignable to `E`.
         _MethodDefinitionForElement(
-          typeProvider.setElement,
+          typeProvider.setElement2,
           'lookup',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
         // Argument to `Set<E>.remove` should be assignable to `E`.
         _MethodDefinitionForElement(
-          typeProvider.setElement,
+          typeProvider.setElement2,
           'remove',
           _ExpectedArgumentKind.assignableToCollectionTypeArgument,
         ),
@@ -281,11 +281,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         parent != null;
         parent = parent.parent) {
       if (parent is ClassDeclaration) {
-        return parent.declaredElement?.thisType;
+        return parent.declaredFragment?.element.thisType;
       } else if (parent is MixinDeclaration) {
-        return parent.declaredElement?.thisType;
+        return parent.declaredFragment?.element.thisType;
       } else if (parent is EnumDeclaration) {
-        return parent.declaredElement?.thisType;
+        return parent.declaredFragment?.element.thisType;
       } else if (parent is ExtensionDeclaration) {
         return parent.onClause?.extendedType.type;
       }
