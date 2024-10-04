@@ -22,21 +22,21 @@ dart.poller("ddc-gitiles-trigger", branches = ["main"], paths = paths.ddc)
 
 dart.ci_sandbox_builder(
     "ddc-linux-chrome",
-    category = "ddc|l",
+    category = "ddc|chrome|l",
     properties = [chrome, no_android],
     location_filters = paths.to_location_filters(paths.ddc),
 )
 
 dart.ci_sandbox_builder(
     "ddc-mac-chrome",
-    category = "ddc|m",
+    category = "ddc|chrome|m",
     dimensions = [arm64, mac],
     properties = [chrome, no_android],
 )
 
 dart.ci_sandbox_builder(
     "ddc-win-chrome",
-    category = "ddc|w",
+    category = "ddc|chrome|w",
     dimensions = windows,
     properties = [chrome, no_android],
 )
