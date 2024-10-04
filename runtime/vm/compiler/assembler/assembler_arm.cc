@@ -3163,12 +3163,8 @@ void Assembler::ArithmeticShiftRightImmediate(Register dst,
                                               Register src,
                                               int32_t shift,
                                               OperandSize sz) {
-  ASSERT(IsSignedOperand(sz));
+  ASSERT(sz == kFourBytes);
   ASSERT((shift >= 0) && (shift < OperandSizeInBits(sz)));
-  if (sz != kFourBytes) {
-    ExtendValue(dst, src, sz);
-    src = dst;
-  }
   if (shift != 0) {
     Asr(dst, src, Operand(shift));
   } else {
