@@ -49,6 +49,14 @@ dart.ci_sandbox_builder(
     triggered_by = ["ddc-gitiles-trigger-%s"],
 )
 
+dart.ci_sandbox_builder(
+    "ddc-mac-safari",
+    category = "ddc|safari|s",
+    channels = ["try"],
+    dimensions = [arm64, mac],
+    properties = [chrome, no_android],
+)
+
 cron.nightly_builder(
     "ddc-canary-linux-chrome",
     category = "ddc|c",
