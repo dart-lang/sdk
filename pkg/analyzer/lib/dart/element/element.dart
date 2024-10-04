@@ -2086,6 +2086,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   /// The prefixes used to `import` libraries into this library.
   ///
   /// Each prefix can be used in more than one `import` directive.
+  @Deprecated('Use CompilationUnitElement.libraryImportPrefixes')
   List<PrefixElement> get prefixes;
 
   /// The name lookup scope for this library.

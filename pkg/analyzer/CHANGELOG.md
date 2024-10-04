@@ -8,6 +8,8 @@
   use `CompilationUnitElement.libraryExports` instead.
 * Deprecated `LibraryElement.libraryImports`,
   use `CompilationUnitElement.libraryImports` instead.
+* Deprecated `LibraryElement.prefixes`,
+  use `CompilationUnitElement.libraryImportPrefixes` instead.
 
 ## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.

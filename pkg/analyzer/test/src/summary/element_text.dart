@@ -2668,6 +2668,7 @@ class _ElementWriter extends _AbstractElementWriter {
         imports,
         _writeLibraryImportElement,
       );
+      // ignore:deprecated_member_use_from_same_package
       _writeElements('prefixes', e.prefixes, _writePrefixElement);
     }
 

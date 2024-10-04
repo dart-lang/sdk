@@ -6394,6 +6394,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return definingCompilationUnit.libraryImports;
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryImportPrefixes')
   @override
   List<PrefixElementImpl> get prefixes {
     return definingCompilationUnit.libraryImportPrefixes;
