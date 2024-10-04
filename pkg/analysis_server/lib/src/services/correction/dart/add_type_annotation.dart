@@ -109,7 +109,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     var type = declaredIdentifier.declaredElement2!.type;
     if (type is! InterfaceType &&
         type is! FunctionType &&
-        type is! RecordType) {
+        type is! RecordType &&
+        type is! TypeParameterType) {
       return;
     }
     await _applyChange(
@@ -166,7 +167,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     }
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType &&
-        type is! RecordType) {
+        type is! RecordType &&
+        type is! TypeParameterType) {
       return;
     }
     await _applyChange(builder, declarationList.keyword, variable.name, type);
