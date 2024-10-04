@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -46,7 +46,7 @@ class LiteralElementVerifier {
   bool get _strictCasts => _errorVerifier.options.strictCasts;
 
   void verify(CollectionElement element) {
-    _verifyElement(element);
+    _verifyElement(element as CollectionElementImpl);
   }
 
   /// Check that the given [type] is assignable to the [elementType], otherwise
@@ -69,56 +69,59 @@ class LiteralElementVerifier {
 
   /// Verify that the given [element] can be assigned to the [elementType] of
   /// the enclosing list, set, of map literal.
-  void _verifyElement(CollectionElement? element) {
-    if (element is Expression) {
-      if (forList || forSet) {
-        if (elementType is! VoidType &&
-            _errorVerifier.checkForUseOfVoidResult(element)) {
-          return;
+  void _verifyElement(CollectionElementImpl? element) {
+    switch (element) {
+      case ExpressionImpl():
+        if (forList || forSet) {
+          if (elementType is! VoidType &&
+              _errorVerifier.checkForUseOfVoidResult(element)) {
+            return;
+          }
+          _checkAssignableToElementType(element.typeOrThrow, element);
+        } else {
+          errorReporter.atNode(
+            element,
+            CompileTimeErrorCode.EXPRESSION_IN_MAP,
+          );
         }
-        _checkAssignableToElementType(element.typeOrThrow, element);
-      } else {
-        errorReporter.atNode(
-          element,
-          CompileTimeErrorCode.EXPRESSION_IN_MAP,
-        );
-      }
-    } else if (element is ForElement) {
-      _verifyElement(element.body);
-    } else if (element is IfElement) {
-      _verifyElement(element.thenElement);
-      _verifyElement(element.elseElement);
-    } else if (element is MapLiteralEntry) {
-      if (forMap) {
-        _verifyMapLiteralEntry(element);
-      } else {
-        errorReporter.atNode(
-          element,
-          CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
-        );
-      }
-    } else if (element is SpreadElement) {
-      var isNullAware = element.isNullAware;
-      Expression expression = element.expression;
-      if (forList || forSet) {
-        _verifySpreadForListOrSet(isNullAware, expression);
-      } else if (forMap) {
-        _verifySpreadForMap(isNullAware, expression);
-      }
-    } else if (element is NullAwareElement) {
-      if (forList || forSet) {
-        if (elementType is! VoidType &&
-            _errorVerifier.checkForUseOfVoidResult(element.value)) {
-          return;
+      case ForElementImpl():
+        _verifyElement(element.body);
+      case IfElementImpl():
+        _verifyElement(element.thenElement);
+        _verifyElement(element.elseElement);
+      case MapLiteralEntryImpl():
+        if (forMap) {
+          _verifyMapLiteralEntry(element);
+        } else {
+          errorReporter.atNode(
+            element,
+            CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
+          );
         }
-        _checkAssignableToElementType(
-            typeSystem.promoteToNonNull(element.value.typeOrThrow), element);
-      } else {
-        errorReporter.atNode(
-          element,
-          CompileTimeErrorCode.EXPRESSION_IN_MAP,
-        );
-      }
+      case SpreadElementImpl():
+        var isNullAware = element.isNullAware;
+        Expression expression = element.expression;
+        if (forList || forSet) {
+          _verifySpreadForListOrSet(isNullAware, expression);
+        } else if (forMap) {
+          _verifySpreadForMap(isNullAware, expression);
+        }
+      case NullAwareElementImpl():
+        if (forList || forSet) {
+          if (elementType is! VoidType &&
+              _errorVerifier.checkForUseOfVoidResult(element.value)) {
+            return;
+          }
+          _checkAssignableToElementType(
+              typeSystem.promoteToNonNull(element.value.typeOrThrow), element);
+        } else {
+          errorReporter.atNode(
+            element,
+            CompileTimeErrorCode.EXPRESSION_IN_MAP,
+          );
+        }
+      case null:
+        break;
     }
   }
 
