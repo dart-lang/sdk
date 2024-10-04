@@ -153,6 +153,7 @@ lib/src/rules/use_if_null_to_convert_nulls_to_bools.dart
 lib/src/rules/use_is_even_rather_than_modulo.dart
 lib/src/rules/use_raw_strings.dart
 lib/src/rules/use_string_in_part_of_directives.dart
+lib/src/rules/use_test_throws_matchers.dart
 lib/src/rules/use_to_and_as_if_applicable.dart
 lib/src/rules/use_truncating_division.dart
 lib/src/rules/valid_regexps.dart
