@@ -6346,6 +6346,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   List<Element> get children => [
         ...super.children,
         definingCompilationUnit,
+        // ignore:deprecated_member_use_from_same_package
         ...libraryExports,
         ...libraryImports,
       ];
@@ -6373,6 +6374,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   LibraryElementImpl get library;
 
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryExportElementImpl> get libraryExports {
     return definingCompilationUnit.libraryExports;

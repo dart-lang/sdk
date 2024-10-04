@@ -2073,6 +2073,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   LibraryElement get library;
 
   /// The exports defined in this library.
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryExportElement> get libraryExports;
 
   /// The imports defined in this library.

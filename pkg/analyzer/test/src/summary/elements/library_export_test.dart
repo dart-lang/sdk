@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -131,8 +130,6 @@ library
   exportNamespace
     A: package:test/foo.dart::<fragment>::@class::A
 ''');
-    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
-        'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -177,8 +174,6 @@ library
   exportNamespace
     A: package:test/foo_io.dart::<fragment>::@class::A
 ''');
-    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
-        'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -223,8 +218,6 @@ library
   exportNamespace
     A: package:test/foo_html.dart::<fragment>::@class::A
 ''');
-    var export = library.libraryExports[0];
-    expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
   test_export_cycle() async {
@@ -706,8 +699,26 @@ library
 export 'foo.dart';
 ''');
 
-    var uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
-    expect(uri.relativeUriString, 'foo.dart');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryExports
+    package:test/foo.dart
+      enclosingElement3: <testLibraryFragment>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      libraryExports
+        package:test/foo.dart
+          enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+''');
   }
 
   test_export_variable() async {

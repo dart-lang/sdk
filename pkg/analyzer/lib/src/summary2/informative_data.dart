@@ -667,8 +667,6 @@ class InformativeDataApplier {
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
         applier.applyToPartDirectives(element.parts);
       },
     );

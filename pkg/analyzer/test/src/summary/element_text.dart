@@ -2662,6 +2662,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
     _writeElements(
       'libraryExports',
+      // ignore:deprecated_member_use_from_same_package
       e.libraryExports,
       _writeLibraryExportElement,
     );

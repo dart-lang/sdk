@@ -20,7 +20,7 @@ class FindElement extends _FindElementBase {
   LibraryExportElement export(String targetUri) {
     LibraryExportElement? result;
 
-    for (var export in libraryElement.libraryExports) {
+    for (var export in unitElement.libraryExports) {
       var exportedUri = export.exportedLibrary?.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
