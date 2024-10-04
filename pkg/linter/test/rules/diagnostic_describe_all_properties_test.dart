@@ -18,7 +18,7 @@ class DiagnosticDescribeAllPropertiesTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'diagnostic_describe_all_properties';
+  String get lintRule => LintNames.diagnostic_describe_all_properties;
 
   test_field() async {
     await assertDiagnostics(r'''

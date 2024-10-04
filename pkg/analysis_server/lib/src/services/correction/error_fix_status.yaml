@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  42 "needsEvaluation"
-# - 306 "needsFix"
-# - 442 "hasFix"
-# - 517 "noFix"
+# -  54 "needsEvaluation"
+# - 308 "needsFix"
+# - 465 "hasFix"
+# - 514 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix

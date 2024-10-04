@@ -25,7 +25,7 @@ bool _isFormalParameterReassigned(
 class ParameterAssignments extends LintRule {
   ParameterAssignments()
       : super(
-          name: 'parameter_assignments',
+          name: LintNames.parameter_assignments,
           description: _desc,
         );
 

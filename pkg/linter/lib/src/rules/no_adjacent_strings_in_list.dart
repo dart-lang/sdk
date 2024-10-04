@@ -13,7 +13,7 @@ const _desc = r"Don't use adjacent strings in list.";
 class NoAdjacentStringsInList extends LintRule {
   NoAdjacentStringsInList()
       : super(
-          name: 'no_adjacent_strings_in_list',
+          name: LintNames.no_adjacent_strings_in_list,
           description: _desc,
         );
 

@@ -16,7 +16,7 @@ const _desc = r'Avoid `print` calls in production code.';
 class AvoidPrint extends LintRule {
   AvoidPrint()
       : super(
-          name: 'avoid_print',
+          name: LintNames.avoid_print,
           description: _desc,
         );
 

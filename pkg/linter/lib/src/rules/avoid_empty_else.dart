@@ -13,7 +13,7 @@ const _desc = r'Avoid empty statements in else clauses.';
 class AvoidEmptyElse extends LintRule {
   AvoidEmptyElse()
       : super(
-          name: 'avoid_empty_else',
+          name: LintNames.avoid_empty_else,
           description: _desc,
         );
 

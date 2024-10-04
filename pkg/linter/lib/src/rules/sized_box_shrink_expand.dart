@@ -12,7 +12,7 @@ import '../util/flutter_utils.dart';
 class SizedBoxShrinkExpand extends LintRule {
   SizedBoxShrinkExpand()
       : super(
-          name: 'sized_box_shrink_expand',
+          name: LintNames.sized_box_shrink_expand,
           description: 'Use SizedBox shrink and expand named constructors.',
         );
 

@@ -14,7 +14,7 @@ const _desc = "Don't type annotate initializing formals.";
 class TypeInitFormals extends LintRule {
   TypeInitFormals()
       : super(
-          name: 'type_init_formals',
+          name: LintNames.type_init_formals,
           description: _desc,
         );
 

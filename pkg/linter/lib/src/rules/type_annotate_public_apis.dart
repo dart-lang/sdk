@@ -16,7 +16,7 @@ const _desc = r'Type annotate public APIs.';
 class TypeAnnotatePublicApis extends LintRule {
   TypeAnnotatePublicApis()
       : super(
-          name: 'type_annotate_public_apis',
+          name: LintNames.type_annotate_public_apis,
           description: _desc,
         );
 

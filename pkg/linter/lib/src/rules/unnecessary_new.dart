@@ -14,7 +14,7 @@ const _desc = r'Unnecessary new keyword.';
 class UnnecessaryNew extends LintRule {
   UnnecessaryNew()
       : super(
-          name: 'unnecessary_new',
+          name: LintNames.unnecessary_new,
           description: _desc,
         );
 

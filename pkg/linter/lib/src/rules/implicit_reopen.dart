@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
@@ -14,7 +14,7 @@ const _desc = r"Don't implicitly reopen classes.";
 class ImplicitReopen extends LintRule {
   ImplicitReopen()
       : super(
-          name: 'implicit_reopen',
+          name: LintNames.implicit_reopen,
           description: _desc,
           state: State.experimental(),
         );
@@ -36,17 +36,17 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
-  void checkElement(InterfaceElement? element, NamedCompilationUnitMember node,
+  void checkElement(InterfaceElement2? element, NamedCompilationUnitMember node,
       {required String type}) {
-    if (element is! ClassElement) return;
+    if (element is! ClassElement2) return;
     if (element.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
-    var library = element.library;
-    var supertype = element.supertype?.element;
-    if (supertype is! ClassElement) return;
-    if (supertype.library != library) return;
+    var library = element.library2;
+    var supertype = element.supertype?.element3;
+    if (supertype is! ClassElement2) return;
+    if (supertype.library2 != library) return;
 
     if (element.isBase) {
       if (supertype.isFinal) {
@@ -70,8 +70,8 @@ class _Visitor extends SimpleAstVisitor {
   void reportLint(
     NamedCompilationUnitMember member, {
     required String type,
-    required InterfaceElement target,
-    required InterfaceElement other,
+    required InterfaceElement2 target,
+    required InterfaceElement2 other,
     required String reason,
   }) {
     rule.reportLintForToken(member.name,
@@ -80,15 +80,15 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    checkElement(node.declaredElement, node, type: 'class');
+    checkElement(node.declaredFragment?.element, node, type: 'class');
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    checkElement(node.declaredElement, node, type: 'class');
+    checkElement(node.declaredFragment?.element, node, type: 'class');
   }
 }
 
-extension on ClassElement {
+extension on ClassElement2 {
   bool get hasNoModifiers => !isInterface && !isBase && !isSealed && !isFinal;
 }

@@ -76,7 +76,7 @@ class ImplementationImportsTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'implementation_imports';
+  String get lintRule => LintNames.implementation_imports;
   test_inPartFile() async {
     newFile('$testPackageRootPath/test/a.dart', r'''
 part 'test.dart';

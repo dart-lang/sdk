@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class TightenTypeOfInitializingFormalsTest extends LintRuleTest {
   @override
-  String get lintRule => 'tighten_type_of_initializing_formals';
+  String get lintRule => LintNames.tighten_type_of_initializing_formals;
 
   test_superInit() async {
     await assertDiagnostics(r'''

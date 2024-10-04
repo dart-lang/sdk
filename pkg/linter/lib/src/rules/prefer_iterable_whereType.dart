@@ -15,7 +15,7 @@ const _desc = r'Prefer to use `whereType` on iterable.';
 class PreferIterableWhereType extends LintRule {
   PreferIterableWhereType()
       : super(
-          name: 'prefer_iterable_whereType',
+          name: LintNames.prefer_iterable_whereType,
           description: _desc,
         );
 

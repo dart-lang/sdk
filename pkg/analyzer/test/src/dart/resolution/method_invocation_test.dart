@@ -1803,7 +1803,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: p
     staticElement: <testLibraryFragment>::@prefix::p
-    element: <testLibraryFragment>::@prefix::p
+    element: <testLibraryFragment>::@prefix2::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2247,7 +2247,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: prefix
     staticElement: <testLibraryFragment>::@prefix::prefix
-    element: <testLibraryFragment>::@prefix::prefix
+    element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2280,7 +2280,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: math
     staticElement: <testLibraryFragment>::@prefix::math
-    element: <testLibraryFragment>::@prefix::math
+    element: <testLibraryFragment>::@prefix2::math
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2313,7 +2313,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@prefix::foo
-    element: <testLibraryFragment>::@prefix::foo
+    element: <testLibraryFragment>::@prefix2::foo
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2370,7 +2370,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: math
     staticElement: <testLibraryFragment>::@prefix::math
-    element: <testLibraryFragment>::@prefix::math
+    element: <testLibraryFragment>::@prefix2::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2890,7 +2890,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: p
     staticElement: <testLibraryFragment>::@prefix::p
-    element: <testLibraryFragment>::@prefix::p
+    element: <testLibraryFragment>::@prefix2::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3548,7 +3548,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: math
     staticElement: <testLibraryFragment>::@prefix::math
-    element: <testLibraryFragment>::@prefix::math
+    element: <testLibraryFragment>::@prefix2::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3582,7 +3582,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: math
     staticElement: <testLibraryFragment>::@prefix::math
-    element: <testLibraryFragment>::@prefix::math
+    element: <testLibraryFragment>::@prefix2::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3943,7 +3943,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: prefix
     staticElement: <testLibraryFragment>::@prefix::prefix
-    element: <testLibraryFragment>::@prefix::prefix
+    element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3994,7 +3994,7 @@ FunctionExpressionInvocation
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -5426,7 +5426,7 @@ FunctionExpressionInvocation
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -5481,7 +5481,7 @@ MethodInvocation
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -7104,7 +7104,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: math
     staticElement: <testLibraryFragment>::@prefix::math
-    element: <testLibraryFragment>::@prefix::math
+    element: <testLibraryFragment>::@prefix2::math
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (

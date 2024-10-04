@@ -1090,6 +1090,15 @@ class LibraryBuilder with MacroApplicationsContainer {
       }
     });
 
+    var prefixFragment = state.unlinked.prefix.mapOrNull((unlinked) {
+      return _buildLibraryImportPrefixFragment(
+        libraryFragment: containerUnit,
+        name: unlinked.name,
+        nameOffset: unlinked.nameOffset,
+        isDeferred: unlinked.deferredOffset != null,
+      );
+    });
+
     var combinators = _buildCombinators(
       state.unlinked.combinators,
     );
@@ -1156,6 +1165,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
       prefix: importPrefix,
+      prefix2: prefixFragment,
       uri: uri,
     )..isSynthetic = state.isSyntheticDartCore;
   }
@@ -1182,6 +1192,36 @@ class LibraryBuilder with MacroApplicationsContainer {
       result.enclosingElement3 = containerUnit;
       return result;
     }
+  }
+
+  PrefixFragmentImpl _buildLibraryImportPrefixFragment({
+    required CompilationUnitElementImpl libraryFragment,
+    required String name,
+    required int nameOffset,
+    required bool isDeferred,
+  }) {
+    var fragment = PrefixFragmentImpl(
+      enclosingFragment: libraryFragment,
+      name: name,
+      nameOffset: nameOffset,
+      isDeferred: isDeferred,
+    );
+
+    var containerRef = libraryFragment.reference!;
+    var reference = containerRef.getChild('@prefix2').getChild(name);
+    var element = reference.element2 as PrefixElementImpl2?;
+
+    if (element == null) {
+      element = PrefixElementImpl2(
+        reference: reference,
+        firstFragment: fragment,
+      );
+    } else {
+      element.addFragment(fragment);
+    }
+
+    fragment.element = element;
+    return fragment;
   }
 
   PartElementImpl _buildPartInclude({

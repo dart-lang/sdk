@@ -13,7 +13,7 @@ const _desc = r'Avoid JavaScript rounded ints.';
 class AvoidJsRoundedInts extends LintRule {
   AvoidJsRoundedInts()
       : super(
-          name: 'avoid_js_rounded_ints',
+          name: LintNames.avoid_js_rounded_ints,
           description: _desc,
         );
 

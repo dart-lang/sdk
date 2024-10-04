@@ -11,7 +11,7 @@ const _desc =
 class InvariantBooleans extends LintRule {
   InvariantBooleans()
       : super(
-          name: 'invariant_booleans',
+          name: LintNames.invariant_booleans,
           description: _desc,
           state: State.removed(since: dart3),
         );

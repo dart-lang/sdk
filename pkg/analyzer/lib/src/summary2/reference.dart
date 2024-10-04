@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:meta/meta.dart';
 
 /// Indirection between a name and the corresponding [Element].
@@ -36,6 +37,9 @@ class Reference {
 
   /// The corresponding [Element], or `null` if a named container.
   Element? element;
+
+  /// The corresponding [Element2], or `null` if a named container.
+  Element2? element2;
 
   /// Temporary index used during serialization and linking.
   int? index;

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidSettersWithoutGettersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_setters_without_getters';
+  String get lintRule => LintNames.avoid_setters_without_getters;
 
   test_class_getter_noSetter() async {
     await assertNoDiagnostics(r'''

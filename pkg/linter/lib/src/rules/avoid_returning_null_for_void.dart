@@ -14,7 +14,7 @@ const _desc = r'Avoid returning `null` for `void`.';
 class AvoidReturningNullForVoid extends LintRule {
   AvoidReturningNullForVoid()
       : super(
-          name: 'avoid_returning_null_for_void',
+          name: LintNames.avoid_returning_null_for_void,
           description: _desc,
         );
 

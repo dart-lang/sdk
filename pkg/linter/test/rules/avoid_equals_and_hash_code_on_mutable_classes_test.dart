@@ -17,7 +17,8 @@ class AvoidEqualsAndHashCodeOnMutableClassesTest extends LintRuleTest {
   @override
   bool get addMetaPackageDep => true;
   @override
-  String get lintRule => 'avoid_equals_and_hash_code_on_mutable_classes';
+  String get lintRule =>
+      LintNames.avoid_equals_and_hash_code_on_mutable_classes;
 
   test_enums() async {
     await assertDiagnostics(r'''

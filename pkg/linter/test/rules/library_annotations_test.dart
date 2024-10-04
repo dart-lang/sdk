@@ -18,7 +18,7 @@ class LibraryAnnotationsTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'library_annotations';
+  String get lintRule => LintNames.library_annotations;
 
   test_classDeclaration() async {
     await assertDiagnostics(

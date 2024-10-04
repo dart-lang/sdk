@@ -16,7 +16,7 @@ const _desc = r'Avoid `null` in `null`-aware assignment.';
 class UnnecessaryNullAwareAssignments extends LintRule {
   UnnecessaryNullAwareAssignments()
       : super(
-          name: 'unnecessary_null_aware_assignments',
+          name: LintNames.unnecessary_null_aware_assignments,
           description: _desc,
         );
 

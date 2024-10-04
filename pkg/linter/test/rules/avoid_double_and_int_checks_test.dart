@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidDoubleAndIntChecksTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_double_and_int_checks';
+  String get lintRule => LintNames.avoid_double_and_int_checks;
 
   test_checkingForDouble() async {
     await assertNoDiagnostics(r'''

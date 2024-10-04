@@ -18,7 +18,7 @@ const _desc =
 class UnnecessaryOverrides extends LintRule {
   UnnecessaryOverrides()
       : super(
-          name: 'unnecessary_overrides',
+          name: LintNames.unnecessary_overrides,
           description: _desc,
         );
 

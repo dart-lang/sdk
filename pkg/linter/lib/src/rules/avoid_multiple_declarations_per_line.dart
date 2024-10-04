@@ -13,7 +13,7 @@ const _desc = r"Don't declare multiple variables on a single line.";
 class AvoidMultipleDeclarationsPerLine extends LintRule {
   AvoidMultipleDeclarationsPerLine()
       : super(
-          name: 'avoid_multiple_declarations_per_line',
+          name: LintNames.avoid_multiple_declarations_per_line,
           description: _desc,
         );
 

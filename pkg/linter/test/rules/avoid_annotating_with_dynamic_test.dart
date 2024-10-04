@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_annotating_with_dynamic';
+  String get lintRule => LintNames.avoid_annotating_with_dynamic;
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

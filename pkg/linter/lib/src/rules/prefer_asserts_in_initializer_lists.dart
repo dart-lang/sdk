@@ -15,7 +15,7 @@ const _desc = r'Prefer putting asserts in initializer lists.';
 class PreferAssertsInInitializerLists extends LintRule {
   PreferAssertsInInitializerLists()
       : super(
-          name: 'prefer_asserts_in_initializer_lists',
+          name: LintNames.prefer_asserts_in_initializer_lists,
           description: _desc,
         );
 

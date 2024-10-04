@@ -14,7 +14,7 @@ const _desc = r'Remove unnecessary backslashes in strings.';
 class UnnecessaryStringEscapes extends LintRule {
   UnnecessaryStringEscapes()
       : super(
-          name: 'unnecessary_string_escapes',
+          name: LintNames.unnecessary_string_escapes,
           description: _desc,
         );
 

@@ -18,7 +18,7 @@ const _desc = r"Don't rename parameters of overridden methods.";
 class AvoidRenamingMethodParameters extends LintRule {
   AvoidRenamingMethodParameters()
       : super(
-          name: 'avoid_renaming_method_parameters',
+          name: LintNames.avoid_renaming_method_parameters,
           description: _desc,
         );
 

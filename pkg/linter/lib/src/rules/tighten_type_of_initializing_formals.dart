@@ -15,7 +15,7 @@ const _desc = r'Tighten type of initializing formal.';
 class TightenTypeOfInitializingFormals extends LintRule {
   TightenTypeOfInitializingFormals()
       : super(
-          name: 'tighten_type_of_initializing_formals',
+          name: LintNames.tighten_type_of_initializing_formals,
           description: _desc,
         );
 

@@ -18,7 +18,7 @@ const _desc =
 class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
   AvoidEqualsAndHashCodeOnMutableClasses()
       : super(
-          name: 'avoid_equals_and_hash_code_on_mutable_classes',
+          name: LintNames.avoid_equals_and_hash_code_on_mutable_classes,
           description: _desc,
         );
 

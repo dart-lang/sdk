@@ -24,7 +24,7 @@ class DirectivesOrderingTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'directives_ordering';
+  String get lintRule => LintNames.directives_ordering;
 
   test_dartDirectivesGoFirst_docImports() async {
     newFile('$testPackageLibPath/a.dart', '');

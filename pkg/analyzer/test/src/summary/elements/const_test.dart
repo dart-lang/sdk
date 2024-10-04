@@ -2785,7 +2785,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   typeArguments: TypeArgumentList
                     leftBracket: < @41
@@ -2838,10 +2838,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -3361,7 +3361,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   typeArguments: TypeArgumentList
                     leftBracket: < @41
@@ -3400,10 +3400,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -3721,7 +3721,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: package:test/a.dart::<fragment>::@class::C
                   element2: package:test/a.dart::<fragment>::@class::C#element
@@ -3750,10 +3750,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -3979,7 +3979,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: package:test/a.dart::<fragment>::@class::C
                   element2: package:test/a.dart::<fragment>::@class::C#element
@@ -4008,10 +4008,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -4074,7 +4074,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: <null>
                   element2: <null>
@@ -4103,10 +4103,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -4512,7 +4512,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: package:test/a.dart::<fragment>::@class::C
                   element2: package:test/a.dart::<fragment>::@class::C#element
@@ -4535,10 +4535,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -4664,7 +4664,7 @@ library
                     name: p @38
                     period: . @39
                     element: <testLibraryFragment>::@prefix::p
-                    element2: <testLibraryFragment>::@prefix::p
+                    element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: <null>
                   element2: <null>
@@ -4687,10 +4687,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -5126,7 +5126,7 @@ library
                   prefix: SimpleIdentifier
                     token: p @36
                     staticElement: <testLibraryFragment>::@prefix::p
-                    element: <testLibraryFragment>::@prefix::p
+                    element: <testLibraryFragment>::@prefix2::p
                     staticType: null
                   period: . @37
                   identifier: SimpleIdentifier
@@ -5163,10 +5163,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const v @32
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -5453,7 +5453,7 @@ library
                 prefix: SimpleIdentifier
                   token: p @32
                   staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix::p
+                  element: <testLibraryFragment>::@prefix2::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -5483,10 +5483,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const v @28
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -7833,7 +7833,7 @@ library
                 prefix: SimpleIdentifier
                   token: p @32
                   staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix::p
+                  element: <testLibraryFragment>::@prefix2::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -7863,10 +7863,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -8124,7 +8124,7 @@ library
                 prefix: SimpleIdentifier
                   token: p @32
                   staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix::p
+                  element: <testLibraryFragment>::@prefix2::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -8154,10 +8154,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -8556,7 +8556,7 @@ library
               prefix: SimpleIdentifier
                 token: p @32
                 staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix::p
+                element: <testLibraryFragment>::@prefix2::p
                 staticType: null
               period: . @33
               identifier: SimpleIdentifier
@@ -8579,10 +8579,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -8809,7 +8809,7 @@ library
                 prefix: SimpleIdentifier
                   token: p @32
                   staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix::p
+                  element: <testLibraryFragment>::@prefix2::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -8840,10 +8840,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const B @28
           reference: <testLibraryFragment>::@topLevelVariable::B
@@ -9601,7 +9601,7 @@ library
               prefix: SimpleIdentifier
                 token: p @37
                 staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix::p
+                element: <testLibraryFragment>::@prefix2::p
                 staticType: null
               period: . @38
               identifier: SimpleIdentifier
@@ -9622,7 +9622,7 @@ library
               prefix: SimpleIdentifier
                 token: p @56
                 staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix::p
+                element: <testLibraryFragment>::@prefix2::p
                 staticType: null
               period: . @57
               identifier: SimpleIdentifier
@@ -9643,7 +9643,7 @@ library
               prefix: SimpleIdentifier
                 token: p @88
                 staticElement: <testLibraryFragment>::@prefix::p
-                element: <testLibraryFragment>::@prefix::p
+                element: <testLibraryFragment>::@prefix2::p
                 staticType: null
               period: . @89
               identifier: SimpleIdentifier
@@ -9674,10 +9674,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const vClass @28
           reference: <testLibraryFragment>::@topLevelVariable::vClass
@@ -9986,7 +9986,7 @@ library
                 prefix: SimpleIdentifier
                   token: p @34
                   staticElement: <testLibraryFragment>::@prefix::p
-                  element: <testLibraryFragment>::@prefix::p
+                  element: <testLibraryFragment>::@prefix2::p
                   staticType: null
                 period: . @35
                 identifier: SimpleIdentifier
@@ -10016,10 +10016,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as p @21
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @21
       topLevelVariables
         const V @30
           reference: <testLibraryFragment>::@topLevelVariable::V
@@ -12829,7 +12829,7 @@ library
                       name: p @39
                       period: . @40
                       element: <testLibraryFragment>::@prefix::p
-                      element2: <testLibraryFragment>::@prefix::p
+                      element2: <testLibraryFragment>::@prefix2::p
                     name: C @41
                     element: package:test/a.dart::<fragment>::@class::C
                     element2: package:test/a.dart::<fragment>::@class::C#element
@@ -12850,10 +12850,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as p @19
       prefixes
-        p
-          reference: <testLibraryFragment>::@prefix::p
+        <testLibraryFragment>::@prefix2::p
+          fragments: @19
       topLevelVariables
         const v @28
           reference: <testLibraryFragment>::@topLevelVariable::v

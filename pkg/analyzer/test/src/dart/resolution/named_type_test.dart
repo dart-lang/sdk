@@ -128,7 +128,7 @@ NamedType
     name: myCore
     period: .
     element: <testLibraryFragment>::@prefix::myCore
-    element2: <testLibraryFragment>::@prefix::myCore
+    element2: <testLibraryFragment>::@prefix2::myCore
   name: dynamic
   element: dynamic@-1
   element2: dynamic@-1
@@ -442,7 +442,7 @@ NamedType
     name: async
     period: .
     element: <testLibraryFragment>::@prefix::async
-    element2: <testLibraryFragment>::@prefix::async
+    element2: <testLibraryFragment>::@prefix2::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -475,7 +475,7 @@ NamedType
     name: math
     period: .
     element: <testLibraryFragment>::@prefix::math
-    element2: <testLibraryFragment>::@prefix::math
+    element2: <testLibraryFragment>::@prefix2::math
   name: Unresolved
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -510,7 +510,7 @@ NamedType
     name: math
     period: .
     element: <testLibraryFragment>::@prefix::math
-    element2: <testLibraryFragment>::@prefix::math
+    element2: <testLibraryFragment>::@prefix2::math
   name: A
   element: <null>
   element2: <null>
@@ -575,7 +575,7 @@ NamedType
     name: async
     period: .
     element: <testLibraryFragment>::@prefix::async
-    element2: <testLibraryFragment>::@prefix::async
+    element2: <testLibraryFragment>::@prefix2::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -605,8 +605,8 @@ void f(prefix a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
-  element: <testLibraryFragment>::@prefix::prefix
-  element2: <testLibraryFragment>::@prefix::prefix
+  element: <null>
+  element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
   }
@@ -633,8 +633,8 @@ NamedType
         element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
-  element: <testLibraryFragment>::@prefix::prefix
-  element2: <testLibraryFragment>::@prefix::prefix
+  element: <null>
+  element2: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
   }

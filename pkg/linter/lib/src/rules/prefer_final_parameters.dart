@@ -15,13 +15,13 @@ const _desc =
 class PreferFinalParameters extends LintRule {
   PreferFinalParameters()
       : super(
-          name: 'prefer_final_parameters',
+          name: LintNames.prefer_final_parameters,
           description: _desc,
         );
 
   @override
   List<String> get incompatibleRules =>
-      const ['unnecessary_final', 'avoid_final_parameters'];
+      const [LintNames.unnecessary_final, LintNames.avoid_final_parameters];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_final_parameters;

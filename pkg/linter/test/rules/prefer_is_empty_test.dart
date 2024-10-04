@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferIsEmptyTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_is_empty';
+  String get lintRule => LintNames.prefer_is_empty;
 
   test_iterableLength_notEq_zero() async {
     await assertDiagnostics(r'''

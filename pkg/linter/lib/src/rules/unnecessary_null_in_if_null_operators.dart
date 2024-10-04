@@ -15,7 +15,7 @@ const _desc = r'Avoid using `null` in `??` operators.';
 class UnnecessaryNullInIfNullOperators extends LintRule {
   UnnecessaryNullInIfNullOperators()
       : super(
-          name: 'unnecessary_null_in_if_null_operators',
+          name: LintNames.unnecessary_null_in_if_null_operators,
           description: _desc,
         );
 

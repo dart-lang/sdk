@@ -14,7 +14,7 @@ const _desc = r'Use rethrow to rethrow a caught exception.';
 class UseRethrowWhenPossible extends LintRule {
   UseRethrowWhenPossible()
       : super(
-          name: 'use_rethrow_when_possible',
+          name: LintNames.use_rethrow_when_possible,
           description: _desc,
         );
 

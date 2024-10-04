@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryStringInterpolationsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_string_interpolations';
+  String get lintRule => LintNames.unnecessary_string_interpolations;
 
   test_necessaryInterpolation_adjacentStrings() async {
     await assertNoDiagnostics(r'''

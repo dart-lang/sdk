@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferExpressionFunctionBodiesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_expression_function_bodies';
+  String get lintRule => LintNames.prefer_expression_function_bodies;
 
   test_function_multipleStatements() async {
     await assertNoDiagnostics(r'''

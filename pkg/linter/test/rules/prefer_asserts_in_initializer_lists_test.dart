@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferAssertsInInitializerListsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_asserts_in_initializer_lists';
+  String get lintRule => LintNames.prefer_asserts_in_initializer_lists;
 
   test_afterFirstStatement() async {
     await assertNoDiagnostics(r'''

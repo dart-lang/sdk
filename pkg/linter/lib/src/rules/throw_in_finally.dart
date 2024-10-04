@@ -14,7 +14,7 @@ const _desc = r'Avoid `throw` in `finally` block.';
 class ThrowInFinally extends LintRule {
   ThrowInFinally()
       : super(
-          name: 'throw_in_finally',
+          name: LintNames.throw_in_finally,
           description: _desc,
         );
 

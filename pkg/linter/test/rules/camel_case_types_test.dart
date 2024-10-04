@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CamelCaseTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'camel_case_types';
+  String get lintRule => LintNames.camel_case_types;
 
   test_augmentationClass_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''

@@ -16,7 +16,7 @@ const _desc = r'Use case expressions that are valid in Dart 3.0.';
 class InvalidCasePatterns extends LintRule {
   InvalidCasePatterns()
       : super(
-          name: 'invalid_case_patterns',
+          name: LintNames.invalid_case_patterns,
           description: _desc,
           state: State.experimental(),
         );

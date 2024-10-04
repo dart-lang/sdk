@@ -16,7 +16,7 @@ const _desc = r'Private field could be `final`.';
 class PreferFinalFields extends LintRule {
   PreferFinalFields()
       : super(
-          name: 'prefer_final_fields',
+          name: LintNames.prefer_final_fields,
           description: _desc,
         );
 

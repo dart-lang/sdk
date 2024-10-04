@@ -15,13 +15,13 @@ const _desc = "Don't use `final` for local variables.";
 class UnnecessaryFinal extends LintRule {
   UnnecessaryFinal()
       : super(
-          name: 'unnecessary_final',
+          name: LintNames.unnecessary_final,
           description: _desc,
         );
 
   @override
   List<String> get incompatibleRules =>
-      const ['prefer_final_locals', 'prefer_final_parameters'];
+      const [LintNames.prefer_final_locals, LintNames.prefer_final_parameters];
 
   @override
   List<LintCode> get lintCodes => [

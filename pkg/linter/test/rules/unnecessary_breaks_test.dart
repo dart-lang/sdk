@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryBreaksTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_breaks';
+  String get lintRule => LintNames.unnecessary_breaks;
 
   test_default() async {
     await assertDiagnostics(r'''

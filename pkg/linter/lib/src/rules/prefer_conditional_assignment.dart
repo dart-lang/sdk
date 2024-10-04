@@ -45,7 +45,7 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 class PreferConditionalAssignment extends LintRule {
   PreferConditionalAssignment()
       : super(
-          name: 'prefer_conditional_assignment',
+          name: LintNames.prefer_conditional_assignment,
           description: _desc,
         );
 

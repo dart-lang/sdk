@@ -16,7 +16,7 @@ const _desc = r'Use a non-nullable type for a final variable initialized '
 class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
   UnnecessaryNullableForFinalVariableDeclarations()
       : super(
-          name: 'unnecessary_nullable_for_final_variable_declarations',
+          name: LintNames.unnecessary_nullable_for_final_variable_declarations,
           description: _desc,
         );
 

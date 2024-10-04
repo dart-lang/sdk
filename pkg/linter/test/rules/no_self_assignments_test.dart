@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NoSelfAssignmentsTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_self_assignments';
+  String get lintRule => LintNames.no_self_assignments;
 
   test_classMemberAssignment() async {
     await assertDiagnostics(r'''

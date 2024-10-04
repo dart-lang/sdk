@@ -14,7 +14,7 @@ const _desc = r'Use matching super parameter names.';
 class MatchingSuperParameters extends LintRule {
   MatchingSuperParameters()
       : super(
-          name: 'matching_super_parameters',
+          name: LintNames.matching_super_parameters,
           description: _desc,
         );
 

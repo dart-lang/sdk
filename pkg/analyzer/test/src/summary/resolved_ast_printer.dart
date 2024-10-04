@@ -29,6 +29,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// If `true`, resolution should be printed.
   final bool _withResolution;
 
+  final Map<Token, String> _tokenIdMap = Map.identity();
+
   ResolvedAstPrinter({
     required TreeStringSink sink,
     required ElementPrinter elementPrinter,
@@ -1758,6 +1760,13 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  String _getTokenId(Token? token) {
+    if (token == null) {
+      return '<null>';
+    }
+    return _tokenIdMap[token] ??= 'T${_tokenIdMap.length}';
+  }
+
   void _writeDeclaredElement(Element? element) {
     if (_withResolution) {
       if (element is LocalVariableElement) {
@@ -1973,8 +1982,16 @@ Expected parent: (${parent.runtimeType}) $parent
   }
 
   void _writeToken(String name, Token? token) {
-    if (token != null) {
-      _sink.writeWithIndent('$name: ');
+    if (token == null) {
+      return;
+    }
+
+    _sink.writeIndentedLine(() {
+      _sink.write('$name: ');
+      if (configuration.withTokenPreviousNext) {
+        _sink.write(_getTokenId(token));
+        _sink.write(' ');
+      }
       _sink.write(token.lexeme.ifNotEmptyOrElse('<empty>'));
       if (_withOffsets) {
         _sink.write(' @${token.offset}');
@@ -1982,7 +1999,32 @@ Expected parent: (${parent.runtimeType}) $parent
       if (token.isSynthetic) {
         _sink.write(' <synthetic>');
       }
-      _sink.writeln();
+    });
+
+    if (configuration.withTokenPreviousNext) {
+      _sink.withIndent(() {
+        if (token.previous case var previous?) {
+          if (!previous.isEof) {
+            if (_tokenIdMap[previous] == null) {
+              _writeToken('previousX', previous);
+            } else {
+              _sink.writelnWithIndent(
+                'previous: ${_getTokenId(previous)} |${previous.lexeme}|',
+              );
+            }
+          }
+        } else {
+          _sink.writelnWithIndent('previous: <null>');
+        }
+
+        if (token.next case var next?) {
+          _sink.writelnWithIndent(
+            'next: ${_getTokenId(next)} |${next.lexeme}|',
+          );
+        } else {
+          _sink.writelnWithIndent('next: <null>');
+        }
+      });
     }
   }
 
@@ -2089,4 +2131,7 @@ class ResolvedNodeTextConfiguration {
   /// If `true`, `redirectedConstructor` properties of [ConstructorElement]s
   /// should be printer.
   bool withRedirectedConstructors = false;
+
+  /// If `true`, print IDs of each token, `previous` and `next` tokens.
+  bool withTokenPreviousNext = false;
 }

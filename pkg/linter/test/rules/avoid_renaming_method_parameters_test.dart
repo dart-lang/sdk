@@ -22,7 +22,7 @@ main() {
 @reflectiveTest
 class AvoidRenamingMethodParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_renaming_method_parameters';
+  String get lintRule => LintNames.avoid_renaming_method_parameters;
 
   @FailingTest(
       reason: 'lint is limited to methods',

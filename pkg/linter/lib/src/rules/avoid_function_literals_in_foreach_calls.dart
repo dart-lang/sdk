@@ -38,7 +38,7 @@ bool _isIterable(DartType? type) =>
 class AvoidFunctionLiteralsInForeachCalls extends LintRule {
   AvoidFunctionLiteralsInForeachCalls()
       : super(
-          name: 'avoid_function_literals_in_foreach_calls',
+          name: LintNames.avoid_function_literals_in_foreach_calls,
           description: _desc,
         );
 

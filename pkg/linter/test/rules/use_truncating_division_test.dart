@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseTruncatingDivisionTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_truncating_division';
+  String get lintRule => LintNames.use_truncating_division;
 
   test_double_divide_truncate() async {
     await assertNoDiagnostics(r'''

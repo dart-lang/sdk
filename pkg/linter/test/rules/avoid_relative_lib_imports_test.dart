@@ -18,7 +18,7 @@ class AvoidRelativeLibImportsTest extends LintRuleTest {
   bool get addJsPackageDep => true;
 
   @override
-  String get lintRule => 'avoid_relative_lib_imports';
+  String get lintRule => LintNames.avoid_relative_lib_imports;
 
   test_externalPackage() async {
     await assertNoDiagnostics(r'''

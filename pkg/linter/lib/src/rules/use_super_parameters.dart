@@ -26,7 +26,7 @@ Set<ParameterElement> _referencedParameters(
 class UseSuperParameters extends LintRule {
   UseSuperParameters()
       : super(
-          name: 'use_super_parameters',
+          name: LintNames.use_super_parameters,
           description: _desc,
           state: State.experimental(),
         );

@@ -16,7 +16,7 @@ const _desc = r'Use string in part of directives.';
 class UseStringInPartOfDirectives extends LintRule {
   UseStringInPartOfDirectives()
       : super(
-          name: 'use_string_in_part_of_directives',
+          name: LintNames.use_string_in_part_of_directives,
           description: _desc,
         );
 

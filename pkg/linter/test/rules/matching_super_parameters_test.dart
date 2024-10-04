@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class MatchingSuperParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'matching_super_parameters';
+  String get lintRule => LintNames.matching_super_parameters;
 
   test_explicitSuperInvocation_matchingWithOffset() async {
     await assertNoDiagnostics(r'''

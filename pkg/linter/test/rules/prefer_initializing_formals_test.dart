@@ -22,7 +22,7 @@ class PreferInitializingFormalsTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'prefer_initializing_formals';
+  String get lintRule => LintNames.prefer_initializing_formals;
 
   test_assignedInBody() async {
     await assertDiagnostics(r'''

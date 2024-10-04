@@ -10,7 +10,7 @@ const _desc = r'Prefer using a boolean as the assert condition.';
 class PreferBoolInAsserts extends LintRule {
   PreferBoolInAsserts()
       : super(
-          name: 'prefer_bool_in_asserts',
+          name: LintNames.prefer_bool_in_asserts,
           description: _desc,
           state: State.removed(since: dart3),
         );

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class DocumentIgnoresTest extends LintRuleTest {
   @override
-  String get lintRule => 'document_ignores';
+  String get lintRule => LintNames.document_ignores;
 
   test_precedingDeclaration_notDocumented() async {
     await assertDiagnostics(

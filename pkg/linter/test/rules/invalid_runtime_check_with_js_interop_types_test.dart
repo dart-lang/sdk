@@ -18,7 +18,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   bool get addJsPackageDep => true;
 
   @override
-  String get lintRule => 'invalid_runtime_check_with_js_interop_types';
+  String get lintRule => LintNames.invalid_runtime_check_with_js_interop_types;
 
   test_baseTypesAs_dart_type_as_js_type() async {
     await _testCasts([_AsCast('int', 'JSNumber')]);

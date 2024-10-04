@@ -13,7 +13,7 @@ const _desc = r'Use generic function type syntax for parameters.';
 class UseFunctionTypeSyntaxForParameters extends LintRule {
   UseFunctionTypeSyntaxForParameters()
       : super(
-          name: 'use_function_type_syntax_for_parameters',
+          name: LintNames.use_function_type_syntax_for_parameters,
           description: _desc,
         );
 

@@ -13,7 +13,7 @@ const _desc = r'Use adjacent strings to concatenate string literals.';
 class PreferAdjacentStringConcatenation extends LintRule {
   PreferAdjacentStringConcatenation()
       : super(
-          name: 'prefer_adjacent_string_concatenation',
+          name: LintNames.prefer_adjacent_string_concatenation,
           description: _desc,
         );
 

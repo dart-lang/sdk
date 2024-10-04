@@ -16,7 +16,7 @@ const _desc = r'Avoid leading underscores for local identifiers.';
 class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
   NoLeadingUnderscoresForLocalIdentifiers()
       : super(
-          name: 'no_leading_underscores_for_local_identifiers',
+          name: LintNames.no_leading_underscores_for_local_identifiers,
           description: _desc,
         );
 

@@ -24,7 +24,7 @@ const _out = Variance._out;
 class AvoidFutureOrVoid extends LintRule {
   AvoidFutureOrVoid()
       : super(
-            name: 'avoid_futureor_void',
+            name: LintNames.avoid_futureor_void,
             description: _desc,
             state: State.experimental());
 

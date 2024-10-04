@@ -14,7 +14,7 @@ const _desc = r'Prefer using `??` operators.';
 class PreferIfNullOperators extends LintRule {
   PreferIfNullOperators()
       : super(
-          name: 'prefer_if_null_operators',
+          name: LintNames.prefer_if_null_operators,
           description: _desc,
         );
 

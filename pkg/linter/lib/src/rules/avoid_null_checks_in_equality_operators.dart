@@ -35,7 +35,7 @@ bool _isParameterWithQuestionQuestion(
 class AvoidNullChecksInEqualityOperators extends LintRule {
   AvoidNullChecksInEqualityOperators()
       : super(
-          name: 'avoid_null_checks_in_equality_operators',
+          name: LintNames.avoid_null_checks_in_equality_operators,
           description: _desc,
         );
 

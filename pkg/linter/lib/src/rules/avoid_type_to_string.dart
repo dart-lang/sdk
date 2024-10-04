@@ -16,7 +16,7 @@ const _desc =
 class AvoidTypeToString extends LintRule {
   AvoidTypeToString()
       : super(
-          name: 'avoid_type_to_string',
+          name: LintNames.avoid_type_to_string,
           description: _desc,
         );
 

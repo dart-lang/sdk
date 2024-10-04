@@ -13,7 +13,7 @@ const _desc = r'Put required named parameters first.';
 class AlwaysPutRequiredNamedParametersFirst extends LintRule {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
-          name: 'always_put_required_named_parameters_first',
+          name: LintNames.always_put_required_named_parameters_first,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ const _desc =
 class UseIsEvenRatherThanModulo extends LintRule {
   UseIsEvenRatherThanModulo()
       : super(
-          name: 'use_is_even_rather_than_modulo',
+          name: LintNames.use_is_even_rather_than_modulo,
           description: _desc,
         );
 

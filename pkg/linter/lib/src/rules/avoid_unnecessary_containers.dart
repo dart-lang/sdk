@@ -14,7 +14,7 @@ const _desc = r'Avoid unnecessary containers.';
 class AvoidUnnecessaryContainers extends LintRule {
   AvoidUnnecessaryContainers()
       : super(
-          name: 'avoid_unnecessary_containers',
+          name: LintNames.avoid_unnecessary_containers,
           description: _desc,
         );
 

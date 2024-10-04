@@ -13,7 +13,7 @@ const _desc = r'Missing whitespace between adjacent strings.';
 class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
-          name: 'missing_whitespace_between_adjacent_strings',
+          name: LintNames.missing_whitespace_between_adjacent_strings,
           description: _desc,
         );
 

@@ -14,7 +14,7 @@ const _desc = r'Missing conditional import.';
 class ConditionalUriDoesNotExist extends LintRule {
   ConditionalUriDoesNotExist()
       : super(
-          name: 'conditional_uri_does_not_exist',
+          name: LintNames.conditional_uri_does_not_exist,
           description: _desc,
         );
 

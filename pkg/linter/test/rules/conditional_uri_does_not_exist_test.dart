@@ -18,7 +18,7 @@ class ConditionalUriDoesNotExistTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'conditional_uri_does_not_exist';
+  String get lintRule => LintNames.conditional_uri_does_not_exist;
 
   test_inPartFile() async {
     newFile('$testPackageRootPath/test/a.dart', r'''

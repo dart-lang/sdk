@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_redundant_argument_values';
+  String get lintRule => LintNames.avoid_redundant_argument_values;
 
   test_namedArgumentBeforePositional() async {
     await assertDiagnostics(r'''
@@ -34,7 +34,7 @@ void f() {
 @reflectiveTest
 class AvoidRedundantArgumentValuesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_redundant_argument_values';
+  String get lintRule => LintNames.avoid_redundant_argument_values;
 
   test_constructor_redundant() async {
     await assertDiagnostics(r'''

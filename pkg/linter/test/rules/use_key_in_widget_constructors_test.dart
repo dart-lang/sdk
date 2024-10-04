@@ -18,7 +18,7 @@ class UseKeyInWidgetConstructorsTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'use_key_in_widget_constructors';
+  String get lintRule => LintNames.use_key_in_widget_constructors;
 
   test_augmentedConstructor_noKey() async {
     newFile('$testPackageLibPath/a.dart', r'''

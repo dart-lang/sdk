@@ -14,7 +14,7 @@ const _desc = r'Prefer `for` elements when building maps from iterables.';
 class PreferForElementsToMapFromIterable extends LintRule {
   PreferForElementsToMapFromIterable()
       : super(
-          name: 'prefer_for_elements_to_map_fromIterable',
+          name: LintNames.prefer_for_elements_to_map_fromIterable,
           description: _desc,
         );
 

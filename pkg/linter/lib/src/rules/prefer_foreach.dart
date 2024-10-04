@@ -15,7 +15,7 @@ const _desc = r'Use `forEach` to only apply a function to all the elements.';
 class PreferForeach extends LintRule {
   PreferForeach()
       : super(
-          name: 'prefer_foreach',
+          name: LintNames.prefer_foreach,
           description: _desc,
         );
 

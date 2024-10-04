@@ -13,12 +13,13 @@ const _desc = r'Avoid `final` for parameter declarations.';
 class AvoidFinalParameters extends LintRule {
   AvoidFinalParameters()
       : super(
-          name: 'avoid_final_parameters',
+          name: LintNames.avoid_final_parameters,
           description: _desc,
         );
 
   @override
-  List<String> get incompatibleRules => const ['prefer_final_parameters'];
+  List<String> get incompatibleRules =>
+      const [LintNames.prefer_final_parameters];
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_final_parameters;

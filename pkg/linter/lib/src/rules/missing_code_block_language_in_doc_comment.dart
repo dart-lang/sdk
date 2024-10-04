@@ -14,7 +14,7 @@ const _desc = r'A code block is missing a specified language.';
 class MissingCodeBlockLanguageInDocComment extends LintRule {
   MissingCodeBlockLanguageInDocComment()
       : super(
-          name: 'missing_code_block_language_in_doc_comment',
+          name: LintNames.missing_code_block_language_in_doc_comment,
           description: _desc,
         );
 

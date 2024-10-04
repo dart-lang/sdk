@@ -16,7 +16,7 @@ const _desc = r'Prefer using lowerCamelCase for constant names.';
 class ConstantIdentifierNames extends LintRule {
   ConstantIdentifierNames()
       : super(
-          name: 'constant_identifier_names',
+          name: LintNames.constant_identifier_names,
           description: _desc,
         );
 

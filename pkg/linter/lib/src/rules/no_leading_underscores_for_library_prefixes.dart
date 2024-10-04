@@ -16,7 +16,7 @@ const _desc = r'Avoid leading underscores for library prefixes.';
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
-          name: 'no_leading_underscores_for_library_prefixes',
+          name: LintNames.no_leading_underscores_for_library_prefixes,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AlwaysUsePackageImportsTest extends LintRuleTest {
   @override
-  String get lintRule => 'always_use_package_imports';
+  String get lintRule => LintNames.always_use_package_imports;
 
   test_internalPackage() async {
     var packageConfigBuilder = PackageConfigFileBuilder();

@@ -18,7 +18,7 @@ class AlwaysSpecifyTypesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'always_specify_types';
+  String get lintRule => LintNames.always_specify_types;
 
   test_0() async {
     await assertNoDiagnostics(r'''

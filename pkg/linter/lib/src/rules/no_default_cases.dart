@@ -16,7 +16,7 @@ const _desc = r'No default cases.';
 class NoDefaultCases extends LintRule {
   NoDefaultCases()
       : super(
-          name: 'no_default_cases',
+          name: LintNames.no_default_cases,
           description: _desc,
           state: State.experimental(),
         );

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class HashAndEqualsTest extends LintRuleTest {
   @override
-  String get lintRule => 'hash_and_equals';
+  String get lintRule => LintNames.hash_and_equals;
 
   test_augmentedClass_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''

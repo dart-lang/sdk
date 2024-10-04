@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryFinalTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_final';
+  String get lintRule => LintNames.unnecessary_final;
 
   test_field_final() async {
     await assertNoDiagnostics(r'''

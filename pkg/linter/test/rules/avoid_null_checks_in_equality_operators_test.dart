@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidNullChecksInEqualityOperatorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_null_checks_in_equality_operators';
+  String get lintRule => LintNames.avoid_null_checks_in_equality_operators;
 
   test_dynamicParameter_neNull() async {
     // https://github.com/dart-lang/linter/issues/2864

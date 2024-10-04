@@ -18,7 +18,7 @@ class SortChildPropertiesLastTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'sort_child_properties_last';
+  String get lintRule => LintNames.sort_child_properties_last;
 
   test_childArgumentBeforeKeyArgument() async {
     await assertDiagnostics(r'''

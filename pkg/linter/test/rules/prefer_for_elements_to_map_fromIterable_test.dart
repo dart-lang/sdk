@@ -19,7 +19,7 @@ class PreferForElementsToMapFromIterableTest extends LintRuleTest {
   // TODO(srawlins): Add tests with block-bodied closures.
 
   @override
-  String get lintRule => 'prefer_for_elements_to_map_fromIterable';
+  String get lintRule => LintNames.prefer_for_elements_to_map_fromIterable;
 
   test_hasKeyAndValue_closuresAreSimple() async {
     await assertDiagnostics(r'''

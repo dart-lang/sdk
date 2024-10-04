@@ -20,7 +20,7 @@ Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
 class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()
       : super(
-          name: 'unnecessary_lambdas',
+          name: LintNames.unnecessary_lambdas,
           description: _desc,
         );
 

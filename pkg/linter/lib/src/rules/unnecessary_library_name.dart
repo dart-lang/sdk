@@ -15,7 +15,7 @@ const _desc = r"Don't have a library name in a `library` declaration.";
 class UnnecessaryLibraryName extends LintRule {
   UnnecessaryLibraryName()
       : super(
-          name: 'unnecessary_library_name',
+          name: LintNames.unnecessary_library_name,
           description: _desc,
         );
 

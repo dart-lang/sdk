@@ -945,7 +945,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -984,7 +984,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1023,7 +1023,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1062,7 +1062,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1101,7 +1101,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1140,7 +1140,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1179,7 +1179,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1218,7 +1218,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1257,7 +1257,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1296,7 +1296,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1335,7 +1335,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1374,7 +1374,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1413,7 +1413,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1452,7 +1452,7 @@ CommentReference
       prefix: SimpleIdentifier
         token: self
         staticElement: <testLibraryFragment>::@prefix::self
-        element: <testLibraryFragment>::@prefix::self
+        element: <testLibraryFragment>::@prefix2::self
         staticType: null
       period: .
       identifier: SimpleIdentifier

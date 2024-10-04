@@ -14,7 +14,7 @@ const _desc = r'Name libraries using `lowercase_with_underscores`.';
 class LibraryNames extends LintRule {
   LibraryNames()
       : super(
-          name: 'library_names',
+          name: LintNames.library_names,
           description: _desc,
         );
 

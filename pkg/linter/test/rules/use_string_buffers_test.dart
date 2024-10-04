@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseStringBuffersTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_string_buffers';
+  String get lintRule => LintNames.use_string_buffers;
 
   test_field_nonString_plus() async {
     await assertNoDiagnostics(r'''

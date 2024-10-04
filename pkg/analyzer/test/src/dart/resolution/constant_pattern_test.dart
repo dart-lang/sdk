@@ -187,7 +187,7 @@ ConstantPattern
       prefix: SimpleIdentifier
         token: prefix
         staticElement: <testLibraryFragment>::@prefix::prefix
-        element: <testLibraryFragment>::@prefix::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -229,7 +229,7 @@ ConstantPattern
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -381,7 +381,7 @@ ConstantPattern
         name: math
         period: .
         element: <testLibraryFragment>::@prefix::math
-        element2: <testLibraryFragment>::@prefix::math
+        element2: <testLibraryFragment>::@prefix2::math
       name: Random
       element: dart:math::<fragment>::@class::Random
       element2: dart:math::<fragment>::@class::Random#element
@@ -413,7 +413,7 @@ ConstantPattern
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@typeAlias::A
       element2: package:test/a.dart::<fragment>::@typeAlias::A#element

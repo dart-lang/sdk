@@ -15,7 +15,7 @@ const _desc = r'Avoid annotating with `dynamic` when not required.';
 class AvoidAnnotatingWithDynamic extends LintRule {
   AvoidAnnotatingWithDynamic()
       : super(
-          name: 'avoid_annotating_with_dynamic',
+          name: LintNames.avoid_annotating_with_dynamic,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferFinalLocalsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_final_locals';
+  String get lintRule => LintNames.prefer_final_locals;
 
   test_destructured_listPattern() async {
     await assertDiagnostics(r'''

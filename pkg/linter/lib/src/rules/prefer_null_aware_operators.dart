@@ -14,7 +14,7 @@ const _desc = r'Prefer using `null`-aware operators.';
 class PreferNullAwareOperators extends LintRule {
   PreferNullAwareOperators()
       : super(
-          name: 'prefer_null_aware_operators',
+          name: LintNames.prefer_null_aware_operators,
           description: _desc,
         );
 

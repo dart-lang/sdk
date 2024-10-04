@@ -17,7 +17,7 @@ const _desc = r'Always override `hashCode` if overriding `==`.';
 class HashAndEquals extends LintRule {
   HashAndEquals()
       : super(
-          name: 'hash_and_equals',
+          name: LintNames.hash_and_equals,
           description: _desc,
         );
 

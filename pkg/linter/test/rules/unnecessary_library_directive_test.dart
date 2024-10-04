@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryLibraryDirective extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_library_directive';
+  String get lintRule => LintNames.unnecessary_library_directive;
 
   test_hasAnnotation() async {
     await assertNoDiagnostics(r'''

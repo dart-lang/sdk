@@ -14,7 +14,7 @@ const _desc = r'Prefer typing uninitialized variables and fields.';
 class PreferTypingUninitializedVariables extends LintRule {
   PreferTypingUninitializedVariables()
       : super(
-          name: 'prefer_typing_uninitialized_variables',
+          name: LintNames.prefer_typing_uninitialized_variables,
           description: _desc,
         );
 

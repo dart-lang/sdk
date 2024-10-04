@@ -890,7 +890,7 @@ PrefixExpression
     prefix: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
-      element: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix2::p
       staticType: null
     period: .
     identifier: SimpleIdentifier

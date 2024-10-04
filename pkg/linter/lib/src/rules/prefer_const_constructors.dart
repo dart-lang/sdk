@@ -17,7 +17,7 @@ const _desc = r'Prefer `const` with constant constructors.';
 class PreferConstConstructors extends LintRule {
   PreferConstConstructors()
       : super(
-          name: 'prefer_const_constructors',
+          name: LintNames.prefer_const_constructors,
           description: _desc,
         );
 

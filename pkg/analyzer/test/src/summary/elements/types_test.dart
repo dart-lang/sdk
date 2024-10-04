@@ -2504,10 +2504,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async
+        dart:async as ppp @23
       prefixes
-        ppp
-          reference: <testLibraryFragment>::@prefix::ppp
+        <testLibraryFragment>::@prefix2::ppp
+          fragments: @23
       classes
         class C @34
           reference: <testLibraryFragment>::@class::C
@@ -4309,10 +4309,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:core
+        dart:core as core @22
       prefixes
-        core
-          reference: <testLibraryFragment>::@prefix::core
+        <testLibraryFragment>::@prefix2::core
+          fragments: @22
       topLevelVariables
         c @35
           reference: <testLibraryFragment>::@topLevelVariable::c

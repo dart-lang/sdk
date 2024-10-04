@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidReturningNullTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_returning_null';
+  String get lintRule => LintNames.avoid_returning_null;
 
   /// https://github.com/dart-lang/linter/issues/2636
   test_nullableValue() async {

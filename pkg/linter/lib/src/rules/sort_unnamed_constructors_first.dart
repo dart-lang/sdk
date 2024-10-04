@@ -13,7 +13,7 @@ const _desc = r'Sort unnamed constructor declarations first.';
 class SortUnnamedConstructorsFirst extends LintRule {
   SortUnnamedConstructorsFirst()
       : super(
-          name: 'sort_unnamed_constructors_first',
+          name: LintNames.sort_unnamed_constructors_first,
           description: _desc,
         );
 

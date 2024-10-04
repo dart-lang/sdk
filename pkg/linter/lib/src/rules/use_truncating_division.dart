@@ -14,7 +14,7 @@ const _desc = r'Use truncating division.';
 class UseTruncatingDivision extends LintRule {
   UseTruncatingDivision()
       : super(
-          name: 'use_truncating_division',
+          name: LintNames.use_truncating_division,
           description: _desc,
         );
 

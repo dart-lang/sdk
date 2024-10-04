@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class DeprecatedConsistencyTest extends LintRuleTest {
   @override
-  String get lintRule => 'deprecated_consistency';
+  String get lintRule => LintNames.deprecated_consistency;
 
   test_classDeprecated_factoryConstructor() async {
     await assertDiagnostics(r'''

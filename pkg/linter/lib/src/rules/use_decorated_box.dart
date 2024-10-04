@@ -14,7 +14,7 @@ const _desc = r'Use `DecoratedBox`.';
 class UseDecoratedBox extends LintRule {
   UseDecoratedBox()
       : super(
-          name: 'use_decorated_box',
+          name: LintNames.use_decorated_box,
           description: _desc,
         );
 

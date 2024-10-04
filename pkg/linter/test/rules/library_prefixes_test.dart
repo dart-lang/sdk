@@ -20,7 +20,7 @@ class LibraryPrefixesTest extends LintRuleTest {
       [WarningCode.UNUSED_IMPORT, WarningCode.UNUSED_LOCAL_VARIABLE];
 
   @override
-  String get lintRule => 'library_prefixes';
+  String get lintRule => LintNames.library_prefixes;
 
   test_camelCase() async {
     await assertDiagnostics(r'''

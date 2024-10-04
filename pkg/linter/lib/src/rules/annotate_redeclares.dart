@@ -14,7 +14,7 @@ const _desc = r'Annotate redeclared members.';
 class AnnotateRedeclares extends LintRule {
   AnnotateRedeclares()
       : super(
-          name: 'annotate_redeclares',
+          name: LintNames.annotate_redeclares,
           description: _desc,
           state: State.experimental(),
         );

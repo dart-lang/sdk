@@ -18,7 +18,7 @@ const _desc = r'Avoid types as parameter names.';
 class AvoidTypesAsParameterNames extends LintRule {
   AvoidTypesAsParameterNames()
       : super(
-          name: 'avoid_types_as_parameter_names',
+          name: LintNames.avoid_types_as_parameter_names,
           description: _desc,
         );
 

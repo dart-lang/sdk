@@ -13,7 +13,7 @@ const _desc = r'Start multiline strings with a newline.';
 class LeadingNewlinesInMultilineStrings extends LintRule {
   LeadingNewlinesInMultilineStrings()
       : super(
-          name: 'leading_newlines_in_multiline_strings',
+          name: LintNames.leading_newlines_in_multiline_strings,
           description: _desc,
         );
 

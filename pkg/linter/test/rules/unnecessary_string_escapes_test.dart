@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryStringEscapesTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_string_escapes';
+  String get lintRule => LintNames.unnecessary_string_escapes;
 
   test_escapedBackslash() async {
     await assertNoDiagnostics(r'''

@@ -14,7 +14,7 @@ const _desc = r'Unnecessary `await` keyword in return.';
 class UnnecessaryAwaitInReturn extends LintRule {
   UnnecessaryAwaitInReturn()
       : super(
-          name: 'unnecessary_await_in_return',
+          name: LintNames.unnecessary_await_in_return,
           description: _desc,
         );
 

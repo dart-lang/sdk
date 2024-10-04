@@ -24,7 +24,7 @@ bool _isVoid(TypeAnnotation? returnType) =>
 class UseToAndAsIfApplicable extends LintRule {
   UseToAndAsIfApplicable()
       : super(
-          name: 'use_to_and_as_if_applicable',
+          name: LintNames.use_to_and_as_if_applicable,
           description: _desc,
         );
 

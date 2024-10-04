@@ -10,7 +10,7 @@ const _desc = r'Specify `@required` on named parameters without defaults.';
 class AlwaysRequireNonNullNamedParameters extends LintRule {
   AlwaysRequireNonNullNamedParameters()
       : super(
-          name: 'always_require_non_null_named_parameters',
+          name: LintNames.always_require_non_null_named_parameters,
           description: _desc,
           state: State.removed(since: dart3_3),
         );

@@ -16,7 +16,7 @@ const _desc = r'Avoid `async` functions that return `void`.';
 class AvoidVoidAsync extends LintRule {
   AvoidVoidAsync()
       : super(
-          name: 'avoid_void_async',
+          name: LintNames.avoid_void_async,
           description: _desc,
         );
 

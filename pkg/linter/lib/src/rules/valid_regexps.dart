@@ -13,7 +13,7 @@ const _desc = r'Use valid regular expression syntax.';
 class ValidRegexps extends LintRule {
   ValidRegexps()
       : super(
-          name: 'valid_regexps',
+          name: LintNames.valid_regexps,
           description: _desc,
         );
 

@@ -1107,6 +1107,7 @@ abstract class LibraryElement2
   /// returned. In particular, they are not guaranteed to be in lexical order.
   // TODO(brianwilkerson): Consider removing this from the public API. It isn't
   //  clear that it's useful, given that it ignores hide and show clauses.
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryElement2> get exportedLibraries2;
 
   /// The export [Namespace] of this library.
@@ -1508,7 +1509,7 @@ abstract class PrefixElement2 implements Element2, FragmentedElement {
   PrefixFragment get firstFragment;
 
   /// The imports that share this prefix.
-  List<LibraryImport> get imports2;
+  List<LibraryImport> get imports;
 
   @override
   LibraryElement2 get library2;
@@ -1533,6 +1534,9 @@ abstract class PrefixFragment implements Fragment {
 
   @override
   LibraryFragment? get enclosingFragment;
+
+  /// Whether the [LibraryImport] is deferred.
+  bool get isDeferred;
 
   @override
   String get name;

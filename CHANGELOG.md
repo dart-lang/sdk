@@ -96,6 +96,21 @@ number, like `.`, `x`, or the `e` in scientific notation.
   For example: `dart pub bump minor` will change the version from `1.2.3` to `1.3.0`.
 - New validation: `dart pub publish` will warn if your `git status` is not clean.
 
+#### Analyzer
+
+- Add the [`use_truncating_division`][] lint rule.
+- Add the experimental [`omit_obvious_local_variable_types`][] lint rule.
+- Add the experimental [`specify_nonobvious_local_variable_types`][] lint rule.
+- Add the experimental `avoid_futureor_void` lint rule.
+- Add quick fixes for more than 14 diagnostics.
+- Add new assists: "add digit separators", "remove digit separators", and
+  "invert conditional expression"
+
+[`use_truncating_division`]: https://dart.dev/lints/use_truncating_division
+[`omit_obvious_local_variable_types`]: https://dart.dev/lints/omit_obvious_local_variable_types
+[`specify_nonobvious_local_variable_types`]: https://dart.dev/lints/specify_nonobvious_local_variable_types
+[`document_ignores`]: https://dart.dev/lints/document_ignores
+
 ## 3.5.3 - 2024-09-11
 
 - Fixes an issue with the DevTools Memory tool causing OOMs. and an
@@ -244,11 +259,16 @@ embedded in IntelliJ and Android Studio (issue[#56607][]).
 
 ### Tools
 
-#### Linter
+#### Analyzer
 
-- Added the [`unintended_html_in_doc_comment`][] lint.
-- Added the [`invalid_runtime_check_with_js_interop_types`][] lint.
-- Added the [`document_ignores`][] lint.
+- Add the [`unintended_html_in_doc_comment`][] lint rule.
+- Add the [`invalid_runtime_check_with_js_interop_types`][] lint rule.
+- Add the [`document_ignores`][] lint rule.
+- Add quick fixes for more than 70 diagnostics.
+- The "Add missing switch cases" quick fix now adds multiple cases, such that
+  the switch becomes exhaustive.
+- The "Remove const" quick fix now adds `const` keywords to child nodes, where
+  appropriate.
 
 [`unintended_html_in_doc_comment`]: https://dart.dev/lints/unintended_html_in_doc_comment
 [`invalid_runtime_check_with_js_interop_types`]: https://dart.dev/lints/invalid_runtime_check_with_js_interop_types

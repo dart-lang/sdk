@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   @override
-  String get lintRule => 'literal_only_boolean_expressions';
+  String get lintRule => LintNames.literal_only_boolean_expressions;
 
   test_doWhile_false() async {
     await assertDiagnostics(r'''

@@ -14,7 +14,7 @@ const _desc = r'Unnecessary `toList()` in spreads.';
 class UnnecessaryToListInSpreads extends LintRule {
   UnnecessaryToListInSpreads()
       : super(
-          name: 'unnecessary_to_list_in_spreads',
+          name: LintNames.unnecessary_to_list_in_spreads,
           description: _desc,
         );
 

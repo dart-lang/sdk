@@ -15,7 +15,7 @@ const _desc =
 class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts()
       : super(
-          name: 'one_member_abstracts',
+          name: LintNames.one_member_abstracts,
           description: _desc,
         );
 

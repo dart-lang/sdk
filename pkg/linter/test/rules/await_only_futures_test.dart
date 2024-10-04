@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AwaitOnlyFuturesTest extends LintRuleTest {
   @override
-  String get lintRule => 'await_only_futures';
+  String get lintRule => LintNames.await_only_futures;
 
   test_extensionType_implementingFuture() async {
     await assertNoDiagnostics(r'''

@@ -15,12 +15,12 @@ const _desc = r'Avoid annotating types for function expression parameters.';
 class AvoidTypesOnClosureParameters extends LintRule {
   AvoidTypesOnClosureParameters()
       : super(
-          name: 'avoid_types_on_closure_parameters',
+          name: LintNames.avoid_types_on_closure_parameters,
           description: _desc,
         );
 
   @override
-  List<String> get incompatibleRules => const ['always_specify_types'];
+  List<String> get incompatibleRules => const [LintNames.always_specify_types];
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_types_on_closure_parameters;

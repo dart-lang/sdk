@@ -18,7 +18,7 @@ class DependOnReferencedPackagesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'depend_on_referenced_packages';
+  String get lintRule => LintNames.depend_on_referenced_packages;
 
   String get sourceReferencingMeta => r'''
 import 'package:meta/meta.dart';

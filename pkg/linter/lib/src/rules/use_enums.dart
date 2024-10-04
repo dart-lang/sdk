@@ -17,7 +17,7 @@ const _desc = r'Use enums rather than classes that behave like enums.';
 class UseEnums extends LintRule {
   UseEnums()
       : super(
-          name: 'use_enums',
+          name: LintNames.use_enums,
           description: _desc,
         );
 

@@ -14,7 +14,7 @@ const _desc = r'Avoid empty catch blocks.';
 class EmptyCatches extends LintRule {
   EmptyCatches()
       : super(
-          name: 'empty_catches',
+          name: LintNames.empty_catches,
           description: _desc,
         );
 

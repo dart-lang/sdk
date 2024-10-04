@@ -6283,6 +6283,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (library == null) {
       return '';
     }
+    var name = element.name;
+    if (name == null) {
+      return '';
+    }
     var imports = _currentLibrary.libraryImports;
     int count = imports.length;
     for (int i = 0; i < count; i++) {
@@ -6291,15 +6295,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     List<String> indirectSources = <String>[];
-    for (int i = 0; i < count; i++) {
-      var importedLibrary = imports[i].importedLibrary;
+    for (var import in imports) {
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
-        for (LibraryElement exportedLibrary
-            in importedLibrary.exportedLibraries) {
-          if (identical(exportedLibrary, library)) {
-            indirectSources.add(
-                importedLibrary.definingCompilationUnit.source.uri.toString());
-          }
+        if (import.namespace.get(name) == element) {
+          indirectSources.add(
+              importedLibrary.definingCompilationUnit.source.uri.toString());
         }
       }
     }

@@ -44,10 +44,12 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
-      var innerLibrary = result.libraryElement.importedLibraries
-          .where((e) => e.source.fullName == innerFile.path)
+      var innerSource = result.libraryFragment.libraryImports2
+          .map((import) => import.importedLibrary2?.firstFragment.source)
+          .nonNulls
+          .where((importedSource) => importedSource.fullName == innerFile.path)
           .single;
-      expect(innerLibrary.source.uri, innerUri);
+      expect(innerSource.uri, innerUri);
     }
 
     // Reference "inner" using a non-canonical URI.

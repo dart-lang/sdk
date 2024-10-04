@@ -17,7 +17,7 @@ const _desc =
 class UnrelatedTypeEqualityChecks extends LintRule {
   UnrelatedTypeEqualityChecks()
       : super(
-          name: 'unrelated_type_equality_checks',
+          name: LintNames.unrelated_type_equality_checks,
           description: _desc,
         );
 

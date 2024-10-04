@@ -14,7 +14,7 @@ const _desc = r"Don't assign a variable to itself.";
 class NoSelfAssignments extends LintRule {
   NoSelfAssignments()
       : super(
-          name: 'no_self_assignments',
+          name: LintNames.no_self_assignments,
           description: _desc,
         );
 

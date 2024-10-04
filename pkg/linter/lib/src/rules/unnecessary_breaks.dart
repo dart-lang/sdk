@@ -15,7 +15,7 @@ const _desc = r"Don't use explicit `break`s when a break is implied.";
 class UnnecessaryBreaks extends LintRule {
   UnnecessaryBreaks()
       : super(
-          name: 'unnecessary_breaks',
+          name: LintNames.unnecessary_breaks,
           description: _desc,
         );
 

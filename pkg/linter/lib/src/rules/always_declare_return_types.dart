@@ -15,7 +15,7 @@ const _desc = r'Declare method return types.';
 class AlwaysDeclareReturnTypes extends LintRule {
   AlwaysDeclareReturnTypes()
       : super(
-          name: 'always_declare_return_types',
+          name: LintNames.always_declare_return_types,
           description: _desc,
         );
 

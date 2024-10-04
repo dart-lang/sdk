@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/correction/dart/organize_imports.da
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
@@ -52,6 +51,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';

@@ -14,7 +14,7 @@ const _desc = r'Depend on referenced packages.';
 class DependOnReferencedPackages extends LintRule {
   DependOnReferencedPackages()
       : super(
-          name: 'depend_on_referenced_packages',
+          name: LintNames.depend_on_referenced_packages,
           description: _desc,
         );
 

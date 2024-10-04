@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class OmitObviousLocalVariableTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'omit_obvious_local_variable_types';
+  String get lintRule => LintNames.omit_obvious_local_variable_types;
 
   test_as() async {
     await assertDiagnostics(r'''

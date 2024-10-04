@@ -62,7 +62,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
-      element2: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -294,7 +294,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
-      element2: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -394,7 +394,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
-      element2: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: A
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -459,7 +459,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
-      element2: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -545,7 +545,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
-      element2: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <

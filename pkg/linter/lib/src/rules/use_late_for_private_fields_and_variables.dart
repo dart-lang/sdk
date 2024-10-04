@@ -25,7 +25,7 @@ bool _isPrivateExtension(AstNode parent) {
 class UseLateForPrivateFieldsAndVariables extends LintRule {
   UseLateForPrivateFieldsAndVariables()
       : super(
-          name: 'use_late_for_private_fields_and_variables',
+          name: LintNames.use_late_for_private_fields_and_variables,
           description: _desc,
           state: State.experimental(),
         );

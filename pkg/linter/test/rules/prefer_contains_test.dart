@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferContainsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_contains';
+  String get lintRule => LintNames.prefer_contains;
 
   test_argumentTypeNotAssignable() async {
     await assertDiagnostics(r'''

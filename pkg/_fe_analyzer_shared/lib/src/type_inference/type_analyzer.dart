@@ -1552,10 +1552,12 @@ mixin TypeAnalyzer<
     SharedTypeView<TypeStructure> matchedValueType = flow.getMatchedValueType();
     List<SharedTypeView<TypeStructure>> demonstratedPositionalTypes = [];
     List<(String, SharedTypeView<TypeStructure>)> demonstratedNamedTypes = [];
-    void dispatchField(
-      RecordPatternField<Node, Pattern> field,
-      SharedTypeView<TypeStructure> matchedType,
-    ) {
+
+    Map<int, Error>? duplicateRecordPatternFieldErrors =
+        _reportDuplicateRecordPatternFields(node, fields);
+
+    void dispatchField(int i, SharedTypeView<TypeStructure> matchedType) {
+      RecordPatternField<Node, Pattern> field = fields[i];
       flow.pushSubpattern(matchedType);
       dispatchPattern(
         context.withUnnecessaryWildcardKind(null),
@@ -1566,7 +1568,8 @@ mixin TypeAnalyzer<
       String? name = field.name;
       if (name == null) {
         demonstratedPositionalTypes.add(demonstratedType);
-      } else {
+      } else if (duplicateRecordPatternFieldErrors == null ||
+          !duplicateRecordPatternFieldErrors.containsKey(i)) {
         demonstratedNamedTypes.add((name, demonstratedType));
       }
       flow.popSubpattern();
@@ -1574,21 +1577,20 @@ mixin TypeAnalyzer<
 
     void dispatchFields(SharedTypeView<TypeStructure> matchedType) {
       for (int i = 0; i < fields.length; i++) {
-        dispatchField(fields[i], matchedType);
+        dispatchField(i, matchedType);
       }
     }
-
-    Map<int, Error>? duplicateRecordPatternFieldErrors =
-        _reportDuplicateRecordPatternFields(node, fields);
 
     // Build the required type.
     int requiredTypePositionalCount = 0;
     List<(String, SharedTypeView<TypeStructure>)> requiredTypeNamedTypes = [];
-    for (RecordPatternField<Node, Pattern> field in fields) {
+    for (int i = 0; i < fields.length; i++) {
+      RecordPatternField<Node, Pattern> field = fields[i];
       String? name = field.name;
       if (name == null) {
         requiredTypePositionalCount++;
-      } else {
+      } else if (duplicateRecordPatternFieldErrors == null ||
+          !duplicateRecordPatternFieldErrors.containsKey(i)) {
         requiredTypeNamedTypes.add(
           (name, operations.objectQuestionType),
         );
@@ -1611,7 +1613,7 @@ mixin TypeAnalyzer<
       if (fieldTypes != null) {
         assert(fieldTypes.length == fields.length);
         for (int i = 0; i < fields.length; i++) {
-          dispatchField(fields[i], fieldTypes[i]);
+          dispatchField(i, fieldTypes[i]);
         }
       } else {
         dispatchFields(operations.objectQuestionType);

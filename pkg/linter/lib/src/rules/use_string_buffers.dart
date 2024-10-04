@@ -26,7 +26,7 @@ bool _isEmptyInterpolationString(AstNode node) =>
 class UseStringBuffers extends LintRule {
   UseStringBuffers()
       : super(
-          name: 'use_string_buffers',
+          name: LintNames.use_string_buffers,
           description: _desc,
         );
 

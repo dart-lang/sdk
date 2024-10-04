@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseFullHexValuesForFlutterColorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_full_hex_values_for_flutter_colors';
+  String get lintRule => LintNames.use_full_hex_values_for_flutter_colors;
 
   test_decimal() async {
     await assertDiagnostics(r'''

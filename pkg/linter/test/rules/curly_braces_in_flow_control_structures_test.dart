@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CurlyBracesInFlowControlStructuresTest extends LintRuleTest {
   @override
-  String get lintRule => 'curly_braces_in_flow_control_structures';
+  String get lintRule => LintNames.curly_braces_in_flow_control_structures;
 
   test_doWhile_block_sameLineAsDo() async {
     await assertNoDiagnostics(r'''

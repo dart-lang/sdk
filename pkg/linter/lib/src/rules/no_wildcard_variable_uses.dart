@@ -16,7 +16,7 @@ const _desc = r"Don't use wildcard parameters or variables.";
 class NoWildcardVariableUses extends LintRule {
   NoWildcardVariableUses()
       : super(
-          name: 'no_wildcard_variable_uses',
+          name: LintNames.no_wildcard_variable_uses,
           description: _desc,
         );
 

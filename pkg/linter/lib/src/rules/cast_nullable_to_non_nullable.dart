@@ -14,7 +14,7 @@ const _desc = r"Don't cast a nullable value to a non nullable type.";
 class CastNullableToNonNullable extends LintRule {
   CastNullableToNonNullable()
       : super(
-          name: 'cast_nullable_to_non_nullable',
+          name: LintNames.cast_nullable_to_non_nullable,
           description: _desc,
         );
 

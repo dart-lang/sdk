@@ -16,7 +16,7 @@ const _desc = r'Avoid calling `toString()` on `runtimeType`.';
 class NoRuntimeTypeToString extends LintRule {
   NoRuntimeTypeToString()
       : super(
-          name: 'no_runtimeType_toString',
+          name: LintNames.no_runtimeType_toString,
           description: _desc,
         );
 

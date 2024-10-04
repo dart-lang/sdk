@@ -15,7 +15,7 @@ const _desc = r"Don't implement classes that override `==`.";
 class AvoidImplementingValueTypes extends LintRule {
   AvoidImplementingValueTypes()
       : super(
-          name: 'avoid_implementing_value_types',
+          name: LintNames.avoid_implementing_value_types,
           description: _desc,
         );
 

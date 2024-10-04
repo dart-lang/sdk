@@ -13,12 +13,13 @@ const _desc = r'Avoid relative imports for files in `lib/`.';
 class AlwaysUsePackageImports extends LintRule {
   AlwaysUsePackageImports()
       : super(
-          name: 'always_use_package_imports',
+          name: LintNames.always_use_package_imports,
           description: _desc,
         );
 
   @override
-  List<String> get incompatibleRules => const ['prefer_relative_imports'];
+  List<String> get incompatibleRules =>
+      const [LintNames.prefer_relative_imports];
 
   @override
   LintCode get lintCode => LinterLintCode.always_use_package_imports;

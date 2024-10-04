@@ -17,12 +17,12 @@ const _desc =
 class PreferFinalLocals extends LintRule {
   PreferFinalLocals()
       : super(
-          name: 'prefer_final_locals',
+          name: LintNames.prefer_final_locals,
           description: _desc,
         );
 
   @override
-  List<String> get incompatibleRules => const ['unnecessary_final'];
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_final_locals;

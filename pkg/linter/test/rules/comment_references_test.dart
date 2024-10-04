@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CommentReferencesTest extends LintRuleTest {
   @override
-  String get lintRule => 'comment_references';
+  String get lintRule => LintNames.comment_references;
 
   test_constructorTearoff() async {
     await assertNoDiagnostics(r'''

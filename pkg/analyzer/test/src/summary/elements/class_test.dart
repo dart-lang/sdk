@@ -6632,10 +6632,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
@@ -6725,10 +6725,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
@@ -7536,10 +7536,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
@@ -7629,10 +7629,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
@@ -7726,10 +7726,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart
+        package:test/foo.dart as foo @21
       prefixes
-        foo
-          reference: <testLibraryFragment>::@prefix::foo
+        <testLibraryFragment>::@prefix2::foo
+          fragments: @21
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C

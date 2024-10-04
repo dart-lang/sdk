@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,6 +15,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/linter_lint_codes.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {

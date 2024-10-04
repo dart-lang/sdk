@@ -53,6 +53,7 @@ lib/src/rules/erase_dart_type_extension_types.dart
 lib/src/rules/file_names.dart
 lib/src/rules/flutter_style_todos.dart
 lib/src/rules/implicit_call_tearoffs.dart
+lib/src/rules/invalid_case_patterns.dart
 lib/src/rules/invariant_booleans.dart
 lib/src/rules/iterable_contains_unrelated_type.dart
 lib/src/rules/join_return_with_assignment.dart
@@ -70,7 +71,9 @@ lib/src/rules/no_leading_underscores_for_library_prefixes.dart
 lib/src/rules/no_leading_underscores_for_local_identifiers.dart
 lib/src/rules/no_literal_bool_comparisons.dart
 lib/src/rules/no_self_assignments.dart
+lib/src/rules/no_wildcard_variable_uses.dart
 lib/src/rules/non_constant_identifier_names.dart
+lib/src/rules/noop_primitive_operations.dart
 lib/src/rules/null_check_on_nullable_type_parameter.dart
 lib/src/rules/omit_obvious_local_variable_types.dart
 lib/src/rules/one_member_abstracts.dart
@@ -95,6 +98,7 @@ lib/src/rules/prefer_interpolation_to_compose_strings.dart
 lib/src/rules/prefer_is_empty.dart
 lib/src/rules/prefer_is_not_operator.dart
 lib/src/rules/prefer_iterable_whereType.dart
+lib/src/rules/prefer_mixin.dart
 lib/src/rules/prefer_null_aware_method_calls.dart
 lib/src/rules/prefer_null_aware_operators.dart
 lib/src/rules/prefer_single_quotes.dart

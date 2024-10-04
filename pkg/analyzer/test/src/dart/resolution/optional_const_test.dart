@@ -77,7 +77,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: package:test/b.dart::<fragment>::@prefix::p
-        element2: package:test/b.dart::<fragment>::@prefix::p
+        element2: package:test/b.dart::<fragment>::@prefix2::p
       name: B
       element: package:test/a.dart::<fragment>::@class::B
       element2: package:test/a.dart::<fragment>::@class::B#element
@@ -111,7 +111,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: package:test/b.dart::<fragment>::@prefix::p
-        element2: package:test/b.dart::<fragment>::@prefix::p
+        element2: package:test/b.dart::<fragment>::@prefix2::p
       name: B
       element: package:test/a.dart::<fragment>::@class::B
       element2: package:test/a.dart::<fragment>::@class::B#element
@@ -181,7 +181,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: package:test/b.dart::<fragment>::@prefix::p
-        element2: package:test/b.dart::<fragment>::@prefix::p
+        element2: package:test/b.dart::<fragment>::@prefix2::p
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -211,7 +211,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: package:test/b.dart::<fragment>::@prefix::p
-        element2: package:test/b.dart::<fragment>::@prefix::p
+        element2: package:test/b.dart::<fragment>::@prefix2::p
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::<fragment>::@class::A#element
@@ -247,7 +247,7 @@ InstanceCreationExpression
         name: p
         period: .
         element: <testLibraryFragment>::@prefix::p
-        element2: <testLibraryFragment>::@prefix::p
+        element2: <testLibraryFragment>::@prefix2::p
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <

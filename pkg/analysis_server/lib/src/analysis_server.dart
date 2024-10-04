@@ -49,6 +49,7 @@ import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
+import 'package:analysis_server/src/utilities/timing_byte_store.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -257,6 +258,9 @@ abstract class AnalysisServer {
   /// for processing.
   final MessageScheduler messageScheduler;
 
+  /// A [TimingByteStore] that records timings for reads from the byte store.
+  TimingByteStore? _timingByteStore;
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -381,6 +385,10 @@ abstract class AnalysisServer {
   Future<void> get analysisContextsRebuilt =>
       analysisContextRebuildCompleter.future;
 
+  /// A list of timings for the byte store, or `null` if timing is not being
+  /// tracked.
+  List<ByteStoreTimings>? get byteStoreTimings => _timingByteStore?.timings;
+
   /// The list of current analysis sessions in all contexts.
   Future<List<AnalysisSessionImpl>> get currentSessions async {
     var sessions = <AnalysisSessionImpl>[];
@@ -474,6 +482,7 @@ abstract class AnalysisServer {
   }
 
   void afterContextsCreated() {
+    _timingByteStore?.newTimings('after contexts created');
     isFirstAnalysisSinceContextsBuilt = true;
     addContextsToDeclarationsTracker();
   }
@@ -553,8 +562,9 @@ abstract class AnalysisServer {
     if (resourceProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        return MemoryCachingByteStore(
-            EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
+        var timingByteStore = _timingByteStore =
+            TimingByteStore(EvictingFileByteStore(stateLocation.path, G));
+        return MemoryCachingByteStore(timingByteStore, memoryCacheSize);
       }
     }
 
@@ -792,6 +802,7 @@ abstract class AnalysisServer {
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
     if (isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
+      _timingByteStore?.newTimings('initial analysis completed');
       isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }

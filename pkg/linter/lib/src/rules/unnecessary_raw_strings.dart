@@ -13,7 +13,7 @@ const _desc = r'Unnecessary raw string.';
 class UnnecessaryRawStrings extends LintRule {
   UnnecessaryRawStrings()
       : super(
-          name: 'unnecessary_raw_strings',
+          name: LintNames.unnecessary_raw_strings,
           description: _desc,
         );
 

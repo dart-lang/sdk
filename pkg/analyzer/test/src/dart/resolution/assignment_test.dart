@@ -413,7 +413,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
-      element: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2382,7 +2382,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: p
       staticElement: <testLibraryFragment>::@prefix::p
-      element: <testLibraryFragment>::@prefix::p
+      element: <testLibraryFragment>::@prefix2::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -4590,7 +4590,7 @@ AssignmentExpression
   readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@prefix::x
-  writeElement2: <testLibraryFragment>::@prefix::x
+  writeElement2: <testLibraryFragment>::@prefix2::x
   writeType: InvalidType
   staticElement: <null>
   element: <null>
@@ -4627,7 +4627,7 @@ AssignmentExpression
   readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@prefix::x
-  writeElement2: <testLibraryFragment>::@prefix::x
+  writeElement2: <testLibraryFragment>::@prefix2::x
   writeType: InvalidType
   staticElement: <null>
   element: <null>

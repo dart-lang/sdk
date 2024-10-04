@@ -13,7 +13,7 @@ const _desc = r'Use spread collections when possible.';
 class PreferSpreadCollections extends LintRule {
   PreferSpreadCollections()
       : super(
-          name: 'prefer_spread_collections',
+          name: LintNames.prefer_spread_collections,
           description: _desc,
         );
 

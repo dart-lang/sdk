@@ -14,7 +14,7 @@ const _desc = r'Avoid single cascade in expression statements.';
 class AvoidSingleCascadeInExpressionStatements extends LintRule {
   AvoidSingleCascadeInExpressionStatements()
       : super(
-          name: 'avoid_single_cascade_in_expression_statements',
+          name: LintNames.avoid_single_cascade_in_expression_statements,
           description: _desc,
         );
 

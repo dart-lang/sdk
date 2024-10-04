@@ -14,7 +14,7 @@ const _desc = r'Prefer is! operator.';
 class PreferIsNotOperator extends LintRule {
   PreferIsNotOperator()
       : super(
-          name: 'prefer_is_not_operator',
+          name: LintNames.prefer_is_not_operator,
           description: _desc,
         );
 

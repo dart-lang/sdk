@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnnecessaryConstPatternsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_const';
+  String get lintRule => LintNames.unnecessary_const;
 
   test_case_constConstructor_ok() async {
     await assertNoDiagnostics(r'''
@@ -100,7 +100,7 @@ const s = const {1};
 @reflectiveTest
 class UnnecessaryConstRecordsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_const';
+  String get lintRule => LintNames.unnecessary_const;
 
   test_constCall_nonConstArgument() async {
     await assertNoDiagnostics(r'''

@@ -458,6 +458,7 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeImportElementPrefix(element.prefix);
+    _writeLibraryImportPrefixFragment(element.prefix2);
     _writeDirectiveUri(element.uri);
     LibraryImportElementFlags.write(_sink, element);
   }
@@ -486,6 +487,13 @@ class BundleWriter {
     } else {
       _sink.writeBool(false);
     }
+  }
+
+  void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
+    _sink.writeOptionalObject(fragment, (fragment) {
+      _sink._writeStringReference(fragment.name);
+      _sink.writeBool(fragment.isDeferred);
+    });
   }
 
   void _writeLibraryOrAugmentationElement(

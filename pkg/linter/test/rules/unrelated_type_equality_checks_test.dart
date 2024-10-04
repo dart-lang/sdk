@@ -18,7 +18,7 @@ class UnrelatedTypeEqualityChecksTest extends LintRuleTest {
   bool get addFixnumPackageDep => true;
 
   @override
-  String get lintRule => 'unrelated_type_equality_checks';
+  String get lintRule => LintNames.unrelated_type_equality_checks;
 
   test_assignment_ok() async {
     await assertNoDiagnostics(r'''

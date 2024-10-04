@@ -18,7 +18,7 @@ class UnnecessaryOverridesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'unnecessary_overrides';
+  String get lintRule => LintNames.unnecessary_overrides;
 
   test_binaryOperator_expressionFunctionBody() async {
     await assertDiagnostics(r'''

@@ -17,7 +17,7 @@ const _desc = r'Avoid positional boolean parameters.';
 class AvoidPositionalBooleanParameters extends LintRule {
   AvoidPositionalBooleanParameters()
       : super(
-          name: 'avoid_positional_boolean_parameters',
+          name: LintNames.avoid_positional_boolean_parameters,
           description: _desc,
         );
 

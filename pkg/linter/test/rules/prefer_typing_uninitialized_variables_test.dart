@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferTypingUninitializedVariablesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_typing_uninitialized_variables';
+  String get lintRule => LintNames.prefer_typing_uninitialized_variables;
 
   test_field_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

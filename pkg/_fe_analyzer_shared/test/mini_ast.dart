@@ -3207,7 +3207,7 @@ class MiniAstOperations
       positionalTypes: positional,
       namedTypes: [
         for (var (name, type) in named) NamedType(name: name, type: type)
-      ],
+      ]..sort((a, b) => a.name.compareTo(b.name)),
     );
   }
 

@@ -14,7 +14,7 @@ const _desc = r'Missing deprecated annotation.';
 class DeprecatedConsistency extends LintRule {
   DeprecatedConsistency()
       : super(
-          name: 'deprecated_consistency',
+          name: LintNames.deprecated_consistency,
           description: _desc,
         );
 

@@ -17,6 +17,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -730,6 +731,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// The cached list of prefixes from [libraryImports].
   List<PrefixElementImpl>? _libraryImportPrefixes;
 
+  /// The cached list of prefixes from [prefixes].
+  List<PrefixElementImpl2>? _libraryImportPrefixes2;
+
   /// The parts included by this unit.
   List<PartElementImpl> _parts = const <PartElementImpl>[];
 
@@ -838,7 +842,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassFragment> get classes2 => classes.cast<ClassFragment>();
 
   @override
-  LibraryElement2 get element => library as LibraryElement2;
+  LibraryElementImpl get element => library;
 
   @override
   LibraryOrAugmentationElement get enclosingElement =>
@@ -994,8 +998,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<LibraryImport> get libraryImports2 =>
-      libraryImports.cast<LibraryImport>();
+  List<LibraryImportElementImpl> get libraryImports2 =>
+      libraryImports.cast<LibraryImportElementImpl>();
 
   List<LibraryImportElementImpl> get libraryImports_unresolved {
     return _libraryImports;
@@ -1052,8 +1056,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<PrefixElement2> get prefixes =>
-      libraryImportPrefixes.cast<PrefixElement2>();
+  List<PrefixElementImpl2> get prefixes {
+    return _libraryImportPrefixes2 ??= _buildLibraryImportPrefixes2();
+  }
 
   @override
   LibraryFragment? get previousFragment {
@@ -1172,6 +1177,17 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     var prefixes = <PrefixElementImpl>{};
     for (var import in libraryImports) {
       var prefix = import.prefix?.element;
+      if (prefix != null) {
+        prefixes.add(prefix);
+      }
+    }
+    return prefixes.toFixedList();
+  }
+
+  List<PrefixElementImpl2> _buildLibraryImportPrefixes2() {
+    var prefixes = <PrefixElementImpl2>{};
+    for (var import in libraryImports2) {
+      var prefix = import.prefix2?.element;
       if (prefix != null) {
         prefixes.add(prefix);
       }
@@ -3054,6 +3070,12 @@ abstract class ElementImpl2 implements Element2 {
   }
 
   @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  });
+
+  @override
   bool isAccessibleIn2(LibraryElement2 library) {
     var name = this.name;
     if (name == null || Identifier.isPrivateName(name)) {
@@ -3081,6 +3103,11 @@ abstract class ElementImpl2 implements Element2 {
       element = ancestor;
     }
     return element;
+  }
+
+  @override
+  String toString() {
+    return displayString2();
   }
 }
 
@@ -5676,6 +5703,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return declarations.toList();
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryElementImpl> get exportedLibraries {
     return libraryExports
@@ -5685,6 +5713,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         .toList();
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryElement2> get exportedLibraries2 =>
       exportedLibraries.cast<LibraryElement2>();
@@ -5796,6 +5825,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get identifier => '${_definingCompilationUnit.source.uri}';
 
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   @override
   List<LibraryElementImpl> get importedLibraries {
     return libraryImports
@@ -5805,6 +5835,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         .toList();
   }
 
+  @Deprecated('Not used anymore')
   @override
   bool get isBrowserApplication =>
       entryPoint != null && isOrImportsBrowserLibrary;
@@ -5829,6 +5860,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
+  @Deprecated('Not used anymore')
   bool get isOrImportsBrowserLibrary {
     List<LibraryElement> visited = <LibraryElement>[];
     var htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
@@ -6230,6 +6262,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   final ImportElementPrefixImpl? prefix;
 
   @override
+  final PrefixFragmentImpl? prefix2;
+
+  @override
   final DirectiveUri uri;
 
   Namespace? _namespace;
@@ -6238,6 +6273,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
     required this.combinators,
     required this.importKeywordOffset,
     required this.prefix,
+    required this.prefix2,
     required this.uri,
   }) : super(null, importKeywordOffset);
 
@@ -6263,6 +6299,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
+  LibraryElementImpl get library2 => super.library2 as LibraryElementImpl;
+
+  @override
   Namespace get namespace {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibrary) {
@@ -6275,10 +6314,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
     }
     return Namespace.EMPTY;
   }
-
-  @override
-  PrefixFragment? get prefix2 =>
-      throw UnimplementedError('Prefix fragments are not yet supported');
 
   @override
   bool operator ==(Object other) {
@@ -8454,8 +8489,7 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
 }
 
 /// A concrete implementation of a [PrefixElement].
-class PrefixElementImpl extends _ExistingElementImpl
-    implements PrefixElement, PrefixElement2 {
+class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
@@ -8465,6 +8499,12 @@ class PrefixElementImpl extends _ExistingElementImpl
 
   @override
   String get displayName => name;
+
+  PrefixElementImpl2 get element2 {
+    return enclosingElement3.prefixes.firstWhere((element) {
+      return element.name == name;
+    });
+  }
 
   @Deprecated('Use enclosingElement3 instead')
   @override
@@ -8480,18 +8520,11 @@ class PrefixElementImpl extends _ExistingElementImpl
   }
 
   @override
-  PrefixFragment get firstFragment =>
-      throw UnimplementedError('Prefix fragments are not yet supported');
-
-  @override
   List<LibraryImportElementImpl> get imports {
     return enclosingElement3.libraryImports
         .where((import) => import.prefix?.element == this)
         .toList();
   }
-
-  @override
-  List<LibraryImport> get imports2 => imports.cast<LibraryImport>();
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
@@ -8522,6 +8555,114 @@ class PrefixElementImpl extends _ExistingElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writePrefixElement(this);
   }
+}
+
+class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
+  final Reference reference;
+
+  @override
+  final PrefixFragmentImpl firstFragment;
+
+  PrefixFragmentImpl lastFragment;
+
+  PrefixElementImpl2({
+    required this.reference,
+    required this.firstFragment,
+  }) : lastFragment = firstFragment {
+    reference.element2 = this;
+  }
+
+  @override
+  LibraryElementImpl get enclosingElement2 => library2;
+
+  List<PrefixFragmentImpl> get fragments {
+    return [
+      for (PrefixFragmentImpl? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment
+    ];
+  }
+
+  @override
+  List<LibraryImportElementImpl> get imports {
+    return library2.libraryImports
+        .where((import) => import.prefix2?.element == this)
+        .toList();
+  }
+
+  @override
+  bool get isSynthetic => false;
+
+  @override
+  ElementKind get kind => ElementKind.PREFIX;
+
+  @override
+  LibraryElementImpl get library2 {
+    return firstFragment.libraryFragment.element;
+  }
+
+  @override
+  String get name => firstFragment.name;
+
+  @override
+  // TODO(scheglov): implement scope
+  Scope get scope => throw UnimplementedError();
+
+  void addFragment(PrefixFragmentImpl fragment) {
+    lastFragment.nextFragment = fragment;
+    fragment.previousFragment = lastFragment;
+    lastFragment = fragment;
+  }
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    var builder = ElementDisplayStringBuilder(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+    builder.writePrefixElement2(this);
+    return builder.toString();
+  }
+}
+
+class PrefixFragmentImpl implements PrefixFragment {
+  @override
+  final CompilationUnitElementImpl enclosingFragment;
+
+  @override
+  final String name;
+
+  @override
+  int nameOffset;
+
+  @override
+  final bool isDeferred;
+
+  @override
+  late final PrefixElementImpl2 element;
+
+  @override
+  PrefixFragmentImpl? previousFragment;
+
+  @override
+  PrefixFragmentImpl? nextFragment;
+
+  PrefixFragmentImpl({
+    required this.enclosingFragment,
+    required this.name,
+    required this.nameOffset,
+    required this.isDeferred,
+  });
+
+  @override
+  List<Fragment> get children3 => const [];
+
+  @override
+  CompilationUnitElementImpl get libraryFragment => enclosingFragment;
 }
 
 abstract class PromotableElementImpl2 extends VariableElementImpl2

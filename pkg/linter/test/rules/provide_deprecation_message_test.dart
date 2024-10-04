@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ProvideDeprecationMessageTest extends LintRuleTest {
   @override
-  String get lintRule => 'provide_deprecation_message';
+  String get lintRule => LintNames.provide_deprecation_message;
 
   test_withMessage() async {
     await assertNoDiagnostics(r'''

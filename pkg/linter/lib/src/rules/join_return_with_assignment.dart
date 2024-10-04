@@ -31,7 +31,7 @@ Expression? _getExpressionFromReturnStatement(Statement node) =>
 class JoinReturnWithAssignment extends LintRule {
   JoinReturnWithAssignment()
       : super(
-          name: 'join_return_with_assignment',
+          name: LintNames.join_return_with_assignment,
           description: _desc,
         );
 

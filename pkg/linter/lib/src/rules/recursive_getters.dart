@@ -14,7 +14,7 @@ const _desc = r'Property getter recursively returns itself.';
 class RecursiveGetters extends LintRule {
   RecursiveGetters()
       : super(
-          name: 'recursive_getters',
+          name: LintNames.recursive_getters,
           description: _desc,
         );
 

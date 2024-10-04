@@ -13,7 +13,7 @@ const _desc = r'Use a function declaration to bind a function to a name.';
 class PreferFunctionDeclarationsOverVariables extends LintRule {
   PreferFunctionDeclarationsOverVariables()
       : super(
-          name: 'prefer_function_declarations_over_variables',
+          name: LintNames.prefer_function_declarations_over_variables,
           description: _desc,
         );
 

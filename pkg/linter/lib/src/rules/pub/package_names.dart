@@ -11,7 +11,7 @@ const _desc = r'Use `lowercase_with_underscores` for package names.';
 class PackageNames extends LintRule {
   PackageNames()
       : super(
-          name: 'package_names',
+          name: LintNames.package_names,
           description: _desc,
         );
 

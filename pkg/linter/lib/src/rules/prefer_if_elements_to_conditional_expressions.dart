@@ -13,7 +13,7 @@ const _desc = r'Prefer if elements to conditional expressions where possible.';
 class PreferIfElementsToConditionalExpressions extends LintRule {
   PreferIfElementsToConditionalExpressions()
       : super(
-          name: 'prefer_if_elements_to_conditional_expressions',
+          name: LintNames.prefer_if_elements_to_conditional_expressions,
           description: _desc,
         );
 

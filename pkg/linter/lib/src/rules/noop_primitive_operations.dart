@@ -14,7 +14,7 @@ const _desc = r'Noop primitive operations.';
 class NoopPrimitiveOperations extends LintRule {
   NoopPrimitiveOperations()
       : super(
-          name: 'noop_primitive_operations',
+          name: LintNames.noop_primitive_operations,
           description: _desc,
         );
 

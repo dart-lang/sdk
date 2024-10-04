@@ -15,7 +15,8 @@ main() {
 @reflectiveTest
 class UnnecessaryNullableForFinalVariableDeclarationsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_nullable_for_final_variable_declarations';
+  String get lintRule =>
+      LintNames.unnecessary_nullable_for_final_variable_declarations;
 
   test_list() async {
     await assertDiagnostics(r'''

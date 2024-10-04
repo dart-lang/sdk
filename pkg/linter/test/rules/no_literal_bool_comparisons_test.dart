@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NoLiteralBoolComparisonsTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_literal_bool_comparisons';
+  String get lintRule => LintNames.no_literal_bool_comparisons;
 
   test_true_eqeq_x_localVariable_nonNullableBool() async {
     await assertDiagnostics(r'''

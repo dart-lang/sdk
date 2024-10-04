@@ -15,7 +15,8 @@ const _desc =
 class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
   UnnecessaryNullAwareOperatorOnExtensionOnNullable()
       : super(
-          name: 'unnecessary_null_aware_operator_on_extension_on_nullable',
+          name: LintNames
+              .unnecessary_null_aware_operator_on_extension_on_nullable,
           description: _desc,
         );
 

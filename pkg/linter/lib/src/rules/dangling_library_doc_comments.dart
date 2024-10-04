@@ -14,7 +14,7 @@ const _desc = r'Attach library doc comments to library directives.';
 class DanglingLibraryDocComments extends LintRule {
   DanglingLibraryDocComments()
       : super(
-          name: 'dangling_library_doc_comments',
+          name: LintNames.dangling_library_doc_comments,
           description: _desc,
         );
 

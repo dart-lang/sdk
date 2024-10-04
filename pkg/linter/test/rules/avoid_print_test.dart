@@ -18,7 +18,7 @@ class AvoidPrintTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'avoid_print';
+  String get lintRule => LintNames.avoid_print;
 
   test_directCall() async {
     await assertDiagnostics(r'''

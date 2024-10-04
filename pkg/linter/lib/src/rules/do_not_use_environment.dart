@@ -13,7 +13,7 @@ const _desc = r'Do not use environment declared variables.';
 class DoNotUseEnvironment extends LintRule {
   DoNotUseEnvironment()
       : super(
-          name: 'do_not_use_environment',
+          name: LintNames.do_not_use_environment,
           description: _desc,
         );
 

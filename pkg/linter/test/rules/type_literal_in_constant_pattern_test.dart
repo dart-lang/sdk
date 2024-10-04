@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferPatternTypeLiteralEqualityTest extends LintRuleTest {
   @override
-  String get lintRule => 'type_literal_in_constant_pattern';
+  String get lintRule => LintNames.type_literal_in_constant_pattern;
 
   test_constNotType_matchObjectNullable() async {
     await assertNoDiagnostics(r'''

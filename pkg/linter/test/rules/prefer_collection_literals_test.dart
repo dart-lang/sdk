@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferCollectionLiteralsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_collection_literals';
+  String get lintRule => LintNames.prefer_collection_literals;
 
   test_assignment() async {
     await assertNoDiagnostics(r'''

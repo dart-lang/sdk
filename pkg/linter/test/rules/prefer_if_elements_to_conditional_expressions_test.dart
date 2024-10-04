@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class PreferIfElementsToConditionalExpressionsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_if_elements_to_conditional_expressions';
+  String get lintRule =>
+      LintNames.prefer_if_elements_to_conditional_expressions;
 
   test_conditionalInList() async {
     await assertDiagnostics(r'''

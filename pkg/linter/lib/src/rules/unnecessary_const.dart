@@ -14,7 +14,7 @@ const _desc = r'Avoid `const` keyword.';
 class UnnecessaryConst extends LintRule {
   UnnecessaryConst()
       : super(
-          name: 'unnecessary_const',
+          name: LintNames.unnecessary_const,
           description: _desc,
         );
 

@@ -17,7 +17,7 @@ const _desc = r'Document ignore comments.';
 class DocumentIgnores extends LintRule {
   DocumentIgnores()
       : super(
-          name: 'document_ignores',
+          name: LintNames.document_ignores,
           description: _desc,
         );
 

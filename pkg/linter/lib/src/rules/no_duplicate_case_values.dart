@@ -15,7 +15,7 @@ const _desc = r"Don't use more than one case with same value.";
 class NoDuplicateCaseValues extends LintRule {
   NoDuplicateCaseValues()
       : super(
-          name: 'no_duplicate_case_values',
+          name: LintNames.no_duplicate_case_values,
           description: _desc,
         );
 

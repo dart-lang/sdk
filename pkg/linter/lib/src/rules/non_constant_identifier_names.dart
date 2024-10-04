@@ -17,7 +17,7 @@ const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames()
       : super(
-          name: 'non_constant_identifier_names',
+          name: LintNames.non_constant_identifier_names,
           description: _desc,
         );
 

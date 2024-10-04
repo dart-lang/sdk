@@ -18,7 +18,7 @@ const _desc = 'Invocation of various collection methods with arguments of '
 class CollectionMethodsUnrelatedType extends LintRule {
   CollectionMethodsUnrelatedType()
       : super(
-          name: 'collection_methods_unrelated_type',
+          name: LintNames.collection_methods_unrelated_type,
           description: _desc,
         );
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseEnumsTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_enums';
+  String get lintRule => LintNames.use_enums;
 
   test_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

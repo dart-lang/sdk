@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidReturningThisTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_returning_this';
+  String get lintRule => LintNames.avoid_returning_this;
 
   /// https://github.com/dart-lang/linter/issues/3853
   test_conditionalReturn() async {

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferVoidToNullTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_void_to_null';
+  String get lintRule => LintNames.prefer_void_to_null;
 
   test_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class SpecifyNonObviousLocalVariableTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'specify_nonobvious_local_variable_types';
+  String get lintRule => LintNames.specify_nonobvious_local_variable_types;
 
   test_as() async {
     await assertNoDiagnostics(r'''

@@ -15,7 +15,7 @@ const _desc = r'Avoid defining a class that contains only static members.';
 class AvoidClassesWithOnlyStaticMembers extends LintRule {
   AvoidClassesWithOnlyStaticMembers()
       : super(
-          name: 'avoid_classes_with_only_static_members',
+          name: LintNames.avoid_classes_with_only_static_members,
           description: _desc,
         );
 

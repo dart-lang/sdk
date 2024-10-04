@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryRawStringsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_raw_strings';
+  String get lintRule => LintNames.unnecessary_raw_strings;
 
   test_doubleQuotes_raw() async {
     await assertDiagnostics(r'''

@@ -139,7 +139,7 @@ class NonNullableFunction {
 class NullClosures extends LintRule {
   NullClosures()
       : super(
-          name: 'null_closures',
+          name: LintNames.null_closures,
           description: _desc,
         );
 

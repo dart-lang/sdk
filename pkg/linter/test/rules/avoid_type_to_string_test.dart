@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidTypeToStringTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_type_to_string';
+  String get lintRule => LintNames.avoid_type_to_string;
 
   test_extensionOnType_implicitThis() async {
     await assertDiagnostics(r'''

@@ -13,7 +13,7 @@ const _desc = r"Don't use constant patterns with type literals.";
 class TypeLiteralInConstantPattern extends LintRule {
   TypeLiteralInConstantPattern()
       : super(
-          name: 'type_literal_in_constant_pattern',
+          name: LintNames.type_literal_in_constant_pattern,
           description: _desc,
         );
 

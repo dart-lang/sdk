@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryLibraryNameTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_library_name';
+  String get lintRule => LintNames.unnecessary_library_name;
 
   test_namedLibrary() async {
     await assertDiagnostics(r'''

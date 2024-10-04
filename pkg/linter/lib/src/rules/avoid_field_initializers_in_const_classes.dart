@@ -15,7 +15,7 @@ const _desc = r'Avoid field initializers in const classes.';
 class AvoidFieldInitializersInConstClasses extends LintRule {
   AvoidFieldInitializersInConstClasses()
       : super(
-          name: 'avoid_field_initializers_in_const_classes',
+          name: LintNames.avoid_field_initializers_in_const_classes,
           description: _desc,
         );
 
