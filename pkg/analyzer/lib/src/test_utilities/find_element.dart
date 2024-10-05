@@ -222,7 +222,7 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? result;
 
-    for (var partElement in libraryElement.parts) {
+    for (var partElement in unitElement.parts) {
       var uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
         var unitElement = uri.unit;

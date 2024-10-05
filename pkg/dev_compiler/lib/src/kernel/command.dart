@@ -591,9 +591,11 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var hierarchy = ClassHierarchy(component, coreTypes);
   var options = SharedCompilerOptions.fromSdkRequiredArguments(argResults);
 
-  var compiler = ProgramCompiler(
-      component, hierarchy, options, const {}, const {},
-      coreTypes: coreTypes);
+  var compiler = options.emitLibraryBundle
+      ? LibraryBundleCompiler(component, hierarchy, options, const {}, const {},
+          coreTypes: coreTypes)
+      : ProgramCompiler(component, hierarchy, options, const {}, const {},
+          coreTypes: coreTypes);
   var jsModule = compiler.emitModule(component);
   var outFiles = <Future>[];
 

@@ -655,19 +655,10 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    forCorrespondingPairs<PartElement, _InfoPart>(
-      element.parts,
-      info.parts,
-      (element, info) {
-        element as PartElementImpl;
-      },
-    );
-
     var applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToPartDirectives(element.parts);
       },
     );
 

@@ -607,11 +607,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   @override
   void _read(element, reader) {
     _readLibraryOrAugmentation(element, reader);
-    for (var part in element.parts) {
-      part.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
-    }
 
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;

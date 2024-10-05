@@ -1282,7 +1282,8 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
+    var p1 = library.definingCompilationUnit.libraryImportPrefixes
+        .singleWhere((prefix) => prefix.name == 'p1');
     var libraryImports = library.definingCompilationUnit.libraryImports;
     var import_async = libraryImports[0];
     var import_math = libraryImports[2];

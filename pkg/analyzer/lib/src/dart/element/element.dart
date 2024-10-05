@@ -5729,6 +5729,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   List<Element> get children => [
         ...super.children,
+        // ignore:deprecated_member_use_from_same_package
         ...parts,
         ..._partUnits,
       ];
@@ -6010,6 +6011,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get name => super.name!;
 
+  @Deprecated('Use CompilationUnitElement.parts')
   @override
   List<PartElementImpl> get parts {
     return definingCompilationUnit.parts;
@@ -6394,6 +6396,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return definingCompilationUnit.libraryImports;
   }
 
+  @Deprecated('Use CompilationUnitElement.libraryImportPrefixes')
   @override
   List<PrefixElementImpl> get prefixes {
     return definingCompilationUnit.libraryImportPrefixes;

@@ -70,6 +70,19 @@ class A {
 ''');
   }
 
+  Future<void> test_classField_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  var f = <T>[];
+}
+''');
+    await assertHasAssistAt('var ', '''
+class A<T> {
+  List<T> f = <T>[];
+}
+''');
+  }
+
   Future<void> test_declaredIdentifier() async {
     await resolveTestCode('''
 void f(List<String> items) {
@@ -869,6 +882,32 @@ var v = (a: 1, 2);
 ''');
     await assertHasAssistAt('var ', '''
 (int, {int a}) v = (a: 1, 2);
+''');
+  }
+
+  Future<void> test_typeParameter() async {
+    await resolveTestCode('''
+void f<T>(List<T> items) {
+  for (var item in items) {
+    var x = item;
+  }
+}
+''');
+    // on identifier
+    await assertHasAssistAt('item in', '''
+void f<T>(List<T> items) {
+  for (T item in items) {
+    var x = item;
+  }
+}
+''');
+    // on inner variable
+    await assertHasAssistAt('x', '''
+void f<T>(List<T> items) {
+  for (var item in items) {
+    T x = item;
+  }
+}
 ''');
   }
 }

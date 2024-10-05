@@ -1951,6 +1951,7 @@ abstract class LibraryElement
   String get name;
 
   /// The list of `part` directives of this library.
+  @Deprecated('Use CompilationUnitElement.parts')
   List<PartElement> get parts;
 
   /// The public [Namespace] of this library.
@@ -2086,6 +2087,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   /// The prefixes used to `import` libraries into this library.
   ///
   /// Each prefix can be used in more than one `import` directive.
+  @Deprecated('Use CompilationUnitElement.libraryImportPrefixes')
   List<PrefixElement> get prefixes;
 
   /// The name lookup scope for this library.

@@ -225,30 +225,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (type is! InterfaceType) return null;
 
-    NonNullableFunction? getMethod(String? library, String className) {
-      if (library == null) return null;
+    NonNullableFunction? getMethod(String? libraryName, String className) {
+      if (libraryName == null) return null;
       return possibleMethods
-          .lookup(NonNullableFunction(library, className, methodName));
+          .lookup(NonNullableFunction(libraryName, className, methodName));
     }
 
     var element = type.element3;
     if (element.isSynthetic) return null;
 
-    var method = getMethod(element.libraryName, element.name);
-    if (method != null) {
-      return method;
-    }
+    var method = getMethod(element.library2.name, element.name);
+    if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
       var superElement = supertype.element3;
-      method = getMethod(superElement.libraryName, superElement.name);
+      method = getMethod(superElement.library2.name, superElement.name);
       if (method != null) return method;
     }
     return null;
   }
-}
-
-extension on InterfaceElement2 {
-  String? get libraryName =>
-      library2.firstFragment.libraryFragment.element.name;
 }

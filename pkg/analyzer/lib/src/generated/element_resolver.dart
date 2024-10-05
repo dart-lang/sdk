@@ -219,7 +219,7 @@ class ElementResolver {
     var prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
-      List<PrefixElement> prefixes = _definingLibrary.prefixes;
+      var prefixes = _resolver.libraryFragment.libraryImportPrefixes;
       int count = prefixes.length;
       for (int i = 0; i < count; i++) {
         PrefixElement prefixElement = prefixes[i];
