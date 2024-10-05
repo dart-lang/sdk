@@ -8242,6 +8242,9 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @experimental
   @override
   bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
+    if (variable is LocalVariableElementImpl2) {
+      return isPotentiallyMutatedInScope(variable.wrappedElement);
+    }
     if (variable case VariableElement variable) {
       return isPotentiallyMutatedInScope(variable);
     }
