@@ -6642,6 +6642,10 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   @override
   DartType get type => _wrappedElement.type;
 
+  LocalVariableElementImpl get wrappedElement {
+    return _wrappedElement;
+  }
+
   @override
   DartObject? computeConstantValue() => _wrappedElement.computeConstantValue();
 }
