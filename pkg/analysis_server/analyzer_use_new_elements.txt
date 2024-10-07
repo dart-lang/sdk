@@ -74,6 +74,7 @@ lib/src/handler/legacy/edit_get_fixes.dart
 lib/src/handler/legacy/edit_get_postfix_completion.dart
 lib/src/handler/legacy/edit_get_refactoring.dart
 lib/src/handler/legacy/edit_get_statement_completion.dart
+lib/src/handler/legacy/edit_import_elements.dart
 lib/src/handler/legacy/edit_is_postfix_completion_applicable.dart
 lib/src/handler/legacy/edit_list_postfix_completion_templates.dart
 lib/src/handler/legacy/edit_organize_directives.dart
