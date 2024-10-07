@@ -22,13 +22,13 @@ import 'package:kernel/type_environment.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
+import '../command/options.dart' show Options;
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
 import '../compiler/module_builder.dart'
     show isSdkInternalRuntimeUri, libraryUriToJsIdentifier;
 import '../compiler/module_containers.dart' show ModuleItemContainer;
 import '../compiler/rewrite_async.dart';
-import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show ModuleItem, js;
 import '../js_ast/source_map_printer.dart'
@@ -63,7 +63,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression>,
         Compiler {
-  final SharedCompilerOptions _options;
+  final Options _options;
 
   /// Maps each `Class` node compiled in the module to the `Identifier`s used to
   /// name the class in JavaScript.
@@ -432,7 +432,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   factory ProgramCompiler(
     Component component,
     ClassHierarchy hierarchy,
-    SharedCompilerOptions options,
+    Options options,
     Map<Library, Component> importToSummary,
     Map<Component, String> summaryToModule, {
     CoreTypes? coreTypes,

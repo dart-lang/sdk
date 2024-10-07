@@ -200,7 +200,7 @@ class IncrementalJavaScriptBundler {
       // use full path for tracking if module uri is not a package uri.
       final String moduleUrl = urlForComponentUri(moduleUri, packageConfig);
       final String moduleName = makeModuleName(moduleUrl);
-      final SharedCompilerOptions ddcOptions = new SharedCompilerOptions(
+      final Options ddcOptions = new Options(
         sourceMap: true,
         summarizeApi: false,
         emitDebugMetadata: emitDebugMetadata,

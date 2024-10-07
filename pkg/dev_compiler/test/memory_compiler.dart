@@ -49,7 +49,7 @@ Future<MemoryCompilerResult> compileFromMemory(
         .entityForUri(memoryDirectory.resolve(entry.key))
         .writeAsStringSync(entry.value);
   }
-  var options = SharedCompilerOptions(moduleName: 'test');
+  var options = Options(moduleName: 'test');
   var compilerState = fe.initializeCompiler(
       null,
       false,
