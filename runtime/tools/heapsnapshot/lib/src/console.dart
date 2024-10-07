@@ -21,12 +21,13 @@ class SmartConsole extends Console {
     ];
   }
 
+  void moveCursorToColumn(int column) {
+    write('\x1b[${column + 1}`');
+  }
+
   ReadLineResult smartReadLine() {
     final buffer = LineEditBuffer();
 
-    int promptRow = cursorPosition!.row;
-
-    cursorPosition = Coordinate(promptRow, 0);
     drawPrompt(buffer);
 
     while (true) {
@@ -67,7 +68,6 @@ class SmartConsole extends Console {
         }
       }
 
-      cursorPosition = Coordinate(promptRow, 0);
       drawPrompt(buffer);
     }
   }
@@ -75,8 +75,7 @@ class SmartConsole extends Console {
   void drawPrompt(LineEditBuffer buffer) {
     const prefix = '(hsa) ';
 
-    final row = cursorPosition!.row;
-
+    moveCursorToColumn(0);
     setForegroundColor(ConsoleColor.brightBlue);
     write(prefix);
     resetColorAttributes();
@@ -93,7 +92,7 @@ class SmartConsole extends Console {
       write(buffer.text);
     }
 
-    cursorPosition = Coordinate(row, prefix.length + buffer.index);
+    moveCursorToColumn(prefix.length + buffer.index);
   }
 }
 
