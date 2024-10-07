@@ -19,6 +19,7 @@ import 'package:kernel/text/debug_printer.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
+import '../command/arguments.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
