@@ -177,6 +177,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
 
 @reflectiveTest
 class LibraryElementTest_scope extends PubPackageResolutionTest {
+  @deprecated
   test_lookup() async {
     await assertNoErrorsInCode(r'''
 int foo = 0;
@@ -194,6 +195,7 @@ int foo = 0;
     );
   }
 
+  @deprecated
   test_lookup_extension_unnamed() async {
     await assertNoErrorsInCode(r'''
 extension on int {}
@@ -206,6 +208,7 @@ extension on int {}
     );
   }
 
+  @deprecated
   test_lookup_implicitCoreImport() async {
     await assertNoErrorsInCode('');
 
@@ -217,6 +220,7 @@ extension on int {}
     );
   }
 
+  @deprecated
   test_lookup_notFound() async {
     await assertNoErrorsInCode('');
 
@@ -231,6 +235,7 @@ extension on int {}
     );
   }
 
+  @deprecated
   test_lookup_prefersLocal() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -252,6 +257,7 @@ int sin() => 3;
     );
   }
 
+  @deprecated
   test_lookup_prefix() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -266,6 +272,7 @@ import 'dart:math' as math;
     );
   }
 
+  @deprecated
   test_lookup_respectsCombinator_hide() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -289,6 +296,7 @@ import 'dart:math' hide sin;
     );
   }
 
+  @deprecated
   test_lookup_respectsCombinator_show() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import

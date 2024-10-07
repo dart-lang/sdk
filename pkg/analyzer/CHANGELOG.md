@@ -12,6 +12,8 @@
   use `CompilationUnitElement.libraryImportPrefixes` instead.
 * Deprecated `LibraryElement.parts`,
   use `CompilationUnitElement.parts` instead.
+* Deprecated `LibraryElement.scope`,
+  use `CompilationUnitElement.scope` instead.
 
 ## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.

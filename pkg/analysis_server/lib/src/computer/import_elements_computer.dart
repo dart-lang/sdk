@@ -325,7 +325,7 @@ class ImportElementsComputer {
   }
 
   bool _hasElement(String prefix, String name) {
-    var scope = libraryResult.libraryElement.scope;
+    var scope = libraryResult.libraryElement.definingCompilationUnit.scope;
 
     if (prefix.isNotEmpty) {
       var prefixElement = scope.lookup(prefix).getter;
