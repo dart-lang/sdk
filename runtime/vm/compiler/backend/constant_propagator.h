@@ -75,7 +75,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   virtual void VisitBlocks() { UNREACHABLE(); }
 
 #define DECLARE_VISIT(type, attrs) virtual void Visit##type(type##Instr* instr);
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+  FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT)
 
 #undef DECLARE_VISIT
   // Structure tracking visit counts for phis. Used to detect infinite loops.

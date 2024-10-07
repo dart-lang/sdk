@@ -181,7 +181,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   WriteDescriptor<ShortName##Instr>(#ShortName);
 
-      FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
     }
@@ -189,7 +189,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   virtual void Visit##ShortName(ShortName##Instr* instr) { Write(instr); }
 
-    FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+    FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
 
