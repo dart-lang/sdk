@@ -8,10 +8,13 @@ import 'dart:io';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 
-/// Instances of the class [AbstractGetHandler] handle GET requests.
-abstract class AbstractGetHandler {
+/// Instances of the class [AbstractHttpHandler] handle HTTP requests.
+abstract class AbstractHttpHandler {
   /// Handle a GET request received by the HTTP server.
   void handleGetRequest(HttpRequest request);
+
+  /// Handle a POST request received by the HTTP server.
+  void handlePostRequest(HttpRequest request);
 }
 
 /// Instances of the class [HttpServer] implement a simple HTTP server. The
@@ -25,10 +28,11 @@ class HttpAnalysisServer {
 
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
-  AbstractSocketServer socketServer;
+  final AbstractSocketServer _socketServer;
 
-  /// An object that can handle GET requests.
-  AbstractGetHandler? getHandler;
+  /// An object that can handle HTTP requests.
+  late final AbstractHttpHandler _httpHandler =
+      DiagnosticsSite(_socketServer, _printBuffer);
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer>? _serverFuture;
@@ -37,7 +41,7 @@ class HttpAnalysisServer {
   final List<String> _printBuffer = <String>[];
 
   /// Initialize a newly created HTTP server.
-  HttpAnalysisServer(this.socketServer);
+  HttpAnalysisServer(this._socketServer);
 
   /// Return the port this server is bound to.
   Future<int?> get boundPort async {
@@ -81,20 +85,14 @@ class HttpAnalysisServer {
     }
   }
 
-  /// Handle a GET request received by the HTTP server.
-  Future<void> _handleGetRequest(HttpRequest request) async {
-    getHandler ??= DiagnosticsSite(socketServer, _printBuffer);
-    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
-    // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.
-    await (getHandler!.handleGetRequest(request) as dynamic);
-  }
-
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) async {
       var updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
-        await _handleGetRequest(request);
+        _httpHandler.handleGetRequest(request);
+      } else if (request.method == 'POST') {
+        _httpHandler.handlePostRequest(request);
       } else if (updateValues != null && updateValues.contains('websocket')) {
         // We no longer support serving analysis server communications over
         // WebSocket connections.
