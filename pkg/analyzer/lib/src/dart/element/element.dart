@@ -6396,6 +6396,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return definingCompilationUnit.libraryImportPrefixes;
   }
 
+  @Deprecated('Use CompilationUnitElement.scope')
   @override
   LibraryFragmentScope get scope {
     return definingCompilationUnit.scope;

@@ -157,7 +157,7 @@ class LibraryAnalyzer {
         ResolutionVisitor(
           unitElement: unitElement,
           errorListener: errorListener,
-          nameScope: _libraryElement.scope,
+          nameScope: unitElement.scope,
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
           elementWalker: ElementWalker.forCompilationUnit(
@@ -174,7 +174,7 @@ class LibraryAnalyzer {
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(ScopeResolverVisitor(
           _libraryElement, file.source, _typeProvider, errorListener,
-          nameScope: _libraryElement.scope));
+          nameScope: unitElement.scope));
 
       FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
           _testingData != null, _libraryElement.featureSet,
