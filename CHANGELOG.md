@@ -93,8 +93,14 @@ number, like `.`, `x`, or the `e` in scientific notation.
 - New command `dart pub bump`. Increments the version number of the current
   package.
 
-  For example: `dart pub bump minor` will change the version from `1.2.3` to `1.3.0`.
-- New validation: `dart pub publish` will warn if your `git status` is not clean.
+  For example: `dart pub bump minor` will change the version from `1.2.3` to
+  `1.3.0`.
+- New validation: `dart pub publish` will warn if your `git status` is not
+  clean.
+- New flag `dart pub upgrade --unlock-transitive`.
+
+- `dart pub upgrade --unlock-transitive pkg`, will unlock and upgrade all the
+  dependencies of `pkg` instead of just `pkg`.
 
 #### Analyzer
 
