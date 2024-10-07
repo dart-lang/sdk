@@ -323,7 +323,7 @@ extension ElementExtensions on analyzer.Element? {
         currentElement = currentElement.enclosingElement3) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
-      } else if (currentElement is analyzer.LibraryOrAugmentationElement) {
+      } else if (currentElement is analyzer.LibraryElement) {
         return currentElement.definingCompilationUnit;
       }
     }

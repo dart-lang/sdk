@@ -621,7 +621,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   /// then add the navigation region from the [node] to the [element].
   void _addUriDirectiveRegion(
     UriBasedDirective node,
-    LibraryOrAugmentationElement? element,
+    LibraryElement? element,
   ) {
     var source = element?.source;
     if (source != null) {
