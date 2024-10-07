@@ -26,6 +26,7 @@ lib/src/rules/avoid_returning_null_for_future.dart
 lib/src/rules/avoid_shadowing_type_parameters.dart
 lib/src/rules/avoid_single_cascade_in_expression_statements.dart
 lib/src/rules/avoid_slow_async_io.dart
+lib/src/rules/avoid_type_to_string.dart
 lib/src/rules/avoid_types_on_closure_parameters.dart
 lib/src/rules/avoid_unnecessary_containers.dart
 lib/src/rules/avoid_unstable_final_fields.dart
@@ -96,7 +97,9 @@ lib/src/rules/prefer_contains.dart
 lib/src/rules/prefer_double_quotes.dart
 lib/src/rules/prefer_equal_for_default_values.dart
 lib/src/rules/prefer_expression_function_bodies.dart
+lib/src/rules/prefer_final_in_for_each.dart
 lib/src/rules/prefer_for_elements_to_map_fromIterable.dart
+lib/src/rules/prefer_function_declarations_over_variables.dart
 lib/src/rules/prefer_generic_function_type_aliases.dart
 lib/src/rules/prefer_if_elements_to_conditional_expressions.dart
 lib/src/rules/prefer_if_null_operators.dart
