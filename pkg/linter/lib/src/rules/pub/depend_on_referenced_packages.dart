@@ -51,7 +51,7 @@ class DependOnReferencedPackages extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   /// Virtual packages will not have explicit dependencies
   /// and get skipped.
   static const virtualPackages = [

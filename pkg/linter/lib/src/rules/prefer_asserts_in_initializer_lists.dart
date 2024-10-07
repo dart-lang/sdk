@@ -31,7 +31,7 @@ class PreferAssertsInInitializerLists extends LintRule {
   }
 }
 
-class _AssertVisitor extends RecursiveAstVisitor {
+class _AssertVisitor extends RecursiveAstVisitor<void> {
   final ConstructorElement constructorElement;
   final _ClassAndSuperClasses? classAndSuperClasses;
 

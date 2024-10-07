@@ -45,10 +45,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (loopVariable.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var loopVariableElement = loopVariable.declaredElement;
+    var loopVariableElement = loopVariable.declaredElement2;
     if (function != null &&
         loopVariableElement != null &&
-        !function.isPotentiallyMutatedInScope(loopVariableElement)) {
+        !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
       var name = loopVariable.name;
       rule.reportLintForToken(name,
           errorCode: LinterLintCode.prefer_final_in_for_each_variable,
@@ -92,9 +92,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on FunctionBody {
   bool potentiallyMutates(Object pattern) {
     if (pattern is! DeclaredVariablePattern) return true;
-    var element = pattern.declaredElement;
+    var element = pattern.declaredElement2;
     if (element == null) return true;
-    return isPotentiallyMutatedInScope(element.declaration);
+    return isPotentiallyMutatedInScope2(element.baseElement);
   }
 
   bool potentiallyMutatesAnyField(List<PatternField> fields) =>

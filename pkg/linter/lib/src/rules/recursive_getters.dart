@@ -30,7 +30,7 @@ class RecursiveGetters extends LintRule {
   }
 }
 
-class _BodyVisitor extends RecursiveAstVisitor {
+class _BodyVisitor extends RecursiveAstVisitor<void> {
   final LintRule rule;
   final ExecutableElement element;
   _BodyVisitor(this.element, this.rule);
@@ -46,19 +46,19 @@ class _BodyVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
-    if (node.isConst) return null;
+  void visitListLiteral(ListLiteral node) {
+    if (node.isConst) return;
     return super.visitListLiteral(node);
   }
 
   @override
-  visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isConst) return null;
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isConst) return;
     return super.visitSetOrMapLiteral(node);
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (isSelfReference(node)) {
       rule.reportLint(node, arguments: [node.name]);
     }

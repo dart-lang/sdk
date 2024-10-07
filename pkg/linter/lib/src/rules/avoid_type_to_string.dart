@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -43,7 +43,7 @@ class AvoidTypeToString extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
   final InterfaceType typeType;
@@ -60,12 +60,12 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    thisType = node.declaredElement?.thisType;
+    thisType = node.declaredFragment?.element.thisType;
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var extendedType = node.declaredElement?.extendedType;
+    var extendedType = node.declaredFragment?.element.extendedType;
     // Might not be InterfaceType. Ex: visiting an extension on a dynamic type.
     thisType = extendedType is InterfaceType ? extendedType : null;
   }
@@ -81,23 +81,23 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    thisType = node.declaredElement?.thisType;
+    thisType = node.declaredFragment?.element.thisType;
   }
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
-    var encloser = simpleIdentifier.staticElement?.enclosingElement3;
-    return encloser is ClassElement && encloser.isDartCoreObject;
+    var encloser = simpleIdentifier.element?.enclosingElement2;
+    return encloser is ClassElement2 && encloser.isDartCoreObject;
   }
 
   bool _isToStringOnCoreTypeClass(
-          InterfaceType? targetType, SimpleIdentifier methodIdentifier) =>
+          DartType? targetType, SimpleIdentifier methodIdentifier) =>
       targetType != null &&
       methodIdentifier.name == 'toString' &&
       _isSimpleIdDeclByCoreObj(methodIdentifier) &&
       typeSystem.isSubtypeOf(targetType, typeType);
 
   void _reportIfToStringOnCoreTypeClass(
-      InterfaceType? targetType, SimpleIdentifier methodIdentifier) {
+      DartType? targetType, SimpleIdentifier methodIdentifier) {
     if (_isToStringOnCoreTypeClass(targetType, methodIdentifier)) {
       rule.reportLint(methodIdentifier);
     }

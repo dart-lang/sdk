@@ -227,12 +227,12 @@ abstract class FutureOr<T> {
 @pragma("wasm:entry-point")
 @vmIsolateUnsendable
 abstract interface class Future<T> {
-  /// A `Future<Null>` completed with `null`.
+  /// A `Future<void>` completed with `null`.
   ///
   /// Currently shared with `dart:internal`.
   /// If that future can be removed, then change this back to
-  /// `_Future<Null>.zoneValue(null, _rootZone);`
-  static final _Future<Null> _nullFuture = nullFuture as _Future<Null>;
+  /// `_Future<void>.zoneValue(null, _rootZone);`
+  static final _Future<void> _nullFuture = nullFuture as _Future<void>;
 
   /// A `Future<bool>` completed with `false`.
   static final _Future<bool> _falseFuture =

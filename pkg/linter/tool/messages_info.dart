@@ -233,7 +233,7 @@ class _RuleBuilder {
     var value = data[propertyName];
     if (_categories != null) _alreadySpecified(propertyName);
 
-    var categoryValues = _requireType<Iterable>(propertyName, value);
+    var categoryValues = _requireType<Iterable<Object?>>(propertyName, value);
     var categoryStrings =
         _requireTypeForItems<String>(propertyName, categoryValues);
 

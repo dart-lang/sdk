@@ -17,7 +17,7 @@ import 'core.dart';
 ///
 /// If provided, only native assets of all transitive dependencies of
 /// [runPackageName] are built.
-Future<(bool success, List<Asset> assets)> compileNativeAssetsJit({
+Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
   required bool verbose,
   String? runPackageName,
 }) async {
@@ -32,10 +32,10 @@ Future<(bool success, List<Asset> assets)> compileNativeAssetsJit({
       // `getExecutableForCommand` later.
       final result = await Process.run(sdk.dart, ['pub', 'get']);
       if (result.exitCode != 0) {
-        return (true, <Asset>[]);
+        return (true, <EncodedAsset>[]);
       }
     } else {
-      return (true, <Asset>[]);
+      return (true, <EncodedAsset>[]);
     }
   }
   final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
@@ -56,16 +56,23 @@ Future<(bool success, List<Asset> assets)> compileNativeAssetsJit({
     buildMode: BuildMode.release,
     includeParentEnvironment: true,
     runPackageName: runPackageName,
+    targetMacOSVersion: targetMacOSVersion,
+    linkingEnabled: false,
     supportedAssetTypes: [
       CodeAsset.type,
     ],
-    targetMacOSVersion: targetMacOSVersion,
-    linkingEnabled: false,
+    buildValidator: (config, output) async => [
+      ...await validateDataAssetBuildOutput(config, output),
+      ...await validateCodeAssetBuildOutput(config, output),
+    ],
+    applicationAssetValidator: (assets) async => [
+      ...await validateCodeAssetsInApplication(assets),
+    ],
   );
 
   return (
     buildResult.success,
-    buildResult.assets,
+    buildResult.encodedAssets,
   );
 }
 
@@ -87,13 +94,20 @@ Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile({
   if (!success) {
     return (false, null);
   }
+  final codeAssets = assets
+      .where((e) => e.type == CodeAsset.type)
+      .map(CodeAsset.fromEncoded)
+      .toList();
+  final dataAssets = assets
+      .where((e) => e.type == DataAsset.type)
+      .map(DataAsset.fromEncoded)
+      .toList();
   final kernelAssets = KernelAssets([
     ...[
-      for (final asset in assets.whereType<CodeAsset>()) _targetLocation(asset),
+      for (final asset in codeAssets) _targetLocation(asset),
     ],
     ...[
-      for (final asset in assets.whereType<DataAsset>())
-        _dataTargetLocation(asset),
+      for (final asset in dataAssets) _dataTargetLocation(asset),
     ]
   ]);
 

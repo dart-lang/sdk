@@ -51,9 +51,10 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
   }
 }
 
-class _BodyVisitor extends RecursiveAstVisitor {
+class _BodyVisitor extends RecursiveAstVisitor<void> {
   final Element? parameter;
   final LintRule rule;
+
   _BodyVisitor(this.parameter, this.rule);
 
   @override

@@ -37,7 +37,7 @@ class LinesLongerThan80Chars extends LintRule {
   }
 }
 
-class _AllowedCommentVisitor extends SimpleAstVisitor {
+class _AllowedCommentVisitor extends SimpleAstVisitor<void> {
   final LineInfo lineInfo;
 
   final allowedLines = <int>[];
@@ -93,7 +93,7 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
   }
 }
 
-class _AllowedLongLineVisitor extends RecursiveAstVisitor {
+class _AllowedLongLineVisitor extends RecursiveAstVisitor<void> {
   final LineInfo lineInfo;
 
   final allowedLines = <int>[];
@@ -147,7 +147,7 @@ class _LineInfo {
   int get length => end - offset;
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   final LinterContext context;

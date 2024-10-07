@@ -282,7 +282,7 @@ class Validator extends SimpleAstVisitor<void> {
       name != null && Identifier.isPrivateName(name);
 }
 
-class Visitor extends SimpleAstVisitor {
+class Visitor extends SimpleAstVisitor<void> {
   LintRule rule;
 
   Visitor(this.rule);

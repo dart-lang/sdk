@@ -66,10 +66,10 @@ class MockLintRule extends LintRule {
   MockLintRule(this.nodeVisitor) : super(name: 'MockLint', description: 'Desc');
 
   @override
-  PubspecVisitor getPubspecVisitor() => MockPubspecVisitor(nodeVisitor);
+  PubspecVisitor<void> getPubspecVisitor() => MockPubspecVisitor(nodeVisitor);
 }
 
-class MockPubspecVisitor extends PubspecVisitor {
+class MockPubspecVisitor extends PubspecVisitor<void> {
   final NodeVisitor? nodeVisitor;
 
   MockPubspecVisitor(this.nodeVisitor);

@@ -419,7 +419,7 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
 typedef ElementProcessor = bool Function(Element element);
 
 /// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
-class _ElementVisitorAdapter extends GeneralizingElementVisitor {
+class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
   final ElementProcessor processor;
 
   _ElementVisitorAdapter(this.processor);

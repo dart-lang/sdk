@@ -59,7 +59,7 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
   final LintRule rule;
 

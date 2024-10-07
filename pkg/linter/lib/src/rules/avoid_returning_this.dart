@@ -33,7 +33,7 @@ class AvoidReturningThis extends LintRule {
   }
 }
 
-class _BodyVisitor extends RecursiveAstVisitor {
+class _BodyVisitor extends RecursiveAstVisitor<void> {
   List<ReturnStatement> returnStatements = [];
 
   bool foundNonThisReturn = false;

@@ -144,7 +144,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "5d35f4d829ffb8532d345d95d3e9504ae6cd839e", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "526dbd55b5a2d8acb8af4e2d5510f6c807c9dc04",
+  "dartdoc_rev": "5df03dd913a0a2e20421cac61112aa84111160e0",
   "ecosystem_rev": "2d58550f9e3fd8ecbc3b2e4444095fcb204a66c6",
   "file_rev": "6842feaef1c4e06239bd30f8d3ef722838b1c97e",
   "fixnum_rev": "83293b8ed86ccd574a94fcf4a2da43f31c1b43e0",
@@ -163,7 +163,7 @@ vars = {
   "matcher_rev": "31f13583630e093731c8cf2b843c14196d748c5c",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mockito_rev": "3de67548e833a8eef66a2a49070b197c2c08b3ab",
-  "native_rev": "d144f81442894f669108699517d4f4a3f7a529f8", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "659511886501bcce638c3966590df04984909ef0", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "bafff8e90be25e1985f7e3ee40ea1d22571a93e6",
   "path_rev": "e969f42ed112dd702a9453beb9df6c12ae2d3805",
   "pool_rev": "924fb04353cec915d927f9f1aed88e2eda92b98a",
@@ -205,7 +205,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "130.0.6723.6",
+  "chrome_tag": "130.0.6723.31",
   "download_firefox": False,
   "firefox_tag": "131.0",
 

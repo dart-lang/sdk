@@ -33,6 +33,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -171,6 +172,46 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
     }
   }
   return collectedData;
+}
+
+class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin
+    implements PostablePage {
+  static const _resetFormId = 'reset-driver-timers';
+
+  AnalysisDriverTimingsPage(DiagnosticsSite site)
+      : super(site, 'driver-timings', 'Analysis Driver Timings',
+            description:
+                'Timing statistics collected by the analysis driver scheduler since last reset.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    // Output the current values.
+    var buffer = StringBuffer();
+    server.analysisDriverScheduler.accumulatedPerformance.write(buffer: buffer);
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape('$buffer'));
+      buf.writeln('</code>');
+    });
+
+    // Add a button to reset the timers.
+    buf.write('''
+<form action="${this.path}?$_resetFormId=true" method="post">
+<input type="submit" class="btn btn-danger" value="Reset Timers" />
+</form>
+''');
+  }
+
+  @override
+  Future<String> handlePost(Map<String, String> params) async {
+    if (params[_resetFormId]?.isNotEmpty ?? false) {
+      server.analysisDriverScheduler.accumulatedPerformance =
+          OperationPerformanceImpl('<scheduler>');
+    }
+
+    return this.path;
+  }
 }
 
 class AnalyticsPage extends DiagnosticPageWithNav {
@@ -1066,7 +1107,7 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   }
 }
 
-class DiagnosticsSite extends Site implements AbstractGetHandler {
+class DiagnosticsSite extends Site implements AbstractHttpHandler {
   /// A flag used to control whether developer support should be included when
   /// building the pages.
   static const bool includeDeveloperSupport = false;
@@ -1105,6 +1146,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     }
     pages.add(TimingPage(this));
     pages.add(ByteStoreTimingPage(this));
+    pages.add(AnalysisDriverTimingsPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {

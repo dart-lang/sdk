@@ -41,7 +41,7 @@ class ParameterAssignments extends LintRule {
   }
 }
 
-class _DeclarationVisitor extends RecursiveAstVisitor {
+class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   final FormalParameter parameter;
   final LintRule rule;
   final bool paramIsNotNullByDefault;

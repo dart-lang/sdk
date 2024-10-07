@@ -132,7 +132,7 @@ class _NonEnumVisitor extends _BaseVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 

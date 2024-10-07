@@ -28,7 +28,7 @@ class SizedBoxShrinkExpand extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final SizedBoxShrinkExpand rule;
 
   _Visitor(this.rule);

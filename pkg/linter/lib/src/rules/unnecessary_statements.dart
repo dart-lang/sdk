@@ -46,7 +46,7 @@ class UnnecessaryStatements extends LintRule {
 /// starting with `visitNode`, which reports a violation and also does not
 /// descend. We descend into only a few node types, like binary expressions and
 /// conditional expressions.
-class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
+class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
   final LintRule rule;
 
   _ReportNoClearEffectVisitor(this.rule);

@@ -32,17 +32,16 @@ void main(List<String> arguments) async {
     final usages =
         RecordedUsages.fromJson(jsonDecode(string) as Map<String, dynamic>);
 
-    print('''
-Received ${config.assets.length} assets: ${config.assets.map((e) => e.id)}.
-''');
+    final codeAssets = config.codeAssets.all;
+    print('Received assets: ${codeAssets.map((a) => a.id).join(', ')}.');
 
     final symbols = <String>{};
     final argumentsFile =
         await File.fromUri(config.outputDirectory.resolve('arguments.txt'))
-          ..create();
+            .create();
 
     final dataLines = <String>[];
-    //Tree-shake unused assets using calls
+    // Tree-shake unused assets using calls
     for (var callId in [callIdAdd, callIdMultiply]) {
       var arguments = usages.argumentsTo(callId);
       if (arguments?.isNotEmpty ?? false) {
@@ -56,7 +55,7 @@ Received ${config.assets.length} assets: ${config.assets.map((e) => e.id)}.
 
     argumentsFile.writeAsStringSync(dataLines.join('\n'));
 
-    //Tree-shake unused assets
+    // Tree-shake unused assets
     final instances = usages.instancesOf(instanceId) ?? [];
     for (final instance in instances) {
       final symbol =
@@ -66,15 +65,14 @@ Received ${config.assets.length} assets: ${config.assets.map((e) => e.id)}.
       symbols.add(symbol);
     }
 
-    for (var symbol in symbols) {
-      output.addAssets(
-        config.assets.where((asset) => asset.id.endsWith(symbol)),
-      );
-    }
+    final neededCodeAssets = [
+      for (final codeAsset in codeAssets)
+        if (symbols.any(codeAsset.id.endsWith)) codeAsset,
+    ];
 
-    print('''
-Keeping only ${output.assets.map((e) => e.id)}.
-''');
+    print('Keeping only ${neededCodeAssets.map((e) => e.id).join(', ')}.');
+    output.codeAssets.addAll(neededCodeAssets);
+
     output.addDependency(config.packageRoot.resolve('hook/link.dart'));
   });
 }

@@ -139,7 +139,7 @@ class _DeclarationGatherer {
 ///
 /// "References" are most often [SimpleIdentifier]s, but can also be other
 /// nodes which refer to a declaration.
-class _ReferenceVisitor extends RecursiveAstVisitor {
+class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   Map<Element, Declaration> declarationMap;
 
   Set<Declaration> declarations = {};

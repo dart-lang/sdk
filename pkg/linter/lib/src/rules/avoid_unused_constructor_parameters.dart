@@ -31,7 +31,7 @@ class AvoidUnusedConstructorParameters extends LintRule {
   }
 }
 
-class _ConstructorVisitor extends RecursiveAstVisitor {
+class _ConstructorVisitor extends RecursiveAstVisitor<void> {
   final ConstructorDeclaration element;
   final Set<FormalParameter> unusedParameters;
 

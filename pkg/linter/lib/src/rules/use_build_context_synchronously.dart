@@ -929,7 +929,7 @@ class UseBuildContextSynchronously extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   static const mountedName = 'mounted';
 
   static const protectedConstructors = [

@@ -157,7 +157,7 @@ int parseHexByte(String source, int index) {
 /// This future will be removed again if we can ever do so.
 /// Do not use it for anything other than preserving timing
 /// during the null safety migration.
-final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
+final Future<void> nullFuture = Zone.root.run(() => Future<void>.value(null));
 
 /// A default hash function used by the platform in various places.
 ///

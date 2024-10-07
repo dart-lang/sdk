@@ -1001,6 +1001,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// guard against infinite loops.
   InterfaceType? get supertype;
 
+  @override
+  InterfaceType get thisType;
+
   /// The unnamed constructor declared directly in this class.
   ///
   /// If the class does not declare any constructors, a synthetic default
