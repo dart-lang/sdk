@@ -57,6 +57,8 @@ import 'avoid_renaming_method_parameters_test.dart'
     as avoid_renaming_method_parameters;
 import 'avoid_return_types_on_setters_test.dart'
     as avoid_return_types_on_setters;
+import 'avoid_returning_null_for_void_test.dart'
+    as avoid_returning_null_for_void;
 import 'avoid_returning_null_test.dart' as avoid_returning_null;
 import 'avoid_returning_this_test.dart' as avoid_returning_this;
 import 'avoid_setters_without_getters_test.dart'
@@ -351,6 +353,7 @@ void main() {
   avoid_renaming_method_parameters.main();
   avoid_return_types_on_setters.main();
   avoid_returning_null.main();
+  avoid_returning_null_for_void.main();
   avoid_returning_this.main();
   avoid_setters_without_getters.main();
   avoid_shadowing_type_parameters.main();
