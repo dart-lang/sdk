@@ -5728,7 +5728,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<Element> get children => [
-        ...super.children,
+        definingCompilationUnit,
+        // ignore:deprecated_member_use_from_same_package
+        ...libraryExports,
+        // ignore:deprecated_member_use_from_same_package
+        ...libraryImports,
         // ignore:deprecated_member_use_from_same_package
         ...parts,
         ..._partUnits,
@@ -6350,16 +6354,6 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     required String? name,
     required int nameOffset,
   }) : super(name, nameOffset);
-
-  @override
-  List<Element> get children => [
-        ...super.children,
-        definingCompilationUnit,
-        // ignore:deprecated_member_use_from_same_package
-        ...libraryExports,
-        // ignore:deprecated_member_use_from_same_package
-        ...libraryImports,
-      ];
 
   @override
   CompilationUnitElementImpl get definingCompilationUnit =>
