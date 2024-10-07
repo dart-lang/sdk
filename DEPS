@@ -163,7 +163,7 @@ vars = {
   "matcher_rev": "31f13583630e093731c8cf2b843c14196d748c5c",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mockito_rev": "3de67548e833a8eef66a2a49070b197c2c08b3ab",
-  "native_rev": "d144f81442894f669108699517d4f4a3f7a529f8", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "659511886501bcce638c3966590df04984909ef0", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "bafff8e90be25e1985f7e3ee40ea1d22571a93e6",
   "path_rev": "e969f42ed112dd702a9453beb9df6c12ae2d3805",
   "pool_rev": "924fb04353cec915d927f9f1aed88e2eda92b98a",

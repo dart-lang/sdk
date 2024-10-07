@@ -147,11 +147,18 @@ class BuildCommand extends DartdevCommand {
       linkModePreference: LinkModePreference.dynamic,
       buildMode: BuildMode.release,
       includeParentEnvironment: true,
+      targetMacOSVersion: targetMacOSVersion,
+      linkingEnabled: true,
       supportedAssetTypes: [
         CodeAsset.type,
       ],
-      targetMacOSVersion: targetMacOSVersion,
-      linkingEnabled: true,
+      buildValidator: (config, output) async => [
+        ...await validateDataAssetBuildOutput(config, output),
+        ...await validateCodeAssetBuildOutput(config, output),
+      ],
+      applicationAssetValidator: (assets) async => [
+        ...await validateCodeAssetsInApplication(assets),
+      ],
     );
     if (!buildResult.success) {
       stderr.writeln('Native assets build failed.');
@@ -197,6 +204,13 @@ class BuildCommand extends DartdevCommand {
         supportedAssetTypes: [
           CodeAsset.type,
         ],
+        linkValidator: (config, output) async => [
+          ...await validateDataAssetLinkOutput(config, output),
+          ...await validateCodeAssetLinkOutput(config, output),
+        ],
+        applicationAssetValidator: (assets) async => [
+          ...await validateCodeAssetsInApplication(assets),
+        ],
       );
 
       if (!linkResult.success) {
@@ -206,32 +220,53 @@ class BuildCommand extends DartdevCommand {
 
       final tempUri = tempDir.uri;
       Uri? assetsDartUri;
-      final allAssets = [...buildResult.assets, ...linkResult.assets];
-      final staticAssets = allAssets
-          .whereType<CodeAsset>()
-          .where((e) => e.linkMode == StaticLinking());
+      final allAssets = linkResult.encodedAssets;
+      final dataAssets = allAssets
+          .where((e) => e.type == DataAsset.type)
+          .map(DataAsset.fromEncoded)
+          .toList();
+      final codeAssets = allAssets
+          .where((e) => e.type == CodeAsset.type)
+          .map(CodeAsset.fromEncoded)
+          .toList();
+
+      final staticAssets =
+          codeAssets.where((e) => e.linkMode == StaticLinking());
       if (staticAssets.isNotEmpty) {
         stderr.write(
             """'dart build' does not yet support CodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
         return 255;
       }
-      final validateResult = validateNoDuplicateDylibs(allAssets);
-      if (validateResult.isNotEmpty) {
-        validateResult.forEach(stderr.writeln);
-        return 255;
-      }
       if (allAssets.isNotEmpty) {
-        final targetMapping = _targetMapping(allAssets, target);
+        final kernelAssets = <KernelAsset>[];
+        final filesToCopy = <(String id, Uri, KernelAssetRelativePath)>[];
+
+        for (final asset in codeAssets) {
+          final kernelAsset = asset.targetLocation(target);
+          kernelAssets.add(kernelAsset);
+          final targetPath = kernelAsset.path;
+          if (targetPath is KernelAssetRelativePath) {
+            filesToCopy.add((asset.id, asset.file!, targetPath));
+          }
+        }
+        for (final asset in dataAssets) {
+          final kernelAsset = asset.targetLocation(target);
+          kernelAssets.add(kernelAsset);
+          final targetPath = kernelAsset.path;
+          if (targetPath is KernelAssetRelativePath) {
+            filesToCopy.add((asset.id, asset.file, targetPath));
+          }
+        }
         assetsDartUri = await _writeAssetsYaml(
-          targetMapping.map((e) => e.target).toList(),
+          kernelAssets,
           assetsDartUri,
           tempUri,
         );
         if (allAssets.isNotEmpty) {
           stdout.writeln(
-              'Copying ${allAssets.length} build assets: ${allAssets.map((e) => e.id)}');
-          _copyAssets(targetMapping, outputUri);
+              'Copying ${filesToCopy.length} build assets: ${filesToCopy.map((e) => e.$1)}');
+          _copyAssets(filesToCopy, outputUri);
         }
       }
 
@@ -246,25 +281,12 @@ Use linkMode as dynamic library instead.""");
     return 0;
   }
 
-  List<({Asset asset, KernelAsset target})> _targetMapping(
-    Iterable<Asset> assets,
-    Target target,
-  ) {
-    return [
-      for (final asset in assets)
-        (asset: asset, target: asset.targetLocation(target)),
-    ];
-  }
-
   void _copyAssets(
-    List<({Asset asset, KernelAsset target})> assetTargetLocations,
+    List<(String id, Uri, KernelAssetRelativePath)> assetTargetLocations,
     Uri output,
   ) {
-    for (final (asset: asset, target: target) in assetTargetLocations) {
-      final targetPath = target.path;
-      if (targetPath is KernelAssetRelativePath) {
-        asset.file!.copyTo(targetPath, output);
-      }
+    for (final (_, file, targetPath) in assetTargetLocations) {
+      file.copyTo(targetPath, output);
     }
   }
 
@@ -299,16 +321,6 @@ extension on Uri {
       );
       File.fromUri(this).copySync(targetUri.toFilePath());
     }
-  }
-}
-
-extension on Asset {
-  KernelAsset targetLocation(Target target) {
-    return switch (this) {
-      CodeAsset nativeAsset => nativeAsset.targetLocation(target),
-      DataAsset dataAsset => dataAsset.targetLocation(target),
-      Asset() => throw UnimplementedError(),
-    };
   }
 }
 
