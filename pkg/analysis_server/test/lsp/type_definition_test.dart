@@ -108,6 +108,19 @@ const a^ = 'test string';
     _expectNameRange(result.range, 'String');
   }
 
+  Future<void> test_namedParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function(String, {required int? value}) f) {}
+void foo() {
+  bar((str, {required [!val^ue!]}) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
+  }
+
   Future<void> test_nonDartFile() async {
     var code = TestCode.parse('''
 const a = '^';
@@ -118,6 +131,32 @@ const a = '^';
     var results =
         await getTypeDefinitionAsLocation(mainFileUri, code.position.position);
     expect(results, isEmpty);
+  }
+
+  Future<void> test_optionalNamedParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function() f) {}
+void foo() {
+  bar(({String [!s^tr!] = ''}) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_optionalPositionalParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function() f) {}
+void foo() {
+  bar(([String [!s^tr!] = '']) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
   }
 
   Future<void> test_otherFile() async {
@@ -145,6 +184,32 @@ class [!A!] {}
     var code = TestCode.parse('''
 void f(String a) {
   f([!'te^st'!]);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_parameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function(String) f) {}
+void foo() {
+  bar(([!st^r!]) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_parameter_named_closure() async {
+    var code = TestCode.parse('''
+void bar({required void Function(String) f}) {}
+void foo() {
+  bar(f: ([!st^r!]) {});
 }
 ''');
 
@@ -225,6 +290,19 @@ _ f() => [!^a!];
     var result = await _getResult(code);
     expect(result.targetUri, mainFileUri);
     expect(result.targetRange, rangeOfString(code, 'class _ { }'));
+  }
+
+  Future<void> test_typedParameter_closure() async {
+    var code = TestCode.parse('''
+void bar(void Function(String) f) {}
+void foo() {
+  bar((String [!s^tr!]) {});
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
   }
 
   Future<void> test_unopenedFile() async {
