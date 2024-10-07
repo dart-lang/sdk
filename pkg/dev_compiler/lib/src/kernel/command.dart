@@ -21,6 +21,7 @@ import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
 import '../command/arguments.dart';
 import '../command/options.dart';
+import '../command/result.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
