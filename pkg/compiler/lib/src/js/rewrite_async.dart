@@ -10,7 +10,6 @@ import 'dart:math' show max;
 import 'package:js_shared/synced/async_status_codes.dart' as status_codes;
 
 import '../common.dart';
-import '../util/util.dart' show Pair;
 import 'js.dart' as js;
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
@@ -65,7 +64,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   /// are on the way to target (i.e. more nested than the jump target).
   List<js.Node> jumpTargets = [];
 
-  List<Pair<String, String>> variableRenamings = [];
+  List<(String, String)> variableRenamings = [];
 
   late final PreTranslationAnalysis analysis;
 
@@ -1559,7 +1558,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
         // block so shadow any catch variable bindings that might collide with
         // this one so that references to this binding do not get renamed.
         variableRenamings
-            .add(Pair(catchPart.declaration.name, catchPart.declaration.name));
+            .add((catchPart.declaration.name, catchPart.declaration.name));
         translatedCatchPart =
             js.Catch(catchPart.declaration, translateToBlock(catchPart.body));
         variableRenamings.removeLast();
@@ -1615,7 +1614,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
       // section 12.14.
       String errorRename = freshName(catchPart.declaration.name);
       localVariables.add(js.VariableDeclaration(errorRename));
-      variableRenamings.add(Pair(catchPart.declaration.name, errorRename));
+      variableRenamings.add((catchPart.declaration.name, errorRename));
       addStatement(js.js.statement("# = #;", [errorRename, currentError]));
       visitStatement(catchPart.body);
       variableRenamings.removeLast();
@@ -1695,7 +1694,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   @override
   js.Expression visitVariableUse(js.VariableUse node) {
     for (final renaming in variableRenamings.reversed) {
-      if (renaming.a == node.name) return js.VariableUse(renaming.b);
+      if (renaming.$1 == node.name) return js.VariableUse(renaming.$2);
     }
     return node;
   }
