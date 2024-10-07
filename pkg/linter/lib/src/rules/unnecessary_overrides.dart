@@ -33,7 +33,8 @@ class UnnecessaryOverrides extends LintRule {
   }
 }
 
-abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
+abstract class _AbstractUnnecessaryOverrideVisitor
+    extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   /// If [declaration] is an inherited member of interest, then this is set in

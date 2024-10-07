@@ -35,7 +35,7 @@ class PreferConstructorsOverStaticMethods extends LintRule {
   }
 }
 
-class _BodyVisitor extends RecursiveAstVisitor {
+class _BodyVisitor extends RecursiveAstVisitor<void> {
   bool found = false;
 
   final DartType returnType;

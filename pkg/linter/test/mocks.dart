@@ -53,7 +53,7 @@ class MockIOSink implements IOSink {
   late Encoding encoding;
 
   @override
-  Future get done => Future.value();
+  Future<void> get done => Future.value();
 
   @override
   void add(List<int> data) {}
@@ -62,19 +62,19 @@ class MockIOSink implements IOSink {
   void addError(Object error, [StackTrace? stackTrace]) {}
 
   @override
-  Future addStream(Stream<List<int>> stream) => Future.value();
+  Future<void> addStream(Stream<List<int>> stream) => Future.value();
 
   @override
-  Future close() => Future.value();
+  Future<void> close() => Future.value();
 
   @override
-  Future flush() => Future.value();
+  Future<void> flush() => Future.value();
 
   @override
   void write(Object? obj) {}
 
   @override
-  void writeAll(Iterable objects, [String separator = '']) {}
+  void writeAll(Iterable<Object?> objects, [String separator = '']) {}
 
   @override
   void writeCharCode(int charCode) {}

@@ -91,7 +91,7 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
 /// The only way to get immediate children in a unified, typesafe way, is to
 /// call visitChildren on that node, and pass in a visitor. This collects at the
 /// top level and stops.
-class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
+class _ImmediateChildrenVisitor extends UnifyingAstVisitor<void> {
   final _children = <AstNode>[];
 
   @override

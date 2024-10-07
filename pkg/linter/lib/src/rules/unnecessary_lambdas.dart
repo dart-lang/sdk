@@ -72,7 +72,7 @@ class _FinalExpressionChecker {
   }
 }
 
-class _IdentifierVisitor extends RecursiveAstVisitor {
+class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   final _elements = <Element?>{};
 
   _IdentifierVisitor();

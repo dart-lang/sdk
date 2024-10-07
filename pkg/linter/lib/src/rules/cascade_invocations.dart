@@ -242,7 +242,7 @@ class _CascadableExpression {
   }
 }
 
-class _NodeVisitor extends UnifyingAstVisitor {
+class _NodeVisitor extends UnifyingAstVisitor<void> {
   final _CascadableExpression expressionBox;
 
   bool foundCriticalNode = false;

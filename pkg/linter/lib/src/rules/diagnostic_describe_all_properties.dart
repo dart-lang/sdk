@@ -33,7 +33,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
   }
 }
 
-class _IdentifierVisitor extends RecursiveAstVisitor {
+class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   final List<Token> properties;
   _IdentifierVisitor(this.properties);
 
@@ -59,7 +59,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 

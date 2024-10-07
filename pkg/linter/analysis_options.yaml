@@ -9,6 +9,7 @@ analyzer:
     - test_data/**
   language:
     strict-casts: true
+    strict-raw-types: true
 
 linter:
   rules:

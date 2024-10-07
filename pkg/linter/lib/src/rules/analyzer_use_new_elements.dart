@@ -174,7 +174,7 @@ class _TypeVisitor extends RecursiveTypeVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

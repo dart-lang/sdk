@@ -30,7 +30,7 @@ class AvoidPrivateTypedefFunctions extends LintRule {
   }
 }
 
-class _CountVisitor extends RecursiveAstVisitor {
+class _CountVisitor extends RecursiveAstVisitor<void> {
   final String type;
   int count = 0;
   _CountVisitor(this.type);

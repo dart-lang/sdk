@@ -43,7 +43,7 @@ class UseStringBuffers extends LintRule {
   }
 }
 
-class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
+class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   SimpleIdentifier identifier;
 
@@ -82,7 +82,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
   }
 }
 
-class _UseStringBufferVisitor extends SimpleAstVisitor {
+class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final localElements = <Element?>{};
 

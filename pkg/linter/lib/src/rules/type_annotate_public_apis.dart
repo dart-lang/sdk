@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-class _VisitorHelper extends RecursiveAstVisitor {
+class _VisitorHelper extends RecursiveAstVisitor<void> {
   final LintRule rule;
 
   _VisitorHelper(this.rule);

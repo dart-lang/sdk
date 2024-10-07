@@ -19,10 +19,10 @@ class PackageNames extends LintRule {
   LintCode get lintCode => LinterLintCode.package_names;
 
   @override
-  PubspecVisitor getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
 }
 
-class Visitor extends PubspecVisitor {
+class Visitor extends PubspecVisitor<void> {
   final LintRule rule;
 
   Visitor(this.rule);

@@ -36,7 +36,7 @@ class PackageApiDocs extends LintRule {
   }
 }
 
-class _Visitor extends GeneralizingAstVisitor {
+class _Visitor extends GeneralizingAstVisitor<void> {
   final PackageApiDocs rule;
 
   _Visitor(this.rule);

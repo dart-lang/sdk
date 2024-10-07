@@ -43,7 +43,7 @@ class AvoidTypeToString extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
   final InterfaceType typeType;

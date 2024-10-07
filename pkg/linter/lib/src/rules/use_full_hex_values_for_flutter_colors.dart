@@ -32,7 +32,7 @@ class UseFullHexValuesForFlutterColors extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   static final _underscoresPattern = RegExp('_+');
 
   final LintRule rule;
