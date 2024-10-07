@@ -1015,12 +1015,10 @@ class C extends B implements A {}
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement,
-        same((findElement.method('foo', of: 'B') as MethodFragment).element));
+    expect(member.baseElement, same(findElement.method('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
-  @FailingTest(reason: 'Members need to implement `Element2` not `Fragment`')
   test_getMember_mixin_notMerge_replace() async {
     await resolveTestCode('''
 class A<T> {
@@ -1282,8 +1280,7 @@ class C extends B implements A {}
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement,
-        same((findElement.setter('foo', of: 'B') as SetterFragment).element));
+    expect(member.baseElement, same(findElement.setter('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 

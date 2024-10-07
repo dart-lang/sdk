@@ -351,7 +351,7 @@ class InheritanceManager3 {
       forMixinIndex: forMixinIndex,
       forSuper: forSuper,
     );
-    return element?.declaration.asElement2 as ExecutableElement2?;
+    return element?.asElement2 as ExecutableElement2?;
   }
 
   /// Returns the member with the given [name].
@@ -381,7 +381,7 @@ class InheritanceManager3 {
       forMixinIndex: forMixinIndex,
       forSuper: forSuper,
     );
-    return oldElement?.declaration.asElement2 as ExecutableElement2?;
+    return oldElement?.asElement2 as ExecutableElement2?;
   }
 
   /// Returns all members of mixins, superclasses, and interfaces that a member
