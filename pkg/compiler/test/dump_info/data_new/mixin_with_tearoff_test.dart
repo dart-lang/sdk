@@ -41,20 +41,20 @@
   "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
 },
   {
-  "id": "constant/B.Type_Object_QJv = A.typeLiteral(\"Object\");\n",
+  "id": "constant/B.Type_Object_A4p = A.typeLiteral(\"Object\");\n",
   "kind": "constant",
   "name": "",
   "size": 45,
   "outputUnit": "outputUnit/main",
-  "code": "B.Type_Object_QJv = A.typeLiteral(\"Object\");\n"
+  "code": "B.Type_Object_A4p = A.typeLiteral(\"Object\");\n"
 },
   {
-  "id": "constant/B.Type_dynamic_PLF = A.typeLiteral(\"@\");\n",
+  "id": "constant/B.Type_dynamic_wn9 = A.typeLiteral(\"@\");\n",
   "kind": "constant",
   "name": "",
   "size": 41,
   "outputUnit": "outputUnit/main",
-  "code": "B.Type_dynamic_PLF = A.typeLiteral(\"@\");\n"
+  "code": "B.Type_dynamic_wn9 = A.typeLiteral(\"@\");\n"
 }],
  deferredFiles=[{}],
  dependencies=[{}],

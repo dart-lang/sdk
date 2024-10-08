@@ -1667,7 +1667,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   static int _finish(int hash) {
     hash = _MASK & (hash + (((_MASK >> 3) & hash) << 3));
-    hash = hash & (hash >> 11);
+    hash = hash ^ (hash >> 11);
     return _MASK & (hash + (((_MASK >> 15) & hash) << 15));
   }
 }
