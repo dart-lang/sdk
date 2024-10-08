@@ -5139,7 +5139,7 @@ GENERATE_ASSEMBLER_IDENTITY_TEST(ArithmeticShiftRightImmediate, 0)
 #undef GENERATE_ASSEMBLER_IDENTITY_TEST
 
 intptr_t RegRegImmTests::Lsl(intptr_t value, intptr_t shift, OperandSize sz) {
-  return ExtendValue(value << shift, sz);
+  return ExtendValue(static_cast<uintptr_t>(value) << shift, sz);
 }
 
 intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
