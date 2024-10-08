@@ -7,15 +7,15 @@
 #include <memory>
 #include <utility>
 
-#include "heap/safepoint.h"
-#include "vm/regexp_interpreter.h"
+#include "vm/heap/safepoint.h"
+#include "vm/regexp/regexp_interpreter.h"
 
 #include "platform/unicode.h"
 #include "vm/object.h"
-#include "vm/regexp_assembler.h"
-#include "vm/regexp_bytecodes.h"
-#include "vm/unibrow-inl.h"
-#include "vm/unibrow.h"
+#include "vm/regexp/regexp_assembler.h"
+#include "vm/regexp/regexp_bytecodes.h"
+#include "vm/regexp/unibrow-inl.h"
+#include "vm/regexp/unibrow.h"
 
 namespace dart {
 

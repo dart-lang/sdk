@@ -126,6 +126,12 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    --extra-compiler-option=--no-js-compatibility)
+      PLATFORM_FILENAME="$BIN_DIR/dart2wasm_platform.dill"
+      DART2WASM_ARGS+=("--no-js-compatibility")
+      shift
+      ;;
+
     --extra-compiler-option=*)
       DART2WASM_ARGS+=(${1#--extra-compiler-option=})
       shift

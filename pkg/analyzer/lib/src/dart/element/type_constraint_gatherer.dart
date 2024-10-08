@@ -124,9 +124,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   /// Tries to match [P] as a subtype for [Q].
   ///
-  /// If the match succeeds, the resulting type constraints are recorded for
-  /// later use by [computeConstraints].  If the match fails, the set of type
-  /// constraints is unchanged.
+  /// If [P] is a subtype of [Q] under some constraints, the constraints making
+  /// the relation possible are recorded to [_constraints], and `true` is
+  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
+  /// and `false` is returned.
   bool trySubtypeMatch(DartType P, DartType Q, bool leftSchema,
       {required AstNode? nodeForTesting}) {
     // If `P` is `_` then the match holds with no constraints.
@@ -193,7 +194,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             nodeForTesting: nodeForTesting)) {
           return true;
         }
-        _constraints.length = rewind;
       }
 
       // Or if `P` is `dynamic` or `void` and `Object` is a subtype match
@@ -203,7 +203,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             nodeForTesting: nodeForTesting)) {
           return true;
         }
-        _constraints.length = rewind;
       }
 
       // Or if `P` is a subtype match for `Q0` under non-empty
@@ -213,14 +212,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       if (P_matches_Q0 && _constraints.length != rewind) {
         return true;
       }
-      _constraints.length = rewind;
 
       // Or if `P` is a subtype match for `Null` under constraint set `C`.
       if (trySubtypeMatch(P, _typeSystem.nullNone, leftSchema,
           nodeForTesting: nodeForTesting)) {
         return true;
       }
-      _constraints.length = rewind;
 
       // Or if `P` is a subtype match for `Q0` under empty
       // constraint set `C`.
@@ -295,13 +292,11 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     //   If `B` is a subtype match for `Q` with constraint set `C`.
     // Note: we have already eliminated the case that `X` is a variable in `L`.
     if (P_nullability == NullabilitySuffix.none && P is TypeParameterTypeImpl) {
-      var rewind = _constraints.length;
       var B = P.promotedBound ?? P.element.bound;
       if (B != null &&
           trySubtypeMatch(B, Q, leftSchema, nodeForTesting: nodeForTesting)) {
         return true;
       }
-      _constraints.length = rewind;
     }
 
     bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
@@ -369,6 +364,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
   }
 
+  /// Matches [P] against [Q], where [P] and [Q] are both function types.
+  ///
+  /// If [P] is a subtype of [Q] under some constraints, the constraints making
+  /// the relation possible are recorded to [_constraints], and `true` is
+  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
+  /// and `false` is returned.
   bool _functionType(FunctionType P, FunctionType Q, bool leftSchema,
       {required AstNode? nodeForTesting}) {
     if (P.nullabilitySuffix != NullabilitySuffix.none) {
@@ -451,11 +452,18 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     return true;
   }
 
-  /// A function type `(M0,..., Mn, [M{n+1}, ..., Mm]) -> R0` is a subtype
-  /// match for a function type `(N0,..., Nk, [N{k+1}, ..., Nr]) -> R1` with
-  /// respect to `L` under constraints `C0 + ... + Cr + C`.
+  /// Matches [P] against [Q], where [P] and [Q] are both non-generic function
+  /// types.
+  ///
+  /// If [P] is a subtype of [Q] under some constraints, the constraints making
+  /// the relation possible are recorded to [_constraints], and `true` is
+  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
+  /// and `false` is returned.
   bool _functionType0(FunctionType f, FunctionType g, bool leftSchema,
       {required AstNode? nodeForTesting}) {
+    // A function type `(M0,..., Mn, [M{n+1}, ..., Mm]) -> R0` is a subtype
+    // match for a function type `(N0,..., Nk, [N{k+1}, ..., Nr]) -> R1` with
+    // respect to `L` under constraints `C0 + ... + Cr + C`.
     bool? result = performSubtypeConstraintGenerationForFunctionTypes(f, g,
         leftSchema: leftSchema, astNodeForTesting: nodeForTesting);
     if (result != null) {
@@ -464,12 +472,18 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     return false;
   }
 
-  /// If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match
-  /// holds under constraints `C0 + ... + Ck`:
-  ///   If `Mi` is a subtype match for `Ni` with respect to L under
-  ///   constraints `Ci`.
+  /// Matches [P] against [Q], where [P] and [Q] are both record types.
+  ///
+  /// If [P] is a subtype of [Q] under some constraints, the constraints making
+  /// the relation possible are recorded to [_constraints], and `true` is
+  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
+  /// and `false` is returned.
   bool _recordType(RecordTypeImpl P, RecordTypeImpl Q, bool leftSchema,
       {required AstNode? nodeForTesting}) {
+    // If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match
+    // holds under constraints `C0 + ... + Ck`:
+    //   If `Mi` is a subtype match for `Ni` with respect to L under
+    //   constraints `Ci`.
     if (P.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
     }

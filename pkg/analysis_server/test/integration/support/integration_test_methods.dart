@@ -1566,7 +1566,9 @@ abstract class IntegrationTest {
   ///
   /// lineLength: int (optional)
   ///
-  ///   The line length to be used by the formatter.
+  ///   The line length to be used by the formatter. This value is ignored if a
+  ///   formatter.page_width has been configured in the relevant
+  ///   analysis_options.yaml file.
   ///
   /// Returns
   ///

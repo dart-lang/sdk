@@ -55,6 +55,9 @@ class ConstructorMember extends ExecutableMember
   InterfaceElement get enclosingElement => declaration.enclosingElement;
 
   @override
+  InterfaceElement2 get enclosingElement2 => _element2.enclosingElement2;
+
+  @override
   InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
 
   @override

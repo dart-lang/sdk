@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/regexp_assembler_bytecode.h"
+#include "vm/regexp/regexp_assembler_bytecode.h"
 
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
-#include "vm/regexp.h"
-#include "vm/regexp_assembler.h"
-#include "vm/regexp_assembler_bytecode_inl.h"
-#include "vm/regexp_bytecodes.h"
-#include "vm/regexp_interpreter.h"
-#include "vm/regexp_parser.h"
+#include "vm/regexp/regexp.h"
+#include "vm/regexp/regexp_assembler.h"
+#include "vm/regexp/regexp_assembler_bytecode_inl.h"
+#include "vm/regexp/regexp_bytecodes.h"
+#include "vm/regexp/regexp_interpreter.h"
+#include "vm/regexp/regexp_parser.h"
 #include "vm/timeline.h"
 
 namespace dart {

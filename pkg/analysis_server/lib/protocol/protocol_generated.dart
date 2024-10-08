@@ -5830,7 +5830,9 @@ class EditFormatParams implements RequestParams {
   /// The length of the current selection in the file.
   int selectionLength;
 
-  /// The line length to be used by the formatter.
+  /// The line length to be used by the formatter. This value is ignored if a
+  /// formatter.page_width has been configured in the relevant
+  /// analysis_options.yaml file.
   int? lineLength;
 
   EditFormatParams(this.file, this.selectionOffset, this.selectionLength,

@@ -31,6 +31,11 @@
 #define __ assembler->
 
 namespace dart {
+
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+DECLARE_FLAG(bool, generate_probe_points);
+#endif
+
 namespace compiler {
 
 // Ensures that [RAX] is a new object, if not it will be added to the remembered
@@ -1240,6 +1245,34 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
   GenerateNoSuchMethodDispatcherBody(assembler, /*receiver_reg=*/RDX);
 }
 
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+void StubCodeCompiler::GenerateAllocationProbePointStub() {
+  if (!FLAG_generate_probe_points) {
+    __ Stop("unexpected invocation of an allocation probe");
+    return;
+  }
+
+  __ EnterStubFrame();
+  // Probe will be placed here by `runtime/tools/profiling/bin/set_uprobe.dart`.
+  const intptr_t probe_offset = __ CodeSize();
+  __ LeaveStubFrame();
+  __ Ret();
+  // This dummy instruction is encoding offset to the probe point. It will be
+  // used by set_uprobe.dart script.
+  __ TestImmediate(RAX, Immediate(probe_offset));
+}
+#endif
+
+static void InvokeAllocationProbePoint(Assembler* assembler) {
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+  if (FLAG_precompiled_mode && FLAG_generate_probe_points) {
+    __ EnterStubFrame();
+    __ Call(StubCode::AllocationProbePoint());
+    __ LeaveStubFrame();
+  }
+#endif
+}
+
 // Called for inline allocation of arrays.
 // Input registers (preserved):
 //   AllocateArrayABI::kLengthReg: array length as Smi.
@@ -1360,6 +1393,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop);
     __ WriteAllocationCanary(RCX);
+
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1393,6 +1428,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1411,6 +1447,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1859,6 +1896,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 
     // Done allocating and initializing the context.
     // RAX: new object.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -1879,7 +1917,6 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
-
   __ ret();
 }
 
@@ -1930,6 +1967,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
 
     // Done allocating and initializing the context.
     // RAX: new object.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -1952,7 +1990,6 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
-
   __ ret();
 }
 
@@ -2266,6 +2303,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&not_parameterized_case);
     }  // kTypeOffsetReg = RDI;
 
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -3869,6 +3907,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ j(UNSIGNED_LESS, &loop, Assembler::kNearJump);
 
     __ WriteAllocationCanary(RCX);  // Fix overshoot.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&call_runtime);

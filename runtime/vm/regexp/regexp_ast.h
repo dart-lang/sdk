@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_REGEXP_AST_H_
-#define RUNTIME_VM_REGEXP_AST_H_
+#ifndef RUNTIME_VM_REGEXP_REGEXP_AST_H_
+#define RUNTIME_VM_REGEXP_REGEXP_AST_H_
 
 #include "platform/globals.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
 
 namespace dart {
 
@@ -445,4 +445,4 @@ class RegExpEmpty : public RegExpTree {
 
 }  // namespace dart
 
-#endif  // RUNTIME_VM_REGEXP_AST_H_
+#endif  // RUNTIME_VM_REGEXP_REGEXP_AST_H_

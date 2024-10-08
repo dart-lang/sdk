@@ -2865,7 +2865,8 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dart2wasm"
+            "dart2wasm",
+            "create_sdk"
           ]
         },
         {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
 
 #include <memory>
 
@@ -12,15 +12,15 @@
 #include "unicode/uniset.h"
 
 #include "vm/dart_entry.h"
-#include "vm/regexp_assembler.h"
-#include "vm/regexp_assembler_bytecode.h"
-#include "vm/regexp_ast.h"
+#include "vm/regexp/regexp_assembler.h"
+#include "vm/regexp/regexp_assembler_bytecode.h"
+#include "vm/regexp/regexp_ast.h"
+#include "vm/regexp/unibrow-inl.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
-#include "vm/unibrow-inl.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/regexp_assembler_ir.h"
+#include "vm/regexp/regexp_assembler_ir.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #define Z (zone())

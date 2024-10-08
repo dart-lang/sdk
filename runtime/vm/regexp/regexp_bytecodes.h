@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_REGEXP_BYTECODES_H_
-#define RUNTIME_VM_REGEXP_BYTECODES_H_
+#ifndef RUNTIME_VM_REGEXP_REGEXP_BYTECODES_H_
+#define RUNTIME_VM_REGEXP_REGEXP_BYTECODES_H_
 
 namespace dart {
 
@@ -83,4 +83,4 @@ BYTECODE_ITERATOR(DECLARE_BYTECODE_LENGTH)
 
 }  // namespace dart
 
-#endif  // RUNTIME_VM_REGEXP_BYTECODES_H_
+#endif  // RUNTIME_VM_REGEXP_REGEXP_BYTECODES_H_

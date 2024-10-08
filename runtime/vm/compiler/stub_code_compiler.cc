@@ -3314,6 +3314,12 @@ void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
+#ifndef DART_TARGET_SUPPORTS_PROBE_POINTS
+void StubCodeCompiler::GenerateAllocationProbePointStub() {
+  __ Stop("allocation probes are not supported on this platform");
+}
+#endif
+
 }  // namespace compiler
 
 }  // namespace dart

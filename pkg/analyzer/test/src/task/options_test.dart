@@ -332,6 +332,73 @@ code-style:
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
   }
 
+  test_formatter_invalid_key() {
+    validate('''
+formatter:
+  wrong: 123
+''', [
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+    ]);
+  }
+
+  test_formatter_invalid_keys() {
+    validate('''
+formatter:
+  wrong: 123
+  wrong2: 123
+''', [
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+    ]);
+  }
+
+  test_formatter_pageWidth_invalid_decimal() {
+    validate('''
+formatter:
+  page_width: 123.45
+''', [
+      AnalysisOptionsWarningCode.INVALID_OPTION,
+    ]);
+  }
+
+  test_formatter_pageWidth_invalid_negativeInteger() {
+    validate('''
+formatter:
+  page_width: -123
+''', [
+      AnalysisOptionsWarningCode.INVALID_OPTION,
+    ]);
+  }
+
+  test_formatter_pageWidth_invalid_string() {
+    validate('''
+formatter:
+  page_width: "123"
+''', [AnalysisOptionsWarningCode.INVALID_OPTION]);
+  }
+
+  test_formatter_pageWidth_invalid_zero() {
+    validate('''
+formatter:
+  page_width: 0
+''', [
+      AnalysisOptionsWarningCode.INVALID_OPTION,
+    ]);
+  }
+
+  test_formatter_pageWidth_valid_integer() {
+    validate('''
+formatter:
+  page_width: 123
+''', []);
+  }
+
+  test_formatter_valid_empty() {
+    validate('''
+formatter:
+''', []);
+  }
+
   test_linter_supported_rules() {
     Registry.ruleRegistry.register(TestRule());
     validate('''

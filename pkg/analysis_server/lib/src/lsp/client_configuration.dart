@@ -286,7 +286,8 @@ class LspResourceClientConfiguration {
         true;
   }
 
-  /// The line length used when formatting documents.
+  /// The line length used when formatting documents if not specified in
+  /// `analysis_options.yaml`.
   ///
   /// If null, the formatters default will be used.
   int? get lineLength =>

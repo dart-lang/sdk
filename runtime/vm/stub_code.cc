@@ -24,6 +24,13 @@ namespace dart {
 
 DECLARE_FLAG(bool, precompiled_mode);
 
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+DEFINE_FLAG(bool,
+            generate_probe_points,
+            false,
+            "Generate probe points for installation of user space probes");
+#endif
+
 StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define STUB_CODE_DECLARE(name) {nullptr, #name},

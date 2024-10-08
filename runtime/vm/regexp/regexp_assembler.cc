@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/regexp_assembler.h"
+#include "vm/regexp/regexp_assembler.h"
 
 #include "unicode/uchar.h"
 
 #include "platform/unicode.h"
 
 #include "vm/flags.h"
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
+#include "vm/regexp/unibrow-inl.h"
 #include "vm/runtime_entry.h"
-#include "vm/unibrow-inl.h"
 
 namespace dart {
 

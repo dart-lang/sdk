@@ -1674,6 +1674,8 @@ class Harness {
 
   bool? _inferenceUpdate3Enabled;
 
+  bool? _inferenceUpdate4Enabled;
+
   bool? _patternsEnabled;
 
   Type? _thisType;
@@ -1702,6 +1704,9 @@ class Harness {
 
   bool get inferenceUpdate3Enabled =>
       _inferenceUpdate3Enabled ?? !operations.legacy;
+
+  bool get inferenceUpdate4Enabled =>
+      _inferenceUpdate4Enabled ?? !operations.legacy;
 
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
@@ -1785,6 +1790,11 @@ class Harness {
   void disableInferenceUpdate3() {
     assert(!_started);
     _inferenceUpdate3Enabled = false;
+  }
+
+  void disableInferenceUpdate4() {
+    assert(!_started);
+    _inferenceUpdate4Enabled = false;
   }
 
   void disablePatterns() {
@@ -1879,10 +1889,14 @@ class Harness {
                   SharedTypeView<Type>>.legacy(
               operations, visitor._assignedVariables)
           : FlowAnalysis<Node, Statement, Expression, Var,
-                  SharedTypeView<Type>>(operations, visitor._assignedVariables,
+              SharedTypeView<Type>>(
+              operations,
+              visitor._assignedVariables,
               respectImplicitlyTypedVarInitializers:
                   _respectImplicitlyTypedVarInitializers,
-              fieldPromotionEnabled: _fieldPromotionEnabled);
+              fieldPromotionEnabled: _fieldPromotionEnabled,
+              inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+            );
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);

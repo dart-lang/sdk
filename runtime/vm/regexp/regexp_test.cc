@@ -6,8 +6,8 @@
 
 #include "vm/isolate.h"
 #include "vm/object.h"
-#include "vm/regexp.h"
-#include "vm/regexp_assembler_ir.h"
+#include "vm/regexp/regexp.h"
+#include "vm/regexp/regexp_assembler_ir.h"
 #include "vm/unit_test.h"
 
 namespace dart {

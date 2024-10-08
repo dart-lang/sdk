@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:dart_style/src/dart_formatter.dart';
 import 'package:dart_style/src/exceptions.dart';
@@ -50,10 +51,17 @@ class EditFormatHandler extends LegacyHandler {
     );
 
     var driver = server.getAnalysisDriver(file);
-    var library = await driver?.getResolvedLibrary(file);
+    var unit = await driver?.getResolvedUnit(file);
+    var (pageWidth, effectiveLanguageVersion) = switch (unit) {
+      ResolvedUnitResult() => (
+          unit.analysisOptions.formatterOptions.pageWidth,
+          unit.libraryElement2.effectiveLanguageVersion,
+        ),
+      (_) => (null, null),
+    };
     var formatter = DartFormatter(
-        pageWidth: params.lineLength,
-        languageVersion: library.effectiveLanguageVersion);
+        pageWidth: pageWidth ?? params.lineLength,
+        languageVersion: effectiveLanguageVersion);
     SourceCode formattedResult;
     try {
       formattedResult = formatter.formatSource(code);

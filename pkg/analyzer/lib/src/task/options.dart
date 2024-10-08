@@ -239,6 +239,7 @@ class AnalyzerOptions {
   static const String enableExperiment = 'enable-experiment';
   static const String errors = 'errors';
   static const String exclude = 'exclude';
+  static const String formatter = 'formatter';
   static const String include = 'include';
   static const String language = 'language';
   static const String optionalChecks = 'optional-checks';
@@ -269,6 +270,9 @@ class AnalyzerOptions {
 
   /// Ways to say `include`.
   static const List<String> includeSynonyms = ['include', 'true'];
+
+  // Formatter options.
+  static const String pageWidth = 'page_width';
 
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 
@@ -648,6 +652,52 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   }
 }
 
+/// Validates `formatter` options.
+class FormatterOptionsValidator extends OptionsValidator {
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var formatter = options.valueAt(AnalyzerOptions.formatter);
+    if (formatter is YamlMap) {
+      for (var MapEntry(key: keyNode, value: valueNode)
+          in formatter.nodeMap.entries) {
+        if (keyNode.value == AnalyzerOptions.pageWidth) {
+          _validatePageWidth(keyNode, valueNode, reporter);
+        } else {
+          reporter.atSourceSpan(
+            keyNode.span,
+            AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+            arguments: [
+              AnalyzerOptions.formatter,
+              keyNode.toString(),
+            ],
+          );
+        }
+      }
+    } else if (formatter != null && formatter.value != null) {
+      reporter.atSourceSpan(
+        formatter.span,
+        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+        arguments: [AnalyzerOptions.formatter],
+      );
+    }
+  }
+
+  void _validatePageWidth(
+      YamlNode keyNode, YamlNode valueNode, ErrorReporter reporter) {
+    var value = valueNode.value;
+    if (value is! int || value <= 0) {
+      reporter.atSourceSpan(
+        valueNode.span,
+        AnalysisOptionsWarningCode.INVALID_OPTION,
+        arguments: [
+          keyNode.toString(),
+          '"page_width" must be a positive integer.',
+        ],
+      );
+    }
+  }
+}
+
 /// Validates `analyzer` language configuration options.
 class LanguageOptionValidator extends OptionsValidator {
   final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.languageOptions);
@@ -776,6 +826,7 @@ class OptionsFileValidator {
   }) : _validators = [
           AnalyzerOptionsValidator(),
           CodeStyleOptionsValidator(),
+          FormatterOptionsValidator(),
           LinterOptionsValidator(),
           LinterRuleOptionsValidator(
             provider: provider,
