@@ -43,7 +43,8 @@ declare_args() {
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2bytecode.snapshot (if dart_dynamic_modules)
-# ........dart2js.dart.snapshot
+# ........dart2js_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart2js.dart.snapshot (JIT snapshot only on ia32)
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
@@ -153,10 +154,6 @@ if (dart_dynamic_modules) {
 
 _full_sdk_snapshots = _platform_sdk_snapshots + [
                         [
-                          "dart2js",
-                          "../utils/compiler:dart2js",
-                        ],
-                        [
                           "dartdevc",
                           "../utils/ddc:dartdevc",
                         ],
@@ -165,6 +162,17 @@ _full_sdk_snapshots = _platform_sdk_snapshots + [
                           "../utils/bazel:kernel_worker",
                         ],
                       ]
+if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  _full_sdk_snapshots += [ [
+        "dart2js_aot",
+        "../utils/compiler:dart2js_sdk_aot",
+      ] ]
+} else {
+  _full_sdk_snapshots += [ [
+        "dart2js",
+        "../utils/compiler:dart2js",
+      ] ]
+}
 
 # Libraries that go under lib/
 _full_sdk_libraries = [
