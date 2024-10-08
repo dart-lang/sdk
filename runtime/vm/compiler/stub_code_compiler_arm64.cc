@@ -28,6 +28,10 @@
 #define __ assembler->
 
 namespace dart {
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+DECLARE_FLAG(bool, generate_probe_points);
+#endif
+
 namespace compiler {
 
 // Ensures that [R0] is a new object, if not it will be added to the remembered
@@ -1303,6 +1307,46 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
   GenerateNoSuchMethodDispatcherBody(assembler);
 }
 
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+void StubCodeCompiler::GenerateAllocationProbePointStub() {
+  if (!FLAG_generate_probe_points) {
+    __ Stop("unexpected invocation of an allocation probe");
+    return;
+  }
+
+  // Create a frame on the stack so that we could properly unwind.
+  // Our .eh_frame is very simple and specifies
+  //       CFA := FP+16; FP := *(FP+0); LR := *(FP+1);
+  // for the whole .text section.
+  __ EnterStubFrame();
+  // Restore native stack pointer (CSP). Dart SP is currently not
+  // the same because we do not follow ABI which requires native SP
+  // to be 16 bytes aligned. Restoring CSP is important for simpleperf
+  // to be able to unwind the stack - as it copies stack range starting
+  // at CSP before unwinding. If CSP is not restored we copy wrong part
+  // of the stack (CSP is bumped almost to the end of the thread stack).
+  __ andi(CSP, SP, Immediate(~15));
+  // Probe will be placed here by `runtime/tools/profiling/bin/set_uprobe.dart`.
+  const intptr_t probe_offset = __ CodeSize();
+  __ SetupCSPFromThread(THR);
+  __ LeaveStubFrame();
+  __ Ret();
+  // This dummy instruction is encoding offset to the probe point. It will be
+  // used by set_uprobe.dart script.
+  __ TestImmediate(R0, probe_offset);
+}
+#endif
+
+static void InvokeAllocationProbePoint(Assembler* assembler) {
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+  if (FLAG_precompiled_mode && FLAG_generate_probe_points) {
+    __ EnterStubFrame();
+    __ Call(StubCode::AllocationProbePoint());
+    __ LeaveStubFrame();
+  }
+#endif
+}
+
 // Called for inline allocation of arrays.
 // Input registers (preserved):
 //   LR: return address.
@@ -1442,6 +1486,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
     // AllocateArrayABI::kLengthReg: array length as Smi (preserved).
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1478,6 +1523,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1496,6 +1542,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1923,6 +1970,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 
     // Done allocating and initializing the context.
     // R0: new object.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -1999,6 +2047,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
 
     // Done allocating and initializing the context.
     // R0: new object.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -2345,6 +2394,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffsetReg = R5
 
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -3940,6 +3990,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ b(&loop, UNSIGNED_LESS);
     __ WriteAllocationCanary(R1);  // Fix overshoot.
 
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&call_runtime);
