@@ -31,39 +31,51 @@ LintConfig? processAnalysisOptionsFile(String fileContents, {String? fileUrl}) {
 }
 
 /// The configuration of lint rules within an analysis options file.
-abstract class LintConfig {
-  factory LintConfig.parse(String source, {String? sourceUrl}) =>
-      _LintConfig().._parse(source, sourceUrl: sourceUrl);
+class LintConfig {
+  final List<String> fileIncludes;
 
-  factory LintConfig.parseMap(YamlMap map) => _LintConfig().._parseYaml(map);
+  final List<String> fileExcludes;
 
-  List<String> get fileExcludes;
-  List<String> get fileIncludes;
-  List<RuleConfig> get ruleConfigs;
-}
+  final List<RuleConfig> ruleConfigs;
 
-/// The configuration of a single lint rule within an analysis options file.
-abstract class RuleConfig {
-  Map<String, dynamic> args = <String, dynamic>{};
-  String? get group;
-  String? get name;
+  LintConfig(this.fileIncludes, this.fileExcludes, this.ruleConfigs);
 
-  // Provisional
-  bool disables(String ruleName) =>
-      ruleName == name && args['enabled'] == false;
+  factory LintConfig.parse(String source, {String? sourceUrl}) {
+    var yaml = loadYamlNode(source,
+        sourceUrl: sourceUrl != null ? Uri.parse(sourceUrl) : null);
+    if (yaml is! YamlMap) {
+      throw StateError("Expected YAML at '$source' to be a Map, but is "
+          '${yaml.runtimeType}.');
+    }
 
-  bool enables(String ruleName) => ruleName == name && args['enabled'] == true;
-}
+    return LintConfig.parseMap(yaml);
+  }
 
-class _LintConfig implements LintConfig {
-  @override
-  final fileIncludes = <String>[];
-  @override
-  final fileExcludes = <String>[];
-  @override
-  final ruleConfigs = <RuleConfig>[];
+  factory LintConfig.parseMap(YamlMap yaml) {
+    var fileIncludes = <String>[];
+    var fileExcludes = <String>[];
+    var ruleConfigs = <RuleConfig>[];
 
-  void addAsListOrString(Object? value, List<String> list) {
+    yaml.nodes.forEach((key, value) {
+      if (key is! YamlScalar) {
+        return;
+      }
+      switch (key.toString()) {
+        case 'files':
+          if (value is YamlMap) {
+            _addAsListOrString(value['include'], fileIncludes);
+            _addAsListOrString(value['exclude'], fileExcludes);
+          }
+
+        case 'rules':
+          ruleConfigs.addAll(_ruleConfigs(value));
+      }
+    });
+
+    return LintConfig(fileIncludes, fileExcludes, ruleConfigs);
+  }
+
+  static void _addAsListOrString(Object? value, List<String> list) {
     if (value is List) {
       for (var entry in value) {
         list.add(entry as String);
@@ -73,105 +85,86 @@ class _LintConfig implements LintConfig {
     }
   }
 
-  bool? asBool(Object scalar) {
+  static bool? _asBool(YamlNode scalar) {
     var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
-    if (value is bool) {
-      return value;
-    }
-    if (value is String) {
-      if (value == 'true') {
-        return true;
-      }
-      if (value == 'false') {
-        return false;
-      }
-    }
-    return null;
+    return switch (value) {
+      bool() => value,
+      'true' => true,
+      'false' => false,
+      _ => null,
+    };
   }
 
-  String? asString(Object scalar) {
+  static String? _asString(Object scalar) {
     var value = scalar is YamlScalar ? scalar.value : scalar;
-    if (value is String) {
-      return value;
-    }
-    return null;
+    return value is String ? value : null;
   }
 
-  Map<String, dynamic>? parseArgs(Object args) {
-    var enabled = asBool(args);
+  static Map<String, bool> _parseArgs(YamlNode args) {
+    var enabled = _asBool(args);
     if (enabled != null) {
       return {'enabled': enabled};
     }
-    return null;
+    return {};
   }
 
-  void _parse(String src, {String? sourceUrl}) {
-    var yaml = loadYamlNode(src,
-        sourceUrl: sourceUrl != null ? Uri.parse(sourceUrl) : null);
-    if (yaml is YamlMap) {
-      _parseYaml(yaml);
+  static List<RuleConfig> _ruleConfigs(YamlNode value) {
+    // For example:
+    //
+    // ```yaml
+    // - unnecessary_getters
+    // - camel_case_types
+    // ```
+    if (value is YamlList) {
+      return [
+        for (var rule in value.nodes)
+          RuleConfig(name: _asString(rule), args: {'enabled': true}),
+      ];
     }
-  }
 
-  void _parseYaml(YamlMap yaml) {
-    yaml.nodes.forEach((k, v) {
-      if (k is! YamlScalar) {
-        return;
-      }
-      YamlScalar key = k;
-      switch (key.toString()) {
-        case 'files':
-          if (v is YamlMap) {
-            addAsListOrString(v['include'], fileIncludes);
-            addAsListOrString(v['exclude'], fileExcludes);
-          }
+    // style_guide: {unnecessary_getters: false, camel_case_types: true}
+    if (value is YamlMap) {
+      var ruleConfigs = <RuleConfig>[];
+      value.nodes.cast<Object, YamlNode>().forEach((key, value) {
+        // For example: `{unnecessary_getters: false}`.
+        var valueAsBool = _asBool(value);
+        if (valueAsBool != null) {
+          ruleConfigs.add(RuleConfig(
+            name: _asString(key),
+            args: {'enabled': valueAsBool},
+          ));
+        }
 
-        case 'rules':
+        // style_guide: {unnecessary_getters: false, camel_case_types: true}
+        if (value is YamlMap) {
+          value.nodes.cast<Object, YamlNode>().forEach((rule, args) {
+            // TODO(brianwilkerson): verify format.
+            // For example: `unnecessary_getters: false`.
+            ruleConfigs.add(RuleConfig(
+              name: _asString(rule),
+              args: _parseArgs(args),
+              group: _asString(key),
+            ));
+          });
+        }
+      });
+      return ruleConfigs;
+    }
 
-          // - unnecessary_getters
-          // - camel_case_types
-          if (v is YamlList) {
-            for (var rule in v.nodes) {
-              var config = _RuleConfig();
-              config.name = asString(rule);
-              config.args = {'enabled': true};
-              ruleConfigs.add(config);
-            }
-          }
-
-          // style_guide: {unnecessary_getters: false, camel_case_types: true}
-          if (v is YamlMap) {
-            v.nodes.cast<Object, YamlNode>().forEach((key, value) {
-              //{unnecessary_getters: false}
-              if (asBool(value) != null) {
-                var config = _RuleConfig();
-                config.name = asString(key);
-                config.args = {'enabled': asBool(value)};
-                ruleConfigs.add(config);
-              }
-
-              // style_guide: {unnecessary_getters: false, camel_case_types: true}
-              if (value is YamlMap) {
-                value.nodes.cast<Object, YamlNode>().forEach((rule, args) {
-                  // TODO(brianwilkerson): verify format
-                  // unnecessary_getters: false
-                  var config = _RuleConfig();
-                  config.group = asString(key);
-                  config.name = asString(rule);
-                  config.args = parseArgs(args) ?? {};
-                  ruleConfigs.add(config);
-                });
-              }
-            });
-          }
-      }
-    });
+    return const [];
   }
 }
 
-class _RuleConfig extends RuleConfig {
-  @override
-  String? group;
-  @override
-  String? name;
+/// The configuration of a single lint rule within an analysis options file.
+class RuleConfig {
+  final Map<String, bool> args;
+  final String? group;
+  final String? name;
+
+  RuleConfig({required this.name, required this.args, this.group});
+
+  bool disables(String ruleName) =>
+      ruleName == name && args['enabled'] == false;
+
+  bool enables(String ruleName) => ruleName == name && args['enabled'] == true;
 }
