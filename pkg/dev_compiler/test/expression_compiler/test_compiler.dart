@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show File;
 
+import 'package:dev_compiler/src/command/command.dart';
 import 'package:dev_compiler/src/command/options.dart' show Options;
-import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
 import 'package:dev_compiler/src/kernel/expression_compiler.dart'
     show ExpressionCompiler;

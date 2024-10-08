@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:dev_compiler/src/command/arguments.dart';
-import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/command/command.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 import 'package:testing/testing.dart';

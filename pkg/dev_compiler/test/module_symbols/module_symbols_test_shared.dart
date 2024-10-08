@@ -4,10 +4,10 @@
 
 import 'dart:io' show Directory, File;
 
+import 'package:dev_compiler/src/command/command.dart';
 import 'package:dev_compiler/src/command/options.dart' show Options;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
-import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
 import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:kernel/ast.dart' show Component, Library;

@@ -19,11 +19,11 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
+import '../command/command.dart';
 import '../command/options.dart' show Options;
 import '../compiler/js_names.dart';
 import '../compiler/module_builder.dart' show ModuleFormat, parseModuleFormat;
 import 'asset_file_system.dart';
-import 'command.dart';
 import 'compiler.dart' show ProgramCompiler;
 import 'expression_compiler.dart' show ExpressionCompiler;
 import 'target.dart' show DevCompilerTarget;

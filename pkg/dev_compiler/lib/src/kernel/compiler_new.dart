@@ -348,11 +348,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Table of named and possibly hoisted types.
   late TypeTable _typeTable;
 
-  /// Table of instantiated generic class references.
-  ///
-  /// Provides a cache for the instantiated generic types local to a module.
-  late TypeTable _genericClassTable;
-
   /// The global extension type table.
   // TODO(jmesserly): rename to `_nativeTypes`
   final NativeTypeSet _extensionTypes;
@@ -740,7 +735,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var items = _startLibrary(library);
     _nullableInference.allowNotNullDeclarations = _isBuildingSdk;
     _typeTable = TypeTable('T', _runtimeCall);
-    _genericClassTable = TypeTable('G', _runtimeCall);
     // Insert a circular reference so neither the constant table or its cache
     // are optimized away by V8. Required for expression evaluation.
     var constTableDeclaration =
@@ -932,9 +926,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     items.addAll(_typeTable.dischargeBoundTypes());
     _ticker?.logMs('Emitted type table');
 
-    // Emit the hoisted instantiated generic class table cache variables
-    items.addAll(_genericClassTable.dischargeBoundTypes());
-    _ticker?.logMs('Emitted instantiated generic class table');
     var compiledLibrary = _finishLibrary(
         items, '${library.importUri}', _emitLibraryName(library));
     _ticker?.logMs('Finished emitting module');
@@ -3580,7 +3571,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _uriContainer = ModuleItemContainer<String>.asArray('I');
 
     _typeTable.typeContainer.setIncrementalMode();
-    _genericClassTable.typeContainer.setIncrementalMode();
   }
 
   /// Emits function after initial compilation.
@@ -3627,7 +3617,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var body = js_ast.Block([
       ...extensionSymbols,
       ..._typeTable.dischargeBoundTypes(),
-      ..._genericClassTable.dischargeBoundTypes(),
       ..._symbolContainer.emit(),
       ..._emitConstTable(),
       ..._uriContainer.emit(),

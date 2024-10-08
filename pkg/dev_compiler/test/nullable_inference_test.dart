@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
-import 'package:dev_compiler/src/command/options.dart';
-import 'package:dev_compiler/src/kernel/command.dart'
+import 'package:dev_compiler/src/command/command.dart'
     show addGeneratedVariables, getSdkPath;
+import 'package:dev_compiler/src/command/options.dart';
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
