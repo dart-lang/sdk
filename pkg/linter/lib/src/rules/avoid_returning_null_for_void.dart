@@ -45,12 +45,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      _visit(node, node.expression);
+    if (node.expression case var nodeExpression?) {
+      _visit(node, nodeExpression);
     }
   }
 
-  void _visit(AstNode node, Expression? expression) {
+  void _visit(AstNode node, Expression expression) {
     if (expression is! NullLiteral) {
       return;
     }
@@ -59,20 +59,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         (e) => e is FunctionExpression || e is MethodDeclaration);
     if (parent == null) return;
 
-    DartType? type;
-    bool? isAsync;
-    LintCode code;
-    if (parent is FunctionExpression) {
-      type = parent.declaredElement?.returnType;
-      isAsync = parent.body.isAsynchronous;
-      code = LinterLintCode.avoid_returning_null_for_void_from_function;
-    } else if (parent is MethodDeclaration) {
-      type = parent.declaredElement?.returnType;
-      isAsync = parent.body.isAsynchronous;
-      code = LinterLintCode.avoid_returning_null_for_void_from_method;
-    } else {
-      throw StateError('unexpected type');
-    }
+    var (type, isAsync, code) = switch (parent) {
+      FunctionExpression() => (
+          parent.declaredElement?.returnType,
+          parent.body.isAsynchronous,
+          LinterLintCode.avoid_returning_null_for_void_from_function,
+        ),
+      MethodDeclaration() => (
+          parent.declaredElement?.returnType,
+          parent.body.isAsynchronous,
+          LinterLintCode.avoid_returning_null_for_void_from_method,
+        ),
+      _ => throw StateError('Unexpected type'),
+    };
     if (type == null) return;
 
     if (!isAsync && type is VoidType) {

@@ -15,6 +15,8 @@ import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:kernel/ast.dart' show clearDummyTreeNodesParentPointer;
 
+import 'src/command/arguments.dart';
+import 'src/command/result.dart';
 import 'src/compiler/shared_command.dart';
 import 'src/kernel/command.dart';
 import 'src/kernel/expression_compiler_worker.dart';

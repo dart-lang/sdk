@@ -1261,7 +1261,7 @@ bool GraphEntryInstr::IsCompiledForOsr() const {
     visitor->Visit##ShortName(this);                                           \
   }
 
-FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
+FOR_EACH_CONCRETE_INSTRUCTION(DEFINE_ACCEPT)
 
 #undef DEFINE_ACCEPT
 
@@ -1617,7 +1617,7 @@ bool Instruction::HasUnmatchedInputRepresentations() const {
 
 const intptr_t Instruction::kInstructionAttrs[Instruction::kNumInstructions] = {
 #define INSTR_ATTRS(type, attrs) InstrAttrs::attrs,
-    FOR_EACH_INSTRUCTION(INSTR_ATTRS)
+    FOR_EACH_CONCRETE_INSTRUCTION(INSTR_ATTRS)
 #undef INSTR_ATTRS
 };
 

@@ -19,6 +19,9 @@ import 'package:kernel/text/debug_printer.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
+import '../command/arguments.dart';
+import '../command/options.dart';
+import '../command/result.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
@@ -110,7 +113,7 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
         help: 'If set, the file to record inputs used.', hide: true);
-  SharedCompilerOptions.addArguments(argParser);
+  Options.addArguments(argParser);
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   ArgResults argResults;
   try {
@@ -138,7 +141,7 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(0);
   }
 
-  var options = SharedCompilerOptions.fromArguments(argResults);
+  var options = Options.fromArguments(argResults);
   addGeneratedVariables(declaredVariables,
       enableAsserts: options.enableAsserts);
 
@@ -539,7 +542,7 @@ Future<CompilerResult> _compile(List<String> args,
 // TODO(sigmund): refactor the underlying pieces to reduce the code duplication.
 Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var argParser = ArgParser(allowTrailingOptions: true);
-  SharedCompilerOptions.addSdkRequiredArguments(argParser);
+  Options.addSdkRequiredArguments(argParser);
 
   ArgResults argResults;
   try {
@@ -589,7 +592,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   }
   var coreTypes = CoreTypes(component);
   var hierarchy = ClassHierarchy(component, coreTypes);
-  var options = SharedCompilerOptions.fromSdkRequiredArguments(argResults);
+  var options = Options.fromSdkRequiredArguments(argResults);
 
   var compiler = options.emitLibraryBundle
       ? LibraryBundleCompiler(component, hierarchy, options, const {}, const {},

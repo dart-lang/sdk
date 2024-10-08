@@ -419,6 +419,12 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The parts included by this unit.
   List<PartElement> get parts;
 
+  /// The scope used to resolve names within this compilation unit.
+  ///
+  /// It includes all of the elements that are declared in the library, and all
+  /// of the elements imported into this unit or parent units.
+  Scope get scope;
+
   @override
   AnalysisSession get session;
 
@@ -2094,6 +2100,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   ///
   /// It consists of elements that are either declared in the library, or
   /// imported into it.
+  @Deprecated('Use CompilationUnitElement.scope')
   Scope get scope;
 
   @override

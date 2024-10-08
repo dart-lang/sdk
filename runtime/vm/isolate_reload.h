@@ -379,9 +379,7 @@ class ProgramReloadContext {
   void AddLibraryMapping(const Library& replacement_or_new,
                          const Library& original);
   void AddStaticFieldMapping(const Field& old_field, const Field& new_field);
-  void AddBecomeMapping(const Object& old,
-                        const Object& neu,
-                        const char* whence);
+  void AddBecomeMapping(const Object& old, const Object& neu);
   void RestoreClassHierarchyInvariants();
 
   Become become_;

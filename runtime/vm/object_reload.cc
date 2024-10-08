@@ -338,7 +338,7 @@ void Class::MigrateImplicitStaticClosures(ProgramReloadContext* irc,
         if (old_closure.IsCanonical()) {
           new_closure.SetCanonical();
         }
-        irc->AddBecomeMapping(old_closure, new_closure, "static tear-off");
+        irc->AddBecomeMapping(old_closure, new_closure);
       }
     }
   }
@@ -758,7 +758,7 @@ void Library::CheckReload(const Library& replacement,
       // The replacement of the old prefix with the new prefix
       // in Isolate::loaded_prefixes_set_ implicitly carried
       // the loaded state over to the new prefix.
-      context->AddBecomeMapping(original_prefix, prefix, "library prefix");
+      context->AddBecomeMapping(original_prefix, prefix);
     }
   }
 }

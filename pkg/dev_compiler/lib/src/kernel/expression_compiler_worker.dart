@@ -19,9 +19,9 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
+import '../command/options.dart' show Options;
 import '../compiler/js_names.dart';
 import '../compiler/module_builder.dart' show ModuleFormat, parseModuleFormat;
-import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import 'asset_file_system.dart';
 import 'command.dart';
 import 'compiler.dart' show ProgramCompiler;
@@ -468,7 +468,7 @@ class ExpressionCompilerWorker {
     var kernel2jsCompiler = ProgramCompiler(
       finalComponent,
       hierarchy,
-      SharedCompilerOptions(
+      Options(
         sourceMap: true,
         summarizeApi: false,
         moduleName: moduleName,

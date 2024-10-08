@@ -98,7 +98,8 @@ class Become {
   Become();
   ~Become();
 
-  void Add(const Object& before, const Object& after, const char* whence);
+  void Add(const Object& before, const Object& after);
+
   void Forward();
   void Exchange() { UNIMPLEMENTED(); }
 
@@ -115,7 +116,6 @@ class Become {
 
  private:
   MallocGrowableArray<ObjectPtr> pointers_;
-  MallocGrowableArray<const char*> whence_;
   DISALLOW_COPY_AND_ASSIGN(Become);
 };
 
