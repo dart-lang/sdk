@@ -1553,8 +1553,8 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ConstructorElement2 get baseElement => this;
 
   @override
-  Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as InstanceFragment).element;
+  InterfaceElement2 get enclosingElement2 =>
+      (firstFragment._enclosingElement3 as InterfaceFragment).element;
 
   @override
   bool get isConst => firstFragment.isConst;

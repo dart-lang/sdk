@@ -202,6 +202,9 @@ abstract class ConstructorElement2
   ConstructorElement2 get baseElement;
 
   @override
+  InterfaceElement2 get enclosingElement2;
+
+  @override
   ConstructorFragment? get firstFragment;
 
   /// Whether the constructor is a const constructor.

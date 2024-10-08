@@ -38,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.constructorName.element?.enclosingElement2;
     if (element == null) return;
 
-    if (element.name == 'RegExp' && (element.library2?.isDartCore ?? false)) {
+    if (element.name == 'RegExp' && element.library2.isDartCore) {
       var args = node.argumentList.arguments;
       if (args.isEmpty) return;
 

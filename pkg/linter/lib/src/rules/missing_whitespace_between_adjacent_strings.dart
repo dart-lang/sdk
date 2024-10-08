@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.element;
-      return constructorElement?.enclosingElement2?.name == 'RegExp';
+      return constructorElement?.enclosingElement2.name == 'RegExp';
     }
     return false;
   }
