@@ -117,33 +117,21 @@ class ExtensionMemberResolver {
     }
 
     // The most specific extension is ambiguous.
-    if (mostSpecific.length == 2) {
-      _errorReporter.atEntity(
-        nameEntity,
-        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
-        arguments: [
-          name.name,
-          mostSpecific[0].extension,
-          mostSpecific[1].extension,
-        ],
-      );
-    } else {
-      _errorReporter.atEntity(
-        nameEntity,
-        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
-        arguments: [
-          name.name,
-          mostSpecific.map((e) {
-            var name = e.extension.name;
-            if (name != null) {
-              return "extension '$name'";
-            }
-            var type = e.extension.extendedType.getDisplayString();
-            return "unnamed extension on '$type'";
-          }).commaSeparatedWithAnd,
-        ],
-      );
-    }
+    _errorReporter.atEntity(
+      nameEntity,
+      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+      arguments: [
+        name.name,
+        mostSpecific.map((e) {
+          var name = e.extension.name;
+          if (name != null) {
+            return "extension '$name'";
+          }
+          var type = e.extension.extendedType.getDisplayString();
+          return "unnamed extension on '$type'";
+        }).commaSeparatedWithAnd,
+      ],
+    );
     return ResolutionResult.ambiguous;
   }
 
