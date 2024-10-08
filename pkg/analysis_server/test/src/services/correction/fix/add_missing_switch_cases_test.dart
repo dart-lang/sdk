@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -165,6 +165,99 @@ int f() {
 ''');
   }
 
+  Future<void> test_enum_privateEnum() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum _E {
+  first, second
+}
+
+var e = _E.first;
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+int f() {
+  return switch (e) {
+  };
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+
+int f() {
+  return switch (e) {
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
+  Future<void> test_enum_privateMemberInOtherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {
+  first, second, _unknown
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+int f(E x) {
+  return switch (x) {
+    E.first => 0,
+  };
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+
+int f(E x) {
+  return switch (x) {
+    E.first => 0,
+    // TODO: Handle this case.
+    E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
+  Future<void> test_enum_privateMemberInSameLibrary() async {
+    await resolveTestCode('''
+enum E {
+  first, second, _unknown
+}
+
+int f(E x) {
+  return switch (x) {
+    E.first => 0,
+  };
+}
+''');
+    await assertHasFix(
+      '''
+enum E {
+  first, second, _unknown
+}
+
+int f(E x) {
+  return switch (x) {
+    E.first => 0,
+    // TODO: Handle this case.
+    E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    E._unknown => throw UnimplementedError(),
+  };
+}
+''',
+      errorFilter: (e) =>
+          e.errorCode == CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
+    );
+  }
+
   Future<void> test_num_anyDouble_intProperty() async {
     await resolveTestCode('''
 int f(num x) {
@@ -304,10 +397,13 @@ void f(E e) {
   switch (e) {
     case E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.c:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -326,13 +422,108 @@ void f(E e) {
   switch (e) {
     case E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.c:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
+  }
+
+  Future<void> test_enum_privateEnum() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum _E {
+  first, second
+}
+
+var e = _E.first;
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+void f() {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+
+void f() {
+  switch (e) {
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_enum_privateMemberInOtherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b, _c}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case E.b:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_enum_privateMemberInSameLibrary() async {
+    await resolveTestCode('''
+enum E {a, b, _c}
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix(
+      '''
+enum E {a, b, _c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case E.b:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case E._c:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''',
+      errorFilter: (e) =>
+          e.errorCode == CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+    );
   }
 
   Future<void> test_final() async {
@@ -363,8 +554,10 @@ void f(E e) {
   switch (e) {
     case E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -389,8 +582,10 @@ void f(my.E e) {
   switch (e) {
     case my.E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case my.E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -417,8 +612,10 @@ void f(my.E e) {
   switch (e) {
     case my.E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case my.E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -451,8 +648,10 @@ void f(my.E e) {
   switch (e) {
     case my.E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case my.E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -479,8 +678,10 @@ void f(my.E e) {
   switch (e) {
     case E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -514,10 +715,13 @@ void f(E e) {
   switch (e) {
     case E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.c:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -541,8 +745,10 @@ void f(E? e) {
     case null:
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.c:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -570,8 +776,10 @@ void f(E? e) {
     case E.b:
     case E.c:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case null:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -591,6 +799,7 @@ void f(num x) {
     case double():
     case int():
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -612,6 +821,7 @@ void f(num x) {
     case int(hashCode: 5):
     case int():
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -628,8 +838,10 @@ void f(num x) {
   switch (x) {
     case double():
       // TODO: Handle this case.
+      throw UnimplementedError();
     case int():
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');
@@ -661,8 +873,10 @@ void f(E e) {
   switch (e) {
     case E.a:
       // TODO: Handle this case.
+      throw UnimplementedError();
     case E.b:
       // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 ''');

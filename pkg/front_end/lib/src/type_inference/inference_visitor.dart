@@ -601,7 +601,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.expression = expressionResult.expression..parent = node;
     assert(
         expressionResult.inferredType is FunctionType,
-        // Coverage-ignore(suite): Not run.
         "Expected a FunctionType from tearing off a constructor from "
         "a typedef, but got '${expressionResult.inferredType.runtimeType}'.");
     FunctionType expressionType = expressionResult.inferredType as FunctionType;
@@ -1500,9 +1499,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Returns the function type of [factory] when called through [typedef].
   FunctionType _computeAliasedFactoryFunctionType(
       Procedure factory, Typedef typedef) {
-    assert(
-        factory.isFactory || factory.isExtensionTypeMember,
-        // Coverage-ignore(suite): Not run.
+    assert(factory.isFactory || factory.isExtensionTypeMember,
         "Only run this method on a factory: $factory");
     ensureMemberType(factory);
     FunctionNode function = factory.function;
@@ -2414,9 +2411,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType inferredTypeArgument,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
-    // TODO(cstefantsova): Ensure the flow analysis is properly invoked when it
-    // supports null-aware elements.
-
     ExpressionInferenceResult expressionResult = inferElement(
         element.expression,
         inferredTypeArgument.withDeclaredNullability(Nullability.nullable),
@@ -2888,7 +2882,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null);
+          gatherer, typeParametersToInfer, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -2906,7 +2904,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!);
+          gatherer, typeParametersToInfer, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -4189,9 +4191,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _createAdd(
       Expression receiver, InterfaceType receiverType, Expression argument,
       {required bool isSet}) {
-    assert(
-        argument.fileOffset != TreeNode.noOffset,
-        // Coverage-ignore(suite): Not run.
+    assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(
@@ -4206,9 +4206,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createAddAll(Expression receiver, InterfaceType receiverType,
       Expression argument, bool isSet) {
-    assert(
-        argument.fileOffset != TreeNode.noOffset,
-        // Coverage-ignore(suite): Not run.
+    assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(isSet
@@ -4224,9 +4222,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createMapAddAll(
       Expression receiver, InterfaceType receiverType, Expression argument) {
-    assert(
-        argument.fileOffset != TreeNode.noOffset,
-        // Coverage-ignore(suite): Not run.
+    assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(engine.mapAddAllFunctionType);
@@ -4596,9 +4592,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes,
       _MapLiteralEntryOffsets offsets) {
-    // TODO(cstefantsova): Make sure flow analysis is invoked here when it's
-    // implemented.
-
     DartType adjustedInferredKeyType = entry.isKeyNullAware
         ? inferredKeyType.withDeclaredNullability(Nullability.nullable)
         : inferredKeyType;
@@ -4610,6 +4603,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             isVoidAllowed: inferredKeyType is VoidType)
         .expression;
     entry.key = key..parent = entry;
+
+    flowAnalysis.nullAwareMapEntry_valueBegin(
+        key, new SharedTypeView(keyInferenceResult.inferredType),
+        isKeyNullAware: entry.isKeyNullAware);
 
     DartType adjustedInferredValueType = entry.isValueNullAware
         ? inferredValueType.withDeclaredNullability(Nullability.nullable)
@@ -4627,6 +4624,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     actualTypesForSet.add(const DynamicType());
 
     offsets.mapEntryOffset = entry.fileOffset;
+
+    flowAnalysis.nullAwareMapEntry_end(isKeyNullAware: entry.isKeyNullAware);
 
     return entry;
   }
@@ -5322,7 +5321,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null);
+          gatherer, typeParametersToInfer, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
     } else {
@@ -5399,12 +5402,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     // Coverage-ignore(suite): Not run.
                     ?.typeInferenceResult,
                 treeNodeForTesting: node);
-        List<DartType> inferredTypesForSet = typeSchemaEnvironment
-            .choosePreliminaryTypes(gatherer, typeParametersToInfer, null);
+        List<DartType> inferredTypesForSet =
+            typeSchemaEnvironment.choosePreliminaryTypes(gatherer,
+                typeParametersToInfer, /* previouslyInferredTypes= */ null,
+                inferenceUsingBoundsIsEnabled:
+                    libraryFeatures.inferenceUsingBounds.isEnabled,
+                dataForTesting: dataForTesting,
+                treeNodeForTesting: node);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet,
             treeNodeForTesting: node);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParametersToInfer, inferredTypesForSet);
+            gatherer, typeParametersToInfer, inferredTypesForSet,
+            inferenceUsingBoundsIsEnabled:
+                libraryFeatures.inferenceUsingBounds.isEnabled,
+            dataForTesting: dataForTesting,
+            treeNodeForTesting: node);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         instrumentation?.record(
             uriForInstrumentation,
@@ -5442,7 +5454,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!);
+          gatherer, typeParametersToInfer, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -6132,9 +6148,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    assert(
-        indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
-        // Coverage-ignore(suite): Not run.
+    assert(indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
         'Unexpected index set target $indexSetTarget.');
     instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
         new InstrumentationValueForMember(node.setter));
@@ -6778,7 +6792,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         equalsTarget.isInstanceMember ||
             equalsTarget.isObjectMember ||
             equalsTarget.isNever,
-        // Coverage-ignore(suite): Not run.
         "Unexpected equals target $equalsTarget for "
         "$left ($leftType) == $right.");
     if (instrumentation != null && leftType == const DynamicType()) {
@@ -8684,7 +8697,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null);
+          gatherer, typeParametersToInfer, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -8703,7 +8720,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!);
+          gatherer, typeParametersToInfer, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: node);
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -10132,9 +10153,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (entry is! NullValue) {
       return entry;
     }
-    assert(
-        nullValue == entry,
-        // Coverage-ignore(suite): Not run.
+    assert(nullValue == entry,
         "Unexpected null value. Expected ${nullValue}, actual $entry");
     return null;
   }
@@ -11804,7 +11823,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 ?.typeInferenceResult,
             treeNodeForTesting: treeNodeForTesting);
     return typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParametersToInfer, null);
+        gatherer, typeParametersToInfer, null,
+        inferenceUsingBoundsIsEnabled:
+            libraryFeatures.inferenceUsingBounds.isEnabled,
+        dataForTesting: dataForTesting,
+        treeNodeForTesting: treeNodeForTesting);
   }
 
   @override

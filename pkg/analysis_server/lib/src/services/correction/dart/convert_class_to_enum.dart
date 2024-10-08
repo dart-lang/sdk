@@ -12,7 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -39,12 +39,12 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!libraryElement.featureSet.isEnabled(Feature.enhanced_enums)) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.enhanced_enums)) {
       // If the library doesn't support enhanced_enums then the class can't be
       // converted.
       return;
     }
-    if (libraryElement.units.length > 1) {
+    if (libraryElement2.fragments.length > 1) {
       // If the library has any part files, then the class can't be converted
       // because we don't currently have a performant way to access the ASTs for
       // the parts to check for invocations of the constructors or subclasses of
@@ -67,17 +67,17 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].
 class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
-  final ClassElement classElement;
+  final ClassElement2 classElement;
 
   _BaseVisitor(this.classElement);
 
   /// Return `true` if the given [node] is an invocation of a generative
   /// constructor from the class being converted.
   bool invokesGenerativeConstructor(InstanceCreationExpression node) {
-    var constructorElement = node.constructorName.staticElement;
+    var constructorElement = node.constructorName.element;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement3 == classElement;
+        constructorElement.enclosingElement2 == classElement;
   }
 }
 
@@ -93,7 +93,7 @@ class _CannotConvertException implements Exception {
 /// replaced by an enum constant.
 class _ConstantField extends _Field {
   /// The element representing the constructor used to initialize the field.
-  ConstructorElement constructorElement;
+  ConstructorElement2 constructorElement;
 
   /// The invocation of the constructor.
   final InstanceCreationExpression instanceCreation;
@@ -117,7 +117,7 @@ class _Constructor {
   final ConstructorDeclaration declaration;
 
   /// The element representing the constructor.
-  final ConstructorElement element;
+  final ConstructorElement2 element;
 
   _Constructor(this.declaration, this.element);
 }
@@ -125,7 +125,7 @@ class _Constructor {
 /// Information about the constructors in the class being converted.
 class _Constructors {
   /// A map from elements to constructors.
-  final Map<ConstructorElement, _Constructor> byElement = {};
+  final Map<ConstructorElement2, _Constructor> byElement = {};
 
   _Constructors();
 
@@ -138,7 +138,7 @@ class _Constructors {
   }
 
   /// Return the constructor with the given [element].
-  _Constructor? forElement(ConstructorElement element) {
+  _Constructor? forElement(ConstructorElement2 element) {
     return byElement[element];
   }
 }
@@ -360,7 +360,7 @@ class _EnumDescription {
   static _EnumDescription? fromClass(ClassDeclaration node,
       {required bool strictCasts}) {
     // The class must be a concrete class.
-    var classElement = node.declaredElement;
+    var classElement = node.declaredFragment?.element;
     if (classElement == null || classElement.isAbstract) {
       return null;
     }
@@ -427,7 +427,7 @@ class _EnumDescription {
   /// converted.
   static _Constructors _computeUsedConstructors(
       _Constructors constructors, _Fields fields) {
-    var usedElements = <ConstructorElement>{};
+    var usedElements = <ConstructorElement2>{};
     for (var field in fields.fieldsToConvert) {
       usedElements.add(field.constructorElement);
     }
@@ -506,9 +506,9 @@ class _EnumDescription {
     var parameters = constructor.declaration.parameters.parameters;
     var indexFieldElement = indexField.element;
     for (var i = 0; i < parameters.length; i++) {
-      var element = parameters[i].declaredElement;
-      if (element is FieldFormalParameterElement) {
-        if (element.field == indexFieldElement) {
+      var element = parameters[i].declaredFragment!.element;
+      if (element is FieldFormalParameterElement2) {
+        if (element.field2 == indexFieldElement) {
           if (element.isPositional) {
             return _Parameter(i, element);
           } else {
@@ -525,12 +525,12 @@ class _EnumDescription {
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Constructors? _validateConstructors(
-      ClassDeclaration classDeclaration, ClassElement classElement) {
+      ClassDeclaration classDeclaration, ClassElement2 classElement) {
     var constructors = _Constructors();
     for (var member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
-        var constructor = member.declaredElement;
-        if (constructor is ConstructorElement) {
+        var constructor = member.declaredFragment?.element;
+        if (constructor is ConstructorElement2) {
           if (!classElement.isPrivate && !constructor.isPrivate) {
             // Public constructor in public enum.
             return null;
@@ -553,7 +553,7 @@ class _EnumDescription {
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Fields? _validateFields(
-      ClassDeclaration classDeclaration, ClassElement classElement,
+      ClassDeclaration classDeclaration, ClassElement2 classElement,
       {required bool strictCasts}) {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
     _Field? indexField;
@@ -564,8 +564,8 @@ class _EnumDescription {
         var fields = fieldList.variables;
         if (member.isStatic) {
           for (var field in fields) {
-            var fieldElement = field.declaredElement;
-            if (fieldElement is FieldElement) {
+            var fieldElement = field.declaredFragment?.element;
+            if (fieldElement is FieldElement2) {
               var fieldType = fieldElement.type;
               // The field can be converted to be an enum constant if it
               // - is a const field,
@@ -574,14 +574,13 @@ class _EnumDescription {
               //   class.
               if (fieldElement.isConst &&
                   fieldType is InterfaceType &&
-                  fieldType.element == classElement) {
+                  fieldType.element3 == classElement) {
                 var initializer = field.initializer;
                 if (initializer is InstanceCreationExpression) {
-                  var constructorElement =
-                      initializer.constructorName.staticElement;
+                  var constructorElement = initializer.constructorName.element;
                   if (constructorElement != null &&
                       !constructorElement.isFactory &&
-                      constructorElement.enclosingElement3 == classElement) {
+                      constructorElement.enclosingElement2 == classElement) {
                     var fieldValue = fieldElement.computeConstantValue();
                     if (fieldValue != null) {
                       if (fieldList.variables.length != 1) {
@@ -611,8 +610,8 @@ class _EnumDescription {
               // Non-final instance field.
               return null;
             }
-            var fieldElement = field.declaredElement;
-            if (fieldElement is FieldElement) {
+            var fieldElement = field.declaredFragment?.element;
+            if (fieldElement is FieldElement2) {
               var fieldType = fieldElement.type;
               if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
                 indexField = _Field(fieldElement, field, fieldList, member);
@@ -696,7 +695,7 @@ class _EnumVisitor extends _BaseVisitor {
 /// A representation of a field of interest in the class being converted.
 class _Field {
   /// The element representing the field.
-  final FieldElement element;
+  final FieldElement2 element;
 
   /// The declaration of the field.
   final VariableDeclaration declaration;
@@ -737,18 +736,18 @@ class _NonEnumVisitor extends _BaseVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element == null) {
       throw _CannotConvertException('Unresolved');
     }
     if (element != classElement) {
-      if (element.supertype?.element == classElement) {
+      if (element.supertype?.element3 == classElement) {
         throw _CannotConvertException('Class is extended');
       } else if (element.interfaces
-          .map((e) => e.element)
+          .map((e) => e.element3)
           .contains(classElement)) {
         throw _CannotConvertException('Class is implemented');
-      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element3).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.
@@ -776,7 +775,7 @@ class _Parameter {
   final int index;
 
   /// The element associated with the parameter.
-  final ParameterElement element;
+  final FormalParameterElement element;
 
   _Parameter(this.index, this.element);
 
@@ -784,6 +783,6 @@ class _Parameter {
   /// parameter, or `null` if there is no such argument.
   Expression? getArgument(NodeList<Expression> arguments) {
     return arguments.firstWhereOrNull(
-        (argument) => argument.staticParameterElement == element);
+        (argument) => argument.correspondingParameter == element);
   }
 }

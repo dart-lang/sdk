@@ -62,16 +62,33 @@ void SSLCertContext::TrustBuiltinRoots() {
     // discussion of the complexities of this endeavor can be found here:
     //
     // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
-    const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
-    const char* cachedir = "/etc/ssl/certs";
-    if (File::Exists(nullptr, bundle)) {
-      LoadRootCertFile(bundle);
-      return;
+    //
+    // This set of locations was copied from gRPC.
+    const char* kCertFiles[] = {
+        "/etc/ssl/certs/ca-certificates.crt",
+        "/etc/pki/tls/certs/ca-bundle.crt",
+        "/etc/ssl/ca-bundle.pem",
+        "/etc/pki/tls/cacert.pem",
+        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+    };
+    const char* kCertDirectories[] = {
+        "/etc/ssl/certs",         "/system/etc/security/cacerts",
+        "/usr/local/share/certs", "/etc/pki/tls/certs",
+        "/etc/openssl/certs",
+    };
+    for (size_t i = 0; i < ARRAY_SIZE(kCertFiles); i++) {
+      const char* bundle = kCertFiles[i];
+      if (File::Exists(nullptr, bundle)) {
+        LoadRootCertFile(bundle);
+        return;
+      }
     }
-
-    if (Directory::Exists(nullptr, cachedir) == Directory::EXISTS) {
-      LoadRootCertCache(cachedir);
-      return;
+    for (size_t i = 0; i < ARRAY_SIZE(kCertDirectories); i++) {
+      const char* cachedir = kCertDirectories[i];
+      if (Directory::Exists(nullptr, cachedir) == Directory::EXISTS) {
+        LoadRootCertCache(cachedir);
+        return;
+      }
     }
 #endif
   }

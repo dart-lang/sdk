@@ -5,52 +5,18 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Tighten type of initializing formal.';
 
-const _details = r'''
-Tighten the type of an initializing formal if a non-null assert exists. This
-allows the type system to catch problems rather than have them only be caught at
-run-time.
-
-**BAD:**
-```dart
-class A {
-  A.c1(this.p) : assert(p != null);
-  A.c2(this.p);
-  final String? p;
-}
-```
-
-**GOOD:**
-```dart
-class A {
-  A.c1(String this.p);
-  A.c2(this.p);
-  final String? p;
-}
-
-class B {
-  String? b;
-  B(this.b);
-}
-
-class C extends B {
-  B(String super.b);
-}
-```
-''';
-
 class TightenTypeOfInitializingFormals extends LintRule {
   TightenTypeOfInitializingFormals()
       : super(
-          name: 'tighten_type_of_initializing_formals',
+          name: LintNames.tighten_type_of_initializing_formals,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -85,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             var staticType = leftOperand.staticType;
             if (staticType != null &&
                 context.typeSystem.isNullable(staticType)) {
-              _check(leftOperand.staticElement, node);
+              _check(leftOperand.element, node);
             }
           }
         } else if (condition.leftOperand is NullLiteral) {
@@ -94,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             var staticType = rightOperand.staticType;
             if (staticType != null &&
                 context.typeSystem.isNullable(staticType)) {
-              _check(rightOperand.staticElement, node);
+              _check(rightOperand.element, node);
             }
           }
         }
@@ -102,11 +68,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _check(Element? element, ConstructorDeclaration node) {
-    if (element is FieldFormalParameterElement ||
-        element is SuperFormalParameterElement) {
+  void _check(Element2? element, ConstructorDeclaration node) {
+    if (element is FieldFormalParameterElement2 ||
+        element is SuperFormalParameterElement2) {
       rule.reportLint(node.parameters.parameters
-          .firstWhere((p) => p.declaredElement == element));
+          .firstWhere((p) => p.declaredFragment?.element == element));
     }
   }
 }

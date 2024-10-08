@@ -302,12 +302,11 @@ void AsyncAwareStackUnwinder::Unwind(
     if (!was_handled) {
       if (sync_frame_->is_interpreted()) {
         bytecode_ = sync_frame_->LookupDartBytecode();
-        if (bytecode_.function() == Function::null()) {
-          continue;
+        if (bytecode_.function() != Function::null()) {
+          const uword pc_offset = sync_frame_->pc() - bytecode_.PayloadStart();
+          handle_frame(
+              {sync_frame_, null_code_, bytecode_, pc_offset, null_closure_});
         }
-        const uword pc_offset = sync_frame_->pc() - bytecode_.PayloadStart();
-        handle_frame(
-            {sync_frame_, null_code_, bytecode_, pc_offset, null_closure_});
       } else {
         code_ = sync_frame_->LookupDartCode();
         const uword pc_offset = sync_frame_->pc() - code_.PayloadStart();
@@ -332,6 +331,7 @@ void AsyncAwareStackUnwinder::Unwind(
 
     any_async = true;
     uword pc_offset;
+    bytecode_ = Bytecode::null();
     if (awaiter_frame_.next.IsSuspendState()) {
       const uword pc = SuspendState::Cast(awaiter_frame_.next).pc();
       if (pc == 0) {
@@ -341,20 +341,39 @@ void AsyncAwareStackUnwinder::Unwind(
 
       code_ = SuspendState::Cast(awaiter_frame_.next).GetCodeObject();
       pc_offset = pc - code_.PayloadStart();
+
+#if defined(DART_DYNAMIC_MODULES)
+      if (pc == StubCode::ResumeInterpreter().EntryPoint()) {
+        bytecode_ = Interpreter::Current()->GetSuspendedLocation(
+            SuspendState::Cast(awaiter_frame_.next), &pc_offset);
+        ASSERT(!bytecode_.IsNull());
+        code_ = Code::null();
+      }
+#endif  // defined(DART_DYNAMIC_MODULES)
     } else {
       // This is an asynchronous continuation represented by a closure which
       // will handle successful completion. This function is not yet executing
       // so we have to use artificial marker offset (1).
-      code_ = function_.EnsureHasCode();
-      RELEASE_ASSERT(!code_.IsNull());
-      pc_offset =
-          (function_.entry_point() + StackTraceUtils::kFutureListenerPcOffset) -
-          code_.PayloadStart();
+#if defined(DART_DYNAMIC_MODULES)
+      if (function_.HasBytecode()) {
+        bytecode_ = function_.GetBytecode();
+        code_ = Code::null();
+        pc_offset = StackTraceUtils::kFutureListenerPcOffset;
+      } else {
+#endif  // defined(DART_DYNAMIC_MODULES)
+        code_ = function_.EnsureHasCode();
+        RELEASE_ASSERT(!code_.IsNull());
+        pc_offset = (function_.entry_point() +
+                     StackTraceUtils::kFutureListenerPcOffset) -
+                    code_.PayloadStart();
+#if defined(DART_DYNAMIC_MODULES)
+      }
+#endif  // defined(DART_DYNAMIC_MODULES)
     }
 
     handle_frame(gap_frame);
     handle_frame(
-        {nullptr, code_, null_bytecode_, pc_offset, awaiter_frame_.closure});
+        {nullptr, code_, bytecode_, pc_offset, awaiter_frame_.closure});
   }
 
   if (any_async) {

@@ -713,7 +713,31 @@ class AssemblerBase : public StackResource {
                            Label* label,
                            JumpDistance distance = kFarJump) = 0;
 
-  virtual void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) = 0;
+  // [reg] = [reg] << [shift]
+  virtual void LslImmediate(Register reg,
+                            int32_t shift,
+                            OperandSize sz = kWordBytes) = 0;
+
+  // [dst] = [src] << [shift]
+  virtual void LslImmediate(Register dst,
+                            Register src,
+                            int32_t shift,
+                            OperandSize sz = kWordBytes) = 0;
+
+  // [reg] = [reg] >>> [shift]
+  //
+  // Assumes [sz] is a signed OperandSize.
+  virtual void ArithmeticShiftRightImmediate(Register reg,
+                                             int32_t shift,
+                                             OperandSize sz = kWordBytes) = 0;
+
+  // [dst] = [src] >>> [shift]
+  //
+  // Assumes [sz] is a signed OperandSize.
+  virtual void ArithmeticShiftRightImmediate(Register dst,
+                                             Register src,
+                                             int32_t shift,
+                                             OperandSize sz = kWordBytes) = 0;
   virtual void CompareWords(Register reg1,
                             Register reg2,
                             intptr_t offset,
@@ -1114,7 +1138,16 @@ class AssemblerBase : public StackResource {
                                       Address address,
                                       OperandSize size = kWordBytes) = 0;
 
-  virtual void AndImmediate(Register dst, target::word imm) = 0;
+  // [reg] = [reg] & [imm]
+  virtual void AndImmediate(Register reg,
+                            target::word imm,
+                            OperandSize sz = kWordBytes) = 0;
+
+  // [dst] = [src] & [imm]
+  virtual void AndImmediate(Register dst,
+                            Register src,
+                            target::word imm,
+                            OperandSize sz = kWordBytes) = 0;
 
   virtual void LsrImmediate(Register dst, int32_t shift) = 0;
 
@@ -1233,6 +1266,68 @@ class AssemblerBase : public StackResource {
     BranchIfSmi(dst, &done, kNearJump);
     Stop("Expected Smi");
     Bind(&done);
+  }
+
+  static inline intptr_t OperandSizeInBits(OperandSize os) {
+    switch (os) {
+      case kByte:
+      case kUnsignedByte:
+        return kBitsPerInt8;
+      case kTwoBytes:
+      case kUnsignedTwoBytes:
+        return kBitsPerInt16;
+      case kFourBytes:
+      case kUnsignedFourBytes:
+        return kBitsPerInt32;
+      case kEightBytes:
+        return kBitsPerInt64;
+      default:
+        UNREACHABLE();
+        return kBitsPerInt64;
+    }
+  }
+
+  static inline bool IsSignedOperand(OperandSize os) {
+    switch (os) {
+      case kByte:
+      case kTwoBytes:
+      case kFourBytes:
+      case kEightBytes:
+        return true;
+      case kUnsignedByte:
+      case kUnsignedTwoBytes:
+      case kUnsignedFourBytes:
+      case kSWord:
+      case kDWord:
+      case kQWord:
+        return false;
+      default:
+        UNREACHABLE();
+        break;
+    }
+    return false;
+  }
+
+  static inline bool NeedsSignExtension(OperandSize os) {
+    if (!IsSignedOperand(os)) return false;
+    switch (os) {
+      case kByte:
+      case kTwoBytes:
+        return true;
+      case kFourBytes:
+#if defined(TARGET_ARCH_IS_32_BIT)
+        return false;
+#else
+        return true;
+#endif
+#if defined(TARGET_ARCH_IS_64_BIT)
+      case kEightBytes:
+        return false;
+#endif
+      default:
+        UNREACHABLE();
+        return false;
+    }
   }
 
  protected:

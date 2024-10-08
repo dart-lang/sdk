@@ -1567,23 +1567,19 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
 
 ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   const char* kScript = R"(
-    @pragma('vm:prefer-inline')
-    int bar(int n) {
-      print(''); // Side-effectful operation
-      var sum = 0;
-      for (int i = 0; i < n; i++) {
-        sum += i;
-      }
-      return sum;
-    }
-
     @pragma('vm:unsafe:no-interrupts')
-    int test() {
+    @pragma('vm:prefer-inline')
+    int baz() {
       int result = 0;
       for (int i = 0; i < 10; i++) {
-        result ^= bar(i);
+        print("");
+        result ^= i;
       }
       return result;
+    }
+
+    int test() {
+      return baz();
     }
   )";
 
@@ -1594,7 +1590,8 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   auto flow_graph = pipeline.RunPasses({});
   for (auto block : flow_graph->postorder()) {
     for (auto instr : block->instructions()) {
-      EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow());
+      EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow() ||
+                                 it.previous()->IsFunctionEntry());
     }
   }
 }
@@ -1604,12 +1601,17 @@ ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma) {
     import 'dart:typed_data';
 
     @pragma('vm:unsafe:no-bounds-checks')
-    int test(Uint8List list) {
+    @pragma('vm:prefer-inline')
+    int foo(Uint8List list) {
       int result = 0;
       for (int i = 0; i < 10; i++) {
         result = list[i];
       }
       return result;
+    }
+
+    int test(Uint8List list) {
+      return foo(list);
     }
   )";
 
@@ -1956,6 +1958,50 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
 }
 
 #endif  // !defined(TARGET_ARCH_IA32)
+
+// Verify that temporary |Pointer| and |Struct| allocations are sunk away
+// in JIT mode.
+ISOLATE_UNIT_TEST_CASE(Ffi_StructSinking) {
+  const char* kScript =
+      R"(
+      import 'dart:ffi';
+
+      final class S extends Struct {
+        @Int8()
+        external int a;
+      }
+
+      int test(int addr) =>
+        Pointer<S>.fromAddress(addr)[0].a;
+      )";
+
+  const auto& lib = Library::Handle(LoadTestScript(kScript, NoopNativeLookup));
+  EXPECT(!lib.IsNull());
+  const auto& function = Function::ZoneHandle(GetFunction(lib, "test"));
+  EXPECT(!function.IsNull());
+
+  // Run the unoptimized code.
+  uint8_t buffer[10] = {42};
+  auto& result = Object::Handle(Invoke(
+      lib, "test",
+      Integer::Handle(Integer::New(reinterpret_cast<int64_t>(&buffer)))));
+  EXPECT_EQ(42, Integer::Cast(result).Value());
+
+  // Optimize 'test' function.
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  FlowGraphPrinter::PrintGraph("aaa", flow_graph);
+
+  // Verify that it does not contain any allocations or calls.
+  for (auto block : flow_graph->reverse_postorder()) {
+    for (auto instr : block->instructions()) {
+      EXPECT_PROPERTY(instr, !it.IsAllocateObject());
+      EXPECT_PROPERTY(instr, !it.IsStaticCall() && !it.IsInstanceCall() &&
+                                 !it.IsPolymorphicInstanceCall());
+    }
+  }
+}
 
 // Regression test for https://github.com/dart-lang/sdk/issues/51220.
 // Verifies that deoptimization at the hoisted BinarySmiOp

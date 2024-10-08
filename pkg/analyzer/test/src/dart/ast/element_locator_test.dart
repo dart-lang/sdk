@@ -382,6 +382,17 @@ void f(Object? x) {
     expect(element, isMethodElement);
   }
 
+  test_locate_Prefix() async {
+    await resolveTestCode(r'''
+import 'dart:math' as math;
+
+math.Random? r;
+''');
+    var node = findNode.importPrefixReference('math.Random');
+    var element = ElementLocator.locate(node);
+    expect(element, isPrefixElement);
+  }
+
   test_locate_PrefixedIdentifier() async {
     await resolveTestCode(r'''
 void f(int a) {

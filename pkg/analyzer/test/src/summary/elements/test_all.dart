@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'augmentation_import_test.dart' as augmentation_import;
 import 'class_test.dart' as class_;
 import 'const_test.dart' as const_;
 import 'default_value_test.dart' as default_value;
@@ -34,7 +33,6 @@ import 'types_test.dart' as types;
 
 main() {
   defineReflectiveSuite(() {
-    augmentation_import.main();
     class_.main();
     const_.main();
     default_value.main();

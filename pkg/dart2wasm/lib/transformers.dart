@@ -56,6 +56,9 @@ class _WasmTransformer extends Transformer {
   final Procedure _trySetStackTraceForwarder;
   final Procedure _trySetStackTrace;
 
+  final Procedure _loadLibrary;
+  final Procedure _checkLibraryIsLoaded;
+
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
 
@@ -111,6 +114,10 @@ class _WasmTransformer extends Transformer {
             .getTopLevelProcedure('dart:async', '_trySetStackTrace'),
         _trySetStackTrace = coreTypes.index
             .getProcedure('dart:core', 'Error', '_trySetStackTrace'),
+        _loadLibrary = coreTypes.index
+            .getTopLevelProcedure("dart:_internal", "loadLibrary"),
+        _checkLibraryIsLoaded = coreTypes.index
+            .getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded"),
         _listFactorySpecializer = ListFactorySpecializer(coreTypes),
         _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
 
@@ -738,6 +745,30 @@ class _WasmTransformer extends Transformer {
     node.transformChildren(this);
     return node.receiver;
   }
+
+  @override
+  TreeNode visitLoadLibrary(LoadLibrary node) {
+    node.transformChildren(this);
+    final import = node.import;
+    return StaticInvocation(
+        _loadLibrary,
+        Arguments([
+          StringLiteral('${import.enclosingLibrary.importUri}'),
+          StringLiteral(import.name!)
+        ]));
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    node.transformChildren(this);
+    final import = node.import;
+    return StaticInvocation(
+        _checkLibraryIsLoaded,
+        Arguments([
+          StringLiteral('${import.enclosingLibrary.importUri}'),
+          StringLiteral(import.name!)
+        ]));
+  }
 }
 
 class _AsyncStarFrame {
@@ -750,21 +781,21 @@ class _AsyncStarFrame {
 
 /// Converts `pushWasmArray<T>(array, length, elem, nextCapacity)` to:
 ///
-///   if (array.length == length) {
-///     final newArray = WasmArray<T>(nextCapacity);
-///     newArray.copy(0, array, 0, length);
-///     array = newArray;
-///   }
-///   array[length] = elem;
-///   length += 1;
+///     if (array.length == length) {
+///       final newArray = WasmArray<T>(nextCapacity);
+///       newArray.copy(0, array, 0, length);
+///       array = newArray;
+///     }
+///     array[length] = elem;
+///     length += 1;
 ///
 /// and `popWasmArray<T>(array, length)` to block expression:
 ///
-///   {
-///     length -= 1;
-///     final T _value = array[length];
-///     array[length] = null;
-///   } => _value
+///     {
+///       length -= 1;
+///       final T _value = array[length];
+///       array[length] = null;
+///     } => _value
 ///
 /// This allows unboxing growable list in class fields.
 ///

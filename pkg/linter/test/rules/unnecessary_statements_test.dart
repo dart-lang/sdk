@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryStatementsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_statements';
+  String get lintRule => LintNames.unnecessary_statements;
 
   test_asExpression() async {
     // See https://github.com/dart-lang/linter/issues/2163.
@@ -26,7 +26,7 @@ void f(Object o) {
 ''');
   }
 
-  test_binaryOperation() async {
+  test_binaryExpression() async {
     await assertDiagnostics(r'''
 void f() {
   1 + 1;
@@ -34,6 +34,34 @@ void f() {
 ''', [
       lint(13, 5),
     ]);
+  }
+
+  test_binaryExpression_andAnd() async {
+    await assertDiagnostics(r'''
+void f() {
+  true && 1 == 2;
+}
+''', [
+      lint(21, 6),
+    ]);
+  }
+
+  test_binaryExpression_or() async {
+    await assertDiagnostics(r'''
+void f() {
+  false || 1 == 2;
+}
+''', [
+      lint(22, 6),
+    ]);
+  }
+
+  test_binaryExpression_or_rightSideHasEffect() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  false || 7.isEven;
+}
+''');
   }
 
   test_construcorTearoff_new() async {
@@ -72,6 +100,16 @@ void f() {
 ''');
   }
 
+  test_forLoopUpdaters_subsequent() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (; 1 == 2; print(7), []) {}
+}
+''', [
+      lint(38, 2),
+    ]);
+  }
+
   test_forStatement() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -91,6 +129,24 @@ void g() {}
     ]);
   }
 
+  test_ifNull() async {
+    await assertDiagnostics(r'''
+void f() {
+  null ?? 7;
+}
+''', [
+      lint(21, 1),
+    ]);
+  }
+
+  test_ifNull_rightSideHasEffect() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  null ?? 7.toString();
+}
+''');
+  }
+
   test_ifStatement() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -99,6 +155,62 @@ void f() {
   }
 }
 ''');
+  }
+
+  test_inDoWhile() async {
+    await assertDiagnostics(r'''
+void f() {
+  do {
+    [];
+  } while (1 == 2);
+}
+''', [
+      lint(22, 2),
+    ]);
+  }
+
+  test_inForLoop() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (var i in []) {
+    ~1;
+  }
+}
+''', [
+      lint(37, 2),
+    ]);
+  }
+
+  test_inForLoopInitializer() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (7; 1 == 2;) {}
+}
+''', [
+      lint(18, 1),
+    ]);
+  }
+
+  test_inForLoopUpdaters() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (; 1 == 2; []) {}
+}
+''', [
+      lint(28, 2),
+    ]);
+  }
+
+  test_inIfBody() async {
+    await assertDiagnostics(r'''
+void f() {
+  if (1 == 2) {
+    [];
+  }
+}
+''', [
+      lint(31, 2),
+    ]);
   }
 
   test_instanceCreationExpression() async {
@@ -150,6 +262,43 @@ void f(List<int> list) {
   list.first;
 }
 ''');
+  }
+
+  test_inSwitchStatement_case() async {
+    await assertDiagnostics(r'''
+void f() {
+  switch (7) {
+    case 6:
+      [];
+  }
+}
+''', [
+      lint(44, 2),
+    ]);
+  }
+
+  test_inSwitchStatement_case_break() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  switch (7) {
+    case 6:
+      break;
+  }
+}
+''');
+  }
+
+  test_inSwitchStatement_default() async {
+    await assertDiagnostics(r'''
+void f() {
+  switch (7) {
+    default:
+      [];
+  }
+}
+''', [
+      lint(45, 2),
+    ]);
   }
 
   test_intLiteral() async {

@@ -10,49 +10,15 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Only use double quotes for strings containing single quotes.';
 
-const _details = '''
-**DO** use single quotes where they wouldn't require additional escapes.
-
-That means strings with an apostrophe may use double quotes so that the
-apostrophe isn't escaped (note: we don't lint the other way around, ie, a single
-quoted string with an escaped apostrophe is not flagged).
-
-It's also rare, but possible, to have strings within string interpolations.  In
-this case, it's much more readable to use a double quote somewhere.  So double
-quotes are allowed either within, or containing, an interpolated string literal.
-Arguably strings within string interpolations should be its own type of lint.
-
-**BAD:**
-```dart
-useStrings(
-    "should be single quote",
-    r"should be single quote",
-    r"""should be single quotes""")
-```
-
-**GOOD:**
-```dart
-useStrings(
-    'should be single quote',
-    r'should be single quote',
-    r\'''should be single quotes\''',
-    "here's ok",
-    "nested \${a ? 'strings' : 'can'} be wrapped by a double quote",
-    'and nested \${a ? "strings" : "can be double quoted themselves"}');
-```
-
-''';
-
 class PreferSingleQuotes extends LintRule {
   PreferSingleQuotes()
       : super(
-          name: 'prefer_single_quotes',
+          name: LintNames.prefer_single_quotes,
           description: _desc,
-          details: _details,
         );
 
   @override
-  List<String> get incompatibleRules => const ['prefer_double_quotes'];
+  List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_single_quotes;
@@ -125,7 +91,7 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
 /// The only way to get immediate children in a unified, typesafe way, is to
 /// call visitChildren on that node, and pass in a visitor. This collects at the
 /// top level and stops.
-class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
+class _ImmediateChildrenVisitor extends UnifyingAstVisitor<void> {
   final _children = <AstNode>[];
 
   @override

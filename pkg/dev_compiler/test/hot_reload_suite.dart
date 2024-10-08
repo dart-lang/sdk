@@ -29,6 +29,7 @@ final testTimeoutSeconds = 10;
 final testDiffSeparator = '/** DIFF **/';
 
 final argParser = ArgParser()
+  ..addFlag('help', abbr: 'h', help: 'Display this message.', negatable: false)
   ..addOption('runtime',
       abbr: 'r',
       defaultsTo: 'd8',
@@ -71,6 +72,10 @@ late final bool debug;
 
 Future<void> main(List<String> args) async {
   final argResults = argParser.parse(args);
+  if (argResults['help'] as bool) {
+    print(argParser.usage);
+    return;
+  }
   final runtimePlatform =
       RuntimePlatforms.values.byName(argResults['runtime'] as String);
   final testNameFilter = RegExp(argResults['filter'] as String);
@@ -88,7 +93,7 @@ Future<void> main(List<String> args) async {
   final packageConfigUri = sdkRoot.resolve('.dart_tool/package_config.json');
   final allTestsUri = sdkRoot.resolve('tests/hot_reload/');
   final soundStableDartSdkJsUri =
-      buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
+      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
   final ddcModuleLoaderJsUri =
       sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
 
@@ -139,6 +144,7 @@ Future<void> main(List<String> args) async {
       final fesArgs = [
         ...commonArgs,
         '--dartdevc-module-format=ddc',
+        '--dartdevc-canary',
         '--platform=$ddcPlatformDillFromSdkRoot',
         '--target=dartdevc',
       ];
@@ -713,7 +719,8 @@ Future<void> main(List<String> args) async {
     failedTests.forEach((outcome) {
       print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
     });
-    exit(1);
+    // Exit cleanly after writing test results.
+    exit(0);
   }
 }
 
@@ -765,13 +772,7 @@ String _diffWithFileUris(Uri file1, Uri file2,
     {String label = '', bool commented = true, bool trimHeaders = true}) {
   final file1Path = file1.toFilePath();
   final file2Path = file2.toFilePath();
-  final diffArgs = [
-    '-du',
-    '--width=120',
-    '--expand-tabs',
-    file1Path,
-    file2Path
-  ];
+  final diffArgs = ['-u', '--width=120', '--expand-tabs', file1Path, file2Path];
   _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.", label: label);
   final diffProcess = Process.runSync('diff', diffArgs);
   final errOutput = diffProcess.stderr as String;
@@ -857,7 +858,7 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
   factory D8SuiteRunner({
     required ddc_helpers.D8Configuration config,
     required Uri bootstrapJsUri,
-    String entrypointModuleName = 'main.dart',
+    String entrypointModuleName = 'hot-reload-test:///main.dart',
     String entrypointLibraryExportName = 'main',
     required Uri dartSdkJsUri,
     required Uri ddcModuleLoaderJsUri,
@@ -954,7 +955,7 @@ class ChromeSuiteRunner implements HotReloadSuiteRunner {
     required Uri mainEntrypointJsUri,
     required Uri bootstrapJsUri,
     required Uri bootstrapHtmlUri,
-    String entrypointModuleName = 'main.dart',
+    String entrypointModuleName = 'hot-reload-test:///main.dart',
     String entrypointLibraryExportName = 'main',
     required Uri dartSdkJsUri,
     required Uri ddcModuleLoaderJsUri,

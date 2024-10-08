@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferDoubleQuotesTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_double_quotes';
+  String get lintRule => LintNames.prefer_double_quotes;
 
   test_doubleQuotes() async {
     await assertNoDiagnostics(r'''

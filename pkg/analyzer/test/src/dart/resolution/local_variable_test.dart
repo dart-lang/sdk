@@ -162,6 +162,7 @@ f() {
 SimpleIdentifier
   token: _
   staticElement: _@52
+  element: _@52
   staticType: Null Function()
 ''');
   }
@@ -182,6 +183,7 @@ class C {
 SimpleIdentifier
   token: _
   staticElement: <testLibraryFragment>::@class::C::@getter::_
+  element: <testLibraryFragment>::@class::C::@getter::_#element
   staticType: int
 ''');
   }
@@ -201,6 +203,7 @@ void f() {
 SimpleIdentifier
   token: _
   staticElement: <testLibraryFragment>::@getter::_
+  element: <testLibraryFragment>::@getter::_#element
   staticType: int
 ''');
   }

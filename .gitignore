@@ -112,3 +112,4 @@ logs/logs.json
 logs/results.json
 .dart_tool/bisect_dart/
 doc/api/
+runtime/tools/heapsnapshot/.dart_tool

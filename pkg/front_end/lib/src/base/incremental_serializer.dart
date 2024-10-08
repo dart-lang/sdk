@@ -302,6 +302,10 @@ class IncrementalSerializer {
         nameRoot: component.root);
     singlePackageLibraries.setMainMethodAndMode(null, false, component.mode);
 
+    // Copy all metadata. This should be okay (e.g. not result in a leak)
+    // because we serialize now and then (implicitly) throw this component away.
+    singlePackageLibraries.metadata.addAll(component.metadata);
+
     ByteSink byteSink = new ByteSink();
     final BinaryPrinter printer = new BinaryPrinter(byteSink);
     printer.writeComponentFile(singlePackageLibraries);

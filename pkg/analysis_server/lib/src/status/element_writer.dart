@@ -107,7 +107,6 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
     if (element is LibraryElement) {
       properties['definingCompilationUnit'] = element.definingCompilationUnit;
       properties['entryPoint'] = element.entryPoint;
-      properties['isBrowserApplication'] = element.isBrowserApplication;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;
       properties['isInSdk'] = element.isInSdk;

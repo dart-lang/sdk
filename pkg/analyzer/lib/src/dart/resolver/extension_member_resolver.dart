@@ -36,6 +36,10 @@ class ExtensionMemberResolver {
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
+  bool get _inferenceUsingBoundsIsEnabled =>
+      _resolver.definingLibrary.featureSet
+          .isEnabled(Feature.inference_using_bounds);
+
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
@@ -84,7 +88,7 @@ class ExtensionMemberResolver {
   /// returns [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
       DartType type, SyntacticEntity nameEntity, Name name) {
-    var extensions = _resolver.definingLibrary.accessibleExtensions
+    var extensions = _resolver.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
@@ -96,30 +100,50 @@ class ExtensionMemberResolver {
     }
 
     if (extensions.length == 1) {
-      return extensions[0].asResolutionResult;
+      var instantiated = extensions[0];
+      _resolver.libraryFragment.scope.notifyExtensionUsed(
+        instantiated.extension,
+      );
+      return instantiated.asResolutionResult;
     }
 
     var mostSpecific = _chooseMostSpecific(extensions);
     if (mostSpecific.length == 1) {
-      return mostSpecific.first.asResolutionResult;
+      var instantiated = mostSpecific.first;
+      _resolver.libraryFragment.scope.notifyExtensionUsed(
+        instantiated.extension,
+      );
+      return instantiated.asResolutionResult;
     }
 
     // The most specific extension is ambiguous.
-    _errorReporter.atEntity(
-      nameEntity,
-      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-      arguments: [
-        name.name,
-        mostSpecific.map((e) {
-          var name = e.extension.name;
-          if (name != null) {
-            return "extension '$name'";
-          }
-          var type = e.extension.extendedType.getDisplayString();
-          return "unnamed extension on '$type'";
-        }).commaSeparatedWithAnd,
-      ],
-    );
+    if (mostSpecific.length == 2) {
+      _errorReporter.atEntity(
+        nameEntity,
+        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+        arguments: [
+          name.name,
+          mostSpecific[0].extension,
+          mostSpecific[1].extension,
+        ],
+      );
+    } else {
+      _errorReporter.atEntity(
+        nameEntity,
+        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+        arguments: [
+          name.name,
+          mostSpecific.map((e) {
+            var name = e.extension.name;
+            if (name != null) {
+              return "extension '$name'";
+            }
+            var type = e.extension.extendedType.getDisplayString();
+            return "unnamed extension on '$type'";
+          }).commaSeparatedWithAnd,
+        ],
+      );
+    }
     return ResolutionResult.ambiguous;
   }
 
@@ -341,6 +365,7 @@ class ExtensionMemberResolver {
         errorReporter: _errorReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,

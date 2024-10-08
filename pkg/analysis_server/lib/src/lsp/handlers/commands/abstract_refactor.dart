@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
@@ -35,6 +36,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
       int offset,
       int length,
       Map<String, Object?>? options,
+      LspClientCapabilities clientCapabilities,
       CancellationToken cancellationToken,
       ProgressReporter reporter,
       int? docVersion);
@@ -146,6 +148,11 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     ProgressReporter progress,
     CancellationToken cancellationToken,
   ) async {
+    var clientCapabilities = message.clientCapabilities;
+    if (clientCapabilities == null) {
+      return serverNotInitializedError;
+    }
+
     if (parameters['kind'] is! String ||
         parameters['path'] is! String ||
         (parameters['docVersion'] is! int?) ||
@@ -171,8 +178,17 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     var length = parameters['length'] as int;
     var options = parameters['options'] as Map<String, Object?>?;
 
-    return execute(path, kind, offset, length, options, cancellationToken,
-        progress, docVersion);
+    return execute(
+      path,
+      kind,
+      offset,
+      length,
+      options,
+      clientCapabilities,
+      cancellationToken,
+      progress,
+      docVersion,
+    );
   }
 
   /// Parses "legacy" arguments passed a list, rather than in a map as a single

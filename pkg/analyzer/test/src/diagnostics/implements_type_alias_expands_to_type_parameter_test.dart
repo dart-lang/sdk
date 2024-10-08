@@ -41,6 +41,7 @@ class B implements T {}
 NamedType
   name: T
   element: <testLibraryFragment>::@typeAlias::T
+  element2: <testLibraryFragment>::@typeAlias::T#element
   type: InvalidType
 ''');
   }
@@ -67,9 +68,11 @@ NamedType
       NamedType
         name: A
         element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::T
+  element2: <testLibraryFragment>::@typeAlias::T#element
   type: InvalidType
 ''');
   }
@@ -91,6 +94,7 @@ mixin M implements T {}
 NamedType
   name: T
   element: <testLibraryFragment>::@typeAlias::T
+  element2: <testLibraryFragment>::@typeAlias::T#element
   type: InvalidType
 ''');
   }

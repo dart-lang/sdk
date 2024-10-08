@@ -119,8 +119,10 @@ InstanceCreationExpression
     type: NamedType
       name: B
       element: <testLibraryFragment>::@typeAlias::B
+      element2: <testLibraryFragment>::@typeAlias::B#element
       type: InvalidType
     staticElement: <null>
+    element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

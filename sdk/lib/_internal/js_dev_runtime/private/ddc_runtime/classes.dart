@@ -474,14 +474,11 @@ definePrimitiveHashCode(proto) {
       getOwnPropertyDescriptor(proto, extensionSymbol('hashCode')));
 }
 
-/// Link the [dartType] to the native [jsType] it is extending as a base class.
-///
-/// Used for generic extension types such as `JSArray<E>`.
-void setExtensionBaseClass(@notNull Object dartType, @notNull Object jsType) {
-  // Mark the generic type as an extension type and link the prototype objects.
-  var dartProto = JS<Object>('!', '#.prototype', dartType);
-  JS('', '#[#] = #', dartProto, _extensionType, dartType);
-  jsObjectSetPrototypeOf(dartProto, JS('', '#.prototype', jsType));
+/// Connects the prototype chains such that [cls] extends [superClass].
+void classExtends(@notNull Object cls, @notNull Object superClass) {
+  jsObjectSetPrototypeOf(cls, superClass);
+  jsObjectSetPrototypeOf(
+      JS('', '#.prototype', cls), JS('', '#.prototype', superClass));
 }
 
 /// A runtime mapping of interface type recipe to the symbol used to tag the

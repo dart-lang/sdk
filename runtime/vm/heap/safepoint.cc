@@ -6,6 +6,7 @@
 
 #include "vm/heap/heap.h"
 #include "vm/thread.h"
+#include "vm/thread_barrier.h"
 #include "vm/thread_registry.h"
 
 namespace dart {
@@ -425,6 +426,48 @@ void SafepointHandler::RunTasks(IntrusiveDList<SafepointTask>* tasks) {
       delete tasks_.RemoveFirst();
     }
   }
+}
+
+SafepointTask::~SafepointTask() {
+  barrier_->Release();
+}
+
+void SafepointTask::Run() {
+  if (!barrier_->TryEnter()) {
+    return;
+  }
+
+  bool result = Thread::EnterIsolateGroupAsHelper(isolate_group_, kind_,
+                                                  /*bypass_safepoint=*/true);
+  ASSERT(result);
+
+  RunEnteredIsolateGroup();
+
+  Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
+
+  barrier_->Sync();
+}
+
+void SafepointTask::RunBlockedAtSafepoint() {
+  if (!barrier_->TryEnter()) {
+    return;
+  }
+
+  Thread* thread = Thread::Current();
+  Thread::TaskKind saved_task_kind = thread->task_kind();
+  thread->set_task_kind(kind_);
+
+  RunEnteredIsolateGroup();
+
+  thread->set_task_kind(saved_task_kind);
+
+  barrier_->Sync();
+}
+
+void SafepointTask::RunMain() {
+  RunEnteredIsolateGroup();
+
+  barrier_->Sync();
 }
 
 }  // namespace dart

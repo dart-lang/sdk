@@ -80,25 +80,20 @@ String? typesToText(Iterable<StaticType> types) {
   return sb.toString();
 }
 
-String errorToText(ExhaustivenessError error) {
-  if (error is NonExhaustiveError) {
-    StringBuffer sb = new StringBuffer();
-    sb.write('non-exhaustive:');
-    String delimiter = '';
-    for (Witness witness in error.witnesses) {
-      sb.write(delimiter);
-      String witnessText = witness.asWitness;
-      String correctionText = witness.asCorrection;
-      if (witnessText != correctionText) {
-        sb.write('$witnessText/$correctionText');
-      } else {
-        sb.write(witnessText);
-      }
-      delimiter = ';';
+String nonExhaustivenessToText(NonExhaustiveness nonExhaustiveness) {
+  StringBuffer sb = new StringBuffer();
+  sb.write('non-exhaustive:');
+  String delimiter = '';
+  for (Witness witness in nonExhaustiveness.witnesses) {
+    sb.write(delimiter);
+    String witnessText = witness.asWitness;
+    String correctionText = witness.asCorrection;
+    if (witnessText != correctionText) {
+      sb.write('$witnessText/$correctionText');
+    } else {
+      sb.write(witnessText);
     }
-    return sb.toString();
-  } else {
-    assert(error is UnreachableCaseError);
-    return 'unreachable';
+    delimiter = ';';
   }
+  return sb.toString();
 }

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:front_end/src/util/parser_ast.dart';
 import 'package:front_end/src/util/parser_ast_helper.dart';
@@ -33,7 +34,7 @@ void canParseTopLevelIshOfAllFrontendFiles() {
       if (!entry.path.endsWith(".dart")) continue;
       try {
         processed++;
-        List<int> data = entry.readAsBytesSync();
+        Uint8List data = entry.readAsBytesSync();
         CompilationUnitEnd ast = getAST(
           data,
           includeBody: true,
@@ -79,7 +80,7 @@ void canParseTopLevelIshOfAllFrontendFiles() {
 void testTopLevelStuff() {
   File file = new File.fromUri(
       base.resolve("parser_ast_test_data/top_level_stuff.txt"));
-  List<int> data = file.readAsBytesSync();
+  Uint8List data = file.readAsBytesSync();
   CompilationUnitEnd ast = getAST(data,
       includeBody: true,
       includeComments: true,
@@ -161,7 +162,7 @@ void testTopLevelStuff() {
 
 void testClassStuff() {
   File file = new File.fromUri(base.resolve("parser_ast_test_data/class.txt"));
-  List<int> data = file.readAsBytesSync();
+  Uint8List data = file.readAsBytesSync();
   CompilationUnitEnd ast = getAST(data,
       includeBody: true,
       includeComments: true,
@@ -245,7 +246,7 @@ void testClassStuff() {
 
 void testMixinStuff() {
   File file = new File.fromUri(base.resolve("parser_ast_test_data/mixin.txt"));
-  List<int> data = file.readAsBytesSync();
+  Uint8List data = file.readAsBytesSync();
   CompilationUnitEnd ast = getAST(data,
       includeBody: true,
       includeComments: true,

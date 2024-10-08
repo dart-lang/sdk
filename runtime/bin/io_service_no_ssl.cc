@@ -53,7 +53,8 @@ void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
 }
 
 Dart_Port IOService::GetServicePort() {
-  return Dart_NewNativePort("IOService", IOServiceCallback, true);
+  return Dart_NewConcurrentNativePort("IOService", IOServiceCallback,
+                                      /*max_concurrency=*/32);
 }
 
 void FUNCTION_NAME(IOService_NewServicePort)(Dart_NativeArguments args) {

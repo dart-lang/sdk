@@ -6,11 +6,10 @@
 library dart._runtime;
 
 import 'dart:async';
-import 'dart:collection';
-
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper'
     show
+        DART_RUNTIME_LIBRARY,
         JS,
         JS_CLASS_REF,
         JS_EMBEDDED_GLOBAL,
@@ -18,8 +17,7 @@ import 'dart:_foreign_helper'
         JS_GET_NAME,
         JSExportName,
         rest,
-        TYPE_REF,
-        spread;
+        TYPE_REF;
 import 'dart:_interceptors'
     show
         JavaScriptBigInt,
@@ -44,7 +42,6 @@ import 'dart:_js_helper'
         getRtiForRecord,
         ImmutableMap,
         ImmutableSet,
-        JsLinkedHashMap,
         jsObjectGetPrototypeOf,
         jsObjectSetPrototypeOf,
         NoReifyGeneric,
@@ -52,25 +49,21 @@ import 'dart:_js_helper'
         Primitives,
         PrivateSymbol,
         ReifyFunctionTypes,
-        TypeErrorImpl,
-        undefined;
+        TypeErrorImpl;
 import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
         bindingRtiFromList,
         constructorRtiCachePropertyName,
         createRuntimeType,
-        findType,
         getFunctionParametersForDynamicChecks,
         getGenericFunctionBounds,
-        getLegacyErasedRti,
         getRecordTypeElementTypes,
         getRecordTypeShapeKey,
         instanceType,
         instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
-        isNullable,
         isRecordType,
         isSubtype,
         Rti,
@@ -190,7 +183,7 @@ final Object global_ = JS('', '''
 ''');
 
 void trackProfile(bool flag) {
-  JS('', 'dart.__trackProfile = #', flag);
+  JS('', '#.__trackProfile = #', DART_RUNTIME_LIBRARY(), flag);
 }
 
 final JsSymbol = JS('', 'Symbol');
@@ -216,7 +209,7 @@ final hOP = JS('!', '#.Object.prototype.hasOwnProperty', global_);
 ///
 ///     const my_library = Object.create(dart.library);
 ///
-Object libraryPrototype = JS('', 'dart.library');
+Object libraryPrototype = JS('', '#.library', DART_RUNTIME_LIBRARY());
 
 // TODO(vsm): Remove once this flag we've removed the ability to
 // whitelist / fallback on the old behavior.

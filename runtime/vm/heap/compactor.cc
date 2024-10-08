@@ -134,9 +134,8 @@ class CompactorTask : public SafepointTask {
                 intptr_t num_tasks,
                 Partition* partitions,
                 FreeList* freelist)
-      : isolate_group_(isolate_group),
+      : SafepointTask(isolate_group, barrier, Thread::kCompactorTask),
         compactor_(compactor),
-        barrier_(barrier),
         next_planning_task_(next_planning_task),
         next_setup_task_(next_setup_task),
         next_sliding_task_(next_sliding_task),
@@ -147,23 +146,16 @@ class CompactorTask : public SafepointTask {
         free_page_(nullptr),
         free_current_(0),
         free_end_(0) {}
-  ~CompactorTask() { barrier_->Release(); }
-
-  void Run() override;
-  void RunBlockedAtSafepoint() override;
-  void RunMain() override;
 
  private:
-  void RunEnteredIsolateGroup();
+  void RunEnteredIsolateGroup() override;
   void PlanPage(Page* page);
   void SlidePage(Page* page);
   uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
   uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
   void PlanMoveToContiguousSize(intptr_t size);
 
-  IsolateGroup* isolate_group_;
   GCCompactor* compactor_;
-  ThreadBarrier* barrier_;
   RelaxedAtomic<intptr_t>* next_planning_task_;
   RelaxedAtomic<intptr_t>* next_setup_task_;
   RelaxedAtomic<intptr_t>* next_sliding_task_;
@@ -289,7 +281,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   }
 
   {
-    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
     RelaxedAtomic<intptr_t> next_planning_task = {0};
     RelaxedAtomic<intptr_t> next_setup_task = {0};
     RelaxedAtomic<intptr_t> next_sliding_task = {0};
@@ -388,46 +380,6 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
 
     delete[] partitions;
   }
-}
-
-void CompactorTask::Run() {
-  if (!barrier_->TryEnter()) {
-    return;
-  }
-
-  bool result =
-      Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kCompactorTask,
-                                        /*bypass_safepoint=*/true);
-  ASSERT(result);
-
-  RunEnteredIsolateGroup();
-
-  Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
-
-  // This task is done. Notify the original thread.
-  barrier_->Sync();
-}
-
-void CompactorTask::RunBlockedAtSafepoint() {
-  if (!barrier_->TryEnter()) {
-    return;
-  }
-
-  Thread* thread = Thread::Current();
-  Thread::TaskKind saved_task_kind = thread->task_kind();
-  thread->set_task_kind(Thread::kCompactorTask);
-
-  RunEnteredIsolateGroup();
-
-  thread->set_task_kind(saved_task_kind);
-
-  barrier_->Sync();
-}
-
-void CompactorTask::RunMain() {
-  RunEnteredIsolateGroup();
-
-  barrier_->Sync();
 }
 
 void CompactorTask::RunEnteredIsolateGroup() {

@@ -72,7 +72,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   return new (Z) FlowGraph(
       *parsed_function(), B->graph_entry_, B->last_used_block_id_,
       prologue_info,
-      FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing_));
+      FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing()));
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
@@ -897,7 +897,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   return new (Z) FlowGraph(
       *parsed_function(), graph_entry, flow_graph_builder_->last_used_block_id_,
       prologue_info,
-      FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing_));
+      FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing()));
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {

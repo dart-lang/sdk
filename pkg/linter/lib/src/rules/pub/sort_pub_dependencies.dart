@@ -10,25 +10,18 @@ import '../../linter_lint_codes.dart';
 
 const _desc = r'Sort pub dependencies alphabetically.';
 
-const _details = r'''
-**DO** sort pub dependencies alphabetically (A to Z) in `pubspec.yaml`.
-
-Sorting list of pub dependencies makes maintenance easier.
-''';
-
 class SortPubDependencies extends LintRule {
   SortPubDependencies()
       : super(
-          name: 'sort_pub_dependencies',
+          name: LintNames.sort_pub_dependencies,
           description: _desc,
-          details: _details,
         );
 
   @override
   LintCode get lintCode => LinterLintCode.sort_pub_dependencies;
 
   @override
-  PubspecVisitor getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

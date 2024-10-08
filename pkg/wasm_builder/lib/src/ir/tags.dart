@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../builder/module.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
@@ -20,25 +21,27 @@ class TagExport extends Export {
 }
 
 /// A tag in a module.
-abstract class Tag with Indexable implements Exportable {
+abstract class Tag with Indexable, Exportable {
   @override
   final FinalizableIndex finalizableIndex;
   final FunctionType type;
+  @override
+  final ModuleBuilder enclosingModule;
 
-  Tag(this.finalizableIndex, this.type);
+  Tag(this.enclosingModule, this.finalizableIndex, this.type);
 
   @override
   String toString() => "#$name";
 
   @override
-  Export export(String name) {
+  Export buildExport(String name) {
     return TagExport(name, this);
   }
 }
 
 /// A tag defined in the current module.
 class DefinedTag extends Tag implements Serializable {
-  DefinedTag(super.finalizableIndex, super.type);
+  DefinedTag(super.enclosingModule, super.finalizableIndex, super.type);
 
   @override
   void serialize(Serializer s) {
@@ -56,7 +59,8 @@ class ImportedTag extends Tag implements Import {
   @override
   final String name;
 
-  ImportedTag(this.module, this.name, super.finalizableIndex, super.type);
+  ImportedTag(super.enclosingModule, this.module, this.name,
+      super.finalizableIndex, super.type);
 
   @override
   void serialize(Serializer s) {

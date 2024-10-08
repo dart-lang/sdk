@@ -2831,7 +2831,6 @@ Expression clonePureExpression(Expression node) {
   } else if (node is VariableGet) {
     assert(
         node.variable.isFinal && !node.variable.isLate,
-        // Coverage-ignore(suite): Not run.
         "Trying to clone VariableGet of non-final variable"
         " ${node.variable}.");
     return new VariableGet(node.variable, node.promotedType)

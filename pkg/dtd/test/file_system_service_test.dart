@@ -481,7 +481,7 @@ void main() {
         );
       });
 
-      test('prevents access outide of workspace roots for relative paths',
+      test('prevents access outside of workspace roots for relative paths',
           () async {
         await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
         expect(

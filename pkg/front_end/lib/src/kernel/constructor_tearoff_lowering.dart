@@ -30,8 +30,7 @@ Procedure? createConstructorTearOffProcedure(
       (forceCreateLowering ||
           compilationUnit.loader.target.backendTarget
               .isConstructorTearOffLoweringEnabled)) {
-    return _createTearOffProcedure(
-        compilationUnit, tearOffName, fileUri, fileOffset, reference);
+    return _createTearOffProcedure(tearOffName, fileUri, fileOffset, reference);
   }
   return null;
 }
@@ -50,8 +49,7 @@ Procedure? createFactoryTearOffProcedure(
   if (forceCreateLowering ||
       compilationUnit
           .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
-    return _createTearOffProcedure(
-        compilationUnit, tearOffName, fileUri, fileOffset, reference);
+    return _createTearOffProcedure(tearOffName, fileUri, fileOffset, reference);
   }
   return null;
 }
@@ -68,8 +66,7 @@ Procedure createTypedefTearOffProcedure(
     Reference? reference) {
   MemberName tearOffName = new MemberName(
       libraryBuilder.libraryName, typedefTearOffName(typedefName, name));
-  return _createTearOffProcedure(
-      libraryBuilder, tearOffName, fileUri, fileOffset, reference);
+  return _createTearOffProcedure(tearOffName, fileUri, fileOffset, reference);
 }
 
 /// Creates the parameters and body for [tearOff] based on
@@ -91,7 +88,6 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
   assert(
@@ -100,7 +96,6 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
 
@@ -155,7 +150,6 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
   assert(
@@ -164,7 +158,6 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
               implementationConstructor.isFactory) ||
           (implementationConstructor is Procedure &&
               implementationConstructor.isStatic),
-      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $implementationConstructor "
       "(${declarationConstructor.runtimeType}).");
 
@@ -280,7 +273,7 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
 
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
 /// given [name].
-Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
+Procedure _createTearOffProcedure(
     MemberName tearOffName, Uri fileUri, int fileOffset, Reference? reference) {
   Procedure tearOff = new Procedure(
       dummyName, ProcedureKind.Method, new FunctionNode(null),

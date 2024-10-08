@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -12,44 +12,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't invoke asynchronous functions in non-`async` blocks.";
 
-const _details = r'''
-Making asynchronous calls in non-`async` functions is usually the sign of a
-programming error.  In general these functions should be marked `async` and such
-futures should likely be awaited (as enforced by `unawaited_futures`).
-
-**DON'T** invoke asynchronous functions in non-`async` blocks.
-
-**BAD:**
-```dart
-void recreateDir(String path) {
-  deleteDir(path);
-  createDir(path);
-}
-
-Future<void> deleteDir(String path) async {}
-
-Future<void> createDir(String path) async {}
-```
-
-**GOOD:**
-```dart
-Future<void> recreateDir(String path) async {
-  await deleteDir(path);
-  await createDir(path);
-}
-
-Future<void> deleteDir(String path) async {}
-
-Future<void> createDir(String path) async {}
-```
-''';
-
 class DiscardedFutures extends LintRule {
   DiscardedFutures()
       : super(
-          name: 'discarded_futures',
+          name: LintNames.discarded_futures,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -87,7 +54,7 @@ class _InvocationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.staticElement.isDartAsyncUnawaited) return;
+    if (node.methodName.element.isDartAsyncUnawaited) return;
     if (node.staticInvokeType.isFuture) {
       rule.reportLint(node.methodName);
     }
@@ -95,7 +62,7 @@ class _InvocationVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -160,11 +127,11 @@ extension on DartType? {
   }
 }
 
-extension ElementExtension on Element? {
+extension ElementExtension on Element2? {
   bool get isDartAsyncUnawaited {
     var self = this;
-    return self is FunctionElement &&
+    return self is TopLevelFunctionElement &&
         self.name == 'unawaited' &&
-        self.library.isDartAsync;
+        (self.library2?.isDartAsync ?? false);
   }
 }

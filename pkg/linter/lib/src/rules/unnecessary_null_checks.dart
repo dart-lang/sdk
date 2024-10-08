@@ -12,30 +12,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `null` checks.';
 
-const _details = r'''
-**DON'T** apply a `null` check where a nullable value is accepted.
-
-**BAD:**
-```dart
-f(int? i) {}
-m() {
-  int? j;
-  f(j!);
-}
-
-```
-
-**GOOD:**
-```dart
-f(int? i) {}
-m() {
-  int? j;
-  f(j);
-}
-```
-
-''';
-
 DartType? getExpectedType(PostfixExpression node) {
   var realNode =
       node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
@@ -159,9 +135,8 @@ DartType? getExpectedType(PostfixExpression node) {
 class UnnecessaryNullChecks extends LintRule {
   UnnecessaryNullChecks()
       : super(
-          name: 'unnecessary_null_checks',
+          name: LintNames.unnecessary_null_checks,
           description: _desc,
-          details: _details,
           state: State.experimental(),
         );
 

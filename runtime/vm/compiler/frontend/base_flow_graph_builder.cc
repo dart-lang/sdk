@@ -8,6 +8,7 @@
 
 #include "vm/compiler/backend/range_analysis.h"       // For Range.
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
+#include "vm/compiler/frontend/kernel_to_il.h"        // For FlowGraphBuilder.
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
@@ -223,23 +224,68 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   return instructions.closed();
 }
 
+bool BaseFlowGraphBuilder::ShouldOmitCheckBoundsIn(const Function& function,
+                                                   const Function* caller) {
+  auto& state = CompilerState::Current();
+  if (!state.is_aot()) {
+    return false;
+  }
+
+  // The function itself is annotated with pragma.
+  if (state.PragmasOf(function).unsafe_no_bounds_checks) {
+    return true;
+  }
+
+  // We are inlining recognized method and the caller
+  // is annotated with pragma.
+  if (caller != nullptr &&
+      FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function) &&
+      state.PragmasOf(*caller).unsafe_no_bounds_checks) {
+    return true;
+  }
+
+  return false;
+}
+
+bool BaseFlowGraphBuilder::ShouldOmitStackOverflowChecks(
+    bool optimizing,
+    const Function& function) {
+  if (!optimizing) {
+    return false;  // Retain all checks.
+  }
+
+  // Omit CheckStackOverflow if vm:unsafe:no-interrupts is present.
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_interrupts(),
+                             /*multiple=*/false, &options);
+}
+
 Fragment BaseFlowGraphBuilder::CheckStackOverflow(TokenPosition position,
                                                   intptr_t stack_depth,
                                                   intptr_t loop_depth) {
+  const auto deopt_id = GetNextDeoptId();
+  // Consume deopt_id and check if we should omit this overflow check.
+  // When performing an OSR we need to keep the OSR target in the graph
+  // for |BlockEntryInstr::FindOsrEntryAndRelink|.
+  if (should_omit_stack_overflow_checks() && (deopt_id != osr_id_)) {
+    return Fragment();
+  }
   return Fragment(new (Z) CheckStackOverflowInstr(
-      InstructionSource(position), stack_depth, loop_depth, GetNextDeoptId(),
+      InstructionSource(position), stack_depth, loop_depth, deopt_id,
       CheckStackOverflowInstr::kOsrAndPreemption));
 }
 
 Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
     TokenPosition position) {
+  auto check = CheckStackOverflow(position, 0, 0);
   if (IsInlining()) {
-    // If we are inlining don't actually attach the stack check.  We must still
+    // If we are inlining don't actually attach the stack check. We must still
     // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow(position, 0, 0);
     return Fragment();
   }
-  return CheckStackOverflow(position, 0, 0);
+  return check;
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {
@@ -398,11 +444,20 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
 }
 
 Fragment BaseFlowGraphBuilder::GenericCheckBound() {
-  Value* index = Pop();
-  Value* length = Pop();
-  auto* instr = new (Z) GenericCheckBoundInstr(length, index, GetNextDeoptId());
-  Push(instr);
-  return Fragment(instr);
+  // Consume deopt_id even if not inserting the instruction to avoid
+  // problems with JIT (even though should_omit_check_bounds() will be false
+  // in JIT).
+  const intptr_t deopt_id = GetNextDeoptId();
+  if (should_omit_check_bounds()) {
+    // Drop length but preserve index.
+    return DropTempsPreserveTop(/*num_temps_to_drop=*/1);
+  } else {
+    Value* index = Pop();
+    Value* length = Pop();
+    auto* instr = new (Z) GenericCheckBoundInstr(length, index, deopt_id);
+    Push(instr);
+    return Fragment(instr);
+  }
 }
 
 Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {

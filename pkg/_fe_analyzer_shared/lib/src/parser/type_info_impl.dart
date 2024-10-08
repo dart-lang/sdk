@@ -6,7 +6,7 @@ library _fe_analyzer_shared.parser.type_info_impl;
 
 import '../messages/codes.dart' as codes;
 
-import '../scanner/token.dart' show SyntheticToken, Token, TokenType;
+import '../scanner/token.dart' show Keyword, SyntheticToken, Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -28,6 +28,7 @@ import 'util.dart'
     show
         isOneOfOrEof,
         optional,
+        optional2,
         skipMetadata,
         splitGtEq,
         splitGtFromGtGtEq,
@@ -484,8 +485,8 @@ class VoidType implements TypeInfo {
 
 bool looksLikeName(Token token) {
   return token.kind == IDENTIFIER_TOKEN ||
-      optional('this', token) ||
-      optional('super', token) ||
+      optional2(Keyword.THIS, token) ||
+      optional2(Keyword.SUPER, token) ||
       (token.isIdentifier &&
           // Although `typedef` is a legal identifier,
           // type `typedef` identifier is not legal and in this situation

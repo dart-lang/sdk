@@ -161,7 +161,8 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created finder to send information to the [recorder].
   _ReferenceFinder(this.unit, this.recorder) {
-    for (var import in unit.libraryElement.libraryImports) {
+    for (var import
+        in unit.libraryElement.definingCompilationUnit.libraryImports) {
       _importsByPrefix
           .putIfAbsent(import.prefix?.element.name ?? '', () => {})
           .add(import);

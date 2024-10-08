@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidCatchingErrorsTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_catching_errors';
+  String get lintRule => LintNames.avoid_catching_errors;
 
   test_doesNotSubclassError() async {
     await assertNoDiagnostics(r'''

@@ -22,7 +22,7 @@ main() {
 @reflectiveTest
 class AvoidRenamingMethodParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_renaming_method_parameters';
+  String get lintRule => LintNames.avoid_renaming_method_parameters;
 
   @FailingTest(
       reason: 'lint is limited to methods',
@@ -57,7 +57,7 @@ part of 'a.dart';
 
 augment class A {
   augment void m(int q) {}
-  augment void m(int q) {} 
+  augment void m(int q) {}
 }
 ''', [
       lint(58, 1), // Only the first augmentation gets linted.
@@ -242,6 +242,28 @@ class B extends A {
 ''', [
       lint(60, 3),
     ]);
+  }
+
+  test_wildcardInBase() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int _, int b, int c) {}
+}
+class B extends A {
+  void m(a, b, c) {}
+}
+''');
+  }
+
+  test_wildcardInBaseAndSub() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int _, int b, int c) {}
+}
+class B extends A {
+  void m(a, b, _) {}
+}
+''');
   }
 
   test_zeroParameters() async {

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -48,19 +48,21 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
       return;
     }
 
-    // Check that there is no corresponding setter.
-    {
-      var element = getter.declaredElement;
-      if (element == null) {
-        return;
-      }
-      var enclosing = element.enclosingElement3;
-      if (enclosing is InterfaceElement) {
-        if (enclosing.getSetter(element.name) != null) {
-          return;
-        }
-      }
+    var getterElement = getter.declaredFragment?.element;
+    if (getterElement is! GetterElement) {
+      return;
     }
+
+    var variable = getterElement.variable3;
+    if (variable == null) {
+      return;
+    }
+
+    // Check that there is no corresponding setter.
+    if (variable.setter2 != null) {
+      return;
+    }
+
     // Try to find the returned expression.
     Expression? expression;
     {

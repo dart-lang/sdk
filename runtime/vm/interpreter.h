@@ -101,7 +101,12 @@ class Interpreter {
   ObjectPtr Resume(Thread* thread,
                    uword resumed_frame_fp,
                    uword resumed_frame_sp,
-                   ObjectPtr value);
+                   ObjectPtr value,
+                   ObjectPtr exception,
+                   ObjectPtr stack_trace);
+
+  BytecodePtr GetSuspendedLocation(const SuspendState& suspend_state,
+                                   uword* pc_offset);
 
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
@@ -140,6 +145,7 @@ class Interpreter {
   ObjectPoolPtr pp_;  // Pool Pointer.
   ArrayPtr argdesc_;  // Arguments Descriptor: used to pass information between
                       // call instruction and the function entry.
+  SubtypeTestCachePtr subtype_test_cache_;
   ObjectPtr special_[KernelBytecode::kSpecialIndexCount];
 
   LookupCache lookup_cache_;
@@ -247,7 +253,7 @@ class Interpreter {
 
   void SetupEntryFrame(Thread* thread);
 
-  ObjectPtr Run(Thread* thread, ObjectPtr* sp);
+  ObjectPtr Run(Thread* thread, ObjectPtr* sp, bool rethrow_exception);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

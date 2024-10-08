@@ -304,6 +304,19 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
 #define MINT_OBJECT_IMPLEMENTATION(object, rettype, super)                     \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)
 
+// Different kinds of type visibility.
+enum class TypeVisibility {
+  // Internal types used by the VM at runtime.
+  // Internal implementation classes (like _Smi and _OneByteString)
+  // are preserved as well.
+  kInternalType,
+
+  // User visible types.
+  // Internal VM types (such as _Smi, _OneByteString and _GrowableList) are
+  // replaced with public user-visible types (e.g. int, String and List).
+  kUserVisibleType
+};
+
 // In precompiled runtime, there is no access to runtime_api.cc since host
 // and target are the same. In those cases, the namespace dart is used to refer
 // to the target namespace
@@ -477,6 +490,7 @@ class Object {
   V(Bytecode, implicit_getter_bytecode)                                        \
   V(Bytecode, implicit_setter_bytecode)                                        \
   V(Bytecode, implicit_static_getter_bytecode)                                 \
+  V(Bytecode, implicit_static_setter_bytecode)                                 \
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
@@ -8319,7 +8333,9 @@ class Instance : public Object {
   void SetField(const Field& field, const Object& value) const;
   void SetFieldWithoutFieldGuard(const Field& field, const Object& value) const;
 
-  AbstractTypePtr GetType(Heap::Space space) const;
+  AbstractTypePtr GetType(
+      Heap::Space space,
+      TypeVisibility visibility = TypeVisibility::kInternalType) const;
 
   // Access the type arguments vector of this [Instance].
   // This vector includes type arguments corresponding to type parameters of
@@ -11537,7 +11553,7 @@ class Record : public Instance {
   // It is not created eagerly when record instance is allocated because
   // it depends on runtime types of values if its fields, which can be
   // quite expensive to query.
-  RecordTypePtr GetRecordType() const;
+  RecordTypePtr GetRecordType(TypeVisibility visibility) const;
 
   // Parses positional field name and return its index,
   // or -1 if [field_name] is not a valid positional field name.
@@ -12755,6 +12771,7 @@ class SuspendState : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
   friend class Class;
+  friend class Interpreter;
 };
 
 class RegExpFlags {

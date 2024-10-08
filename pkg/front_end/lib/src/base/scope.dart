@@ -106,6 +106,10 @@ enum ScopeKind {
 
   /// Scope for type parameters of declarations
   typeParameters,
+
+  import,
+
+  prefix,
 }
 
 abstract class LookupScope {
@@ -430,20 +434,20 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
       : _parent = parent;
 
   @override
-  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.nameSpace;
+  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
 }
 
 class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
-  final SourceLibraryBuilder _libraryBuilder;
+  final SourceCompilationUnit _compilationUnit;
 
   SourceLibraryBuilderScope(
-      this._libraryBuilder, super.kind, super.classNameOrDebugName);
+      this._compilationUnit, super.kind, super.classNameOrDebugName);
 
   @override
-  NameSpace get _nameSpace => _libraryBuilder.nameSpace;
+  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
 
   @override
-  LookupScope? get _parent => _libraryBuilder.importScope;
+  LookupScope? get _parent => _compilationUnit.libraryBuilder.prefixScope;
 }
 
 abstract class ConstructorScope {
@@ -470,13 +474,16 @@ class DeclarationNameSpaceConstructorScope implements ConstructorScope {
   }
 }
 
-/// Computes a builder for the import/export collision between [declaration] and
-/// [other] and adds it to [nameSpace].
-Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
-    NameSpace nameSpace, String name, Builder declaration, Builder other,
-    {required UriOffset uriOffset,
-    bool isExport = false,
-    bool isImport = false}) {
+/// Computes a builder for the import collision between [declaration] and
+/// [other].
+Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
+    String name, Builder declaration, Builder other,
+    {required UriOffset uriOffset}) {
+  // Prefix fragments are merged to singular prefix builders when computing the
+  // import scope.
+  assert(!(declaration is PrefixBuilder && other is PrefixBuilder),
+      "Unexpected prefix builders $declaration and $other.");
+
   // TODO(ahe): Can I move this to Scope or Prefix?
   if (declaration == other) return declaration;
   if (declaration is InvalidTypeDeclarationBuilder) return declaration;
@@ -492,57 +499,28 @@ Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
     other = error.builder;
   }
   Builder? preferred;
-  Uri? uri;
-  Uri? otherUri;
-  if (nameSpace.lookupLocalMember(name, setter: false) == declaration) {
+  Uri uri = computeLibraryUri(declaration);
+  Uri otherUri = computeLibraryUri(other);
+  if (declaration is LoadLibraryBuilder) {
     preferred = declaration;
-  } else {
-    uri = computeLibraryUri(declaration);
-    otherUri = computeLibraryUri(other);
-    if (declaration is LoadLibraryBuilder) {
-      preferred = declaration;
-    } else if (other is LoadLibraryBuilder) {
-      preferred = other;
-    } else if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
-      preferred = declaration;
-    } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
-      preferred = other;
-    }
+  } else if (other is LoadLibraryBuilder) {
+    preferred = other;
+  } else if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
+    preferred = declaration;
+  } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
+    preferred = other;
   }
   if (preferred != null) {
     return preferred;
   }
-  if (declaration.next == null && other.next == null) {
-    if (isImport &&
-        declaration is PrefixBuilder &&
-        // Coverage-ignore(suite): Not run.
-        other is PrefixBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      // Handles the case where the same prefix is used for different
-      // imports.
-      declaration.mergeScopes(other, problemReporting, nameSpace,
-          uriOffset: uriOffset, isImport: isImport, isExport: isExport);
-      return declaration;
-    }
-  }
-  Uri firstUri = uri!;
-  Uri secondUri = otherUri!;
+
+  Uri firstUri = uri;
+  Uri secondUri = otherUri;
   if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
     firstUri = secondUri;
     secondUri = uri;
   }
-  if (isExport) {
-    Template<Message Function(String name, Uri uri, Uri uri2)> template =
-        templateDuplicatedExport;
-    Message message = template.withArguments(name, firstUri, secondUri);
-    problemReporting.addProblem(
-        message, uriOffset.fileOffset, noLength, uriOffset.uri);
-  }
-  Template<Message Function(String name, Uri uri, Uri uri2)> builderTemplate =
-      isExport
-          ? templateDuplicatedExportInType
-          : templateDuplicatedImportInType;
-  Message message = builderTemplate.withArguments(
+  Message message = templateDuplicatedImport.withArguments(
       name,
       // TODO(ahe): We should probably use a context object here
       // instead of including URIs in this message.
@@ -707,11 +685,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   void set isConflictingAugmentationMember(bool value) {
     throw new UnsupportedError('$runtimeType.isConflictingAugmentationMember=');
-  }
-
-  @override
-  void set parent(Builder? value) {
-    throw new UnsupportedError('$runtimeType.parent=');
   }
 
   @override
@@ -1324,13 +1297,13 @@ abstract class MergedScope<T extends Builder> {
 
 class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
   MergedLibraryScope(SourceLibraryBuilder origin)
-      : super(origin, origin.nameSpace);
+      : super(origin, origin.libraryNameSpace);
 
   @override
   SourceLibraryBuilder get originLibrary => _origin;
 
   void addAugmentationScope(SourceLibraryBuilder builder) {
-    _addAugmentationScope(builder, builder.nameSpace,
+    _addAugmentationScope(builder, builder.libraryNameSpace,
         augmentations: builder.augmentations,
         setterAugmentations: builder.setterAugmentations,
         inPatchLibrary: builder.isPatchLibrary);

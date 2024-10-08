@@ -92,13 +92,9 @@ class InformativeDataApplier {
     var unitReader = SummaryDataReader(unitInfoBytes);
     var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
 
-    var enclosing = unitElement.enclosingElement;
-    if (enclosing is LibraryElementImpl) {
-      if (identical(enclosing.definingCompilationUnit, unitElement)) {
-        _applyToLibrary(enclosing, unitInfo);
-      }
-    } else if (enclosing is LibraryAugmentationElementImpl) {
-      _applyToAugmentation(enclosing, unitInfo);
+    var libraryElement = unitElement.library;
+    if (identical(libraryElement.definingCompilationUnit, unitElement)) {
+      _applyToLibrary(libraryElement, unitInfo);
     }
 
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
@@ -213,32 +209,6 @@ class InformativeDataApplier {
         }
       },
     );
-  }
-
-  void _applyToAugmentation(
-    LibraryAugmentationElementImpl element,
-    _InfoUnit info,
-  ) {
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
-
-    var applyOffsets = ApplyConstantOffsets(
-      info.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
-      },
-    );
-
-    var linkedData = element.linkedData;
-    if (linkedData is LibraryAugmentationElementLinkedData) {
-      linkedData.applyConstantOffsets = applyOffsets;
-    } else {
-      applyOffsets.perform();
-    }
   }
 
   void _applyToClassDeclaration(
@@ -666,9 +636,12 @@ class InformativeDataApplier {
 
         var prefixElement = element.prefix?.element;
         if (prefixElement is PrefixElementImpl) {
-          prefixElement.nameOffset = info.prefixOffset;
+          if (prefixElement.nameOffset == -1) {
+            prefixElement.nameOffset = info.prefixOffset;
+          }
         }
 
+        element.prefix2?.nameOffset = info.prefixOffset;
         _applyToCombinators(element.combinators, info.combinators);
       },
     );
@@ -682,22 +655,10 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    forCorrespondingPairs<PartElement, _InfoPart>(
-      element.parts,
-      info.parts,
-      (element, info) {
-        element as PartElementImpl;
-      },
-    );
-
     var applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToImports(element.libraryImports);
-        applier.applyToExports(element.libraryExports);
-        applier.applyToAugmentationImports(element.augmentationImports);
-        applier.applyToPartDirectives(element.parts);
       },
     );
 
@@ -1768,8 +1729,6 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
-      augmentationImportDirectives:
-          unit.directives.whereType<AugmentationImportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
@@ -1800,7 +1759,6 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
-    Iterable<AugmentationImportDirective>? augmentationImportDirectives,
     Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
@@ -1847,7 +1805,6 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
-    addDirectives(augmentationImportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
@@ -2088,12 +2045,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
 
   _OffsetsApplier(this._iterator);
-
-  void applyToAugmentationImports(List<AugmentationImportElement> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
 
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {

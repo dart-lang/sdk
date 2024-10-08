@@ -5,7 +5,6 @@
 library js_backend.backend.annotations;
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:js_runtime/synced/load_library_priority.dart';
 
 import '../common.dart';
 import '../elements/entities.dart';
@@ -79,21 +78,23 @@ enum PragmaAnnotation {
   // TODO(45682): Make this annotation apply to local and static late variables.
   lateCheck('late:check'),
 
-  loadLibraryPriorityNormal('load-priority:normal'),
-  loadLibraryPriorityHigh('load-priority:high'),
+  loadLibraryPriority('load-priority', hasOption: true),
   resourceIdentifier('resource-identifier'),
   ;
 
   final String name;
   final bool forFunctionsOnly;
   final bool internalOnly;
+  final bool hasOption;
 
   // TODO(sra): Review [forFunctionsOnly]. Fields have implied getters and
   // setters, so some annotations meant only for functions could reasonable be
   // placed on a field to apply to the getter and setter.
 
   const PragmaAnnotation(this.name,
-      {this.forFunctionsOnly = false, this.internalOnly = false});
+      {this.forFunctionsOnly = false,
+      this.internalOnly = false,
+      this.hasOption = true});
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
@@ -112,8 +113,6 @@ enum PragmaAnnotation {
     asCheck: {asTrust},
     lateTrust: {lateCheck},
     lateCheck: {lateTrust},
-    loadLibraryPriorityNormal: {loadLibraryPriorityHigh},
-    loadLibraryPriorityHigh: {loadLibraryPriorityNormal},
     resourceIdentifier: {tryInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
@@ -142,7 +141,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     DiagnosticReporter reporter,
     ir.Annotatable node,
     List<PragmaAnnotationData> pragmaAnnotationData) {
-  EnumSet<PragmaAnnotation> annotations = EnumSet<PragmaAnnotation>();
+  EnumSet<PragmaAnnotation> annotations = EnumSet<PragmaAnnotation>.empty();
 
   ir.Library library = _enclosingLibrary(node);
   Uri uri = library.importUri;
@@ -154,9 +153,9 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     String suffix = data.suffix;
     final annotation = PragmaAnnotation.lookupMap[suffix];
     if (annotation != null) {
-      annotations.add(annotation);
+      annotations += annotation;
 
-      if (data.hasOptions) {
+      if (data.options != null && !annotation.hasOption) {
         reporter.reportErrorMessage(
             computeSourceSpanFromTreeNode(node),
             MessageKind.GENERIC,
@@ -210,7 +209,9 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
             'text': "@pragma('dart2js:${annotation.name}') must not be used "
                 "with @pragma('dart2js:${other.name}')."
           });
-          (reportedExclusions[annotation] ??= EnumSet()).add(other);
+          reportedExclusions.update(
+              annotation, (exclusions) => exclusions + other,
+              ifAbsent: () => EnumSet.fromValue(other));
         }
       }
     }
@@ -313,9 +314,9 @@ abstract class AnnotationsData {
 
   /// The priority to load the specified library with.
   ///
-  /// Indicates that the `fetchpriority` attribute should be set to the
-  /// specified value on the injected script tag used to load the library.
-  LoadLibraryPriority getLoadLibraryPriorityAt(ir.LoadLibrary node);
+  /// This can be an arbitrary string to be interpreted by the custom deferred
+  /// loader.
+  String getLoadLibraryPriority(ir.LoadLibrary node);
 
   /// Determines whether [member] is annotated as a resource identifier.
   bool methodIsResourceIdentifier(FunctionEntity member);
@@ -371,9 +372,8 @@ class AnnotationsDataImpl implements AnnotationsData {
   factory AnnotationsDataImpl.readFromDataSource(CompilerOptions options,
       DiagnosticReporter reporter, DataSourceReader source) {
     source.begin(tag);
-    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
-        source.readMemberMap(
-            (MemberEntity member) => EnumSet.fromValue(source.readInt()));
+    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = source
+        .readMemberMap((MemberEntity member) => EnumSet(source.readInt()));
     source.end(tag);
     return AnnotationsDataImpl(options, reporter, pragmaAnnotations);
   }
@@ -383,7 +383,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     sink.begin(tag);
     sink.writeMemberMap(pragmaAnnotations,
         (MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      sink.writeInt(set.value);
+      sink.writeInt(set.mask);
     });
     sink.end(tag);
   }
@@ -520,7 +520,7 @@ class AnnotationsDataImpl implements AnnotationsData {
 
   CheckPolicy _getLateVariableCheckPolicyAt(DirectivesContext? context) {
     while (context != null) {
-      EnumSet<PragmaAnnotation>? annotations = context.annotations;
+      EnumSet<PragmaAnnotation> annotations = context.annotations;
       if (annotations.contains(PragmaAnnotation.lateTrust)) {
         return CheckPolicy.trusted;
       } else if (annotations.contains(PragmaAnnotation.lateCheck)) {
@@ -532,36 +532,56 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   DirectivesContext _findContext(ir.TreeNode startNode) {
+    final node = _getContextNode(startNode);
+    if (node == null) return _root;
+    return _nodeToContextMap[node] ??= _getContext(node);
+  }
+
+  ir.Annotatable? _getContextNode(ir.TreeNode startNode) {
     ir.TreeNode? node = startNode;
     while (node is! ir.Annotatable) {
-      if (node == null) return _root;
+      if (node == null) return null;
       node = node.parent;
     }
+    return node;
+  }
+
+  DirectivesContext _getContext(ir.Annotatable node) {
     return _nodeToContextMap[node] ??= _findContext(node.parent!).extend(
         processMemberAnnotations(_options, _reporter, node,
             computePragmaAnnotationDataFromIr(node)));
   }
 
   @override
-  LoadLibraryPriority getLoadLibraryPriorityAt(ir.LoadLibrary node) {
+  String getLoadLibraryPriority(ir.LoadLibrary node) {
+    String? _getPragmaOptionForNode(ir.TreeNode node) {
+      ir.Annotatable? contextNode = _getContextNode(node);
+      if (contextNode == null) return null;
+      if (!_hasLoadLibraryPriority(_getContext(contextNode))) return null;
+      final pragmaData = computePragmaAnnotationDataFromIr(contextNode);
+      final annotationData = pragmaData.firstWhere((d) =>
+          PragmaAnnotation.lookupMap[d.suffix] ==
+          PragmaAnnotation.loadLibraryPriority);
+      final option = annotationData.options;
+      if (option is! ir.StringConstant) return null;
+      return option.value;
+    }
+
     // Annotation may be on enclosing declaration or on the import.
-    return _getLoadLibraryPriorityAt(_findContext(node)) ??
-        _getLoadLibraryPriorityAt(_findContext(node.import)) ??
-        LoadLibraryPriority.normal;
+    return _getPragmaOptionForNode(node) ??
+        _getPragmaOptionForNode(node.import) ??
+        '';
   }
 
-  LoadLibraryPriority? _getLoadLibraryPriorityAt(DirectivesContext? context) {
+  bool _hasLoadLibraryPriority(DirectivesContext? context) {
     while (context != null) {
-      EnumSet<PragmaAnnotation>? annotations = context.annotations;
-      if (annotations.contains(PragmaAnnotation.loadLibraryPriorityHigh)) {
-        return LoadLibraryPriority.high;
-      } else if (annotations
-          .contains(PragmaAnnotation.loadLibraryPriorityNormal)) {
-        return LoadLibraryPriority.normal;
+      EnumSet<PragmaAnnotation> annotations = context.annotations;
+      if (annotations.contains(PragmaAnnotation.loadLibraryPriority)) {
+        return true;
       }
       context = context.parent;
     }
-    return null;
+    return false;
   }
 
   @override
@@ -648,7 +668,7 @@ class DirectivesContext {
 
   DirectivesContext._(this.parent, this.annotations);
 
-  DirectivesContext.root() : this._(null, EnumSet<PragmaAnnotation>());
+  DirectivesContext.root() : this._(null, EnumSet<PragmaAnnotation>.empty());
 
   DirectivesContext extend(EnumSet<PragmaAnnotation> annotations) {
     // Shorten chains of equivalent sets of annotations.

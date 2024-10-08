@@ -44,6 +44,7 @@ ImplicitCallReference
       target: SimpleIdentifier
         token: map
         staticElement: map@83
+        element: map@83
         staticType: Map<int, C>
       leftBracket: [
       index: IntegerLiteral
@@ -54,6 +55,7 @@ ImplicitCallReference
         staticType: int
       rightBracket: ]
       staticElement: <null>
+      element: <null>
       staticType: null
     operator: =
     rightHandSide: SimpleIdentifier
@@ -62,16 +64,21 @@ ImplicitCallReference
         base: dart:core::<fragment>::@class::Map::@method::[]=::@parameter::value
         substitution: {K: int, V: C}
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     readElement: <null>
+    readElement2: <null>
     readType: null
     writeElement: MethodMember
       base: dart:core::<fragment>::@class::Map::@method::[]=
       substitution: {K: int, V: C}
+    writeElement2: dart:core::<fragment>::@class::Map::@method::[]=#element
     writeType: C
     staticElement: <null>
+    element: <null>
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -93,16 +100,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   colon: :
   elseExpression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   staticType: A
 ''');
@@ -125,16 +135,19 @@ ConditionalExpression
   condition: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   question: ?
   thenExpression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   colon: :
   elseExpression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   staticType: A
 ''');
@@ -158,6 +171,7 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: c@55
+    element: c@55
     staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -165,9 +179,11 @@ ImplicitCallReference
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: int Function(int)
   typeArgumentTypes
     int
@@ -194,14 +210,17 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
     staticType: C
   operator: ??
   rightOperand: SimpleIdentifier
     token: a
     parameter: <null>
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: A
 ''');
@@ -225,17 +244,21 @@ ImplicitCallReference
     leftOperand: SimpleIdentifier
       token: c1
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c1
+      element: <testLibraryFragment>::@function::foo::@parameter::c1#element
       staticType: C?
     operator: ??
     rightOperand: SimpleIdentifier
       token: c2
       parameter: <null>
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c2
+      element: <testLibraryFragment>::@function::foo::@parameter::c2#element
       staticType: C
     staticElement: <null>
+    element: <null>
     staticInvokeType: null
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -257,8 +280,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -282,8 +307,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -307,8 +334,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -333,8 +362,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c2
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c2
+    element: <testLibraryFragment>::@function::foo::@parameter::c2#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -357,6 +388,7 @@ ImplicitCallReference
       expression: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::f::@parameter::c
+        element: <testLibraryFragment>::@function::f::@parameter::c#element
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -366,6 +398,7 @@ ImplicitCallReference
         methodName: SimpleIdentifier
           token: m
           staticElement: <testLibraryFragment>::@class::C::@method::m
+          element: <testLibraryFragment>::@class::C::@method::m#element
           staticType: void Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -374,6 +407,7 @@ ImplicitCallReference
         staticType: void
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function()
 ''');
   }
@@ -397,15 +431,19 @@ ImplicitCallReference
     prefix: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+      element: <testLibraryFragment>::@function::foo::@parameter::c#element
       staticType: C
     period: .
     identifier: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@class::C::@getter::c
+      element: <testLibraryFragment>::@class::C::@getter::c#element
       staticType: C
     staticElement: <testLibraryFragment>::@class::C::@getter::c
+    element: <testLibraryFragment>::@class::C::@getter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -430,21 +468,26 @@ ImplicitCallReference
       prefix: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+        element: <testLibraryFragment>::@function::foo::@parameter::c#element
         staticType: C
       period: .
       identifier: SimpleIdentifier
         token: c
         staticElement: <testLibraryFragment>::@class::C::@getter::c
+        element: <testLibraryFragment>::@class::C::@getter::c#element
         staticType: C
       staticElement: <testLibraryFragment>::@class::C::@getter::c
+      element: <testLibraryFragment>::@class::C::@getter::c#element
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: c
       staticElement: <testLibraryFragment>::@class::C::@getter::c
+      element: <testLibraryFragment>::@class::C::@getter::c#element
       staticType: C
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -466,8 +509,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -489,8 +534,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -512,8 +559,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -535,8 +584,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: c
     staticElement: <testLibraryFragment>::@function::foo::@parameter::c
+    element: <testLibraryFragment>::@function::foo::@parameter::c#element
     staticType: C
   staticElement: <testLibraryFragment>::@class::C::@method::call
+  element: <testLibraryFragment>::@class::C::@method::call#element
   staticType: void Function(int)
 ''');
   }
@@ -556,9 +607,11 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: b
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: A
       alias: <testLibraryFragment>::@typeAlias::B
   staticElement: <testLibraryFragment>::@class::A::@method::call
+  element: <testLibraryFragment>::@class::A::@method::call#element
   staticType: void Function()
 ''');
   }
@@ -577,8 +630,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: X
   staticElement: <testLibraryFragment>::@class::A::@method::call
+  element: <testLibraryFragment>::@class::A::@method::call#element
   staticType: void Function()
 ''');
   }
@@ -597,8 +652,10 @@ ImplicitCallReference
   expression: SimpleIdentifier
     token: y
     staticElement: <testLibraryFragment>::@function::f::@parameter::y
+    element: <testLibraryFragment>::@function::f::@parameter::y#element
     staticType: Y
   staticElement: <testLibraryFragment>::@class::A::@method::call
+  element: <testLibraryFragment>::@class::A::@method::call#element
   staticType: void Function()
 ''');
   }
@@ -619,6 +676,7 @@ Function f<X extends A, Y extends X?>(Y y) => y;
 SimpleIdentifier
   token: y
   staticElement: <testLibraryFragment>::@function::f::@parameter::y
+  element: <testLibraryFragment>::@function::f::@parameter::y#element
   staticType: Y
 ''');
   }
@@ -639,6 +697,7 @@ Function f<X extends A>(X? x) => x;
 SimpleIdentifier
   token: x
   staticElement: <testLibraryFragment>::@function::f::@parameter::x
+  element: <testLibraryFragment>::@function::f::@parameter::x#element
   staticType: X?
 ''');
   }
@@ -687,17 +746,21 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
+            element2: dart:core::<fragment>::@class::String#element
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int, String>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int, U: String}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -735,6 +798,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -744,9 +808,11 @@ ExtensionOverride
         token: a
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
+  element2: <testLibraryFragment>::@extension::E#element
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -769,6 +835,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@function::A
+    element: <testLibraryFragment>::@function::A#element
     staticType: void Function<T, U>(int)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -776,10 +843,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -825,17 +894,21 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
+            element2: dart:core::<fragment>::@class::String#element
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::X
+      element2: <testLibraryFragment>::@typeAlias::X#element
       type: A<int, String>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: int, U: String}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -889,8 +962,10 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -898,10 +973,12 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: package:test/a.dart::<fragment>::@class::A::@constructor::named
         substitution: {T: dynamic}
+      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -944,6 +1021,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -951,9 +1029,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -961,10 +1041,12 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: package:test/a.dart::<fragment>::@class::A::@constructor::named
         substitution: {T: int}
+      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1007,6 +1089,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1014,9 +1097,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1024,10 +1109,12 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: package:test/a.dart::<fragment>::@class::A::@constructor::new
         substitution: {T: int}
+      element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       staticType: null
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::new
       substitution: {T: int}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1066,18 +1153,22 @@ MethodInvocation
     prefix: SimpleIdentifier
       token: prefix
       staticElement: <testLibraryFragment>::@prefix::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
       staticElement: package:test/a.dart::<fragment>::@getter::foo
+      element: package:test/a.dart::<fragment>::@getter::foo#element
       staticType: A
     staticElement: package:test/a.dart::<fragment>::@getter::foo
+    element: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: bar
     staticElement: package:test/a.dart::<fragment>::@class::A::@method::bar
+    element: package:test/a.dart::<fragment>::@class::A::@method::bar#element
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1118,8 +1209,10 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: X
       element: package:test/a.dart::<fragment>::@typeAlias::X
+      element2: package:test/a.dart::<fragment>::@typeAlias::X#element
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1127,10 +1220,12 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: package:test/a.dart::<fragment>::@class::A::@constructor::named
         substitution: {T: dynamic}
+      element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1163,6 +1258,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1170,10 +1266,12 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1211,6 +1309,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1218,20 +1317,24 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: dynamic, U: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: dynamic, U: dynamic}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1271,6 +1374,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1278,20 +1382,24 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: dynamic, U: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
       staticType: null
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
       substitution: {T: dynamic, U: dynamic}
+    element: <testLibraryFragment>::@class::A::@constructor::new#element
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1347,6 +1455,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
+        element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1354,17 +1463,21 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
+            element2: dart:core::<fragment>::@class::String#element
             type: String
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
+      element2: package:test/a.dart::<fragment>::@class::A#element
       type: A<int, String>
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::new
       substitution: {T: int, U: String}
+    element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1403,6 +1516,7 @@ ExtensionOverride
     name: prefix
     period: .
     element: <testLibraryFragment>::@prefix::prefix
+    element2: <testLibraryFragment>::@prefix2::prefix
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1410,6 +1524,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -1419,9 +1534,11 @@ ExtensionOverride
         token: a
         parameter: <null>
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@extension::E
+  element2: package:test/a.dart::<fragment>::@extension::E#element
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -1448,11 +1565,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: prefix
     staticElement: <testLibraryFragment>::@prefix::prefix
+    element: <testLibraryFragment>::@prefix2::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: A
     staticElement: package:test/a.dart::<fragment>::@function::A
+    element: package:test/a.dart::<fragment>::@function::A#element
     staticType: void Function<T, U>(int)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1460,10 +1579,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1504,6 +1625,7 @@ InstanceCreationExpression
     type: NamedType
       name: X
       element: <testLibraryFragment>::@typeAlias::X
+      element2: <testLibraryFragment>::@typeAlias::X#element
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1511,10 +1633,12 @@ InstanceCreationExpression
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::named
         substitution: {T: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::named#element
       staticType: null
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::named
       substitution: {T: int}
+    element: <testLibraryFragment>::@class::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments

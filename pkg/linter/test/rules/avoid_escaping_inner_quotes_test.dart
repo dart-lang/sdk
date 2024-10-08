@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidEscapingInnerQuotesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_escaping_inner_quotes';
+  String get lintRule => LintNames.avoid_escaping_inner_quotes;
 
   test_doubleQuotes_empty() async {
     await assertNoDiagnostics(r'''

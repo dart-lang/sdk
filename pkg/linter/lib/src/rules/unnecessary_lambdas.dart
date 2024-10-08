@@ -14,32 +14,14 @@ import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
 
-const _details = r'''
-**DON'T** create a lambda when a tear-off will do.
-
-**BAD:**
-```dart
-names.forEach((name) {
-  print(name);
-});
-```
-
-**GOOD:**
-```dart
-names.forEach(print);
-```
-
-''';
-
 Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()
       : super(
-          name: 'unnecessary_lambdas',
+          name: LintNames.unnecessary_lambdas,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -90,7 +72,7 @@ class _FinalExpressionChecker {
   }
 }
 
-class _IdentifierVisitor extends RecursiveAstVisitor {
+class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   final _elements = <Element?>{};
 
   _IdentifierVisitor();
@@ -113,8 +95,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, LinterContext context)
-      : constructorTearOffsEnabled = context.libraryElement!.featureSet
-            .isEnabled(Feature.constructor_tearoffs),
+      : constructorTearOffsEnabled =
+            context.isEnabled(Feature.constructor_tearoffs),
         typeSystem = context.typeSystem;
 
   @override

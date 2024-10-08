@@ -193,6 +193,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_in.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_container_with_colored_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_sized_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_empty_map_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
@@ -704,6 +705,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.unreachable_from_main: [
     RemoveUnusedElement.new,
   ],
+  LinterLintCode.use_colored_box: [
+    ReplaceContainerWithColoredBox.new,
+  ],
   LinterLintCode.use_decorated_box: [
     ReplaceWithDecoratedBox.new,
   ],
@@ -743,7 +747,10 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
 };
 
 final _builtInNonLintMultiProducers = {
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
+    AddExtensionOverride.new,
+  ],
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
     AddExtensionOverride.new,
   ],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
@@ -984,9 +991,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
     RemoveDefaultValue.new,
     RemoveRequired.new,
-  ],
-  CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT: [
-    RemoveUnusedImport.new,
   ],
   CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
     ReplaceEmptyMapPattern.any,
@@ -1825,6 +1829,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveUnnecessaryWildcardPattern.new,
   ],
   WarningCode.UNREACHABLE_SWITCH_CASE: [
+    RemoveDeadCode.new,
+  ],
+  WarningCode.UNREACHABLE_SWITCH_DEFAULT: [
     RemoveDeadCode.new,
   ],
   WarningCode.UNUSED_CATCH_CLAUSE: [

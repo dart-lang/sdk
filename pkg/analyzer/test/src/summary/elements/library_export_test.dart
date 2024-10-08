@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,15 +26,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
@@ -46,6 +43,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
@@ -66,15 +64,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
@@ -85,6 +81,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
@@ -110,15 +107,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/foo.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/foo.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/foo.dart::<fragment>::@class::A
@@ -129,13 +124,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/foo.dart::<fragment>::@class::A
   exportNamespace
     A: package:test/foo.dart::<fragment>::@class::A
 ''');
-    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
-        'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -157,15 +151,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/foo_io.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/foo_io.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/foo_io.dart::<fragment>::@class::A
@@ -176,13 +168,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/foo_io.dart::<fragment>::@class::A
   exportNamespace
     A: package:test/foo_io.dart::<fragment>::@class::A
 ''');
-    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
-        'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -204,15 +195,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/foo_html.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/foo_html.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/foo_html.dart::<fragment>::@class::A
@@ -223,13 +212,12 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/foo_html.dart::<fragment>::@class::A
   exportNamespace
     A: package:test/foo_html.dart::<fragment>::@class::A
 ''');
-    var export = library.libraryExports[0];
-    expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
   test_export_cycle() async {
@@ -248,24 +236,22 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class X @23
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
     declared <testLibraryFragment>::@class::X
@@ -277,21 +263,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class X @23
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
+              element: <testLibraryFragment>::@class::X::@constructor::new#element
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
@@ -311,15 +296,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@function::f
@@ -330,6 +313,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@function::f
   exportNamespace
@@ -345,21 +329,20 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -379,17 +362,15 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       combinators
         hide: A, C
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           combinators
             hide: A, C
@@ -404,6 +385,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::B
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::D
@@ -429,7 +411,6 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       combinators
         hide: A
@@ -437,10 +418,9 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           combinators
             hide: A
@@ -454,6 +434,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
@@ -488,30 +469,26 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/c.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
         package:test/c.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class X @40
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
   exportedReferences
     exported[(0, 0), (0, 1)] package:test/a.dart::<fragment>::@class::A
     exported[(0, 0)] package:test/b.dart::<fragment>::@class::B
@@ -527,21 +504,20 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class X @40
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
+              element: <testLibraryFragment>::@class::X::@constructor::new#element
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(0, 0), (0, 1)] package:test/a.dart::<fragment>::@class::A
@@ -565,15 +541,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::f
@@ -584,6 +558,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::f
   exportNamespace
@@ -607,17 +582,15 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       combinators
         show: A, C
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           combinators
             show: A, C
@@ -632,6 +605,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
@@ -653,17 +627,15 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       combinators
         show: f
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           combinators
             show: f
@@ -678,6 +650,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::f
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::f
@@ -696,15 +669,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@typeAlias::F
@@ -715,6 +686,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@typeAlias::F
   exportNamespace
@@ -727,8 +699,26 @@ library
 export 'foo.dart';
 ''');
 
-    var uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
-    expect(uri.relativeUriString, 'foo.dart');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryExports
+    package:test/foo.dart
+      enclosingElement3: <testLibraryFragment>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      libraryExports
+        package:test/foo.dart
+          enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+''');
   }
 
   test_export_variable() async {
@@ -740,15 +730,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
@@ -761,6 +749,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::x
@@ -779,15 +768,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
@@ -798,6 +785,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
   exportNamespace
@@ -814,15 +802,13 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
@@ -833,6 +819,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
   exportNamespace
@@ -861,52 +848,49 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/bar.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/bar.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/bar.dart
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -934,52 +918,49 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/bar.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/bar.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/bar.dart
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -1007,52 +988,49 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/bar.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/bar.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::B
+              enclosingElement3: <testLibraryFragment>::@class::B
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/bar.dart
       classes
         class B @25
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::B
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
         synthetic new
-          reference: <none>
-          superConstructor: <none>
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new#element
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -1068,21 +1046,17 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
         package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   exportedReferences
   exportNamespace
@@ -1091,6 +1065,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
   exportedReferences
   exportNamespace
 ''');
@@ -1117,40 +1092,38 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
           augmented
             constructors
               <testLibraryFragment>::@class::A::@constructor::new
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         augment class A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@class::A
         class B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::B
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
     declared <testLibraryFragment>::@class::A
@@ -1162,43 +1135,42 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
         class B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
+              element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
@@ -1250,42 +1222,35 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/d.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/d.dart
         part_1
           uri: package:test/e.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/e.dart
       classes
         class X @36
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/d.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/e.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/e.dart
         package:test/c.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/e.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
@@ -1304,27 +1269,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/d.dart
       classes
         class X @36
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
+              element: <testLibraryFragment>::@class::X::@constructor::new#element
     <testLibrary>::@fragment::package:test/d.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/e.dart
     <testLibrary>::@fragment::package:test/e.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/d.dart
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
@@ -1368,27 +1334,24 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class X @21
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           combinators
             hide: A2, A4
@@ -1405,24 +1368,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class X @21
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
+              element: <testLibraryFragment>::@class::X::@constructor::new#element
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A1
@@ -1461,27 +1424,24 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class X @21
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           combinators
             show: A1, A3
@@ -1498,24 +1458,24 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class X @21
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
+              element: <testLibraryFragment>::@class::X::@constructor::new#element
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A1
@@ -1549,17 +1509,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           superclassConstraints
             Object
@@ -1567,16 +1526,15 @@ library
             superclassConstraints
               Object
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       mixins
         augment mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTarget: <testLibraryFragment>::@mixin::A
         mixin B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
             Object
   exportedReferences
@@ -1590,29 +1548,30 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
+          element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
         mixin B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@mixin::B#element
   mixins
     mixin A
-      reference: <testLibraryFragment>::@mixin::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
     mixin B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       superclassConstraints
         Object
@@ -1651,49 +1610,45 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::C
+              enclosingElement3: <testLibraryFragment>::@class::C
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A @42
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::A
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class B @24
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/b.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/b.dart::@class::B
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@class::B
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::A
     declared <testLibrary>::@fragment::package:test/b.dart::@class::B
@@ -1707,57 +1662,54 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
+          element: <testLibraryFragment>::@class::C#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::C
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A @42
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
+              element: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class B @24
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/b.dart::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B
+              element: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new#element
   classes
     class C
-      reference: <testLibraryFragment>::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/b.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@class::A
@@ -1804,40 +1756,34 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/c.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/c.dart
       classes
         class X @21
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::X
+              enclosingElement3: <testLibraryFragment>::@class::X
     <testLibrary>::@fragment::package:test/c.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
       parts
         part_1
           uri: package:test/d.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
           unit: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/d.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/c.dart
       libraryExports
         package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/d.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
@@ -1852,27 +1798,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/c.dart
       classes
         class X @21
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::X::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::X
+              element: <testLibraryFragment>::@class::X::@constructor::new#element
     <testLibrary>::@fragment::package:test/c.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/d.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/c.dart
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A
@@ -1904,30 +1851,28 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         static a @25
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get a @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
         synthetic static set a= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _a @-1
               type: int
@@ -1943,9 +1888,43 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        a @25
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a#element
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::a
+      getters
+        get a @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          element: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
+      setters
+        set a= @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
+          element: <testLibrary>::@fragment::package:test/a.dart::@setter::a#element
+          formalParameters
+            _a @-1
+              element: <testLibrary>::@fragment::package:test/a.dart::@setter::a::@parameter::_a#element
+  topLevelVariables
+    a
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      type: int
+      getter: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
+      setter: <testLibrary>::@fragment::package:test/a.dart::@setter::a#element
+  getters
+    synthetic static get a
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+  setters
+    synthetic static set a=
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::a
+      formalParameters
+        requiredPositional _a
+          type: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::a
@@ -1974,20 +1953,18 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       topLevelVariables
         static const a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: int
           shouldUseTypeForInitializerInference: false
           constantInitializer
@@ -1997,7 +1974,7 @@ library
       accessors
         synthetic static get a @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
@@ -2008,9 +1985,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        const a @27
+          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a#element
+          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+      getters
+        get a @-1
+          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+          element: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
+  topLevelVariables
+    const a
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+      type: int
+      getter: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
+  getters
+    synthetic static get a
+      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportNamespace
@@ -2027,21 +2023,20 @@ library
   reference: <testLibrary>
   libraryExports
     noRelativeUriString
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         noRelativeUriString
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -2054,21 +2049,20 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/test.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/test.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -2081,21 +2075,20 @@ library
   reference: <testLibrary>
   libraryExports
     relativeUri 'foo:bar'
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         relativeUri 'foo:bar'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -2108,21 +2101,20 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -2138,21 +2130,20 @@ library
   reference: <testLibrary>
   libraryExports
     source 'package:test/a.dart'
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         source 'package:test/a.dart'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -2165,21 +2156,20 @@ library
   reference: <testLibrary>
   libraryExports
     relativeUriString ':'
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         relativeUriString ':'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -2190,21 +2180,20 @@ library
   reference: <testLibrary>
   libraryExports
     package:test/foo.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         package:test/foo.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 }

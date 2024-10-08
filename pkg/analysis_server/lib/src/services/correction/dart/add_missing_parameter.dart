@@ -58,8 +58,9 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   Future<void> compute(ChangeBuilder builder) async {
     var prefix = _executableParameters.required.isNotEmpty ? ', [' : '[';
     if (_executableParameters.required.isNotEmpty) {
+      var lastElement = _executableParameters.required.last;
       var prevNode = await _executableParameters
-          .getParameterNode(_executableParameters.required.last);
+          .getParameterNode2(lastElement.firstFragment!);
       await _addParameter(builder, prevNode?.end, prefix, ']');
     } else {
       var parameterList = await _executableParameters.getParameterList();
@@ -119,14 +120,16 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (_executableParameters.required.isNotEmpty) {
+      var lastElement = _executableParameters.required.last;
       var prevNode = await _executableParameters
-          .getParameterNode(_executableParameters.required.last);
+          .getParameterNode2(lastElement.firstFragment!);
       await _addParameter(builder, prevNode?.end, ', ', '');
     } else {
       var parameterList = await _executableParameters.getParameterList();
       var offset = parameterList?.leftParenthesis.end;
-      var suffix =
-          _executableParameters.executable.parameters.isNotEmpty ? ', ' : '';
+      var suffix = _executableParameters.executable.formalParameters.isNotEmpty
+          ? ', '
+          : '';
       await _addParameter(builder, offset, '', suffix);
     }
   }

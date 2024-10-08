@@ -1303,6 +1303,9 @@ void Object::Init(IsolateGroup* isolate_group) {
   *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_ImplicitStaticGetter);
 
+  *implicit_static_setter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticSetter);
+
   *method_extractor_bytecode_ =
       CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
 
@@ -1411,6 +1414,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(implicit_setter_bytecode_->IsBytecode());
   ASSERT(!implicit_static_getter_bytecode_->IsSmi());
   ASSERT(implicit_static_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_setter_bytecode_->IsSmi());
+  ASSERT(implicit_static_setter_bytecode_->IsBytecode());
   ASSERT(!method_extractor_bytecode_->IsSmi());
   ASSERT(method_extractor_bytecode_->IsBytecode());
   ASSERT(!invoke_closure_bytecode_->IsSmi());
@@ -8062,12 +8067,12 @@ void PatchClass::set_script(const Script& value) const {
 }
 
 uword Function::Hash() const {
-  uword hash = String::HashRawSymbol(name());
-  if (IsClosureFunction()) {
-    hash = hash ^ token_pos().Hash();
+  uint32_t hash = String::HashRawSymbol(name());
+  if (IsNonImplicitClosureFunction()) {
+    hash = CombineHashes(hash, token_pos().Hash());
   }
   if (Owner()->IsClass()) {
-    hash = hash ^ Class::Hash(Class::RawCast(Owner()));
+    hash = CombineHashes(hash, Class::Hash(Class::RawCast(Owner())));
   }
   return hash;
 }
@@ -18954,6 +18959,9 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
   } else if (bytecode.ptr() ==
              Object::implicit_static_getter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_static_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
   } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_MethodExtractor";
   } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
@@ -20719,6 +20727,9 @@ ObjectPtr Instance::HashCode() const {
 // Keep in sync with AsmIntrinsifier::Object_getHash.
 IntegerPtr Instance::IdentityHashCode(Thread* thread) const {
   if (IsInteger()) return Integer::Cast(*this).ptr();
+  if (IsString()) {
+    return Smi::New(String::Cast(*this).Hash());
+  }
 
 #if defined(HASH_IN_OBJECT_HEADER)
   intptr_t hash = Object::GetCachedHash(ptr());
@@ -21049,12 +21060,39 @@ void Instance::SetFieldWithoutFieldGuard(const Field& field,
   }
 }
 
-AbstractTypePtr Instance::GetType(Heap::Space space) const {
+AbstractTypePtr Instance::GetType(Heap::Space space,
+                                  TypeVisibility visibility) const {
   if (IsNull()) {
     return Type::NullType();
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  if (visibility == TypeVisibility::kUserVisibleType) {
+    // VM hides certain internal implementation classes
+    // and substitutes them with public user-visible types
+    // (String, int, double, Type, List).
+    if (IsString()) {
+      return Type::StringType();
+    } else if (IsInteger()) {
+      return Type::IntType();
+    } else if (IsDouble()) {
+      return Type::Double();
+    } else if (IsAbstractType()) {
+      return Type::DartTypeType();
+    } else if (IsArrayClassId(GetClassId())) {
+      const auto& cls = Class::Handle(
+          zone, thread->isolate_group()->object_store()->list_class());
+      auto& type_arguments = TypeArguments::Handle(zone, GetTypeArguments());
+      type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
+      // Assume internal VM types are properly encapsulated in the core
+      // libraries and cannot appear in type arguments.
+      const auto& type =
+          Type::Handle(zone, Type::New(cls, type_arguments,
+                                       Nullability::kNonNullable, Heap::kNew));
+      type.SetIsFinalized();
+      return type.Canonicalize(thread);
+    }
+  }
   const Class& cls = Class::Handle(zone, clazz());
   if (!cls.is_finalized()) {
     // Various predefined classes can be instantiated by the VM or
@@ -21074,7 +21112,7 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   if (IsRecord()) {
     ASSERT(cls.IsRecordClass());
     auto& record_type =
-        RecordType::Handle(zone, Record::Cast(*this).GetRecordType());
+        RecordType::Handle(zone, Record::Cast(*this).GetRecordType(visibility));
     ASSERT(record_type.IsFinalized());
     ASSERT(record_type.IsCanonical());
     return record_type.ptr();
@@ -21555,7 +21593,8 @@ const char* Instance::ToCString() const {
     }
     // Background compiler disassembly of instructions referring to pool objects
     // calls this function and requires allocation of Type in old space.
-    const AbstractType& type = AbstractType::Handle(GetType(Heap::kOld));
+    const AbstractType& type = AbstractType::Handle(
+        GetType(Heap::kOld, TypeVisibility::kUserVisibleType));
     const String& type_name = String::Handle(type.UserVisibleName());
     return OS::SCreate(Thread::Current()->zone(), "Instance of '%s'",
                        type_name.ToCString());
@@ -25963,7 +26002,7 @@ const intptr_t
         16,  // kTypedDataFloat32x4ArrayCid.
         16,  // kTypedDataInt32x4ArrayCid.
         16,  // kTypedDataFloat64x2ArrayCid,
-    };
+};
 
 bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (this->ptr() == other.ptr()) {
@@ -28264,7 +28303,7 @@ void Record::CanonicalizeFieldsLocked(Thread* thread) const {
   }
 }
 
-RecordTypePtr Record::GetRecordType() const {
+RecordTypePtr Record::GetRecordType(TypeVisibility visibility) const {
   Zone* const zone = Thread::Current()->zone();
   const intptr_t num_fields = this->num_fields();
   const Array& field_types =
@@ -28273,7 +28312,7 @@ RecordTypePtr Record::GetRecordType() const {
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < num_fields; ++i) {
     obj ^= FieldAt(i);
-    type = obj.GetType(Heap::kNew);
+    type = obj.GetType(Heap::kNew, visibility);
     field_types.SetAt(i, type);
   }
   type = RecordType::New(shape(), field_types, Nullability::kNonNullable);

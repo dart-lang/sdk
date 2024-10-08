@@ -37,15 +37,14 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   @override
   final Uri? fileUri;
 
-  TypeVariableBuilder(
-      String name, Builder? compilationUnit, int charOffset, this.fileUri,
+  TypeVariableBuilder(String name, int charOffset, this.fileUri,
       {this.bound,
       this.defaultType,
       required this.kind,
       Variance? variableVariance,
       List<MetadataBuilder>? metadata,
       this.isWildcard = false})
-      : super(metadata, 0, name, compilationUnit, charOffset);
+      : super(metadata, 0, name, null, charOffset);
 
   @override
   bool get isTypeVariable => true;
@@ -85,9 +84,7 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   Nullability? _nullabilityFromParameterBound;
 
   Nullability get nullabilityFromParameterBound {
-    assert(
-        _nullabilityFromParameterBound != null,
-        // Coverage-ignore(suite): Not run.
+    assert(_nullabilityFromParameterBound != null,
         "Nullability has not been computed for $this.");
     return _nullabilityFromParameterBound!;
   }
@@ -204,8 +201,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   /// signal if the [hashCode] is used before updates to [actualParameter].
   StackTrace? _hasHashCode;
 
-  NominalVariableBuilder(
-      String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
+  NominalVariableBuilder(String name, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
       required TypeVariableKind kind,
       Variance? variableVariance,
@@ -217,7 +213,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
               ..variance = variableVariance,
         _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
             variableVariance ?? Variance.covariant),
-        super(name, compilationUnit, charOffset, fileUri,
+        super(name, charOffset, fileUri,
             bound: bound,
             kind: kind,
             variableVariance: variableVariance,
@@ -240,7 +236,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
         //  parameters from kernel?
         _varianceCalculationValue =
             new VarianceCalculationValue.fromVariance(parameter.variance),
-        super(parameter.name ?? "", null, parameter.fileOffset, null,
+        super(parameter.name ?? "", parameter.fileOffset, null,
             kind: TypeVariableKind.fromKernel,
             bound: loader?.computeTypeBuilder(parameter.bound),
             defaultType: loader?.computeTypeBuilder(parameter.defaultType)) {
@@ -261,7 +257,6 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   void applyAugmentation(covariant NominalVariableBuilder augmentation) {
     assert(
         _hasHashCode == null,
-        // Coverage-ignore(suite): Not run.
         "Cannot apply augmentation since to $this since hashCode has already "
         "been computed from $actualParameter @\n$_hasHashCode");
     augmentation.actualOrigin = this;
@@ -579,8 +574,7 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
   @override
   StructuralVariableBuilder? actualOrigin;
 
-  StructuralVariableBuilder(
-      String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
+  StructuralVariableBuilder(String name, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
       Variance? variableVariance,
       List<MetadataBuilder>? metadata,
@@ -589,7 +583,7 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
             new StructuralParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
               ..variance = variableVariance,
-        super(name, compilationUnit, charOffset, fileUri,
+        super(name, charOffset, fileUri,
             bound: bound,
             kind: TypeVariableKind.function,
             variableVariance: variableVariance,
@@ -600,7 +594,7 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
-        super(parameter.name ?? "", null, parameter.fileOffset, null,
+        super(parameter.name ?? "", parameter.fileOffset, null,
             kind: TypeVariableKind.fromKernel) {
     _nullabilityFromParameterBound =
         StructuralParameterType.computeNullabilityFromBound(parameter);

@@ -31,6 +31,7 @@ void foo() {
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
+  element2: <testLibraryFragment>::@typeAlias::F#element
   type: InvalidType
 ''');
   }
@@ -65,6 +66,7 @@ void f() {
 NamedType
   name: A
   element: <testLibraryFragment>::@getter::A
+  element2: <testLibraryFragment>::@getter::A#element
   type: InvalidType
 ''');
   }
@@ -89,9 +91,11 @@ NamedType
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@getter::A
+  element2: <testLibraryFragment>::@getter::A#element
   type: InvalidType
 ''');
   }

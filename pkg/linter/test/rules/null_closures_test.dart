@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NullClosuresTest extends LintRuleTest {
   @override
-  String get lintRule => 'null_closures';
+  String get lintRule => LintNames.null_closures;
 
   test_futureWait_cleanUp_closure() async {
     await assertNoDiagnostics(r'''

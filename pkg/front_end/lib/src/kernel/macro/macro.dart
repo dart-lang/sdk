@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:kernel/ast.dart';
@@ -1307,14 +1310,16 @@ class MacroApplications {
 
       component.accept(new ReOffsetVisitor(reOffsetMaps));
 
-      ScannerResult scannerResult = scanString(source,
+      Uint8List sourceUtf8 = utf8.encode(source);
+
+      ScannerResult scannerResult = scan(sourceUtf8,
           configuration: new ScannerConfiguration(
               enableExtensionMethods: true,
               enableNonNullable: true,
               enableTripleShift: true,
               forAugmentationLibrary: true));
       _sourceLoader.target.addSourceInformation(augmentationImportUri,
-          augmentationFileUri, scannerResult.lineStarts, source.codeUnits);
+          augmentationFileUri, scannerResult.lineStarts, sourceUtf8);
       for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {
         _sourceLoader.target
             .removeSourceInformation(intermediateAugmentationUri);

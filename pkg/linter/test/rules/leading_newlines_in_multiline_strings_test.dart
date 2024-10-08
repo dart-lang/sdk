@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class LeadingNewlinesInMultilineStringsTest extends LintRuleTest {
   @override
-  String get lintRule => 'leading_newlines_in_multiline_strings';
+  String get lintRule => LintNames.leading_newlines_in_multiline_strings;
 
   test_emptyString() async {
     await assertNoDiagnostics(r"""

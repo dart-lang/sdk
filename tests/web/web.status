@@ -8,6 +8,7 @@ internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
 
 [ $compiler == dart2wasm ]
 (?!wasm)*: SkipByDesign
+wasm/multi_module_stress_test: Slow, Pass # Large stress test by design
 
 [ $compiler != dart2wasm ]
 wasm/*: SkipByDesign
@@ -57,6 +58,7 @@ code_motion_exception_test: Skip # Required V8 specific format of JavaScript err
 [ $compiler == dart2wasm && $runtime != d8 ]
 wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file using d8's readbuffer
+wasm/uri_base_test: SkipByDesign # Converts Uri.base to file path
 
 [ $compiler == dartk && $runtime == vm ]
 new_from_env_test: SkipByDesign # dart2js only test

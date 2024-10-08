@@ -285,6 +285,17 @@ class VMService extends MessageRouter {
         _vmCancelStream(streamId);
       }
     }
+    for (final pair in client.createdServiceIdZones) {
+      runningIsolates.routeRequest(
+          this,
+          Message._fromJsonRpcRequest(client, {
+            'method': 'deleteIdZone',
+            'params': {
+              'isolateId': pair.isolateId,
+              'idZoneId': pair.serviceIdZoneId,
+            }
+          }));
+    }
     _cleanupUnusedUserTagSubscriptions();
     for (final service in client.services.keys) {
       _eventMessageHandler(
@@ -725,6 +736,20 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
+  void _recordInformationAboutCreatedServiceIdZone(
+    Client client,
+    Map<String, dynamic> decodedResponse,
+    String isolateId,
+  ) {
+    if (decodedResponse.containsKey('result')) {
+      client.createdServiceIdZones.add((
+        serviceIdZoneId:
+            (decodedResponse['result'] as Map<String, dynamic>)['id']!,
+        isolateId: isolateId,
+      ));
+    }
+  }
+
   Future<Response?> routeRequest(VMService _, Message message) async {
     final response = await _routeRequestImpl(message);
     if (response == null) {
@@ -769,7 +794,16 @@ class VMService extends MessageRouter {
         return await _handleService(message);
       }
       if (message.params['isolateId'] != null) {
-        return await runningIsolates.routeRequest(this, message);
+        final Response response =
+            await runningIsolates.routeRequest(this, message);
+        if (message.method == 'createIdZone') {
+          _recordInformationAboutCreatedServiceIdZone(
+            message.client!,
+            response.decodeJson(),
+            message.params['isolateId'],
+          );
+        }
+        return response;
       }
       return await message.sendToVM();
     } catch (e, st) {

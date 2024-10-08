@@ -698,14 +698,13 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
     if (classBuilder.isMixinApplication) {
       TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder!;
-      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration!;
-      while (mixin.isNamedMixinApplication) {
-        ClassBuilder named = mixin as ClassBuilder;
-        mixedInTypeBuilder = named.mixedInTypeBuilder!;
-        mixin = mixedInTypeBuilder.declaration!;
+      TypeDeclarationBuilder? mixin = mixedInTypeBuilder.declaration;
+      while (mixin is ClassBuilder && mixin.isNamedMixinApplication) {
+        mixedInTypeBuilder = mixin.mixedInTypeBuilder!;
+        mixin = mixedInTypeBuilder.declaration;
       }
       mixin =
-          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true)!;
+          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
       if (mixin is ClassBuilder) {
         Iterator<MemberBuilder> iterator =
             mixin.fullMemberIterator<MemberBuilder>();
@@ -1028,24 +1027,20 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       /// the interface members separately.
       assert(
           classMemberMap.length == interfaceMemberMap.length,
-          // Coverage-ignore(suite): Not run.
           "Class/interface member mismatch. Class members: "
           "$classMemberMap, interface members: $interfaceMemberMap.");
       assert(
           classSetterMap.length == interfaceSetterMap.length,
-          // Coverage-ignore(suite): Not run.
           "Class/interface setter mismatch. Class setters: "
           "$classSetterMap, interface setters: $interfaceSetterMap.");
       assert(
           classMemberMap.keys.every((Name name) =>
               identical(classMemberMap[name], interfaceMemberMap?[name])),
-          // Coverage-ignore(suite): Not run.
           "Class/interface member mismatch. Class members: "
           "$classMemberMap, interface members: $interfaceMemberMap.");
       assert(
           classSetterMap.keys.every((Name name) =>
               identical(classSetterMap[name], interfaceSetterMap?[name])),
-          // Coverage-ignore(suite): Not run.
           "Class/interface setter mismatch. Class setters: "
           "$classSetterMap, interface setters: $interfaceSetterMap.");
       interfaceMemberMap = null;
@@ -1298,7 +1293,6 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _declaredSetable == null,
-        // Coverage-ignore(suite): Not run.
         "Declared setter already set to $_declaredSetable, "
         "trying to set it to $value.");
     _declaredSetable = value;
@@ -1310,7 +1304,6 @@ class _Tuple {
     assert(!value!.forSetter);
     assert(
         _extendedGetable == null,
-        // Coverage-ignore(suite): Not run.
         "Extended member already set to $_extendedGetable, "
         "trying to set it to $value.");
     _extendedGetable = value;
@@ -1322,7 +1315,6 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _extendedSetable == null,
-        // Coverage-ignore(suite): Not run.
         "Extended setter already set to $_extendedSetable, "
         "trying to set it to $value.");
     _extendedSetable = value;
@@ -1334,7 +1326,6 @@ class _Tuple {
     assert(!value!.forSetter);
     assert(
         _mixedInGetable == null,
-        // Coverage-ignore(suite): Not run.
         "Mixed in member already set to $_mixedInGetable, "
         "trying to set it to $value.");
     _mixedInGetable = value;
@@ -1346,7 +1337,6 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _mixedInSetable == null,
-        // Coverage-ignore(suite): Not run.
         "Mixed in setter already set to $_mixedInSetable, "
         "trying to set it to $value.");
     _mixedInSetable = value;
@@ -2297,9 +2287,7 @@ class _SanitizedMember {
       ///      method() {}
       ///    }
       ///    class Class extends Super {}
-      assert(
-          !_extendedMember.isAbstract,
-          // Coverage-ignore(suite): Not run.
+      assert(!_extendedMember.isAbstract,
           "Abstract extended member: ${_extendedMember}");
 
       classMember = _extendedMember;
@@ -2640,7 +2628,6 @@ class _Overrides {
       assert(
           declaredMember.isSourceDeclaration &&
               declaredMember.declarationBuilder.origin == _classBuilder,
-          // Coverage-ignore(suite): Not run.
           "Only declared members can override: ${declaredMember}");
       hasDeclaredMembers = true;
       if (declaredMember.isProperty) {
@@ -2649,7 +2636,6 @@ class _Overrides {
       } else {
         assert(
             declaredMethod == null,
-            // Coverage-ignore(suite): Not run.
             "Multiple methods unexpectedly declared: "
             "${declaredMethod} and ${declaredMember}.");
         declaredMethod = declaredMember;
@@ -2686,9 +2672,7 @@ class _Overrides {
   /// instead default to `dynamic`.
   void registerMixedInOverride(ClassMember mixedInMember,
       {ClassMember? aliasForTesting}) {
-    assert(
-        mixedInMember.declarationBuilder != _classBuilder,
-        // Coverage-ignore(suite): Not run.
+    assert(mixedInMember.declarationBuilder != _classBuilder,
         "Only mixin members can override by application: ${mixedInMember}");
     if (_classBuilder is SourceClassBuilder) {
       hasDeclaredMembers = true;
@@ -2698,7 +2682,6 @@ class _Overrides {
       } else {
         assert(
             mixedInMethod == null,
-            // Coverage-ignore(suite): Not run.
             "Multiple methods unexpectedly declared in mixin: "
             "${mixedInMethod} and ${mixedInMember}.");
         mixedInMethod = mixedInMember;
@@ -2732,7 +2715,6 @@ class _Overrides {
     if (_classBuilder is SourceClassBuilder) {
       assert(
           inheritedMember.declarationBuilder != _classBuilder,
-          // Coverage-ignore(suite): Not run.
           "Only inherited members can implement by inheritance: "
           "${inheritedMember}");
       _inheritedImplementsMap[inheritedMember] = overrides;

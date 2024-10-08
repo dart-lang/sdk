@@ -1211,6 +1211,7 @@ class _SignatureUpdater {
         startSessions: refactoringContext.startSessions,
         resolvedLibraryResult: refactoringContext.resolvedLibraryResult,
         resolvedUnitResult: unitResult,
+        clientCapabilities: refactoringContext.clientCapabilities,
         selectionOffset: constructorDeclaration.offset,
         selectionLength: 0,
         includeExperimental: true,

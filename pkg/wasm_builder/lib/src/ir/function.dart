@@ -16,23 +16,23 @@ class Local {
 }
 
 /// An (imported or defined) function.
-abstract class BaseFunction with Indexable implements Exportable {
+abstract class BaseFunction with Indexable, Exportable {
   @override
   final FinalizableIndex finalizableIndex;
   final FunctionType type;
   final String? functionName;
-  String? exportedName;
+  @override
+  final ModuleBuilder enclosingModule;
 
-  BaseFunction(this.finalizableIndex, this.type, this.functionName);
+  BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
+      this.functionName);
 
   @override
   String get name => functionName ?? super.name;
 
   /// Creates an export of this function in this module.
   @override
-  Export export(String name) {
-    assert(exportedName == null);
-    exportedName = name;
+  Export buildExport(String name) {
     return FunctionExport(name, this);
   }
 }
@@ -44,7 +44,8 @@ class DefinedFunction extends BaseFunction implements Serializable {
   /// All local variables defined in the function, including its inputs.
   List<Local> get locals => body.locals;
 
-  DefinedFunction(this.body, super.finalizableIndex, super.type,
+  DefinedFunction(
+      super.enclosingModule, this.body, super.finalizableIndex, super.type,
       [super.functionName]);
 
   @override
@@ -75,7 +76,7 @@ class DefinedFunction extends BaseFunction implements Serializable {
   }
 
   @override
-  String toString() => exportedName ?? "#$finalizableIndex";
+  String toString() => functionName ?? "#$finalizableIndex";
 }
 
 /// An imported function.
@@ -85,7 +86,8 @@ class ImportedFunction extends BaseFunction implements Import {
   @override
   final String name;
 
-  ImportedFunction(this.module, this.name, super.finalizableIndex, super.type,
+  ImportedFunction(super.enclosingModule, this.module, this.name,
+      super.finalizableIndex, super.type,
       [super.functionName]);
 
   @override

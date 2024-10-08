@@ -20,7 +20,8 @@ class AnnotationMatcher extends Matcher {
       description.addDescriptionOf(_expected);
 
   @override
-  bool matches(item, Map matchState) => item is Annotation && _matches(item);
+  bool matches(Object? item, Map<Object?, Object?> matchState) =>
+      item is Annotation && _matches(item);
 
   bool _matches(Annotation other) {
     // Only test messages if they're specified in the expectation

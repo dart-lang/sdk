@@ -76,36 +76,33 @@ class ExportedReferenceExported extends ExportedReference {
 }
 
 class ExportLocation {
-  /// The index of the container with the `export` directive, `0` means the
-  /// library itself, a positive value means a `+1` index in the library
-  /// augmentations.
-  final int containerIndex;
+  /// The index of the fragment with the `export` directive, `0` means the
+  /// library file, a positive value means an included fragment.
+  final int fragmentIndex;
 
-  /// The index in [LibraryElementImpl.libraryExports].
+  /// The index in [CompilationUnitElementImpl.libraryExports].
   final int exportIndex;
 
   ExportLocation({
-    required this.containerIndex,
+    required this.fragmentIndex,
     required this.exportIndex,
   });
 
   @override
   bool operator ==(Object other) {
     return other is ExportLocation &&
-        other.containerIndex == containerIndex &&
+        other.fragmentIndex == fragmentIndex &&
         other.exportIndex == exportIndex;
   }
 
   LibraryExportElementImpl exportOf(LibraryElementImpl library) {
-    var container = containerIndex == 0
-        ? library
-        : library.augmentations[containerIndex - 1];
-    return container.libraryExports[exportIndex];
+    var fragment = library.units[fragmentIndex];
+    return fragment.libraryExports[exportIndex];
   }
 
   @override
   String toString() {
-    return '($containerIndex, $exportIndex)';
+    return '($fragmentIndex, $exportIndex)';
   }
 }
 

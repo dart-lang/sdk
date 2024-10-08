@@ -5,6 +5,7 @@
 library front_end.standard_file_system;
 
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import '../base/file_system_dependency_tracker.dart';
 import 'file_system.dart';
@@ -90,7 +91,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytes() {
+  Future<Uint8List> readAsBytes() {
     try {
       FileSystemDependencyTracker.recordDependency(tracker, uri);
       return new Future.value(new io.File.fromUri(uri).readAsBytesSync());
@@ -159,7 +160,7 @@ class DataFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytes() {
+  Future<Uint8List> readAsBytes() {
     return new Future.value(uri.data!.contentAsBytes());
   }
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class TypeInitFormalsTest extends LintRuleTest {
   @override
-  String get lintRule => 'type_init_formals';
+  String get lintRule => LintNames.type_init_formals;
 
   test_extraPositionalArgument() async {
     await assertDiagnostics(r'''

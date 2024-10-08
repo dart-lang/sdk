@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AlwaysDeclareReturnTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'always_declare_return_types';
+  String get lintRule => LintNames.always_declare_return_types;
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''

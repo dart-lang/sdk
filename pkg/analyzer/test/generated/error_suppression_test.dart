@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
+import 'package:linter/src/linter_lint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -17,19 +16,15 @@ main() {
 
 @reflectiveTest
 class ErrorSuppressionTest extends PubPackageResolutionTest {
-  static final ErrorCode _lintCode = AvoidTypesAsParameterNames().lintCode;
-
   String get ignoredCode => 'unused_element';
 
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-        lints: ['avoid_types_as_parameter_names'],
-      ),
-    );
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+      experiments: experiments,
+      rules: ['avoid_types_as_parameter_names'],
+    ));
   }
 
   test_error_code_mismatch() async {
@@ -215,7 +210,7 @@ int y = (0 as int);
 // ignore: type=wrong
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''', [
-      error(_lintCode, 34, 3),
+      error(LinterLintCode.avoid_types_as_parameter_names, 34, 3),
     ]);
   }
 

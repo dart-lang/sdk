@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class PartOfNonPartTest extends PubPackageResolutionTest {
-  test_part_of_non_part() async {
+  test_noPartOf() async {
     newFile('$testPackageLibPath/l2.dart', '''
 library l2;
 ''');
@@ -25,6 +25,18 @@ part 'l2.dart';
 ''', [
       error(CompileTimeErrorCode.PART_OF_NON_PART, 17, 9),
     ]);
+  }
+
+  test_partOf_dotted() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part of foo.bar;
+''');
+
+    // No error reported in the library, only in the part.
+    await assertNoErrorsInCode(r'''
+library foo.bar;
+part 'a.dart';
+''');
   }
 
   test_self() async {

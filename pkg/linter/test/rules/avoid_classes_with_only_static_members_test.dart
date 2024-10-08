@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidClassesWithOnlyStaticMembers extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_classes_with_only_static_members';
+  String get lintRule => LintNames.avoid_classes_with_only_static_members;
 
   test_augmentationClass_nonStaticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
@@ -30,7 +30,7 @@ class A {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   int a = 1;
 }
 ''');
@@ -52,7 +52,7 @@ class A {}
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   static int f = 1;
 }
 ''');
@@ -76,7 +76,7 @@ class A {}
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   static void m() {}
 }
 ''');

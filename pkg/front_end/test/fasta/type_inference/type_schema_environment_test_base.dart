@@ -183,12 +183,18 @@ abstract class TypeSchemaEnvironmentTestBase {
               treeNodeForTesting: null);
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
-            gatherer, typeParameterNodesToInfer, inferredTypeNodes);
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes,
+            inferenceUsingBoundsIsEnabled: true,
+            dataForTesting: null,
+            treeNodeForTesting: null);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!,
             treeNodeForTesting: null);
         inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParameterNodesToInfer, inferredTypeNodes!);
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes!,
+            inferenceUsingBoundsIsEnabled: true,
+            dataForTesting: null,
+            treeNodeForTesting: null);
       }
 
       assert(
@@ -225,6 +231,7 @@ abstract class TypeSchemaEnvironmentTestBase {
           [typeParameterNode],
           inferredTypeNodes,
           preliminary: downwardsInferPhase,
+          inferenceUsingBoundsIsEnabled: true,
           operations: _operations);
 
       expect(inferredTypeNodes.single, expectedTypeNode);

@@ -63,14 +63,13 @@ typedef NodeVisitor = void Function(Object node);
 
 class MockLintRule extends LintRule {
   final NodeVisitor nodeVisitor;
-  MockLintRule(this.nodeVisitor)
-      : super(name: 'MockLint', description: 'Desc', details: 'And so on...');
+  MockLintRule(this.nodeVisitor) : super(name: 'MockLint', description: 'Desc');
 
   @override
-  PubspecVisitor getPubspecVisitor() => MockPubspecVisitor(nodeVisitor);
+  PubspecVisitor<void> getPubspecVisitor() => MockPubspecVisitor(nodeVisitor);
 }
 
-class MockPubspecVisitor extends PubspecVisitor {
+class MockPubspecVisitor extends PubspecVisitor<void> {
   final NodeVisitor? nodeVisitor;
 
   MockPubspecVisitor(this.nodeVisitor);

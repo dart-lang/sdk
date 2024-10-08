@@ -105,6 +105,7 @@ PatternAssignment
       AssignedVariablePattern
         name: a
         element: <testLibraryFragment>::@function::f::@parameter::a
+        element2: <testLibraryFragment>::@function::f::@parameter::a#element
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -113,6 +114,7 @@ PatternAssignment
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: List<int>
   patternTypeSchema: List<num>
   staticType: List<int>
@@ -136,6 +138,7 @@ PatternAssignment
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A
     leftParenthesis: (
     fields
@@ -145,8 +148,10 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: foo
           element: <testLibraryFragment>::@function::f::@parameter::foo
+          element2: <testLibraryFragment>::@function::f::@parameter::foo#element
           matchedValueType: int
         element: <testLibraryFragment>::@class::A::@getter::foo
+        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A
   equals: =
@@ -155,8 +160,10 @@ PatternAssignment
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -180,6 +187,7 @@ PatternAssignment
     pattern: AssignedVariablePattern
       name: a
       element: <testLibraryFragment>::@function::f::@parameter::a
+      element2: <testLibraryFragment>::@function::f::@parameter::a#element
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -187,6 +195,7 @@ PatternAssignment
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int
   patternTypeSchema: num
   staticType: int
@@ -209,6 +218,7 @@ PatternAssignment
     pattern: AssignedVariablePattern
       name: a
       element: <testLibraryFragment>::@function::f::@parameter::a
+      element2: <testLibraryFragment>::@function::f::@parameter::a#element
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -217,6 +227,7 @@ PatternAssignment
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
+      element: <testLibraryFragment>::@function::g#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -249,14 +260,17 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: <testLibraryFragment>::@function::f::@parameter::a
+          element2: <testLibraryFragment>::@function::f::@parameter::a#element
           matchedValueType: int
         element: <null>
+        element2: <null>
     rightParenthesis: )
     matchedValueType: ({int foo})
   equals: =
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: ({int foo})
   patternTypeSchema: ({num foo})
   staticType: ({int foo})
@@ -281,8 +295,10 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: <testLibraryFragment>::@function::f::@parameter::a
+          element2: <testLibraryFragment>::@function::f::@parameter::a#element
           matchedValueType: int
         element: <null>
+        element2: <null>
     rightParenthesis: )
     matchedValueType: ({int a})
   equals: =
@@ -294,6 +310,7 @@ PatternAssignment
           label: SimpleIdentifier
             token: a
             staticElement: <null>
+            element: <null>
             staticType: null
           colon: :
         expression: IntegerLiteral
@@ -322,14 +339,17 @@ PatternAssignment
         pattern: AssignedVariablePattern
           name: a
           element: <testLibraryFragment>::@function::f::@parameter::a
+          element2: <testLibraryFragment>::@function::f::@parameter::a#element
           matchedValueType: int
         element: <null>
+        element2: <null>
     rightParenthesis: )
     matchedValueType: (int,)
   equals: =
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: (int,)
   patternTypeSchema: (num,)
   staticType: (int,)
@@ -395,6 +415,7 @@ void f(num a) {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@function::f::@parameter::a
+  element: <testLibraryFragment>::@function::f::@parameter::a#element
   staticType: int
 ''');
   }

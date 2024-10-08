@@ -18,7 +18,7 @@ class UseKeyInWidgetConstructorsTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'use_key_in_widget_constructors';
+  String get lintRule => LintNames.use_key_in_widget_constructors;
 
   test_augmentedConstructor_noKey() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -35,8 +35,6 @@ class W extends StatelessWidget {
 
     await assertNoDiagnostics(r'''
 part of 'a.dart';
-
-import 'package:flutter/widgets.dart';
 
 augment class W {
   augment const W();
@@ -96,13 +94,11 @@ class W extends StatelessWidget {
     await assertDiagnostics(r'''
 part of 'a.dart';
 
-import 'package:flutter/widgets.dart';
-
 augment class W {
   const W();
 }
 ''', [
-      lint(85, 1),
+      lint(45, 1),
     ]);
   }
 

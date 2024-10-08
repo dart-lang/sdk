@@ -11,32 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use truncating division.';
 
-const _details = r'''
-**DO** use truncating division, '~/', instead of regular division ('/') followed
-by 'toInt()'.
-
-Dart features a "truncating division" operator which is the same operation as
-division followed by truncation, but which is more concise and expressive, and
-may be more performant on some platforms, for certain inputs.
-
-**BAD:**
-```dart
-var x = (2 / 3).toInt();
-```
-
-**GOOD:**
-```dart
-var x = 2 ~/ 3;
-```
-
-''';
-
 class UseTruncatingDivision extends LintRule {
   UseTruncatingDivision()
       : super(
-          name: 'use_truncating_division',
+          name: LintNames.use_truncating_division,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -68,11 +47,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Return if the '/' operator is not defined in core, or if we don't know
     // its static type.
-    var methodElement = node.staticElement;
+    var methodElement = node.element;
     if (methodElement == null) return;
 
-    var libraryElement = methodElement.library;
-    if (!libraryElement.isDartCore) return;
+    var libraryElement = methodElement.library2;
+    if (libraryElement != null && !libraryElement.isDartCore) return;
 
     var parent = node.parent;
     if (parent is! ParenthesizedExpression) return;

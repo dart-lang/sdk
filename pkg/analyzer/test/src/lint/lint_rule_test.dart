@@ -106,30 +106,6 @@ class CollectingReporter extends ErrorReporter {
   }) {
     code = errorCode;
   }
-
-  @Deprecated('Use atNode() instead')
-  @override
-  void reportErrorForNode(
-    ErrorCode errorCode,
-    AstNode node, [
-    List<Object?>? arguments,
-    List<DiagnosticMessage>? messages,
-    Object? data,
-  ]) {
-    code = errorCode;
-  }
-
-  @Deprecated('Use atToken() instead')
-  @override
-  void reportErrorForToken(
-    ErrorCode errorCode,
-    Token token, [
-    List<Object?>? arguments,
-    List<DiagnosticMessage>? messages,
-    Object? data,
-  ]) {
-    code = errorCode;
-  }
 }
 
 class TestRule extends LintRule {
@@ -140,7 +116,6 @@ class TestRule extends LintRule {
       : super(
           name: 'test_rule',
           description: '',
-          details: '... tl;dr ...',
         );
 
   @override

@@ -2,17 +2,17 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:29:12: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   void set Class(value) {}
+//            ^^^^^
+//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: 'topLevelMethodAndSetter' is already declared in this scope.
 // void set topLevelMethodAndSetter(value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:6:10: Context: Previous declaration of 'topLevelMethodAndSetter'.
 // void set topLevelMethodAndSetter(value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:29:12: Error: A class member can't have the same name as the enclosing class.
-// Try renaming the member.
-//   void set Class(value) {}
-//            ^^^^^
 //
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
 // void set topLevelMethodAndSetter(value) {}

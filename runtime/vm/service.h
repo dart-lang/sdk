@@ -75,7 +75,11 @@ class ServiceIdZone {
 
 class RingServiceIdZone final : public ServiceIdZone {
  public:
-  static constexpr int32_t kDefaultCapacity = 8192;
+  // The capacity of the default Service ID zone of each isolate.
+  static constexpr int32_t kCapacityOfDefaultIdZone = 8192;
+  // The fallback capacity used when the `createIdZone` Service procedure is
+  // called without a `capacity` argument.
+  static constexpr int32_t kFallbackCapacityForCreateIdZone = 512;
 
   RingServiceIdZone(intptr_t id,
                     ObjectIdRing::IdPolicy policy,

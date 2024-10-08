@@ -440,9 +440,13 @@ class ExhaustivenessDataForTesting {
   /// Map from switch case nodes to the space for its pattern/expression.
   Map<AstNode, Space> caseSpaces = {};
 
-  /// Map from switch statement/expression/case nodes to the error reported
-  /// on the node.
-  Map<AstNode, ExhaustivenessError> errors = {};
+  /// Map from unreachable switch case nodes to information about their
+  /// unreachability.
+  Map<AstNode, CaseUnreachability> caseUnreachabilities = {};
+
+  /// Map from switch statement nodes that are erroneous due to being
+  /// non-exhaustive, to information about their non-exhaustiveness.
+  Map<AstNode, NonExhaustiveness> nonExhaustivenesses = {};
 
   ExhaustivenessDataForTesting(this.objectFieldLookup);
 }

@@ -30,8 +30,20 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
     if (block is! Block) return;
 
     var previous = _getPrevious(block, node);
-    if (previous is! ExpressionStatement) return;
-    var previousOperator = _getTargetAndOperator(previous.expression)?.operator;
+    Token? previousOperator;
+    Token? semicolon;
+    if (previous is ExpressionStatement) {
+      semicolon = previous.semicolon;
+      previousOperator = _getTargetAndOperator(previous.expression)?.operator;
+    } else if (previous is VariableDeclarationStatement) {
+      // Single variable declaration.
+      if (previous.variables.variables.length != 1) {
+        return;
+      }
+      semicolon = previous.endToken;
+    } else {
+      return;
+    }
 
     var expression = node.expression;
     var target = _getTargetAndOperator(expression)?.target;
@@ -43,7 +55,9 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
       if (previousOperator != null) {
         builder.addSimpleInsertion(previousOperator.offset, '.');
       }
-      builder.addDeletion(range.token(previous.semicolon!));
+      if (semicolon != null) {
+        builder.addDeletion(range.token(semicolon));
+      }
       builder.addSimpleReplacement(range.node(target), targetReplacement);
     });
   }

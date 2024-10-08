@@ -13,9 +13,6 @@
 //
 // Run as follows on JSC:
 //
-// $> export JSC_useWebAssemblyTypedFunctionReferences=1
-// $> export JSC_useWebAssemblyExtendedConstantExpressions=1
-// $> export JSC_useWebAssemblyGC=1
 // $> jsc run_wasm.js -- <dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
 //
@@ -64,7 +61,7 @@ if (isD8) {
   delete performance.measure;
 }
 
-var args =  (isD8 || isJSC) ? arguments : scriptArgs;
+var args = (isD8 || isJSC) ? arguments : scriptArgs;
 var dartArgs = [];
 const argsSplit = args.indexOf("--");
 if (argsSplit != -1) {
@@ -78,7 +75,7 @@ if (argsSplit != -1) {
 //
 // The code below is copied form dart2js, with some modifications:
 // sdk/lib/_internal/js_runtime/lib/preambles/d8.js
-(function(self, scriptArguments) {
+(function (self, scriptArguments) {
   // Using strict mode to avoid accidentally defining global variables.
   "use strict"; // Should be first statement of this function.
 
@@ -87,11 +84,15 @@ if (argsSplit != -1) {
   var head = 0;
   var tail = 0;
   var mask = taskQueue.length - 1;
+  var isEventLoopRunning = false;
 
   function addTask(elem) {
     taskQueue[head] = elem;
     head = (head + 1) & mask;
     if (head == tail) _growTaskQueue();
+    if (!isEventLoopRunning) {
+      eventLoop(removeTask());
+    }
   }
 
   function removeTask() {
@@ -179,7 +180,7 @@ if (argsSplit != -1) {
 
   // Mocking time.
   var timeOffset = 0;
-  var now = function() {
+  var now = function () {
     // Install the mock Date object only once.
     // Following calls to "now" will just use the new (mocked) Date.now
     // method directly.
@@ -202,13 +203,13 @@ if (argsSplit != -1) {
       if (this instanceof Date) {
         // Assume a construct call.
         switch (arguments.length) {
-          case 0:  return new originalDate(originalNow() + timeOffset);
-          case 1:  return new originalDate(Y);
-          case 2:  return new originalDate(Y, M);
-          case 3:  return new originalDate(Y, M, D);
-          case 4:  return new originalDate(Y, M, D, h);
-          case 5:  return new originalDate(Y, M, D, h, m);
-          case 6:  return new originalDate(Y, M, D, h, m, s);
+          case 0: return new originalDate(originalNow() + timeOffset);
+          case 1: return new originalDate(Y);
+          case 2: return new originalDate(Y, M);
+          case 3: return new originalDate(Y, M, D);
+          case 4: return new originalDate(Y, M, D, h);
+          case 5: return new originalDate(Y, M, D, h, m);
+          case 6: return new originalDate(Y, M, D, h, m, s);
           default: return new originalDate(Y, M, D, h, m, s, ms);
         }
       }
@@ -322,6 +323,7 @@ if (argsSplit != -1) {
 
   async function eventLoop(action) {
     if (isJSC) asyncTestStart(1);
+    isEventLoopRunning = true;
     while (action) {
       try {
         await action();
@@ -339,15 +341,16 @@ if (argsSplit != -1) {
       }
       action = nextEvent();
     }
+    isEventLoopRunning = false;
     if (isJSC) asyncTestPassed();
   }
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
   self.self = self;
-  self.dartMainRunner = function(main, ignored_args) {
+  self.dartMainRunner = function (main, ignored_args) {
     // Initialize.
-    var action = async function() { await main(scriptArguments, null); }
+    var action = async function () { await main(scriptArguments, null); }
     eventLoop(action);
   };
   self.setTimeout = addTimer;
@@ -356,8 +359,16 @@ if (argsSplit != -1) {
   self.clearInterval = cancelTimer;
   self.queueMicrotask = addTask;
 
+  // Constructor function for JS `Response` objects, allows us to test for it
+  // via `instanceof`.
+  self.Response = function () { }
+
   self.location = {}
-  self.location.href = 'file://' + args[wasmArg];
+  if (args[wasmArg].startsWith('/')) {
+    self.location.href = 'file://' + args[wasmArg];
+  } else {
+    self.location.href = args[wasmArg];
+  }
 
   // Signals `Stopwatch._initTicker` to use `Date.now` to get ticks instead of
   // `performance.now`, as it's not available in d8.
@@ -393,9 +404,20 @@ const main = async () => {
     importObject.ffi = ffiInstance.exports;
   }
 
+  globalThis.loadData = async (relativeToWasmFileUri) => {
+    var path = wasmFilename.slice(0, wasmFilename.lastIndexOf('/'));
+    return await readBytes(`${path}/${relativeToWasmFileUri}`);
+  };
+
   // Instantiate the Dart module, importing from the global scope.
-  const compiledApp = await dart2wasm.compile(readBytes(args[wasmArg]));
-  const appInstance = await compiledApp.instantiate(importObject);
+  const wasmFilename = args[wasmArg];
+  const compiledApp = await dart2wasm.compile(readBytes(wasmFilename));
+  const appInstance = await compiledApp.instantiate(importObject, {
+    loadDeferredWasm: async (moduleName) => {
+      let filename = wasmFilename.replace('.wasm', `_${moduleName}.wasm`);
+      return readBytes(filename);
+    }
+  });
 
   // Call `main`. If tasks are placed into the event loop (by scheduling tasks
   // explicitly or awaiting Futures), these will automatically keep the script

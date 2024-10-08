@@ -111,6 +111,7 @@ PatternVariableDeclaration
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int?
   patternTypeSchema: _
 ''');
@@ -138,6 +139,7 @@ PatternVariableDeclaration
         literal: 0
         staticType: int
       element: dart:core::<fragment>::@class::num::@method::>
+      element2: dart:core::<fragment>::@class::num::@method::>#element
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int

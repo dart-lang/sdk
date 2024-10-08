@@ -53,7 +53,6 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   // [unaliasTypeArguments].
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables});
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
@@ -132,9 +131,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   List<TypeAliasBuilder> _typeAliasesUsedInUnaliasing = [];
 
   TypeAliasBuilderImpl(List<MetadataBuilder>? metadata, String name,
-      LibraryBuilder parent, int charOffset)
-      : fileUri = parent.fileUri,
-        super(metadata, 0, name, parent, charOffset);
+      LibraryBuilder parent, this.fileUri, int fileOffset)
+      : super(metadata, 0, name, parent, fileOffset);
 
   @override
   String get debugName => "TypeAliasBuilder";
@@ -195,8 +193,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   void _ensureUnaliasedType(
-      {required List<TypeBuilder>? unboundTypes,
-      required List<StructuralVariableBuilder>? unboundTypeVariables}) {
+      {required List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (_unaliasedRhsType != null) {
       return;
     }
@@ -221,7 +218,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         TypeBuilder? unaliasedRhsType = rhsTypeDeclaration.unalias(
             typeArguments,
             usedTypeAliasBuilders: usedTypeAliasBuilders,
-            unboundTypes: unboundTypes,
             unboundTypeVariables: unboundTypeVariables);
         _unaliasedRhsType = unaliasedRhsType;
         if (typeVariables != null) {
@@ -240,7 +236,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                       typeVariables, typeArguments))
               .unalias(
                   usedTypeAliasBuilders: usedTypeAliasBuilders,
-                  unboundTypes: unboundTypes,
                   unboundTypeVariables: unboundTypeVariables);
         }
         _typeAliasesUsedInUnaliasing.addAll(usedTypeAliasBuilders);
@@ -254,10 +249,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
-    _ensureUnaliasedType(
-        unboundTypes: unboundTypes, unboundTypeVariables: unboundTypeVariables);
+    _ensureUnaliasedType(unboundTypeVariables: unboundTypeVariables);
     if (usedTypeAliasBuilders != null) {
       usedTypeAliasBuilders.addAll(_typeAliasesUsedInUnaliasing);
     }
@@ -287,7 +280,6 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           return unaliasedRhsType!.subst(
               new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
                   typeVariables, typeArguments),
-              unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
         }
       case ExtensionBuilder():
@@ -583,9 +575,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
       {required Map<TypeVariableBuilder, TraversalState>
           typeVariablesTraversalState}) {
-    return unalias(typeArguments, unboundTypes: [], unboundTypeVariables: [])!
-        .computeNullability(
-            typeVariablesTraversalState: typeVariablesTraversalState);
+    return unalias(typeArguments, unboundTypeVariables: [])!.computeNullability(
+        typeVariablesTraversalState: typeVariablesTraversalState);
   }
 }
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ThrowInFinallyTest extends LintRuleTest {
   @override
-  String get lintRule => 'throw_in_finally';
+  String get lintRule => LintNames.throw_in_finally;
 
   test_noThrow() async {
     await assertNoDiagnostics(r'''

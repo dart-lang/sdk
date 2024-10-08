@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -180,7 +180,7 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
 class _DeclaredVariable {
   final VariableDeclarationStatement statement;
   final VariableDeclaration declaration;
-  final LocalVariableElement element;
+  final LocalVariableElement2 element;
   final Expression initializer;
 
   _DeclaredVariable({
@@ -196,14 +196,14 @@ class _DeclaredVariable {
 }
 
 class _ReferenceVisitor extends RecursiveAstVisitor<void> {
-  final LocalVariableElement element;
+  final LocalVariableElement2 element;
   bool hasReference = false;
 
   _ReferenceVisitor(this.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == element) {
+    if (node.element == element) {
       hasReference = true;
     }
   }
@@ -242,8 +242,8 @@ extension on Statement {
       return null;
     }
 
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement is! LocalVariableElement) {
+    var declaredElement = declaration.declaredElement2;
+    if (declaredElement is! LocalVariableElement2) {
       return null;
     }
 

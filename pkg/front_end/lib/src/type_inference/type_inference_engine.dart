@@ -344,8 +344,6 @@ abstract class TypeInferenceEngine {
 /// kernel objects.
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
-  final FunctionType unknownFunction =
-      new FunctionType(const [], const DynamicType(), Nullability.nonNullable);
 
   TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
       : super(instrumentation);
@@ -364,11 +362,11 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     if (benchmarker == null) {
       return new TypeInferrerImpl(this, uri, false, thisType, library,
-          assignedVariables, dataForTesting, unknownFunction);
+          assignedVariables, dataForTesting);
     }
     // Coverage-ignore(suite): Not run.
     return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!, unknownFunction);
+        assignedVariables, dataForTesting, benchmarker!);
   }
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
@@ -386,11 +384,11 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     if (benchmarker == null) {
       return new TypeInferrerImpl(this, uri, true, thisType, library,
-          assignedVariables, dataForTesting, unknownFunction);
+          assignedVariables, dataForTesting);
     }
     // Coverage-ignore(suite): Not run.
     return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!, unknownFunction);
+        assignedVariables, dataForTesting, benchmarker!);
   }
 }
 
@@ -724,11 +722,6 @@ class OperationsCfe
   }
 
   @override
-  bool isFunctionType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is FunctionType;
-  }
-
-  @override
   DartType? matchFutureOrInternal(DartType type) {
     if (type is! FutureOrType) {
       return null;
@@ -950,8 +943,8 @@ class OperationsCfe
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(
-      SharedTypeView<DartType> type) {
+  TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration, DartType>?
+      matchTypeDeclarationType(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType is TypeDeclarationType) {
       switch (unwrappedType) {

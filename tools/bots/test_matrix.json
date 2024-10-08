@@ -74,6 +74,7 @@
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart_precompiled_runtime",
+      "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2wasm.snapshot",
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
       "out/ReleaseX64/dart2wasm_outline.dill",
@@ -104,6 +105,7 @@
       "tests/light_unittest.dart",
       "tests/search/",
       "tests/ffi/",
+      "third_party/flute/",
       "third_party/jsc/",
       "third_party/firefox_jsshell/",
       "third_party/d8/",
@@ -482,7 +484,7 @@
         ],
         "use-sdk": true,
         "host-asserts": false,
-        "timeout": 60
+        "timeout": 120
       }
     },
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
@@ -582,7 +584,7 @@
         "use-sdk": true
       }
     },
-    "ddc-mac-chrome": {
+    "ddc-mac-(chrome|safari)": {
       "options": {
         "architecture": "arm64",
         "checked": true,
@@ -607,7 +609,8 @@
         "builder-tag": "canary",
         "checked": true,
         "ddc-options": [
-          "--canary"
+          "--canary",
+          "--modules=ddc"
         ],
         "use-sdk": true
       }
@@ -640,8 +643,15 @@
         "compiler": "fasta"
       }
     },
-    "analyzer-(linux|mac|win)": {
+    "analyzer-(linux|win)": {
       "options": {
+        "compiler": "dart2analyzer",
+        "use-sdk": true
+      }
+    },
+    "analyzer-mac": {
+      "options": {
+        "architecture": "arm64",
         "compiler": "dart2analyzer",
         "use-sdk": true
       }
@@ -1086,7 +1096,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
         "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
-
       },
       "steps": [
         {
@@ -1119,7 +1128,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
         "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
-
       },
       "steps": [
         {
@@ -1331,7 +1339,8 @@
           "arguments": [
             "--dart-dynamic-modules",
             "runtime",
-            "runtime_precompiled"
+            "runtime_precompiled",
+            "utils/gen_kernel"
           ]
         },
         {
@@ -1343,6 +1352,17 @@
           ],
           "fileset": "vm",
           "shards": 5
+        },
+        {
+          "name": "dynamic module tests",
+          "script": "out/DebugX64/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-nvm-aot-dyn-${system}-${mode}-${arch}",
+            "-raot",
+            "--verbose"
+          ]
         }
       ]
     },
@@ -1879,12 +1899,13 @@
           ]
         },
         {
-          "name": "ddc hot reload tests",
+          "name": "ddc dynamic module tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
-            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "pkg/dynamic_modules/test/runner/main.dart",
             "-nddc-${system}-chrome",
+            "-rddc",
             "--verbose"
           ]
         },
@@ -1976,16 +1997,6 @@
           ]
         },
         {
-          "name": "ddc hot reload tests",
-          "script": "xcodebuild/ReleaseARM64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/hot_reload_suite.dart",
-            "-nddc-mac-chrome",
-            "--verbose"
-          ]
-        },
-        {
           "name": "ddc sourcemap tests",
           "script": "xcodebuild/ReleaseARM64/dart",
           "arguments": [
@@ -2032,6 +2043,49 @@
     },
     {
       "builders": [
+        "ddc-mac-safari"
+      ],
+      "meta": {
+        "description": "DDC running in Safari on Mac."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "dart2js_bot",
+            "ddc_stable_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-mac-safari",
+            "--arch=arm64",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 tests",
+          "arguments": [
+            "-nddc-mac-safari",
+            "--arch=arm64",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "js_platform"
+        }
+      ]
+    },
+    {
+      "builders": [
         "ddc-linux-firefox"
       ],
       "meta": {
@@ -2060,12 +2114,48 @@
           "fileset": "js_platform"
         },
         {
-          "name": "ddc co19 tests",
+          "name": "ddc co19 Language tests",
           "arguments": [
             "-nddc-${system}-firefox",
-            "co19"
+            "co19/Language"
           ],
-          "shards": 6,
+          "shards": 3,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 LanguageFeatures tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/LanguageFeatures"
+          ],
+          "shards": 3,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 LibTest tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/LibTest"
+          ],
+          "shards": 3,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 TypeSystem tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/TypeSystem"
+          ],
+          "shards": 3,
+          "fileset": "js_platform"
+        },
+        {
+          "name": "ddc co19 Utils tests",
+          "arguments": [
+            "-nddc-${system}-firefox",
+            "co19/Utils"
+          ],
+          "shards": 3,
           "fileset": "js_platform"
         }
       ]
@@ -2114,6 +2204,16 @@
           "script": "tools/build.py",
           "arguments": [
             "ddc_canary_test"
+          ]
+        },
+        {
+          "name": "ddc hot reload tests in d8",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "-nddc-canary-linux-chrome",
+            "--verbose"
           ]
         },
         {
@@ -2946,21 +3046,6 @@
             "--suppress-analytics",
             "runtime/observatory"
           ]
-        },
-        {
-          "_comment": "This uses analyzer_cli which is deprecated.",
-          "name": "dartanalyzer --batch tests",
-          "arguments": [
-            "-nanalyzer-${system}"
-          ]
-        },
-        {
-          "_comment": "This uses analyzer_cli which is deprecated.",
-          "name": "dartanalyzer --batch pkg tests",
-          "arguments": [
-            "-nanalyzer-${system}",
-            "pkg"
-          ]
         }
       ]
     },
@@ -3100,7 +3185,7 @@
         "pkg-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is used by the pkg builders, no shards."
+        "description": "This configuration is used by the pkg builders, no shards."
       },
       "steps": [
         {

@@ -689,6 +689,7 @@ class FfiTransformer extends Transformer {
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.
   ///
+  /// ```
   /// [Int8]                               -> [int]
   /// [Int16]                              -> [int]
   /// [Int32]                              -> [int]
@@ -709,6 +710,7 @@ class FfiTransformer extends Transformer {
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
+  /// ```
   DartType? convertNativeTypeToDartType(
     DartType nativeType, {
     bool allowStructAndUnion = false,
@@ -1463,7 +1465,8 @@ class FfiTransformer extends Transformer {
         null;
   }
 
-  void addPragmaPreferInline(Procedure node) {
+  void addPragmaPreferInline(Member node) {
+    assert(node is Procedure || node is Constructor);
     node.addAnnotation(
       ConstantExpression(
         InstanceConstant(

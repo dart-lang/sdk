@@ -5,38 +5,18 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid shadowing type parameters.';
 
-const _details = r'''
-**AVOID** shadowing type parameters.
-
-**BAD:**
-```dart
-class A<T> {
-  void fn<T>() {}
-}
-```
-
-**GOOD:**
-```dart
-class A<T> {
-  void fn<U>() {}
-}
-```
-
-''';
-
 class AvoidShadowingTypeParameters extends LintRule {
   AvoidShadowingTypeParameters()
       : super(
-          name: 'avoid_shadowing_type_parameters',
+          name: LintNames.avoid_shadowing_type_parameters,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -45,7 +25,7 @@ class AvoidShadowingTypeParameters extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.libraryElement);
+    var visitor = _Visitor(this, context.libraryElement2);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -58,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  _Visitor(this.rule, LibraryElement? library)
+  _Visitor(this.rule, LibraryElement2? library)
       : _wildCardVariablesEnabled =
             library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 

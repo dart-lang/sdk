@@ -501,6 +501,7 @@ class FfiCode extends AnalyzerErrorCode {
     'VARIABLE_LENGTH_ARRAY_NOT_LAST',
     "Variable length 'Array's must only occur as the last field of Structs.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
+    hasPublishedDocs: true,
   );
 
   /// Initialize a newly created error code to have the given [name].

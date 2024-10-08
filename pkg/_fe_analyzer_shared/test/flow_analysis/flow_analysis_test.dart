@@ -20,7 +20,18 @@ main() {
   late FlowAnalysisTestHarness h;
 
   setUp(() {
+    TypeRegistry.init();
+    TypeRegistry.addInterfaceTypeName('A');
+    TypeRegistry.addInterfaceTypeName('B');
+    TypeRegistry.addInterfaceTypeName('C');
+    TypeRegistry.addInterfaceTypeName('D');
+    TypeRegistry.addInterfaceTypeName('E');
+    TypeRegistry.addInterfaceTypeName('F');
     h = FlowAnalysisTestHarness();
+  });
+
+  tearDown(() {
+    TypeRegistry.uninit();
   });
 
   group('API', () {
@@ -1348,7 +1359,7 @@ main() {
     group('initialize() promotes implicitly typed vars to type parameter types',
         () {
       test('when not final', () {
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')),
@@ -1357,7 +1368,7 @@ main() {
       });
 
       test('when final', () {
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         var x = Var('x');
         h.run([
           declare(x,
@@ -1374,7 +1385,7 @@ main() {
         'parameter types', () {
       test('when not final', () {
         var x = Var('x');
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         h.run([
           declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1383,7 +1394,7 @@ main() {
 
       test('when final', () {
         var x = Var('x');
-        h.addTypeVariable('T');
+        TypeRegistry.addTypeParameter('T');
         h.run([
           declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1423,7 +1434,6 @@ main() {
         getSsaNodes((nodes) {
           var info = nodes[x]!.expressionInfo!;
           var key = h.promotionKeyStore.keyForVariable(y);
-          expect(info.after.promotionInfo!.get(h, key)!.promotedTypes, null);
           expect(info.ifTrue.promotionInfo!.get(h, key)!.promotedTypes, null);
           expect(
               info.ifFalse.promotionInfo!
@@ -3440,10 +3450,17 @@ main() {
   });
 
   group('State', () {
-    var intVar = Var('x')..type = Type('int');
-    var intQVar = Var('x')..type = Type('int?');
-    var objectQVar = Var('x')..type = Type('Object?');
-    var nullVar = Var('x')..type = Type('Null');
+    late Var intVar;
+    late Var intQVar;
+    late Var objectQVar;
+    late Var nullVar;
+
+    setUp(() {
+      intVar = Var('x')..type = Type('int');
+      intQVar = Var('x')..type = Type('int?');
+      objectQVar = Var('x')..type = Type('Object?');
+      nullVar = Var('x')..type = Type('Null');
+    });
 
     group('setUnreachable', () {
       var unreachable = FlowModel<SharedTypeView<Type>>(
@@ -3593,7 +3610,11 @@ main() {
     });
 
     group('write', () {
-      var objectQVar = Var('x')..type = Type('Object?');
+      late Var objectQVar;
+
+      setUp(() {
+        objectQVar = Var('x')..type = Type('Object?');
+      });
 
       test('without declaration', () {
         // This should not happen in valid code, but test that we don't crash.
@@ -4104,7 +4125,11 @@ main() {
     });
 
     group('declare', () {
-      var objectQVar = Var('x')..type = Type('Object?');
+      late Var objectQVar;
+
+      setUp(() {
+        objectQVar = Var('x')..type = Type('Object?');
+      });
 
       test('initialized', () {
         var s = FlowModel<SharedTypeView<Type>>(Reachability.initial)
@@ -4462,10 +4487,17 @@ main() {
   });
 
   group('joinPromotionChains', () {
-    var doubleType = Type('double');
-    var intType = Type('int');
-    var numType = Type('num');
-    var objectType = Type('Object');
+    late Type doubleType;
+    late Type intType;
+    late Type numType;
+    late Type objectType;
+
+    setUp(() {
+      doubleType = Type('double');
+      intType = Type('int');
+      numType = Type('num');
+      objectType = Type('Object');
+    });
 
     test('should handle nulls', () {
       expect(
@@ -4670,15 +4702,18 @@ main() {
     late int y;
     late int z;
     late int w;
-    var intType = Type('int');
-    var intQType = Type('int?');
-    var stringType = Type('String');
+    late Type intType;
+    late Type intQType;
+    late Type stringType;
 
     setUp(() {
       x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
       y = h.promotionKeyStore.keyForVariable(Var('y')..type = Type('Object?'));
       z = h.promotionKeyStore.keyForVariable(Var('z')..type = Type('Object?'));
       w = h.promotionKeyStore.keyForVariable(Var('w')..type = Type('Object?'));
+      intType = Type('int');
+      intQType = Type('int?');
+      stringType = Type('String');
     });
 
     PromotionModel<SharedTypeView<Type>> model(
@@ -4881,11 +4916,13 @@ main() {
 
   group('inheritTested', () {
     late int x;
-    var intType = Type('int');
-    var stringType = Type('String');
+    late Type intType;
+    late Type stringType;
 
     setUp(() {
       x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
+      intType = Type('int');
+      stringType = Type('String');
     });
 
     PromotionModel<SharedTypeView<Type>> model(
@@ -5653,6 +5690,7 @@ main() {
         });
 
         test('even when the declared type is a type variable', () {
+          TypeRegistry.addTypeParameter('T');
           h.enableLegacy();
           h.addPromotionException('T', 'int', 'T&int');
           var x = Var('x');
@@ -8605,6 +8643,82 @@ main() {
       });
     });
 
+    group('Null-aware map entry:', () {
+      test('Promotes key within value', () {
+        var a = Var('a');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, checkPromoted(a, 'String'), isKeyNullAware: true),
+          ]),
+          checkNotPromoted(a),
+        ]);
+      });
+
+      test('Non-null-aware key', () {
+        var a = Var('a');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String?', valueType: 'dynamic', [
+            mapEntry(a, checkNotPromoted(a), isKeyNullAware: false),
+          ]),
+          checkNotPromoted(a),
+        ]);
+      });
+
+      test('Promotes', () {
+        var a = Var('a');
+        var x = Var('x');
+
+        h.run([
+          declare(a, type: 'String', initializer: expr('String')),
+          declare(x, type: 'num', initializer: expr('num')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, x.as_('int'), isKeyNullAware: true),
+          ]),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test('Affects promotion', () {
+        var a = Var('a');
+        var x = Var('x');
+
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          declare(x, type: 'num', initializer: expr('num')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, x.as_('int'), isKeyNullAware: true),
+          ]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Unreachable', () {
+        var a = Var('a');
+        h.run([
+          declare(a, type: 'String', initializer: expr('String')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, throw_(expr('Object')), isKeyNullAware: true),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test('Reachable', () {
+        var a = Var('a');
+        h.run([
+          declare(a, type: 'String?', initializer: expr('String?')),
+          mapLiteral(keyType: 'String', valueType: 'dynamic', [
+            mapEntry(a, throw_(expr('Object')), isKeyNullAware: true),
+          ]),
+          checkReachable(true),
+        ]);
+      });
+    });
+
     group('Map pattern:', () {
       test('Promotes', () {
         var x = Var('x');
@@ -8823,6 +8937,7 @@ main() {
           //         // x still might be `null`
           //       }
           //     }
+          TypeRegistry.addInterfaceTypeName('T');
           h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
           h.addMember('int?', 'foo', 'dynamic');
           var x = Var('x');
@@ -8991,6 +9106,7 @@ main() {
           //         // x still might be `null`
           //       }
           //     }
+          TypeRegistry.addInterfaceTypeName('T');
           h.addDownwardInfer(name: 'T', context: 'Object?', result: 'int?');
           h.addMember('int?', 'foo', 'dynamic');
           var x = Var('x');
@@ -11254,7 +11370,7 @@ extension on FlowModel<SharedTypeView<Type>> {
           FlowAnalysisTestHarness h, Var variable) =>
       new TrivialVariableReference<SharedTypeView<Type>>(
           promotionKey: _varRef(h, variable),
-          after: this,
+          model: this,
           type: promotionInfo
                   ?.get(h, h.promotionKeyStore.keyForVariable(variable))
                   ?.promotedTypes

@@ -824,6 +824,17 @@ ISOLATE_UNIT_TEST_CASE(String) {
     EXPECT_EQ(0x7FFF, str16.CharAt(1));
     EXPECT_EQ(0xFFFF, str16.CharAt(2));
   }
+
+  // Check that String's identity hash and hashCode are the same.
+  {
+    for (auto str : {"Hello", "Hell\xC3\x98"}) {
+      const String& s = String::Handle(String::New(str));
+      const String& s2 = String::Handle(String::New(str));
+      EXPECT_EQ(s.Hash(),
+                static_cast<uword>(
+                    Integer::Handle(s2.IdentityHashCode(thread)).Value()));
+    }
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(StringFormat) {

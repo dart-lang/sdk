@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class OneMemberAbstractsTest extends LintRuleTest {
   @override
-  String get lintRule => 'one_member_abstracts';
+  String get lintRule => LintNames.one_member_abstracts;
 
   test_macroClass() async {
     await assertDiagnostics(r'''

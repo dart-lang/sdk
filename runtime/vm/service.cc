@@ -445,7 +445,7 @@ void RingServiceIdZone::VisitPointers(ObjectPointerVisitor& visitor) const {
 
 void RingServiceIdZone::PrintJSON(JSONStream& js) const {
   JSONObject jsobj(&js);
-  jsobj.AddProperty("type", "_IdZone");
+  jsobj.AddProperty("type", "IdZone");
   jsobj.AddPropertyF("id", "zones/%" Pd, id());
   jsobj.AddProperty("backingBufferKind", "Ring");
   switch (policy()) {
@@ -1042,7 +1042,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     // are about to create, meaning that it is where temporary Service IDs may
     // be allocated by the RPC currently being handled.
     RingServiceIdZone* id_zone = &isolate.EnsureDefaultServiceIdZone();
-    const char* id_zone_id_arg = js.LookupParam("_idZoneId");
+    const char* id_zone_id_arg = js.LookupParam("idZoneId");
     if (id_zone_id_arg != nullptr) {
       intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
       if (id_zone_id != -1) {
@@ -1053,7 +1053,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
     }
 
     if (id_zone == nullptr) {
-      PrintInvalidParamError(&js, "_idZoneId");
+      PrintInvalidParamError(&js, "idZoneId");
       js.PostReply();
       return T->StealStickyError();
     }
@@ -5178,7 +5178,7 @@ static void CreateIdZone(Thread* thread, JSONStream* js) {
     return;
   }
 
-  int32_t capacity = RingServiceIdZone::kDefaultCapacity;
+  int32_t capacity = RingServiceIdZone::kFallbackCapacityForCreateIdZone;
   if (js->HasParam("capacity")) {
     intptr_t value = UIntParameter::Parse(js->LookupParam("capacity"));
     if (value < 0 || value > INT32_MAX) {
@@ -5203,15 +5203,15 @@ static void DeleteIdZone(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != nullptr);
 
-  const char* id_zone_id_arg = js->LookupParam("_idZoneId");
+  const char* id_zone_id_arg = js->LookupParam("idZoneId");
   if (id_zone_id_arg == nullptr) {
-    PrintMissingParamError(js, "_idZoneId");
+    PrintMissingParamError(js, "idZoneId");
   }
 
-  // If the `_idZoneId` argument is not missing, we know that the some
-  // properties of |id_zone_id| have already been checked in |InvokeMethod|
-  // (search for `js.set_id_zone(*id_zone)` to find the checks), so we can
-  // assert these properties to be true below.
+  // If the `idZoneId` argument is not missing, we know that some properties of
+  // |id_zone_id| have already been checked in |InvokeMethod| (search for
+  // `js.set_id_zone(*id_zone)` to find the checks), so we can assert these
+  // properties to be true below.
 
   intptr_t id_zone_id = ServiceIdZone::StringIdToInt(id_zone_id_arg);
   ASSERT(id_zone_id != -1);
@@ -6011,17 +6011,19 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
     CLASS_LIST_SETS(DEFINE_ADD_VALUE_F_CID)
   }
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
-  {JSONArray internals(&map, #clazz);                                          \
-  DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                     \
-  DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                               \
-  DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                             \
-  DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                   \
+  {                                                                            \
+    JSONArray internals(&map, #clazz);                                         \
+    DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
+    DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
+    DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
+    DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                 \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
-  {JSONArray internals(&map, #clazz);                                          \
-  DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                           \
+  {                                                                            \
+    JSONArray internals(&map, #clazz);                                         \
+    DEFINE_ADD_VALUE_F_CID(Ffi##clazz)                                         \
   }
   CLASS_LIST_FFI(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY
@@ -6054,9 +6056,9 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
   { "_compileExpression", CompileExpression, compile_expression_params },
-  { "_createIdZone", CreateIdZone,
+  { "createIdZone", CreateIdZone,
     create_id_zone_params },
-  { "_deleteIdZone", DeleteIdZone,
+  { "deleteIdZone", DeleteIdZone,
     delete_id_zone_params },
   { "_enableProfiler", EnableProfiler,
     enable_profiler_params, },
@@ -6150,7 +6152,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_flags_params },
   { "getVMTimelineMicros", GetVMTimelineMicros,
     get_vm_timeline_micros_params },
-  { "_invalidateIdZone", InvalidateIdZone,
+  { "invalidateIdZone", InvalidateIdZone,
     invalidate_id_zone_params },
   { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },

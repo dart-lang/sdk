@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryParenthesisTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_parenthesis';
+  String get lintRule => LintNames.unnecessary_parenthesis;
 
   test_asExpressionInside_targetOfIndexAssignmentExpression() async {
     await assertNoDiagnostics(r'''

@@ -3,19 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer_utilities/testing/tree_string_sink.dart';
-import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/element_printer.dart';
 import 'context_collection_resolution.dart';
-import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -184,6 +177,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
 
 @reflectiveTest
 class LibraryElementTest_scope extends PubPackageResolutionTest {
+  @deprecated
   test_lookup() async {
     await assertNoErrorsInCode(r'''
 int foo = 0;
@@ -201,6 +195,7 @@ int foo = 0;
     );
   }
 
+  @deprecated
   test_lookup_extension_unnamed() async {
     await assertNoErrorsInCode(r'''
 extension on int {}
@@ -213,76 +208,7 @@ extension on int {}
     );
   }
 
-  test_lookup_extensions_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-extension E on int {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 8),
-    ]);
-
-    _assertLibraryExtensions(result.libraryElement, r'''
-extensions
-  package:test/a.dart::<fragment>::@extension::E
-  dart:core::<fragment>::@extension::EnumName
-''');
-  }
-
-  test_lookup_extensions_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-extension E on int {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart' as prefix;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 8),
-    ]);
-
-    _assertLibraryExtensions(result.libraryElement, r'''
-extensions
-  package:test/a.dart::<fragment>::@extension::E
-  dart:core::<fragment>::@extension::EnumName
-''');
-  }
-
-  test_lookup_extensions_local() async {
-    await assertNoErrorsInCode(r'''
-extension E on int {}
-''');
-
-    _assertLibraryExtensions(result.libraryElement, r'''
-extensions
-  <testLibraryFragment>::@extension::E
-  dart:core::<fragment>::@extension::EnumName
-''');
-  }
-
-  test_lookup_extensions_local_withAugmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment extension E {
-  void foo() {}
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-part 'a.dart';
-
-extension E on int {}
-''');
-
-    _assertLibraryExtensions(result.libraryElement, r'''
-extensions
-  <testLibraryFragment>::@extension::E
-  dart:core::<fragment>::@extension::EnumName
-''');
-  }
-
+  @deprecated
   test_lookup_implicitCoreImport() async {
     await assertNoErrorsInCode('');
 
@@ -294,6 +220,7 @@ extensions
     );
   }
 
+  @deprecated
   test_lookup_notFound() async {
     await assertNoErrorsInCode('');
 
@@ -308,6 +235,7 @@ extensions
     );
   }
 
+  @deprecated
   test_lookup_prefersLocal() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -329,6 +257,7 @@ int sin() => 3;
     );
   }
 
+  @deprecated
   test_lookup_prefix() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -343,6 +272,7 @@ import 'dart:math' as math;
     );
   }
 
+  @deprecated
   test_lookup_respectsCombinator_hide() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -366,6 +296,7 @@ import 'dart:math' hide sin;
     );
   }
 
+  @deprecated
   test_lookup_respectsCombinator_show() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
@@ -382,35 +313,6 @@ import 'dart:math' show sin;
     assertElementNull(
       scope.lookup('cos').getter,
     );
-  }
-
-  void _assertLibraryExtensions(LibraryElement library, String expected) {
-    library as LibraryElementImpl;
-
-    var buffer = StringBuffer();
-    var sink = TreeStringSink(sink: buffer, indent: '');
-    var elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-    );
-
-    var extensions = library.scope.accessibleExtensions;
-    extensions = extensions.sortedBy((e) => e.name ?? '');
-    elementPrinter.writeElementList('extensions', extensions);
-
-    var actual = buffer.toString();
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
-    }
-    // if (actual != expected) {
-    //   fail('''
-    // \r${'-' * 28} Actual ${'-' * 28}
-    // \r${actual.trimRight().split('\n').join('\n\r')}
-    // \r${'-' * 64}
-    // ''');
-    // }
   }
 }
 

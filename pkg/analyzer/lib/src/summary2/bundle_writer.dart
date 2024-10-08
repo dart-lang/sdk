@@ -131,9 +131,6 @@ class BundleWriter {
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
     _writeLibraryOrAugmentationElement(libraryElement);
-    for (var partElement in libraryElement.parts) {
-      _resolutionSink._writeAnnotationList(partElement.metadata);
-    }
     _resolutionSink.writeMacroDiagnostics(libraryElement.macroDiagnostics);
     _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
@@ -152,19 +149,6 @@ class BundleWriter {
         macroGenerated: macroGenerated,
       ),
     );
-  }
-
-  void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
-    _writeUnitElement(augmentation.definingCompilationUnit);
-    // The offset where resolution for the augmentation starts.
-    // We need it to skip resolution information from the unit.
-    _sink.writeUInt30(_resolutionSink.offset);
-    _writeLibraryOrAugmentationElement(augmentation);
-  }
-
-  void _writeAugmentationImportElement(AugmentationImportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _writeDirectiveUri(element.uri);
   }
 
   void _writeClassElement(ClassElementImpl element) {
@@ -245,11 +229,7 @@ class BundleWriter {
       _sink._writeStringReference('${element.source.uri}');
     }
 
-    if (element is DirectiveUriWithAugmentationImpl) {
-      _sink.writeByte(DirectiveUriKind.withAugmentation.index);
-      writeWithSource(element);
-      _writeAugmentationElement(element.augmentation);
-    } else if (element is DirectiveUriWithLibrary) {
+    if (element is DirectiveUriWithLibrary) {
       _sink.writeByte(DirectiveUriKind.withLibrary.index);
       writeWithSource(element);
     } else if (element is DirectiveUriWithUnitImpl) {
@@ -334,7 +314,7 @@ class BundleWriter {
   }
 
   void _writeExportLocation(ExportLocation location) {
-    _sink.writeUInt30(location.containerIndex);
+    _sink.writeUInt30(location.fragmentIndex);
     _sink.writeUInt30(location.exportIndex);
   }
 
@@ -475,6 +455,7 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeImportElementPrefix(element.prefix);
+    _writeLibraryImportPrefixFragment(element.prefix2);
     _writeDirectiveUri(element.uri);
     LibraryImportElementFlags.write(_sink, element);
   }
@@ -505,14 +486,17 @@ class BundleWriter {
     }
   }
 
+  void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
+    _sink.writeOptionalObject(fragment, (fragment) {
+      _sink._writeStringReference(fragment.name);
+      _sink.writeBool(fragment.isDeferred);
+    });
+  }
+
   void _writeLibraryOrAugmentationElement(
     LibraryOrAugmentationElementImpl container,
   ) {
     _resolutionSink._writeAnnotationList(container.metadata);
-    _writeList(
-      container.augmentationImports,
-      _writeAugmentationImportElement,
-    );
   }
 
   void _writeList<T>(List<T> elements, void Function(T) writeElement) {
@@ -659,6 +643,11 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
+
+    // Write the reference for the variable, the reader will use it.
+    if (!element.isAugmentation) {
+      _writeReference(element.variable2!);
+    }
 
     _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {

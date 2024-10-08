@@ -48,13 +48,12 @@ environment:
   ${common.sdkConstraint}
 
 dependencies:
-  args: ^2.4.0
   shelf: ^1.4.0
   shelf_router: ^1.1.0
 
 dev_dependencies:
   http: ^1.1.0
-  lints: ^4.0.0
+  lints: ^5.0.0
   test: ^1.24.0
 ''';
 

@@ -22,7 +22,6 @@ export 'package:analyzer/src/lint/linter.dart'
         dart2_12,
         dart3,
         dart3_3,
-        LintRuleCategory,
         LintFilter,
         LintRule,
         LinterContext,
@@ -33,6 +32,8 @@ export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/lint/util.dart' show FileSpelunker;
 export 'package:analyzer/src/utilities/extensions/ast.dart';
 export 'package:analyzer/src/workspace/pub.dart' show PubPackage;
+
+export 'lint_names.dart';
 
 const loggedAnalyzerErrorExitCode = 63;
 

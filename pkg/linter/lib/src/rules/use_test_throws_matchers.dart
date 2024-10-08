@@ -4,59 +4,19 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
-const _details = r'''
-Use the `throwsA` matcher instead of try-catch with `fail()`.
-
-**BAD:**
-
-```dart
-// sync code
-try {
-  someSyncFunctionThatThrows();
-  fail('expected Error');
-} on Error catch (error) {
-  expect(error.message, contains('some message'));
-}
-
-// async code
-try {
-  await someAsyncFunctionThatThrows();
-  fail('expected Error');
-} on Error catch (error) {
-  expect(error.message, contains('some message'));
-}
-```
-
-**GOOD:**
-```dart
-// sync code
-expect(
-  () => someSyncFunctionThatThrows(),
-  throwsA(isA<Error>().having((Error error) => error.message, 'message', contains('some message'))),
-);
-
-// async code
-await expectLater(
-  () => someAsyncFunctionThatThrows(),
-  throwsA(isA<Error>().having((Error error) => error.message, 'message', contains('some message'))),
-);
-```
-
-''';
-
 class UseTestThrowsMatchers extends LintRule {
   UseTestThrowsMatchers()
       : super(
-          name: 'use_test_throws_matchers',
+          name: LintNames.use_test_throws_matchers,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -79,9 +39,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (statement is! ExpressionStatement) return false;
     var expression = statement.expression;
     if (expression is! MethodInvocation) return false;
-    var element = expression.methodName.staticElement;
-    return element is FunctionElement &&
-        element.source.uri ==
+    var element = expression.methodName.element;
+    return element is TopLevelFunctionElement &&
+        element.library2.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
         element.name == functionName;
   }

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -38,26 +39,31 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     var nameNode = node;
     if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
-      InterfaceElement? targetElement;
+      InterfaceElement2? targetElement;
       Expression argument;
-      {
-        var target = getQualifiedPropertyTarget(node);
-        if (target != null) {
-          var targetType = target.staticType;
-          if (targetType is InterfaceType) {
-            targetElement = targetType.element;
-            argument = target.parent as Expression;
-          } else {
-            return;
-          }
+      var target = getQualifiedPropertyTarget(node);
+      if (target != null) {
+        var targetType = target.staticType;
+        if (targetType is InterfaceType) {
+          targetElement = targetType.element3;
+          argument = target.parent as Expression;
         } else {
-          targetElement = node.enclosingInterfaceElement;
-          argument = nameNode;
+          return;
         }
+      } else {
+        targetElement = node.enclosingInterfaceElement2;
+        argument = nameNode;
       }
       argument = stepUpNamedExpression(argument);
       // should be argument of some invocation
-      var parameterElement = argument.staticParameterElement;
+      // or child of an expression that is one
+      var parameterElement = argument.correspondingParameter;
+      if (argument.parent case ConditionalExpression parent) {
+        if (argument == parent.condition) {
+          return;
+        }
+        parameterElement = parent.correspondingParameter;
+      }
       if (parameterElement == null) {
         return;
       }
@@ -86,16 +92,16 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   /// Prepares proposal for creating function corresponding to the given
   /// [FunctionType].
   Future<void> _createExecutable(
-      ChangeBuilder builder,
-      FunctionType functionType,
-      String name,
-      String targetFile,
-      int insertOffset,
-      bool isStatic,
-      String prefix,
-      String sourcePrefix,
-      String sourceSuffix,
-      Element target) async {
+    ChangeBuilder builder,
+    FunctionType functionType,
+    String name,
+    String targetFile,
+    int insertOffset,
+    bool isStatic,
+    String prefix,
+    String sourcePrefix,
+    String sourceSuffix,
+  ) async {
     // build method source
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.addInsertion(insertOffset, (builder) {
@@ -115,7 +121,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           builder.write(name);
         });
         // append parameters
-        builder.writeParameters(functionType.parameters);
+        builder.writeFormalParameters(functionType.formalParameters);
         // close method
         builder.write(' {$eol$prefix}');
         builder.write(sourceSuffix);
@@ -137,27 +143,41 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     var prefix = '';
     var sourcePrefix = eol;
     var sourceSuffix = eol;
-    await _createExecutable(builder, functionType, name, file, insertOffset,
-        false, prefix, sourcePrefix, sourceSuffix, unit.declaredElement!);
+    await _createExecutable(
+      builder,
+      functionType,
+      name,
+      file,
+      insertOffset,
+      false,
+      prefix,
+      sourcePrefix,
+      sourceSuffix,
+    );
     _fixKind = DartFixKind.CREATE_FUNCTION;
     _functionName = name;
   }
 
   /// Adds proposal for creating method corresponding to the given
   /// [FunctionType] in the given [ClassElement].
-  Future<void> _createMethod(ChangeBuilder builder,
-      InterfaceElement targetClassElement, FunctionType functionType) async {
+  Future<void> _createMethod(
+    ChangeBuilder builder,
+    InterfaceElement2 targetClassElement,
+    FunctionType functionType,
+  ) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
-    var targetSource = targetClassElement.source;
+    var targetSource = targetClassElement.firstFragment.libraryFragment.source;
     // prepare insert offset
     CompilationUnitMember? targetNode;
     List<ClassMember>? classMembers;
-    if (targetClassElement is MixinElement) {
-      var node = targetNode = await getMixinDeclaration(targetClassElement);
+    if (targetClassElement is MixinElement2) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getMixinDeclaration2(fragment);
       classMembers = node?.members;
-    } else if (targetClassElement is ClassElement) {
-      var node = targetNode = await getClassDeclaration(targetClassElement);
+    } else if (targetClassElement is ClassElement2) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getClassDeclaration2(fragment);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {
@@ -174,16 +194,16 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     }
     var sourceSuffix = eol;
     await _createExecutable(
-        builder,
-        functionType,
-        name,
-        targetSource.fullName,
-        insertOffset,
-        inStaticContext,
-        prefix,
-        sourcePrefix,
-        sourceSuffix,
-        targetClassElement);
+      builder,
+      functionType,
+      name,
+      targetSource.fullName,
+      insertOffset,
+      inStaticContext,
+      prefix,
+      sourcePrefix,
+      sourceSuffix,
+    );
     _fixKind = DartFixKind.CREATE_METHOD;
     _functionName = name;
   }

@@ -23,7 +23,7 @@ class PreferIntLiteralsTest extends LintRuleTest {
       ];
 
   @override
-  String get lintRule => 'prefer_int_literals';
+  String get lintRule => LintNames.prefer_int_literals;
 
   test_argumentPassedToTypeVariableParameter_explicitlyTypedDouble_integer() async {
     await assertDiagnostics(r'''

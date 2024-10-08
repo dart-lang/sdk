@@ -254,6 +254,8 @@ class IfElse extends LiteralEntryInfo {
       return new Nested(ifCondition, const IfElseComplete());
     } else if (optional('...', next) || optional('...?', next)) {
       return const ElseSpread();
+    } else if (optional('?', next)) {
+      return new Nested(nullAwareEntry, const IfElseComplete());
     }
     return const ElseEntry();
   }

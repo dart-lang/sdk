@@ -13,36 +13,16 @@ import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
-const _details = r'''
-**PREFER** relative imports for files in `lib/`.
-
-When mixing relative and absolute imports it's possible to create confusion
-where the same member gets imported in two different ways. One way to avoid
-that is to ensure you consistently use relative imports for files within the
-`lib/` directory.
-
-**BAD:**
-```dart
-import 'package:my_package/bar.dart';
-```
-
-**GOOD:**
-```dart
-import 'bar.dart';
-```
-
-''';
-
 class PreferRelativeImports extends LintRule {
   PreferRelativeImports()
       : super(
-          name: 'prefer_relative_imports',
+          name: LintNames.prefer_relative_imports,
           description: _desc,
-          details: _details,
         );
 
   @override
-  List<String> get incompatibleRules => const ['always_use_package_imports'];
+  List<String> get incompatibleRules =>
+      const [LintNames.always_use_package_imports];
 
   @override
   LintCode get lintCode => LinterLintCode.prefer_relative_imports;

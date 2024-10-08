@@ -63,12 +63,9 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   Future<void> test_createEdits_addImport_doubleQuotes() async {
     registerLintRules();
-    var config = AnalysisOptionsFileConfig(
-      lints: ['prefer_double_quotes'],
-    );
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
-      config.toContent(),
+      analysisOptionsContent(rules: ['prefer_double_quotes']),
     );
 
     await createBuilder('''

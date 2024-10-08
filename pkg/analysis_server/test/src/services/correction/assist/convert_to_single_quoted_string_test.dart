@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -20,13 +20,30 @@ class ConvertToSingleQuotedStringTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
+  Future<void> test_one_backslash() async {
+    await resolveTestCode(r'''
+void f() {
+  print("a\"b\"c");
+}
+''');
+    await assertHasAssistAt('"a', r"""
+void f() {
+  print('a"b"c');
+}
+""");
+  }
+
   Future<void> test_one_embeddedTarget() async {
     await resolveTestCode('''
 void f() {
   print("a'b'c");
 }
 ''');
-    await assertNoAssistAt('"a');
+    await assertHasAssistAt('"a', r'''
+void f() {
+  print('a\'b\'c');
+}
+''');
   }
 
   Future<void> test_one_enclosingTarget() async {
@@ -118,7 +135,11 @@ void f() {
   print("""a''\'bc""");
 }
 ''');
-    await assertNoAssistAt('"a');
+    await assertHasAssistAt('"a', r"""
+void f() {
+  print('''a\'\'\'bc''');
+}
+""");
   }
 
   Future<void> test_three_enclosingTarget() async {

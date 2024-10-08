@@ -36,6 +36,7 @@ IsExpression
   type: NamedType
     name: T
     element: T@8
+    element2: <not-implemented>
     type: T
   staticType: bool
 ''');
@@ -59,6 +60,7 @@ IsExpression
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -78,6 +80,7 @@ IsExpression
   type: NamedType
     name: double
     element: dart:core::<fragment>::@class::double
+    element2: dart:core::<fragment>::@class::double#element
     type: double
   staticType: bool
 ''');
@@ -96,11 +99,13 @@ IsExpression
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: Object?
   isOperator: is
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   staticType: bool
 ''');
@@ -119,12 +124,14 @@ IsExpression
   expression: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: Object?
   isOperator: is
   notOperator: !
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
+    element2: dart:core::<fragment>::@class::int#element
     type: int
   staticType: bool
 ''');

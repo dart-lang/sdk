@@ -24,6 +24,12 @@ DECLARE_FLAG(bool, trace_constant_propagation);
 // Quick access to the locally defined zone() method.
 #define Z (zone())
 
+#define TRACE_RANGE_ANALYSIS(statement)                                        \
+  if (FLAG_support_il_printer && FLAG_trace_range_analysis &&                  \
+      CompilerState::ShouldTrace()) {                                          \
+    statement;                                                                 \
+  }
+
 #if defined(DEBUG)
 static void CheckRangeForRepresentation(const Assert& assert,
                                         const Instruction* instr,
@@ -140,26 +146,28 @@ void RangeAnalysis::CollectValues() {
 // a symbolic range constraint for the left operand of the comparison assuming
 // that it evaluated to true.
 // For example for the comparison a < b symbol a is constrained with range
-// [Smi::kMinValue, b - 1].
-Range* RangeAnalysis::ConstraintSmiRange(Token::Kind op, Definition* boundary) {
+// [min, b - 1].
+Range* RangeAnalysis::ConstraintRange(Token::Kind op,
+                                      Definition* boundary,
+                                      RangeBoundary::RangeSize size) {
   switch (op) {
     case Token::kEQ:
       return new (Z) Range(RangeBoundary::FromDefinition(boundary),
                            RangeBoundary::FromDefinition(boundary));
     case Token::kNE:
-      return new (Z) Range(Range::Full(RangeBoundary::kRangeBoundarySmi));
+      return new (Z) Range(Range::Full(size));
     case Token::kLT:
-      return new (Z) Range(RangeBoundary::MinSmi(),
+      return new (Z) Range(RangeBoundary::MinConstant(size),
                            RangeBoundary::FromDefinition(boundary, -1));
     case Token::kGT:
       return new (Z) Range(RangeBoundary::FromDefinition(boundary, 1),
-                           RangeBoundary::MaxSmi());
+                           RangeBoundary::MaxConstant(size));
     case Token::kLTE:
-      return new (Z) Range(RangeBoundary::MinSmi(),
+      return new (Z) Range(RangeBoundary::MinConstant(size),
                            RangeBoundary::FromDefinition(boundary));
     case Token::kGTE:
       return new (Z) Range(RangeBoundary::FromDefinition(boundary),
-                           RangeBoundary::MaxSmi());
+                           RangeBoundary::MaxConstant(size));
     default:
       UNREACHABLE();
       return nullptr;
@@ -184,7 +192,8 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
     constraint = constraint->next()->AsConstraint();
   }
 
-  constraint = new (Z) ConstraintInstr(use->CopyWithType(), constraint_range);
+  constraint = new (Z) ConstraintInstr(use->CopyWithType(), constraint_range,
+                                       defn->representation());
 
   flow_graph_->InsertAfter(after, constraint, nullptr, FlowGraph::kValue);
   FlowGraph::RenameDominatedUses(defn, constraint, constraint);
@@ -195,8 +204,9 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
 bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   BranchInstr* branch = use->instruction()->AsBranch();
   RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
-  if ((rel_op != nullptr) && (rel_op->operation_cid() == kSmiCid)) {
-    // Found comparison of two smis. Constrain defn at true and false
+  if ((rel_op != nullptr) && ((rel_op->operation_cid() == kSmiCid) ||
+                              (rel_op->operation_cid() == kMintCid))) {
+    // Found comparison of two integers. Constrain defn at true and false
     // successors using the other operand as a boundary.
     Definition* boundary;
     Token::Kind op_kind;
@@ -210,10 +220,21 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
       // comparison if it is right operand flip the comparison.
       op_kind = Token::FlipComparison(rel_op->kind());
     }
+    RangeBoundary::RangeSize size;
+    if (rel_op->operation_cid() == kSmiCid) {
+      size = RangeBoundary::kRangeBoundarySmi;
+    } else {
+      ASSERT(rel_op->operation_cid() == kMintCid);
+      // Can only create symbolic boundaries based on Smi values.
+      if (!Definition::IsLengthLoad(boundary)) {
+        return false;
+      }
+      size = RangeBoundary::kRangeBoundaryInt64;
+    }
 
     // Constrain definition at the true successor.
     ConstraintInstr* true_constraint =
-        InsertConstraintFor(use, defn, ConstraintSmiRange(op_kind, boundary),
+        InsertConstraintFor(use, defn, ConstraintRange(op_kind, boundary, size),
                             branch->true_successor());
     if (true_constraint != nullptr) {
       true_constraint->set_target(branch->true_successor());
@@ -222,7 +243,7 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
     // Constrain definition with a negated condition at the false successor.
     ConstraintInstr* false_constraint = InsertConstraintFor(
         use, defn,
-        ConstraintSmiRange(Token::NegateComparison(op_kind), boundary),
+        ConstraintRange(Token::NegateComparison(op_kind), boundary, size),
         branch->false_successor());
     if (false_constraint != nullptr) {
       false_constraint->set_target(branch->false_successor());
@@ -467,11 +488,10 @@ bool RangeAnalysis::InferRange(JoinOperator op,
 
     if (!range.Equals(defn->range())) {
 #ifndef PRODUCT
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print("%c [%" Pd "] %s:  %s => %s\n", OpPrefix(op), iteration,
-                  defn->ToCString(), Range::ToCString(defn->range()),
-                  Range::ToCString(&range));
-      }
+      TRACE_RANGE_ANALYSIS(THR_Print("%c [%" Pd "] %s:  %s => %s\n",
+                                     OpPrefix(op), iteration, defn->ToCString(),
+                                     Range::ToCString(defn->range()),
+                                     Range::ToCString(&range)));
 #endif  // !PRODUCT
       defn->set_range(range);
       return true;
@@ -752,10 +772,9 @@ class BoundsCheckGeneralizer {
         ConstructUpperBound(check->index()->definition(), check);
     if (upper_bound == UnwrapConstraint(check->index()->definition())) {
       // Unable to construct upper bound for the index.
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print("Failed to construct upper bound for %s index\n",
-                  check->ToCString());
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("Failed to construct upper bound for %s index\n",
+                    check->ToCString()));
       return;
     }
 
@@ -763,10 +782,8 @@ class BoundsCheckGeneralizer {
     // together. This will expose more redundancies when we are going to emit
     // upper bound through scheduler.
     if (!Simplify(&upper_bound, nullptr)) {
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print("Failed to simplify upper bound for %s index\n",
-                  check->ToCString());
-      }
+      TRACE_RANGE_ANALYSIS(THR_Print(
+          "Failed to simplify upper bound for %s index\n", check->ToCString()));
       return;
     }
     upper_bound = ApplyConstraints(upper_bound, check);
@@ -779,12 +796,10 @@ class BoundsCheckGeneralizer {
     GrowableArray<Definition*> non_positive_symbols;
     if (!FindNonPositiveSymbols(&non_positive_symbols, upper_bound)) {
 #ifndef PRODUCT
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print(
-            "Failed to generalize %s index to %s"
-            " (can't ensure positivity)\n",
-            check->ToCString(), IndexBoundToCString(upper_bound));
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("Failed to generalize %s index to %s"
+                    " (can't ensure positivity)\n",
+                    check->ToCString(), IndexBoundToCString(upper_bound)));
 #endif  // !PRODUCT
       return;
     }
@@ -799,8 +814,8 @@ class BoundsCheckGeneralizer {
                   RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundarySmi));
     for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
       Definition* symbol = non_positive_symbols[i];
-      positive_constraints.Add(
-          new ConstraintInstr(new Value(symbol), positive_range));
+      positive_constraints.Add(new ConstraintInstr(
+          new Value(symbol), positive_range, symbol->representation()));
     }
 
     Definition* lower_bound =
@@ -814,22 +829,18 @@ class BoundsCheckGeneralizer {
 // Can't prove that lower bound is positive even with additional checks
 // against potentially non-positive symbols. Give up.
 #ifndef PRODUCT
-      if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-        THR_Print(
-            "Failed to generalize %s index to %s"
-            " (lower bound is not positive)\n",
-            check->ToCString(), IndexBoundToCString(upper_bound));
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("Failed to generalize %s index to %s"
+                    " (lower bound is not positive)\n",
+                    check->ToCString(), IndexBoundToCString(upper_bound)));
 #endif  // !PRODUCT
       return;
     }
 
 #ifndef PRODUCT
-    if (FLAG_support_il_printer && FLAG_trace_range_analysis) {
-      THR_Print("For %s computed index bounds [%s, %s]\n", check->ToCString(),
-                IndexBoundToCString(lower_bound),
-                IndexBoundToCString(upper_bound));
-    }
+    TRACE_RANGE_ANALYSIS(THR_Print(
+        "For %s computed index bounds [%s, %s]\n", check->ToCString(),
+        IndexBoundToCString(lower_bound), IndexBoundToCString(upper_bound)));
 #endif  // !PRODUCT
 
     // At this point we know that 0 <= index < UpperBound(index) under
@@ -848,9 +859,8 @@ class BoundsCheckGeneralizer {
       precondition->mark_generalized();
       precondition = scheduler_.Emit(precondition, check);
       if (precondition == nullptr) {
-        if (FLAG_trace_range_analysis) {
-          THR_Print("  => failed to insert positivity constraint\n");
-        }
+        TRACE_RANGE_ANALYSIS(
+            THR_Print("  => failed to insert positivity constraint\n"));
         scheduler_.Rollback();
         return;
       }
@@ -861,24 +871,20 @@ class BoundsCheckGeneralizer {
         new Value(upper_bound), DeoptId::kNone);
     new_check->mark_generalized();
     if (new_check->IsRedundant()) {
-      if (FLAG_trace_range_analysis) {
-        THR_Print("  => generalized check is redundant\n");
-      }
+      TRACE_RANGE_ANALYSIS(THR_Print("  => generalized check is redundant\n"));
       RemoveGeneralizedCheck(check);
       return;
     }
 
     new_check = scheduler_.Emit(new_check, check);
     if (new_check != nullptr) {
-      if (FLAG_trace_range_analysis) {
-        THR_Print("  => generalized check was hoisted into B%" Pd "\n",
-                  new_check->GetBlock()->block_id());
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("  => generalized check was hoisted into B%" Pd "\n",
+                    new_check->GetBlock()->block_id()));
       RemoveGeneralizedCheck(check);
     } else {
-      if (FLAG_trace_range_analysis) {
-        THR_Print("  => generalized check can't be hoisted\n");
-      }
+      TRACE_RANGE_ANALYSIS(
+          THR_Print("  => generalized check can't be hoisted\n"));
       scheduler_.Rollback();
     }
   }
@@ -917,10 +923,10 @@ class BoundsCheckGeneralizer {
     }
   }
 
-  typedef Definition* (BoundsCheckGeneralizer::* PhiBoundFunc)(PhiInstr*,
-                                                               LoopInfo*,
-                                                               InductionVar*,
-                                                               Instruction*);
+  typedef Definition* (BoundsCheckGeneralizer::*PhiBoundFunc)(PhiInstr*,
+                                                              LoopInfo*,
+                                                              InductionVar*,
+                                                              Instruction*);
 
   // Construct symbolic lower bound for a value at the given point.
   Definition* ConstructLowerBound(Definition* value, Instruction* point) {
@@ -1855,6 +1861,9 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
     changed = false;
     if (symbol->IsConstraint()) {
       symbol = symbol->AsConstraint()->value()->definition();
+      changed = true;
+    } else if (auto* unbox = symbol->AsUnboxInt64()) {
+      symbol = unbox->value()->definition();
       changed = true;
     } else if (symbol->IsBinarySmiOp()) {
       BinarySmiOpInstr* op = symbol->AsBinarySmiOp();
@@ -2802,7 +2811,8 @@ void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = analysis->GetSmiRange(value());
+  const Range* value_range = GetInputRange(
+      analysis, RepresentationToRangeSize(representation_), value());
   if (Range::IsUnknown(value_range)) {
     return;
   }
@@ -2931,8 +2941,7 @@ void LoadClassIdInstr::InferRange(uword* lower, uword* upper) {
     HierarchyInfo* hi = Thread::Current()->hierarchy_info();
     if (hi != nullptr) {
       const auto& type = *ctype->ToAbstractType();
-      if (type.IsType() && !type.IsFutureOrType() &&
-          !Instance::NullIsAssignableTo(type)) {
+      if (type.IsType() && !type.IsFutureOrType() && !ctype->is_nullable()) {
         const auto& type_class = Class::Handle(type.type_class());
         if (!type_class.has_dynamically_extendable_subtypes()) {
           const auto& ranges =
@@ -3074,6 +3083,12 @@ void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void UnboxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  if (IsUnboxInt64() && Definition::IsLengthLoad(value()->definition())) {
+    // Provide symbolic range to improve bounds check elimination.
+    RangeBoundary v = RangeBoundary::FromDefinition(value()->definition(), 0);
+    *range = Range(v, v);
+    return;
+  }
   auto* const value_range = value()->Type()->ToCid() == kSmiCid
                                 ? analysis->GetSmiRange(value())
                                 : value()->definition()->range();
@@ -3148,10 +3163,31 @@ void AssertAssignableInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
+void CheckBoundBaseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* length_range = length()->definition()->range();
+  const auto checked_range =
+      Range(RangeBoundary::FromConstant(0), Range::ConstantMax(length_range));
+  const Range* index_range = index()->definition()->range();
+  Range result;
+  if (Range::IsUnknown(index_range)) {
+    result = checked_range;
+  } else {
+    result = index_range->Intersect(&checked_range);
+  }
+  if (result.IsUnsatisfiable()) {
+    return;
+  }
+  *range = result;
+}
+
 static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
+  TRACE_RANGE_ANALYSIS(
+      THR_Print("Checking if range check is redundant, index %s, length %s\n",
+                index->ToCString(), length->ToCString()));
   if (index->BindsToSmiConstant() && length->BindsToSmiConstant()) {
     const auto index_val = index->BoundSmiConstant();
     const auto length_val = length->BoundSmiConstant();
+    TRACE_RANGE_ANALYSIS(THR_Print("  ... constant index and length\n"));
     return (0 <= index_val && index_val < length_val);
   }
 
@@ -3160,6 +3196,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   Range* index_range = index_defn->range();
   if (index_range == nullptr) {
     if (!index->BindsToSmiConstant()) {
+      TRACE_RANGE_ANALYSIS(THR_Print("  ... index without a range\n"));
       return false;
     }
     // index_defn itself is not necessarily the constant.
@@ -3173,6 +3210,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
 
   // Range of the index is not positive. Check can't be redundant.
   if (Range::ConstantMinSmi(index_range).ConstantValue() < 0) {
+    TRACE_RANGE_ANALYSIS(THR_Print("  ... index can be negative\n"));
     return false;
   }
 
@@ -3182,11 +3220,16 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
       RangeBoundary::FromDefinition(length->definition());
   RangeBoundary length_lower = array_length.LowerBound();
   if (max_upper.OverflowedSmi() || length_lower.OverflowedSmi()) {
+    TRACE_RANGE_ANALYSIS(
+        THR_Print("  ... max index (%s) or min length (%s) overflows Smi\n",
+                  max.ToCString(), array_length.ToCString()));
     return false;
   }
 
   // Try to compare constant boundaries.
   if (max_upper.ConstantValue() < length_lower.ConstantValue()) {
+    TRACE_RANGE_ANALYSIS(THR_Print("  ... max index (%s) >= min length (%s)\n",
+                                   max.ToCString(), array_length.ToCString()));
     return true;
   }
 
@@ -3194,18 +3237,27 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
       array_length,
       RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64));
   if (canonical_length.OverflowedSmi()) {
+    TRACE_RANGE_ANALYSIS(
+        THR_Print("  ... canonical length boundary (%s) overflows Smi\n",
+                  canonical_length.ToCString()));
     return false;
   }
 
   // Try symbolic comparison.
   do {
     if (DependOnSameSymbol(max, canonical_length)) {
+      TRACE_RANGE_ANALYSIS(THR_Print(
+          "  ... max index (%s) and length (%s) depend on the same symbol\n",
+          max.ToCString(), canonical_length.ToCString()));
       return max.offset() < canonical_length.offset();
     }
   } while (CanonicalizeMaxBoundary(&max) ||
            CanonicalizeMinBoundary(&canonical_length));
 
   // Failed to prove that maximum is bounded with array length.
+  TRACE_RANGE_ANALYSIS(THR_Print(
+      "  ... max index (%s) and length (%s) depend on distinct symbols\n",
+      max.ToCString(), canonical_length.ToCString()));
   return false;
 }
 

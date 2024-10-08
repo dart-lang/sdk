@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class CloseSinksTest extends LintRuleTest {
   @override
-  String get lintRule => 'close_sinks';
+  String get lintRule => LintNames.close_sinks;
 
   test_field_closed() async {
     await assertNoDiagnostics(r'''

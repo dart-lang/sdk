@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class HashAndEqualsTest extends LintRuleTest {
   @override
-  String get lintRule => 'hash_and_equals';
+  String get lintRule => LintNames.hash_and_equals;
 
   test_augmentedClass_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -67,6 +67,41 @@ enum A {
     ]);
   }
 
+  test_equalsEquals_andHashCode() async {
+    await assertNoDiagnostics(r'''
+class C {
+  @override
+  bool operator ==(Object other) => false;
+
+  @override
+  int get hashCode => 7;
+}
+''');
+  }
+
+  test_equalsEquals_andHashCodeField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  @override
+  bool operator ==(Object other) => false;
+
+  @override
+  int hashCode = 7;
+}
+''');
+  }
+
+  test_equalsEquals_noHashCode() async {
+    await assertDiagnostics(r'''
+class C {
+  @override
+  bool operator ==(Object other) => false;
+}
+''', [
+      lint(38, 2),
+    ]);
+  }
+
   test_extensionType_missingHash() async {
     await assertDiagnostics(r'''
 extension type E(Object o) {
@@ -77,5 +112,33 @@ extension type E(Object o) {
       error(
           CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 45, 2),
     ]);
+  }
+
+  test_hashCode_noEqualsEquals() async {
+    await assertDiagnostics(r'''
+class C {
+  @override
+  int get hashCode => 7;
+}
+''', [
+      lint(32, 8),
+    ]);
+  }
+
+  test_hashCodeField_missingEqualsEquals() async {
+    await assertDiagnostics(r'''
+class C {
+  @override
+  final int hashCode = 7;
+}
+''', [
+      lint(34, 8),
+    ]);
+  }
+
+  test_neither() async {
+    await assertNoDiagnostics(r'''
+class C {}
+''');
   }
 }

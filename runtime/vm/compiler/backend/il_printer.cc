@@ -181,7 +181,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   WriteDescriptor<ShortName##Instr>(#ShortName);
 
-      FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+      FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
     }
@@ -189,7 +189,7 @@ class IlTestPrinter : public AllStatic {
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
   virtual void Visit##ShortName(ShortName##Instr* instr) { Write(instr); }
 
-    FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+    FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
 
@@ -994,6 +994,11 @@ void InstanceOfInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s, ", Token::Str(kind()));
+  if (SpeculativeModeOfInputs() == kGuardInputs) {
+    f->AddString("[guard-inputs], ");
+  } else {
+    f->AddString("[non-speculative], ");
+  }
   left()->PrintTo(f);
   f->AddString(", ");
   right()->PrintTo(f);

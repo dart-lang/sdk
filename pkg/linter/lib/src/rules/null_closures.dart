@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -12,75 +12,6 @@ import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Do not pass `null` as an argument where a closure is expected.';
-
-const _details = r'''
-**DON'T** pass `null` as an argument where a closure is expected.
-
-Often a closure that is passed to a method will only be called conditionally,
-so that tests and "happy path" production calls do not reveal that `null` will
-result in an exception being thrown.
-
-This rule only catches null literals being passed where closures are expected
-in the following locations:
-
-#### Constructors
-
-* From `dart:async`
-  * `Future` at the 0th positional parameter
-  * `Future.microtask` at the 0th positional parameter
-  * `Future.sync` at the 0th positional parameter
-  * `Timer` at the 0th positional parameter
-  * `Timer.periodic` at the 1st positional parameter
-* From `dart:core`
-  * `List.generate` at the 1st positional parameter
-
-#### Static functions
-
-* From `dart:async`
-  * `scheduleMicrotask` at the 0th positional parameter
-  * `Future.doWhile` at the 0th positional parameter
-  * `Future.forEach` at the 0th positional parameter
-  * `Future.wait` at the named parameter `cleanup`
-  * `Timer.run` at the 0th positional parameter
-
-#### Instance methods
-
-* From `dart:async`
-  * `Future.then` at the 0th positional parameter
-  * `Future.complete` at the 0th positional parameter
-* From `dart:collection`
-  * `Queue.removeWhere` at the 0th positional parameter
-  * `Queue.retain
-  * `Iterable.firstWhere` at the 0th positional parameter, and the named
-    parameter `orElse`
-  * `Iterable.forEach` at the 0th positional parameter
-  * `Iterable.fold` at the 1st positional parameter
-  * `Iterable.lastWhere` at the 0th positional parameter, and the named
-    parameter `orElse`
-  * `Iterable.map` at the 0th positional parameter
-  * `Iterable.reduce` at the 0th positional parameter
-  * `Iterable.singleWhere` at the 0th positional parameter, and the named
-    parameter `orElse`
-  * `Iterable.skipWhile` at the 0th positional parameter
-  * `Iterable.takeWhile` at the 0th positional parameter
-  * `Iterable.where` at the 0th positional parameter
-  * `List.removeWhere` at the 0th positional parameter
-  * `List.retainWhere` at the 0th positional parameter
-  * `String.replaceAllMapped` at the 1st positional parameter
-  * `String.replaceFirstMapped` at the 1st positional parameter
-  * `String.splitMapJoin` at the named parameters `onMatch` and `onNonMatch`
-
-**BAD:**
-```dart
-[1, 3, 5].firstWhere((e) => e.isOdd, orElse: null);
-```
-
-**GOOD:**
-```dart
-[1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);
-```
-
-''';
 
 List<NonNullableFunction> _constructorsWithNonNullableArguments =
     <NonNullableFunction>[
@@ -208,9 +139,8 @@ class NonNullableFunction {
 class NullClosures extends LintRule {
   NullClosures()
       : super(
-          name: 'null_closures',
+          name: LintNames.null_closures,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -248,8 +178,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var target = node.target;
     var methodName = node.methodName.name;
-    var element = target is Identifier ? target.staticElement : null;
-    if (element is ClassElement) {
+    var element = target is Identifier ? target.element : null;
+    if (element is ClassElement2) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {
@@ -263,9 +193,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Instance method called, "target" is the instance.
       var targetType = target?.staticType;
       var method = _getInstanceMethod(targetType, methodName);
-      if (method == null) {
-        return;
-      }
+      if (method == null) return;
+
       _checkNullArgForClosure(
           node.argumentList, method.positional, method.named);
     }
@@ -292,34 +221,26 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   NonNullableFunction? _getInstanceMethod(DartType? type, String methodName) {
     var possibleMethods = _instanceMethodsWithNonNullableArguments[methodName];
-    if (possibleMethods == null) {
-      return null;
+    if (possibleMethods == null) return null;
+
+    if (type is! InterfaceType) return null;
+
+    NonNullableFunction? getMethod(String? libraryName, String className) {
+      if (libraryName == null) return null;
+      return possibleMethods
+          .lookup(NonNullableFunction(libraryName, className, methodName));
     }
 
-    if (type is! InterfaceType) {
-      return null;
-    }
+    var element = type.element3;
+    if (element.isSynthetic) return null;
 
-    NonNullableFunction? getMethod(String library, String className) =>
-        possibleMethods
-            .lookup(NonNullableFunction(library, className, methodName));
-
-    var element = type.element;
-    if (element.isSynthetic) {
-      return null;
-    }
-
-    var method = getMethod(element.library.name, element.name);
-    if (method != null) {
-      return method;
-    }
+    var method = getMethod(element.library2.name, element.name);
+    if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
-      var superElement = supertype.element;
-      method = getMethod(superElement.library.name, superElement.name);
-      if (method != null) {
-        return method;
-      }
+      var superElement = supertype.element3;
+      method = getMethod(superElement.library2.name, superElement.name);
+      if (method != null) return method;
     }
     return null;
   }

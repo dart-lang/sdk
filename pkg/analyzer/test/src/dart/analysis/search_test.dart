@@ -1029,17 +1029,46 @@ self::@function::f
 ''');
   }
 
-  test_searchReferences_CompilationUnitElement() async {
+  test_searchReferences_CompilationUnitElement_export() async {
+    newFile('$testPackageLibPath/foo.dart', '');
+    await resolveTestCode('''
+export 'foo.dart';
+''');
+    var element = findElement
+        .export('package:test/foo.dart')
+        .exportedLibrary!
+        .definingCompilationUnit;
+    await assertElementReferencesText(element, r'''
+self
+  7 1:8 |'foo.dart'| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_CompilationUnitElement_import() async {
     newFile('$testPackageLibPath/foo.dart', '');
     await resolveTestCode('''
 import 'foo.dart';
-export 'foo.dart';
 ''');
     var element = findElement.importFind('package:test/foo.dart').unitElement;
     await assertElementReferencesText(element, r'''
 self
   7 1:8 |'foo.dart'| REFERENCE qualified
-  26 2:8 |'foo.dart'| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_CompilationUnitElement_part() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+part of 'test.dart';
+''');
+
+    await resolveTestCode('''
+part 'foo.dart';
+''');
+
+    var element = findElement.part('package:test/foo.dart');
+    await assertElementReferencesText(element, r'''
+self
+  5 1:6 |'foo.dart'| REFERENCE qualified
 ''');
   }
 

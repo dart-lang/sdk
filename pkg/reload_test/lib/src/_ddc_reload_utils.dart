@@ -14,21 +14,44 @@ extension type _DartLoader(JSObject _) implements JSObject {
 }
 
 extension type _DDCLoader(JSObject _) implements JSObject {
-  external void hotReload();
+  external JSPromise hotReload();
   external void hotRestart();
   external int get hotReloadGeneration;
   external int get hotRestartGeneration;
+  external int intendedHotRestartGeneration;
 }
+
+extension type _DartDevEmbedder(JSObject _) implements JSObject {
+  external JSFunction hotReload;
+  external void hotRestart();
+  external JSNumber get hotReloadGeneration;
+  external JSNumber get hotRestartGeneration;
+}
+
+@JS('dartDevEmbedder')
+external _DartDevEmbedder get _dartDevEmbedder;
+
+@JS('\$injectedFilesAndLibrariesToReload')
+external JSFunction injectedFilesAndLibrariesToReload;
 
 @JS('\$dartLoader')
 external _DartLoader get _dartLoader;
 
 final _ddcLoader = _dartLoader.loader;
 
-int get hotRestartGeneration => _ddcLoader.hotRestartGeneration;
+int get hotRestartGeneration => _dartDevEmbedder.hotRestartGeneration.toDartInt;
 
-void hotRestart() => _ddcLoader.hotRestart();
+void hotRestart() {
+  _ddcLoader.intendedHotRestartGeneration++;
+  _dartDevEmbedder.hotRestart();
+}
 
-int get hotReloadGeneration => _ddcLoader.hotReloadGeneration;
+int get hotReloadGeneration => _dartDevEmbedder.hotReloadGeneration.toDartInt;
 
-void hotReload() => _ddcLoader.hotReload();
+Future<void> hotReload() async {
+  var hotReloadArgs =
+      injectedFilesAndLibrariesToReload.callAsFunction() as JSArray;
+  await (_dartDevEmbedder.hotReload.callAsFunction(
+          null, hotReloadArgs[0], hotReloadArgs[1]) as JSPromise)
+      .toDart;
+}

@@ -52,8 +52,7 @@ NullabilityBuilder combineNullabilityBuildersForSubstitution(
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     TypeBuilder dynamicType, TypeBuilder bottomType,
-    {required List<TypeBuilder> unboundTypes,
-    required List<StructuralVariableBuilder> unboundTypeVariables}) {
+    {required List<StructuralVariableBuilder> unboundTypeVariables}) {
   List<TypeBuilder> bounds = new List<TypeBuilder>.generate(
       variables.length, (int i) => variables[i].bound ?? dynamicType,
       growable: false);
@@ -72,10 +71,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     for (int variableIndex in component) {
       TypeVariableBuilder variable = variables[variableIndex];
       bounds[variableIndex] = bounds[variableIndex].substituteRange(
-              dynamicSubstitution,
-              nullSubstitution,
-              unboundTypes,
-              unboundTypeVariables,
+              dynamicSubstitution, nullSubstitution, unboundTypeVariables,
               variance: variable.variance) ??
           bounds[variableIndex];
     }
@@ -90,8 +86,8 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
       TypeVariableBuilder variable = variables[j];
-      bounds[j] = bounds[j].substituteRange(substitution, nullSubstitution,
-              unboundTypes, unboundTypeVariables,
+      bounds[j] = bounds[j].substituteRange(
+              substitution, nullSubstitution, unboundTypeVariables,
               variance: variable.variance) ??
           bounds[j];
     }

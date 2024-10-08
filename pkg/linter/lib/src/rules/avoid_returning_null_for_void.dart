@@ -11,43 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid returning `null` for `void`.';
 
-const _details = r'''
-**AVOID** returning `null` for `void`.
-
-In a large variety of languages `void` as return type is used to indicate that
-a function doesn't return anything. Dart allows returning `null` in functions
-with `void` return type but it also allow using `return;` without specifying any
-value. To have a consistent way you should not return `null` and only use an
-empty return.
-
-**BAD:**
-```dart
-void f1() {
-  return null;
-}
-Future<void> f2() async {
-  return null;
-}
-```
-
-**GOOD:**
-```dart
-void f1() {
-  return;
-}
-Future<void> f2() async {
-  return;
-}
-```
-
-''';
-
 class AvoidReturningNullForVoid extends LintRule {
   AvoidReturningNullForVoid()
       : super(
-          name: 'avoid_returning_null_for_void',
+          name: LintNames.avoid_returning_null_for_void,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -77,12 +45,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      _visit(node, node.expression);
+    if (node.expression case var nodeExpression?) {
+      _visit(node, nodeExpression);
     }
   }
 
-  void _visit(AstNode node, Expression? expression) {
+  void _visit(AstNode node, Expression expression) {
     if (expression is! NullLiteral) {
       return;
     }
@@ -91,20 +59,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         (e) => e is FunctionExpression || e is MethodDeclaration);
     if (parent == null) return;
 
-    DartType? type;
-    bool? isAsync;
-    LintCode code;
-    if (parent is FunctionExpression) {
-      type = parent.declaredElement?.returnType;
-      isAsync = parent.body.isAsynchronous;
-      code = LinterLintCode.avoid_returning_null_for_void_from_function;
-    } else if (parent is MethodDeclaration) {
-      type = parent.declaredElement?.returnType;
-      isAsync = parent.body.isAsynchronous;
-      code = LinterLintCode.avoid_returning_null_for_void_from_method;
-    } else {
-      throw StateError('unexpected type');
-    }
+    var (type, isAsync, code) = switch (parent) {
+      FunctionExpression() => (
+          parent.declaredElement?.returnType,
+          parent.body.isAsynchronous,
+          LinterLintCode.avoid_returning_null_for_void_from_function,
+        ),
+      MethodDeclaration() => (
+          parent.declaredElement?.returnType,
+          parent.body.isAsynchronous,
+          LinterLintCode.avoid_returning_null_for_void_from_method,
+        ),
+      _ => throw StateError('Unexpected type'),
+    };
     if (type == null) return;
 
     if (!isAsync && type is VoidType) {

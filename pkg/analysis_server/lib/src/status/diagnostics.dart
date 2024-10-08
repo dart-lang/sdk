@@ -33,6 +33,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -167,10 +168,50 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
   if (driver.analysisContext?.allAnalysisOptions case var allAnalysisOptions?) {
     for (var analysisOptions in allAnalysisOptions) {
       collectedData.lints.addAll(analysisOptions.lintRules.map((e) => e.name));
-      collectedData.plugins.addAll(analysisOptions.enabledPluginNames);
+      collectedData.plugins.addAll(analysisOptions.enabledLegacyPluginNames);
     }
   }
   return collectedData;
+}
+
+class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin
+    implements PostablePage {
+  static const _resetFormId = 'reset-driver-timers';
+
+  AnalysisDriverTimingsPage(DiagnosticsSite site)
+      : super(site, 'driver-timings', 'Analysis Driver Timings',
+            description:
+                'Timing statistics collected by the analysis driver scheduler since last reset.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    // Output the current values.
+    var buffer = StringBuffer();
+    server.analysisDriverScheduler.accumulatedPerformance.write(buffer: buffer);
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape('$buffer'));
+      buf.writeln('</code>');
+    });
+
+    // Add a button to reset the timers.
+    buf.write('''
+<form action="${this.path}?$_resetFormId=true" method="post">
+<input type="submit" class="btn btn-danger" value="Reset Timers" />
+</form>
+''');
+  }
+
+  @override
+  Future<String> handlePost(Map<String, String> params) async {
+    if (params[_resetFormId]?.isNotEmpty ?? false) {
+      server.analysisDriverScheduler.accumulatedPerformance =
+          OperationPerformanceImpl('<scheduler>');
+    }
+
+    return this.path;
+  }
 }
 
 class AnalyticsPage extends DiagnosticPageWithNav {
@@ -253,6 +294,55 @@ class AstPage extends DiagnosticPageWithNav {
     } finally {
       _description = null;
     }
+  }
+}
+
+class ByteStoreTimingPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin {
+  ByteStoreTimingPage(DiagnosticsSite site)
+      : super(site, 'byte-store-timing', 'FileByteStore Timings',
+            description: 'FileByteStore Timing statistics.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('FileByteStore Timings');
+
+    var byteStoreTimings = server.byteStoreTimings
+        ?.where((timing) =>
+            timing.readCount != 0 || timing.readTime != Duration.zero)
+        .toList();
+    if (byteStoreTimings == null || byteStoreTimings.isEmpty) {
+      p(
+        'There are currently no timings. '
+        'Try refreshing after the server has performed initial analysis.',
+      );
+      return;
+    }
+
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>');
+    for (var i = 0; i < byteStoreTimings.length - 1; i++) {
+      var timing = byteStoreTimings[i];
+      if (timing.readCount == 0) {
+        continue;
+      }
+
+      var nextTiming =
+          i <= byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+      var duration =
+          (nextTiming?.time ?? DateTime.now()).difference(timing.time);
+      var description =
+          'Between <em>${timing.reason}</em> and <em>${nextTiming?.reason ?? 'now'} (${printMilliseconds(duration.inMilliseconds)})</em>.';
+      buf.writeln(
+        '<tr>'
+        '<td class="right">${timing.readCount} files</td>'
+        '<td class="right">${printMilliseconds(timing.readTime.inMilliseconds)}</td>'
+        '<td>$description</td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
   }
 }
 
@@ -1017,7 +1107,7 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   }
 }
 
-class DiagnosticsSite extends Site implements AbstractGetHandler {
+class DiagnosticsSite extends Site implements AbstractHttpHandler {
   /// A flag used to control whether developer support should be included when
   /// building the pages.
   static const bool includeDeveloperSupport = false;
@@ -1055,6 +1145,8 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
       pages.add(LspRegistrationsPage(this, server));
     }
     pages.add(TimingPage(this));
+    pages.add(ByteStoreTimingPage(this));
+    pages.add(AnalysisDriverTimingsPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -1251,7 +1343,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="columns">');
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
-    var clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.editorClientCapabilities;
     if (clientCapabilities == null) {
       p('Client capabilities have not yet been received.');
     } else {
@@ -1596,9 +1688,9 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
 
     var id = int.tryParse(params['id'] ?? '');
     if (id == null) {
-      return _generateList(items, itemsSlow);
+      _generateList(items, itemsSlow);
     } else {
-      return _generateDetails(id, items, itemsSlow);
+      _generateDetails(id, items, itemsSlow);
     }
   }
 

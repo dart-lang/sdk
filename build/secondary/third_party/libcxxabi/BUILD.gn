@@ -70,7 +70,7 @@ source_set("libcxxabi") {
     sources += [ "src/cxa_guard.cpp" ]
   }
 
-  if (is_fuchsia || (is_posix && !is_ios && !is_macos)) {
+  if (is_fuchsia || (is_posix && !is_ios && !is_mac)) {
     sources += [ "src/cxa_thread_atexit.cpp" ]
   }
 }

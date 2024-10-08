@@ -430,6 +430,9 @@ export 'b.dart' hide C;
 
 ### ambiguous_extension_member_access
 
+_A member named '{0}' is defined in '{1}' and '{2}', and neither is more
+specific._
+
 _A member named '{0}' is defined in {1}, and none are more specific._
 
 #### Description
@@ -2614,20 +2617,20 @@ class C extends A<String> implements B {}
 
 ### conflicting_type_variable_and_container
 
-_'{0}' can't be used to name both a type variable and the class in which the
-type variable is defined._
+_'{0}' can't be used to name both a type parameter and the class in which the
+type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the enum in which the type
-variable is defined._
+_'{0}' can't be used to name both a type parameter and the enum in which the
+type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the extension in which the
-type variable is defined._
+_'{0}' can't be used to name both a type parameter and the extension in which
+the type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the extension type in
-which the type variable is defined._
+_'{0}' can't be used to name both a type parameter and the extension type in
+which the type parameter is defined._
 
-_'{0}' can't be used to name both a type variable and the mixin in which the
-type variable is defined._
+_'{0}' can't be used to name both a type parameter and the mixin in which the
+type parameter is defined._
 
 #### Description
 
@@ -2654,17 +2657,17 @@ class C<T> {}
 
 ### conflicting_type_variable_and_member
 
-_'{0}' can't be used to name both a type variable and a member in this class._
+_'{0}' can't be used to name both a type parameter and a member in this class._
 
-_'{0}' can't be used to name both a type variable and a member in this enum._
+_'{0}' can't be used to name both a type parameter and a member in this enum._
 
-_'{0}' can't be used to name both a type variable and a member in this extension
-type._
+_'{0}' can't be used to name both a type parameter and a member in this
+extension type._
 
-_'{0}' can't be used to name both a type variable and a member in this
+_'{0}' can't be used to name both a type parameter and a member in this
 extension._
 
-_'{0}' can't be used to name both a type variable and a member in this mixin._
+_'{0}' can't be used to name both a type parameter and a member in this mixin._
 
 #### Description
 
@@ -4887,15 +4890,13 @@ multiple part directives.
 Given a file `part.dart` containing
 
 ```dart
-part of lib;
+part of 'test.dart';
 ```
 
 The following code produces this diagnostic because the file `part.dart` is
 included multiple times:
 
 ```dart
-library lib;
-
 part 'part.dart';
 part [!'part.dart'!];
 ```
@@ -4905,8 +4906,6 @@ part [!'part.dart'!];
 Remove all except the first of the duplicated part directives:
 
 ```dart
-library lib;
-
 part 'part.dart';
 ```
 
@@ -10281,7 +10280,8 @@ The analyzer produces this diagnostic when all of the following are true:
   method.
 
 The concrete implementation can be invalid because of incompatibilities in
-either the return type, the types of parameters, or the type variables.
+either the return type, the types of the method's parameters, or the type
+parameters.
 
 #### Example
 
@@ -11374,18 +11374,18 @@ class D extends A {
 
 ### invalid_type_argument_in_const_literal
 
-_Constant list literals can't include a type parameter as a type argument, such
-as '{0}'._
+_Constant list literals can't use a type parameter in a type argument, such as
+'{0}'._
 
-_Constant map literals can't include a type parameter as a type argument, such
-as '{0}'._
+_Constant map literals can't use a type parameter in a type argument, such as
+'{0}'._
 
-_Constant set literals can't include a type parameter as a type argument, such
-as '{0}'._
+_Constant set literals can't use a type parameter in a type argument, such as
+'{0}'._
 
 #### Description
 
-The analyzer produces this diagnostic when a type parameter is used as a
+The analyzer produces this diagnostic when a type parameter is used in a
 type argument in a list, map, or set literal that is prefixed by `const`.
 This isn't allowed because the value of the type parameter (the actual type
 that will be used at runtime) can't be known at compile time.
@@ -23108,6 +23108,52 @@ void f(int x) {
 }
 ```
 
+### unreachable_switch_default
+
+_This default clause is covered by the previous cases._
+
+#### Description
+
+The analyzer produces this diagnostic when a `default` clause in a
+`switch` statement doesn't match anything because all of the matchable
+values are matched by an earlier `case` clause.
+
+#### Example
+
+The following code produces this diagnostic because the values `E.e1` and
+`E.e2` were matched in the preceding cases:
+
+```dart
+enum E { e1, e2 }
+
+void f(E x) {
+  switch (x) {
+    case E.e1:
+      print('one');
+    case E.e2:
+      print('two');
+    [!default!]:
+      print('other');
+  }
+}
+```
+
+#### Common fixes
+
+Remove the unnecessary `default` clause:
+
+```dart
+enum E { e1, e2 }
+void f(E x) {
+  switch (x) {
+    case E.e1:
+      print('one');
+    case E.e2:
+      print('two');
+  }
+}
+```
+
 ### unused_catch_clause
 
 _The exception variable '{0}' isn't used, so the 'catch' clause can be removed._
@@ -24567,6 +24613,55 @@ void f(Iterable<String> s) {
   }
 }
 ```
+
+### avoid_futureor_void
+
+_Don't use the type 'FutureOr<void>'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type `FutureOr<void>`
+is used as the type of a result (to be precise: it is used in a
+position that isn't contravariant). The type `FutureOr<void>` is
+problematic because it may appear to encode that a result is either a
+`Future<void>`, or the result should be discarded (when it is
+`void`).  However, there is no safe way to detect whether we have one
+or the other case because an expression of type `void` can evaluate
+to any object whatsoever, including a future of any type.
+
+It is also conceptually unsound to have a type whose meaning is
+something like "ignore this object; also, take a look because it
+might be a future".
+
+An exception is made for contravariant occurrences of the type
+`FutureOr<void>` (e.g., for the type of a formal parameter), and no
+warning is emitted for these occurrences. The reason for this
+exception is that the type does not describe a result, it describes a
+constraint on a value provided by others. Similarly, an exception is
+made for type alias declarations, because they may well be used in a
+contravariant position (e.g., as the type of a formal
+parameter). Hence, in type alias declarations, only the type
+parameter bounds are checked.
+
+#### Example
+
+```dart
+import 'dart:async';
+
+[!FutureOr<void>!] m() => null;
+```
+
+#### Common fixes
+
+A replacement for the type `FutureOr<void>` which is often useful is
+`Future<void>?`. This type encodes that a result is either a
+`Future<void>` or it is null, and there is no ambiguity at run time
+since no object can have both types.
+
+It may not always be possible to use the type `Future<void>?` as a
+replacement for the type `FutureOr<void>`, because the latter is a
+supertype of all types, and the former is not. In this case it may be a
+useful remedy to replace `FutureOr<void>` by the type `void`.
 
 ### avoid_init_to_null
 
@@ -27177,12 +27272,12 @@ interpolation would achieve the same result.
 
 #### Example
 
-The following code produces this diagnostic because the elements of the
-list `l` are being concatenated with other strings using the `+` operator:
+The following code produces this diagnostic because the String `s` is
+concatenated with other strings using the `+` operator:
 
 ```dart
-String f(List<String> l) {
-  return [!'(' + l[0] + ', ' + l[1] + ')'!];
+String f(String s) {
+  return [!'(' + s!] + ')';
 }
 ```
 

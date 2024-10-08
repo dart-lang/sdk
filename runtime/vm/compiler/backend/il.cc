@@ -1261,7 +1261,7 @@ bool GraphEntryInstr::IsCompiledForOsr() const {
     visitor->Visit##ShortName(this);                                           \
   }
 
-FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
+FOR_EACH_CONCRETE_INSTRUCTION(DEFINE_ACCEPT)
 
 #undef DEFINE_ACCEPT
 
@@ -1617,7 +1617,7 @@ bool Instruction::HasUnmatchedInputRepresentations() const {
 
 const intptr_t Instruction::kInstructionAttrs[Instruction::kNumInstructions] = {
 #define INSTR_ATTRS(type, attrs) InstrAttrs::attrs,
-    FOR_EACH_INSTRUCTION(INSTR_ATTRS)
+    FOR_EACH_CONCRETE_INSTRUCTION(INSTR_ATTRS)
 #undef INSTR_ATTRS
 };
 
@@ -2226,28 +2226,19 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
     return square;
   }
 
+  if (left()->BindsToConstant() && !right()->BindsToConstant() &&
+      Token::IsCommutativeOp(op_kind())) {
+    Value* l = left();
+    Value* r = right();
+    SetInputAt(0, r);
+    SetInputAt(1, l);
+  }
+
   return this;
 }
 
 Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : nullptr;
-}
-
-static bool IsCommutative(Token::Kind op) {
-  switch (op) {
-    case Token::kMUL:
-      FALL_THROUGH;
-    case Token::kADD:
-      FALL_THROUGH;
-    case Token::kBIT_AND:
-      FALL_THROUGH;
-    case Token::kBIT_OR:
-      FALL_THROUGH;
-    case Token::kBIT_XOR:
-      return true;
-    default:
-      return false;
-  }
 }
 
 UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
@@ -2430,7 +2421,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (left()->BindsToConstant() && !right()->BindsToConstant() &&
-      IsCommutative(op_kind())) {
+      Token::IsCommutativeOp(op_kind())) {
     Value* l = left();
     Value* r = right();
     SetInputAt(0, r);
@@ -3599,6 +3590,53 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
   return compare;
 }
 
+static bool IsSingleUseUnboxOrConstant(Value* use) {
+  return (use->definition()->IsUnbox() && use->IsSingleUse()) ||
+         use->definition()->IsConstant();
+}
+
+// Canonicalize [instr]. Either return [instr] or a new
+// comparison instruction which is not inserted into the flow graph.
+static ComparisonInstr* CanonicalizeEqualityCompare(EqualityCompareInstr* instr,
+                                                    FlowGraph* flow_graph) {
+  if (instr->is_null_aware()) {
+    ASSERT(instr->operation_cid() == kMintCid);
+    // Select more efficient instructions based on operand types.
+    CompileType* left_type = instr->left()->Type();
+    CompileType* right_type = instr->right()->Type();
+    if (left_type->IsNull() || left_type->IsNullableSmi() ||
+        right_type->IsNull() || right_type->IsNullableSmi()) {
+      return new StrictCompareInstr(
+          instr->source(),
+          (instr->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          instr->left()->CopyWithType(), instr->right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+    } else {
+      // Null-aware EqualityCompare takes boxed inputs, so make sure
+      // unmatched representations are still allowed when converting
+      // EqualityCompare to the unboxed instruction.
+      if (!left_type->is_nullable() && !right_type->is_nullable() &&
+          flow_graph->unmatched_representations_allowed()) {
+        instr->set_null_aware(false);
+      }
+    }
+  } else {
+    if ((instr->operation_cid() == kMintCid) &&
+        IsSingleUseUnboxOrConstant(instr->left()) &&
+        IsSingleUseUnboxOrConstant(instr->right()) &&
+        (instr->left()->Type()->IsNullableSmi() ||
+         instr->right()->Type()->IsNullableSmi()) &&
+        flow_graph->unmatched_representations_allowed()) {
+      return new StrictCompareInstr(
+          instr->source(),
+          (instr->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          instr->left()->CopyWithType(), instr->right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+    }
+  }
+  return instr;
+}
+
 static bool BindsToGivenConstant(Value* v, intptr_t expected) {
   return v->BindsToConstant() && v->BoundConstant().IsSmi() &&
          (Smi::Cast(v->BoundConstant()).Value() == expected);
@@ -3650,7 +3688,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
     }
     ComparisonInstr* comp = replacement->AsComparison();
     if ((comp == nullptr) || comp->CanDeoptimize() ||
-        comp->HasUnmatchedInputRepresentations()) {
+        ((comp->SpeculativeModeOfInputs() == kGuardInputs) &&
+         comp->HasUnmatchedInputRepresentations())) {
       return this;
     }
 
@@ -3713,9 +3752,19 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
         flow_graph->CopyDeoptTarget(this, bit_and);
         SetComparison(test);
         bit_and->RemoveFromGraph();
+        return this;
       }
     }
+
+    auto replacement = CanonicalizeEqualityCompare(
+        comparison()->AsEqualityCompare(), flow_graph);
+    if (replacement != comparison()) {
+      SetComparison(replacement);
+      replacement->ClearSSATempIndex();
+      replacement->ClearTempIndex();
+    }
   }
+
   return this;
 }
 
@@ -3732,48 +3781,11 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   return replacement;
 }
 
-static bool IsSingleUseUnboxOrConstant(Value* use) {
-  return (use->definition()->IsUnbox() && use->IsSingleUse()) ||
-         use->definition()->IsConstant();
-}
-
 Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (is_null_aware()) {
-    ASSERT(operation_cid() == kMintCid);
-    // Select more efficient instructions based on operand types.
-    CompileType* left_type = left()->Type();
-    CompileType* right_type = right()->Type();
-    if (left_type->IsNull() || left_type->IsNullableSmi() ||
-        right_type->IsNull() || right_type->IsNullableSmi()) {
-      auto replacement = new StrictCompareInstr(
-          source(),
-          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-          left()->CopyWithType(), right()->CopyWithType(),
-          /*needs_number_check=*/false, DeoptId::kNone);
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    } else {
-      // Null-aware EqualityCompare takes boxed inputs, so make sure
-      // unmatched representations are still allowed when converting
-      // EqualityCompare to the unboxed instruction.
-      if (!left_type->is_nullable() && !right_type->is_nullable() &&
-          flow_graph->unmatched_representations_allowed()) {
-        set_null_aware(false);
-      }
-    }
-  } else {
-    if ((operation_cid() == kMintCid) && IsSingleUseUnboxOrConstant(left()) &&
-        IsSingleUseUnboxOrConstant(right()) &&
-        (left()->Type()->IsNullableSmi() || right()->Type()->IsNullableSmi()) &&
-        flow_graph->unmatched_representations_allowed()) {
-      auto replacement = new StrictCompareInstr(
-          source(),
-          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-          left()->CopyWithType(), right()->CopyWithType(),
-          /*needs_number_check=*/false, DeoptId::kNone);
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
+  auto replacement = CanonicalizeEqualityCompare(this, flow_graph);
+  if (replacement != this) {
+    flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+    return replacement;
   }
   return this;
 }
@@ -6740,9 +6752,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
 }
 
 Definition* CheckBoundBaseInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (flow_graph->should_remove_all_bounds_checks() || IsRedundant())
-             ? index()->definition()
-             : this;
+  return IsRedundant() ? index()->definition() : this;
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
@@ -7745,6 +7755,19 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
 
   summary->set_in(kInstancePos, Location::RequiresRegister());
   const Representation rep = slot().representation();
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+  // ARM64 and RISC-V have dedicated zero and null registers which can be
+  // used in store instructions.
+  if (RepresentationUtils::ValueSize(rep) <= compiler::target::kWordSize) {
+    if (auto constant = value()->definition()->AsConstant()) {
+      if (constant->value().IsNull() || constant->HasZeroRepresentation()) {
+        summary->set_in(kValuePos, Location::Constant(constant));
+        return summary;
+      }
+    }
+  }
+#endif
   if (rep == kUntagged) {
     summary->set_in(kValuePos, Location::RequiresRegister());
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
@@ -7770,18 +7793,6 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
     // X64 supports emitting `mov mem, Imm32` only with non-pointer
     // immediate.
     summary->set_in(kValuePos, LocationRegisterOrSmiConstant(value()));
-#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
-    defined(TARGET_ARCH_RISCV64)
-    // ARM64 and RISC-V have dedicated zero and null registers which can be
-    // used in store instructions.
-    Location value_loc = Location::RequiresRegister();
-    if (auto constant = value()->definition()->AsConstant()) {
-      const auto& value = constant->value();
-      if (value.IsNull() || (value.IsSmi() && Smi::Cast(value).Value() == 0)) {
-        value_loc = Location::Constant(constant);
-      }
-    }
-    summary->set_in(kValuePos, value_loc);
 #else
     // No support for moving immediate to memory directly.
     summary->set_in(kValuePos, Location::RequiresRegister());
@@ -7802,6 +7813,14 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
 
   const Representation rep = slot().representation();
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+  if (locs()->in(kValuePos).IsConstant() &&
+      locs()->in(kValuePos).constant_instruction()->HasZeroRepresentation()) {
+    __ StoreToSlotNoBarrier(ZR, instance_reg, slot(), memory_order_);
+    return;
+  }
+#endif
   if (rep == kUntagged) {
     __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
                             memory_order_);

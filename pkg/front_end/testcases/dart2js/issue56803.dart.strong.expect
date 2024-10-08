@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type Ext(core::String _) implements core::String {
+  abstract extension-type-member representation-field get _() → core::String;
+  constructor _ = self::Ext|constructor#_;
+  constructor tearoff _ = self::Ext|constructor#_#_#tearOff;
+  constructor • = self::Ext|constructor#;
+  constructor tearoff • = self::Ext|constructor#_#new#tearOff;
+}
+static const field core::String? maybe = #C5;
+static extension-type-member method Ext|constructor#_(core::String _) → self::Ext /* erasure=core::String */ {
+  lowered final self::Ext /* erasure=core::String */ #this = _;
+  return #this;
+}
+static extension-type-member method Ext|constructor#_#_#tearOff(core::String _) → self::Ext /* erasure=core::String */
+  return self::Ext|constructor#_(_);
+static extension-type-member method Ext|constructor#() → self::Ext /* erasure=core::String */ {
+  lowered final self::Ext /* erasure=core::String */ #this = "OK";
+  assert(!(#C5 == null), "Must not be null");
+  return #this;
+}
+static extension-type-member method Ext|constructor#_#new#tearOff() → self::Ext /* erasure=core::String */
+  return self::Ext|constructor#();
+static method main() → void {
+  self::Ext /* erasure=core::String */ c = #C6;
+  core::print(c);
+}
+
+constants  {
+  #C1 = "not there"
+  #C2 = eval /* from org-dartlang-testcase:///issue56803.dart */ const core::bool::fromEnvironment(#C1)
+  #C3 = "string"
+  #C4 = null
+  #C5 = eval /* from org-dartlang-testcase:///issue56803.dart */ #C2 ?{core::String?} #C3 : #C4
+  #C6 = eval /* from org-dartlang-testcase:///issue56803.dart */ const self::Ext|constructor#()
+}

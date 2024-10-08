@@ -501,7 +501,6 @@ class OutlineBuilder extends StackListenerImpl {
   bool inAbstractOrSealedClass = false;
   bool inConstructor = false;
   bool inConstructorName = false;
-  int importIndex = 0;
 
   String? nativeMethodName;
 
@@ -559,7 +558,6 @@ class OutlineBuilder extends StackListenerImpl {
   void popDeclarationContext([DeclarationContext? expectedContext]) {
     assert(
         expectedContext == null || expectedContext == declarationContext,
-        // Coverage-ignore(suite): Not run.
         "Unexpected declaration context: "
         "Expected $expectedContext, actual $declarationContext.");
     _declarationContext = _declarationContext.tail!;
@@ -733,9 +731,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(importKeyword.charOffset);
     if (prefix is! Identifier?) {
-      assert(
-          prefix is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
+      assert(prefix is ParserRecovery,
           "Unexpected prefix $prefix (${prefix.runtimeType}).");
       return;
     }
@@ -759,8 +755,7 @@ class OutlineBuilder extends StackListenerImpl {
         deferred: isDeferred,
         charOffset: importKeyword.charOffset,
         prefixCharOffset: prefix?.nameOffset ?? TreeNode.noOffset,
-        uriOffset: uriOffset,
-        importIndex: importIndex++);
+        uriOffset: uriOffset);
   }
 
   @override
@@ -959,9 +954,7 @@ class OutlineBuilder extends StackListenerImpl {
           "Unexpected prefix $prefix (${prefix.runtimeType})");
       push(prefix);
     } else if (suffix is! SimpleIdentifier) {
-      assert(
-          suffix is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
+      assert(suffix is ParserRecovery,
           "Unexpected suffix $suffix (${suffix.runtimeType})");
       push(suffix);
     } else {
@@ -1076,8 +1069,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
     _builderFactory.beginClassDeclaration(
         name.lexeme, name.charOffset, typeVariables);
-    _builderFactory.beginIndexedContainer(name.lexeme,
-        isExtensionTypeDeclaration: false);
     inAbstractOrSealedClass = abstractToken != null || sealedToken != null;
     push(abstractToken != null ? abstractMask : 0);
     push(macroToken ?? NullValues.Token);
@@ -1109,8 +1100,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(typeVariables ?? NullValues.NominalVariables);
     _builderFactory.beginMixinDeclaration(
         name.lexeme, name.charOffset, typeVariables);
-    _builderFactory.beginIndexedContainer(name.lexeme,
-        isExtensionTypeDeclaration: false);
   }
 
   @override
@@ -1407,7 +1396,6 @@ class OutlineBuilder extends StackListenerImpl {
           isAugmentation: augmentToken != null,
           isMixinClass: mixinToken != null);
     }
-    _builderFactory.endIndexedContainer();
     popDeclarationContext(DeclarationContext.Class);
   }
 
@@ -1493,7 +1481,6 @@ class OutlineBuilder extends StackListenerImpl {
           isBase: baseToken != null,
           isAugmentation: augmentToken != null);
     }
-    _builderFactory.endIndexedContainer();
     popDeclarationContext(DeclarationContext.Mixin);
   }
 
@@ -1581,8 +1568,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(new SimpleIdentifier(nameToken));
     push(typeVariables ?? NullValues.NominalVariables);
     _builderFactory.beginExtensionTypeDeclaration(name, offset, typeVariables);
-    _builderFactory.beginIndexedContainer(name,
-        isExtensionTypeDeclaration: true);
   }
 
   @override
@@ -1622,7 +1607,6 @@ class OutlineBuilder extends StackListenerImpl {
         startOffset,
         endToken.charOffset);
 
-    _builderFactory.endIndexedContainer();
     popDeclarationContext(DeclarationContext.ExtensionType);
   }
 
@@ -1891,10 +1875,9 @@ class OutlineBuilder extends StackListenerImpl {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
-    inConstructor =
-        name.lexeme == _builderFactory.currentTypeParameterScopeBuilder.name &&
-            getOrSet == null;
+      Token name,
+      String? enclosingDeclarationName) {
+    inConstructor = name.lexeme == enclosingDeclarationName && getOrSet == null;
     DeclarationContext declarationContext;
     switch (declarationKind) {
       case DeclarationKind.TopLevel:
@@ -2095,9 +2078,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
 
     if (identifier is! Identifier) {
-      assert(
-          identifier is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
+      assert(identifier is ParserRecovery,
           "Unexpected identifier $identifier (${identifier.runtimeType})");
 
       if (inConstructor) {
@@ -2243,8 +2224,8 @@ class OutlineBuilder extends StackListenerImpl {
         returnType = null;
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       if (isConst) {
-        // Coverage-ignore-block(suite): Not run.
         // TODO(danrubel): consider removing this
         // because it is an error to have a const method.
         modifiers &= ~constMask;
@@ -2815,8 +2796,6 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       declarationName = '#enum';
     }
-    _builderFactory.beginIndexedContainer(declarationName,
-        isExtensionTypeDeclaration: false);
     pushDeclarationContext(DeclarationContext.Enum);
     _builderFactory.beginEnumDeclarationHeader(declarationName);
   }
@@ -2987,7 +2966,6 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.endEnumDeclarationForParserRecovery(typeVariables);
     }
 
-    _builderFactory.endIndexedContainer();
     checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }

@@ -17,7 +17,7 @@ const List<(String?, int?, int?)?> frameDetails = [
   ('source_map_simple_lib.dart', 38, 5), // testMain
   ('source_map_simple_test.dart', 10, 7), // main
   null, // main tear-off, compiler generated, not mapped
-  ('internal_patch.dart', null, null), // _invokeMain
+  // The rest of the stack is dependent on the compiler mode.
 ];
 
 /*

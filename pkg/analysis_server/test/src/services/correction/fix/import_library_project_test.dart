@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -37,6 +37,26 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_extension_notImported_binaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  String operator -(String other) => this;
+}
+''');
+    await resolveTestCode('''
+void f(String s) {
+  s - '2';
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String s) {
+  s - '2';
+}
+''');
   }
 
   Future<void> test_extension_notImported_field_onThisType_fromClass() async {
@@ -83,6 +103,26 @@ import 'package:test/lib.dart';
 
 void f(String s) {
   s.m;
+}
+''');
+  }
+
+  Future<void> test_extension_notImported_getter_nullAware() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  int get m => 0;
+}
+''');
+    await resolveTestCode('''
+void f(String? s) {
+  s?.m;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String? s) {
+  s?.m;
 }
 ''');
   }
@@ -162,6 +202,26 @@ void f(List<int> l) {
 ''');
   }
 
+  Future<void> test_extension_notImported_method_nullAware() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+void f(String? s) {
+  s?.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String? s) {
+  s?.m();
+}
+''');
+  }
+
   Future<void> test_extension_notImported_method_onThisType_fromClass() async {
     newFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
@@ -227,26 +287,6 @@ extension F on C {
 ''');
   }
 
-  Future<void> test_extension_notImported_operator() async {
-    newFile('$testPackageLibPath/lib.dart', '''
-extension E on String {
-  String operator -(String other) => this;
-}
-''');
-    await resolveTestCode('''
-void f(String s) {
-  s - '2';
-}
-''');
-    await assertHasFix('''
-import 'package:test/lib.dart';
-
-void f(String s) {
-  s - '2';
-}
-''');
-  }
-
   Future<void> test_extension_notImported_setter() async {
     newFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
@@ -263,6 +303,26 @@ import 'package:test/lib.dart';
 
 void f(String s) {
   s.m = 2;
+}
+''');
+  }
+
+  Future<void> test_extension_notImported_unaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on String {
+  String operator ~() => this;
+}
+''');
+    await resolveTestCode('''
+void f(String s) {
+  ~s;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String s) {
+  ~s;
 }
 ''');
   }
@@ -301,6 +361,22 @@ import 'package:aaa/a.dart';
 
 void f() {
   0.foo;
+}
+''');
+  }
+
+  Future<void> test_extensionType_name_notImported() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type ET(String it) {}
+''');
+    await resolveTestCode('''
+void f(ET s) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(ET s) {
 }
 ''');
   }
@@ -471,6 +547,28 @@ void f() { new Foo(); }
         ]);
   }
 
+  Future<void> test_relativeDirective_alwaysUsePackageImports() async {
+    createAnalysisOptionsFile(lints: [
+      LintNames.always_use_package_imports,
+    ]);
+    newFile('$testPackageLibPath/a.dart', '''
+class Foo {}
+''');
+    await resolveTestCode('''
+void f() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 1,
+        matchFixMessage: "Import library 'package:test/a.dart'");
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 1,
+        matchFixMessages: ["Import library 'package:test/a.dart'"]);
+  }
+
   Future<void> test_relativeDirective_downOneDirectory() async {
     newFile('$testPackageLibPath/dir/a.dart', '''
 class Foo {}
@@ -487,8 +585,32 @@ void f() { new Foo(); }
         matchFixMessage: "Import library 'dir/a.dart'");
   }
 
+  Future<void> test_relativeDirective_noLint() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class Foo {}
+''');
+    await resolveTestCode('''
+void f() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'package:test/a.dart'");
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessages: [
+          "Import library 'package:test/a.dart'",
+          "Import library 'a.dart'",
+        ]);
+  }
+
   Future<void> test_relativeDirective_preferRelativeImports() async {
-    createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
+    createAnalysisOptionsFile(lints: [
+      LintNames.prefer_relative_imports,
+    ]);
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
@@ -500,14 +622,11 @@ import 'a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
+        expectedNumberOfFixesForKind: 1,
         matchFixMessage: "Import library 'a.dart'");
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Import library 'a.dart'",
-          "Import library 'package:test/a.dart'",
-        ]);
+        expectedNumberOfFixesForKind: 1,
+        matchFixMessages: ["Import library 'a.dart'"]);
   }
 
   Future<void> test_relativeDirective_upOneDirectory() async {

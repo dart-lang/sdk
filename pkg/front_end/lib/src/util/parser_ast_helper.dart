@@ -1526,7 +1526,8 @@ abstract class AbstractParserAstListener implements Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     MethodBegin data = new MethodBegin(ParserAstType.BEGIN,
         declarationKind: declarationKind,
         augmentToken: augmentToken,
@@ -1535,7 +1536,8 @@ abstract class AbstractParserAstListener implements Listener {
         covariantToken: covariantToken,
         varFinalOrConst: varFinalOrConst,
         getOrSet: getOrSet,
-        name: name);
+        name: name,
+        enclosingDeclarationName: enclosingDeclarationName);
     seen(data);
   }
 
@@ -6416,6 +6418,7 @@ class MethodBegin extends ParserAstNode {
   final Token? varFinalOrConst;
   final Token? getOrSet;
   final Token name;
+  final String? enclosingDeclarationName;
 
   MethodBegin(ParserAstType type,
       {required this.declarationKind,
@@ -6425,7 +6428,8 @@ class MethodBegin extends ParserAstNode {
       this.covariantToken,
       this.varFinalOrConst,
       this.getOrSet,
-      required this.name})
+      required this.name,
+      this.enclosingDeclarationName})
       : super("Method", type);
 
   @override
@@ -6438,6 +6442,7 @@ class MethodBegin extends ParserAstNode {
         "varFinalOrConst": varFinalOrConst,
         "getOrSet": getOrSet,
         "name": name,
+        "enclosingDeclarationName": enclosingDeclarationName,
       };
 
   @override

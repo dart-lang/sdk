@@ -222,6 +222,7 @@ class Scavenger {
   }
 
   void set_freed_in_words(intptr_t value) { freed_in_words_ = value; }
+  void add_freed_in_words(intptr_t value) { freed_in_words_.fetch_add(value); }
 
   // The maximum number of Dart mutator threads we allow to execute at the same
   // time.
@@ -327,7 +328,7 @@ class Scavenger {
 
   // The total size of external data associated with objects in this scavenger.
   RelaxedAtomic<intptr_t> external_size_ = {0};
-  intptr_t freed_in_words_ = 0;
+  RelaxedAtomic<intptr_t> freed_in_words_ = 0;
 
   RelaxedAtomic<bool> failed_to_promote_ = {false};
   RelaxedAtomic<bool> abort_ = {false};

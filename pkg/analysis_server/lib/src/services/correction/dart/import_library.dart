@@ -9,8 +9,10 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
@@ -82,7 +84,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // additional analysis.
     var foundImport = false;
     var producers = <ResolvedCorrectionProducer>[];
-    for (var import in libraryElement.libraryImports) {
+    for (var import in libraryElement.definingCompilationUnit.libraryImports) {
       // prepare element
       var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
@@ -131,9 +133,11 @@ class ImportLibrary extends MultiCorrectionProducer {
   ///
   /// If [includeRelativeFix] is `false`, only one correction, with an absolute
   /// import path, is returned. Otherwise, a correction with an absolute import
-  /// path and a correction with a relative path are returned. If the
-  /// `prefer_relative_imports` lint rule is enabled, the relative path is
-  /// returned first.
+  /// path and a correction with a relative path are returned.
+  /// If the `always_use_package_imports` lint rule is active then only the
+  /// package import is returned.
+  /// If `prefer_relative_imports` is active then the relative path is returned.
+  /// Otherwise, both are returned in the order: absolute, relative.
   List<ResolvedCorrectionProducer> _importLibrary(
     FixKind fixKind,
     Uri library, {
@@ -141,17 +145,18 @@ class ImportLibrary extends MultiCorrectionProducer {
   }) {
     if (!includeRelativeFix) {
       return [_ImportAbsoluteLibrary(fixKind, library, context: context)];
-    } else if (getCodeStyleOptions(unitResult.file).useRelativeUris) {
-      return [
-        _ImportRelativeLibrary(fixKind, library, context: context),
-        _ImportAbsoluteLibrary(fixKind, library, context: context),
-      ];
-    } else {
-      return [
-        _ImportAbsoluteLibrary(fixKind, library, context: context),
-        _ImportRelativeLibrary(fixKind, library, context: context),
-      ];
     }
+    var codeStyleOptions = getCodeStyleOptions(unitResult.file);
+    if (codeStyleOptions.usePackageUris) {
+      return [_ImportAbsoluteLibrary(fixKind, library, context: context)];
+    }
+    if (codeStyleOptions.useRelativeUris) {
+      return [_ImportRelativeLibrary(fixKind, library, context: context)];
+    }
+    return [
+      _ImportAbsoluteLibrary(fixKind, library, context: context),
+      _ImportRelativeLibrary(fixKind, library, context: context),
+    ];
   }
 
   Future<List<ResolvedCorrectionProducer>> _importLibraryForElement(
@@ -166,7 +171,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
     var alreadyImportedWithPrefix = <LibraryElement>{};
-    for (var import in libraryElement.libraryImports) {
+    for (var import in libraryElement.definingCompilationUnit.libraryImports) {
       // Prepare the element.
       var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
@@ -287,10 +292,16 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (memberName.startsWith('_')) {
         return const [];
       }
-      targetType = node.targetType;
+      targetType = node.targetType(unitResult.typeSystem);
     } else if (node is BinaryExpression) {
       memberName = node.operator.lexeme;
       targetType = node.leftOperand.staticType;
+    } else if (node is PrefixExpression) {
+      memberName = node.operator.lexeme;
+      if (node.operator.type == TokenType.MINUS ||
+          node.operator.type == TokenType.TILDE) {
+        targetType = node.operand.staticType;
+      }
     } else {
       return const [];
     }
@@ -377,6 +388,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       return await _importLibraryForElement(typeName, const [
         ElementKind.CLASS,
         ElementKind.ENUM,
+        ElementKind.EXTENSION_TYPE,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.MIXIN,
         ElementKind.TYPE_ALIAS,
@@ -634,18 +646,30 @@ extension on AstNode {
 extension on SimpleIdentifier {
   /// The type of the object being accessed, if this node might represent an
   /// access to a member of a type, otherwise `null`.
-  DartType? get targetType {
+  DartType? targetType(TypeSystem typeSystem) {
     var parent = this.parent;
+
     if (parent is MethodInvocation && parent.methodName == this) {
       var target = parent.realTarget;
       if (target != null) {
-        return target.staticType;
+        var type = target.staticType;
+        if (type == null) return type;
+        if (parent.isNullAware) {
+          type = typeSystem.promoteToNonNull(type);
+        }
+        return type;
       }
     } else if (parent is PropertyAccess && parent.propertyName == this) {
-      return parent.realTarget.staticType;
+      var type = parent.realTarget.staticType;
+      if (type == null) return type;
+      if (parent.isNullAware) {
+        type = typeSystem.promoteToNonNull(type);
+      }
+      return type;
     } else if (parent is PrefixedIdentifier && parent.identifier == this) {
       return parent.prefix.staticType;
     }
+
     // If there is no explicit target, then return the type of an implicit
     // `this`.
     DartType? enclosingThisType(AstNode node) {

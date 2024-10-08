@@ -419,6 +419,7 @@ class PageSpace {
 
   void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
   void VerifyStoreBuffers(const char* msg);
+  void SweepExecutable();
   void SweepNew();
   void SweepLarge();
   void Sweep(bool exclusive);
@@ -465,6 +466,8 @@ class PageSpace {
   Page* image_pages_ = nullptr;
   Page* sweep_regular_ = nullptr;
   Page* sweep_large_ = nullptr;
+  Page* sweep_new_ = nullptr;
+  Page* sweep_executable_ = nullptr;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;
@@ -507,6 +510,7 @@ class PageSpace {
   friend class PrologueTask;
   friend class EpilogueTask;
   friend class CompactorTask;
+  friend class ParallelSweepTask;
   friend class Code;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);

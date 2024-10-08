@@ -1,0 +1,38 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///prefix_vs_import_lib1.dart" as foo;
+import "org-dartlang-testcase:///prefix_vs_import_lib2.dart";
+import "org-dartlang-testcase:///prefix_vs_import_lib3.dart";
+import "org-dartlang-testcase:///prefix_vs_import_lib1.dart" as bar;
+
+static method test() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method method() → dynamic
+  ;
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+class foo extends core::Object {
+  synthetic constructor •() → self3::foo
+    ;
+  static method method() → void
+    ;
+}
+
+library;
+import self as self4;
+import "dart:core" as core;
+
+class bar extends core::Object {
+  synthetic constructor •() → self4::bar
+    ;
+  static method method() → void
+    ;
+}

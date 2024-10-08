@@ -13,32 +13,11 @@ import '../extensions.dart';
 const _desc = '$_descPrefix.';
 const _descPrefix = r'Avoid unsafe HTML APIs';
 
-const _details = r'''
-**AVOID**
-
-* assigning directly to the `href` field of an AnchorElement
-* assigning directly to the `src` field of an EmbedElement, IFrameElement, or
-  ScriptElement
-* assigning directly to the `srcdoc` field of an IFrameElement
-* calling the `createFragment` method of Element
-* calling the `open` method of Window
-* calling the `setInnerHtml` method of Element
-* calling the `Element.html` constructor
-* calling the `DocumentFragment.html` constructor
-
-
-**BAD:**
-```dart
-var script = ScriptElement()..src = 'foo.js';
-```
-''';
-
 class UnsafeHtml extends LintRule {
   UnsafeHtml()
       : super(
-          name: 'unsafe_html',
+          name: LintNames.unsafe_html,
           description: _desc,
-          details: _details,
         );
 
   // TODO(brianwilkerson): This lint is not yet using the generated LintCodes.

@@ -60,6 +60,7 @@ RecordPattern
           type: dynamic
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -89,6 +90,7 @@ RecordPattern
           type: dynamic
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -136,6 +138,7 @@ RecordPattern
           staticType: int
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -165,12 +168,14 @@ RecordPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         name: y
         declaredElement: y@54
           type: int
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -203,6 +208,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -229,6 +235,7 @@ RecordPattern
           staticType: int
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -255,12 +262,14 @@ RecordPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         name: y
         declaredElement: y@49
           type: int
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -290,6 +299,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -324,6 +334,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -357,6 +368,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -389,6 +401,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int b})
 ''');
@@ -421,6 +434,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int a, int b})
 ''');
@@ -452,6 +466,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ()
 ''');
@@ -482,6 +497,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: (int, String)
 ''');
@@ -498,6 +514,7 @@ void f(() x) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 60, 7),
+      error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 60, 7),
     ]);
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -534,6 +551,7 @@ RecordPattern
           type: int
         matchedValueType: int
       element: <null>
+      element2: <null>
     PatternField
       name: PatternFieldName
         name: foo
@@ -545,6 +563,7 @@ RecordPattern
           type: String
         matchedValueType: String
       element: <null>
+      element2: <null>
     PatternField
       pattern: DeclaredVariablePattern
         keyword: var
@@ -553,6 +572,7 @@ RecordPattern
           type: double
         matchedValueType: double
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: (int, double, {String foo})
 ''');
@@ -586,6 +606,7 @@ RecordPattern
           type: Object?
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -618,6 +639,7 @@ RecordPattern
           type: int
         matchedValueType: int
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -649,6 +671,7 @@ RecordPattern
           staticType: int
         matchedValueType: Object?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -680,6 +703,7 @@ RecordPattern
           type: int
         matchedValueType: int
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
 ''');
@@ -715,9 +739,11 @@ RecordPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         matchedValueType: int?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -752,6 +778,7 @@ RecordPattern
         operator: !
         matchedValueType: int?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -786,6 +813,7 @@ RecordPattern
         operator: ?
         matchedValueType: int?
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
 ''');
@@ -815,6 +843,7 @@ RecordPattern
           type: int
         matchedValueType: int
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: (int,)
 ''');
@@ -843,6 +872,7 @@ PatternVariableDeclaration
             type: int
           matchedValueType: int
         element: <null>
+        element2: <null>
       PatternField
         pattern: DeclaredVariablePattern
           name: b
@@ -850,12 +880,14 @@ PatternVariableDeclaration
             type: String
           matchedValueType: String
         element: <null>
+        element2: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: (int, String)
   patternTypeSchema: (_, _)
 ''');
@@ -884,23 +916,27 @@ PatternVariableDeclaration
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@22
             type: int
           matchedValueType: int
         element: <null>
+        element2: <null>
       PatternField
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
             element: dart:core::<fragment>::@class::String
+            element2: dart:core::<fragment>::@class::String#element
             type: String
           name: b
           declaredElement: b@32
             type: String
           matchedValueType: String
         element: <null>
+        element2: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
@@ -908,6 +944,7 @@ PatternVariableDeclaration
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
+      element: <testLibraryFragment>::@function::g#element
       staticType: (T, U) Function<T, U>()
     argumentList: ArgumentList
       leftParenthesis: (

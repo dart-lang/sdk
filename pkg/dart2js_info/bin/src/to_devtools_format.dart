@@ -144,7 +144,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
   /// [PackageInfo] objects.
   final Map<String, PackageInfo> packageInfos = {};
 
-  /// Mapping between an <unnamed> [LibraryInfo] object and the name of the
+  /// Mapping between an `<unnamed>` [LibraryInfo] object and the name of the
   /// corresponding [vm.ProgramInfoNode] object.
   final Map<Info, String> unnamedLibraries = {};
 

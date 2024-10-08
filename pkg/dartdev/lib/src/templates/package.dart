@@ -63,7 +63,7 @@ dependencies:
   # path: ^1.8.0
 
 dev_dependencies:
-  lints: ^4.0.0
+  lints: ^5.0.0
   test: ^1.24.0
 ''';
 

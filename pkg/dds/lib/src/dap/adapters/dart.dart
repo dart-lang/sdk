@@ -940,7 +940,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     ContinueArguments args,
     void Function(ContinueResponseBody) sendResponse,
   ) async {
-    await isolateManager.resumeThread(args.threadId);
+    // When we resume, it's always possible that the VM will shut down (because
+    // it was paused-on-exit and we just allowed it to complete and exit), so
+    // we should handle shutdown errors and just accept them as successful
+    // resumes.
+    await _withErrorHandling(() => isolateManager.resumeThread(args.threadId));
     sendResponse(ContinueResponseBody(allThreadsContinued: false));
   }
 

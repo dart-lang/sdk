@@ -25,7 +25,7 @@ import 'parser_ast_helper.dart';
 // "assumed version" (from package config probably) which is then updated if
 // a language version is seen which will then implicitly answer these questions.
 CompilationUnitEnd getAST(
-  List<int> rawBytes, {
+  Uint8List rawBytes, {
   bool includeBody = true,
   bool includeComments = false,
   bool enableExtensionMethods = false,
@@ -35,16 +35,13 @@ CompilationUnitEnd getAST(
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
-  Uint8List bytes = new Uint8List(rawBytes.length + 1);
-  bytes.setRange(0, rawBytes.length, rawBytes);
-
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
       enableExtensionMethods: enableExtensionMethods,
       enableNonNullable: enableNonNullable,
       enableTripleShift: enableTripleShift);
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(
-    bytes,
+    rawBytes,
     includeComments: includeComments,
     configuration: scannerConfiguration,
     languageVersionChanged: (scanner, languageVersion) {

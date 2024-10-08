@@ -194,11 +194,10 @@ class BufferedWriter {
     if (_currentLength > _currentBuffer.length - 4) {
       _grow();
     }
-    // TODO(alexmarkov): consider using native byte order
-    _addByte((value >> 24) & 0xFF);
-    _addByte((value >> 16) & 0xFF);
-    _addByte((value >> 8) & 0xFF);
     _addByte(value & 0xFF);
+    _addByte((value >> 8) & 0xFF);
+    _addByte((value >> 16) & 0xFF);
+    _addByte((value >> 24) & 0xFF);
   }
 
   @pragma('vm:prefer-inline')
@@ -291,10 +290,10 @@ class BufferedReader {
   int readByte() => bytes[_pos++];
 
   int readUInt32() {
-    return (readByte() << 24) |
-        (readByte() << 16) |
+    return readByte() |
         (readByte() << 8) |
-        readByte();
+        (readByte() << 16) |
+        (readByte() << 24);
   }
 
   int readPackedUInt30() {

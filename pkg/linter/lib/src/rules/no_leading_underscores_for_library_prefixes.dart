@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
@@ -13,29 +13,11 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
 
-const _details = r'''
-**DON'T** use a leading underscore for library prefixes.
-There is no concept of "private" for library prefixes. When one of those has a
-name that starts with an underscore, it sends a confusing signal to the reader. 
-To avoid that, don't use leading underscores in those names.
-
-**BAD:**
-```dart
-import 'dart:core' as _core;
-```
-
-**GOOD:**
-```dart
-import 'dart:core' as core;
-```
-''';
-
 class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
   NoLeadingUnderscoresForLibraryPrefixes()
       : super(
-          name: 'no_leading_underscores_for_library_prefixes',
+          name: LintNames.no_leading_underscores_for_library_prefixes,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -45,7 +27,7 @@ class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.libraryElement);
+    var visitor = _Visitor(this, context.libraryElement2);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -56,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  _Visitor(this.rule, LibraryElement? library)
+  _Visitor(this.rule, LibraryElement2? library)
       : _wildCardVariablesEnabled =
             library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 

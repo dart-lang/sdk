@@ -606,7 +606,9 @@ class RangeAnalysis : public ValueObject {
   // unconstrained definitions.
   void RemoveConstraints();
 
-  Range* ConstraintSmiRange(Token::Kind op, Definition* boundary);
+  Range* ConstraintRange(Token::Kind op,
+                         Definition* boundary,
+                         RangeBoundary::RangeSize size);
 
   Zone* zone() const { return flow_graph_->zone(); }
 

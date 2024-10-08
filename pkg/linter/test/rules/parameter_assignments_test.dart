@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ParameterAssignmentsTest extends LintRuleTest {
   @override
-  String get lintRule => 'parameter_assignments';
+  String get lintRule => LintNames.parameter_assignments;
 
   test_assignment_nullableParameter() async {
     await assertDiagnostics(r'''

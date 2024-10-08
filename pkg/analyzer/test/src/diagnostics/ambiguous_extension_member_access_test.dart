@@ -29,7 +29,7 @@ extension E2 on A {
 
 int f(A a) => a();
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 110, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 110, 1),
     ]);
   }
 
@@ -47,7 +47,7 @@ f() {
   0.a;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 98, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 98, 1),
     ]);
 
     var node = findNode.propertyAccess('0.a');
@@ -60,6 +60,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -90,6 +91,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@extension::E1::@getter::a
+    element: <testLibraryFragment>::@extension::E1::@getter::a#element
     staticType: void
   staticType: void
 ''');
@@ -109,7 +111,7 @@ f() {
   0.a;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 91, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 91, 1),
     ]);
 
     var node = findNode.propertyAccess('0.a');
@@ -122,6 +124,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -141,7 +144,7 @@ f() {
   0.a;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 96, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 96, 1),
     ]);
 
     var node = findNode.propertyAccess('0.a');
@@ -154,6 +157,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');
@@ -168,8 +172,38 @@ void f() {
   0.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: ["in extension 'E1' and extension 'E2',"]),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 129, 3,
+          messageContains: [
+            "in 'extension E1 on int' and 'extension E2 on int',",
+          ]),
+    ]);
+  }
+
+  test_method_conflict_conflict_notSpecific_sameName() async {
+    var one = newFile('$testPackageLibPath/one.dart', '''
+extension E on int { void foo() {} }
+''');
+    var two = newFile('$testPackageLibPath/two.dart', '''
+extension E on int { void foo() {} }
+''');
+    await assertErrorsInCode('''
+// ignore_for_file: unused_import
+import 'one.dart';
+import 'two.dart';
+void f() {
+  0.foo();
+}
+''', [
+      error(
+        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+        87,
+        3,
+        messageContains: [
+          "'extension E on int (where E is defined in ${one.path})' and "
+              "'extension E on int (where E is defined in ${two.path})',",
+        ],
+        contextMessages: [message(one, 10, 1), message(two, 10, 1)],
+      ),
     ]);
   }
 
@@ -193,8 +227,10 @@ void f() {
   0.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: ["in extension 'E1' and extension 'E2',"]),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 129, 3,
+          messageContains: [
+            "in 'extension E1 on int' and 'extension E2 on int',",
+          ]),
     ]);
   }
 
@@ -223,7 +259,7 @@ f() {
   0.a();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 88, 1),
     ]);
 
     var node = findNode.methodInvocation('0.a()');
@@ -236,6 +272,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -254,8 +291,10 @@ void f() {
   0.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 129, 3,
-          messageContains: ["in extension 'E1' and extension 'E2',"]),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 129, 3,
+          messageContains: [
+            "in 'extension E1 on int' and 'extension E2 on int',"
+          ]),
     ]);
   }
 
@@ -269,7 +308,10 @@ void f() {
   0.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 3,
+      error(
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+          167,
+          3,
           messageContains: [
             "in extension 'E1', extension 'E2', and extension 'E3',"
           ]),
@@ -308,7 +350,7 @@ f(SubTarget<num> t) {
   t.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 396, 3),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 396, 3),
     ]);
   }
 
@@ -326,7 +368,7 @@ extension E2 on A {
 
 A f(A a) => a + a;
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 122, 5),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 122, 5),
     ]);
   }
 
@@ -346,7 +388,7 @@ void f(A a) {
   a += 0;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 130, 2),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 130, 2),
     ]);
   }
 
@@ -364,7 +406,7 @@ extension E2 on A {
 
 int f(A a) => a[0];
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 134, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 134, 1),
     ]);
   }
 
@@ -382,7 +424,7 @@ f() {
   0[1] += 2;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 136, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 136, 1),
     ]);
   }
 
@@ -400,7 +442,7 @@ extension E2 on A {
 
 int f(A a) => -a;
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 123, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 123, 1),
     ]);
   }
 
@@ -418,7 +460,7 @@ f() {
   0.a = 3;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 88, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 88, 1),
     ]);
 
     assertResolvedNodeText(findNode.assignment('= 3'), r'''
@@ -431,6 +473,7 @@ AssignmentExpression
     propertyName: SimpleIdentifier
       token: a
       staticElement: <null>
+      element: <null>
       staticType: null
     staticType: null
   operator: =
@@ -439,10 +482,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -467,10 +513,9 @@ int f(List<C> x) => x();
 int g(List<A> x) => x();
 int h(List<B> x) => x();
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 167, 1,
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO, 167, 1,
           messageContains: [
-            "in unnamed extension on 'List<A>' and unnamed extension on "
-                "'List<B>',"
+            "'extension on List<A>' and 'extension on List<B>',"
           ]),
     ]);
   }

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -29,22 +29,22 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     Token? nameToken;
-    Element? element;
+    Element2? element;
     if (node is SimpleIdentifier) {
       nameToken = node.token;
-      element = node.staticElement;
+      element = node.element;
     } else if (node is FormalParameter) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredElement2 ?? node.declaredFragment?.element;
     } else if (node is DeclaredVariablePattern) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredElement2;
     } else if (node is FunctionDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredElement2 ?? node.declaredFragment?.element;
     } else {
       return;
     }
@@ -61,11 +61,11 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     var newName = oldName.substring(1);
 
     // Find references to the identifier.
-    List<SimpleIdentifier>? references;
-    if (element is LocalVariableElement || element is FunctionElement) {
+    List<AstNode>? references;
+    if (element is LocalVariableElement2 || element is LocalFunctionElement) {
       var block = node.thisOrAncestorOfType<Block>();
       if (block != null) {
-        references = findLocalElementReferences(block, element as LocalElement);
+        references = findLocalElementReferences3(block, element);
 
         var declaration = block.thisOrAncestorOfType<MethodDeclaration>() ??
             block.thisOrAncestorOfType<FunctionDeclaration>();
@@ -80,7 +80,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
           }
         }
       }
-    } else if (element is ParameterElement) {
+    } else if (element is FormalParameterElement) {
       if (!element.isNamed) {
         var root = node
             .thisOrAncestorMatching((node) =>
@@ -89,13 +89,13 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
                 node.parent is ConstructorDeclaration)
             ?.parent;
         if (root != null) {
-          references = findLocalElementReferences(root, element);
+          references = findLocalElementReferences3(root, element);
         }
       }
-    } else if (element is PrefixElement) {
+    } else if (element is PrefixElement2) {
       var root = node.thisOrAncestorOfType<CompilationUnit>();
       if (root != null) {
-        references = findPrefixElementReferences(root, element);
+        references = findPrefixElementReferences2(root, element);
       }
     }
     if (references == null) {

@@ -335,9 +335,7 @@ class ProgramReloadContext {
 
   void RollbackLibraries();
 
-#ifdef DEBUG
   void VerifyMaps();
-#endif
 
   void CommitBeforeInstanceMorphing();
   void CommitAfterInstanceMorphing();

@@ -71,9 +71,9 @@ static void* ThreadStart(void* data_ptr) {
   return nullptr;
 }
 
-int OSThread::Start(const char* name,
-                    ThreadStartFunction function,
-                    uword parameter) {
+int OSThread::TryStart(const char* name,
+                       ThreadStartFunction function,
+                       uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
@@ -149,7 +149,12 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
 
 void OSThread::Join(ThreadJoinId id) {
   int result = pthread_join(id, nullptr);
-  ASSERT(result == 0);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+void OSThread::Detach(ThreadJoinId id) {
+  int result = pthread_detach(id);
+  VALIDATE_PTHREAD_RESULT(result);
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {

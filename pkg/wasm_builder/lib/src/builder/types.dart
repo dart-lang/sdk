@@ -235,10 +235,11 @@ class _RecGroupBuilder {
 class TypesBuilder with Builder<ir.Types> {
   final ModuleBuilder _module;
 
-  late final Map<_FunctionTypeKey, ir.FunctionType> _functionTypeMap = {};
-  late final _RecGroupBuilder _recGroupBuilder = _RecGroupBuilder();
+  final Map<_FunctionTypeKey, ir.FunctionType> _functionTypeMap = {};
+  final _RecGroupBuilder _recGroupBuilder;
 
-  TypesBuilder(this._module);
+  TypesBuilder(this._module, {TypesBuilder? parent})
+      : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
   /// Add a new function type to the module.
   ///
@@ -287,6 +288,7 @@ class TypesBuilder with Builder<ir.Types> {
 
   Set<ir.DefType> _collectUsedTypes() {
     final usedTypes = <ir.DefType>{};
+    _module.tables.collectUsedTypes(usedTypes);
     _module.functions.collectUsedTypes(usedTypes);
     _module.globals.collectUsedTypes(usedTypes);
     _module.tags.collectUsedTypes(usedTypes);

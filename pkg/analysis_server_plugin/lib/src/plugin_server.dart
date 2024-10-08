@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/lint/lint_rule_timers.dart';
@@ -70,6 +69,9 @@ class PluginServer {
   /// The recent state of analysis reults, to be cleared on file changes.
   final _recentState = <String, _PluginState>{};
 
+  /// The next modification stamp for a changed file in the [resourceProvider].
+  int _overlayModificationStamp = 0;
+
   PluginServer({
     required ResourceProvider resourceProvider,
     required List<Plugin> plugins,
@@ -80,38 +82,11 @@ class PluginServer {
     }
   }
 
-  /// Handles an 'analysis.setContextRoots' request.
-  ///
-  /// Throws a [RequestFailure] if the request could not be handled.
-  // TODO(srawlins): Unnecessary??
-  Future<protocol.AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
-      protocol.AnalysisSetContextRootsParams parameters) async {
-    var currentContextCollection = _contextCollection;
-    if (currentContextCollection != null) {
-      _contextCollection = null;
-      await currentContextCollection.dispose();
-    }
-
-    var includedPaths = parameters.roots.map((e) => e.root).toList();
-    var contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: _resourceProvider,
-      includedPaths: includedPaths,
-      byteStore: _byteStore,
-      sdkPath: _sdkPath,
-      fileContentCache: FileContentCache(_resourceProvider),
-    );
-    _contextCollection = contextCollection;
-    await _analyzeAllFilesInContextCollection(
-        contextCollection: contextCollection);
-    return protocol.AnalysisSetContextRootsResult();
-  }
-
   /// Handles an 'edit.getFixes' request.
   ///
   /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.EditGetFixesResult> handleEditGetFixes(
       protocol.EditGetFixesParams parameters) async {
-    // TODO(srawlins): Run this all in `runZonedGuarded`.
     var path = parameters.file;
     var offset = parameters.offset;
 
@@ -171,8 +146,6 @@ class PluginServer {
   }
 
   /// Handles a 'plugin.versionCheck' request.
-  ///
-  /// Throws a [RequestFailure] if the request could not be handled.
   Future<protocol.PluginVersionCheckResult> handlePluginVersionCheck(
       protocol.PluginVersionCheckParams parameters) async {
     // TODO(srawlins): It seems improper for _this_ method to be the point where
@@ -191,7 +164,7 @@ class PluginServer {
   /// Starts this plugin by listening to the given communication [channel].
   void start(PluginCommunicationChannel channel) {
     _channel = channel;
-    _channel.listen(_handleRequest,
+    _channel.listen(_handleRequestZoned,
         // TODO(srawlins): Implement.
         onError: () {},
         // TODO(srawlins): Implement.
@@ -200,8 +173,6 @@ class PluginServer {
 
   /// This method is invoked when a new instance of [AnalysisContextCollection]
   /// is created, so the plugin can perform initial analysis of analyzed files.
-  ///
-  /// By default analyzes every [AnalysisContext] with [_analyzeFiles].
   Future<void> _analyzeAllFilesInContextCollection({
     required AnalysisContextCollection contextCollection,
   }) async {
@@ -214,21 +185,6 @@ class PluginServer {
     });
   }
 
-  /// Analyzes the file at the given [path].
-  Future<void> _analyzeFile(
-      {required AnalysisContext analysisContext, required String path}) async {
-    // TODO(srawlins): Run this all in `runZonedGuarded`.
-    var file = _resourceProvider.getFile(path);
-    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var lints = await _computeLints(
-      analysisContext,
-      path,
-      analysisOptions: analysisOptions as AnalysisOptionsImpl,
-    );
-    _channel.sendNotification(
-        protocol.AnalysisErrorsParams(path, lints).toNotification());
-  }
-
   /// Analyzes the files at the given [paths].
   Future<void> _analyzeFiles({
     required AnalysisContext analysisContext,
@@ -237,10 +193,15 @@ class PluginServer {
     // TODO(srawlins): Implement "priority files" and analyze them first.
     // TODO(srawlins): Analyze libraries instead of files, for efficiency.
     for (var path in paths.toSet()) {
-      await _analyzeFile(
-        analysisContext: analysisContext,
-        path: path,
+      var file = _resourceProvider.getFile(path);
+      var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
+      var lints = await _computeLints(
+        analysisContext,
+        path,
+        analysisOptions: analysisOptions as AnalysisOptionsImpl,
       );
+      _channel.sendNotification(
+          protocol.AnalysisErrorsParams(path, lints).toNotification());
     }
   }
 
@@ -290,6 +251,7 @@ class PluginServer {
       // TODO(srawlins): Support 'package' parameter.
       null,
     );
+
     // TODO(srawlins): Distinguish between registered rules and enabled rules.
     for (var rule in _registry.registeredRules) {
       rule.reporter = errorReporter;
@@ -299,10 +261,7 @@ class PluginServer {
       timer?.stop();
     }
 
-    var exceptionHandler = LinterExceptionHandler(
-            propagateExceptions: analysisOptions.propagateLinterExceptions)
-        .logException;
-    currentUnit.unit.accept(LinterVisitor(nodeRegistry, exceptionHandler));
+    currentUnit.unit.accept(LinterVisitor(nodeRegistry));
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
     var errorsAndProtocolErrors = [
@@ -345,27 +304,36 @@ class PluginServer {
       case protocol.ANALYSIS_REQUEST_GET_NAVIGATION:
       case protocol.ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
         result = null;
+
       case protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params =
             protocol.AnalysisSetContextRootsParams.fromRequest(request);
-        result = await handleAnalysisSetContextRoots(params);
+        result = await _handleAnalysisSetContextRoots(params);
+
       case protocol.ANALYSIS_REQUEST_SET_PRIORITY_FILES:
       case protocol.ANALYSIS_REQUEST_SET_SUBSCRIPTIONS:
       case protocol.ANALYSIS_REQUEST_UPDATE_CONTENT:
+        var params = protocol.AnalysisUpdateContentParams.fromRequest(request);
+        result = await _handleAnalysisUpdateContent(params);
+
       case protocol.COMPLETION_REQUEST_GET_SUGGESTIONS:
       case protocol.EDIT_REQUEST_GET_ASSISTS:
       case protocol.EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
         result = null;
+
       case protocol.EDIT_REQUEST_GET_FIXES:
         var params = protocol.EditGetFixesParams.fromRequest(request);
         result = await handleEditGetFixes(params);
+
       case protocol.EDIT_REQUEST_GET_REFACTORING:
         result = null;
+
       case protocol.PLUGIN_REQUEST_SHUTDOWN:
         _channel.sendResponse(protocol.PluginShutdownResult()
             .toResponse(request.id, requestTime));
         _channel.close();
         return null;
+
       case protocol.PLUGIN_REQUEST_VERSION_CHECK:
         var params = protocol.PluginVersionCheckParams.fromRequest(request);
         result = await handlePluginVersionCheck(params);
@@ -375,6 +343,119 @@ class PluginServer {
           error: RequestErrorFactory.unknownRequest(request.method));
     }
     return result.toResponse(request.id, requestTime);
+  }
+
+  /// Handles files that might have been affected by a content change of
+  /// one or more files. The implementation may check if these files should
+  /// be analyzed, do such analysis, and send diagnostics.
+  ///
+  /// By default invokes [_analyzeFiles] only for files that are analyzed in
+  /// this [analysisContext].
+  Future<void> _handleAffectedFiles({
+    required AnalysisContext analysisContext,
+    required List<String> paths,
+  }) async {
+    var analyzedPaths = paths
+        .where(analysisContext.contextRoot.isAnalyzed)
+        .toList(growable: false);
+
+    await _analyzeFiles(
+      analysisContext: analysisContext,
+      paths: analyzedPaths,
+    );
+  }
+
+  /// Handles an 'analysis.setContextRoots' request.
+  Future<protocol.AnalysisSetContextRootsResult> _handleAnalysisSetContextRoots(
+      protocol.AnalysisSetContextRootsParams parameters) async {
+    var currentContextCollection = _contextCollection;
+    if (currentContextCollection != null) {
+      _contextCollection = null;
+      await currentContextCollection.dispose();
+    }
+
+    var includedPaths = parameters.roots.map((e) => e.root).toList();
+    var contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: _resourceProvider,
+      includedPaths: includedPaths,
+      byteStore: _byteStore,
+      sdkPath: _sdkPath,
+      fileContentCache: FileContentCache(_resourceProvider),
+    );
+    _contextCollection = contextCollection;
+    await _analyzeAllFilesInContextCollection(
+        contextCollection: contextCollection);
+    return protocol.AnalysisSetContextRootsResult();
+  }
+
+  /// Handles an 'analysis.updateContent' request.
+  ///
+  /// Throws a [RequestFailure] if the request could not be handled.
+  Future<protocol.AnalysisUpdateContentResult> _handleAnalysisUpdateContent(
+      protocol.AnalysisUpdateContentParams parameters) async {
+    var changedPaths = <String>{};
+    var paths = parameters.files;
+    paths.forEach((String path, Object overlay) {
+      // Prepare the old overlay contents.
+      String? oldContent;
+      try {
+        if (_resourceProvider.hasOverlay(path)) {
+          oldContent = _resourceProvider.getFile(path).readAsStringSync();
+        }
+      } catch (_) {
+        // Leave `oldContent` empty.
+      }
+
+      // Prepare the new contents.
+      String? newContent;
+      if (overlay is protocol.AddContentOverlay) {
+        newContent = overlay.content;
+      } else if (overlay is protocol.ChangeContentOverlay) {
+        if (oldContent == null) {
+          // The server should only send a ChangeContentOverlay if there is
+          // already an existing overlay for the source.
+          throw RequestFailure(
+              RequestErrorFactory.invalidOverlayChangeNoContent());
+        }
+        try {
+          newContent =
+              protocol.SourceEdit.applySequence(oldContent, overlay.edits);
+        } on RangeError {
+          throw RequestFailure(
+              RequestErrorFactory.invalidOverlayChangeInvalidEdit());
+        }
+      } else if (overlay is protocol.RemoveContentOverlay) {
+        newContent = null;
+      }
+
+      if (newContent != null) {
+        _resourceProvider.setOverlay(
+          path,
+          content: newContent,
+          modificationStamp: _overlayModificationStamp++,
+        );
+      } else {
+        _resourceProvider.removeOverlay(path);
+      }
+
+      changedPaths.add(path);
+    });
+    await _handleContentChanged(changedPaths.toList());
+    return protocol.AnalysisUpdateContentResult();
+  }
+
+  /// Handles the fact that files with [paths] were changed.
+  Future<void> _handleContentChanged(List<String> paths) async {
+    if (_contextCollection case var contextCollection?) {
+      await _forAnalysisContexts(contextCollection, (analysisContext) async {
+        for (var path in paths) {
+          analysisContext.changeFile(path);
+        }
+        var affected = await analysisContext.applyPendingFileChanges();
+        await _handleAffectedFiles(
+            analysisContext: analysisContext, paths: affected);
+      });
+    }
   }
 
   Future<void> _handleRequest(Request request) async {
@@ -394,6 +475,17 @@ class PluginServer {
     if (response != null) {
       _channel.sendResponse(response);
     }
+  }
+
+  Future<void> _handleRequestZoned(Request request) async {
+    await runZonedGuarded(
+      () => _handleRequest(request),
+      (error, stackTrace) {
+        _channel.sendNotification(protocol.PluginErrorParams(
+                false /* isFatal */, error.toString(), stackTrace.toString())
+            .toNotification());
+      },
+    );
   }
 
   static protocol.Location _locationFor(

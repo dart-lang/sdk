@@ -15,44 +15,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
-const _details = r'''
-**DON'T** rename parameters of overridden methods.
-
-Methods that override another method, but do not have their own documentation
-comment, will inherit the overridden method's comment when `dart doc` produces
-documentation. If the inherited method contains the name of the parameter (in
-square brackets), then `dart doc` cannot link it correctly.
-
-**BAD:**
-```dart
-abstract class A {
-  m(a);
-}
-
-abstract class B extends A {
-  m(b);
-}
-```
-
-**GOOD:**
-```dart
-abstract class A {
-  m(a);
-}
-
-abstract class B extends A {
-  m(a);
-}
-```
-
-''';
-
 class AvoidRenamingMethodParameters extends LintRule {
   AvoidRenamingMethodParameters()
       : super(
-          name: 'avoid_renaming_method_parameters',
+          name: LintNames.avoid_renaming_method_parameters,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -77,6 +44,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, LibraryElement? library)
       : _wildCardVariablesEnabled =
             library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
+
+  bool isWildcardIdentifier(String lexeme) =>
+      _wildCardVariablesEnabled && lexeme == '_';
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -125,19 +95,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
 
-      var paramIdentifier = parameters[i].name;
-      if (paramIdentifier == null) {
-        continue;
-      }
+      var parentParameterName = parentParameters[i].name;
+      if (isWildcardIdentifier(parentParameterName)) continue;
 
-      var paramLexeme = paramIdentifier.lexeme;
-      if (_wildCardVariablesEnabled && paramLexeme == '_') {
-        continue; // wildcard identifier
-      }
+      var parameterName = parameters[i].name;
+      if (parameterName == null) continue;
 
-      if (paramLexeme != parentParameters[i].name) {
-        rule.reportLintForToken(paramIdentifier,
-            arguments: [paramIdentifier.lexeme, parentParameters[i].name]);
+      var paramLexeme = parameterName.lexeme;
+      if (isWildcardIdentifier(paramLexeme)) continue;
+
+      if (paramLexeme != parentParameterName) {
+        rule.reportLintForToken(parameterName,
+            arguments: [paramLexeme, parentParameterName]);
       }
     }
   }

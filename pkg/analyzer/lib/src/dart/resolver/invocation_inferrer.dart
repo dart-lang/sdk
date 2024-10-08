@@ -229,6 +229,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         errorReporter: resolver.errorReporter,
         errorEntity: _errorEntity,
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: resolver.inferenceUsingBoundsIsEnabled,
         strictInference: resolver.analysisOptions.strictInference,
         strictCasts: resolver.analysisOptions.strictCasts,
         typeSystemOperations: resolver.flowAnalysis.typeOperations,

@@ -428,7 +428,7 @@ class DillExportNameSpace extends LazyNameSpace {
       // Coverage-ignore-block(suite): Not run.
       bool needsPatching = false;
       for (ExtensionBuilder extensionBuilder in _extensions!) {
-        if (replacementMap.containsKey(extensionBuilder.parent)) {
+        if (replacementMap.containsKey(extensionBuilder.libraryBuilder)) {
           needsPatching = true;
           break;
         }
@@ -437,13 +437,12 @@ class DillExportNameSpace extends LazyNameSpace {
         Set<ExtensionBuilder> extensionsReplacement =
             new Set<ExtensionBuilder>();
         for (ExtensionBuilder extensionBuilder in _extensions!) {
-          if (replacementMap.containsKey(extensionBuilder.parent)) {
-            assert(replacementMap[extensionBuilder.parent]![
+          if (replacementMap.containsKey(extensionBuilder.libraryBuilder)) {
+            assert(replacementMap[extensionBuilder.libraryBuilder]![
                     extensionBuilder.name] !=
                 null);
-            extensionsReplacement.add(
-                replacementMap[extensionBuilder.parent]![extensionBuilder.name]
-                    as ExtensionBuilder);
+            extensionsReplacement.add(replacementMap[extensionBuilder
+                .libraryBuilder]![extensionBuilder.name] as ExtensionBuilder);
             break;
           } else {
             extensionsReplacement.add(extensionBuilder);
@@ -452,39 +451,6 @@ class DillExportNameSpace extends LazyNameSpace {
         _extensions!.clear();
         extensionsReplacement.addAll(extensionsReplacement);
       }
-    }
-  }
-}
-
-class PrefixNameSpace extends NameSpaceImpl {
-  void merge(
-      PrefixNameSpace nameSpace,
-      Builder computeAmbiguousDeclaration(
-          String name, Builder existing, Builder member)) {
-    Map<String, Builder> map = const {};
-
-    void mergeMember(String name, Builder member) {
-      Builder? existing = map[name];
-      if (existing != null) {
-        if (existing != member) {
-          member = computeAmbiguousDeclaration(name, existing, member);
-        }
-      }
-      map[name] = member;
-    }
-
-    if (nameSpace._getables != null) {
-      map = _getables ??= // Coverage-ignore(suite): Not run.
-          {};
-      nameSpace._getables?.forEach(mergeMember);
-    }
-    if (nameSpace._setables != null) {
-      // Coverage-ignore-block(suite): Not run.
-      map = _setables ??= {};
-      nameSpace._setables?.forEach(mergeMember);
-    }
-    if (nameSpace._extensions != null) {
-      (_extensions ??= {}).addAll(nameSpace._extensions!);
     }
   }
 }

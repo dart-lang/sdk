@@ -11,7 +11,6 @@ import '../base/configuration.dart' show Configuration;
 import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
 import '../base/import.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -20,7 +19,6 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
@@ -44,9 +42,6 @@ abstract class BuilderFactoryResult {
 
   List<Export> get exports;
 
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? get prefixBuilders;
-
   List<MetadataBuilder>? get metadata;
 
   TypeScope get typeScope;
@@ -61,27 +56,13 @@ abstract class BuilderFactoryResult {
 
   int finishNativeMethods();
 
-  void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes);
-
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables);
-
-  Iterable<Builder> get members;
-
-  Iterable<Builder> get setters;
-
-  Iterable<ExtensionBuilder> get extensions;
 
   List<LibraryPart> get libraryParts;
 }
 
 abstract class BuilderFactory {
-  /// The current declaration that is being built. When we start parsing a
-  /// declaration (class, method, and so on), we don't have enough information
-  /// to create a builder and this object records its members and types until,
-  /// for example, [addClass] is called.
-  TypeParameterScopeBuilder get currentTypeParameterScopeBuilder;
-
   void beginClassOrNamedMixinApplicationHeader();
 
   /// Registers that this builder is preparing for a class declaration with the
@@ -91,7 +72,7 @@ abstract class BuilderFactory {
 
   void beginClassBody();
 
-  TypeParameterScopeBuilder endClassDeclaration(String name);
+  void endClassDeclaration(String name);
 
   void endClassDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables);
@@ -103,7 +84,7 @@ abstract class BuilderFactory {
 
   void beginMixinBody();
 
-  TypeParameterScopeBuilder endMixinDeclaration(String name);
+  void endMixinDeclaration(String name);
 
   void endMixinDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables);
@@ -141,7 +122,7 @@ abstract class BuilderFactory {
 
   void beginExtensionBody(TypeBuilder? extensionThisType);
 
-  TypeParameterScopeBuilder endExtensionDeclaration(String? name);
+  void endExtensionDeclaration(String? name);
 
   /// Registers that this builder is preparing for an extension type declaration
   /// with the given [name] and [typeVariables] located [charOffset].
@@ -150,7 +131,7 @@ abstract class BuilderFactory {
 
   void beginExtensionTypeBody();
 
-  TypeParameterScopeBuilder endExtensionTypeDeclaration(String name);
+  void endExtensionTypeDeclaration(String name);
 
   void beginFactoryMethod();
 
@@ -196,26 +177,6 @@ abstract class BuilderFactory {
 
   void endTypedefForParserRecovery(List<NominalVariableBuilder>? typeVariables);
 
-  /// Call this when entering a class, mixin, enum, or extension type
-  /// declaration.
-  ///
-  /// This is done to set up the current [_indexedContainer] used to lookup
-  /// references of members from a previous incremental compilation.
-  ///
-  /// Called in `OutlineBuilder.beginClassDeclaration`,
-  /// `OutlineBuilder.beginEnum`, `OutlineBuilder.beginMixinDeclaration` and
-  /// `OutlineBuilder.beginExtensionTypeDeclaration`.
-  void beginIndexedContainer(String name,
-      {required bool isExtensionTypeDeclaration});
-
-  /// Call this when leaving a class, mixin, enum, or extension type
-  /// declaration.
-  ///
-  /// Called in `OutlineBuilder.endClassDeclaration`,
-  /// `OutlineBuilder.endEnum`, `OutlineBuilder.endMixinDeclaration` and
-  /// `OutlineBuilder.endExtensionTypeDeclaration`.
-  void endIndexedContainer();
-
   void checkStacks();
 
   void addScriptToken(int charOffset);
@@ -243,8 +204,7 @@ abstract class BuilderFactory {
       required bool deferred,
       required int charOffset,
       required int prefixCharOffset,
-      required int uriOffset,
-      required int importIndex});
+      required int uriOffset});
 
   void addExport(
       OffsetMap offsetMap,
@@ -422,7 +382,7 @@ abstract class BuilderFactory {
       AsyncMarker asyncModifier);
 
   String? computeAndValidateConstructorName(
-      TypeParameterScopeBuilder parentDeclaration, Identifier identifier,
+      DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
   void addProcedure(
@@ -502,21 +462,8 @@ abstract class BuilderFactory {
       int charOffset,
       Uri fileUri);
 
-  /// Creates a [NominalVariableCopy] object containing a copy of
-  /// [oldVariableBuilders] into the scope of [declaration].
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  NominalVariableCopy? copyTypeVariables(
-      List<NominalVariableBuilder>? oldVariableBuilders,
-      {required TypeVariableKind kind,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess});
-
   void registerUnboundStructuralVariables(
       List<StructuralVariableBuilder> variableBuilders);
-
-  Builder addBuilder(String name, Builder declaration, int charOffset);
 }
 
 class NominalVariableCopy {

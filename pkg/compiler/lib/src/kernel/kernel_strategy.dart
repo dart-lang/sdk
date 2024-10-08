@@ -379,7 +379,7 @@ class KernelWorkItem implements WorkItem {
       // checked.
 
       ModularMemberData modularMemberData =
-          _modularStrategy.getModularMemberData(node, annotations);
+          _modularStrategy.getModularMemberData(node);
       ScopeModel scopeModel = modularMemberData.scopeModel;
       if (scopeModel.closureScopeModel != null) {
         _closureModels[element] = scopeModel.closureScopeModel!;
@@ -421,13 +421,11 @@ class KernelModularStrategy extends ModularStrategy {
   }
 
   @override
-  ModularMemberData getModularMemberData(
-      ir.Member node, EnumSet<PragmaAnnotation> annotations) {
+  ModularMemberData getModularMemberData(ir.Member node) {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => ScopeModel.from(node, _elementMap.typeEnvironment));
     return _compilerTask.measureSubtask('worldImpact', () {
-      return computeModularMemberData(
-          _elementMap, node, scopeModel, annotations);
+      return computeModularMemberData(_elementMap, node, scopeModel);
     });
   }
 }

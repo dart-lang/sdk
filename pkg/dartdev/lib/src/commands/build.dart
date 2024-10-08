@@ -13,7 +13,6 @@ import 'package:dartdev/src/utils.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
@@ -29,8 +28,9 @@ class BuildCommand extends DartdevCommand {
   static const String outputOptionName = 'output';
   static const String formatOptionName = 'format';
   static const int genericErrorExitCode = 255;
+  final bool recordUseEnabled;
 
-  BuildCommand({bool verbose = false})
+  BuildCommand({bool verbose = false, required this.recordUseEnabled})
       : super(cmdName, 'Build a Dart application including native assets.',
             verbose) {
     argParser
@@ -96,6 +96,11 @@ class BuildCommand extends DartdevCommand {
       args.option(outputOptionName)?.normalizeCanonicalizePath().makeFolder() ??
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
+    if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
+      stderr.writeln("'dart build' refuses to delete your project.");
+      stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
+      return 128;
+    }
 
     final format = Kind.values.byName(args.option(formatOptionName)!);
     final outputExeUri = outputUri.resolve(
@@ -139,14 +144,21 @@ class BuildCommand extends DartdevCommand {
     final buildResult = await nativeAssetsBuildRunner.build(
       workingDirectory: workingDirectory,
       target: target,
-      linkModePreference: LinkModePreferenceImpl.dynamic,
-      buildMode: BuildModeImpl.release,
+      linkModePreference: LinkModePreference.dynamic,
+      buildMode: BuildMode.release,
       includeParentEnvironment: true,
-      supportedAssetTypes: [
-        NativeCodeAsset.type,
-      ],
       targetMacOSVersion: targetMacOSVersion,
       linkingEnabled: true,
+      supportedAssetTypes: [
+        CodeAsset.type,
+      ],
+      buildValidator: (config, output) async => [
+        ...await validateDataAssetBuildOutput(config, output),
+        ...await validateCodeAssetBuildOutput(config, output),
+      ],
+      applicationAssetValidator: (assets) async => [
+        ...await validateCodeAssetsInApplication(assets),
+      ],
     );
     if (!buildResult.success) {
       stderr.writeln('Native assets build failed.');
@@ -157,7 +169,10 @@ class BuildCommand extends DartdevCommand {
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final packageConfig = await packageConfigUri(sourceUri);
-      final resources = path.join(tempDir.path, 'resources.json');
+      String? recordedUsagesPath;
+      if (recordUseEnabled) {
+        recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
+      }
       final generator = KernelGenerator(
         kind: format,
         sourceFile: sourceUri.toFilePath(),
@@ -172,21 +187,29 @@ class BuildCommand extends DartdevCommand {
       );
 
       final snapshotGenerator = await generator.generate(
-        resourcesFile: resources,
+        recordedUsagesFile: recordedUsagesPath,
       );
 
       // Start linking here.
       final linkResult = await nativeAssetsBuildRunner.link(
-        resourceIdentifiers: Uri.file(resources),
+        resourceIdentifiers:
+            recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
         target: target,
-        linkModePreference: LinkModePreferenceImpl.dynamic,
-        buildMode: BuildModeImpl.release,
+        linkModePreference: LinkModePreference.dynamic,
+        buildMode: BuildMode.release,
         includeParentEnvironment: true,
         buildResult: buildResult,
         targetMacOSVersion: targetMacOSVersion,
         supportedAssetTypes: [
-          NativeCodeAsset.type,
+          CodeAsset.type,
+        ],
+        linkValidator: (config, output) async => [
+          ...await validateDataAssetLinkOutput(config, output),
+          ...await validateCodeAssetLinkOutput(config, output),
+        ],
+        applicationAssetValidator: (assets) async => [
+          ...await validateCodeAssetsInApplication(assets),
         ],
       );
 
@@ -197,27 +220,53 @@ class BuildCommand extends DartdevCommand {
 
       final tempUri = tempDir.uri;
       Uri? assetsDartUri;
-      final allAssets = [...buildResult.assets, ...linkResult.assets];
-      final staticAssets = allAssets
-          .whereType<NativeCodeAssetImpl>()
-          .where((e) => e.linkMode == StaticLinkingImpl());
+      final allAssets = linkResult.encodedAssets;
+      final dataAssets = allAssets
+          .where((e) => e.type == DataAsset.type)
+          .map(DataAsset.fromEncoded)
+          .toList();
+      final codeAssets = allAssets
+          .where((e) => e.type == CodeAsset.type)
+          .map(CodeAsset.fromEncoded)
+          .toList();
+
+      final staticAssets =
+          codeAssets.where((e) => e.linkMode == StaticLinking());
       if (staticAssets.isNotEmpty) {
         stderr.write(
-            """'dart build' does not yet support NativeCodeAssets with static linking.
+            """'dart build' does not yet support CodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
         return 255;
       }
       if (allAssets.isNotEmpty) {
-        final targetMapping = _targetMapping(allAssets, target);
+        final kernelAssets = <KernelAsset>[];
+        final filesToCopy = <(String id, Uri, KernelAssetRelativePath)>[];
+
+        for (final asset in codeAssets) {
+          final kernelAsset = asset.targetLocation(target);
+          kernelAssets.add(kernelAsset);
+          final targetPath = kernelAsset.path;
+          if (targetPath is KernelAssetRelativePath) {
+            filesToCopy.add((asset.id, asset.file!, targetPath));
+          }
+        }
+        for (final asset in dataAssets) {
+          final kernelAsset = asset.targetLocation(target);
+          kernelAssets.add(kernelAsset);
+          final targetPath = kernelAsset.path;
+          if (targetPath is KernelAssetRelativePath) {
+            filesToCopy.add((asset.id, asset.file, targetPath));
+          }
+        }
         assetsDartUri = await _writeAssetsYaml(
-          targetMapping.map((e) => e.target).toList(),
+          kernelAssets,
           assetsDartUri,
           tempUri,
         );
         if (allAssets.isNotEmpty) {
           stdout.writeln(
-              'Copying ${allAssets.length} build assets: ${allAssets.map((e) => e.id)}');
-          _copyAssets(targetMapping, outputUri);
+              'Copying ${filesToCopy.length} build assets: ${filesToCopy.map((e) => e.$1)}');
+          _copyAssets(filesToCopy, outputUri);
         }
       }
 
@@ -232,25 +281,12 @@ Use linkMode as dynamic library instead.""");
     return 0;
   }
 
-  List<({AssetImpl asset, KernelAsset target})> _targetMapping(
-    Iterable<AssetImpl> assets,
-    Target target,
-  ) {
-    return [
-      for (final asset in assets)
-        (asset: asset, target: asset.targetLocation(target)),
-    ];
-  }
-
   void _copyAssets(
-    List<({AssetImpl asset, KernelAsset target})> assetTargetLocations,
+    List<(String id, Uri, KernelAssetRelativePath)> assetTargetLocations,
     Uri output,
   ) {
-    for (final (asset: asset, target: target) in assetTargetLocations) {
-      final targetPath = target.path;
-      if (targetPath is KernelAssetRelativePath) {
-        asset.file!.copyTo(targetPath, output);
-      }
+    for (final (_, file, targetPath) in assetTargetLocations) {
+      file.copyTo(targetPath, output);
     }
   }
 
@@ -288,33 +324,23 @@ extension on Uri {
   }
 }
 
-extension on AssetImpl {
-  KernelAsset targetLocation(Target target) {
-    return switch (this) {
-      NativeCodeAssetImpl nativeAsset => nativeAsset.targetLocation(target),
-      DataAssetImpl dataAsset => dataAsset.targetLocation(target),
-      AssetImpl() => throw UnimplementedError(),
-    };
-  }
-}
-
-extension on NativeCodeAssetImpl {
+extension on CodeAsset {
   KernelAsset targetLocation(Target target) {
     final KernelAssetPath kernelAssetPath;
     switch (linkMode) {
-      case DynamicLoadingSystemImpl dynamicLoading:
+      case DynamicLoadingSystem dynamicLoading:
         kernelAssetPath = KernelAssetSystemPath(dynamicLoading.uri);
-      case LookupInExecutableImpl _:
+      case LookupInExecutable _:
         kernelAssetPath = KernelAssetInExecutable();
-      case LookupInProcessImpl _:
+      case LookupInProcess _:
         kernelAssetPath = KernelAssetInProcess();
-      case DynamicLoadingBundledImpl _:
+      case DynamicLoadingBundled _:
         kernelAssetPath = KernelAssetRelativePath(
           Uri(path: path.join(_libOutputDirectory, file!.pathSegments.last)),
         );
       default:
         throw Exception(
-          'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $this',
+          'Unsupported CodeAsset linkMode ${linkMode.runtimeType} in asset $this',
         );
     }
     return KernelAsset(
@@ -325,7 +351,7 @@ extension on NativeCodeAssetImpl {
   }
 }
 
-extension on DataAssetImpl {
+extension on DataAsset {
   KernelAsset targetLocation(Target target) {
     return KernelAsset(
       id: id,

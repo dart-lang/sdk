@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NoWildcardVariableUsesTest extends LintRuleTest {
   @override
-  String get lintRule => 'no_wildcard_variable_uses';
+  String get lintRule => LintNames.no_wildcard_variable_uses;
 
   test_constructor() async {
     await assertNoDiagnostics(r'''

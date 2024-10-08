@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
@@ -185,7 +186,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   ir.Component component = ir.Component();
 
   Future<void> read(Uri uri) async {
-    api.Input<List<int>> input =
+    api.Input<Uint8List> input =
         await compilerInput.readFromUri(uri, inputKind: api.InputKind.binary);
     BinaryBuilder(input.data).readComponent(component);
   }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -346,20 +347,15 @@ class DartToolingDaemon {
   }
 
   static String _generateSecret() {
-    String upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    String lower = 'abcdefghijklmnopqrstuvwxyz';
-    String numbers = '1234567890';
-    int secretLength = 16;
-    String seed = upper + lower + numbers;
-    String password = '';
-    List<String> list = seed.split('').toList();
-    Random rand = Random();
+    final kTokenByteSize = 8;
+    Uint8List bytes = Uint8List(kTokenByteSize);
+    // Use a secure random number generator.
+    Random rand = Random.secure();
 
-    for (int i = 0; i < secretLength; i++) {
-      int index = rand.nextInt(list.length);
-      password += list[index];
+    for (int i = 0; i < kTokenByteSize; i++) {
+      bytes[i] = rand.nextInt(256);
     }
-    return password;
+    return base64Url.encode(bytes);
   }
 
   Future<void> close() async {

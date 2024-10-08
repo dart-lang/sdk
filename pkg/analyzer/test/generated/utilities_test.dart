@@ -225,24 +225,6 @@ void f() {
     );
   }
 
-  void test_augmentationImportDirective() {
-    var findNode = _parseStringToFindNode(r'''
-@myA1
-@myA2
-import augment 'a.dart';
-import augment 'b.dart';
-''');
-    var node = findNode.augmentationImportDirective('a.dart');
-    _assertAnnotatedNode(node);
-    _assertReplacementForChildren<AugmentationImportDirective>(
-      destination: findNode.augmentationImportDirective('b.dart'),
-      source: node,
-      childAccessors: [
-        (node) => node.uri,
-      ],
-    );
-  }
-
   void test_awaitExpression() {
     var findNode = _parseStringToFindNode(r'''
 void f() async {

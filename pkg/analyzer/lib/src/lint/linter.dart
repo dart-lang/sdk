@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -70,6 +71,11 @@ abstract class LinterContext {
 
   LibraryElement? get libraryElement;
 
+  /// The library element representing the library that contains the compilation
+  /// unit being linted.
+  @experimental
+  LibraryElement2? get libraryElement2;
+
   /// The package in which the library being analyzed lives, or `null` if it
   /// does not live in a package.
   WorkspacePackage? get package;
@@ -108,6 +114,11 @@ final class LinterContextWithParsedResults implements LinterContext {
 
   @override
   LibraryElement get libraryElement => throw UnsupportedError(
+      'LinterContext with parsed results does not include a LibraryElement');
+
+  @experimental
+  @override
+  LibraryElement2 get libraryElement2 => throw UnsupportedError(
       'LinterContext with parsed results does not include a LibraryElement');
 
   @override
@@ -167,6 +178,10 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   LibraryElement get libraryElement =>
       definingUnit.unit.declaredElement!.library;
+
+  @experimental
+  @override
+  LibraryElement2 get libraryElement2 => libraryElement as LibraryElement2;
 }
 
 class LinterOptions extends DriverOptions {
@@ -195,32 +210,34 @@ abstract class LintRule {
 
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
+  ///
+  /// This property is deprecated and will be removed in a future release.
+  @Deprecated('Use .description for a short description and consider placing '
+      'long-form documentation on an external website.')
   final String details;
 
   /// Short description suitable for display in console output.
   final String description;
 
-  /// Lint groups (for example, 'style', 'errors', 'pub').
+  /// Deprecated field of lint groups (for example, 'style', 'errors', 'pub').
+  @Deprecated('Lint rule categories are no longer used.')
   final Set<String> categories;
 
   /// Lint name.
   final String name;
-
-  /// The documentation for the lint that should appear on the Diagnostic
-  /// messages page. This field should never be accessed in any code in `lib` or
-  /// `bin`.
-  final String? documentation;
 
   /// The state of a lint, and optionally since when the state began.
   final State state;
 
   LintRule({
     required this.name,
+    @Deprecated('Lint rule categories are no longer used. Remove the argument.')
     this.categories = const <String>{},
     required this.description,
-    required this.details,
+    @Deprecated("Specify 'details' for a short description and consider "
+        'placing long-form documentation on an external website.')
+    this.details = '',
     State? state,
-    this.documentation,
   }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information
@@ -326,46 +343,6 @@ abstract class LintRule {
   }
 }
 
-abstract final class LintRuleCategory {
-  /// A category of rules that align with the Effective Dart style guide.
-  static const String effectiveDart = 'effective dart';
-
-  /// A category of rules that protect against error-prone code.
-  static const String errorProne = 'error-prone';
-
-  /// A category of rules that help to write Flutter code.
-  static const String flutter = 'flutter';
-
-  /// A category of rules that promote language feature usage.
-  static const String languageFeatureUsage = 'language feature usage';
-
-  /// A category of rules that protect against possibly memory-leaking code.
-  static const String memoryLeaks = 'memory leaks';
-
-  /// A category of rules that protect against non-performant code.
-  static const String nonPerformant = 'non-performant';
-
-  /// A category representing Pub-related rules.
-  static const String pub = 'pub';
-
-  /// A category of rules that promote a healthy public interface.
-  static const String publicInterface = 'public interface';
-
-  /// A category representing matters of style, largely derived from Effective
-  /// Dart.
-  static const String style = 'style';
-
-  /// A category of rules that protect against code that probably doesn't do
-  /// what you think it does, or that shouldn't be used as it is.
-  static const String unintentional = 'unintentional';
-
-  /// A category of rules that protect against unused code.
-  static const String unusedCode = 'unused code';
-
-  /// A category of rules that help to write code deployed to the web.
-  static const String web = 'web';
-}
-
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
 class LintRuleUnitContext {
@@ -380,6 +357,10 @@ class LintRuleUnitContext {
     required this.errorReporter,
     required this.unit,
   });
+
+  /// The library fragment representing the compilation unit.
+  @experimental
+  LibraryFragment get libraryFragment => unit as LibraryFragment;
 }
 
 /// An error listener that only records whether any constant related errors have

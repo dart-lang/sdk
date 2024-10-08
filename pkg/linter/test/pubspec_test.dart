@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class BadPubspecTest extends LintRuleTest {
   @override
-  String get lintRule => 'sort_pub_dependencies';
+  String get lintRule => LintNames.sort_pub_dependencies;
 
   // ignore: non_constant_identifier_names
   test_malformedPubspec() async {

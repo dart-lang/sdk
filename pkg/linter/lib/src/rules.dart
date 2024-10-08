@@ -9,6 +9,7 @@ import 'rules/always_put_required_named_parameters_first.dart';
 import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
+import 'rules/analyzer_use_new_elements.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
 import 'rules/avoid_annotating_with_dynamic.dart';
@@ -25,6 +26,7 @@ import 'rules/avoid_escaping_inner_quotes.dart';
 import 'rules/avoid_field_initializers_in_const_classes.dart';
 import 'rules/avoid_final_parameters.dart';
 import 'rules/avoid_function_literals_in_foreach_calls.dart';
+import 'rules/avoid_futureor_void.dart';
 import 'rules/avoid_implementing_value_types.dart';
 import 'rules/avoid_init_to_null.dart';
 import 'rules/avoid_js_rounded_ints.dart';
@@ -250,6 +252,7 @@ void registerLintRules() {
     ..register(AlwaysRequireNonNullNamedParameters())
     ..register(AlwaysSpecifyTypes())
     ..register(AlwaysUsePackageImports())
+    ..register(AnalyzerUseNewElements())
     ..register(AnnotateOverrides())
     ..register(AnnotateRedeclares())
     ..register(AvoidAnnotatingWithDynamic())
@@ -266,6 +269,7 @@ void registerLintRules() {
     ..register(AvoidFieldInitializersInConstClasses())
     ..register(AvoidFinalParameters())
     ..register(AvoidFunctionLiteralsInForeachCalls())
+    ..register(AvoidFutureOrVoid())
     ..register(AvoidImplementingValueTypes())
     ..register(AvoidInitToNull())
     ..register(AvoidJsRoundedInts())

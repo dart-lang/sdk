@@ -222,6 +222,45 @@ analyzer:
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
+  test_analyzer_legacyPlugins_list() {
+    // TODO(srawlins): Test legacy plugins as a list of non-scalar values
+    // (`- angular2: yes`).
+    configureContext('''
+analyzer:
+  plugins:
+    - angular2
+    - intl
+''');
+
+    var names = analysisOptions.enabledLegacyPluginNames;
+    expect(names, ['angular2']);
+  }
+
+  test_analyzer_legacyPlugins_map() {
+    // TODO(srawlins): Test legacy plugins as a map of scalar values
+    // (`angular2: yes`).
+    configureContext('''
+analyzer:
+  plugins:
+    angular2:
+      enabled: true
+''');
+
+    var names = analysisOptions.enabledLegacyPluginNames;
+    expect(names, ['angular2']);
+  }
+
+  test_analyzer_legacyPlugins_string() {
+    configureContext('''
+analyzer:
+  plugins:
+    angular2
+''');
+
+    var names = analysisOptions.enabledLegacyPluginNames;
+    expect(names, ['angular2']);
+  }
+
   test_analyzer_optionalChecks_propagateLinterExceptions_default() {
     configureContext('''
 analyzer:
@@ -255,44 +294,6 @@ analyzer:
     propagate-linter-exceptions: true
 ''');
     expect(analysisOptions.propagateLinterExceptions, true);
-  }
-
-  test_analyzer_plugins_list() {
-    // TODO(srawlins): Test plugins as a list of non-scalar values
-    // (`- angular2: yes`).
-    configureContext('''
-analyzer:
-  plugins:
-    - angular2
-    - intl
-''');
-
-    var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2']);
-  }
-
-  test_analyzer_plugins_map() {
-    // TODO(srawlins): Test plugins as a map of scalar values (`angular2: yes`).
-    configureContext('''
-analyzer:
-  plugins:
-    angular2:
-      enabled: true
-''');
-
-    var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2']);
-  }
-
-  test_analyzer_plugins_string() {
-    configureContext('''
-analyzer:
-  plugins:
-    angular2
-''');
-
-    var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2']);
   }
 
   test_codeStyle_format_false() {
@@ -342,7 +343,7 @@ class OptionsProviderTest with ResourceProviderMixin {
     provider = AnalysisOptionsProvider(sourceFactory);
   }
 
-  test_chooseFirstPlugin() {
+  test_chooseFirstLegacyPlugin() {
     newFile('/more_options.yaml', '''
 analyzer:
   plugins:
@@ -368,13 +369,13 @@ analyzer:
 ''');
 
     var options = _getOptionsObject('/');
-    expect(options.enabledPluginNames, unorderedEquals(['plugin_ddd']));
+    expect(options.enabledLegacyPluginNames, unorderedEquals(['plugin_ddd']));
   }
 
   test_mergeIncludedOptions() {
     // TODO(srawlins): Split this into smaller tests.
     // TODO(srawlins): add tests for multiple includes.
-    // TODO(srawlins): add tests with duplicate plugin names.
+    // TODO(srawlins): add tests with duplicate legacy plugin names.
     // https://github.com/dart-lang/sdk/issues/50980
 
     newFile('/other_options.yaml', '''
@@ -410,7 +411,8 @@ linter:
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([toplevellint, lowlevellint]));
-    expect(options.enabledPluginNames, unorderedEquals(['toplevelplugin']));
+    expect(
+        options.enabledLegacyPluginNames, unorderedEquals(['toplevelplugin']));
     expect(options.excludePatterns,
         unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']));
     expect(
@@ -438,14 +440,12 @@ class TestRule extends LintRule {
       : super(
           name: 'fantastic_test_rule',
           description: '',
-          details: '',
         );
 
   TestRule.withName(String name)
       : super(
           name: name,
           description: '',
-          details: '',
         );
 
   @override

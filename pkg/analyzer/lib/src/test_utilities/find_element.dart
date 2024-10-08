@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
 class FindElement extends _FindElementBase {
@@ -20,7 +21,7 @@ class FindElement extends _FindElementBase {
   LibraryExportElement export(String targetUri) {
     LibraryExportElement? result;
 
-    for (var export in libraryElement.libraryExports) {
+    for (var export in unitElement.libraryExports) {
       var exportedUri = export.exportedLibrary?.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
@@ -52,13 +53,15 @@ class FindElement extends _FindElementBase {
   LibraryImportElement import(String targetUri, {bool mustBeUnique = true}) {
     LibraryImportElement? importElement;
 
-    for (var import in libraryElement.libraryImports) {
-      var importedUri = import.importedLibrary?.source.uri.toString();
-      if (importedUri == targetUri) {
-        if (importElement == null) {
-          importElement = import;
-        } else if (mustBeUnique) {
-          throw StateError('Not unique: $targetUri');
+    for (var libraryFragment in unitElement.withEnclosing) {
+      for (var import in libraryFragment.libraryImports) {
+        var importedUri = import.importedLibrary?.source.uri.toString();
+        if (importedUri == targetUri) {
+          if (importElement == null) {
+            importElement = import;
+          } else if (mustBeUnique) {
+            throw StateError('Not unique: $targetUri');
+          }
         }
       }
     }
@@ -219,7 +222,7 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? result;
 
-    for (var partElement in libraryElement.parts) {
+    for (var partElement in unitElement.parts) {
       var uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
         var unitElement = uri.unit;
@@ -244,10 +247,12 @@ class FindElement extends _FindElementBase {
   }
 
   PrefixElement prefix(String name) {
-    for (var import_ in libraryElement.libraryImports) {
-      var prefix = import_.prefix?.element;
-      if (prefix != null && prefix.name == name) {
-        return prefix;
+    for (var libraryFragment in unitElement.withEnclosing) {
+      for (var import_ in libraryFragment.libraryImports) {
+        var prefix = import_.prefix?.element;
+        if (prefix != null && prefix.name == name) {
+          return prefix;
+        }
       }
     }
     throw StateError('Not found: $name');

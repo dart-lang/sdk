@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -58,18 +58,18 @@ class AddLate extends ResolvedCorrectionProducer {
         }
       }
     } else if (node is SimpleIdentifier) {
-      var getter = node.writeOrReadElement;
-      if (getter is PropertyAccessorElement &&
-          getter.isGetter &&
+      var getter = node.writeOrReadElement2;
+      if (getter is GetterElement &&
           getter.isSynthetic &&
-          getter.enclosingElement3 is InterfaceElement) {
-        var variableElement = getter.variable2;
+          getter.enclosingElement2 is InterfaceElement2) {
+        var variableElement = getter.variable3;
         if (variableElement != null &&
             !variableElement.isSynthetic &&
             !variableElement.isLate &&
-            variableElement.setter == null) {
+            variableElement.setter2 == null) {
+          var variableFragment = variableElement.firstFragment!;
           var declarationResult =
-              await sessionHelper.getElementDeclaration(variableElement);
+              await sessionHelper.getElementDeclaration2(variableFragment);
           if (declarationResult == null) {
             return;
           }
@@ -83,7 +83,7 @@ class AddLate extends ResolvedCorrectionProducer {
                 keywordToken != null &&
                 keywordToken.keyword == Keyword.FINAL) {
               await _insertAt(builder, keywordToken.offset,
-                  source: declarationResult.element.source);
+                  source: variableFragment.libraryFragment.source);
             }
           }
         }

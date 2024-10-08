@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class PreferForeachTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_foreach';
+  String get lintRule => LintNames.prefer_foreach;
 
   test_blockBody_singleStatement_functionCall() async {
     await assertDiagnostics(r'''

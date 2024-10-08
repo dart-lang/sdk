@@ -153,10 +153,12 @@ main() {
 
   test_annotated_partOfDeclaration() async {
     newFile('$testPackageLibPath/part.dart', '''
-@deprecated part of L;
+@deprecated
+part of 'test.dart';
 ''');
+
     await assertNoErrorsInCode('''
-library L; part "part.dart";
+part "part.dart";
 ''');
   }
 

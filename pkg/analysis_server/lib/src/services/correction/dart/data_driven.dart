@@ -10,8 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show DirectiveUriWithRelativeUri, LibraryElement;
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -26,8 +25,9 @@ class DataDriven extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
-    var library = unitResult.libraryElement;
-    for (var importElement in library.libraryImports) {
+    var library = unitResult.libraryElement2;
+    var fragment = library.firstFragment;
+    for (var importElement in fragment.libraryImports2) {
       // TODO(brianwilkerson): Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.uri;
@@ -57,13 +57,13 @@ class DataDriven extends MultiCorrectionProducer {
 
   /// Return the transform sets that are available for fixing issues in the
   /// given [library].
-  List<TransformSet> _availableTransformSetsForLibrary(LibraryElement library) {
+  List<TransformSet> _availableTransformSetsForLibrary(
+      LibraryElement2 library) {
     var setsForTests = transformSetsForTests;
     if (setsForTests != null) {
       return setsForTests;
     }
-    var transformSets = TransformSetManager.instance.forLibrary(library);
-    return transformSets;
+    return TransformSetManager.instance.forLibrary(library);
   }
 }
 

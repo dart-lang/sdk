@@ -18,7 +18,6 @@ import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
-import '../util/util.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'interceptor_data.dart';
@@ -122,10 +121,9 @@ class CodegenImpactTransformer {
       }
     }
 
-    for (Pair<DartType, DartType> check
-        in impact.typeVariableBoundsSubtypeChecks) {
+    for ((DartType, DartType) check in impact.typeVariableBoundsSubtypeChecks) {
       _rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
-          check.a, check.b);
+          check.$1, check.$2);
     }
 
     for (StaticUse staticUse in impact.staticUses) {

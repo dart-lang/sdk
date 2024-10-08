@@ -32,6 +32,7 @@ void f() {
 SimpleIdentifier
   token: v
   staticElement: v@34
+  element: v@34
   staticType: InvalidType
 ''');
   }

@@ -11,49 +11,11 @@ import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid unnecessary containers.';
 
-const _details = r'''
-**AVOID** wrapping widgets in unnecessary containers.
-
-Wrapping a widget in `Container` with no other parameters set has no effect 
-and makes code needlessly more complex.
-
-**BAD:**
-```dart
-Widget buildRow() {
-  return Container(
-      child: Row(
-        children: <Widget>[
-          const MyLogo(),
-          const Expanded(
-            child: Text('...'),
-          ),
-        ],
-      )
-  );
-}
-```
-
-**GOOD:**
-```dart
-Widget buildRow() {
-  return Row(
-    children: <Widget>[
-      const MyLogo(),
-      const Expanded(
-        child: Text('...'),
-      ),
-    ],
-  );
-}
-```
-''';
-
 class AvoidUnnecessaryContainers extends LintRule {
   AvoidUnnecessaryContainers()
       : super(
-          name: 'avoid_unnecessary_containers',
+          name: LintNames.avoid_unnecessary_containers,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -68,7 +30,7 @@ class AvoidUnnecessaryContainers extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

@@ -9,6 +9,8 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
+
 import 'src/dds_impl.dart';
 
 typedef UriConverter = String? Function(String uri);
@@ -154,7 +156,7 @@ abstract class DartDevelopmentService {
   ///
   /// This will be null if DTD was not started by the DevTools server. For
   /// example, it may have been started by an IDE.
-  ({String? uri, String? secret})? get hostedDartToolingDaemon;
+  DtdInfo? get hostedDartToolingDaemon;
 
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.

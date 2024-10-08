@@ -6,9 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show File;
 
-import 'package:dev_compiler/src/compiler/shared_command.dart'
-    show SharedCompilerOptions;
-import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/command/command.dart';
+import 'package:dev_compiler/src/command/options.dart' show Options;
 import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
 import 'package:dev_compiler/src/kernel/expression_compiler.dart'
     show ExpressionCompiler;
@@ -59,7 +58,7 @@ class TestExpressionCompiler {
     var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
     var classHierarchy = compilerResult.classHierarchy!;
-    var compilerOptions = SharedCompilerOptions(
+    var compilerOptions = Options(
       replCompile: true,
       moduleName: moduleName,
       experiments: experiments,
@@ -117,8 +116,7 @@ class TestExpressionCompiler {
     setup.diagnosticMessages.clear();
     setup.errors.clear();
 
-    var sourceMap = source_maps.SingleMapping.fromJson(
-        code.sourceMap!.cast<String, dynamic>());
+    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap!);
     return TestExpressionCompiler._(
         setup, component, compiler, code.metadata, sourceMap);
   }

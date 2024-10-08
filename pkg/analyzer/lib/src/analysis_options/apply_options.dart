@@ -100,31 +100,6 @@ extension on AnalysisOptionsImpl {
     }
   }
 
-  void applyPlugins(YamlNode? plugins) {
-    var pluginName = plugins.stringValue;
-    if (pluginName != null) {
-      enabledPluginNames = [pluginName];
-    } else if (plugins is YamlList) {
-      for (var element in plugins.nodes) {
-        var pluginName = element.stringValue;
-        if (pluginName != null) {
-          // Only the first plugin is supported.
-          enabledPluginNames = [pluginName];
-          return;
-        }
-      }
-    } else if (plugins is YamlMap) {
-      for (var key in plugins.nodes.keys.cast<YamlNode?>()) {
-        var pluginName = key.stringValue;
-        if (pluginName != null) {
-          // Only the first plugin is supported.
-          enabledPluginNames = [pluginName];
-          return;
-        }
-      }
-    }
-  }
-
   void applyUnignorables(YamlNode? cannotIgnore) {
     if (cannotIgnore is! YamlList) {
       return;
@@ -171,6 +146,31 @@ extension on AnalysisOptionsImpl {
       }
     }
     return CodeStyleOptionsImpl(this, useFormatter: useFormatter);
+  }
+
+  void _applyLegacyPlugins(YamlNode? plugins) {
+    var pluginName = plugins.stringValue;
+    if (pluginName != null) {
+      enabledLegacyPluginNames = [pluginName];
+    } else if (plugins is YamlList) {
+      for (var element in plugins.nodes) {
+        var pluginName = element.stringValue;
+        if (pluginName != null) {
+          // Only the first legacy plugin is supported.
+          enabledLegacyPluginNames = [pluginName];
+          return;
+        }
+      }
+    } else if (plugins is YamlMap) {
+      for (var key in plugins.nodes.keys.cast<YamlNode?>()) {
+        var pluginName = key.stringValue;
+        if (pluginName != null) {
+          // Only the first legacy plugin is supported.
+          enabledLegacyPluginNames = [pluginName];
+          return;
+        }
+      }
+    }
   }
 }
 
@@ -219,7 +219,7 @@ extension AnalysisOptionsImplExtensions on AnalysisOptionsImpl {
 
       // Process plugins.
       var plugins = analyzer.valueAt(AnalyzerOptions.plugins);
-      applyPlugins(plugins);
+      _applyLegacyPlugins(plugins);
     }
 
     // Process the 'code-style' option.

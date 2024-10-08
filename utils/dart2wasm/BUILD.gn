@@ -19,6 +19,7 @@ template("wasm_module") {
       rebase_path("$root_out_dir/wasm/${invoker.module_name}.wasm"),
       "-O",
     ]
+    inputs = [ "//tests/web/wasm/ffi/${invoker.module_name}.c" ]
     outputs = [ "$root_out_dir/wasm/${invoker.module_name}.wasm" ]
   }
 }

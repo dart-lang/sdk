@@ -32,6 +32,7 @@ FunctionDeclarationStatement
     returnType: NamedType
       name: T
       element: T@17
+      element2: <not-implemented>
       type: T
     name: g
     functionExpression: FunctionExpression
@@ -51,6 +52,7 @@ FunctionDeclarationStatement
           type: NamedType
             name: T
             element: T@17
+            element2: <not-implemented>
             type: T
           name: a
           declaredElement: g@15::@parameter::a
@@ -59,6 +61,7 @@ FunctionDeclarationStatement
           type: NamedType
             name: U
             element: U@20
+            element2: <not-implemented>
             type: U
           name: b
           declaredElement: g@15::@parameter::b
@@ -69,6 +72,7 @@ FunctionDeclarationStatement
         expression: SimpleIdentifier
           token: a
           staticElement: g@15::@parameter::a
+          element: g@15::@parameter::a#element
           staticType: T
         semicolon: ;
       declaredElement: g@15
@@ -95,6 +99,7 @@ FunctionDeclarationStatement
     returnType: NamedType
       name: void
       element: <null>
+      element2: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -107,6 +112,7 @@ FunctionDeclarationStatement
             bound: NamedType
               name: U
               element: U@33
+              element2: <not-implemented>
               type: U
             declaredElement: T@20
           TypeParameter
@@ -118,6 +124,7 @@ FunctionDeclarationStatement
             bound: NamedType
               name: U
               element: U@33
+              element2: <not-implemented>
               type: U
             declaredElement: V@36
         rightBracket: >
@@ -127,6 +134,7 @@ FunctionDeclarationStatement
           type: NamedType
             name: T
             element: T@20
+            element2: <not-implemented>
             type: T
           name: x
           declaredElement: g@18::@parameter::x
@@ -135,6 +143,7 @@ FunctionDeclarationStatement
           type: NamedType
             name: U
             element: U@33
+            element2: <not-implemented>
             type: U
           name: y
           declaredElement: g@18::@parameter::y
@@ -143,6 +152,7 @@ FunctionDeclarationStatement
           type: NamedType
             name: V
             element: V@36
+            element2: <not-implemented>
             type: V
           name: z
           declaredElement: g@18::@parameter::z
@@ -176,6 +186,7 @@ FunctionDeclarationStatement
     returnType: NamedType
       name: void
       element: <null>
+      element2: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -195,6 +206,7 @@ FunctionDeclarationStatement
               name: T
               question: ?
               element: T@20
+              element2: <not-implemented>
               type: T?
             name: a
             declaredElement: g@18::@parameter::a
@@ -231,6 +243,7 @@ FunctionDeclarationStatement
     returnType: NamedType
       name: void
       element: <null>
+      element2: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -250,6 +263,7 @@ FunctionDeclarationStatement
               name: T
               question: ?
               element: T@20
+              element2: <not-implemented>
               type: T?
             name: a
             declaredElement: g@18::@parameter::a
@@ -286,6 +300,7 @@ FunctionDeclarationStatement
     returnType: NamedType
       name: void
       element: <null>
+      element2: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -306,6 +321,7 @@ FunctionDeclarationStatement
               name: T
               question: ?
               element: T@20
+              element2: <not-implemented>
               type: T?
             name: a
             declaredElement: g@18::@parameter::a
@@ -342,6 +358,7 @@ FunctionDeclarationStatement
     returnType: NamedType
       name: void
       element: <null>
+      element2: <null>
       type: void
     name: g
     functionExpression: FunctionExpression
@@ -358,6 +375,7 @@ FunctionDeclarationStatement
           type: NamedType
             name: T
             element: T@20
+            element2: <not-implemented>
             type: T
           name: a
           declaredElement: g@18::@parameter::a

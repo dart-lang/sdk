@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dev_compiler/src/command/command.dart'
+    show addGeneratedVariables;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
-import 'package:dev_compiler/src/kernel/command.dart'
-    show addGeneratedVariables;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/ast.dart' show Component;

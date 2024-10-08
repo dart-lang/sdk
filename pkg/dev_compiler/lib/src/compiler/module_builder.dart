@@ -494,80 +494,44 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
     return items;
   }
 
-  /// Build statements for [exports].
-  // TODO(nshahan): Delete and build the SDK libraries/module like any other.
-  static List<Statement> temporaryBuildSdkExports(
-      List<ExportDeclaration> exports) {
-    var items = <Statement>[];
-    if (exports.isNotEmpty) {
-      for (var export in exports) {
-        // Dart SDK module must export the libraries via a definition until it
-        // can be separated into individual libraries.
-        var name = export.exportedNames!.single;
-        var alias = name.asName ?? name.name!;
-        items.add(js.statement(
-            'dartDevEmbedder.defineLibrary(#, function(_) { return #; })',
-            [(export.exported as ExportClause).from, alias]));
-      }
-    }
-    return items;
-  }
-
   Program build(Program module) {
-    if (module is LibraryBundle) {
-      var body = <ModuleItem>[];
-      // Collect imports/exports/statements.
-      for (var library in module.libraries) {
-        // Handle each library separately.
-        imports.clear();
-        statements.clear();
+    if (module is! LibraryBundle) {
+      // TODO(nshahan): Delete and update the argument type when this is the
+      // only supported module format.
+      throw ArgumentError.value(
+          module,
+          '`DdcLibraryBundleBuilder` requires `LibraryBundle`s as input to '
+          '`.build()`.');
+    }
+    var body = <ModuleItem>[];
+    // Collect imports/exports/statements.
+    for (var library in module.libraries) {
+      // Handle each library separately.
+      imports.clear();
+      statements.clear();
 
-        visitProgram(library);
-        var moduleImports = _collectModuleImports(imports);
-        var importStatements = <Statement>[];
-        for (var p in moduleImports) {
-          var moduleVar = p.key;
-          var import = p.value;
-          importStatements.addAll(buildImports(moduleVar, import));
-        }
-        // Prepend import statements.
-        statements.insertAll(0, importStatements);
-        // Package the library into an initialization function.
-        var initFunction = NamedFunction(
-            loadFunctionIdentifier(library.name!),
-            js.fun("function(#) { 'use strict'; #; return #; }",
-                [library.librarySelfVar!, statements, library.librarySelfVar!]),
-            true);
-        var resultModule = js.statement('dartDevEmbedder.defineLibrary(#, #)',
-            [js.string(library.name!), initFunction]);
-        body.add(resultModule);
-      }
-      // Append all library definitions into a single file.
-      return Program([...module.header, ...body]);
-    } else {
-      // TODO(nshahan): Migrate the SDK to the LibraryBundle format.
-      // Collect imports/exports/statements.
-      visitProgram(module);
-      var importNames = <Expression>[];
+      visitProgram(library);
       var moduleImports = _collectModuleImports(imports);
       var importStatements = <Statement>[];
       for (var p in moduleImports) {
         var moduleVar = p.key;
         var import = p.value;
-        importNames.add(import.from);
         importStatements.addAll(buildImports(moduleVar, import));
       }
       // Prepend import statements.
       statements.insertAll(0, importStatements);
-      // Append export statements.
-      statements.addAll(temporaryBuildSdkExports(exports));
-      // Wrap the SDK statements into a self invoking function.
-      var moduleName = module.name!;
-      var resultModule = NamedFunction(loadFunctionIdentifier(moduleName),
-          js.fun("function() { 'use strict'; #; }", [statements]), true);
-      var moduleDef = js.statement('#()', [resultModule]);
-      return Program(<ModuleItem>[...module.header, moduleDef]);
+      // Package the library into an initialization function.
+      var initFunction = NamedFunction(
+          loadFunctionIdentifier(library.name!),
+          js.fun("function(#) { 'use strict'; #; return #; }",
+              [library.librarySelfVar!, statements, library.librarySelfVar!]),
+          true);
+      var resultModule = js.statement('dartDevEmbedder.defineLibrary(#, #)',
+          [js.string(library.name!), initFunction]);
+      body.add(resultModule);
     }
+    // Append all library definitions into a single file.
+    return Program([...module.header, ...body]);
   }
 }
 

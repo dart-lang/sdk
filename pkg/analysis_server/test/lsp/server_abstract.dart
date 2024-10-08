@@ -23,6 +23,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
@@ -293,27 +294,27 @@ abstract class AbstractLspAnalysisServerTest
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
-    projectFolderUri = toUri(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
     newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
-    mainFileUri = toUri(mainFilePath);
     nonExistentFilePath = join(projectFolderPath, 'lib', 'not_existing.dart');
-    nonExistentFileUri = toUri(nonExistentFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
-    pubspecFileUri = toUri(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+
+    var experiments = StringBuffer();
+    for (var experiment in experimentsForTests) {
+      experiments.writeln('    - $experiment');
+    }
+
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-    - macros
-    - wildcard-variables
+$experiments    
 ''');
 
-    analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
     writeTestPackageConfig();
   }
 
@@ -804,11 +805,7 @@ mixin LspAnalysisServerTestMixin
       nonExistentFilePath,
       pubspecFilePath,
       analysisOptionsPath;
-  late Uri projectFolderUri,
-      mainFileUri,
-      nonExistentFileUri,
-      pubspecFileUri,
-      analysisOptionsUri;
+
   final String simplePubspecContent = 'name: my_project';
 
   /// The client capabilities sent to the server during initialization.
@@ -845,6 +842,9 @@ mixin LspAnalysisServerTestMixin
   /// server.
   bool failTestOnErrorDiagnostic = true;
 
+  /// [analysisOptionsPath] as a 'file:///' [Uri].
+  Uri get analysisOptionsUri => pathContext.toUri(analysisOptionsPath);
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -867,6 +867,12 @@ mixin LspAnalysisServerTestMixin
   /// The URI for the macro-generated contents for [mainFileUri].
   Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
 
+  /// [mainFilePath] as a 'file:///' [Uri].
+  Uri get mainFileUri => pathContext.toUri(mainFilePath);
+
+  /// [nonExistentFilePath] as a 'file:///' [Uri].
+  Uri get nonExistentFileUri => pathContext.toUri(nonExistentFilePath);
+
   /// A stream of [NotificationMessage]s from the server.
   @override
   Stream<NotificationMessage> get notificationsFromServer {
@@ -883,6 +889,9 @@ mixin LspAnalysisServerTestMixin
 
   path.Context get pathContext;
 
+  /// [projectFolderPath] as a 'file:///' [Uri].
+  Uri get projectFolderUri => pathContext.toUri(projectFolderPath);
+
   /// A stream of diagnostic notifications from the server.
   Stream<PublishDiagnosticsParams> get publishedDiagnostics {
     return notificationsFromServer
@@ -891,6 +900,9 @@ mixin LspAnalysisServerTestMixin
         .map((notification) => PublishDiagnosticsParams.fromJson(
             notification.params as Map<String, Object?>));
   }
+
+  /// [pubspecFilePath] as a 'file:///' [Uri].
+  Uri get pubspecFileUri => pathContext.toUri(pubspecFilePath);
 
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {

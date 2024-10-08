@@ -54,27 +54,30 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final ExtensionName extensionName;
 
   SourceExtensionBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      this.extensionName,
-      this.typeParameters,
-      this.onType,
-      this.typeParameterScope,
-      this._nameSpaceBuilder,
-      SourceLibraryBuilder parent,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      Extension? referenceFrom)
+      {required List<MetadataBuilder>? metadata,
+      required int modifiers,
+      required this.extensionName,
+      required this.typeParameters,
+      required this.onType,
+      required this.typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required Uri fileUri,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required Reference? reference})
       : _extension = new Extension(
             name: extensionName.name,
-            fileUri: parent.fileUri,
+            fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
-            reference: referenceFrom?.reference)
+            reference: reference)
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, extensionName.name, parent, nameOffset) {
+        _nameSpaceBuilder = nameSpaceBuilder,
+        super(metadata, modifiers, extensionName.name, enclosingLibraryBuilder,
+            fileUri, nameOffset) {
     extensionName.attachExtension(_extension);
   }
 
@@ -90,7 +93,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(libraryBuilder, this,
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        // Extensions do not have a corresponding [IndexedContainer] since their
+        // members are stored in the enclosing library.
+        indexedContainer: null,
+        containerType: ContainerType.Extension,
+        containerName: extensionName,
         includeConstructors: false);
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",

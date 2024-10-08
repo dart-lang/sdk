@@ -21,10 +21,15 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
   Future<void> swapParentAndChild(
       ChangeBuilder builder,
       InstanceCreationExpression parent,
-      InstanceCreationExpression child) async {
-    // The child must have its own child.
-    var stableChild = child.childArgument;
-    if (stableChild == null) {
+      InstanceCreationExpression child,
+      bool parentHadSingleChild) async {
+    // The child must have its own single child.
+    AstNode stableChild;
+    if (_singleChildInChildren(child) case var first?) {
+      stableChild = first;
+    } else if (child.childArgument case var childArgument?) {
+      stableChild = childArgument;
+    } else {
       return;
     }
 
@@ -68,9 +73,9 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         builder.writeln('(');
 
         // Write all arguments of the parent.
-        // Don't write its child.
+        // Don't write its child/children.
         for (var argument in parentArgs.arguments) {
-          if (!argument.isChildArgument) {
+          if (!argument.isChildArgument && !argument.isChildrenArgument) {
             var text = utils.getNodeText(argument);
             text = utils.replaceSourceIndent(
               text,
@@ -84,17 +89,36 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
           }
         }
 
-        // Write the child of the "child" now, as the child of the "parent".
+        // Write the child(ren) of the "child" now, as the child(ren) of the "parent".
         {
           var text = utils.getNodeText(stableChild);
+          if (text.trim().startsWith('child: ')) {
+            text = text.substring('child: '.length);
+          } else if (text.trim().startsWith('children: ')) {
+            text = text.substring('children: '.length);
+          }
           builder.write(childIndent);
           builder.write('  ');
+          if (parentHadSingleChild) {
+            builder.write('child: ');
+          } else {
+            builder.write('children: [');
+            builder.writeln();
+            builder.write(childIndent);
+            builder.write('    ');
+          }
           builder.write(text);
           builder.writeln(',');
         }
 
         // Close the parent expression.
         builder.write(childIndent);
+        if (!parentHadSingleChild) {
+          builder.write('  ');
+          builder.write(']');
+          builder.writeln(',');
+          builder.write(childIndent);
+        }
         builder.writeln('),');
 
         // Close the child expression.
@@ -102,6 +126,20 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         builder.write(')');
       });
     });
+  }
+
+  InstanceCreationExpression? _singleChildInChildren(
+      InstanceCreationExpression parent) {
+    if (parent.childrenArgument case var childrenArgument?) {
+      if (childrenArgument.expression case ListLiteral list) {
+        if (list.elements case NodeList(length: 1, first: var first)) {
+          if (first is InstanceCreationExpression) {
+            return first;
+          }
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -117,13 +155,18 @@ class FlutterSwapWithChild extends FlutterParentAndChild {
     if (parent == null || !parent.isWidgetCreation) {
       return;
     }
+    var parentHasSingleChild = true;
 
-    var childArgument = parent.childArgument;
-    var child = childArgument?.expression;
+    Expression? child;
+    if (_singleChildInChildren(parent) case var first?) {
+      child = first;
+      parentHasSingleChild = false;
+    }
+    child ??= parent.childArgument?.expression;
     if (child is! InstanceCreationExpression || !child.isWidgetCreation) {
       return;
     }
 
-    await swapParentAndChild(builder, parent, child);
+    await swapParentAndChild(builder, parent, child, parentHasSingleChild);
   }
 }

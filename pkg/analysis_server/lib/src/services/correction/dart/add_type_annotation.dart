@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -106,10 +106,11 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement!.type;
+    var type = declaredIdentifier.declaredElement2!.type;
     if (type is! InterfaceType &&
         type is! FunctionType &&
-        type is! RecordType) {
+        type is! RecordType &&
+        type is! TypeParameterType) {
       return;
     }
     await _applyChange(
@@ -128,7 +129,7 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
     // Prepare the type.
-    var type = parameter.declaredElement!.type;
+    var type = parameter.declaredFragment!.element.type;
     // TODO(scheglov): If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
@@ -166,7 +167,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     }
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType &&
-        type is! RecordType) {
+        type is! RecordType &&
+        type is! TypeParameterType) {
       return;
     }
     await _applyChange(builder, declarationList.keyword, variable.name, type);
@@ -207,8 +209,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     if (statement is! VariableDeclarationStatement || block is! Block) {
       return null;
     }
-    var element = variable.declaredElement;
-    if (element is! LocalVariableElement) {
+    var element = variable.declaredElement2;
+    if (element == null) {
       return null;
     }
     var statements = block.statements;
@@ -225,7 +227,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   /// The type system used to compute the best type.
   final TypeSystem typeSystem;
 
-  final LocalVariableElement variable;
+  final LocalVariableElement2 variable;
 
   /// The types that are assigned to the variable.
   final Set<DartType> assignedTypes = {};
@@ -247,8 +249,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var leftHandSide = node.leftHandSide;
-    if (leftHandSide is SimpleIdentifier &&
-        leftHandSide.staticElement == variable) {
+    if (leftHandSide is SimpleIdentifier && leftHandSide.element == variable) {
       var type = node.rightHandSide.staticType;
       if (type != null) {
         assignedTypes.add(type);

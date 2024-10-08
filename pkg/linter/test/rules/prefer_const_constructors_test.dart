@@ -18,7 +18,7 @@ class PreferConstConstructorsTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'prefer_const_constructors';
+  String get lintRule => LintNames.prefer_const_constructors;
 
   test_canBeConst_argumentIsAdjacentStrings() async {
     await assertDiagnostics(r'''

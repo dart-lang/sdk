@@ -226,7 +226,7 @@ class _Element implements Serializable {
   @override
   void serialize(Serializer s) {
     if (table.index != 0) {
-      s.writeByte(0x02);
+      s.writeByte(0x06);
       s.writeUnsigned(table.index);
     } else {
       s.writeByte(0x00);
@@ -235,11 +235,17 @@ class _Element implements Serializable {
     s.writeSigned(startIndex);
     s.writeByte(0x0B); // end
     if (table.index != 0) {
-      s.writeByte(0x00); // elemkind
+      s.write(table.type);
     }
     s.writeUnsigned(entries.length);
     for (var entry in entries) {
-      s.writeUnsigned(entry.index);
+      if (table.index == 0) {
+        s.writeUnsigned(entry.index);
+      } else {
+        s.writeByte(0xD2); // ref.func
+        s.writeSigned(entry.index);
+        s.writeByte(0x0B); // end
+      }
     }
   }
 }
@@ -280,13 +286,13 @@ class ElementSection extends Section {
     }
     for (final table in importedTables) {
       final entries = [...table.setElements.entries]
-        ..sort((a, b) => a.value.compareTo(b.value));
+        ..sort((a, b) => a.key.compareTo(b.key));
 
       _Element? current;
       int lastIndex = -2;
       for (final entry in entries) {
-        final function = entry.key;
-        final index = entry.value;
+        final index = entry.key;
+        final function = entry.value;
         if (index != lastIndex + 1) {
           current = _Element(table, index);
           elements.add(current);
@@ -358,6 +364,7 @@ abstract class CustomSection extends Section {
 }
 
 class NameSection extends CustomSection {
+  final String moduleName;
   final List<ir.BaseFunction> functions;
   final List<ir.DefType> types;
   final List<ir.Global> globals;
@@ -365,7 +372,8 @@ class NameSection extends CustomSection {
   final int typeNameCount;
   final int globalNameCount;
 
-  NameSection(this.functions, this.types, this.globals, super.watchPoints,
+  NameSection(this.moduleName, this.functions, this.types, this.globals,
+      super.watchPoints,
       {required this.functionNameCount,
       required this.typeNameCount,
       required this.globalNameCount});
@@ -376,6 +384,9 @@ class NameSection extends CustomSection {
   @override
   void serializeContents(Serializer s) {
     s.writeName("name");
+
+    final moduleNameSubsection = Serializer();
+    moduleNameSubsection.writeName(moduleName);
 
     final functionNameSubsection = Serializer();
     functionNameSubsection.writeUnsigned(functionNameCount);
@@ -406,6 +417,10 @@ class NameSection extends CustomSection {
         globalNameSubsection.writeName(globalName);
       }
     }
+
+    s.writeByte(0); // Module name subsection
+    s.writeUnsigned(moduleNameSubsection.data.length);
+    s.writeData(moduleNameSubsection);
 
     s.writeByte(1); // Function names subsection
     s.writeUnsigned(functionNameSubsection.data.length);

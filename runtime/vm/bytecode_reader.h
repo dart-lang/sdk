@@ -52,7 +52,9 @@ class Reader : public ValueObject {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
     uint32_t value =
         LoadUnaligned(reinterpret_cast<const uint32_t*>(raw_buffer_ + offset));
-    return Utils::BigEndianToHost32(value);
+    // All supported platforms are little-endian, so there is no need to
+    // convert from little-endian to host.
+    return value;
   }
 
   uint32_t ReadUInt32() {
@@ -200,7 +202,6 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadFunctionDeclarations(const Class& cls);
   void ReadClassDeclaration(const Class& cls);
   void ReadLibraryDeclaration(const Library& library,
-                              bool lookup_classes,
                               const GrowableObjectArray& pending_classes);
   void ReadLibraryDeclarations(intptr_t num_libraries);
 
@@ -265,7 +266,7 @@ class BytecodeReaderHelper : public ValueObject {
   // pkg/dart2bytecode/lib/declarations.dart.
   struct Parameter {
     static const int kIsCovariantFlag = 1 << 0;
-    static const int kIsGenericCovariantImplFlag = 1 << 1;
+    static const int kIsCovariantByClassFlag = 1 << 1;
     static const int kIsFinalFlag = 1 << 2;
     static const int kIsRequiredFlag = 1 << 3;
   };

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class OverriddenFieldsTest extends LintRuleTest {
   @override
-  String get lintRule => 'overridden_fields';
+  String get lintRule => LintNames.overridden_fields;
 
   test_augmentationClass() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
@@ -31,7 +31,7 @@ class A extends O { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   final a = '';
 }
 ''');
@@ -41,7 +41,7 @@ augment class A {
 
     result = await resolveFile(b.path);
     await assertDiagnosticsIn(errors, [
-      lint(46, 1),
+      lint(45, 1),
     ]);
   }
 
@@ -54,7 +54,7 @@ class O {
 }
 
 class A extends O {
-  @override 
+  @override
   final a = '';
 }
 ''');
@@ -62,14 +62,14 @@ class A extends O {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   augment final a = '';
 }
 ''');
 
     result = await resolveFile(a.path);
     await assertDiagnosticsIn(errors, [
-      lint(86, 1),
+      lint(85, 1),
     ]);
 
     result = await resolveFile(b.path);

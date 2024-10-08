@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class FileNamesInvalidTest extends LintRuleTest {
   @override
-  String get lintRule => 'file_names';
+  String get lintRule => LintNames.file_names;
 
   @override
   String get testFilePath => '$testPackageLibPath/a-test.dart';
@@ -33,7 +33,7 @@ class A { }
 @reflectiveTest
 class FileNamesNonStrictTest extends LintRuleTest {
   @override
-  String get lintRule => 'file_names';
+  String get lintRule => LintNames.file_names;
 
   @override
   String get testFilePath => '$testPackageLibPath/non-strict.css.dart';

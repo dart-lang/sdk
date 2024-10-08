@@ -32,6 +32,7 @@ BinaryExpression
     methodName: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::a
+      element: <testLibraryFragment>::@function::a#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -45,14 +46,17 @@ BinaryExpression
     function: SimpleIdentifier
       token: b
       staticElement: <testLibraryFragment>::@function::f::@parameter::b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: dynamic
     staticType: dynamic
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');
@@ -72,14 +76,17 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: &&
   rightOperand: SimpleIdentifier
     token: b
     parameter: <null>
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');
@@ -105,6 +112,7 @@ BinaryExpression
     methodName: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::a
+      element: <testLibraryFragment>::@function::a#element
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -118,14 +126,17 @@ BinaryExpression
     function: SimpleIdentifier
       token: b
       staticElement: <testLibraryFragment>::@function::f::@parameter::b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: dynamic
     staticType: dynamic
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');
@@ -145,14 +156,17 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: bool
   operator: ||
   rightOperand: SimpleIdentifier
     token: b
     parameter: <null>
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: bool
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: bool
 ''');

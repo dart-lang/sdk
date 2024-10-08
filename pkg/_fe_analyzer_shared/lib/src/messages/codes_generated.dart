@@ -3377,65 +3377,30 @@ Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateDuplicatedExportInType =
+    templateDuplicatedImport =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedExportInType",
-  problemMessageTemplate:
-      r"""'#name' is exported from both '#uri' and '#uri2'.""",
-  withArguments: _withArgumentsDuplicatedExportInType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeDuplicatedExportInType =
-    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedExportInType",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String? uri = relativizeUri(uri_);
-  String? uri2 = relativizeUri(uri2_);
-  return new Message(
-    codeDuplicatedExportInType,
-    problemMessage:
-        """'${name}' is exported from both '${uri}' and '${uri2}'.""",
-    arguments: {
-      'name': name,
-      'uri': uri_,
-      'uri2': uri2_,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, Uri uri_, Uri uri2_)>
-    templateDuplicatedImportInType =
-    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedImportInType",
+  "DuplicatedImport",
   problemMessageTemplate:
       r"""'#name' is imported from both '#uri' and '#uri2'.""",
-  withArguments: _withArgumentsDuplicatedImportInType,
+  withArguments: _withArgumentsDuplicatedImport,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
-    codeDuplicatedImportInType =
+    codeDuplicatedImport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedImportInType",
+  "DuplicatedImport",
   analyzerCodes: <String>["AMBIGUOUS_IMPORT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
+Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   String? uri = relativizeUri(uri_);
   String? uri2 = relativizeUri(uri2_);
   return new Message(
-    codeDuplicatedImportInType,
+    codeDuplicatedImport,
     problemMessage:
         """'${name}' is imported from both '${uri}' and '${uri2}'.""",
     arguments: {
@@ -15040,6 +15005,17 @@ const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordUseCannotBePlacedHere =
+    messageRecordUseCannotBePlacedHere;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordUseCannotBePlacedHere = const MessageCode(
+  "RecordUseCannotBePlacedHere",
+  problemMessage:
+      r"""`RecordUse` annotation cannot be placed on this element.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordUsedAsCallable = messageRecordUsedAsCallable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15223,28 +15199,6 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
   problemMessage: r"""Non-optional parameters can't have a default value.""",
   correctionMessage:
       r"""Try removing the default value or making the parameter optional.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeResourceIdentifiersMultiple =
-    messageResourceIdentifiersMultiple;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageResourceIdentifiersMultiple = const MessageCode(
-  "ResourceIdentifiersMultiple",
-  problemMessage:
-      r"""Only one resource identifier pragma can be used at a time.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeResourceIdentifiersNotStatic =
-    messageResourceIdentifiersNotStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageResourceIdentifiersNotStatic = const MessageCode(
-  "ResourceIdentifiersNotStatic",
-  problemMessage:
-      r"""Resource identifier pragma can be used on a static method only.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

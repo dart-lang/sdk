@@ -9,6 +9,9 @@ extendable:
 
 can-be-overridden:
   - library: 'dart:*'
+  - library: 'dart:core'
+    class: '_Enum'
+    member: '_enumToString'
 
 callable:
   - library: 'dart:*'

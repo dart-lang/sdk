@@ -201,8 +201,6 @@ import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
-import 'duplicate_augmentation_import_test.dart'
-    as duplicate_augmentation_import;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
@@ -383,7 +381,6 @@ import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'import_internal_library_test.dart' as import_internal_library;
 import 'import_of_non_library_test.dart' as import_of_non_library;
-import 'import_of_not_augmentation_test.dart' as import_of_not_augmentation;
 import 'inconsistent_inheritance_getter_and_method_test.dart'
     as inconsistent_inheritance_getter_and_method;
 import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
@@ -891,6 +888,7 @@ import 'unqualified_reference_to_non_local_static_member_test.dart'
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
     as unqualified_reference_to_static_member_of_extended_type;
 import 'unreachable_switch_case_test.dart' as unreachable_switch_case;
+import 'unreachable_switch_default_test.dart' as unreachable_switch_default;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
@@ -1056,7 +1054,6 @@ main() {
     doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
     doc_import_cannot_have_configurations.main();
-    duplicate_augmentation_import.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
@@ -1171,7 +1168,6 @@ main() {
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
     import_of_non_library.main();
-    import_of_not_augmentation.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
     inconsistent_language_version_override.main();
@@ -1505,6 +1501,7 @@ main() {
     unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();
     unreachable_switch_case.main();
+    unreachable_switch_default.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
     unused_element.main();

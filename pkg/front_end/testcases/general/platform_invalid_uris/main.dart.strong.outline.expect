@@ -10,16 +10,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:9: Error: Couldn't parse URI ':c':
-//   Invalid empty scheme.
-// import ':c';
-//         ^
-//
-// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:9: Error: Couldn't parse URI ':d':
-//   Invalid empty scheme.
-// export ':d';
-//         ^
-//
 // pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:5:9: Error: Couldn't parse URI ':a':
 //   Invalid empty scheme.
 // import ':a';
@@ -30,20 +20,30 @@ library;
 // export ':b';
 //         ^
 //
-// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:8: Error: Expected a URI.
-// import ':c';
-//        ^
-//
-// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:1: Error: Expected a URI.
-// export ':d';
-// ^
-//
 // pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:5:8: Error: Expected a URI.
 // import ':a';
 //        ^
 //
 // pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:6:1: Error: Expected a URI.
 // export ':b';
+// ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:9: Error: Couldn't parse URI ':c':
+//   Invalid empty scheme.
+// import ':c';
+//         ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:9: Error: Couldn't parse URI ':d':
+//   Invalid empty scheme.
+// export ':d';
+//         ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:8: Error: Expected a URI.
+// import ':c';
+//        ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:1: Error: Expected a URI.
+// export ':d';
 // ^
 //
 import self as self2;

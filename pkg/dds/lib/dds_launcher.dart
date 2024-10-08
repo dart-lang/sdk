@@ -53,7 +53,7 @@ class DartDevelopmentServiceLauncher {
     bool enableServicePortFallback = false,
     List<String> cachedUserTags = const <String>[],
     String? dartExecutable,
-    Uri? google3WorkspaceRoot,
+    String? google3WorkspaceRoot,
   }) async {
     final process = await Process.start(
       dartExecutable ?? Platform.executable,

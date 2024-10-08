@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' hide Link;
+import 'dart:typed_data';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart';
@@ -54,7 +55,8 @@ Future<void> runTest(String testGroup, int shard, List<String> options,
         ],
         outputProvider: cfeCollector,
         beforeRun: (c) => compiler = c);
-    final cfeDill = cfeCollector.binaryOutputMap.values.first.list;
+    final cfeDill =
+        Uint8List.fromList(cfeCollector.binaryOutputMap.values.first.list);
     final dillInputFiles = {cfeFilename: cfeDill};
     final resultCollector = OutputCollector();
     final compilerResult = await runCompiler(

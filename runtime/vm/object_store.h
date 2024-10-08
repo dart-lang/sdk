@@ -274,6 +274,7 @@ class ObjectPointerVisitor;
   RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Array, ffi_callback_functions)                                            \
+  RW(Code, resume_stub)                                                        \
   RW(Code, slow_tts_stub)                                                      \
   /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Code, await_stub)                                                         \
@@ -281,7 +282,6 @@ class ObjectPointerVisitor;
   RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, ffi_async_callback_send_stub)                                       \
   RW(Code, init_async_stub)                                                    \
-  RW(Code, resume_stub)                                                        \
   RW(Code, return_async_stub)                                                  \
   RW(Code, return_async_not_future_stub)                                       \
   RW(Code, init_async_star_stub)                                               \

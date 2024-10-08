@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_redundant_argument_values';
+  String get lintRule => LintNames.avoid_redundant_argument_values;
 
   test_namedArgumentBeforePositional() async {
     await assertDiagnostics(r'''
@@ -34,7 +34,34 @@ void f() {
 @reflectiveTest
 class AvoidRedundantArgumentValuesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_redundant_argument_values';
+  String get lintRule => LintNames.avoid_redundant_argument_values;
+
+  test_constructor_redundant() async {
+    await assertDiagnostics(r'''
+void f() {
+  A(p: true);
+}
+class A {
+  A({bool p = true});
+}
+''', [
+      lint(18, 4),
+    ]);
+  }
+
+  test_constructor_tearoff_redundant() async {
+    await assertDiagnostics(r'''
+void f() {
+  var aNew = A.new;
+  aNew(p: true);
+}
+class A {
+  A({bool p = true});
+}
+''', [
+      lint(41, 4),
+    ]);
+  }
 
   /// https://github.com/dart-lang/linter/issues/3617
   test_enumDeclaration() async {
@@ -64,6 +91,90 @@ void g() {
   );
 }
 ''');
+  }
+
+  test_function_optionalPositional_followedByPositional() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  g(0, 1);
+}
+void g([int a = 0, int? b]) {}
+''');
+  }
+
+  test_function_optionalPositional_subsequent_different() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  g(0, 2);
+}
+void g([int? a, int? b = 1]) {}
+''');
+  }
+
+  test_function_optionalPositional_subsequent_redundant() async {
+    await assertDiagnostics(r'''
+void f() {
+  g(0, 1);
+}
+void g([int? a, int? b = 1]) {}
+''', [
+      lint(18, 1),
+    ]);
+  }
+
+  test_localFunction_optionalNamed_different() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  void g({bool p = true}) {}
+  g(p: false);
+}
+''');
+  }
+
+  test_localFunction_optionalNamed_redundant() async {
+    await assertDiagnostics(r'''
+void f() {
+  void g({bool p = true}) {}
+  g(p: true);
+}
+''', [
+      lint(47, 4),
+    ]);
+  }
+
+  test_method_noDefault() async {
+    await assertNoDiagnostics(r'''
+void f(A a) {
+  a.g(p: false);
+}
+class A {
+  void g({bool? p}) {}
+}
+''');
+  }
+
+  test_method_optionalNamed_variable() async {
+    await assertNoDiagnostics(r'''
+void f(A a, bool v) {
+  a.g(p: v);
+}
+class A {
+  void g({bool p = true}) {}
+}
+''');
+  }
+
+  test_method_redundant() async {
+    await assertDiagnostics(r'''
+void f(A a) {
+  a.g(p: true);
+}
+class A {
+  void g({bool p = true}) {}
+}
+''', [
+      lint(23, 4),
+    ]);
   }
 
   test_redirectingFactoryConstructor() async {

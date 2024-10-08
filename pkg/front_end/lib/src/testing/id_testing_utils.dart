@@ -140,7 +140,7 @@ ClassBuilder? lookupClassBuilder(
   LibraryBuilder libraryBuilder = lookupLibraryBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required)!;
-  ClassBuilder? clsBuilder = libraryBuilder.nameSpace
+  ClassBuilder? clsBuilder = libraryBuilder.libraryNameSpace
       .lookupLocalMember(cls.name, setter: false) as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
@@ -155,7 +155,8 @@ ExtensionBuilder? lookupExtensionBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required)!;
   ExtensionBuilder? extensionBuilder;
-  libraryBuilder.nameSpace.forEachLocalExtension((ExtensionBuilder builder) {
+  libraryBuilder.libraryNameSpace
+      .forEachLocalExtension((ExtensionBuilder builder) {
     if (builder.extension == extension) {
       extensionBuilder = builder;
     }
@@ -217,7 +218,8 @@ MemberBuilder? lookupMemberBuilder(
     LibraryBuilder libraryBuilder = lookupLibraryBuilder(
         compilerResult, member.enclosingLibrary,
         required: required)!;
-    memberBuilder = libraryBuilder.nameSpace.lookupLocalMember(member.name.text,
+    memberBuilder = libraryBuilder.libraryNameSpace.lookupLocalMember(
+        member.name.text,
         setter: member is Procedure && member.isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {

@@ -5025,7 +5025,6 @@ suggestions
 
   Future<void> test_partFile_typeName() async {
     newFile('$testPackageLibPath/b.dart', '''
-library B;
 int T0 = 0;
 F0() {}
 class X {
@@ -5037,14 +5036,13 @@ class X {
 }
 ''');
     newFile('$testPackageLibPath/a.dart', '''
-library libA;
 import 'b.dart';
 part "test.dart";
 class A0 {}
 var m0 = T0;
 ''');
     await computeSuggestions('''
-part of libA;
+part of 'a.dart';
 class B {
   B.bar(int x);
 }

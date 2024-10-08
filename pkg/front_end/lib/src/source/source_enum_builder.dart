@@ -96,6 +96,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       this.enumConstantInfos,
       SourceLibraryBuilder parent,
       List<ConstructorReferenceBuilder> constructorReferences,
+      Uri fileUri,
       this.startCharOffset,
       int charOffset,
       this.charEndOffset,
@@ -112,6 +113,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameSpaceBuilder,
             parent,
             constructorReferences,
+            fileUri,
             startCharOffset,
             charOffset,
             charEndOffset,
@@ -127,6 +129,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<EnumConstantInfo?>? enumConstantInfos,
       SourceLibraryBuilder libraryBuilder,
       List<ConstructorReferenceBuilder> constructorReferences,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charEndOffset,
@@ -148,6 +151,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         enumConstantInfos,
         libraryBuilder,
         constructorReferences,
+        fileUri,
         startCharOffsetComputed,
         charOffset,
         charEndOffset,
@@ -167,28 +171,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
       MemberBuilder member = iterator.current;
       if (member is DeclaredSourceConstructorBuilder) {
         member.ensureGrowableFormals();
-        member.formals!.insert(
-            0,
-            new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0,
-                stringType,
-                "#name",
-                libraryBuilder,
-                charOffset,
-                fileUri: fileUri,
-                hasImmediatelyDeclaredInitializer: false));
-        member.formals!.insert(
-            0,
-            new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0,
-                intType,
-                "#index",
-                libraryBuilder,
-                charOffset,
-                fileUri: fileUri,
-                hasImmediatelyDeclaredInitializer: false));
+
+        FormalParameterBuilder nameFormalParameterBuilder =
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                /* modifiers = */ 0, stringType, "#name", charOffset,
+                fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
+        member.formals!.insert(0, nameFormalParameterBuilder);
+        nameFormalParameterBuilder.parent = member;
+
+        FormalParameterBuilder indexFormalParameterBuilder =
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                /* modifiers = */ 0, intType, "#index", charOffset,
+                fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
+        member.formals!.insert(0, indexFormalParameterBuilder);
+        indexFormalParameterBuilder.parent = member;
       }
     }
 
@@ -322,6 +318,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         constMask | staticMask | hasInitializerMask,
         /* isTopLevel = */ false,
         libraryBuilder,
+        this,
         fileUri,
         charOffset,
         charOffset,
@@ -364,6 +361,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
               /* typeParameters = */ null,
               /* formals = */ [],
               libraryBuilder,
+              this,
               fileUri,
               charOffset,
               charOffset,
@@ -377,7 +375,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   containerType: ContainerType.Class,
                   libraryName: libraryName),
               forAbstractClassOrEnumOrMixin: true,
-              isSynthetic: true);
+              isSynthetic: true,
+              // Trick the constructor to be built during the outline phase.
+              // TODO(johnniwinther): Avoid relying on [beginInitializers] to
+              // ensure building constructors creation during the outline phase.
+              beginInitializers: new Token.eof(-1));
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
       nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);
@@ -398,6 +400,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
+        this,
         fileUri,
         charOffset,
         charOffset,
@@ -415,7 +418,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
     nameSpace.addLocalMember("_enumToString", toStringBuilder, setter: false);
     nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri!);
-    toStringBuilder.parent = this;
 
     String className = name;
 
@@ -485,6 +487,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             constMask | staticMask | hasInitializerMask,
             /* isTopLevel = */ false,
             libraryBuilder,
+            this,
             fileUri,
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,

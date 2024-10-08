@@ -47,6 +47,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@constructor::named
+  element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
   staticType: A
 ''');
   }
@@ -83,6 +84,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+  element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
   staticType: A
 ''');
   }
@@ -114,6 +116,7 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@class::A::@getter::foo
+      element2: package:test/a.dart::<fragment>::@class::A::@getter::foo#element
       staticType: int Function(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -124,6 +127,7 @@ ExpressionStatement
           staticType: int
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: int Function(int)
     staticType: int
   semicolon: ;
@@ -162,6 +166,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@method::foo
+  element2: package:test/a.dart::<fragment>::@class::A::@method::foo#element
   staticType: void
 ''');
   }
@@ -194,6 +199,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: void
 ''');
   }
@@ -229,6 +235,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: <null>
+  element2: <null>
   staticType: InvalidType
 ''');
   }
@@ -263,6 +270,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: int
 ''');
   }
@@ -295,6 +303,7 @@ AugmentedInvocation
         literal: ''
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: String
 ''');
   }
@@ -348,6 +357,7 @@ AugmentedInvocation
         staticType: String Function(int)
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: String
 ''');
   }
@@ -377,6 +387,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: int
 ''');
   }
@@ -406,12 +417,14 @@ AugmentedInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: int
 ''');
   }
@@ -443,12 +456,14 @@ AugmentedInvocation
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: String
 ''');
   }
@@ -480,16 +495,19 @@ AugmentedInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
+        element2: dart:core::<fragment>::@class::String#element
         type: String
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
+  element2: package:test/a.dart::<fragment>::@function::foo#element
   staticType: dynamic
 ''');
   }
@@ -517,6 +535,7 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@getter::foo
+      element2: package:test/a.dart::<fragment>::@getter::foo#element
       staticType: int Function(int)
     argumentList: ArgumentList
       leftParenthesis: (
@@ -527,6 +546,7 @@ ExpressionStatement
           staticType: int
       rightParenthesis: )
     staticElement: <null>
+    element: <null>
     staticInvokeType: int Function(int)
     staticType: int
   semicolon: ;
@@ -560,6 +580,7 @@ ExpressionStatement
       leftParenthesis: (
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@getter::foo
+    element2: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: InvalidType
   semicolon: ;
 ''');
@@ -592,11 +613,13 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@getter::foo
+      element2: package:test/a.dart::<fragment>::@getter::foo#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: package:test/a.dart::<fragment>::@class::A::@method::call
+    element: package:test/a.dart::<fragment>::@class::A::@method::call#element
     staticInvokeType: int Function()
     staticType: int
   semicolon: ;
@@ -632,11 +655,13 @@ ExpressionStatement
     function: AugmentedExpression
       augmentedKeyword: augmented
       element: package:test/a.dart::<fragment>::@getter::foo
+      element2: package:test/a.dart::<fragment>::@getter::foo#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
     staticElement: package:test/a.dart::<fragment>::@extension::E::@method::call
+    element: package:test/a.dart::<fragment>::@extension::E::@method::call#element
     staticInvokeType: int Function()
     staticType: int
   semicolon: ;
@@ -673,6 +698,7 @@ ExpressionStatement
       leftParenthesis: (
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@getter::foo
+    element2: package:test/a.dart::<fragment>::@getter::foo#element
     staticType: InvalidType
   semicolon: ;
 ''');
@@ -713,6 +739,7 @@ ExpressionStatement
           staticType: int
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@setter::foo
+    element2: package:test/a.dart::<fragment>::@setter::foo#element
     staticType: InvalidType
   semicolon: ;
 ''');

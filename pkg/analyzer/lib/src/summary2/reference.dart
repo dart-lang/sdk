@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:meta/meta.dart';
 
 /// Indirection between a name and the corresponding [Element].
@@ -36,6 +37,9 @@ class Reference {
 
   /// The corresponding [Element], or `null` if a named container.
   Element? element;
+
+  /// The corresponding [Element2], or `null` if a named container.
+  Element2? element2;
 
   /// Temporary index used during serialization and linking.
   int? index;
@@ -168,6 +172,26 @@ class Reference {
     }
     return (childrenUnion as Map<String, Reference>)[name] ??=
         Reference._(this, name);
+  }
+
+  /// Returns children with the given name.
+  /// Usually returns zero or one child.
+  /// But in case of duplicates will return more than one.
+  List<Reference> getChildrenByName(String name) {
+    var result = this[name];
+
+    // No such child yet.
+    if (result == null) {
+      return const [];
+    }
+
+    // Maybe has the container with duplicates.
+    if (result[_defName] case var defContainer?) {
+      return defContainer.children.toList();
+    }
+
+    // Should be the only child with such name.
+    return [result];
   }
 
   Reference? removeChild(String name) {

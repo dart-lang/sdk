@@ -159,6 +159,11 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
   /// Creates a JavaScript `Array` of size [length] with no elements.
   external JSArray.withLength(int length);
 
+  /// Creates a new, shallow-copied JavaScript `Array` instance from a
+  /// JavaScript iterable or array-like object.
+  @Since('3.6')
+  external static JSArray<T> from<T extends JSAny>(JSObject arrayLike);
+
   /// The length in elements of this `Array`.
   @Since('3.6')
   external int get length;

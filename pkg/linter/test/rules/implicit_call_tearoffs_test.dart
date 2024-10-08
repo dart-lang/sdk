@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ImplicitCallTearoffsTest extends LintRuleTest {
   @override
-  String get lintRule => 'implicit_call_tearoffs';
+  String get lintRule => LintNames.implicit_call_tearoffs;
 
   test_explicitCallTearoff() async {
     await assertNoDiagnostics(r'''

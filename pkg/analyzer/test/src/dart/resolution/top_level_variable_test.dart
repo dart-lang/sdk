@@ -36,6 +36,7 @@ VariableDeclaration
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
+      element: <testLibraryFragment>::@function::f#element
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
@@ -46,6 +47,7 @@ VariableDeclaration
             base: <testLibraryFragment>::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: <testLibraryFragment>::@function::g
+          element: <testLibraryFragment>::@function::g#element
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -61,13 +63,16 @@ VariableDeclaration
               prefix: SimpleIdentifier
                 token: z
                 staticElement: @99::@parameter::z
+                element: @99::@parameter::z#element
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
                 token: length
                 staticElement: <null>
+                element: <null>
                 staticType: InvalidType
               staticElement: <null>
+              element: <null>
               staticType: InvalidType
           declaredElement: @99
             type: InvalidType Function(Object?)
@@ -101,6 +106,7 @@ VariableDeclaration
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
+      element: <testLibraryFragment>::@function::f#element
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
@@ -111,6 +117,7 @@ VariableDeclaration
             base: <testLibraryFragment>::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: <testLibraryFragment>::@function::g
+          element: <testLibraryFragment>::@function::g#element
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -126,13 +133,16 @@ VariableDeclaration
               prefix: SimpleIdentifier
                 token: z
                 staticElement: @107::@parameter::z
+                element: @107::@parameter::z#element
                 staticType: String
               period: .
               identifier: SimpleIdentifier
                 token: length
                 staticElement: dart:core::<fragment>::@class::String::@getter::length
+                element: dart:core::<fragment>::@class::String::@getter::length#element
                 staticType: int
               staticElement: dart:core::<fragment>::@class::String::@getter::length
+              element: dart:core::<fragment>::@class::String::@getter::length#element
               staticType: int
           declaredElement: @107
             type: int Function(String)

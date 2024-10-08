@@ -19,8 +19,6 @@ abstract class MemberBuilder implements Builder {
 
   bool get isAssignable;
 
-  void set parent(Builder? value);
-
   LibraryBuilder get libraryBuilder;
 
   /// The declared name of this member;
@@ -104,14 +102,15 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.
   @override
-  Builder? parent;
+  Builder parent;
+
+  @override
+  final int charOffset;
 
   @override
   final Uri fileUri;
 
-  MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
-      : this.fileUri = (fileUri ?? parent?.fileUri)!,
-        super(parent, charOffset);
+  MemberBuilderImpl(this.parent, this.fileUri, this.charOffset);
 
   @override
   DeclarationBuilder? get declarationBuilder =>
@@ -126,7 +125,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     if (parent is LibraryBuilder) {
       LibraryBuilder library = parent as LibraryBuilder;
       return library.partOfLibrary ?? library;
-    } else if (parent is ExtensionBuilder) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (parent is ExtensionBuilder) {
       ExtensionBuilder extension = parent as ExtensionBuilder;
       return extension.libraryBuilder;
     } else if (parent is ExtensionTypeDeclarationBuilder) {

@@ -339,7 +339,7 @@ class ExceptionHandlerStack {
         codeGen._jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      b.catch_(codeGen.translator.exceptionTag);
+      b.catch_(codeGen.translator.getExceptionTag(b.module));
       b.local_set(stackTraceLocal);
       b.local_set(exceptionLocal);
 
@@ -783,7 +783,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
     emitTargetLabel(inner);
     allocateContext(node);
-    visitStatement(node.body);
+    translateStatement(node.body);
     _jumpToTarget(inner, condition: node.condition);
   }
 
@@ -795,11 +795,11 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
     allocateContext(node);
     for (VariableDeclaration variable in node.variables) {
-      visitStatement(variable);
+      translateStatement(variable);
     }
     emitTargetLabel(inner);
     _jumpToTarget(after, condition: node.condition, negated: true);
-    visitStatement(node.body);
+    translateStatement(node.body);
 
     emitForStatementUpdate(node);
 
@@ -814,11 +814,11 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     StateTarget? inner = innerTargets[node];
 
     _jumpToTarget(inner ?? after, condition: node.condition, negated: true);
-    visitStatement(node.then);
+    translateStatement(node.then);
     if (node.otherwise != null) {
       _jumpToTarget(after);
       emitTargetLabel(inner!);
-      visitStatement(node.otherwise!);
+      translateStatement(node.otherwise!);
     }
     emitTargetLabel(after);
   }
@@ -829,13 +829,13 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     if (after == null) {
       final w.Label label = b.block();
       labelTargets[node] = _DirectLabelTarget(label);
-      visitStatement(node.body);
+      translateStatement(node.body);
       labelTargets.remove(node);
       b.end();
     } else {
       labelTargets[node] =
           _IndirectLabelTarget(exceptionHandlers._numFinalizers, after);
-      visitStatement(node.body);
+      translateStatement(node.body);
       labelTargets.remove(node);
       emitTargetLabel(after);
     }
@@ -866,7 +866,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
         isNullable ? addLocal(switchInfo.nullableType) : null;
 
     // Initialize switch value local
-    wrap(node.expression,
+    translateExpression(node.expression,
         isNullable ? switchInfo.nullableType : switchInfo.nonNullableType);
     b.local_set(
         isNullable ? switchValueNullableLocal! : switchValueNonNullableLocal);
@@ -899,11 +899,11 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
             exp is ConstantExpression && exp.constant is NullConstant) {
           // Null already checked, skip
         } else {
-          wrap(exp, switchInfo.nonNullableType);
+          translateExpression(exp, switchInfo.nonNullableType);
           b.local_get(switchValueNonNullableLocal);
           switchInfo.compare(
             switchValueNonNullableLocal,
-            () => wrap(exp, switchInfo.nonNullableType),
+            () => translateExpression(exp, switchInfo.nonNullableType),
           );
           b.if_();
           _jumpToTarget(innerTargets[c]!);
@@ -930,7 +930,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     // Emit case bodies
     for (SwitchCase c in node.cases) {
       emitTargetLabel(innerTargets[c]!);
-      visitStatement(c.body);
+      translateStatement(c.body);
       _jumpToTarget(after);
     }
 
@@ -944,7 +944,13 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    labelTargets[node.target]!.jump(this);
+    final labelTarget = labelTargets[node.target];
+    // The CFE does not attach labeled statements to targets of
+    // ContinueSwitchStatement nodes. If the enclosing switch statement does not
+    // include an await or yield then the label target may not be recorded and
+    // so we should use the normal code generator.
+    if (labelTarget == null) return super.visitContinueSwitchStatement(node);
+    labelTarget.jump(this);
   }
 
   @override
@@ -965,7 +971,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
 
     exceptionHandlers._pushTryCatch(node);
     exceptionHandlers._generateTryBlocks(b);
-    visitStatement(node.body);
+    translateStatement(node.body);
     _jumpToTarget(after);
     exceptionHandlers._terminateTryBlocks();
     exceptionHandlers._pop();
@@ -996,7 +1002,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
                     () => _getVariableBoxed(catch_.exception!),
                     () => _getVariable(catch_.stackTrace!),
                   ));
-          b.throw_(translator.exceptionTag);
+          b.throw_(translator.getExceptionTag(b.module));
         }
         b.end();
       }
@@ -1013,7 +1019,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       catchVariableStack
           .add(CatchVariables._(catch_.exception!, catch_.stackTrace!));
 
-      visitStatement(catch_.body);
+      translateStatement(catch_.body);
 
       catchVariableStack.removeLast();
 
@@ -1046,7 +1052,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.ref_as_non_null();
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
-    b.throw_(translator.exceptionTag);
+    b.throw_(translator.getExceptionTag(b.module));
 
     emitTargetLabel(after);
   }
@@ -1061,7 +1067,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     // Body
     final finalizer = exceptionHandlers._pushTryFinally(node);
     exceptionHandlers._generateTryBlocks(b);
-    visitStatement(node.body);
+    translateStatement(node.body);
 
     // Set continuation of the finalizer.
     finalizer.setContinuationFallthrough();
@@ -1073,7 +1079,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     // Finalizer
     {
       emitTargetLabel(finalizerTarget);
-      visitStatement(node.finalizer);
+      translateStatement(node.finalizer);
 
       // Check continuation.
 
@@ -1102,7 +1108,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
       b.ref_as_non_null();
       finalizer.pushStackTrace();
       b.ref_as_non_null();
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
       b.end();
 
       // Any other value: jump to the target.
@@ -1125,7 +1131,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     allocateContext(node);
     emitTargetLabel(inner);
     _jumpToTarget(after, condition: node.condition, negated: true);
-    visitStatement(node.body);
+    translateStatement(node.body);
     _jumpToTarget(inner);
     emitTargetLabel(after);
   }
@@ -1146,7 +1152,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
         if (value == null) {
           b.ref_null(translator.topInfo.struct);
         } else {
-          wrap(value, translator.topInfo.nullableType);
+          translateExpression(value, translator.topInfo.nullableType);
         }
       });
       return;
@@ -1155,7 +1161,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     if (value == null) {
       b.ref_null(translator.topInfo.struct);
     } else {
-      wrap(value, translator.topInfo.nullableType);
+      translateExpression(value, translator.topInfo.nullableType);
     }
 
     final returnValueLocal = addLocal(translator.topInfo.nullableType);
@@ -1181,7 +1187,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
     final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
-    wrap(node.expression, translator.topInfo.nonNullableType);
+    translateExpression(node.expression, translator.topInfo.nonNullableType);
     b.local_set(exceptionLocal);
 
     final stackTraceLocal =
@@ -1222,7 +1228,7 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     b.ref_as_non_null();
     getSuspendStateCurrentStackTrace();
     b.ref_as_non_null();
-    b.throw_(translator.exceptionTag);
+    b.throw_(translator.getExceptionTag(b.module));
     b.unreachable();
     return expectedType;
   }

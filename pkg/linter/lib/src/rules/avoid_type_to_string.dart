@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -13,50 +13,11 @@ import '../linter_lint_codes.dart';
 const _desc =
     r'Avoid <Type>.toString() in production code since results may be minified.';
 
-const _details = r'''
-**DO** avoid calls to <Type>.toString() in production code, since it does not
-contractually return the user-defined name of the Type (or underlying class).
-Development-mode compilers where code size is not a concern use the full name,
-but release-mode compilers often choose to minify these symbols.
-
-**BAD:**
-```dart
-void bar(Object other) {
-  if (other.runtimeType.toString() == 'Bar') {
-    doThing();
-  }
-}
-
-Object baz(Thing myThing) {
-  return getThingFromDatabase(key: myThing.runtimeType.toString());
-}
-```
-
-**GOOD:**
-```dart
-void bar(Object other) {
-  if (other is Bar) {
-    doThing();
-  }
-}
-
-class Thing {
-  String get thingTypeKey => ...
-}
-
-Object baz(Thing myThing) {
-  return getThingFromDatabase(key: myThing.thingTypeKey);
-}
-```
-
-''';
-
 class AvoidTypeToString extends LintRule {
   AvoidTypeToString()
       : super(
-          name: 'avoid_type_to_string',
+          name: LintNames.avoid_type_to_string,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -82,7 +43,7 @@ class AvoidTypeToString extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
   final InterfaceType typeType;
@@ -99,12 +60,12 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    thisType = node.declaredElement?.thisType;
+    thisType = node.declaredFragment?.element.thisType;
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var extendedType = node.declaredElement?.extendedType;
+    var extendedType = node.declaredFragment?.element.extendedType;
     // Might not be InterfaceType. Ex: visiting an extension on a dynamic type.
     thisType = extendedType is InterfaceType ? extendedType : null;
   }
@@ -120,23 +81,23 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    thisType = node.declaredElement?.thisType;
+    thisType = node.declaredFragment?.element.thisType;
   }
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
-    var encloser = simpleIdentifier.staticElement?.enclosingElement3;
-    return encloser is ClassElement && encloser.isDartCoreObject;
+    var encloser = simpleIdentifier.element?.enclosingElement2;
+    return encloser is ClassElement2 && encloser.isDartCoreObject;
   }
 
   bool _isToStringOnCoreTypeClass(
-          InterfaceType? targetType, SimpleIdentifier methodIdentifier) =>
+          DartType? targetType, SimpleIdentifier methodIdentifier) =>
       targetType != null &&
       methodIdentifier.name == 'toString' &&
       _isSimpleIdDeclByCoreObj(methodIdentifier) &&
       typeSystem.isSubtypeOf(targetType, typeType);
 
   void _reportIfToStringOnCoreTypeClass(
-      InterfaceType? targetType, SimpleIdentifier methodIdentifier) {
+      DartType? targetType, SimpleIdentifier methodIdentifier) {
     if (_isToStringOnCoreTypeClass(targetType, methodIdentifier)) {
       rule.reportLint(methodIdentifier);
     }

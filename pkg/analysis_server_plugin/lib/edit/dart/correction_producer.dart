@@ -11,6 +11,8 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -20,6 +22,8 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -31,7 +35,7 @@ import 'package:meta/meta.dart';
 /// How broadly a [CorrectionProducer] can be applied.
 ///
 /// Each value of this enum is cumulative, as the index increases, except for
-/// [CorrectionApplicability.automaticallyButOncePerFile]. When a correctiopn
+/// [CorrectionApplicability.automaticallyButOncePerFile]. When a correction
 /// producer has a given applicability, it also can be applied with each
 /// lower-indexed value. For example, a correction producer with an
 /// applicability of [CorrectionApplicability.acrossFiles] can also be used to
@@ -356,6 +360,10 @@ abstract class ResolvedCorrectionProducer
       sessionHelper.session.analysisContext
           .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
 
+  InheritanceManager3 get inheritanceManager {
+    return (libraryElement as LibraryElementImpl).session.inheritanceManager;
+  }
+
   /// Whether [node] is in a static context.
   bool get inStaticContext {
     // Constructor initializers cannot reference `this`.
@@ -375,6 +383,10 @@ abstract class ResolvedCorrectionProducer
   /// The library element for the library in which a correction is being
   /// produced.
   LibraryElement get libraryElement => unitResult.libraryElement;
+
+  /// The library element for the library in which a correction is being
+  /// produced.
+  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
 
   TypeProvider get typeProvider => unitResult.typeProvider;
 
@@ -399,11 +411,34 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Returns the class declaration for the given [fragment], or `null` if there
+  /// is no such class.
+  Future<ClassDeclaration?> getClassDeclaration2(ClassFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var node = result?.node;
+    if (node is ClassDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   /// Returns the extension declaration for the given [element], or `null` if
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is ExtensionDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Returns the extension declaration for the given [fragment], or `null` if
+  /// there is no such extension.
+  Future<ExtensionDeclaration?> getExtensionDeclaration2(
+      ExtensionFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
       return node;
@@ -423,10 +458,33 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Returns the extension type for the given [fragment], or `null` if there
+  /// is no such extension type.
+  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration2(
+      ExtensionTypeFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
+    var node = result?.node;
+    if (node is ExtensionTypeDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   /// Returns the mixin declaration for the given [element], or `null` if there
   /// is no such mixin.
   Future<MixinDeclaration?> getMixinDeclaration(MixinElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is MixinDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Returns the mixin declaration for the given [fragment], or `null` if there
+  /// is no such mixin.
+  Future<MixinDeclaration?> getMixinDeclaration2(MixinFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;
@@ -449,6 +507,21 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Returns the class element associated with the [target], or `null` if there
+  /// is no such element.
+  InterfaceElement2? getTargetInterfaceElement2(Expression target) {
+    var type = target.staticType;
+    if (type is InterfaceType) {
+      return type.element3;
+    } else if (target is Identifier) {
+      var element = target.element;
+      if (element is InterfaceElement2) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Returns an expected [DartType] of [expression], may be `null` if cannot be
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
@@ -461,6 +534,28 @@ abstract class ResolvedCorrectionProducer
       if (parent is ExpressionStatement) {
         return VoidTypeImpl.instance;
       }
+    }
+    if (parent case ConditionalExpression conditionalExpression) {
+      // `v = myFunction() ? 1 : 2;`.
+      if (conditionalExpression.condition == expression) {
+        return _coreTypeBool;
+      } else {
+        var type = conditionalExpression.staticParameterElement?.type;
+        if (type is InterfaceType && type.isDartCoreFunction) {
+          return FunctionTypeImpl(
+            typeFormals: const [],
+            parameters: const [],
+            returnType: typeProvider.dynamicType,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+        return type;
+      }
+    }
+    // `=> myFunction();`.
+    if (parent is ExpressionFunctionBody) {
+      var executable = expression.enclosingExecutableElement;
+      return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {

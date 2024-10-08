@@ -123,6 +123,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
+    element: <testLibraryFragment>::@function::f#element
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (

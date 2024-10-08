@@ -11,28 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer using `??` operators.';
 
-const _details = r'''
-**PREFER** using `??` operators instead of `null` checks and conditional
-expressions.
-
-**BAD:**
-```dart
-v = a == null ? b : a;
-```
-
-**GOOD:**
-```dart
-v = a ?? b;
-```
-
-''';
-
 class PreferIfNullOperators extends LintRule {
   PreferIfNullOperators()
       : super(
-          name: 'prefer_if_null_operators',
+          name: LintNames.prefer_if_null_operators,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -46,7 +29,7 @@ class PreferIfNullOperators extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

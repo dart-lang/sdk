@@ -11,35 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `const` keyword.';
 
-const _details = r'''
-**AVOID** repeating `const` keyword in a `const` context.
-
-**BAD:**
-```dart
-class A { const A(); }
-m(){
-  const a = const A();
-  final b = const [const A()];
-}
-```
-
-**GOOD:**
-```dart
-class A { const A(); }
-m(){
-  const a = A();
-  final b = const [A()];
-}
-```
-
-''';
-
 class UnnecessaryConst extends LintRule {
   UnnecessaryConst()
       : super(
-          name: 'unnecessary_const',
+          name: LintNames.unnecessary_const,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -59,7 +35,7 @@ class UnnecessaryConst extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   _Visitor(this.rule);
 

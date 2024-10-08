@@ -18,9 +18,14 @@ class Thread {
   // Start a thread running the specified function. Returns 0 if the
   // thread started successfully and a system specific error code if
   // the thread failed to start.
-  static int Start(const char* name,
-                   ThreadStartFunction function,
-                   uword parameters);
+  DART_WARN_UNUSED_RESULT static int TryStart(const char* name,
+                                              ThreadStartFunction function,
+                                              uword parameter);
+  // Start a thread running the specified function. If the thread fails to
+  // start, then exit with an descriptive error message.
+  static void Start(const char* name,
+                    ThreadStartFunction function,
+                    uword parameter);
 
   static intptr_t GetMaxStackSize();
 

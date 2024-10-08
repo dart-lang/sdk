@@ -36,6 +36,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -68,6 +69,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -102,6 +104,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -134,6 +137,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::g
+    element: <testLibraryFragment>::@function::g#element
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -157,6 +161,7 @@ IndexExpression
   target: SimpleIdentifier
     token: b
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -165,6 +170,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -179,6 +185,7 @@ IndexExpression
   target: SimpleIdentifier
     token: b
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -187,6 +194,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -208,6 +216,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   leftBracket: [
   index: IntegerLiteral
@@ -216,6 +225,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
   }
@@ -241,6 +251,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
 
@@ -254,6 +265,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
 
@@ -277,6 +289,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
@@ -289,6 +302,7 @@ IndexExpression
   staticElement: MethodMember
     base: <testLibraryFragment>::@class::A::@method::[]
     substitution: {T: double}
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: double
 ''');
   }
@@ -318,6 +332,7 @@ IndexExpression
     staticType: A
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: int
 ''');
   }
@@ -337,6 +352,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: List<int>
   leftBracket: [
   index: SimpleIdentifier
@@ -345,11 +361,13 @@ IndexExpression
       base: dart:core::<fragment>::@class::List::@method::[]::@parameter::index
       substitution: {E: int}
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   rightBracket: ]
   staticElement: MethodMember
     base: dart:core::<fragment>::@class::List::@method::[]
     substitution: {E: int}
+  element: dart:core::<fragment>::@class::List::@method::[]#element
   staticType: int
 ''');
   }
@@ -371,6 +389,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   leftBracket: [
   index: IntegerLiteral
@@ -379,6 +398,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool?
 ''');
   }
@@ -407,6 +427,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@extension::E::@method::[]
+  element: <testLibraryFragment>::@extension::E::@method::[]#element
   staticType: bool
 ''');
   }
@@ -443,6 +464,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]
+  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]#element
   staticType: bool
 ''');
   }
@@ -469,6 +491,7 @@ IndexExpression
     expression: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -484,8 +507,10 @@ IndexExpression
             type: NamedType
               name: A
               element: <testLibraryFragment>::@class::A
+              element2: <testLibraryFragment>::@class::A#element
               type: A
             staticElement: <testLibraryFragment>::@class::A::@constructor::new
+            element: <testLibraryFragment>::@class::A::@constructor::new#element
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -499,6 +524,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <testLibraryFragment>::@class::A::@method::[]
+  element: <testLibraryFragment>::@class::A::@method::[]#element
   staticType: bool
 ''');
   }
@@ -516,6 +542,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: dynamic
   leftBracket: [
   index: IntegerLiteral
@@ -524,6 +551,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: dynamic
 ''');
   }
@@ -543,6 +571,7 @@ IndexExpression
   target: SimpleIdentifier
     token: a
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -551,6 +580,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -574,6 +604,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -582,6 +613,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: DoubleLiteral
@@ -589,10 +621,13 @@ AssignmentExpression
     parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: double
   readElement: <testLibraryFragment>::@class::A::@method::[]
+  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
   readType: num
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: double
 ''');
   }
@@ -617,6 +652,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -627,6 +663,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: DoubleLiteral
@@ -636,12 +673,15 @@ AssignmentExpression
   readElement: MethodMember
     base: <testLibraryFragment>::@class::A::@method::[]
     substitution: {T: double}
+  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
   readType: double
   writeElement: MethodMember
     base: <testLibraryFragment>::@class::A::@method::[]=
     substitution: {T: double}
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: double
   staticElement: dart:core::<fragment>::@class::double::@method::+
+  element: dart:core::<fragment>::@class::double::@method::+#element
   staticType: double
 ''');
   }
@@ -666,6 +706,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
@@ -674,6 +715,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: DoubleLiteral
@@ -681,10 +723,13 @@ AssignmentExpression
     parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
     staticType: double
   readElement: <testLibraryFragment>::@class::A::@method::[]
+  readElement2: <testLibraryFragment>::@class::A::@method::[]#element
   readType: num
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: dart:core::<fragment>::@class::num::@method::+
+  element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: double?
 ''');
   }
@@ -708,6 +753,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -716,6 +762,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
@@ -723,10 +770,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -748,6 +798,7 @@ CascadeExpression
   target: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A?
   cascadeSections
     AssignmentExpression
@@ -760,18 +811,23 @@ CascadeExpression
           staticType: int
         rightBracket: ]
         staticElement: <null>
+        element: <null>
         staticType: null
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
         parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       readElement: <null>
+      readElement2: <null>
       readType: null
       writeElement: <testLibraryFragment>::@class::A::@method::[]=
+      writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
       writeType: A
       staticElement: <null>
+      element: <null>
       staticType: A
     AssignmentExpression
       leftHandSide: IndexExpression
@@ -783,18 +839,23 @@ CascadeExpression
           staticType: int
         rightBracket: ]
         staticElement: <null>
+        element: <null>
         staticType: null
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
         parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a
         staticElement: <testLibraryFragment>::@function::f::@parameter::a
+        element: <testLibraryFragment>::@function::f::@parameter::a#element
         staticType: A
       readElement: <null>
+      readElement2: <null>
       readType: null
       writeElement: <testLibraryFragment>::@class::A::@method::[]=
+      writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
       writeType: A
       staticElement: <null>
+      element: <null>
       staticType: A
   staticType: A?
 ''');
@@ -819,6 +880,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -829,6 +891,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
@@ -838,12 +901,15 @@ AssignmentExpression
       substitution: {T: double}
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: MethodMember
     base: <testLibraryFragment>::@class::A::@method::[]=
     substitution: {T: double}
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: double
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -867,6 +933,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A?
     leftBracket: [
     index: IntegerLiteral
@@ -875,6 +942,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
@@ -882,10 +950,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double?
 ''');
   }
@@ -915,6 +986,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
@@ -922,10 +994,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@extension::E::@method::[]=
+  writeElement2: <testLibraryFragment>::@extension::E::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -963,6 +1038,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
@@ -970,10 +1046,13 @@ AssignmentExpression
     parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=
+  writeElement2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }
@@ -1001,6 +1080,7 @@ AssignmentExpression
       expression: SimpleIdentifier
         token: x
         staticElement: <testLibraryFragment>::@function::f::@parameter::x
+        element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: Object?
       rightParenthesis: )
       leftBracket: {
@@ -1016,8 +1096,10 @@ AssignmentExpression
               type: NamedType
                 name: A
                 element: <testLibraryFragment>::@class::A
+                element2: <testLibraryFragment>::@class::A#element
                 type: A
               staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
             argumentList: ArgumentList
               leftParenthesis: (
               rightParenthesis: )
@@ -1031,6 +1113,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: DoubleLiteral
@@ -1038,10 +1121,13 @@ AssignmentExpression
     parameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::A::@method::[]=
+  writeElement2: <testLibraryFragment>::@class::A::@method::[]=#element
   writeType: num
   staticElement: <null>
+  element: <null>
   staticType: double
 ''');
   }

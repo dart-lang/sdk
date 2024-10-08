@@ -211,7 +211,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         );
-      } else if (!_resolver.definingLibrary
+      } else if (!_resolver.libraryFragment
           .shouldIgnoreUndefinedIdentifier(node)) {
         errorReporter.atNode(
           node,

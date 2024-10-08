@@ -6,10 +6,12 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/assembler_test.h"
 #include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
+#include "vm/zone_text_buffer.h"
 
 #if defined(PRODUCT)
 #define EXPECT_DISASSEMBLY(expected)
@@ -5080,6 +5082,68 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kFunctionCid, result);
   result = test->Invoke<intptr_t, intptr_t>(kMintCid);
   EXPECT_EQ(kMintCid, result);
+}
+
+void CheckIsIdentity(Expect& expect, AssemblerTest* test) {
+  for (size_t i = 0; i < ARRAY_SIZE(kRegRegImmInputs); ++i) {
+    const intptr_t input = kRegRegImmInputs[i];
+    const intptr_t result = test->Invoke<intptr_t, intptr_t>(input);
+    expect.Equals(input, result);
+  }
+}
+
+static const Register kRegRegImmTempReg = EBX;
+
+void CheckMovesInputToReturnOnly(Expect& expect,
+                                 AssemblerTest* test,
+                                 bool is_direct) {
+  auto* const ret_reg_name = cpu_reg_names[RegRegImmTests::kReturnReg];
+  auto* const temp_reg_name = cpu_reg_names[kRegRegImmTempReg];
+  ZoneTextBuffer buf(Thread::Current()->zone());
+  buf.Printf("mov %s,[esp+0x4]\n", is_direct ? ret_reg_name : temp_reg_name);
+  if (!is_direct) {
+    RELEASE_ASSERT(RegRegImmTests::kReturnReg != kRegRegImmTempReg);
+    buf.Printf("mov %s,%s\n", ret_reg_name, temp_reg_name);
+  }
+  buf.AddString("ret\n");
+  expect.StringEquals(buf.buffer(), test->RelativeDisassembly());
+}
+
+#define GENERATE_ASSEMBLER_IDENTITY_TEST(inst, rhs)                            \
+  ASSEMBLER_TEST_GENERATE(inst##_##rhs##_Identity_Direct, assembler) {         \
+    __ movl(RegRegImmTests::kReturnReg, Address(ESP, 4));                      \
+    __ inst(RegRegImmTests::kReturnReg, RegRegImmTests::kReturnReg, rhs,       \
+            kWordBytes);                                                       \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(inst##_##rhs##_Identity_Direct, test) {                   \
+    Expect expect(__FILE__, __LINE__);                                         \
+    CheckIsIdentity(expect, test);                                             \
+    CheckMovesInputToReturnOnly(expect, test, /*is_direct=*/true);             \
+  }                                                                            \
+  ASSEMBLER_TEST_GENERATE(inst##_##rhs##_Identity_Indirect, assembler) {       \
+    __ movl(kRegRegImmTempReg, Address(ESP, 4));                               \
+    __ inst(RegRegImmTests::kReturnReg, kRegRegImmTempReg, rhs, kWordBytes);   \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(inst##_##rhs##_Identity_Indirect, test) {                 \
+    Expect expect(__FILE__, __LINE__);                                         \
+    CheckIsIdentity(expect, test);                                             \
+    CheckMovesInputToReturnOnly(expect, test, /*is_direct=*/false);            \
+  }
+
+GENERATE_ASSEMBLER_IDENTITY_TEST(AndImmediate, kMaxUint32)
+GENERATE_ASSEMBLER_IDENTITY_TEST(LslImmediate, 0)
+GENERATE_ASSEMBLER_IDENTITY_TEST(ArithmeticShiftRightImmediate, 0)
+
+#undef GENERATE_ASSEMBLER_IDENTITY_TEST
+
+intptr_t RegRegImmTests::Lsl(intptr_t value, intptr_t shift, OperandSize sz) {
+  return ExtendValue(static_cast<uintptr_t>(value) << shift, sz);
+}
+
+intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
+  return ExtendValue(SignExtendValue(value, sz) >> shift, sz);
 }
 
 void EnterTestFrame(Assembler* assembler) {

@@ -33,6 +33,7 @@ ObjectPattern
   type: NamedType
     name: B
     element: <testLibraryFragment>::@class::B
+    element2: <testLibraryFragment>::@class::B#element
     type: B<B<Object?>>
   leftParenthesis: (
   rightParenthesis: )
@@ -57,6 +58,7 @@ ObjectPattern
   type: NamedType
     name: B
     element: <testLibraryFragment>::@class::B
+    element2: <testLibraryFragment>::@class::B#element
     type: B<int>
   leftParenthesis: (
   rightParenthesis: )
@@ -82,6 +84,7 @@ ObjectPattern
   type: NamedType
     name: C
     element: <testLibraryFragment>::@class::C
+    element2: <testLibraryFragment>::@class::C#element
     type: C<int, Set<int>>
   leftParenthesis: (
   rightParenthesis: )
@@ -106,6 +109,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A<num>
   leftParenthesis: (
   rightParenthesis: )
@@ -131,6 +135,7 @@ ObjectPattern
   type: NamedType
     name: L
     element: <testLibraryFragment>::@typeAlias::L
+    element2: <testLibraryFragment>::@typeAlias::L#element
     type: B<int, String>
       alias: <testLibraryFragment>::@typeAlias::L
         typeArguments
@@ -167,9 +172,11 @@ ObjectPattern
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A<int>
   leftParenthesis: (
   fields
@@ -183,9 +190,10 @@ ObjectPattern
         declaredElement: hasImplicitType foo2@90
           type: int
         matchedValueType: int
-      element: PropertyAccessorMember
+      element: GetterMember
         base: <testLibraryFragment>::@class::A::@getter::foo
         substitution: {T: int}
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -210,6 +218,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -223,6 +232,7 @@ ObjectPattern
           staticType: int
         matchedValueType: int
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -249,6 +259,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -262,6 +273,7 @@ ObjectPattern
           staticType: int
         matchedValueType: int
       element: <testLibraryFragment>::@extension::E::@getter::foo
+      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -288,6 +300,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -302,6 +315,7 @@ ObjectPattern
           type: void Function()
         matchedValueType: void Function()
       element: <testLibraryFragment>::@class::A::@method::foo
+      element2: <testLibraryFragment>::@class::A::@method::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -330,6 +344,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -344,6 +359,7 @@ ObjectPattern
           type: void Function()
         matchedValueType: void Function()
       element: <testLibraryFragment>::@extension::E::@method::foo
+      element2: <testLibraryFragment>::@extension::E::@method::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -370,6 +386,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -384,6 +401,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -410,6 +428,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -422,6 +441,7 @@ ObjectPattern
           staticType: int
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -448,6 +468,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -461,6 +482,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -487,6 +509,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -504,9 +527,11 @@ ObjectPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         matchedValueType: int?
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -533,6 +558,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -549,6 +575,7 @@ ObjectPattern
         operator: !
         matchedValueType: int?
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -575,6 +602,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -591,6 +619,7 @@ ObjectPattern
         operator: ?
         matchedValueType: int?
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -617,6 +646,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -634,6 +664,7 @@ ObjectPattern
         rightParenthesis: )
         matchedValueType: int
       element: <testLibraryFragment>::@class::A::@getter::foo
+      element2: <testLibraryFragment>::@class::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -653,6 +684,7 @@ ObjectPattern
   type: NamedType
     name: Object
     element: dart:core::<fragment>::@class::Object
+    element2: dart:core::<fragment>::@class::Object#element
     type: Object
   leftParenthesis: (
   fields
@@ -663,6 +695,7 @@ ObjectPattern
           staticType: int
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -687,6 +720,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -700,6 +734,7 @@ ObjectPattern
           staticType: int
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -725,6 +760,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
+    element2: <testLibraryFragment>::@class::A#element
     type: A
   leftParenthesis: (
   fields
@@ -738,6 +774,7 @@ ObjectPattern
           type: dynamic
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -762,6 +799,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
+    element2: <testLibraryFragment>::@extensionType::A#element
     type: A
   leftParenthesis: (
   fields
@@ -775,6 +813,7 @@ ObjectPattern
           staticType: int
         matchedValueType: int
       element: <testLibraryFragment>::@extensionType::A::@getter::foo
+      element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -801,6 +840,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
+    element2: <testLibraryFragment>::@extensionType::A#element
     type: A
   leftParenthesis: (
   fields
@@ -814,6 +854,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <testLibraryFragment>::@extensionType::A::@getter::foo
+      element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -838,6 +879,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
+    element2: <testLibraryFragment>::@extensionType::A#element
     type: A
   leftParenthesis: (
   fields
@@ -851,6 +893,7 @@ ObjectPattern
           staticType: int
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -876,6 +919,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: int?
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -890,6 +934,7 @@ ObjectPattern
           staticType: int
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -914,6 +959,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: dynamic
   leftParenthesis: (
   fields
@@ -928,6 +974,7 @@ ObjectPattern
           type: dynamic
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -961,9 +1008,11 @@ ObjectPattern
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: int Function()
       alias: <testLibraryFragment>::@typeAlias::A
         typeArguments
@@ -981,6 +1030,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <testLibraryFragment>::@extension::E::@getter::foo
+      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1009,6 +1059,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1024,6 +1075,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <testLibraryFragment>::@extension::E::@getter::foo
+      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1048,6 +1100,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1063,6 +1116,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: dart:core::<fragment>::@class::Object::@getter::hashCode
+      element2: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1088,6 +1142,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1103,6 +1158,7 @@ ObjectPattern
           type: dynamic
         matchedValueType: dynamic
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1127,6 +1183,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: ({int foo})
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1142,6 +1199,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -1166,6 +1224,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
+    element2: <testLibraryFragment>::@typeAlias::A#element
     type: (int,)
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1181,6 +1240,7 @@ ObjectPattern
           type: int
         matchedValueType: int
       element: <null>
+      element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -1206,6 +1266,7 @@ PatternVariableDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     leftParenthesis: (
     fields
@@ -1218,15 +1279,17 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@32
             type: int
           matchedValueType: int
-        element: PropertyAccessorMember
+        element: GetterMember
           base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: int}
+        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: A<int>
   patternTypeSchema: A<dynamic>
 ''');
@@ -1258,9 +1321,11 @@ PatternVariableDeclaration
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<int>
     leftParenthesis: (
     fields
@@ -1273,9 +1338,10 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@29
             type: int
           matchedValueType: int
-        element: PropertyAccessorMember
+        element: GetterMember
           base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: int}
+        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
@@ -1285,10 +1351,12 @@ PatternVariableDeclaration
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A<int>
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: int}
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -1318,6 +1386,7 @@ PatternVariableDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
+      element2: <testLibraryFragment>::@class::A#element
       type: A<dynamic>
     leftParenthesis: (
     fields
@@ -1329,14 +1398,16 @@ PatternVariableDeclaration
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
+            element2: dart:core::<fragment>::@class::int#element
             type: int
           name: a
           declaredElement: a@28
             type: int
           matchedValueType: dynamic
-        element: PropertyAccessorMember
+        element: GetterMember
           base: <testLibraryFragment>::@class::A::@getter::foo
           substitution: {T: dynamic}
+        element2: <testLibraryFragment>::@class::A::@getter::foo#element
     rightParenthesis: )
     matchedValueType: A<dynamic>
   equals: =
@@ -1346,10 +1417,12 @@ PatternVariableDeclaration
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
+        element2: <testLibraryFragment>::@class::A#element
         type: A<dynamic>
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::new
         substitution: {T: dynamic}
+      element: <testLibraryFragment>::@class::A::@constructor::new#element
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )

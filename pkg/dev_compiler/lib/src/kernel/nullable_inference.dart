@@ -8,7 +8,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../compiler/shared_command.dart' show SharedCompilerOptions;
+import '../command/options.dart' show Options;
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
 
@@ -53,8 +53,7 @@ class NullableInference extends ExpressionVisitor<bool>
 
   final bool _soundNullSafety;
 
-  NullableInference(this.jsTypeRep, this._staticTypeContext,
-      {SharedCompilerOptions? options})
+  NullableInference(this.jsTypeRep, this._staticTypeContext, {Options? options})
       : coreTypes = jsTypeRep.coreTypes,
         _soundNullSafety = options?.soundNullSafety ?? true {
     _variableInference._nullInference = this;

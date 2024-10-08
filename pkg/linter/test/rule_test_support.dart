@@ -33,77 +33,89 @@ export 'package:analyzer/src/dart/analysis/experiments.dart';
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+export 'package:linter/src/lint_names.dart';
+
+// TODO(srawlins): This is duplicate with
+// pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart and
+// and pkg/analysis_server/test/analysis_server_base.dart. Keep them as
+// consistent with each other as they are today. Ultimately combine them in a
+// shared analyzer test utilities package.
+String analysisOptionsContent({
+  List<String> experiments = const [],
+  List<String> rules = const [],
+  bool propagateLinterExceptions = false,
+}) {
+  var buffer = StringBuffer();
+
+  if (experiments.isNotEmpty || propagateLinterExceptions) {
+    buffer.writeln('analyzer:');
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
+    }
+
+    if (propagateLinterExceptions) {
+      buffer.writeln('  optional-checks:');
+      buffer.writeln(
+        '    propagate-linter-exceptions: $propagateLinterExceptions',
+      );
+    }
+  }
+
+  buffer.writeln('linter:');
+  buffer.writeln('  rules:');
+  for (var rule in rules) {
+    buffer.writeln('    - $rule');
+  }
+
+  return buffer.toString();
+}
 
 ExpectedError error(ErrorCode code, int offset, int length,
         {Pattern? messageContains}) =>
     ExpectedError(code, offset, length, messageContains: messageContains);
 
-typedef DiagnosticMatcher = bool Function(AnalysisError error);
+// TODO(srawlins): This is duplicate with
+// pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart.
+// Keep them as consistent with each other as they are today. Ultimately combine
+// them in a shared analyzer test utilities package.
+String pubspecYamlContent({String? name}) {
+  var buffer = StringBuffer();
 
-class AnalysisOptionsFileConfig {
-  final List<String> experiments;
-  final List<String> lints;
-  final bool propagateLinterExceptions;
-
-  AnalysisOptionsFileConfig({
-    this.experiments = const [],
-    this.lints = const [],
-    this.propagateLinterExceptions = false,
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    if (experiments.isNotEmpty || propagateLinterExceptions) {
-      buffer.writeln('analyzer:');
-      buffer.writeln('  enable-experiment:');
-      for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
-      }
-
-      if (propagateLinterExceptions) {
-        buffer.writeln('  optional-checks:');
-        buffer.writeln(
-          '    propagate-linter-exceptions: $propagateLinterExceptions',
-        );
-      }
-    }
-
-    buffer.writeln('linter:');
-    buffer.writeln('  rules:');
-    for (var lint in lints) {
-      buffer.writeln('    - $lint');
-    }
-
-    return buffer.toString();
+  if (name != null) {
+    buffer.writeln('name: $name');
   }
+
+  return buffer.toString();
 }
+
+typedef DiagnosticMatcher = bool Function(AnalysisError error);
 
 /// A description of a diagnostic that is expected to be reported.
 class ExpectedDiagnostic {
-  final DiagnosticMatcher diagnosticMatcher;
+  final DiagnosticMatcher _diagnosticMatcher;
 
   /// The offset of the beginning of the diagnostic's region.
-  final int offset;
+  final int _offset;
 
   /// The offset of the beginning of the diagnostic's region.
-  final int length;
+  final int _length;
 
   /// A pattern that should be contained in the diagnostic message or `null` if
   /// the message contents should not be checked.
-  final Pattern? messageContains;
+  final Pattern? _messageContains;
 
   /// Initialize a newly created diagnostic description.
-  ExpectedDiagnostic(this.diagnosticMatcher, this.offset, this.length,
-      {this.messageContains});
+  ExpectedDiagnostic(this._diagnosticMatcher, this._offset, this._length,
+      {Pattern? messageContains})
+      : _messageContains = messageContains;
 
-  /// Return `true` if the [error] matches this description of what it's
-  /// expected to be.
+  /// Whether the [error] matches this description of what it's expected to be.
   bool matches(AnalysisError error) {
-    if (!diagnosticMatcher(error)) return false;
-    if (error.offset != offset) return false;
-    if (error.length != length) return false;
-    if (messageContains != null && !error.message.contains(messageContains!)) {
+    if (!_diagnosticMatcher(error)) return false;
+    if (error.offset != _offset) return false;
+    if (error.length != _length) return false;
+    if (_messageContains != null && !error.message.contains(_messageContains)) {
       return false;
     }
 
@@ -111,31 +123,28 @@ class ExpectedDiagnostic {
   }
 }
 
+/// A description of an expected error.
 class ExpectedError extends ExpectedDiagnostic {
-  final ErrorCode code;
+  final ErrorCode _code;
 
-  /// Initialize a newly created error description.
-  ExpectedError(this.code, int offset, int length, {Pattern? messageContains})
-      : super((AnalysisError error) => error.errorCode == code, offset, length,
+  ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
+      : super((error) => error.errorCode == _code, offset, length,
             messageContains: messageContains);
 }
 
+/// A description of an expected lint rule violation.
 class ExpectedLint extends ExpectedDiagnostic {
-  final String lintName;
+  final String _lintName;
 
-  /// Initialize a newly created lint description.
-  ExpectedLint(this.lintName, int offset, int length,
+  ExpectedLint(this._lintName, int offset, int length,
       {Pattern? messageContains})
-      : super((AnalysisError error) => error.errorCode.name == lintName, offset,
-            length,
+      : super((error) => error.errorCode.name == _lintName, offset, length,
             messageContains: messageContains);
 
-  /// Initialize a newly created lint description.
   ExpectedLint.withLintCode(LintCode lintCode, int offset, int length,
       {Pattern? messageContains})
-      : lintName = lintCode.uniqueName,
-        super((AnalysisError error) => error.errorCode == lintCode, offset,
-            length,
+      : _lintName = lintCode.uniqueName,
+        super((error) => error.errorCode == lintCode, offset, length,
             messageContains: messageContains);
 }
 
@@ -173,9 +182,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get addMetaPackageDep => false;
 
-  @override
-  List<String> get collectionIncludedPaths => [workspaceRootPath];
-
   bool get dumpAstOnFailures => true;
 
   List<String> get experiments => experimentsForTests;
@@ -197,18 +203,22 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   String get workspaceRootPath => '/home';
 
-  /// Assert that the number of diagnostics that have been gathered matches the
+  @override
+  List<String> get _collectionIncludedPaths => [workspaceRootPath];
+
+  /// Asserts that the number of diagnostics reported in [content] matches the
   /// number of [expectedDiagnostics] and that they have the expected error
-  /// descriptions and locations. The order in which the diagnostics were
-  /// gathered is ignored.
+  /// descriptions and locations.
+  ///
+  /// The order in which the diagnostics were gathered is ignored.
   Future<void> assertDiagnostics(
-      String code, List<ExpectedDiagnostic> expectedDiagnostics) async {
-    addTestFile(code);
+      String content, List<ExpectedDiagnostic> expectedDiagnostics) async {
+    addTestFile(content);
     await resolveTestFile();
     await assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
-  /// Assert that the diagnostics in [errors] match [expectedDiagnostics].
+  /// Asserts that the diagnostics in [errors] match [expectedDiagnostics].
   Future<void> assertDiagnosticsIn(List<AnalysisError> errors,
       List<ExpectedDiagnostic> expectedDiagnostics) async {
     //
@@ -243,15 +253,15 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       for (var expected in unmatchedExpected) {
         buffer.write('  ');
         if (expected is ExpectedError) {
-          buffer.write(expected.code);
+          buffer.write(expected._code);
         }
         if (expected is ExpectedLint) {
-          buffer.write(expected.lintName);
+          buffer.write(expected._lintName);
         }
         buffer.write(' [');
-        buffer.write(expected.offset);
+        buffer.write(expected._offset);
         buffer.write(', ');
-        buffer.write(expected.length);
+        buffer.write(expected._length);
         buffer.writeln(']');
       }
     }
@@ -318,17 +328,18 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
   }
 
-  /// Assert that the number of diagnostics that have been gathered matches the
-  /// number of [expectedDiagnostics] and that they have the expected error
-  /// descriptions and locations. The order in which the diagnostics were
-  /// gathered is ignored.
+  /// Asserts that the number of diagnostics that have been gathered at [path]
+  /// matches the number of [expectedDiagnostics] and that they have the
+  /// expected error descriptions and locations.
+  ///
+  /// The order in which the diagnostics were gathered is ignored.
   Future<void> assertDiagnosticsInFile(
       String path, List<ExpectedDiagnostic> expectedDiagnostics) async {
     await _resolveFile(path);
     await assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
-  /// Asserts that the diagnostics for each `path` match those in
+  /// Asserts that the diagnostics for each `path` match those in the paired
   /// `expectedDiagnostics`.
   ///
   /// The unit at each path needs to have already been written to the file
@@ -342,26 +353,26 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
   }
 
-  /// Assert that there are no diagnostics in the given [code].
-  Future<void> assertNoDiagnostics(String code) async =>
-      assertDiagnostics(code, const []);
+  /// Asserts that there are no diagnostics in the given [content].
+  Future<void> assertNoDiagnostics(String content) async =>
+      assertDiagnostics(content, const []);
 
-  /// Assert that there are no diagnostics in [errors].
+  /// Asserts that there are no diagnostics in [errors].
   Future<void> assertNoDiagnosticsIn(List<AnalysisError> errors) =>
       assertDiagnosticsIn(errors, const []);
 
-  /// Assert that there are no diagnostics in the given file.
+  /// Asserts that there are no diagnostics in the file at the given [path].
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
-  /// Assert that no diagnostics are reported when resolving [content].
+  /// Asserts that no diagnostics are reported when resolving [content].
   Future<void> assertNoPubspecDiagnostics(String content) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _resolvePubspecFile(content);
     await assertDiagnosticsIn(errors, []);
   }
 
-  /// Assert that [expectedDiagnostics] are reported when resolving [content].
+  /// Asserts that [expectedDiagnostics] are reported when resolving [content].
   Future<void> assertPubspecDiagnostics(
       String content, List<ExpectedDiagnostic> expectedDiagnostics) async {
     newFile(testPackagePubspecPath, content);
@@ -382,17 +393,18 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       }
     }
 
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      analysisOptionsContent(
         experiments: experiments,
-        lints: _lintRules,
+        rules: _lintRules,
         propagateLinterExceptions: true,
       ),
     );
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
     );
-    writeTestPackagePubspecYamlFile(PubspecYamlFileConfig(name: 'test'));
+    _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
@@ -401,13 +413,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       config.toContent(
         toUriStr: toUriStr,
       ),
-    );
-  }
-
-  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      config.toContent(),
     );
   }
 
@@ -452,10 +457,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     writePackageConfig(path, configCopy);
   }
 
-  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
-    newPubspecYamlFile(testPackageRootPath, config.toContent());
-  }
-
   Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
@@ -488,57 +489,23 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
     return [...listener.errors];
   }
-}
 
-class PubspecYamlFileConfig {
-  final String? name;
-  final String? sdkVersion;
-  final List<PubspecYamlFileDependency> dependencies;
-
-  PubspecYamlFileConfig({
-    this.name,
-    this.sdkVersion,
-    this.dependencies = const [],
-  });
-
-  String toContent() {
-    var buffer = StringBuffer();
-
-    if (name != null) {
-      buffer.writeln('name: $name');
-    }
-
-    if (sdkVersion != null) {
-      buffer.writeln('environment:');
-      buffer.writeln("  sdk: '$sdkVersion'");
-    }
-
-    if (dependencies.isNotEmpty) {
-      buffer.writeln('dependencies:');
-      for (var dependency in dependencies) {
-        buffer.writeln('  ${dependency.name}: ${dependency.version}');
-      }
-    }
-
-    return buffer.toString();
+  void _writeTestPackagePubspecYamlFile(String content) {
+    newPubspecYamlFile(testPackageRootPath, content);
   }
-}
-
-class PubspecYamlFileDependency {
-  final String name;
-  final String version;
-
-  PubspecYamlFileDependency({
-    required this.name,
-    this.version = 'any',
-  });
 }
 
 abstract class _ContextResolutionTest
     with MockPackagesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore _byteStore = MemoryByteStore();
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  final MemoryByteStore _byteStore = _sharedByteStore;
 
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
@@ -547,8 +514,6 @@ abstract class _ContextResolutionTest
   late FindNode findNode;
 
   late ResolvedUnitResult result;
-
-  List<String> get collectionIncludedPaths;
 
   /// The analysis errors that were computed during analysis.
   List<AnalysisError> get errors => result.errors
@@ -563,9 +528,11 @@ abstract class _ContextResolutionTest
   @override
   String get packagesRootPath => '/packages';
 
-  Folder get sdkRoot => newFolder('/sdk');
+  String get testFilePath;
 
-  String get testFilePath => '/test/lib/test.dart';
+  List<String> get _collectionIncludedPaths;
+
+  Folder get _sdkRoot => newFolder('/sdk');
 
   void addTestFile(String content) {
     newFile(testFilePath, content);
@@ -604,7 +571,7 @@ abstract class _ContextResolutionTest
 
     createMockSdk(
       resourceProvider: resourceProvider,
-      root: sdkRoot,
+      root: _sdkRoot,
     );
   }
 
@@ -621,7 +588,7 @@ abstract class _ContextResolutionTest
     return _analysisContextCollection!.contextFor(convertedPath);
   }
 
-  /// Create all analysis contexts in [collectionIncludedPaths].
+  /// Creates all analysis contexts in [_collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
       return;
@@ -631,13 +598,13 @@ abstract class _ContextResolutionTest
       byteStore: _byteStore,
       declaredVariables: {},
       enableIndex: true,
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
+      sdkPath: _sdkRoot.path,
     );
   }
 
-  /// Resolve the file with the [path] into [result].
+  /// Resolves the file with the [path] into [result].
   Future<void> _resolveFile(String path) async {
     var convertedPath = convertPath(path);
 

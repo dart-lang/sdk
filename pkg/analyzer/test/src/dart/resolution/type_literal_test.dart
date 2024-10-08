@@ -35,9 +35,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::C
+    element2: <testLibraryFragment>::@class::C#element
     type: C<int>
   staticType: Type
 ''');
@@ -60,6 +62,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -67,9 +70,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@class::C
+    element2: package:test/a.dart::<fragment>::@class::C#element
     type: C<int>
   staticType: Type
 ''');
@@ -94,9 +99,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::C
+    element2: <testLibraryFragment>::@class::C#element
     type: C<dynamic, dynamic>
   staticType: Type
 ''');
@@ -121,13 +128,16 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::C
+    element2: <testLibraryFragment>::@class::C#element
     type: C<dynamic>
   staticType: Type
 ''');
@@ -153,9 +163,11 @@ TypeLiteral
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
+          element2: dart:core::<fragment>::@class::String#element
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@class::C
+    element2: <testLibraryFragment>::@class::C#element
     type: C<String>
   staticType: Type
 ''');
@@ -179,9 +191,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
+    element2: <testLibraryFragment>::@typeAlias::CA#element
     type: C<int>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -208,9 +222,11 @@ TypeLiteral
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
+          element2: dart:core::<fragment>::@class::String#element
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
+    element2: <testLibraryFragment>::@typeAlias::CA#element
     type: C<String, int>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -238,6 +254,7 @@ TypeLiteral
           returnType: NamedType
             name: void
             element: <null>
+            element2: <null>
             type: void
           functionKeyword: Function
           parameters: FormalParameterList
@@ -250,6 +267,7 @@ TypeLiteral
           type: void Function()
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
+    element2: <testLibraryFragment>::@typeAlias::CA#element
     type: C<void Function()>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -276,6 +294,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -283,9 +302,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@typeAlias::CA
+    element2: package:test/a.dart::<fragment>::@typeAlias::CA#element
     type: C<int>
       alias: package:test/a.dart::<fragment>::@typeAlias::CA
         typeArguments
@@ -315,9 +336,11 @@ TypeLiteral
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
+          element2: dart:core::<fragment>::@class::String#element
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
+    element2: <testLibraryFragment>::@typeAlias::CA#element
     type: C<String>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -343,9 +366,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@extensionType::A
+    element2: <testLibraryFragment>::@extensionType::A#element
     type: A<int>
   staticType: Type
 ''');
@@ -369,6 +394,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: A
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -376,9 +402,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@extensionType::A
+    element2: package:test/a.dart::<fragment>::@extensionType::A#element
     type: A<int>
   staticType: Type
 ''');
@@ -401,9 +429,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -429,6 +459,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -436,9 +467,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@typeAlias::Fn
+    element2: package:test/a.dart::<fragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
@@ -473,9 +506,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -510,6 +545,7 @@ TypeLiteral
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
+      element2: <testLibraryFragment>::@prefix2::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -517,9 +553,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@typeAlias::Fn
+    element2: package:test/a.dart::<fragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
@@ -552,9 +590,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -589,9 +629,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -624,9 +666,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -661,9 +705,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -696,9 +742,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -726,9 +774,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(dynamic, dynamic)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -757,13 +807,16 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
+          element2: dart:core::<fragment>::@class::String#element
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(dynamic)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -792,9 +845,11 @@ TypeLiteral
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
+          element2: dart:core::<fragment>::@class::String#element
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
+    element2: <testLibraryFragment>::@typeAlias::Fn#element
     type: void Function(String)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -820,9 +875,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@mixin::M
+    element2: <testLibraryFragment>::@mixin::M#element
     type: M<int>
   staticType: Type
 ''');
@@ -845,9 +902,11 @@ TypeLiteral
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
+          element2: dart:core::<fragment>::@class::int#element
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::T
+    element2: <testLibraryFragment>::@typeAlias::T#element
     type: int
       alias: <testLibraryFragment>::@typeAlias::T
         typeArguments
@@ -874,6 +933,7 @@ TypeLiteral
           returnType: NamedType
             name: void
             element: <null>
+            element2: <null>
             type: void
           functionKeyword: Function
           parameters: FormalParameterList
@@ -886,6 +946,7 @@ TypeLiteral
           type: void Function()
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::T
+    element2: <testLibraryFragment>::@typeAlias::T#element
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::T
         typeArguments

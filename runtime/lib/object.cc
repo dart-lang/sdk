@@ -75,28 +75,7 @@ DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  if (instance.IsString()) {
-    return Type::StringType();
-  } else if (instance.IsInteger()) {
-    return Type::IntType();
-  } else if (instance.IsDouble()) {
-    return Type::Double();
-  } else if (instance.IsAbstractType()) {
-    return Type::DartTypeType();
-  } else if (IsArrayClassId(instance.GetClassId())) {
-    const auto& cls = Class::Handle(
-        zone, thread->isolate_group()->object_store()->list_class());
-    auto& type_arguments =
-        TypeArguments::Handle(zone, instance.GetTypeArguments());
-    type_arguments = type_arguments.FromInstanceTypeArguments(thread, cls);
-    const auto& type = Type::Handle(
-        zone,
-        Type::New(cls, type_arguments, Nullability::kNonNullable, Heap::kNew));
-    type.SetIsFinalized();
-    return type.Canonicalize(thread);
-  }
-
-  return instance.GetType(Heap::kNew);
+  return instance.GetType(Heap::kNew, TypeVisibility::kUserVisibleType);
 }
 
 static bool HaveSameRuntimeTypeHelper(Zone* zone,

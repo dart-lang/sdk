@@ -234,8 +234,8 @@ int equalityCompareValueEqConstant(int value) {
 void matchIL$equalityCompareValueEqConstant(FlowGraph graph) {
   graph.match([
     match.block('Graph', [
-      'int 0' << match.UnboxedConstant(value: 0),
       'int 1' << match.UnboxedConstant(value: 1),
+      'int 0' << match.UnboxedConstant(value: 0),
       'int 42' << match.UnboxedConstant(value: 42),
     ]),
     match.block('Function', [

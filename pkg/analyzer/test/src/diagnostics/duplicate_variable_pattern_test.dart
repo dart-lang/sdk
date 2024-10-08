@@ -34,6 +34,7 @@ IfStatement
   expression: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int
   caseClause: CaseClause
     caseKeyword: case
@@ -61,6 +62,7 @@ IfStatement
         expression: SimpleIdentifier
           token: a
           staticElement: a@33
+          element: a@33
           staticType: int
         semicolon: ;
     rightBracket: }
@@ -105,6 +107,7 @@ SwitchPatternCase
       expression: SimpleIdentifier
         token: a
         staticElement: a@44
+        element: a@44
         staticType: int
       semicolon: ;
 ''');
@@ -163,6 +166,7 @@ Block
       expression: SimpleIdentifier
         token: a
         staticElement: a@18
+        element: a@18
         staticType: int
       semicolon: ;
   rightBracket: }

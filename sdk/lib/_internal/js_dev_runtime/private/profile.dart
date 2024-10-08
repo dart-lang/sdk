@@ -106,7 +106,8 @@ clearDynamicStats() {
 
 // We need to set this property while the sdk is only partially initialized
 // so we cannot use a regular Dart field.
-bool get _trackProfile => JS<bool>('!', 'dart.__trackProfile');
+bool get _trackProfile =>
+    JS<bool>('!', '#.__trackProfile', DART_RUNTIME_LIBRARY());
 
 trackCall(obj) {
   if (JS<bool>('!', '!#', _trackProfile)) return;

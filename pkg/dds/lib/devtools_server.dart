@@ -41,6 +41,7 @@ class DevToolsServer {
   static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
   static const argDtdUri = 'dtd-uri';
+  static const argDtdExposedUri = 'dtd-exposed-uri';
   static const argPrintDtd = 'print-dtd';
   static const argLaunchBrowser = 'launch-browser';
   static const argMachine = 'machine';
@@ -106,6 +107,13 @@ class DevToolsServer {
         valueHelp: 'uri',
         help: 'A URI pointing to a Dart Tooling Daemon that DevTools should '
             'interface with.',
+      )
+      ..addOption(
+        argDtdExposedUri,
+        valueHelp: 'uri',
+        help: 'An optional URI for the DartTooling Daemon (--dtd-uri) that has '
+            'been exposed to the front-end to support environments split across '
+            'machines such as a web-based editor.',
       )
       ..addFlag(
         argLaunchBrowser,
@@ -257,7 +265,7 @@ class DevToolsServer {
     String? profileFilename,
     String? appSizeBase,
     String? appSizeTest,
-    String? dtdUri,
+    DtdInfo? dtdInfo,
   }) async {
     hostname ??= 'localhost';
 
@@ -285,20 +293,15 @@ class DevToolsServer {
       requestNotificationPermissions: enableNotifications,
     );
 
-    String? dtdSecret;
-    if (dtdUri == null) {
-      final (:uri, :secret) = await startDtd(
-        machineMode: machineMode,
-        printDtdUri: printDtdUri,
-      );
-      dtdUri = uri;
-      dtdSecret = secret;
-    }
+    dtdInfo ??= await startDtd(
+      machineMode: machineMode,
+      printDtdUri: printDtdUri,
+    );
 
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
-      dtd: (uri: dtdUri, secret: dtdSecret),
+      dtd: dtdInfo,
       devtoolsExtensionsManager: ExtensionsManager(),
     );
 
@@ -493,19 +496,40 @@ class DevToolsServer {
     final bool verboseMode = args[argVerbose];
     final String? hostname = args[argHost];
 
-    String? dtdUri;
+    // A helper to print a message and usage information that can be used in
+    // a return statement.
+    Null printUsage(String message) {
+      print(message);
+      print('');
+      _printUsage(buildArgParser(verbose: verbose));
+    }
+
+    Uri? dtdUri;
     if (args.wasParsed(argDtdUri)) {
-      dtdUri = args[argDtdUri];
+      dtdUri = Uri.tryParse(args[argDtdUri]);
+      if (dtdUri == null || !dtdUri.hasScheme) {
+        return printUsage('--dtd-uri must be a valid URI');
+      }
+    }
+
+    Uri? dtdExposedUri;
+    if (args.wasParsed(argDtdExposedUri)) {
+      if (dtdUri == null) {
+        return printUsage(
+            '--dtd-exposed-uri can only be supplied with --dtd-uri');
+      }
+
+      dtdExposedUri = Uri.tryParse(args[argDtdExposedUri]);
+      if (dtdExposedUri == null || !dtdExposedUri.hasScheme) {
+        return printUsage('--dtd-exposed-uri must be a valid URI');
+      }
     }
 
     final printDtdUri = args.wasParsed(argPrintDtd);
 
     if (help) {
-      print(
+      return printUsage(
           'Dart DevTools version ${await DevToolsUtils.getVersion(customDevToolsPath ?? "")}');
-      print('');
-      _printUsage(buildArgParser(verbose: verbose));
-      return null;
     }
 
     if (version) {
@@ -566,7 +590,8 @@ class DevToolsServer {
       hostname: hostname,
       appSizeBase: appSizeBase,
       appSizeTest: appSizeTest,
-      dtdUri: dtdUri,
+      dtdInfo:
+          dtdUri != null ? DtdInfo(dtdUri, exposedUri: dtdExposedUri) : null,
       printDtdUri: printDtdUri,
     );
   }

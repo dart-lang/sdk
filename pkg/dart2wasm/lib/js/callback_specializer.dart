@@ -254,10 +254,10 @@ class CallbackSpecializer {
 
   /// Lowers an invocation of `allowInterop<type>(foo)` to:
   ///
-  ///   let #var = foo in
-  ///     _isDartFunctionWrapped<type>(#var) ?
-  ///       #var :
-  ///       _wrapDartFunction<type>(#var, jsWrapperFunction(#var));
+  ///     let #var = foo in
+  ///       _isDartFunctionWrapped<type>(#var) ?
+  ///         #var :
+  ///         _wrapDartFunction<type>(#var, jsWrapperFunction(#var));
   ///
   /// The use of two functions here is necessary because we do not allow
   /// `WasmExternRef` to be an argument or return type for a tear off.
@@ -346,11 +346,11 @@ class CallbackSpecializer {
   /// Given an invocation of `Function.toJS`, returns an [Expression]
   /// representing:
   ///
-  ///   JSValue(jsWrapperFunction(<Function>))
+  ///     JSValue(jsWrapperFunction(<Function>))
   ///
   /// or if a cast closure is needed:
   ///
-  ///   JSValue(jsWrapperFunction(<Function>, <CastClosure>))
+  ///     JSValue(jsWrapperFunction(<Function>, <CastClosure>))
   ///
   /// If [captureThis] is true, this is assumed to be an invocation of
   /// `Function.toJSCaptureThis`.

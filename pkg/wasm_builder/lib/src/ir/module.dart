@@ -7,6 +7,7 @@ import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
 class Module implements Serializable {
+  final String moduleName;
   final Functions functions;
   final Tables tables;
   final Tags tags;
@@ -20,6 +21,7 @@ class Module implements Serializable {
   final Uri? sourceMapUrl;
 
   Module(
+      this.moduleName,
       this.sourceMapUrl,
       this.functions,
       this.tables,
@@ -61,6 +63,7 @@ class Module implements Serializable {
         types.namedCount > 0 ||
         globals.namedCount > 0) {
       NameSection(
+              moduleName,
               <BaseFunction>[...functions.imported, ...functions.defined],
               [for (final t in types.recursionGroups) ...t],
               <Global>[...globals.imported, ...globals.defined],

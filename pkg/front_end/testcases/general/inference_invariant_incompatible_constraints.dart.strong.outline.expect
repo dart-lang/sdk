@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Invariant<invariant X extends core::Object? = dynamic> = (X%) → X%;
+static method inferable<X extends core::Object? = dynamic>() → self::inferable::X%
+  ;
+static method context<X extends core::Object? = dynamic>(() → (self::context::X%) → self::context::X% g) → void
+  ;
+static method test() → dynamic
+  ;

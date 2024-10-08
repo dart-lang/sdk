@@ -47,8 +47,15 @@ void matchIL$main_testForIn(FlowGraph graph) {
         match.block('Join', [
           'v124' << match.Phi(match.any, 'v37'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp('v124', 'v112', kind: '>='),
-              ifTrue: 'B4', ifFalse: 'B3'),
+          if (is32BitConfiguration)
+            'v124_ext' <<
+                match.IntConverter('v124', from: 'int32', to: 'int64'),
+          match.Branch(
+              match.RelationalOp(
+                  is32BitConfiguration ? 'v124_ext' : 'v124', 'v112',
+                  kind: '>='),
+              ifTrue: 'B4',
+              ifFalse: 'B3'),
         ]),
     'B4' <<
         match.block('Target', [
@@ -56,8 +63,10 @@ void matchIL$main_testForIn(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Target', [
-          match.GenericCheckBound(),
-          'v37' << match.BinaryInt64Op('v124', match.any),
+          if (is32BitConfiguration)
+            'v37' << match.BinaryInt32Op('v124', match.any)
+          else
+            'v37' << match.BinaryInt64Op('v124', match.any),
           match.Goto('B14'),
         ]),
   ]);

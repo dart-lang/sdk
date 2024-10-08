@@ -30,16 +30,18 @@ class AddCallSuper extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var methodDeclaration = node;
     if (methodDeclaration is! MethodDeclaration) return;
-    var classElement = methodDeclaration
+
+    var classFragment = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()
-        ?.declaredElement;
-    if (classElement == null) return;
+        ?.declaredFragment;
+    if (classFragment == null) return;
+    var classElement = classFragment.element;
 
     var name = methodDeclaration.name.lexeme;
-    var nameObj = Name(classElement.library.source.uri, name);
-    var overridden = InheritanceManager3().getInherited2(classElement, nameObj);
+    var nameObj = Name.forLibrary(classElement.library2, name);
+    var overridden = InheritanceManager3().getInherited4(classElement, nameObj);
     if (overridden == null) return;
-    var overriddenParameters = overridden.parameters.map((p) => p.name);
+    var overriddenParameters = overridden.formalParameters.map((p) => p.name);
 
     var body = methodDeclaration.body;
     var parameters = methodDeclaration.parameters?.parameters;

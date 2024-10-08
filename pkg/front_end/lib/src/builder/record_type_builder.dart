@@ -148,9 +148,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(
-        hierarchy != null || isExplicit, // Coverage-ignore(suite): Not run.
-        "Cannot build $this.");
+    assert(hierarchy != null || isExplicit, "Cannot build $this.");
     const List<String> forbiddenObjectMemberNames = [
       "noSuchMethod",
       "toString",
@@ -362,7 +360,6 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {final Variance variance = Variance.covariant}) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
@@ -374,8 +371,8 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       for (int i = 0; i < positionalFields.length; i++) {
         RecordTypeFieldBuilder positionalFieldBuilder = positionalFields[i];
         TypeBuilder? positionalFieldType = positionalFieldBuilder.type
-            .substituteRange(upperSubstitution, lowerSubstitution, unboundTypes,
-                unboundTypeVariables,
+            .substituteRange(
+                upperSubstitution, lowerSubstitution, unboundTypeVariables,
                 variance: variance);
         if (positionalFieldType != null) {
           newPositionalFields ??= positionalFields.toList();
@@ -391,10 +388,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       for (int i = 0; i < namedFields.length; i++) {
         RecordTypeFieldBuilder namedFieldBuilder = namedFields[i];
         TypeBuilder? namedFieldType = namedFieldBuilder.type.substituteRange(
-            upperSubstitution,
-            lowerSubstitution,
-            unboundTypes,
-            unboundTypeVariables,
+            upperSubstitution, lowerSubstitution, unboundTypeVariables,
             variance: variance);
         if (namedFieldType != null) {
           newNamedFields ??= namedFields.toList();

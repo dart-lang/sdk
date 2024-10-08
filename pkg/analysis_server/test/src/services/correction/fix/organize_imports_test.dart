@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -12,31 +12,79 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeImportsBulkTest);
-    defineReflectiveTests(OrganizeImportsTest);
+    defineReflectiveTests(OrganizeImportsDirectivesOrderingTest);
   });
 }
 
 @reflectiveTest
 class OrganizeImportsBulkTest extends BulkFixProcessorTest {
+  Future<void> test_partFile() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'dart:io';
+import 'dart:async';
+
+Future? a;
+''');
+
+    await assertOrganize('''
+part of 'a.dart';
+
+import 'dart:async';
+import 'dart:io';
+
+Future? a;
+''');
+  }
+
   Future<void> test_single_file() async {
     await parseTestCode('''
 import 'dart:io';
 import 'dart:async';
 
-Future a;
+Future? a;
 ''');
 
     await assertOrganize('''
 import 'dart:async';
 import 'dart:io';
 
-Future a;
+Future? a;
+''');
+  }
+
+  Future<void> test_withParts() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    await parseTestCode('''
+import 'dart:io';
+import 'dart:async';
+
+part 'a.dart';
+
+Future? a;
+''');
+
+    await assertOrganize('''
+import 'dart:async';
+import 'dart:io';
+
+part 'a.dart';
+
+Future? a;
 ''');
   }
 }
 
 @reflectiveTest
-class OrganizeImportsTest extends FixProcessorLintTest {
+class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.ORGANIZE_IMPORTS;
 

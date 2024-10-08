@@ -43,8 +43,15 @@ void matchIL$sumAll(FlowGraph graph) {
           'v5' << match.Phi(match.any, 'v28'),
           'v130' << match.Phi(match.any, 'v45'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp('v130', 'v120', kind: '>='),
-              ifTrue: 'B4', ifFalse: 'B3'),
+          if (is32BitConfiguration)
+            'v130_ext' <<
+                match.IntConverter('v130', from: 'int32', to: 'int64'),
+          match.Branch(
+              match.RelationalOp(
+                  is32BitConfiguration ? 'v130_ext' : 'v130', 'v120',
+                  kind: '>='),
+              ifTrue: 'B4',
+              ifFalse: 'B3'),
         ]),
     'B4' <<
         match.block('Target', [
@@ -52,9 +59,11 @@ void matchIL$sumAll(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Target', [
-          match.GenericCheckBound(),
           'v135' << match.LoadIndexed('v114', match.any),
-          'v45' << match.BinaryInt64Op('v130', match.any),
+          if (is32BitConfiguration)
+            'v45' << match.BinaryInt32Op('v130', match.any)
+          else
+            'v45' << match.BinaryInt64Op('v130', match.any),
           'v125' << match.UnboxInt64('v135'),
           'v28' << match.BinaryInt64Op('v5', 'v125'),
           match.Goto('B16'),

@@ -983,7 +983,7 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
       required bool inMetadata,
       required bool inConstFields}) {
     final DeclarationBuilder declarationBuilder =
-        formalParameterBuilder.parent!.parent as DeclarationBuilder;
+        formalParameterBuilder.parent.declarationBuilder!;
     return new ParameterBodyBuilderContext._(declarationBuilder.libraryBuilder,
         declarationBuilder, formalParameterBuilder,
         inOutlineBuildingPhase: inOutlineBuildingPhase,

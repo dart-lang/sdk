@@ -19,7 +19,7 @@ class AvoidWebLibrariesInFlutterTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  String get lintRule => 'avoid_web_libraries_in_flutter';
+  String get lintRule => LintNames.avoid_web_libraries_in_flutter;
 
   @override
   void setUp() {

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -12,44 +12,6 @@ import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid slow asynchronous `dart:io` methods.';
-
-const _details = r'''
-**AVOID** using the following asynchronous file I/O methods because they are
-much slower than their synchronous counterparts.
-
-* `Directory.exists`
-* `Directory.stat`
-* `File.lastModified`
-* `File.exists`
-* `File.stat`
-* `FileSystemEntity.isDirectory`
-* `FileSystemEntity.isFile`
-* `FileSystemEntity.isLink`
-* `FileSystemEntity.type`
-
-**BAD:**
-```dart
-import 'dart:io';
-
-Future<Null> someFunction() async {
-  var file = File('/path/to/my/file');
-  var now = DateTime.now();
-  if ((await file.lastModified()).isBefore(now)) print('before'); // LINT
-}
-```
-
-**GOOD:**
-```dart
-import 'dart:io';
-
-Future<Null> someFunction() async {
-  var file = File('/path/to/my/file');
-  var now = DateTime.now();
-  if (file.lastModifiedSync().isBefore(now)) print('before'); // OK
-}
-```
-
-''';
 
 const List<String> _dirMethodNames = <String>[
   'exists',
@@ -72,9 +34,8 @@ const List<String> _fileSystemEntityMethodNames = <String>[
 class AvoidSlowAsyncIo extends LintRule {
   AvoidSlowAsyncIo()
       : super(
-          name: 'avoid_slow_async_io',
+          name: LintNames.avoid_slow_async_io,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -125,8 +86,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkFileSystemEntityMethods(MethodInvocation node) {
     var target = node.target;
     if (target is Identifier) {
-      var elem = target.staticElement;
-      if (elem is ClassElement && elem.name == 'FileSystemEntity') {
+      var element = target.element;
+      if (element is ClassElement2 && element.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
           rule.reportLint(node);
         }

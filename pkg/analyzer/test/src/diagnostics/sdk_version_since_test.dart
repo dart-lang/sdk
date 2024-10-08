@@ -473,13 +473,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: A
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: dart:foo::<fragment>::@class::A::@method::foo
+    element: dart:foo::<fragment>::@class::A::@method::foo#element
     staticType: void Function()
   staticElement: dart:foo::<fragment>::@class::A::@method::foo
+  element: dart:foo::<fragment>::@class::A::@method::foo#element
   staticType: void Function()
 ''');
   }
@@ -512,6 +515,7 @@ PropertyAccess
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@function::f::@parameter::a
+      element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: A
     rightParenthesis: )
     staticType: A
@@ -519,6 +523,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: dart:foo::<fragment>::@class::A::@method::foo
+    element: dart:foo::<fragment>::@class::A::@method::foo#element
     staticType: void Function()
   staticType: void Function()
 ''');

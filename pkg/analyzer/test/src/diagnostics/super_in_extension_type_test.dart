@@ -38,6 +38,7 @@ BinaryExpression
     parameter: <null>
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: InvalidType
 ''');
@@ -64,6 +65,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -94,6 +96,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticType: InvalidType
 ''');

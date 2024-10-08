@@ -10,68 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Only reference in-scope identifiers in doc comments.';
 
-const _details = r'''
-**DO** reference only in-scope identifiers in doc comments.
-
-If you surround identifiers like variable, method, or type names in square
-brackets, then tools like your IDE and
-[`dart doc`](https://dart.dev/tools/dart-doc) can link to them. For this to
-work, ensure that all identifiers in docs wrapped in brackets are in scope.
-
-For example, assuming `outOfScopeId` is out of scope:
-
-**BAD:**
-```dart
-/// Returns whether [value] is larger than [outOfScopeId].
-bool isOutOfRange(int value) { ... }
-```
-
-**GOOD:**
-```dart
-/// Returns the larger of [a] or [b].
-int max_int(int a, int b) { ... }
-```
-
-Note that the square bracket comment format is designed to allow comments to
-refer to declarations using a fairly natural format but does not allow
-*arbitrary expressions*.  In particular, code references within square brackets
-can consist of any of the following:
-
-- A bare identifier which is in-scope for the comment (see the spec for what is
-  "in-scope" in doc comments). Examples include `[print]` and `[Future]`.
-- Two identifiers separated by a period (a "prefixed identifier"), such that the
-  first identifier acts as a namespacing identifier, such as a class property
-  name or method name prefixed by the containing class's name, or a top-level
-  identifier prefixed by an import prefix. Examples include `[Future.new]` (an
-  unnamed constructor), `[Future.value]` (a constructor), `[Future.wait]` (a
-  static method), `[Future.then]` (an instance method), `[math.max]` (given that
-  'dart:async' is imported with a `max` prefix).
-- A prefixed identifier followed by a pair of parentheses, used to disambiguate
-  named constructors from instance members (whose names are allowed to collide).
-  Examples include `[Future.value()]`.
-- Three identifiers separated by two periods, such that the first identifier is
-  an import prefix name, the second identifier is a top-level element like a
-  class or an extension, and the third identifier is a member of that top-level
-  element. Examples include `[async.Future.then]` (given that 'dart:async' is
-  imported with an `async` prefix).
-
-**Known limitations**
-
-The `comment_references` lint rule aligns with the Dart analyzer's notion of
-comment references, which is occasionally distinct from Dartdoc's notion of
-comment references. The lint rule may report comment references which Dartdoc
-can resolve, even though the analyzer cannot. See
-[linter#1142](https://github.com/dart-lang/linter/issues/1142) for more
-information.
-
-''';
-
 class CommentReferences extends LintRule {
   CommentReferences()
       : super(
-          name: 'comment_references',
+          name: LintNames.comment_references,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -144,11 +87,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression.isSynthetic) return;
 
     if (expression is Identifier &&
-        expression.staticElement == null &&
+        expression.element == null &&
         !linkReferences.contains(expression.name)) {
       rule.reportLint(expression);
     } else if (expression is PropertyAccess &&
-        expression.propertyName.staticElement == null) {
+        expression.propertyName.element == null) {
       var target = expression.target;
       if (target is PrefixedIdentifier) {
         var name = '${target.name}.${expression.propertyName.name}';

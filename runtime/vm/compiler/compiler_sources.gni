@@ -172,6 +172,7 @@ compiler_sources_tests = [
   "backend/il_test_helper.h",
   "backend/il_test_helper.cc",
   "backend/inliner_test.cc",
+  "backend/linearscan_test.cc",
   "backend/locations_helpers_test.cc",
   "backend/loops_test.cc",
   "backend/memory_copy_test.cc",

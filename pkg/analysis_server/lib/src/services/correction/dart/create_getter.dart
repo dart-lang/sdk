@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -22,7 +22,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
   /// Adds the declaration that makes a [fieldName] available.
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
-    required InterfaceElement? targetElement,
+    required InterfaceElement2? targetElement,
     required String fieldName,
     required DartType? fieldType,
   });
@@ -82,7 +82,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 
     await addForObjectPattern(
       builder: builder,
-      targetElement: matchedType.element,
+      targetElement: matchedType.element3,
       fieldName: effectiveName,
       fieldType: fieldType,
     );
@@ -108,7 +108,7 @@ class CreateGetter extends CreateFieldOrGetter {
   @override
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
-    required InterfaceElement? targetElement,
+    required InterfaceElement2? targetElement,
     required String fieldName,
     required DartType? fieldType,
   }) async {
@@ -147,12 +147,11 @@ class CreateGetter extends CreateFieldOrGetter {
     }
     // prepare target element
     var staticModifier = false;
-    Element? targetElement;
+    InstanceElement2? targetElement;
     if (target is ExtensionOverride) {
-      targetElement = target.element;
-    } else if (target is Identifier &&
-        target.staticElement is ExtensionElement) {
-      targetElement = target.staticElement;
+      targetElement = target.element2;
+    } else if (target is Identifier && target.element is ExtensionElement2) {
+      targetElement = target.element as InstanceElement2?;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
@@ -160,16 +159,16 @@ class CreateGetter extends CreateFieldOrGetter {
       if (targetType is! InterfaceType) {
         return;
       }
-      targetElement = targetType.element;
+      targetElement = targetType.element3;
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;
-        var targetElement = targetIdentifier.staticElement;
+        var targetElement = targetIdentifier.element;
         staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
-      targetElement = nameNode.enclosingInterfaceElement ??
-          nameNode.enclosingExtensionElement;
+      targetElement = nameNode.enclosingInterfaceElement2 ??
+          nameNode.enclosingExtensionElement2;
       if (targetElement == null) {
         return;
       }
@@ -190,20 +189,21 @@ class CreateGetter extends CreateFieldOrGetter {
   Future<void> _addDeclaration({
     required ChangeBuilder builder,
     required bool staticModifier,
-    required Element? targetElement,
+    required InstanceElement2? targetElement,
     required DartType? fieldType,
   }) async {
     if (targetElement == null) {
       return;
     }
 
-    var targetSource = targetElement.source;
-    if (targetSource == null || targetElement.library?.isInSdk == true) {
+    var targetFragment = targetElement.firstFragment;
+    var targetSource = targetFragment.libraryFragment.source;
+    if (targetElement.library2.isInSdk == true) {
       return;
     }
     // prepare target declaration
     var targetDeclarationResult =
-        await sessionHelper.getElementDeclaration(targetElement);
+        await sessionHelper.getElementDeclaration2(targetFragment);
     if (targetDeclarationResult == null) {
       return;
     }

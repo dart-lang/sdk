@@ -86,6 +86,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Function determining which source files should have inference logging
 /// enabled.
@@ -133,6 +134,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
+
+  /// The library fragment being visited.
+  final CompilationUnitElementImpl libraryFragment;
 
   /// The context shared between different units of the same library.
   final LibraryResolutionContext libraryResolutionContext;
@@ -276,6 +280,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   final bool genericMetadataIsEnabled;
 
+  final bool inferenceUsingBoundsIsEnabled;
+
   /// Stack for obtaining rewritten expressions.  Prior to visiting an
   /// expression, a caller may push the expression on this stack; if
   /// [replaceExpression] is later called, it will update the top of the stack
@@ -304,42 +310,48 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   // TODO(paulberry): make [featureSet] a required parameter (this will be a
   // breaking change).
   ResolverVisitor(
-      InheritanceManager3 inheritanceManager,
-      LibraryElementImpl definingLibrary,
-      LibraryResolutionContext libraryResolutionContext,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      {required FeatureSet featureSet,
-      required AnalysisOptionsImpl analysisOptions,
-      required FlowAnalysisHelper flowAnalysisHelper})
-      : this._(
-            inheritanceManager,
-            definingLibrary,
-            libraryResolutionContext,
-            source,
-            definingLibrary.typeSystem,
-            typeProvider as TypeProviderImpl,
-            errorListener,
-            featureSet,
-            analysisOptions,
-            flowAnalysisHelper);
+    InheritanceManager3 inheritanceManager,
+    LibraryElementImpl definingLibrary,
+    LibraryResolutionContext libraryResolutionContext,
+    Source source,
+    TypeProvider typeProvider,
+    AnalysisErrorListener errorListener, {
+    required CompilationUnitElementImpl libraryFragment,
+    required FeatureSet featureSet,
+    required AnalysisOptionsImpl analysisOptions,
+    required FlowAnalysisHelper flowAnalysisHelper,
+  }) : this._(
+          inheritanceManager,
+          definingLibrary,
+          libraryResolutionContext,
+          source,
+          definingLibrary.typeSystem,
+          typeProvider as TypeProviderImpl,
+          errorListener,
+          featureSet,
+          analysisOptions,
+          flowAnalysisHelper,
+          libraryFragment: libraryFragment,
+        );
 
   ResolverVisitor._(
-      this.inheritance,
-      this.definingLibrary,
-      this.libraryResolutionContext,
-      this.source,
-      this.typeSystem,
-      this.typeProvider,
-      AnalysisErrorListener errorListener,
-      FeatureSet featureSet,
-      this.analysisOptions,
-      this.flowAnalysis)
-      : errorReporter = ErrorReporter(errorListener, source),
+    this.inheritance,
+    this.definingLibrary,
+    this.libraryResolutionContext,
+    this.source,
+    this.typeSystem,
+    this.typeProvider,
+    AnalysisErrorListener errorListener,
+    FeatureSet featureSet,
+    this.analysisOptions,
+    this.flowAnalysis, {
+    required this.libraryFragment,
+  })  : errorReporter = ErrorReporter(errorListener, source),
         _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
+        inferenceUsingBoundsIsEnabled = definingLibrary.featureSet
+            .isEnabled(Feature.inference_using_bounds),
         options = TypeAnalyzerOptions(
             nullSafetyEnabled: true,
             patternsEnabled:
@@ -1186,6 +1198,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
+      inferenceUsingBoundsIsEnabled:
+          _featureSet.isEnabled(Feature.inference_using_bounds),
       strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       typeSystemOperations: flowAnalysis.typeOperations,
@@ -1920,14 +1934,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         insertGenericFunctionInstantiation(node, contextType: contextType),
         contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitAugmentationImportDirective(
-    covariant AugmentationImportDirectiveImpl node,
-  ) {
-    node.visitChildren(this);
-    elementResolver.visitAugmentationImportDirective(node);
   }
 
   @override
@@ -3099,13 +3105,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
-    elementResolver.visitLibraryAugmentationDirective(node);
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3129,14 +3128,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {CollectionLiteralContext? context}) {
     inferenceLogWriter?.enterElement(node);
     checkUnreachableNode(node);
-    analyzeExpression(node.key,
-        SharedTypeSchemaView(context?.keyType ?? UnknownInferredType.instance));
+
+    // If the key is null-aware, the context of the expression under `?` should
+    // be changed to the nullable version of the downwards context.
+    var keyTypeContext = context?.keyType;
+    if (keyTypeContext != null && node.keyQuestion != null) {
+      keyTypeContext = typeSystem.makeNullable(keyTypeContext);
+    }
+    var keyType = analyzeExpression(node.key,
+        SharedTypeSchemaView(keyTypeContext ?? UnknownInferredType.instance));
     popRewrite();
-    analyzeExpression(
-        node.value,
-        SharedTypeSchemaView(
-            context?.valueType ?? UnknownInferredType.instance));
+
+    flowAnalysis.flow?.nullAwareMapEntry_valueBegin(node.key, keyType,
+        isKeyNullAware: node.keyQuestion != null);
+
+    // If the value is null-aware, the context of the expression under `?`
+    // should be changed to the nullable version of the downwards context.
+    var valueTypeContext = context?.valueType;
+    if (valueTypeContext != null && node.valueQuestion != null) {
+      valueTypeContext = typeSystem.makeNullable(valueTypeContext);
+    }
+    analyzeExpression(node.value,
+        SharedTypeSchemaView(valueTypeContext ?? UnknownInferredType.instance));
     popRewrite();
+
+    flowAnalysis.flow
+        ?.nullAwareMapEntry_end(isKeyNullAware: node.keyQuestion != null);
     inferenceLogWriter?.exitElement(node);
   }
 
@@ -3308,6 +3325,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     analyzeExpression(node.value,
         SharedTypeSchemaView(elementType ?? UnknownInferredType.instance));
+    popRewrite();
 
     inferenceLogWriter?.exitElement(node);
   }
@@ -4052,6 +4070,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeParameters,
       errorEntity: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
+      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: analysisOptions.strictInference,
       typeSystemOperations: flowAnalysis.typeOperations,
       dataForTesting: inferenceHelper.dataForTesting,
@@ -4100,6 +4119,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
+        inferenceUsingBoundsIsEnabled:
+            _featureSet.isEnabled(Feature.inference_using_bounds),
         strictInference: analysisOptions.strictInference,
         strictCasts: analysisOptions.strictCasts,
         typeSystemOperations: flowAnalysis.typeOperations,
@@ -4984,6 +5005,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitHideCombinator(HideCombinator node) {
+    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
+    scope?.importsTrackingActive(false);
+    try {
+      super.visitHideCombinator(node);
+    } finally {
+      scope?.importsTrackingActive(true);
+    }
+  }
+
+  @override
   void visitIfElement(covariant IfElementImpl node) {
     _visitIf(node);
   }
@@ -5008,6 +5040,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     _visitDocumentationComment(node.documentationComment);
   }
+
+  @override
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
@@ -5102,6 +5137,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitShowCombinator(ShowCombinator node) {
+    var scope = nameScope.ifTypeOrNull<LibraryFragmentScope>();
+    scope?.importsTrackingActive(false);
+    try {
+      super.visitShowCombinator(node);
+    } finally {
+      scope?.importsTrackingActive(true);
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     // Ignore if already resolved - declaration or type.
     if (node.inDeclarationContext()) {
@@ -5109,6 +5155,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
     // Ignore if qualified.
     var parent = node.parent;
+    if (parent is ConstructorName && parent.name == node) {
+      return;
+    }
+    if (parent is Label && parent.parent is NamedExpression) {
+      return;
+    }
     var scopeLookupResult = nameScope.lookup(node.name);
     node.scopeLookupResult = scopeLookupResult;
     // Ignore if it cannot be a reference to a local variable.
@@ -5118,9 +5170,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       return;
     } else if (parent is ConstructorFieldInitializer &&
         parent.fieldName == node) {
-      return;
-    }
-    if (parent is ConstructorName) {
       return;
     }
     if (parent is Label) {

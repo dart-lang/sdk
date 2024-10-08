@@ -147,10 +147,6 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl<
     super.enterStatement(node);
   }
 
-  @override
-  String getTypeParameterName(TypeParameterElement typeParameter) =>
-      typeParameter.name;
-
   /// Returns the nearest ancestor of [node] for which a call to `enter...`
   /// should have been made.
   ///

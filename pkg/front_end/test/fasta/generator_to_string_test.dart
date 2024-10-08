@@ -9,9 +9,11 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/local_scope.dart';
+import 'package:front_end/src/base/name_space.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
+import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/builder/prefix_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart'
@@ -24,7 +26,12 @@ import 'package:front_end/src/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
 import 'package:front_end/src/source/source_library_builder.dart'
-    show ImplicitLanguageVersion, SourceLibraryBuilder;
+    show
+        ImplicitLanguageVersion,
+        SourceCompilationUnitImpl,
+        SourceLibraryBuilder;
+import 'package:front_end/src/source/source_loader.dart';
+import 'package:front_end/src/source/type_parameter_scope_builder.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart'
     show
@@ -71,23 +78,45 @@ Future<void> main() async {
         new VariableGet(new VariableDeclaration("expression"));
     Expression index = new VariableGet(new VariableDeclaration("index"));
     UriTranslator uriTranslator = await c.options.getUriTranslator();
+    SourceLoader loader = new KernelTarget(
+            c,
+            const MockFileSystem(),
+            false,
+            new DillTarget(c, c.options.ticker, uriTranslator,
+                new NoneTarget(new TargetFlags())),
+            uriTranslator)
+        .loader;
+    SourceCompilationUnit compilationUnit = new SourceCompilationUnitImpl(
+        importUri: uri,
+        fileUri: uri,
+        packageUri: null,
+        packageLanguageVersion:
+            new ImplicitLanguageVersion(defaultLanguageVersion),
+        originImportUri: uri,
+        indexedLibrary: null,
+        forAugmentationLibrary: false,
+        augmentationRoot: null,
+        nameOrigin: null,
+        referenceIsPartOwner: null,
+        forPatchLibrary: false,
+        isAugmenting: false,
+        isUnsupported: false,
+        loader: loader,
+        mayImplementRestrictedTypes: false);
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
+        compilationUnit: compilationUnit,
+        packageUri: null,
         importUri: uri,
         fileUri: uri,
         originImportUri: uri,
         packageLanguageVersion:
             new ImplicitLanguageVersion(defaultLanguageVersion),
-        loader: new KernelTarget(
-                c,
-                const MockFileSystem(),
-                false,
-                new DillTarget(c, c.options.ticker, uriTranslator,
-                    new NoneTarget(new TargetFlags())),
-                uriTranslator)
-            .loader,
+        loader: loader,
         isUnsupported: false,
         isAugmentation: false,
-        isPatch: false);
+        isPatch: false,
+        importNameSpace: new NameSpaceImpl(),
+        libraryNameSpaceBuilder: new LibraryNameSpaceBuilder());
     libraryBuilder.compilationUnit.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(
         libraryBuilder,
@@ -108,8 +137,9 @@ Future<void> main() async {
     Message message = templateUnspecified.withArguments("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
-    PrefixBuilder prefixBuilder =
-        new PrefixBuilder("myPrefix", false, libraryBuilder, null, -1, -1);
+    PrefixBuilder prefixBuilder = new PrefixBuilder(
+        "myPrefix", false, libraryBuilder, null,
+        fileUri: uri, prefixOffset: -1, importOffset: -1);
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new NominalVariableBuilder.fromKernel(
         new TypeParameter("T", const DynamicType(), const DynamicType()),
@@ -186,8 +216,7 @@ Future<void> main() async {
         "StaticAccessGenerator(offset: 4, targetName: foo,"
         " readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
-        new StaticAccessGenerator(
-            helper, token, 'foo', libraryBuilder, getter, setter));
+        new StaticAccessGenerator(helper, token, 'foo', getter, setter));
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",

@@ -10,7 +10,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:devtools_shared/devtools_extensions_io.dart';
-import 'package:devtools_shared/devtools_shared.dart' show DTDConnectionInfo;
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -164,8 +164,16 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   Future<void> _startDDSServer() async {
-    // No provided address, bind to an available port on localhost.
-    final host = uri?.host ??
+    // The host on which the user requested DDS to be started, or [null] if the
+    // user did not specify a host. We replace 'localhost' with either
+    // [InternetAddress.loopbackIPv4] or [InternetAddress.loopbackIPv6]
+    // depending on the value of [_ipv6].
+    final hostArg = uri?.host == 'localhost'
+        ? (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
+            .host
+        : uri?.host;
+    // The host on which DDS will be started.
+    final host = hostArg ??
         (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
             .host;
     var port = uri?.port ?? 0;
@@ -222,7 +230,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
     final tmpUri = Uri(
       scheme: 'http',
-      host: host,
+      host: _server.address.host,
       port: _server.port,
       path: '$authCode/',
     );
@@ -379,10 +387,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           dds: this,
           buildDir: buildDir,
           notFoundHandler: notFoundHandler,
-          dtd: (
-            uri: _hostedDartToolingDaemon?.uri,
-            secret: _hostedDartToolingDaemon?.secret
-          ),
+          dtd: _hostedDartToolingDaemon,
           devtoolsExtensionsManager: ExtensionsManager(),
         ) as FutureOr<Response> Function(Request);
       }
@@ -512,9 +517,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   @override
-  DTDConnectionInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
+  DtdInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
 
-  DTDConnectionInfo? _hostedDartToolingDaemon;
+  DtdInfo? _hostedDartToolingDaemon;
 
   final bool _ipv6;
 

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_field_initializers_in_const_classes';
+  String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
   test_augmentationClass_nonConstConstructor() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
@@ -30,7 +30,7 @@ class A {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment class A { 
+augment class A {
   A.aa() : a = 1;
 }
 ''');
@@ -105,7 +105,7 @@ augment class A {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 
-class A { 
+class A {
   A.aa();
 }
 ''');
@@ -124,7 +124,7 @@ augment class A {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 
-class A { 
+class A {
   const A();
 }
 ''');

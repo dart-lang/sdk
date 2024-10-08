@@ -530,16 +530,13 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
 }
 
 Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
-  Uint8List bytes = new Uint8List(rawBytes.length + 1);
-  bytes.setRange(0, rawBytes.length, rawBytes);
-
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
       enableExtensionMethods: true,
       enableNonNullable: true,
       enableTripleShift: true);
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(
-    bytes,
+    rawBytes,
     includeComments: true,
     configuration: scannerConfiguration,
     languageVersionChanged: (scanner, languageVersion) {
@@ -966,9 +963,10 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     });
   }
 
-  SourceLibraryBuilder createDartDocTestLibrary(
+  SourceCompilationUnit createDartDocTestCompilationUnit(
       SourceLoader loader, LibraryBuilder libraryBuilder) {
-    SourceLibraryBuilder dartDocTestLibrary = new SourceLibraryBuilder(
+    SourceCompilationUnit dartDocTestCompilationUnit =
+        new SourceCompilationUnitImpl(
       importUri: dartDocTestUri,
       fileUri: dartDocTestUri,
       originImportUri: dartDocTestUri,
@@ -978,8 +976,14 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       parentScope: libraryBuilder.scope,
       nameOrigin: libraryBuilder,
       isUnsupported: false,
-      isAugmentation: false,
-      isPatch: false,
+      forAugmentationLibrary: false,
+      isAugmenting: false,
+      forPatchLibrary: false,
+      referenceIsPartOwner: null,
+      packageUri: null,
+      indexedLibrary: null,
+      augmentationRoot: null,
+      mayImplementRestrictedTypes: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {
@@ -999,7 +1003,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
                   combinator.fileOffset, libraryBuilder.fileUri));
         }
 
-        dartDocTestLibrary.compilationUnit.addSyntheticImport(
+        dartDocTestCompilationUnit.addSyntheticImport(
             uri: dependency.importedLibraryReference.asLibrary.importUri
                 .toString(),
             prefix: dependency.name,
@@ -1007,18 +1011,16 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
             deferred: dependency.isDeferred);
       }
 
-      dartDocTestLibrary.compilationUnit.addSyntheticImport(
+      dartDocTestCompilationUnit.addSyntheticImport(
           uri: libraryBuilder.importUri.toString(),
           prefix: null,
           combinators: null,
           deferred: false);
-
-      dartDocTestLibrary.addImportsToScope();
     } else {
       throw "Got ${libraryBuilder.runtimeType}";
     }
 
-    return dartDocTestLibrary;
+    return dartDocTestCompilationUnit;
   }
 }
 
@@ -1048,36 +1050,38 @@ class DocTestSourceLoader extends SourceLoader {
       : super(fileSystem, includeComments, target);
 
   @override
-  SourceLibraryBuilder createLibraryBuilder(
+  SourceCompilationUnit createSourceCompilationUnit(
       {required Uri importUri,
       required Uri fileUri,
       Uri? packageUri,
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
-      SourceLibraryBuilder? origin,
+      SourceCompilationUnit? origin,
       IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
-      bool isPatch = false}) {
+      bool isPatch = false,
+      required bool mayImplementRestrictedTypes}) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs
           .entityForUri(DocTestIncrementalCompiler.dartDocTestUri)
           .writeAsStringSync(compiler._dartDocTestCode!);
-      return compiler.createDartDocTestLibrary(
+      return compiler.createDartDocTestCompilationUnit(
           this, compiler._dartDocTestLibraryBuilder!);
     }
-    return super.createLibraryBuilder(
+    return super.createSourceCompilationUnit(
         importUri: importUri,
         fileUri: fileUri,
-        originImportUri: originImportUri,
         packageUri: packageUri,
+        originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
         referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
-        isPatch: isPatch);
+        isPatch: isPatch,
+        mayImplementRestrictedTypes: mayImplementRestrictedTypes);
   }
 }

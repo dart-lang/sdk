@@ -36,7 +36,8 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     } else {
       b.ref_null(w.HeapType.struct);
     }
-    b.global_get(translator.makeFunctionRef(resumeFun));
+    translator.globals
+        .readGlobal(b, translator.makeFunctionRef(b.module, resumeFun));
     b.struct_new(syncStarIterableInfo.struct);
     b.return_();
     b.end();
@@ -48,8 +49,8 @@ mixin SyncStarCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
-      m.functions.define(
-          m.types.defineFunction([
+      translator.moduleForReference(enclosingMember.reference).functions.define(
+          translator.typesBuilder.defineFunction([
             suspendStateInfo.nonNullableType, // _SuspendState
             translator.topInfo.nullableType, // Object?, error value
             translator.stackTraceInfo.repr
@@ -176,7 +177,9 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
           thisLocal = b.addLocal(localContext
               .struct.fields[localContext.thisFieldIndex].type.unpacked
               .withNullability(false));
-          translator.globals.instantiateDummyValue(b, thisLocal!.type);
+          translator
+              .getDummyValuesCollectorForModule(b.module)
+              .instantiateDummyValue(b, thisLocal!.type);
           b.local_set(thisLocal!);
 
           preciseThisLocal = thisLocal;
@@ -209,7 +212,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
         FieldIndex.suspendStateContext, closures, context, thisLocal,
         cloneContextFor: functionNode);
 
-    visitStatement(functionNode.body!);
+    translateStatement(functionNode.body!);
 
     // Final state: just keep returning.
     emitTargetLabel(targets.last);
@@ -226,7 +229,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // `_yieldStarIterable` for `yield*`.
     b.local_get(_suspendStateLocal);
     b.struct_get(suspendStateInfo.struct, FieldIndex.suspendStateIterator);
-    wrap(node.expression, translator.topInfo.nullableType);
+    translateExpression(node.expression, translator.topInfo.nullableType);
     if (node.isYieldStar) {
       b.ref_cast(translator.objectInfo.nonNullableType);
       b.struct_set(syncStarIteratorInfo.struct,
@@ -289,7 +292,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.local_get(_pendingStackTraceLocal);
       b.ref_as_non_null();
 
-      b.throw_(translator.exceptionTag);
+      b.throw_(translator.getExceptionTag(b.module));
       b.end(); // exceptionCheck
     }
   }

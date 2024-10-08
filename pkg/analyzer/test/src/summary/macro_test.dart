@@ -123,20 +123,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/order.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/order.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A1 @70
           reference: <testLibraryFragment>::@class::A1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -152,7 +150,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A1
         class A2 @125
           reference: <testLibraryFragment>::@class::A2
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -168,7 +166,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A1
         class A3 @222
           reference: <testLibraryFragment>::@class::A3
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 1
@@ -199,27 +197,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @70
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1#element
         class A2 @125
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2#element
         class A3 @222
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3#element
   classes
     class A1
-      reference: <testLibraryFragment>::@class::A1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
-      reference: <testLibraryFragment>::@class::A2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
-      reference: <testLibraryFragment>::@class::A3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -305,20 +301,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/order.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/order.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A1 @64
           reference: <testLibraryFragment>::@class::A1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -334,7 +328,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A1
         class A2 @113
           reference: <testLibraryFragment>::@class::A2
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -350,7 +344,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A1
         class A3 @198
           reference: <testLibraryFragment>::@class::A3
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 1
@@ -381,27 +375,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @64
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1#element
         class A2 @113
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2#element
         class A3 @198
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3#element
   classes
     class A1
-      reference: <testLibraryFragment>::@class::A1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
-      reference: <testLibraryFragment>::@class::A2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
-      reference: <testLibraryFragment>::@class::A3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -486,20 +478,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/order.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/order.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -515,7 +505,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A1
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -531,7 +521,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A1
         class A3 @202
           reference: <testLibraryFragment>::@class::A3
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 1
@@ -562,27 +552,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1#element
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2#element
         class A3 @202
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3#element
   classes
     class A1
-      reference: <testLibraryFragment>::@class::A1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
-      reference: <testLibraryFragment>::@class::A2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
-      reference: <testLibraryFragment>::@class::A3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -609,20 +597,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/order.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/order.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -638,7 +624,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A2
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -654,7 +640,7 @@ library
                   introspectedElement: <testLibraryFragment>::@class::A2
         class A3 @165
           reference: <testLibraryFragment>::@class::A3
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             DeclarationsIntrospectionCycleDiagnostic
               annotationIndex: 0
@@ -673,27 +659,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/order.dart
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
+          element: <testLibraryFragment>::@class::A1#element
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
+          element: <testLibraryFragment>::@class::A2#element
         class A3 @165
           reference: <testLibraryFragment>::@class::A3
+          element: <testLibraryFragment>::@class::A3#element
   classes
     class A1
-      reference: <testLibraryFragment>::@class::A1
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
-      reference: <testLibraryFragment>::@class::A2
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
-      reference: <testLibraryFragment>::@class::A3
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -1031,20 +1015,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/arguments_text.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/arguments_text.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             ArgumentMacroDiagnostic
               annotationIndex: 0
@@ -1055,15 +1037,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/arguments_text.dart
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''',
     );
@@ -3062,38 +3044,35 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @66
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             final f @82
               reference: <testLibraryFragment>::@class::A::@field::f
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
           accessors
             synthetic get f @-1
               reference: <testLibraryFragment>::@class::A::@getter::f
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
           augmented
             fields
@@ -3103,7 +3082,6 @@ library
             accessors
               <testLibraryFragment>::@class::A::@getter::f
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3116,12 +3094,12 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           constructors
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               periodOffset: 56
               nameEnd: 62
               parameters
@@ -3133,52 +3111,57 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @66
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             f @82
               reference: <testLibraryFragment>::@class::A::@field::f
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::f#element
+              getter2: <testLibraryFragment>::@class::A::@getter::f
           getters
             get f @-1
               reference: <testLibraryFragment>::@class::A::@getter::f
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::f#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
               periodOffset: 56
               nameEnd: 62
+              formalParameters
+                this.f @68
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::f#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final f
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::f
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::f#element
       constructors
         named
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+          formalParameters
+            requiredPositional final f
+              type: int
       getters
         synthetic get f
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
 ''');
   }
@@ -3197,34 +3180,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @65
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             constructors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3237,12 +3216,12 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           constructors
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               periodOffset: 56
               nameEnd: 62
               parameters
@@ -3253,34 +3232,41 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @65
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
               periodOffset: 56
               nameEnd: 62
+              formalParameters
+                a @67
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::a#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         named
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+          formalParameters
+            requiredPositional a
+              type: int
 ''');
   }
 
@@ -3298,34 +3284,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @59
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             constructors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3338,12 +3320,12 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           constructors
             @55
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional a @61
                   type: int
@@ -3352,32 +3334,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @59
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             new @55
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new#element
+              formalParameters
+                a @61
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new::@parameter::a#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+          formalParameters
+            requiredPositional a
+              type: int
 ''');
   }
 
@@ -3397,28 +3386,25 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             fields
@@ -3427,7 +3413,6 @@ library
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3440,22 +3425,22 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           fields
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
           accessors
             synthetic get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
             synthetic set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -3465,52 +3450,58 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
+              formalParameters
+                _foo @-1
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
+          setter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
       setters
         synthetic set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+          formalParameters
+            requiredPositional _foo
+              type: int
 ''');
   }
 
@@ -3530,28 +3521,25 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             fields
@@ -3559,7 +3547,6 @@ library
             accessors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3572,59 +3559,59 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           fields
             synthetic foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
           accessors
             get foo @63
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
           getters
             get foo @63
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
       getters
         get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
 ''');
   }
@@ -3645,34 +3632,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             methods
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3685,12 +3668,12 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           methods
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional a @70
                   type: double
@@ -3700,32 +3683,39 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           methods
             foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo#element
+              formalParameters
+                a @70
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo::@parameter::a#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+          formalParameters
+            requiredPositional a
+              type: double
 ''');
   }
 
@@ -3745,28 +3735,25 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             fields
@@ -3774,7 +3761,6 @@ library
             accessors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -3787,17 +3773,17 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           fields
             synthetic foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
           accessors
             set foo= @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional a @67
                   type: int
@@ -3807,43 +3793,49 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           setters
             set foo= @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
+              formalParameters
+                a @67
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::a#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          type: int
+          setter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
       setters
         set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+          formalParameters
+            requiredPositional a
+              type: int
 ''');
   }
 
@@ -3868,10 +3860,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -3880,13 +3870,13 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@constructor::new
+          formalParameters
+            optionalPositional x
+              type: dynamic
 ''');
   }
 
@@ -3909,10 +3899,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -3921,13 +3909,13 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+          formalParameters
+            optionalPositional x
+              type: dynamic
 ''');
   }
 
@@ -3950,10 +3938,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -3962,13 +3948,33 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+          formalParameters
+            optionalPositional x
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @107
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: prefix0 @108
+                      staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+                      staticType: null
+                    period: . @115
+                    identifier: SimpleIdentifier
+                      token: a @116
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
+                      element: package:test/a.dart::<fragment>::@getter::a#element
+                      staticType: null
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a#element
+                    staticType: null
+                  element: package:test/a.dart::<fragment>::@getter::a
+                  element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -3991,10 +3997,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4003,13 +4007,33 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+          formalParameters
+            requiredPositional x
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @106
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: prefix0 @107
+                      staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+                      staticType: null
+                    period: . @114
+                    identifier: SimpleIdentifier
+                      token: a @115
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
+                      element: package:test/a.dart::<fragment>::@getter::a#element
+                      staticType: null
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a#element
+                    staticType: null
+                  element: package:test/a.dart::<fragment>::@getter::a
+                  element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -4032,10 +4056,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4044,20 +4066,38 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: dynamic
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          type: dynamic
+          setter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo#element
       setters
         set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
+          formalParameters
+            requiredPositional x
+              type: dynamic
+              metadata
+                Annotation
+                  atSign: @ @105
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: prefix0 @106
+                      staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                      element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+                      staticType: null
+                    period: . @113
+                    identifier: SimpleIdentifier
+                      token: a @114
+                      staticElement: package:test/a.dart::<fragment>::@getter::a
+                      element: package:test/a.dart::<fragment>::@getter::a#element
+                      staticType: null
+                    staticElement: package:test/a.dart::<fragment>::@getter::a
+                    element: package:test/a.dart::<fragment>::@getter::a#element
+                    staticType: null
+                  element: package:test/a.dart::<fragment>::@getter::a
+                  element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -4080,10 +4120,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4092,19 +4130,14 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         static const x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
       getters
         synthetic static get x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
 ''');
   }
@@ -4130,10 +4163,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4142,19 +4173,14 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
       getters
         synthetic get x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
 ''');
   }
@@ -4178,10 +4204,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4190,19 +4214,14 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
       getters
         synthetic get x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
 ''');
   }
@@ -4226,10 +4245,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4238,19 +4255,14 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         static const x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: Type
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
+          type: Type
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
       getters
         synthetic static get x
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x
 ''');
   }
@@ -4274,10 +4286,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4286,9 +4296,15 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
+  getters
+    synthetic static get x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
 ''');
   }
 
@@ -4312,10 +4328,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4324,9 +4338,15 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
+  getters
+    synthetic static get x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
 ''');
   }
 
@@ -4356,10 +4376,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4368,9 +4386,21 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
+    const y
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::y#element
+  getters
+    synthetic static get x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+    synthetic static get y
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::y
 ''');
   }
 
@@ -4393,10 +4423,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4405,9 +4433,15 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    const x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      type: Type
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
+  getters
+    synthetic static get x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
 ''');
   }
 
@@ -4434,10 +4468,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4446,12 +4478,8 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
     class C
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -4481,10 +4509,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4493,12 +4519,10 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         named
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@constructor::named
           metadata
             Annotation
               atSign: @ @97
@@ -4506,19 +4530,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@constructor::named
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4545,10 +4572,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4557,19 +4582,14 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
 ''');
   }
@@ -4597,10 +4617,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4609,28 +4627,20 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
-        final bar
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo#element
+        final bar
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::bar
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::bar#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
         synthetic get bar
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::bar
 ''');
   }
@@ -4658,10 +4668,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4670,19 +4678,15 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo#element
       getters
         get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
           metadata
             Annotation
               atSign: @ @97
@@ -4690,19 +4694,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4729,10 +4736,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4741,12 +4746,10 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
-          reference: <none>
+          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           metadata
             Annotation
               atSign: @ @97
@@ -4754,19 +4757,22 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4793,10 +4799,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4805,19 +4809,15 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+          type: int
+          setter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo#element
       setters
         set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::B
+          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
           metadata
             Annotation
               atSign: @ @97
@@ -4825,19 +4825,25 @@ library
                 prefix: SimpleIdentifier
                   token: prefix0 @98
                   staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
                   staticType: null
                 period: . @105
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
+                  element: package:test/a.dart::<fragment>::@class::A#element
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
+                element: package:test/a.dart::<fragment>::@class::A#element
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
                 rightParenthesis: ) @108
               element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-          firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
+              element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+          formalParameters
+            requiredPositional _
+              type: int
 ''');
   }
 
@@ -4864,10 +4870,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4876,9 +4880,34 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  functions
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+      returnType: void
 ''');
   }
 
@@ -4901,10 +4930,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4913,9 +4940,14 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  functions
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+      formalParameters
+        optionalPositional x
+          type: dynamic
+      returnType: void
 ''');
   }
 
@@ -4942,10 +4974,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4954,9 +4984,38 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
+  getters
+    static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
 ''');
   }
 
@@ -4983,10 +5042,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -4995,9 +5052,41 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      type: int
+      setter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
+  setters
+    static set foo=
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+      formalParameters
+        requiredPositional _
+          type: int
 ''');
   }
 
@@ -5020,10 +5109,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5032,9 +5119,38 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    synthetic foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      type: dynamic
+      setter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
+  setters
+    static set foo=
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
+      formalParameters
+        requiredPositional x
+          type: dynamic
+          metadata
+            Annotation
+              atSign: @ @85
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: prefix0 @86
+                  staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+                  staticType: null
+                period: . @93
+                identifier: SimpleIdentifier
+                  token: a @94
+                  staticElement: package:test/a.dart::<fragment>::@getter::a
+                  element: package:test/a.dart::<fragment>::@getter::a#element
+                  staticType: null
+                staticElement: package:test/a.dart::<fragment>::@getter::a
+                element: package:test/a.dart::<fragment>::@getter::a#element
+                staticType: null
+              element: package:test/a.dart::<fragment>::@getter::a
+              element2: package:test/a.dart::<fragment>::@getter::a#element
 ''');
   }
 
@@ -5061,10 +5177,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5073,9 +5187,15 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    final foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
+  getters
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
 ''');
   }
 
@@ -5102,10 +5222,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5114,9 +5232,21 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
+  topLevelVariables
+    final foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
+    final bar
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::bar
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::bar#element
+  getters
+    synthetic static get foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo
+    synthetic static get bar
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::bar
 ''');
   }
 
@@ -5145,10 +5275,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5157,12 +5285,8 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
     class C
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -5192,10 +5316,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5204,12 +5326,8 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
     class C
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -5239,10 +5357,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5251,12 +5367,8 @@ library
   reference: <testLibrary>
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
     class C
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -5285,13 +5397,10 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5300,9 +5409,16 @@ library
   reference: <testLibrary>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+  functions
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+      formalParameters
+        requiredPositional x1
+          type: X
+        requiredPositional x2
+          type: X
+      returnType: void
 ''');
   }
 
@@ -5327,10 +5443,8 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   parts
     part_0
@@ -5339,13 +5453,16 @@ library
   reference: <testLibrary>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
+  functions
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+      formalParameters
+        requiredPositional x
+          type: X
+      returnType: void
 ''');
   }
 
@@ -5377,38 +5494,32 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class B @71
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           augmented
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -5421,13 +5532,14 @@ augment class B {
       classes
         augment class B @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::B
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
@@ -5435,17 +5547,18 @@ library
       classes
         class B @71
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
+          element: <testLibraryFragment>::@class::B#element
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
@@ -5468,30 +5581,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -5502,7 +5611,7 @@ void foo() {}
       functions
         foo @40
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: void
   exportedReferences
     declared <testLibraryFragment>::@class::A
@@ -5515,19 +5624,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      functions
+        foo @40
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+  functions
+    foo
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
+      returnType: void
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
@@ -5555,30 +5673,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -5589,7 +5703,7 @@ final x = 42;
       topLevelVariables
         static final x @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           type: int
           shouldUseTypeForInitializerInference: false
           id: variable_0
@@ -5597,7 +5711,7 @@ final x = 42;
       accessors
         synthetic static get x @-1
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           returnType: int
           id: getter_0
           variable: variable_0
@@ -5612,19 +5726,37 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
+      topLevelVariables
+        final x @41
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x#element
+          getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+      getters
+        get x @-1
+          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+  topLevelVariables
+    final x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      type: int
+      getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
+  getters
+    synthetic static get x
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
@@ -5667,34 +5799,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @42
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             constructors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -5710,28 +5838,26 @@ augment class A {
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @91
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           constructors
             named @131
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               periodOffset: 130
               nameEnd: 136
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
             augment named @152
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               periodOffset: 151
               nameEnd: 157
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
@@ -5740,45 +5866,46 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @42
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as prefix0 @67
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
       classes
         class A @91
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @131
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
               periodOffset: 130
               nameEnd: 136
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
             augment named @152
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
               periodOffset: 151
               nameEnd: 157
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         named
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
 ''');
   }
@@ -5805,28 +5932,25 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @36
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             fields
@@ -5835,7 +5959,6 @@ library
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -5852,29 +5975,25 @@ augment class A {
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         dart:core as prefix1 @98
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         prefix1 @98
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           fields
             foo @166
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
               id: field_0
               getter: getter_0
@@ -5882,7 +6001,7 @@ augment class A {
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
             augment foo @193
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
               shouldUseTypeForInitializerInference: true
               id: field_1
@@ -5890,13 +6009,13 @@ augment class A {
           accessors
             synthetic get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
               id: getter_0
               variable: field_0
             synthetic set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -5908,65 +6027,71 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @36
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @166
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
             foo @193
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           getters
             get foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
+              formalParameters
+                _foo @-1
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
+          setter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
       setters
         synthetic set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+          formalParameters
+            requiredPositional _foo
+              type: int
 ''');
   }
 
@@ -5992,28 +6117,25 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             fields
@@ -6021,7 +6143,6 @@ library
             accessors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -6038,43 +6159,39 @@ augment class A {
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         dart:core as prefix1 @98
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         prefix1 @98
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           fields
             synthetic foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
               id: field_0
               getter: getter_0
           accessors
             external get foo @180
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
               id: getter_0
               variable: field_0
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
             augment get foo @211
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
               id: getter_1
               variable: field_0
@@ -6084,55 +6201,55 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
+              getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
           getters
             get foo @180
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
             augment get foo @211
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          type: int
+          getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
       getters
         external get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
 ''');
   }
@@ -6158,34 +6275,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             methods
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -6202,34 +6315,30 @@ augment class A {
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         dart:core as prefix1 @98
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         prefix1 @98
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           methods
             external foo @176
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
             augment foo @205
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: int
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ----------------------------------------
@@ -6237,44 +6346,45 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           methods
             foo @176
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
             augment foo @205
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
-        foo
-          reference: <none>
+        external foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
   }
@@ -6301,28 +6411,25 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           augmented
             fields
@@ -6330,7 +6437,6 @@ library
             accessors
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -6347,36 +6453,32 @@ augment class A {
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         dart:core as prefix1 @98
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         prefix1 @98
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           fields
             synthetic foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               type: int
               id: field_0
               setter: setter_0
           accessors
             external set foo= @173
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional value @189
                   type: int
@@ -6386,7 +6488,7 @@ augment class A {
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
             augment set foo= @216
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               parameters
                 requiredPositional value @232
                   type: int
@@ -6399,56 +6501,65 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
-        dart:core
+        package:test/a.dart as prefix0 @67
+        dart:core as prefix1 @98
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @98
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
+              setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           setters
             set foo= @173
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
+              formalParameters
+                value @189
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::value#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
             augment set foo= @216
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
+              formalParameters
+                value @232
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::value#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          type: int
+          setter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
       setters
         external set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+          formalParameters
+            requiredPositional value
+              type: int
 ''');
   }
 }
@@ -6603,34 +6714,32 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -6654,47 +6763,44 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @44
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @93
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @44
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @93
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -6716,34 +6822,32 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -6768,30 +6872,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -6802,31 +6902,31 @@ class B {}
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class B
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
   }
@@ -6865,20 +6965,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -6901,15 +6999,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/a.dart
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -6935,20 +7033,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         f @59
           reference: <testLibraryFragment>::@function::f
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void
           macroDiagnostics
             InvalidMacroTargetDiagnostic
@@ -6961,8 +7057,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        f @59
+          reference: <testLibraryFragment>::@function::f
+          element: <testLibraryFragment>::@function::f#element
+  functions
+    f
+      firstFragment: <testLibraryFragment>::@function::f
+      returnType: void
 ''');
   }
 
@@ -6987,15 +7092,13 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
   macroDiagnostics
     InvalidMacroTargetDiagnostic
@@ -7008,6 +7111,7 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
   macroDiagnostics
@@ -7047,26 +7151,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class X @84
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -7081,16 +7181,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
         package:test/a.dart
       classes
         class X @84
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
@@ -7121,26 +7221,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class X @82
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -7155,16 +7251,16 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
         package:test/a.dart
       classes
         class X @82
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
@@ -7190,20 +7286,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -7217,15 +7311,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -7255,24 +7349,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @97
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               typeParameters
                 covariant T @101
                   defaultType: dynamic
@@ -7289,24 +7381,28 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @97
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
+              typeParameters
+                T @101
+                  element: <not-implemented>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          typeParameters
+            T
 ''');
   }
 
@@ -7333,20 +7429,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @80
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @82
               defaultType: dynamic
@@ -7366,16 +7460,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @80
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
+          typeParameters
+            T @82
+              element: <not-implemented>
+            U @85
+              element: <not-implemented>
+            V @88
+              element: <not-implemented>
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
+      typeParameters
+        T
+        U
+        V
 ''');
   }
 
@@ -7400,24 +7505,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             @70
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -7431,15 +7534,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             new @70
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -7450,12 +7555,9 @@ library
                   correctionMessage: Correction message
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -7483,24 +7585,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
               shouldUseTypeForInitializerInference: true
               macroDiagnostics
@@ -7514,41 +7614,39 @@ library
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
@@ -7576,20 +7674,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @79
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @83
               defaultType: dynamic
@@ -7606,8 +7702,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @79
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+          typeParameters
+            T @83
+              element: <not-implemented>
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      typeParameters
+        T
+      returnType: void
 ''');
   }
 
@@ -7634,24 +7744,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @75
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 MacroDiagnostic
@@ -7666,23 +7774,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @75
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -7708,20 +7815,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       mixins
         mixin A @62
           reference: <testLibraryFragment>::@mixin::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -7737,15 +7842,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       mixins
         mixin A @62
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A#element
   mixins
     mixin A
-      reference: <testLibraryFragment>::@mixin::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -7775,20 +7880,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       mixins
         mixin A @80
           reference: <testLibraryFragment>::@mixin::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           typeParameters
             covariant T @82
               defaultType: dynamic
@@ -7806,16 +7909,21 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       mixins
         mixin A @80
           reference: <testLibraryFragment>::@mixin::A
+          element: <testLibraryFragment>::@mixin::A#element
+          typeParameters
+            T @82
+              element: <not-implemented>
   mixins
     mixin A
-      reference: <testLibraryFragment>::@mixin::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::A
+      typeParameters
+        T
       superclassConstraints
         Object
 ''');
@@ -7844,15 +7952,13 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       typeAliases
         A @82
@@ -7873,8 +7979,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      typeAliases
+        A @82
+          reference: <testLibraryFragment>::@typeAlias::A
+          element: <testLibraryFragment>::@typeAlias::A#element
+          typeParameters
+            T @84
+              element: <not-implemented>
+  typeAliases
+    A
+      firstFragment: <testLibraryFragment>::@typeAlias::A
+      typeParameters
+        T
+      aliasedType: List<T>
 ''');
   }
 
@@ -7901,20 +8021,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -7925,30 +8043,29 @@ library
           methods
             foo @67
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @67
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -7976,20 +8093,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -8004,15 +8119,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -8042,24 +8157,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final foo @102
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
               shouldUseTypeForInitializerInference: true
               macroDiagnostics
@@ -8074,41 +8187,39 @@ library
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           fields
             foo @102
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
@@ -8136,20 +8247,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @93
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional a @101
               type: int
@@ -8176,8 +8285,35 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @93
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+          formalParameters
+            a @101
+              element: <testLibraryFragment>::@function::foo::@parameter::a#element
+            default b @113
+              reference: <testLibraryFragment>::@function::foo::@parameter::b
+              element: <testLibraryFragment>::@function::foo::@parameter::b#element
+            default c @122
+              reference: <testLibraryFragment>::@function::foo::@parameter::c
+              element: <testLibraryFragment>::@function::foo::@parameter::c#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      formalParameters
+        requiredPositional a
+          type: int
+        optionalNamed b
+          firstFragment: <testLibraryFragment>::@function::foo::@parameter::b
+          type: String?
+        optionalNamed c
+          firstFragment: <testLibraryFragment>::@function::foo::@parameter::c
+          type: bool?
+      returnType: void
 ''');
   }
 
@@ -8204,20 +8340,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional a @106
               type: int
@@ -8240,8 +8374,27 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @98
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+          formalParameters
+            a @106
+              element: <testLibraryFragment>::@function::foo::@parameter::a#element
+            b @116
+              element: <testLibraryFragment>::@function::foo::@parameter::b#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      formalParameters
+        requiredPositional a
+          type: int
+        requiredPositional b
+          type: String
+      returnType: void
 ''');
   }
 
@@ -8268,20 +8421,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @76
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
           macroDiagnostics
             MacroDiagnostic
@@ -8297,8 +8448,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @76
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: int
 ''');
   }
 
@@ -8326,20 +8486,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @144
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int Function(bool, {int b, String c})
           macroDiagnostics
             MacroDiagnostic
@@ -8357,8 +8515,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @144
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: int Function(bool, {int b, String c})
 ''');
   }
 
@@ -8386,20 +8553,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @139
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int Function(int, String)
           macroDiagnostics
             MacroDiagnostic
@@ -8417,8 +8582,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @139
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: int Function(int, String)
 ''');
   }
 
@@ -8446,20 +8620,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @103
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int Function()
           macroDiagnostics
             MacroDiagnostic
@@ -8476,8 +8648,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @103
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: int Function()
 ''');
   }
 
@@ -8504,20 +8685,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @88
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: void Function()
           macroDiagnostics
             MacroDiagnostic
@@ -8533,8 +8712,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @88
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: void Function()
 ''');
   }
 
@@ -8563,24 +8751,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final foo @98
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
               shouldUseTypeForInitializerInference: false
               macroDiagnostics
@@ -8595,41 +8781,39 @@ library
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           fields
             foo @98
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
@@ -8657,20 +8841,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional a @102
               type: dynamic
@@ -8691,8 +8873,23 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @98
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+          formalParameters
+            a @102
+              element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      formalParameters
+        requiredPositional a
+          type: dynamic
+      returnType: void
 ''');
   }
 
@@ -8719,20 +8916,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @72
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: dynamic
           macroDiagnostics
             MacroDiagnostic
@@ -8748,8 +8943,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @72
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: dynamic
 ''');
   }
 
@@ -8778,24 +8982,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @90
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: dynamic
               macroDiagnostics
                 MacroDiagnostic
@@ -8811,23 +9013,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @90
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -8855,20 +9056,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       topLevelVariables
         static final foo @80
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           type: int
           shouldUseTypeForInitializerInference: false
           macroDiagnostics
@@ -8883,15 +9082,33 @@ library
       accessors
         synthetic static get foo @-1
           reference: <testLibraryFragment>::@getter::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      topLevelVariables
+        final foo @80
+          reference: <testLibraryFragment>::@topLevelVariable::foo
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          getter2: <testLibraryFragment>::@getter::foo
+      getters
+        get foo @-1
+          reference: <testLibraryFragment>::@getter::foo
+          element: <testLibraryFragment>::@getter::foo#element
+  topLevelVariables
+    final foo
+      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      type: int
+      getter: <testLibraryFragment>::@getter::foo#element
+  getters
+    synthetic static get foo
+      firstFragment: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -8918,20 +9135,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @86
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: (int, String)
           macroDiagnostics
             MacroDiagnostic
@@ -8947,8 +9162,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @86
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: (int, String)
 ''');
   }
 
@@ -8977,15 +9201,13 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       typeAliases
         A @35
@@ -8994,7 +9216,7 @@ library
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: List<int>
             alias: <testLibraryFragment>::@typeAlias::A
           macroDiagnostics
@@ -9011,8 +9233,26 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      typeAliases
+        A @35
+          reference: <testLibraryFragment>::@typeAlias::A
+          element: <testLibraryFragment>::@typeAlias::A#element
+      functions
+        foo @98
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  typeAliases
+    A
+      firstFragment: <testLibraryFragment>::@typeAlias::A
+      aliasedType: List<int>
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: List<int>
+        alias: <testLibraryFragment>::@typeAlias::A
 ''');
   }
 
@@ -9041,24 +9281,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @116
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               parameters
                 requiredPositional a @124
                   type: int
@@ -9081,24 +9319,33 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @116
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
+              formalParameters
+                a @124
+                  element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
+                b @134
+                  element: <testLibraryFragment>::@class::A::@method::foo::@parameter::b#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          formalParameters
+            requiredPositional a
+              type: int
+            requiredPositional b
+              type: String
 ''');
   }
 
@@ -9127,24 +9374,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @94
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
               macroDiagnostics
                 MacroDiagnostic
@@ -9160,23 +9405,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @94
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -9205,20 +9449,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       functions
         foo @114
           reference: <testLibraryFragment>::@function::foo
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           returnType: Map<int, String>
           macroDiagnostics
             MacroDiagnostic
@@ -9236,8 +9478,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      functions
+        foo @114
+          reference: <testLibraryFragment>::@function::foo
+          element: <testLibraryFragment>::@function::foo#element
+  functions
+    foo
+      firstFragment: <testLibraryFragment>::@function::foo
+      returnType: Map<int, String>
 ''');
   }
 
@@ -9267,24 +9518,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final foo @145
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: (bool, {int a, String b})?
               shouldUseTypeForInitializerInference: true
               macroDiagnostics
@@ -9301,41 +9550,39 @@ library
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: (bool, {int a, String b})?
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           fields
             foo @145
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: (bool, {int a, String b})?
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          type: (bool, {int a, String b})?
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
@@ -9366,24 +9613,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             final foo @138
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: (int, String)?
               shouldUseTypeForInitializerInference: true
               macroDiagnostics
@@ -9400,41 +9645,39 @@ library
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: (int, String)?
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           fields
             foo @138
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: (int, String)?
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          type: (int, String)?
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
 ''');
   }
@@ -9462,15 +9705,13 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       typeAliases
         A @81
@@ -9490,8 +9731,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
+      typeAliases
+        A @81
+          reference: <testLibraryFragment>::@typeAlias::A
+          element: <testLibraryFragment>::@typeAlias::A#element
+  typeAliases
+    A
+      firstFragment: <testLibraryFragment>::@typeAlias::A
+      aliasedType: List<int>
 ''');
   }
 
@@ -9519,20 +9769,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -9553,40 +9801,38 @@ library
           methods
             foo @73
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
             bar @89
               reference: <testLibraryFragment>::@class::A::@method::bar
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @73
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
             bar @89
               reference: <testLibraryFragment>::@class::A::@method::bar
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::bar#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
         bar
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::bar
 ''');
   }
@@ -9612,20 +9858,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -9638,15 +9882,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9672,20 +9916,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -9698,15 +9940,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9732,20 +9974,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @63
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -9758,15 +9998,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @63
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9792,20 +10032,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @68
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -9826,15 +10064,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @68
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9860,24 +10098,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             @76
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -9898,15 +10134,17 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             new @76
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -9924,12 +10162,9 @@ My declarations phase
                   correctionMessage: Try reporting the failure to the macro author.
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -9957,24 +10192,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
               shouldUseTypeForInitializerInference: true
               macroDiagnostics
@@ -9995,11 +10228,11 @@ My declarations phase
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
             synthetic set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               parameters
                 requiredPositional _foo @-1
                   type: int
@@ -10009,44 +10242,48 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
+              setter2: <testLibraryFragment>::@class::A::@setter::foo
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
           setters
             set foo= @-1
               reference: <testLibraryFragment>::@class::A::@setter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@setter::foo#element
+              formalParameters
+                _foo @-1
+                  element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
+          setter: <testLibraryFragment>::@class::A::@setter::foo#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
       setters
         synthetic set foo=
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+          formalParameters
+            requiredPositional _foo
+              type: int
 ''');
   }
 
@@ -10073,24 +10310,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 MacroDiagnostic
@@ -10112,23 +10347,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -10154,20 +10388,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -10188,15 +10420,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10227,20 +10459,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             ExceptionMacroDiagnostic
               annotationIndex: 0
@@ -10253,15 +10483,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10293,20 +10523,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             ExceptionMacroDiagnostic
               annotationIndex: 0
@@ -10316,15 +10544,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10350,20 +10578,18 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/diagnostic.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/diagnostic.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           macroDiagnostics
             MacroDiagnostic
               message: MacroDiagnosticMessage
@@ -10384,15 +10610,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/diagnostic.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10407,35 +10633,34 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         macro class A @12
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @12
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
 ''');
   }
@@ -10451,18 +10676,18 @@ library
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       classes
         macro class alias A @23
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Object
           mixins
             M
           constructors
             synthetic const @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -10470,10 +10695,11 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           superclassConstraints
             Object
 ----------------------------------------
@@ -10481,13 +10707,15 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic const new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -10495,23 +10723,20 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
+          element: <testLibraryFragment>::@mixin::M#element
   classes
     class alias A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       supertype: Object
       constructors
         synthetic const new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   mixins
     mixin M
-      reference: <testLibraryFragment>::@mixin::M
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -10540,36 +10765,32 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
         class B @125
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
           supertype: A
           augmented
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -10583,61 +10804,59 @@ augment class B extends prefix0.A {
 ---
       libraryImports
         package:test/test.dart as prefix0 @70
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @70
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class C @86
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         augment class B @105
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::B
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
         class B @125
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/test.dart
+        package:test/test.dart as prefix0 @70
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @70
       classes
         class C @86
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C#element
         class B @105
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
+          element: <testLibraryFragment>::@class::B#element
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
     class C
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -10665,24 +10884,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -10699,23 +10916,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
 
@@ -10787,24 +11003,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -10821,23 +11035,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -10860,35 +11073,31 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @85
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -10899,37 +11108,41 @@ extension B on int {}
       extensions
         B @45
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           extendedType: int
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @85
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       extensions
         extension B @45
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+  extensions
+    extension B
+      firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B
 ''');
   }
 
@@ -10951,24 +11164,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @91
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -10985,23 +11196,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @91
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11024,24 +11234,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11058,23 +11266,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11097,24 +11304,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11131,23 +11336,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11170,24 +11374,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11206,23 +11408,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11245,24 +11446,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @77
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11281,23 +11480,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @77
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11320,24 +11518,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @79
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11356,23 +11552,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @79
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11395,24 +11590,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11431,23 +11624,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11470,24 +11662,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11506,23 +11696,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11548,24 +11737,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @87
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11582,92 +11769,86 @@ augment class A {
       enums
         enum B @104
           reference: <testLibraryFragment>::@enum::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: Enum
           fields
             static const enumConstant v @107
               reference: <testLibraryFragment>::@enum::B::@field::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: B
               shouldUseTypeForInitializerInference: false
             synthetic static const values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               type: List<B>
           accessors
             synthetic static get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: B
             synthetic static get values @-1
               reference: <testLibraryFragment>::@enum::B::@getter::values
-              enclosingElement: <testLibraryFragment>::@enum::B
+              enclosingElement3: <testLibraryFragment>::@enum::B
               returnType: List<B>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @87
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
       enums
         enum B @104
           reference: <testLibraryFragment>::@enum::B
+          element: <testLibraryFragment>::@enum::B#element
           fields
             enumConstant v @107
               reference: <testLibraryFragment>::@enum::B::@field::v
-              enclosingFragment: <testLibraryFragment>::@enum::B
+              element: <testLibraryFragment>::@enum::B::@field::v#element
+              getter2: <testLibraryFragment>::@enum::B::@getter::v
             values @-1
               reference: <testLibraryFragment>::@enum::B::@field::values
-              enclosingFragment: <testLibraryFragment>::@enum::B
+              element: <testLibraryFragment>::@enum::B::@field::values#element
+              getter2: <testLibraryFragment>::@enum::B::@getter::values
           getters
             get v @-1
               reference: <testLibraryFragment>::@enum::B::@getter::v
-              enclosingFragment: <testLibraryFragment>::@enum::B
+              element: <testLibraryFragment>::@enum::B::@getter::v#element
             get values @-1
               reference: <testLibraryFragment>::@enum::B::@getter::values
-              enclosingFragment: <testLibraryFragment>::@enum::B
+              element: <testLibraryFragment>::@enum::B::@getter::values#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
   enums
     enum B
-      reference: <testLibraryFragment>::@enum::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
       fields
         static const v
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@enum::B
-          type: B
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
+          type: B
+          getter: <testLibraryFragment>::@enum::B::@getter::v#element
         synthetic static const values
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@enum::B
-          type: List<B>
           firstFragment: <testLibraryFragment>::@enum::B::@field::values
+          type: List<B>
+          getter: <testLibraryFragment>::@enum::B::@getter::values#element
       getters
         synthetic static get v
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@enum::B
           firstFragment: <testLibraryFragment>::@enum::B::@getter::v
         synthetic static get values
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@enum::B
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
 ''');
   }
@@ -11690,24 +11871,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @89
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11726,23 +11905,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @89
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11765,24 +11943,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @95
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11801,23 +11977,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @95
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11840,40 +12015,36 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           methods
             foo @82
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
           augmented
             methods
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -11886,12 +12057,12 @@ augment class A {
       classes
         augment class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           methods
             augment foo @68
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: void
               augmentationTarget: <testLibraryFragment>::@class::A::@method::foo
 ----------------------------------------
@@ -11899,37 +12070,38 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           methods
             foo @82
               reference: <testLibraryFragment>::@class::A::@method::foo
+              element: <testLibraryFragment>::@class::A::@method::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           methods
             augment foo @68
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+              element: <testLibraryFragment>::@class::A::@method::foo#element
               previousFragment: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11952,24 +12124,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -11988,23 +12158,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12027,24 +12196,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -12063,23 +12230,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12102,24 +12268,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -12138,23 +12302,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12177,24 +12340,22 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           methods
             foo @84
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: void
               macroDiagnostics
                 NotAllowedDeclarationDiagnostic
@@ -12213,23 +12374,22 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       libraryImports
         package:test/append.dart
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           methods
             foo @84
               reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12274,46 +12434,43 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/auto_to_string.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/auto_to_string.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @53
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             final foo @69
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
             final bar @86
               reference: <testLibraryFragment>::@class::A::@field::bar
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
             synthetic get bar @-1
               reference: <testLibraryFragment>::@class::A::@getter::bar
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
           augmented
             fields
@@ -12325,7 +12482,6 @@ library
             methods
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -12348,27 +12504,25 @@ A {
 ---
       libraryImports
         dart:core as prefix0 @57
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @57
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @81
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           methods
             abstract toString @122
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: String
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
             augment toString @159
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: String
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
 ----------------------------------------
@@ -12376,75 +12530,72 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/auto_to_string.dart
       classes
         class A @53
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             foo @69
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
             bar @86
               reference: <testLibraryFragment>::@class::A::@field::bar
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::bar#element
+              getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
             get bar @-1
               reference: <testLibraryFragment>::@class::A::@getter::bar
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::bar#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        dart:core
+        dart:core as prefix0 @57
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @57
       classes
         class A @81
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           methods
             toString @122
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
             augment toString @159
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
-        final bar
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: int
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
+        final bar
           firstFragment: <testLibraryFragment>::@class::A::@field::bar
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::bar#element
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
         synthetic get bar
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
         toString
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
 ''');
   }
@@ -12469,46 +12620,43 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/json_serializable.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/json_serializable.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             final foo @76
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
             final bar @93
               reference: <testLibraryFragment>::@class::A::@field::bar
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               type: int
           accessors
             synthetic get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
             synthetic get bar @-1
               reference: <testLibraryFragment>::@class::A::@getter::bar
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int
           augmented
             fields
@@ -12522,7 +12670,6 @@ library
             methods
               <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -12549,29 +12696,25 @@ json['bar'] = this.bar;
 ---
       libraryImports
         package:test/json_serializable.dart as prefix0 @83
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         dart:core as prefix1 @114
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @83
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         prefix1 @114
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         augment class A @138
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           augmentationTarget: <testLibraryFragment>::@class::A
           constructors
             external fromJson @177
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               periodOffset: 176
               nameEnd: 185
               parameters
@@ -12580,7 +12723,7 @@ json['bar'] = this.bar;
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
             augment fromJson @336
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               periodOffset: 335
               nameEnd: 344
               parameters
@@ -12590,12 +12733,12 @@ json['bar'] = this.bar;
           methods
             external toJson @314
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: Map<String, Object?>
               augmentation: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
             augment toJson @547
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
               returnType: Map<String, Object?>
               augmentationTarget: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
 ----------------------------------------
@@ -12603,95 +12746,100 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/json_serializable.dart
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             foo @76
               reference: <testLibraryFragment>::@class::A::@field::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::foo
             bar @93
               reference: <testLibraryFragment>::@class::A::@field::bar
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@field::bar#element
+              getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
             get foo @-1
               reference: <testLibraryFragment>::@class::A::@getter::foo
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::foo#element
             get bar @-1
               reference: <testLibraryFragment>::@class::A::@getter::bar
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@getter::bar#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/json_serializable.dart
-        dart:core
+        package:test/json_serializable.dart as prefix0 @83
+        dart:core as prefix1 @114
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-        prefix1
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix1
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @83
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix1
+          fragments: @114
       classes
         class A @138
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+          element: <testLibraryFragment>::@class::A#element
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             external fromJson @177
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson#element
               periodOffset: 176
               nameEnd: 185
+              formalParameters
+                json @231
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson::@parameter::json#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
             augment fromJson @336
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson#element
               periodOffset: 335
               nameEnd: 344
+              formalParameters
+                json @390
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson::@parameter::json#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
           methods
             toJson @314
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson#element
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
             augment toJson @547
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
-          type: int
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
-        final bar
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           type: int
+          getter: <testLibraryFragment>::@class::A::@getter::foo#element
+        final bar
           firstFragment: <testLibraryFragment>::@class::A::@field::bar
+          type: int
+          getter: <testLibraryFragment>::@class::A::@getter::bar#element
       constructors
-        fromJson
-          reference: <none>
+        external fromJson
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+          formalParameters
+            requiredPositional json
+              type: Map<String, Object?>
       getters
         synthetic get foo
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
         synthetic get bar
-          reference: <none>
-          enclosingElement: <testLibraryFragment>::@class::A
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
-        toJson
-          reference: <none>
+        external toJson
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
 ''');
   }
@@ -17542,30 +17690,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -17576,31 +17720,31 @@ class MyClass {}
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class MyClass
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
   }
@@ -17619,34 +17763,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -17657,51 +17797,49 @@ class MyClass {}
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class MyClass
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
 ''');
   }
@@ -17720,44 +17858,38 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart as prefix @24
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   prefixes
     prefix @24
       reference: <testLibraryFragment>::@prefix::prefix
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart as prefix @24
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       libraryImportPrefixes
         prefix @24
           reference: <testLibraryFragment>::@prefix::prefix
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @84
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -17768,54 +17900,52 @@ class MyClass {}
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
-        package:test/append.dart
+        package:test/append.dart as prefix @24
       prefixes
-        prefix
-          reference: <testLibraryFragment>::@prefix::prefix
+        <testLibraryFragment>::@prefix2::prefix
+          fragments: @24
       classes
         class A @84
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class MyClass
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
 ''');
   }
@@ -17834,44 +17964,38 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart as prefix @24
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   prefixes
     prefix @24
       reference: <testLibraryFragment>::@prefix::prefix
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart as prefix @24
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       libraryImportPrefixes
         prefix @24
           reference: <testLibraryFragment>::@prefix::prefix
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @90
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -17882,54 +18006,52 @@ class MyClass {}
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
-        package:test/append.dart
+        package:test/append.dart as prefix @24
       prefixes
-        prefix
-          reference: <testLibraryFragment>::@prefix::prefix
+        <testLibraryFragment>::@prefix2::prefix
+          fragments: @24
       classes
         class A @90
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class MyClass
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
 ''');
   }
@@ -17952,30 +18074,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -17986,7 +18104,7 @@ class B {}
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
   exportedReferences
     declared <testLibraryFragment>::@class::A
     declared <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
@@ -17998,25 +18116,25 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class B
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   exportedReferences
     declared <testLibraryFragment>::@class::A
@@ -18190,30 +18308,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -18224,31 +18338,31 @@ class MyClass {}
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
     class MyClass
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
     }
@@ -18301,30 +18415,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class X @35
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -18338,21 +18448,19 @@ class MyClass {
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class MyClass @83
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
           methods
             foo @100
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
-              enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
               parameters
                 requiredPositional _ @114
                   type: A
@@ -18362,39 +18470,44 @@ library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/b.dart
       classes
         class X @35
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as prefix0 @67
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
       classes
         class MyClass @83
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
           methods
             foo @100
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
-              enclosingFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo#element
+              formalParameters
+                _ @114
+                  element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo::@parameter::_#element
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
     class MyClass
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       methods
         foo
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
+          formalParameters
+            requiredPositional _
+              type: A
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -18740,30 +18853,26 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class X @37
           reference: <testLibraryFragment>::@class::X
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -18779,55 +18888,52 @@ class B {}
 ---
       libraryImports
         package:test/a.dart as prefix0 @67
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImportPrefixes
         prefix0 @67
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class A @104
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
         class B @116
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/a.dart
       classes
         class X @37
           reference: <testLibraryFragment>::@class::X
+          element: <testLibraryFragment>::@class::X#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
-        package:test/a.dart
+        package:test/a.dart as prefix0 @67
       prefixes
-        prefix0
-          reference: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+        <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+          fragments: @67
       classes
         class A @104
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A#element
         class B @116
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B#element
   classes
     class X
-      reference: <testLibraryFragment>::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::X
     class A
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
     class B
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
 
@@ -19016,36 +19122,30 @@ library
   reference: <testLibrary>
   libraryImports
     package:test/append.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
         package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/test.macro.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/test.macro.dart
       classes
         class B @78
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/test.macro.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       macroGeneratedCode
 ---
@@ -19056,12 +19156,13 @@ class X {}
       classes
         class X @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
-          enclosingElement: <testLibrary>::@fragment::package:test/test.macro.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/test.macro.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart
       libraryImports
         package:test/append.dart
@@ -19069,19 +19170,18 @@ library
       classes
         class B @78
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
     <testLibrary>::@fragment::package:test/test.macro.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class X @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
+          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X#element
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
     class X
-      reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
 ''');
   }
@@ -19732,9 +19832,7 @@ elementFactory
 
     newAnalysisOptionsYamlFile(
       otherRootPath,
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ).toContent(),
+      analysisOptionsContent(experiments: experiments),
     );
 
     var file = newFile('$otherRootPath/lib/other.dart', r'''
@@ -19762,30 +19860,26 @@ library
   reference: package:other/other.dart
   libraryImports
     package:test/append.dart
-      enclosingElement: package:other/other.dart
       enclosingElement3: package:other/other.dart::<fragment>
   definingUnit: package:other/other.dart::<fragment>
   parts
     part_0
   units
     package:other/other.dart::<fragment>
-      enclosingElement: package:other/other.dart
+      enclosingElement3: <null>
       libraryImports
         package:test/append.dart
-          enclosingElement: package:other/other.dart
           enclosingElement3: package:other/other.dart::<fragment>
       parts
         part_0
           uri: package:other/other.macro.dart
-          enclosingElement: package:other/other.dart
           enclosingElement3: package:other/other.dart::<fragment>
           unit: package:other/other.dart::@fragment::package:other/other.macro.dart
       classes
         class A @74
           reference: package:other/other.dart::<fragment>::@class::A
-          enclosingElement: package:other/other.dart::<fragment>
+          enclosingElement3: package:other/other.dart::<fragment>
     package:other/other.dart::@fragment::package:other/other.macro.dart
-      enclosingElement: package:other/other.dart
       enclosingElement3: package:other/other.dart::<fragment>
       macroGeneratedCode
 ---
@@ -19796,31 +19890,31 @@ class B {}
       classes
         class B @43
           reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
-          enclosingElement: package:other/other.dart::@fragment::package:other/other.macro.dart
+          enclosingElement3: package:other/other.dart::@fragment::package:other/other.macro.dart
 ----------------------------------------
 library
   reference: package:other/other.dart
   fragments
     package:other/other.dart::<fragment>
+      element: package:other/other.dart
       nextFragment: package:other/other.dart::@fragment::package:other/other.macro.dart
       libraryImports
         package:test/append.dart
       classes
         class A @74
           reference: package:other/other.dart::<fragment>::@class::A
+          element: package:other/other.dart::<fragment>::@class::A#element
     package:other/other.dart::@fragment::package:other/other.macro.dart
+      element: package:other/other.dart
       previousFragment: package:other/other.dart::<fragment>
       classes
         class B @43
           reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
+          element: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B#element
   classes
     class A
-      reference: package:other/other.dart::<fragment>::@class::A
-      enclosingElement2: package:other/other.dart
       firstFragment: package:other/other.dart::<fragment>::@class::A
     class B
-      reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
-      enclosingElement2: package:other/other.dart
       firstFragment: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
 ''');
   }
@@ -19871,7 +19965,7 @@ extension on ElementTextConfiguration {
   void forCodeOptimizer() {
     filter = (obj) {
       if (obj is CompilationUnitElement) {
-        return obj.enclosingElement3 is LibraryAugmentationElement;
+        return false;
       }
       return true;
     };

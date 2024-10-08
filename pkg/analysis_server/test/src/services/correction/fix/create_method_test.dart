@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -639,6 +639,166 @@ useFunction(int g(double a, String b)) {}
 ''');
   }
 
+  Future<void> test_functionType_method_FunctionCall() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(m3);
+  }
+
+  void m2(int Function() f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(m3);
+  }
+
+  void m2(int Function() f) {}
+
+  int m3() {
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_functionType_method_inside_conditional_operator_condition() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(m3 ? (v) => v : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_functionType_method_inside_conditional_operator_condition_FunctionCall() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(m3() ? (v) => v : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(m3() ? (v) => v : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+
+  bool m3() {}
+}
+''');
+  }
+
+  Future<void>
+      test_functionType_method_inside_conditional_operator_else() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? (v) => v : m3);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? (v) => v : m3);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_functionType_method_inside_conditional_operator_else_FunctionCall() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? i : m3());
+  }
+
+  void m2(int p) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? i : m3());
+  }
+
+  void m2(int p) {}
+
+  int m3() {}
+}
+''');
+  }
+
+  Future<void>
+      test_functionType_method_inside_conditional_operator_then() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3 : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3 : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_functionType_method_inside_conditional_operator_then_FunctionCall() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3() : i);
+  }
+
+  void m2(int p) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3() : i);
+  }
+
+  void m2(int p) {}
+
+  int m3() {}
+}
+''');
+  }
+
   Future<void> test_functionType_method_targetClass() async {
     await resolveTestCode('''
 void f(A a) {
@@ -848,7 +1008,7 @@ extension E on String {
 extension E on String {
   int m() => n();
 
-  n() {}
+  int n() {}
 }
 ''');
   }
@@ -863,7 +1023,7 @@ extension E on String {
 extension E on String {
   static int m() => n();
 
-  static n() {}
+  static int n() {}
 }
 ''');
   }

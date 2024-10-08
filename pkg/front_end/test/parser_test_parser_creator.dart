@@ -27,12 +27,9 @@ String generateTestParser(Uri repoDir) {
   StringBuffer out = new StringBuffer();
   File f = new File.fromUri(repoDir
       .resolve("pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart"));
-  List<int> rawBytes = f.readAsBytesSync();
-
-  Uint8List bytes = new Uint8List(rawBytes.length + 1);
-  bytes.setRange(0, rawBytes.length, rawBytes);
-
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes, includeComments: true);
+  Uint8List rawBytes = f.readAsBytesSync();
+  Utf8BytesScanner scanner =
+      new Utf8BytesScanner(rawBytes, includeComments: true);
   Token firstToken = scanner.tokenize();
 
   out.write(r"""
@@ -115,7 +112,8 @@ class TestParser extends Parser {
 
   out.writeln("}");
 
-  return new DartFormatter().format("$out");
+  return new DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -156,7 +154,8 @@ class ParserCreatorListener extends Listener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {
+      Token name,
+      String? enclosingDeclarationName) {
     currentMethodName = name.lexeme;
   }
 

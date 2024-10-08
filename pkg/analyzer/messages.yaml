@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Run
+#
+#     dart run analyzer/tool/messages/generate.dart
+#
+# to regenerate messages after having edited this file.
+
 # This file is organized as a two level map, where the outer key corresponds to
 # the name of an analyzer error class (e.g. CompileTimeErrorCode), and the inner
 # key corresponds to the name of a static variable in that class, describing a
@@ -402,14 +408,16 @@ CompileTimeErrorCode:
       export 'a.dart';
       export 'b.dart' hide C;
       ```
-  AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
+  AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
+    sharedName: AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    problemMessage: "A member named '{0}' is defined in '{1}' and '{2}', and neither is more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-      1: the names of the declaring extensions
+      1: the name of the first declaring extension
+      2: the names of the second declaring extension
     documentation: |-
       #### Description
 
@@ -465,6 +473,15 @@ CompileTimeErrorCode:
         print(E2(s).charCount);
       }
       ```
+  AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
+    sharedName: AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
+    correctionMessage: Try using an extension override to specify the extension you want to be chosen.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the member
+      1: the names of the declaring extensions
   AMBIGUOUS_IMPORT:
     problemMessage: "The name '{0}' is defined in the libraries {1}."
     correctionMessage: "Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports."
@@ -1169,14 +1186,6 @@ CompileTimeErrorCode:
   AUGMENTATION_WITHOUT_DECLARATION:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
-    hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_IMPORT:
-    problemMessage: The library does not import this augmentation.
-    correctionMessage: Try updating the augmented library to import this augmentation.
-    hasPublishedDocs: false
-  AUGMENTATION_WITHOUT_LIBRARY:
-    problemMessage: The URI does not resolve to a library.
-    correctionMessage: Try updating the URI to reference the augmented library.
     hasPublishedDocs: false
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
@@ -2342,12 +2351,12 @@ CompileTimeErrorCode:
       2: the name of the class defining the field with which the method conflicts
   CONFLICTING_TYPE_VARIABLE_AND_CLASS:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the class in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the class.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the class in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the class.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
     documentation: |-
       #### Description
 
@@ -2373,44 +2382,44 @@ CompileTimeErrorCode:
       ```
   CONFLICTING_TYPE_VARIABLE_AND_ENUM:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the enum in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the enum.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the enum in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the enum.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the extension in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the extension.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the extension in which the type parameter is defined."
+    correctionMessage: Try renaming either the type variaparameterble or the extension.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the extension type in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the extension.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the extension type in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the extension.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the mixin in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the mixin.
+    problemMessage: "'{0}' can't be used to name both a type parameter and the mixin in which the type parameter is defined."
+    correctionMessage: Try renaming either the type parameter or the mixin.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this class."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this class."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
     documentation: |-
       #### Description
 
@@ -2440,36 +2449,36 @@ CompileTimeErrorCode:
       ```
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this mixin."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this mixin."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this enum."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this enum."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this extension."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this extension type."
-    correctionMessage: Try renaming either the type variable or the member.
+    problemMessage: "'{0}' can't be used to name both a type parameter and a member in this extension type."
+    correctionMessage: Try renaming either the type parameter or the member.
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the type variable
+      0: the name of the type parameter
   CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
     problemMessage: "In a const constructor, a value of type '{0}' can't be assigned to the field '{1}', which has type '{2}'."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
@@ -3838,13 +3847,6 @@ CompileTimeErrorCode:
         print(i);
       }
       ```
-  DUPLICATE_AUGMENTATION_IMPORT:
-    problemMessage: "The library already contains an augmentation with the URI '{0}'."
-    correctionMessage: Try removing all except one of the duplicated augmentation directives.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the duplicate augmentation
   DUPLICATE_CONSTRUCTOR_NAME:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: "The constructor with name '{0}' is already defined."
@@ -4111,15 +4113,13 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/part.dart"
-      part of lib;
+      part of 'test.dart';
       ```
 
       The following code produces this diagnostic because the file `part.dart` is
       included multiple times:
 
       ```dart
-      library lib;
-
       part 'part.dart';
       part [!'part.dart'!];
       ```
@@ -4129,8 +4129,6 @@ CompileTimeErrorCode:
       Remove all except the first of the duplicated part directives:
 
       ```dart
-      library lib;
-
       part 'part.dart';
       ```
   DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
@@ -7431,13 +7429,6 @@ CompileTimeErrorCode:
 
       Import the library that contains the [part file][] rather than the
       [part file][] itself.
-  IMPORT_OF_NOT_AUGMENTATION:
-    problemMessage: "The imported file '{0}' isn't an augmentation of this library."
-    correctionMessage: Try adding an 'augment library' directive referencing this library to the imported file.
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the URI of the imported file
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
     hasPublishedDocs: false
@@ -8691,7 +8682,8 @@ CompileTimeErrorCode:
         method.
 
       The concrete implementation can be invalid because of incompatibilities in
-      either the return type, the types of parameters, or the type variables.
+      either the return type, the types of the method's parameters, or the type
+      parameters.
 
       #### Example
 
@@ -9151,7 +9143,7 @@ CompileTimeErrorCode:
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant list literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant list literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -9160,7 +9152,7 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a type parameter is used as a
+      The analyzer produces this diagnostic when a type parameter is used in a
       type argument in a list, map, or set literal that is prefixed by `const`.
       This isn't allowed because the value of the type parameter (the actual type
       that will be used at runtime) can't be known at compile time.
@@ -9205,7 +9197,7 @@ CompileTimeErrorCode:
       ```
   INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant map literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant map literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -9213,7 +9205,7 @@ CompileTimeErrorCode:
       0: the name of the type parameter
   INVALID_TYPE_ARGUMENT_IN_CONST_SET:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
-    problemMessage: "Constant set literals can't include a type parameter as a type argument, such as '{0}'."
+    problemMessage: "Constant set literals can't use a type parameter in a type argument, such as '{0}'."
     correctionMessage: Try replacing the type parameter with a different type.
     hasPublishedDocs: true
     comment: |-
@@ -20683,6 +20675,7 @@ FfiCode:
   VARIABLE_LENGTH_ARRAY_NOT_LAST:
     problemMessage: "Variable length 'Array's must only occur as the last field of Structs."
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -27218,6 +27211,53 @@ WarningCode:
         }
       }
       ```
+  UNREACHABLE_SWITCH_DEFAULT:
+    problemMessage: "This default clause is covered by the previous cases."
+    correctionMessage: Try removing the default clause, or restructuring the preceding patterns.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `default` clause in a
+      `switch` statement doesn't match anything because all of the matchable
+      values are matched by an earlier `case` clause.
+
+      #### Example
+
+      The following code produces this diagnostic because the values `E.e1` and
+      `E.e2` were matched in the preceding cases:
+
+      ```dart
+      enum E { e1, e2 }
+
+      void f(E x) {
+        switch (x) {
+          case E.e1:
+            print('one');
+          case E.e2:
+            print('two');
+          [!default!]:
+            print('other');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `default` clause:
+
+      ```dart
+      enum E { e1, e2 }
+      void f(E x) {
+        switch (x) {
+          case E.e1:
+            print('one');
+          case E.e2:
+            print('two');
+        }
+      }
+      ```
   UNUSED_CATCH_CLAUSE:
     problemMessage: "The exception variable '{0}' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.
@@ -27639,11 +27679,10 @@ WarningCode:
 
       var x = min(0, 1);
       ```
-
   URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
     problemMessage: "Target of URI doesn't exist: '{0}'."
     correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the URI pointing to a nonexistent file

@@ -10,35 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Missing whitespace between adjacent strings.';
 
-const _details = r'''
-Add a trailing whitespace to prevent missing whitespace between adjacent
-strings.
-
-With long text split across adjacent strings it's easy to forget a whitespace
-between strings.
-
-**BAD:**
-```dart
-var s =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed'
-  'do eiusmod tempor incididunt ut labore et dolore magna';
-```
-
-**GOOD:**
-```dart
-var s =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed '
-  'do eiusmod tempor incididunt ut labore et dolore magna';
-```
-
-''';
-
 class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
-          name: 'missing_whitespace_between_adjacent_strings',
+          name: LintNames.missing_whitespace_between_adjacent_strings,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -90,8 +66,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
-      var constructorElement = node.constructorName.staticElement;
-      return constructorElement?.enclosingElement3.name == 'RegExp';
+      var constructorElement = node.constructorName.element;
+      return constructorElement?.enclosingElement2?.name == 'RegExp';
     }
     return false;
   }

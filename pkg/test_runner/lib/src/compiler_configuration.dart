@@ -801,7 +801,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
           .replaceAll('/', '__')
           .replaceAll('-', '_')
           .replaceAll('.dart', '')
-          .replaceAllMapped(RegExp(r'[^A-Za-z_$0-9]'),
+          .replaceAllMapped(RegExp(r'[^A-Za-z_$\d]'),
               (Match m) => '\$${m[0]!.codeUnits.join('')}');
       var testPackageLoadStatements = [
         for (var package in testPackages) 'load("$pkgJsDir/$package.js");'
@@ -1421,7 +1421,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-abstract class VMKernelCompilerMixin {
+abstract mixin class VMKernelCompilerMixin {
   TestConfiguration get _configuration;
 
   bool get _useSdk;

@@ -213,7 +213,7 @@ class _ImportSummary {
   Set<LibraryElement> importedLibraries = Set<LibraryElement>.identity();
 
   _ImportSummary(LibraryElement library) {
-    for (var import in library.libraryImports) {
+    for (var import in library.definingCompilationUnit.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
         if (import.combinators.isEmpty) {

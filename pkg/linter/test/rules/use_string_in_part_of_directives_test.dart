@@ -18,7 +18,7 @@ class UseStringInPartOfDirectivesTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'use_string_in_part_of_directives';
+  String get lintRule => LintNames.use_string_in_part_of_directives;
 
   test_part_of_with_library_name() async {
     newFile('$testPackageRootPath/lib/lib.dart', '''

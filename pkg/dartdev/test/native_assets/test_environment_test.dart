@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:native_assets_cli/native_assets_cli_internal.dart'
-    show CCompilerConfigImpl;
 import 'package:test/test.dart';
 
 void main() async {
@@ -13,27 +11,28 @@ void main() async {
   test('test environment', () async {
     printOnFailure(Platform.environment.toString());
 
-    String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
-
-    final arKey = unparseKey(CCompilerConfigImpl.arConfigKeyFull);
-    final ccKey = unparseKey(CCompilerConfigImpl.ccConfigKeyFull);
-    final ldKey = unparseKey(CCompilerConfigImpl.ldConfigKeyFull);
-    final envScriptKey = unparseKey(CCompilerConfigImpl.envScriptConfigKeyFull);
-    final envScriptArgsKey =
-        unparseKey(CCompilerConfigImpl.envScriptArgsConfigKeyFull);
+    final ar = Platform.environment['DART_HOOK_TESTING_C_COMPILER__AR'];
+    final cc = Platform.environment['DART_HOOK_TESTING_C_COMPILER__CC'];
+    final ld = Platform.environment['DART_HOOK_TESTING_C_COMPILER__LD'];
+    final envScript =
+        Platform.environment['DART_HOOK_TESTING_C_COMPILER__ENV_SCRIPT'];
+    final envScriptArgs = Platform
+        .environment['DART_HOOK_TESTING_C_COMPILER__ENV_SCRIPT_ARGUMENTS']
+        ?.split(' ');
 
     if (Platform.isLinux || Platform.isWindows) {
-      expect(Platform.environment[arKey], isNotEmpty);
-      expect(await File(Platform.environment[arKey]!).exists(), true);
-      expect(Platform.environment[ccKey], isNotEmpty);
-      expect(await File(Platform.environment[ccKey]!).exists(), true);
-      expect(Platform.environment[ldKey], isNotEmpty);
-      expect(await File(Platform.environment[ldKey]!).exists(), true);
+      expect(ar, isNotNull);
+      expect(await File(ar!).exists(), true);
+      expect(cc, isNotNull);
+      expect(await File(cc!).exists(), true);
+      expect(ld, isNotNull);
+      expect(await File(ld!).exists(), true);
     }
     if (Platform.isWindows) {
-      expect(Platform.environment[envScriptKey], isNotEmpty);
-      expect(await File(Platform.environment[envScriptKey]!).exists(), true);
-      expect(Platform.environment[envScriptArgsKey], isNotEmpty);
+      expect(envScript, isNotNull);
+      expect(await File(envScript!).exists(), true);
+      expect(envScriptArgs, isNotNull);
+      expect(envScriptArgs!, isNotEmpty);
     }
   });
 }

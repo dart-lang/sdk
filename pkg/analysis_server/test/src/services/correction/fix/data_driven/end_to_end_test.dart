@@ -161,7 +161,7 @@ void f(Old o) {}
 import '$importUri';
 
 void f(New o) {}
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 
   Future<void> test_replacedBy() async {
@@ -193,6 +193,6 @@ import 'dart:io';
 int f() {
   return FileMode.read;
 }
-''', errorFilter: ignoreUnusedImport);
+''');
   }
 }

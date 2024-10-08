@@ -7,66 +7,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use explicit `break`s when a break is implied.";
 
-const _details = r'''
-Only use a `break` in a non-empty switch case statement if you need to break
-before the end of the case body.  Dart does not support fallthrough execution
-for non-empty cases, so `break`s at the end of non-empty switch case statements
-are unnecessary.
-
-**BAD:**
-```dart
-switch (1) {
-  case 1:
-    print("one");
-    break;
-  case 2:
-    print("two");
-    break;
-}
-```
-
-**GOOD:**
-```dart
-switch (1) {
-  case 1:
-    print("one");
-  case 2:
-    print("two");
-}
-```
-
-```dart
-switch (1) {
-  case 1:
-  case 2:
-    print("one or two");
-}
-```
-
-```dart
-switch (1) {
-  case 1:
-    break;
-  case 2:
-    print("just two");
-}
-```
-
-NOTE: This lint only reports unnecessary breaks in libraries with a
-[language version](https://dart.dev/guides/language/evolution#language-versioning)
-of 3.0 or greater. Explicit breaks are still required in Dart 2.19 and below.
-''';
-
 class UnnecessaryBreaks extends LintRule {
   UnnecessaryBreaks()
       : super(
-          name: 'unnecessary_breaks',
+          name: LintNames.unnecessary_breaks,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -75,13 +25,14 @@ class UnnecessaryBreaks extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.libraryElement!.featureSet.isEnabled(Feature.patterns)) return;
+    if (!context.isEnabled(Feature.patterns)) return;
+
     var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

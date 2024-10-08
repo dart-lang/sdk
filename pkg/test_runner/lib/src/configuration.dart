@@ -7,8 +7,6 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:native_assets_cli/native_assets_cli_internal.dart'
-    show CCompilerConfigImpl;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
@@ -284,13 +282,12 @@ class TestConfiguration {
   }();
 
   late final Map<String, String> nativeCompilerEnvironmentVariables = () {
-    String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
-    final arKey = unparseKey(CCompilerConfigImpl.arConfigKeyFull);
-    final ccKey = unparseKey(CCompilerConfigImpl.ccConfigKeyFull);
-    final ldKey = unparseKey(CCompilerConfigImpl.ldConfigKeyFull);
-    final envScriptKey = unparseKey(CCompilerConfigImpl.envScriptConfigKeyFull);
-    final envScriptArgsKey =
-        unparseKey(CCompilerConfigImpl.envScriptArgsConfigKeyFull);
+    const arKey = 'DART_HOOK_TESTING_C_COMPILER__AR';
+    const ccKey = 'DART_HOOK_TESTING_C_COMPILER__CC';
+    const ldKey = 'DART_HOOK_TESTING_C_COMPILER__LD';
+    const envScriptKey = 'DART_HOOK_TESTING_C_COMPILER__ENV_SCRIPT';
+    const envScriptArgsKey =
+        'DART_HOOK_TESTING_C_COMPILER__ENV_SCRIPT_ARGUMENTS';
 
     if (Platform.isWindows) {
       // Use MSVC from Depot Tools instead. When using clang from DEPS, we still
@@ -335,10 +332,10 @@ class TestConfiguration {
     }
 
     assert(Platform.isLinux);
-    final nmKey = unparseKey('${CCompilerConfigImpl.configKey}.nm');
-    final objdumpKey = unparseKey('${CCompilerConfigImpl.configKey}.objdump');
-    final otoolKey = unparseKey('${CCompilerConfigImpl.configKey}.otool');
-    final readelfKey = unparseKey('${CCompilerConfigImpl.configKey}.readelf');
+    const nmKey = 'DART_HOOK_TESTING_C_COMPILER__NM';
+    const objdumpKey = 'DART_HOOK_TESTING_C_COMPILER__OBJDUMP';
+    const otoolKey = 'DART_HOOK_TESTING_C_COMPILER__OTOOL';
+    const readelfKey = 'DART_HOOK_TESTING_C_COMPILER__READELF';
     // Keep consistent with DEPS.
     const clangHostFolderName = {
       Abi.linuxArm64: 'linux-arm64',

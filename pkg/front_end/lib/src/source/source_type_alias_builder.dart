@@ -45,23 +45,22 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
-      List<MetadataBuilder>? metadata,
-      String name,
-      this._typeVariables,
-      this.type,
-      SourceLibraryBuilder parent,
-      int charOffset,
-      {Typedef? typedef,
-      Typedef? referenceFrom})
-      : typedef = typedef ??
-            (new Typedef(name, null,
-                typeParameters:
-                    NominalVariableBuilder.typeParametersFromBuilders(
-                        _typeVariables),
-                fileUri: parent.fileUri,
-                reference: referenceFrom?.reference)
-              ..fileOffset = charOffset),
-        super(metadata, name, parent, charOffset);
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required this.type,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required Uri fileUri,
+      required int fileOffset,
+      required Reference? reference})
+      : typedef = new Typedef(name, null,
+            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+                typeVariables),
+            fileUri: fileUri,
+            reference: reference)
+          ..fileOffset = fileOffset,
+        _typeVariables = typeVariables,
+        super(metadata, name, enclosingLibraryBuilder, fileUri, fileOffset);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -112,12 +111,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
     _breakCyclicDependency();
     return super.unalias(typeArguments,
         usedTypeAliasBuilders: usedTypeAliasBuilders,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
   }
 

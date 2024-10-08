@@ -143,6 +143,7 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => [
+        'dart:_boxed_bool',
         'dart:_boxed_double',
         'dart:_boxed_int',
         'dart:_compact_hash',
@@ -166,6 +167,7 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => [
+        'dart:_boxed_bool',
         'dart:_boxed_double',
         'dart:_boxed_int',
         'dart:_compact_hash',

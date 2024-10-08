@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -30,7 +30,7 @@ class CreateClass extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var targetNode = node;
-    Element? prefixElement;
+    Element2? prefixElement;
     ArgumentList? arguments;
 
     String? className;
@@ -38,7 +38,7 @@ class CreateClass extends ResolvedCorrectionProducer {
     if (targetNode is Annotation) {
       var name = targetNode.name;
       arguments = targetNode.arguments;
-      if (name.staticElement != null || arguments == null) {
+      if (name.element != null || arguments == null) {
         // TODO(brianwilkerson): Consider supporting creating a class when the
         //  arguments are missing by also adding an empty argument list.
         return;
@@ -49,7 +49,7 @@ class CreateClass extends ResolvedCorrectionProducer {
     if (targetNode is NamedType) {
       var importPrefix = targetNode.importPrefix;
       if (importPrefix != null) {
-        prefixElement = importPrefix.element;
+        prefixElement = importPrefix.element2;
         if (prefixElement == null) {
           return;
         }
@@ -60,7 +60,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       className = targetNode.nameOfType;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
-      prefixElement = targetNode.prefix.staticElement;
+      prefixElement = targetNode.prefix.element;
       if (prefixElement == null) {
         return;
       }
@@ -75,13 +75,13 @@ class CreateClass extends ResolvedCorrectionProducer {
     this.className = className;
 
     // prepare environment
-    Element targetUnit;
+    LibraryFragment targetUnit;
     var prefix = '';
     var suffix = '';
     var offset = -1;
     String? filePath;
     if (prefixElement == null) {
-      targetUnit = unit.declaredElement!;
+      targetUnit = unit.declaredFragment!;
       var enclosingMember = targetNode.thisOrAncestorMatching((node) =>
           node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
@@ -91,13 +91,13 @@ class CreateClass extends ResolvedCorrectionProducer {
       filePath = file;
       prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement.libraryImports) {
-        if (prefixElement is PrefixElement &&
-            import.prefix?.element == prefixElement) {
-          var library = import.importedLibrary;
+      for (var import in libraryElement2.firstFragment.libraryImports2) {
+        if (prefixElement is PrefixElement2 &&
+            import.prefix2?.element == prefixElement) {
+          var library = import.importedLibrary2;
           if (library != null) {
-            targetUnit = library.definingCompilationUnit;
-            var targetSource = targetUnit.source!;
+            targetUnit = library.firstFragment;
+            var targetSource = targetUnit.source;
             try {
               offset = targetSource.contents.data.length;
               filePath = targetSource.fullName;

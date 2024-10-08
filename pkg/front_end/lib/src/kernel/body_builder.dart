@@ -16,7 +16,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         Parser,
         lengthForToken,
         lengthOfSpan,
-        optional;
+        optional,
+        optional2;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -28,7 +29,8 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -76,7 +78,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
+import '../builder/void_type_builder.dart';
 import '../codes/cfe_codes.dart'
     show
         LocatedMessage,
@@ -431,7 +433,6 @@ class BodyBuilder extends StackListenerImpl
     assert(
         expectedScopeKinds == null ||
             expectedScopeKinds.contains(_localScope.kind),
-        // Coverage-ignore(suite): Not run.
         "Expected the current scope to be one of the kinds "
         "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
         "but got '${_localScope.kind}'.");
@@ -1620,7 +1621,6 @@ class BodyBuilder extends StackListenerImpl
                     /* modifiers = */ 0,
                     const ImplicitTypeBuilder(),
                     formalName,
-                    libraryBuilder,
                     formal.fileOffset,
                     fileUri: uri,
                     hasImmediatelyDeclaredInitializer: false,
@@ -2491,7 +2491,6 @@ class BodyBuilder extends StackListenerImpl
     constantContext = pop() as ConstantContext;
     assert(
         _localScopes.previous.kind == ScopeKind.switchBlock,
-        // Coverage-ignore(suite): Not run.
         "Expected to have scope kind ${ScopeKind.switchBlock}, "
         "but got ${_localScopes.previous.kind}.");
     if (value is Pattern) {
@@ -2550,7 +2549,7 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (optional(".", token) ||
+    if (optional2(TokenType.PERIOD, token) ||
         optional("..", token) ||
         optional("?..", token)) {
       doDotOrCascadeExpression(token);
@@ -2892,7 +2891,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver = optional(".", token) ? pop() : popForValue();
+      Object? receiver =
+          optional2(TokenType.PERIOD, token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.
@@ -3315,8 +3315,8 @@ class BodyBuilder extends StackListenerImpl
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       MemberBuilder memberBuilder = declaration as MemberBuilder;
-      return new StaticAccessGenerator(this, nameToken, name,
-          memberBuilder.parent, memberBuilder.member, null);
+      return new StaticAccessGenerator(
+          this, nameToken, name, memberBuilder.member, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       // Wildcard import prefixes are non-binding and cannot be used.
@@ -5182,15 +5182,7 @@ class BodyBuilder extends StackListenerImpl
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
-    // "void" is always nullable.
-    push(new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new VoidTypeDeclarationBuilder(
-            const VoidType(), libraryBuilder, offset),
-        const NullabilityBuilder.inherent(),
-        fileUri: uri,
-        charOffset: offset,
-        instanceTypeVariableAccess:
-            InstanceTypeVariableAccessState.Unexpected));
+    push(new VoidTypeBuilder(uri, offset));
   }
 
   @override
@@ -5419,7 +5411,6 @@ class BodyBuilder extends StackListenerImpl
           modifiers,
           type ?? const ImplicitTypeBuilder(),
           parameterName,
-          libraryBuilder,
           offsetForToken(nameToken),
           fileUri: uri,
           hasImmediatelyDeclaredInitializer: initializerStart != null,
@@ -5935,7 +5926,6 @@ class BodyBuilder extends StackListenerImpl
           suffixObject == null ||
               // Coverage-ignore(suite): Not run.
               suffixObject is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
           "Unexpected qualified name suffix $suffixObject "
           "(${suffixObject.runtimeType})");
       // There was a `.` without a suffix.
@@ -6583,9 +6573,13 @@ class BodyBuilder extends StackListenerImpl
                   buildProblem(message.messageObject, nameToken.charOffset,
                       nameToken.lexeme.length));
             case TypeAliasBuilder():
+            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
@@ -6625,10 +6619,15 @@ class BodyBuilder extends StackListenerImpl
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
             case TypeAliasBuilder():
+            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
+            // Coverage-ignore(suite): Not run.
             case InvalidTypeDeclarationBuilder():
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
@@ -6727,6 +6726,7 @@ class BodyBuilder extends StackListenerImpl
         case StructuralVariableBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?
@@ -7214,7 +7214,6 @@ class BodyBuilder extends StackListenerImpl
     } else {
       assert(
           identifier is ParserRecovery,
-          // Coverage-ignore(suite): Not run.
           "Unexpected argument name: "
           "${identifier} (${identifier.runtimeType})");
       push(identifier);
@@ -7472,9 +7471,7 @@ class BodyBuilder extends StackListenerImpl
       /* break target = */ ValueKinds.BreakTarget,
     ]));
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in do statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement body = popStatement();
@@ -7900,9 +7897,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Statement body = popStatement();
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in while statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
@@ -8314,7 +8309,6 @@ class BodyBuilder extends StackListenerImpl
     assert(
         _localScope.kind == ScopeKind.switchCase ||
             _localScope.kind == ScopeKind.jointVariables,
-        // Coverage-ignore(suite): Not run.
         "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
         "or '${ScopeKind.jointVariables}', but got '${_localScope.kind}.");
     Map<String, List<int>>? usedNamesOffsets = _localScope.usedNames;
@@ -8467,9 +8461,7 @@ class BodyBuilder extends StackListenerImpl
     exitSwitchScope();
     exitLocalScope();
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in switch statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement switchStatement;
@@ -8613,9 +8605,7 @@ class BodyBuilder extends StackListenerImpl
 
     List<SwitchExpressionCase> cases = pop() as List<SwitchExpressionCase>;
     Condition condition = pop() as Condition;
-    assert(
-        condition.patternGuard == null,
-        // Coverage-ignore(suite): Not run.
+    assert(condition.patternGuard == null,
         "Unexpected pattern in switch expression: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     push(forest.createSwitchExpression(
@@ -8820,10 +8810,10 @@ class BodyBuilder extends StackListenerImpl
     }
     TypeVariableBuilder variable = inFunctionType
         ? new StructuralVariableBuilder(
-            typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
+            typeVariableName, typeVariableCharOffset, uri,
             isWildcard: isWildcard)
         : new NominalVariableBuilder(
-            typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
+            typeVariableName, typeVariableCharOffset, uri,
             kind: TypeVariableKind.function, isWildcard: isWildcard);
     if (annotations != null) {
       switch (variable) {
@@ -8891,16 +8881,12 @@ class BodyBuilder extends StackListenerImpl
         peek() as List<TypeVariableBuilder>;
     libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
-    List<TypeBuilder> unboundTypes = [];
     List<StructuralVariableBuilder> unboundTypeVariables = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypes: unboundTypes,
         unboundTypeVariables: unboundTypeVariables);
-    assert(unboundTypes.isEmpty,
-        "Found a type not bound to a declaration in BodyBuilder.");
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];
       typeVariables[i].finish(

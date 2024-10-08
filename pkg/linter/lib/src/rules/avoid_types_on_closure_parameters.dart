@@ -12,35 +12,15 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid annotating types for function expression parameters.';
 
-const _details = r'''
-**AVOID** annotating types for function expression parameters.
-
-Annotating types for function expression parameters is usually unnecessary
-because the parameter types can almost always be inferred from the context,
-thus making the practice redundant.
-
-**BAD:**
-```dart
-var names = people.map((Person person) => person.name);
-```
-
-**GOOD:**
-```dart
-var names = people.map((person) => person.name);
-```
-
-''';
-
 class AvoidTypesOnClosureParameters extends LintRule {
   AvoidTypesOnClosureParameters()
       : super(
-          name: 'avoid_types_on_closure_parameters',
+          name: LintNames.avoid_types_on_closure_parameters,
           description: _desc,
-          details: _details,
         );
 
   @override
-  List<String> get incompatibleRules => const ['always_specify_types'];
+  List<String> get incompatibleRules => const [LintNames.always_specify_types];
 
   @override
   LintCode get lintCode => LinterLintCode.avoid_types_on_closure_parameters;

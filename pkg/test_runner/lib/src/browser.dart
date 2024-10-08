@@ -60,24 +60,26 @@ String pathToJSIdentifier(String path) {
       .replaceAll('-', '_'));
 }
 
+final _digitPattern = RegExp(r'\d');
+
 /// Escape [name] to make it into a valid identifier.
 String _toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  var result = name.replaceAllMapped(_invalidCharInIdentifier,
-      (match) => '\$${match.group(0)!.codeUnits.join("")}');
+  var result = name.replaceAllMapped(
+      _invalidCharInIdentifier, (match) => '\$${match[0]!.codeUnits.join("")}');
 
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
-  if (result.startsWith(RegExp('[0-9]')) || _invalidVariableName(result)) {
+  if (result.startsWith(_digitPattern) || _invalidVariableName(result)) {
     return '\$$result';
   }
   return result;
 }
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_0-9]');
+final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_\d]');
 
 bool _invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
@@ -147,7 +149,9 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// safety. [weakNullSafetyErrors] enables null safety type violations to throw
 /// when running in weak mode. [ddcModuleFormat] determines whether to emit a
 /// template that works with the DDC module format or one that works with the
-/// AMD module format.
+/// AMD module format. [canaryMode] is whether DDC is running in canary mode. If
+/// this flag and [ddcModuleFormat] is enabled, a template that works with the
+/// DDC hot reload format will be emitted.
 String ddcHtml(
     String testName,
     String testNameAlias,
@@ -159,18 +163,20 @@ String ddcHtml(
     bool nativeNonNullAsserts,
     bool jsInteropNonNullAsserts,
     bool weakNullSafetyErrors,
-    {bool ddcModuleFormat = false}) {
+    {bool ddcModuleFormat = false,
+    bool canaryMode = false}) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
   var soundNullSafety = mode == NnbdMode.strong;
   var ddcGenDir = '/root_build/$genDir';
+  var hotReloadFormat = ddcModuleFormat && canaryMode;
 
   var sdkAndAsyncHelperSetup = """
-sdk._isolate_helper.startRootIsolate(function() {}, []);
-sdk._debugger.registerDevtoolsFormatter();
+_isolate_helper.startRootIsolate(function() {}, []);
+_debugger.registerDevtoolsFormatter();
 
 testErrorToStackTrace = function(error) {
-  var stackTrace = sdk.dart.stackTrace(error).toString();
+  var stackTrace = runtime.stackTrace(error).toString();
 
   var lines = stackTrace.split("\\n");
 
@@ -190,11 +196,11 @@ testErrorToStackTrace = function(error) {
   return lines.join("\\n");
 };
 
-sdk.dart.addAsyncCallback = function() {
+runtime.addAsyncCallback = function() {
   async_helper.async_helper.asyncStart();
 };
 
-sdk.dart.removeAsyncCallback = function() {
+runtime.removeAsyncCallback = function() {
   // removeAsyncCallback() is called *before* the async operation is
   // performed, but we don't want to report the test as being done until
   // after that operation completes, so wait for that callback to run.
@@ -202,12 +208,14 @@ sdk.dart.removeAsyncCallback = function() {
     async_helper.async_helper.asyncEnd();
   }, 0);
 };
+""";
 
-sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
-sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-sdk.dart.nonNullAsserts($nonNullAsserts);
-sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
-sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
+  var sdkFlagSetup = """
+runtime.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
+runtime.weakNullSafetyErrors($weakNullSafetyErrors);
+runtime.nonNullAsserts($nonNullAsserts);
+runtime.nativeNonNullAsserts($nativeNonNullAsserts);
+runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 """;
 
   String script;
@@ -221,6 +229,39 @@ sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
         """<script defer type="text/javascript"
                 src="$ddcGenDir/pkg/ddc/$p.js"></script>"""
     ].join('\n');
+    String libraryImports;
+    String startCode;
+    if (hotReloadFormat) {
+      var import = 'dartDevEmbedder.importLibrary';
+      libraryImports = """
+        let runtime = $import("dart:_runtime");
+        let async_helper = $import("package:async_helper/async_helper.dart");
+        let _isolate_helper = $import("dart:_isolate_helper");
+        let _debugger = $import("dart:_debugger");
+      """;
+      sdkFlagSetup = """
+        let sdkOptions = {
+          weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
+          weakNullSafetyErrors: $weakNullSafetyErrors,
+          nonNullAsserts: $nonNullAsserts,
+          nativeNonNullAsserts: $nativeNonNullAsserts,
+          jsInteropNonNullAsserts: $jsInteropNonNullAsserts,
+        };
+      """;
+      startCode =
+          """dartDevEmbedder.runMain("org-dartlang-app:/$testNameAlias.dart",
+          sdkOptions);""";
+    } else {
+      libraryImports = """
+        let sdk = dart_library.import("dart_sdk", "$appName");
+        let runtime = sdk.dart;
+        let async_helper = dart_library.import("async_helper", "$appName");
+        let _isolate_helper = sdk._isolate_helper;
+        let _debugger = sdk._debugger;
+      """;
+      startCode = """dart_library.start("$appName", "$uuid", "$testName",
+          "$testIdAlias", false)""";
+    }
     script = """
 <script defer type="text/javascript"
 src="/root_dart/pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js"></script>
@@ -236,14 +277,12 @@ $loadPackagesScript
 // or putting this in a separate JS file, but this is the simplest solution.
         """
 document.addEventListener("DOMContentLoaded", (e) => {
-  let sdk = dart_library.import("dart_sdk", "$appName");
-  let async_helper = dart_library.import("async_helper", "$appName");
-
+  $libraryImports
   $sdkAndAsyncHelperSetup
+  $sdkFlagSetup
 
   dartMainRunner(function () {
-    return dart_library.start("$appName", "$uuid", "$testName", "$testIdAlias",
-      false);
+    return $startCode;
   });
 });
 </script>
@@ -268,8 +307,12 @@ $packagePaths
 <script type="text/javascript">
 requirejs(["$testName", "dart_sdk", "async_helper"],
     function($testId, sdk, async_helper) {
+  let runtime = sdk.dart;
+  let _isolate_helper = sdk._isolate_helper;
+  let _debugger = sdk._debugger;
 
   $sdkAndAsyncHelperSetup
+  $sdkFlagSetup
 
   dartMainRunner(function testMainWrapper() {
     return $testId.$testIdAlias.main();
@@ -331,7 +374,17 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
   async function loadAndRun(mjsPath, wasmPath) {
     const mjs = await import(mjsPath);
     const compiledApp = await mjs.compileStreaming(fetch(wasmPath));
-    const appInstance = await compiledApp.instantiate({});
+    window.loadData = async (relativeToWasmFileUri) => {
+      const path = '$wasmPath'.slice(0, wasmPath.lastIndexOf('/'));
+      const response = await fetch(`\${path}/\${relativeToWasmFileUri}`);
+      return response.arrayBuffer();
+    };
+    const appInstance = await compiledApp.instantiate({}, {
+      loadDeferredWasm: (moduleName) => {
+        const moduleFile = '$wasmPath'.replace('.wasm', `_\${moduleName}.wasm`);
+        return fetch(moduleFile);
+      }
+    });
     dartMainRunner(() => {
       appInstance.invokeMain();
     });

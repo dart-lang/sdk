@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
@@ -45,6 +45,9 @@ class DynamicTypeImpl extends TypeImpl
   @Deprecated('Use element instead')
   @override
   DynamicElementImpl get element2 => element;
+
+  @override
+  Element2? get element3 => (element as Fragment).element;
 
   @override
   int get hashCode => 1;
@@ -91,6 +94,9 @@ class DynamicTypeImpl extends TypeImpl
 /// The type of a function, method, constructor, getter, or setter.
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
+  late int hashCode = _computeHashCode();
+
+  @override
   final DartType returnType;
 
   @override
@@ -102,13 +108,80 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  FunctionTypeImpl({
-    required this.typeFormals,
+  @override
+  final List<DartType> positionalParameterTypes;
+
+  @override
+  final int requiredPositionalParameterCount;
+
+  @override
+  final List<ParameterElement> sortedNamedParameters;
+
+  factory FunctionTypeImpl({
+    required List<TypeParameterElement> typeFormals,
     required List<ParameterElement> parameters,
+    required DartType returnType,
+    required NullabilitySuffix nullabilitySuffix,
+    InstantiatedTypeAliasElement? alias,
+  }) {
+    int? firstNamedParameterIndex;
+    var requiredPositionalParameterCount = 0;
+    var positionalParameterTypes = <DartType>[];
+    List<ParameterElement> sortedNamedParameters;
+
+    // Check if already sorted.
+    var namedParametersAlreadySorted = true;
+    var lastNamedParameterName = '';
+    for (var i = 0; i < parameters.length; ++i) {
+      var parameter = parameters[i];
+      if (parameter.isNamed) {
+        firstNamedParameterIndex ??= i;
+        var name = parameter.name;
+        if (lastNamedParameterName.compareTo(name) > 0) {
+          namedParametersAlreadySorted = false;
+          break;
+        }
+        lastNamedParameterName = name;
+      } else {
+        positionalParameterTypes.add(parameter.type);
+        if (parameter.isRequiredPositional) {
+          requiredPositionalParameterCount++;
+        }
+      }
+    }
+    sortedNamedParameters = firstNamedParameterIndex == null
+        ? const []
+        : parameters.sublist(firstNamedParameterIndex, parameters.length);
+    if (!namedParametersAlreadySorted) {
+      // Sort named parameters.
+      sortedNamedParameters.sort((a, b) => a.name.compareTo(b.name));
+
+      // Combine into a new list, with sorted named parameters.
+      parameters = parameters.toList();
+      parameters.replaceRange(
+          firstNamedParameterIndex!, parameters.length, sortedNamedParameters);
+    }
+    return FunctionTypeImpl._(
+        typeFormals: typeFormals,
+        parameters: parameters,
+        returnType: returnType,
+        nullabilitySuffix: nullabilitySuffix,
+        positionalParameterTypes: positionalParameterTypes,
+        requiredPositionalParameterCount: requiredPositionalParameterCount,
+        sortedNamedParameters: sortedNamedParameters,
+        alias: alias);
+  }
+
+  FunctionTypeImpl._({
+    required this.typeFormals,
+    required this.parameters,
     required this.returnType,
     required this.nullabilitySuffix,
+    required this.positionalParameterTypes,
+    required this.requiredPositionalParameterCount,
+    required this.sortedNamedParameters,
     super.alias,
-  }) : parameters = _sortNamedParameters(parameters);
+  });
 
   @override
   Null get element => null;
@@ -118,43 +191,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Null get element2 => element;
 
   @override
-  int get hashCode {
-    // Reference the arrays of parameters
-    var normalParameterTypes = this.normalParameterTypes;
-    var optionalParameterTypes = this.optionalParameterTypes;
-    var namedParameterTypes = this.namedParameterTypes.values;
-    // Generate the hashCode
-    var code = returnType.hashCode;
-    for (int i = 0; i < normalParameterTypes.length; i++) {
-      code = (code << 1) + normalParameterTypes[i].hashCode;
-    }
-    for (int i = 0; i < optionalParameterTypes.length; i++) {
-      code = (code << 1) + optionalParameterTypes[i].hashCode;
-    }
-    for (DartType type in namedParameterTypes) {
-      code = (code << 1) + type.hashCode;
-    }
-    return code;
-  }
+  Null get element3 => null;
+
+  @override
+  List<FormalParameterElement> get formalParameters => parameters
+      .map((fragment) => (fragment as FormalParameterFragment).element)
+      .toList();
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String? get name => null;
 
   @override
-  Map<String, DartType> get namedParameterTypes {
-    // TODO(brianwilkerson): This implementation breaks the contract because the
-    //  parameters will not necessarily be returned in the order in which they
-    //  were declared.
-    Map<String, DartType> types = <String, DartType>{};
-    _forEachParameterType(ParameterKind.NAMED, (name, type) {
-      types[name] = type;
-    });
-    _forEachParameterType(ParameterKind.NAMED_REQUIRED, (name, type) {
-      types[name] = type;
-    });
-    return types;
-  }
+  Map<String, DartType> get namedParameterTypes => {
+        for (var parameter in sortedNamedParameters)
+          parameter.name: parameter.type
+      };
 
   @override
   List<String> get normalParameterNames => parameters
@@ -163,13 +215,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .toList();
 
   @override
-  List<DartType> get normalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.REQUIRED, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
+  List<DartType> get normalParameterTypes =>
+      positionalParameterTypes.sublist(0, requiredPositionalParameterCount);
 
   @override
   List<String> get optionalParameterNames => parameters
@@ -178,13 +225,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       .toList();
 
   @override
-  List<DartType> get optionalParameterTypes {
-    List<DartType> types = <DartType>[];
-    _forEachParameterType(ParameterKind.POSITIONAL, (name, type) {
-      types.add(type);
-    });
-    return types;
-  }
+  List<DartType> get optionalParameterTypes =>
+      positionalParameterTypes.sublist(requiredPositionalParameterCount);
+
+  @override
+  List<TypeParameterElement2> get typeParameters => typeFormals
+      .map((fragment) => (fragment as TypeParameterFragment).element)
+      .toList();
 
   @override
   bool operator ==(Object other) {
@@ -288,23 +335,52 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return FunctionTypeImpl(
+    return FunctionTypeImpl._(
       typeFormals: typeFormals,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
+      positionalParameterTypes: positionalParameterTypes,
+      requiredPositionalParameterCount: requiredPositionalParameterCount,
+      sortedNamedParameters: sortedNamedParameters,
       alias: alias,
     );
   }
 
-  void _forEachParameterType(
-      ParameterKind kind, void Function(String name, DartType type) callback) {
-    for (var parameter in parameters) {
-      // ignore: deprecated_member_use_from_same_package
-      if (parameter.parameterKind == kind) {
-        callback(parameter.name, parameter.type);
+  int _computeHashCode() {
+    if (typeFormals.isNotEmpty) {
+      // Two generic function types are considered equivalent even if their type
+      // formals have different names, so we need to normalize to a standard set
+      // of type formals before taking the hash code.
+      //
+      // Note: when creating the standard set of type formals, we ignore bounds.
+      // This means that two function types that differ only in their type
+      // parameter bounds will receive the same hash code; this should be rare
+      // enough that it won't be a problem.
+      return instantiate([
+        for (var i = 0; i < typeFormals.length; i++)
+          TypeParameterTypeImpl(
+              element: TypeParameterElementImpl.synthetic('T$i'),
+              nullabilitySuffix: NullabilitySuffix.none)
+      ]).hashCode;
+    }
+
+    List<Object>? namedParameterInfo;
+    if (sortedNamedParameters.isNotEmpty) {
+      namedParameterInfo = [];
+      for (var namedParameter in sortedNamedParameters) {
+        namedParameterInfo.add(namedParameter.isRequired);
+        namedParameterInfo.add(namedParameter.name);
+        namedParameterInfo.add(namedParameter.type);
       }
     }
+
+    return Object.hash(
+        nullabilitySuffix,
+        returnType,
+        requiredPositionalParameterCount,
+        Object.hashAll(positionalParameterTypes),
+        namedParameterInfo);
   }
 
   /// Given two functions [f1] and [f2] where f1 and f2 are known to be
@@ -398,44 +474,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return true;
   }
-
-  /// If named parameters are already sorted in [parameters], return it.
-  /// Otherwise, return a new list, in which named parameters are sorted.
-  static List<ParameterElement> _sortNamedParameters(
-    List<ParameterElement> parameters,
-  ) {
-    int? firstNamedParameterIndex;
-
-    // Check if already sorted.
-    var namedParametersAlreadySorted = true;
-    var lastNamedParameterName = '';
-    for (var i = 0; i < parameters.length; ++i) {
-      var parameter = parameters[i];
-      if (parameter.isNamed) {
-        firstNamedParameterIndex ??= i;
-        var name = parameter.name;
-        if (lastNamedParameterName.compareTo(name) > 0) {
-          namedParametersAlreadySorted = false;
-          break;
-        }
-        lastNamedParameterName = name;
-      }
-    }
-    if (namedParametersAlreadySorted) {
-      return parameters;
-    }
-
-    // Sort named parameters.
-    var namedParameters =
-        parameters.sublist(firstNamedParameterIndex!, parameters.length);
-    namedParameters.sort((a, b) => a.name.compareTo(b.name));
-
-    // Combine into a new list, with sorted named parameters.
-    var newParameters = parameters.toList();
-    newParameters.replaceRange(
-        firstNamedParameterIndex, parameters.length, namedParameters);
-    return newParameters;
-  }
 }
 
 class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
@@ -449,6 +487,9 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
     required this.element,
     required this.typeArguments,
   });
+
+  @override
+  TypeAliasElement2 get element2 => (element as TypeAliasFragment).element;
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -523,9 +564,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }).toFixedList();
   }
 
+  @override
+  List<ConstructorElement2> get constructors2 => constructors
+      .map((fragment) => (fragment as ConstructorFragment).element)
+      .toList();
+
   @Deprecated('Use element instead')
   @override
   InterfaceElement get element2 => element;
+
+  @override
+  InterfaceElement2 get element3 => (element as InterfaceFragment).element;
+
+  @override
+  List<GetterElement> get getters => accessors
+      .where((accessor) => accessor.isGetter)
+      .map((fragment) => (fragment as GetterFragment).element as GetterElement)
+      .toList();
 
   @override
   int get hashCode {
@@ -647,6 +702,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  List<MethodElement2> get methods2 =>
+      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+
+  @override
   List<InterfaceType> get mixins {
     List<InterfaceType> mixins = element.mixins;
     return _instantiateSuperTypes(mixins);
@@ -665,6 +724,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return null;
   }
+
+  @override
+  List<SetterElement> get setters => accessors
+      .where((accessor) => accessor.isSetter)
+      .map((fragment) => (fragment as SetterFragment).element as SetterElement)
+      .toList();
 
   @override
   InterfaceType? get superclass {
@@ -736,6 +801,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     for (var rawInterface in element.allSupertypes) {
       if (rawInterface.element == targetElement) {
+        var substitution = Substitution.fromInterfaceType(this);
+        return substitution.substituteType(rawInterface) as InterfaceType;
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) {
+    if ((element as InterfaceFragment).element == targetElement) {
+      return this;
+    }
+
+    for (var rawInterface in element.allSupertypes) {
+      var realElement = (rawInterface.element as InterfaceFragment).element;
+      if (realElement == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
         return substitution.substituteType(rawInterface) as InterfaceType;
       }
@@ -951,6 +1033,9 @@ class InvalidTypeImpl extends TypeImpl
   Null get element2 => element;
 
   @override
+  Null get element3 => null;
+
+  @override
   int get hashCode => 1;
 
   @Deprecated('Use `is DynamicType` instead')
@@ -1012,6 +1097,10 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   @Deprecated('Use element instead')
   @override
   Element? get element2 => element;
+
+  @override
+  // TODO(augmentations): Implement this.
+  Element2? get element3 => throw UnimplementedError();
 
   @override
   int get hashCode => 0;
@@ -1118,6 +1207,9 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @Deprecated('Use element instead')
   @override
   Null get element2 => element;
+
+  @override
+  Null get element3 => null;
 
   @override
   int get hashCode {
@@ -1340,6 +1432,9 @@ abstract class TypeImpl implements DartType {
   InterfaceType? asInstanceOf(InterfaceElement targetElement) => null;
 
   @override
+  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) => null;
+
+  @override
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
@@ -1433,6 +1528,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeParameterElement get element2 => element;
 
   @override
+  TypeParameterElement2 get element3 =>
+      (element as TypeParameterFragment).element;
+
+  @override
   int get hashCode => element.hashCode;
 
   @override
@@ -1508,6 +1607,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  InterfaceType? asInstanceOf2(InterfaceElement2 targetElement) {
+    return bound.asInstanceOf2(targetElement);
+  }
+
+  @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return parameters.contains(element);
   }
@@ -1563,6 +1667,9 @@ class VoidTypeImpl extends TypeImpl
   @Deprecated('Use element instead')
   @override
   Null get element2 => element;
+
+  @override
+  Null get element3 => null;
 
   @override
   int get hashCode => 2;

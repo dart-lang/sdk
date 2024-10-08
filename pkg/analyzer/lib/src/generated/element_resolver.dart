@@ -106,10 +106,6 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void visitAugmentationImportDirective(AugmentationImportDirectiveImpl node) {
-    _resolveAnnotations(node.metadata);
-  }
-
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -223,7 +219,7 @@ class ElementResolver {
     var prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
-      List<PrefixElement> prefixes = _definingLibrary.prefixes;
+      var prefixes = _resolver.libraryFragment.libraryImportPrefixes;
       int count = prefixes.length;
       for (int i = 0; i < count; i++) {
         PrefixElement prefixElement = prefixes[i];
@@ -253,10 +249,6 @@ class ElementResolver {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
-  }
-
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    _resolveAnnotations(node.metadata);
   }
 
   void visitLibraryDirective(LibraryDirective node) {
@@ -394,7 +386,7 @@ class ElementResolver {
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
-        _resolver.definingLibrary
+        _resolver.libraryFragment
             .shouldIgnoreUndefinedNamedType(extendedNamedType)) {
       return;
     }

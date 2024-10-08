@@ -69,18 +69,20 @@ FlowGraphBuilder::FlowGraphBuilder(
     bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id,
-    bool inlining_unchecked_entry)
+    bool inlining_unchecked_entry,
+    const Function* caller)
     : BaseFlowGraphBuilder(parsed_function,
+                           optimizing,
                            first_block_id - 1,
                            osr_id,
                            context_level_array,
                            exit_collector,
-                           inlining_unchecked_entry),
+                           inlining_unchecked_entry,
+                           caller),
       translation_helper_(Thread::Current()),
       thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
       parsed_function_(parsed_function),
-      optimizing_(optimizing),
       ic_data_array_(*ic_data_array),
       next_function_id_(0),
       loop_depth_(0),
@@ -1856,7 +1858,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
       ASSERT_EQUAL(function.NumParameters(), 1);
-      ASSERT(this->optimizing_);
+      ASSERT(optimizing());
       // This relies on being force-optimized to do an 'atomic' exchange w.r.t.
       // the GC.
       // As an alternative design we could introduce an ExchangeNativeFieldInstr
@@ -1954,7 +1956,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
@@ -2485,7 +2487,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     *checks += StoreLocal(param);
     *checks += Drop();
 
-    if (!is_covariant && implicit_redefinitions != nullptr && optimizing_) {
+    if (!is_covariant && implicit_redefinitions != nullptr && optimizing()) {
       // We generate slightly different code in optimized vs. un-optimized code,
       // which is ok since we don't allocate any deopt ids.
       AssertNoDeoptIdsAllocatedScope no_deopt_allocation(thread_);
@@ -2502,8 +2504,9 @@ BlockEntryInstr* FlowGraphBuilder::BuildPrologue(BlockEntryInstr* normal_entry,
                                                  PrologueInfo* prologue_info) {
   const bool compiling_for_osr = IsCompiledForOsr();
 
-  kernel::PrologueBuilder prologue_builder(
-      parsed_function_, last_used_block_id_, compiling_for_osr, IsInlining());
+  kernel::PrologueBuilder prologue_builder(parsed_function_,
+                                           last_used_block_id_, optimizing(),
+                                           compiling_for_osr, IsInlining());
   BlockEntryInstr* instruction_cursor =
       prologue_builder.BuildPrologue(normal_entry, prologue_info);
 
@@ -2575,7 +2578,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
   PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
@@ -2675,7 +2678,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
 
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
@@ -2824,7 +2827,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
   PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 // Information used by the various dynamic closure call fragment builders.
@@ -3745,7 +3748,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
@@ -4016,7 +4019,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
@@ -4270,7 +4273,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
@@ -4383,7 +4386,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
@@ -4459,7 +4462,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     body += Box(kUnboxedDouble);
   } else if (target.has_unboxed_record_return()) {
     // Handled in SelectRepresentations pass in optimized mode.
-    ASSERT(optimizing_);
+    ASSERT(optimizing());
   }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not
@@ -4484,7 +4487,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   }
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 void FlowGraphBuilder::SetConstantRangeOfCurrentDefinition(
@@ -5358,7 +5361,7 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(
 Fragment FlowGraphBuilder::FfiNativeFunctionBody(const Function& function) {
   ASSERT(function.is_ffi_native());
   ASSERT(!IsRecognizedMethodForFlowGraph(function));
-  ASSERT(optimizing_);
+  ASSERT(optimizing());
 
   const auto& c_signature =
       FunctionType::ZoneHandle(Z, function.FfiCSignature());
@@ -5707,7 +5710,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
@@ -5783,7 +5786,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
   PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing()));
 }
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {

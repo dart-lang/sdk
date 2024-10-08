@@ -1,0 +1,40 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# A part becomes a real file.
+
+type: newworld
+worlds:
+  - entry: maybe_part.dart
+    checkEntries: false
+    sources:
+      maybe_part.dart: |
+        part of "main.dart";
+        class Foo {}
+      main.dart: |
+        part 'maybe_part.dart';
+        main() {
+          Foo foo = new Foo();
+          print("Hello, World!");
+          print("Hello $foo");
+        }
+    expectedLibraryCount: 1
+
+  - entry: maybe_part.dart
+    checkEntries: false
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+      - maybe_part.dart
+    sources:
+      maybe_part.dart: |
+        import "main.dart";
+        class Foo {}
+      main.dart: |
+        main() {
+          print("Hello, World!");
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: outlineChange

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidUnusedConstructorParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_unused_constructor_parameters';
+  String get lintRule => LintNames.avoid_unused_constructor_parameters;
 
   test_augmentationClass() async {
     newFile('$testPackageLibPath/a.dart', r'''

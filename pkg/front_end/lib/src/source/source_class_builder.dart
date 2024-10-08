@@ -36,7 +36,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
@@ -44,6 +43,7 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'class_declaration.dart';
+import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -56,7 +56,7 @@ import 'type_parameter_scope_builder.dart';
 Class initializeClass(
     List<NominalVariableBuilder>? typeVariables,
     String name,
-    SourceLibraryBuilder parent,
+    Uri fileUri,
     int startCharOffset,
     int charOffset,
     int charEndOffset,
@@ -71,7 +71,7 @@ Class initializeClass(
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
       reference: isAugmentation ? null : indexedClass?.reference,
-      fileUri: parent.fileUri);
+      fileUri: fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
   }
@@ -157,9 +157,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void set isConflictingAugmentationMember(bool value) {
-    assert(
-        _isConflictingAugmentationMember == null,
-        // Coverage-ignore(suite): Not run.
+    assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -180,6 +178,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.nameSpaceBuilder,
       SourceLibraryBuilder parent,
       this.constructorReferences,
+      Uri fileUri,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
@@ -193,11 +192,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : actualCls = initializeClass(typeVariables, name, parent,
+      : actualCls = initializeClass(typeVariables, name, fileUri,
             startCharOffset, nameOffset, charEndOffset, indexedClass,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, parent, nameOffset) {
+        super(metadata, modifiers, name, parent, fileUri, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
@@ -212,7 +211,15 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = nameSpaceBuilder.buildNameSpace(libraryBuilder, this);
+    _nameSpace = nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        indexedContainer: indexedClass,
+        containerType: ContainerType.Class,
+        containerName: new ClassName(name));
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class $name",
         parent: typeParameterScope);
@@ -324,9 +331,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
       isMixinDeclaration = false;
-    }
-    if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
-      mixedInTypeBuilder = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
     actualCls.mixedInType = mixedInType;
@@ -823,10 +827,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           superClassType.computeUnaliasedDeclaration(isUsedAsClass: true);
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
-      if (unaliasedSuperDeclaration is VoidTypeDeclarationBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        fail(superClassType, messageExtendsVoid, superDeclaration);
-      } else if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
+      if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
         fail(superClassType, messageExtendsNever, superDeclaration);
       } else if (unaliasedSuperDeclaration is ClassBuilder) {
         superClass = unaliasedSuperDeclaration;
@@ -864,9 +865,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (classHierarchyNode.isMixinApplication) {
-      assert(
-          mixedInTypeBuilder != null,
-          // Coverage-ignore(suite): Not run.
+      assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
       ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
       ClassHierarchyNode? mixinSuperClassNode =
@@ -917,10 +916,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (unaliasedDeclaration != superClass) {
         // TODO(eernst): Have all 'restricted supertype' checks in one place.
-        if (unaliasedDeclaration is VoidTypeDeclarationBuilder) {
-          // Coverage-ignore-block(suite): Not run.
-          fail(type, messageImplementsVoid, typeDeclaration);
-        } else if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
+        if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
           fail(type, messageImplementsNever, typeDeclaration);
         }
       }

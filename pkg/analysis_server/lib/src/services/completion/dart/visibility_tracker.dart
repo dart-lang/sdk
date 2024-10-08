@@ -25,9 +25,15 @@ class VisibilityTracker {
     var name = element?.displayName;
     if (name == null) {
       return false;
-    } else if (importData?.isNotImported ?? false) {
-      return !_declaredNames.contains(name);
     }
-    return _declaredNames.add(name);
+
+    var isNotImported = importData?.isNotImported ?? false;
+    var prefix = importData?.prefix;
+    var qualifiedName = prefix != null ? '$prefix.$name' : name;
+
+    if (isNotImported) {
+      return !_declaredNames.contains(qualifiedName);
+    }
+    return _declaredNames.add(qualifiedName);
   }
 }

@@ -18,7 +18,7 @@ class PreferRelativeImportsTest extends LintRuleTest {
   bool get addJsPackageDep => true;
 
   @override
-  String get lintRule => 'prefer_relative_imports';
+  String get lintRule => LintNames.prefer_relative_imports;
 
   test_externalPackage() async {
     await assertNoDiagnostics(r'''

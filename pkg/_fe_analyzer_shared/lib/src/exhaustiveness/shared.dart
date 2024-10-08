@@ -403,14 +403,9 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       {required bool nonNull});
 
   /// Creates the root space for [pattern].
-  Space createRootSpace(StaticType contextType, Pattern pattern,
-      {required bool hasGuard}) {
-    if (hasGuard) {
-      return createUnknownSpace(const Path.root());
-    } else {
-      return dispatchPattern(const Path.root(), contextType, pattern,
-          nonNull: false);
-    }
+  Space createRootSpace(StaticType contextType, Pattern pattern) {
+    return dispatchPattern(const Path.root(), contextType, pattern,
+        nonNull: false);
   }
 
   /// Creates the [Space] at [path] for a variable pattern of the declared

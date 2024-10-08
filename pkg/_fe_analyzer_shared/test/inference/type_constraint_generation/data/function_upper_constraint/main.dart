@@ -29,5 +29,5 @@ main() {
   foo2a(bar2a /*T :> num*/ ());
   foo2b(bar2b /*T :> int,T :> num*/ ());
   foo3a(bar3a());
-  foo3b /*T :> String*/ (bar3b());
+  foo3b /*cfe.T :> String,T :> String*/ /*analyzer.T :> String*/ (bar3b());
 }

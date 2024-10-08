@@ -11,28 +11,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer using `null`-aware operators.';
 
-const _details = r'''
-**PREFER** using `null`-aware operators instead of `null` checks in conditional
-expressions.
-
-**BAD:**
-```dart
-v = a == null ? null : a.b;
-```
-
-**GOOD:**
-```dart
-v = a?.b;
-```
-
-''';
-
 class PreferNullAwareOperators extends LintRule {
   PreferNullAwareOperators()
       : super(
-          name: 'prefer_null_aware_operators',
+          name: LintNames.prefer_null_aware_operators,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -46,7 +29,7 @@ class PreferNullAwareOperators extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);

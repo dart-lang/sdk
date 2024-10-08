@@ -26,6 +26,7 @@ class E1 extends self::_E1&_Enum&M1 /*isEnum*/  {
   enum-element static const field self::E1 one = const self::E1::•(0, "one");
   enum-element static const field self::E1 two = const self::E1::•(1, "two");
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
+    : super self::_E1&_Enum&M1::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -49,6 +50,7 @@ class E2 extends self::_E2&_Enum&M1&M2 /*isEnum*/  {
   enum-element static const field self::E2 one = const self::E2::•(0, "one");
   enum-element static const field self::E2 two = const self::E2::•(1, "two");
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
+    : super self::_E2&_Enum&M1&M2::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -65,6 +67,7 @@ class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
   enum-element static const field self::E3 one = const self::E3::•(0, "one");
   enum-element static const field self::E3 two = const self::E3::•(1, "two");
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
+    : super self::_E3&_Enum&M3::•(#index, #name)
     ;
   method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
@@ -80,13 +83,13 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:19:6 -> ListConstant(const <E1>[const E1{}, const E1{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:19:19 -> InstanceConstant(const E1{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:19:24 -> InstanceConstant(const E1{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:21:6 -> ListConstant(const <E2>[const E2{}, const E2{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:21:23 -> InstanceConstant(const E2{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:21:28 -> InstanceConstant(const E2{})
-Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:23:6 -> ListConstant(const <E3>[const E3{}, const E3{}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:23:19 -> InstanceConstant(const E3{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:23:24 -> InstanceConstant(const E3{})
-Extra constant evaluation: evaluated: 31, effectively constant: 9
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:19:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "one"}, const E1{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:19:19 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:19:24 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:21:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "one"}, const E2{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:21:23 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:21:28 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_mixins.dart:23:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "one"}, const E3{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:23:19 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_mixins.dart:23:24 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "two"})
+Extra constant evaluation: evaluated: 37, effectively constant: 9

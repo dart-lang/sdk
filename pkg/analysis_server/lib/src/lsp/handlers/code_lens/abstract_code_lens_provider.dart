@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide Declaration, Element;
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -16,7 +17,8 @@ import 'package:analyzer/source/line_info.dart';
 ///
 /// The LSP CodeLens handler will call all registered CodeLens providers and
 /// merge the results before responding to the client.
-abstract class AbstractCodeLensProvider with HandlerHelperMixin {
+abstract class AbstractCodeLensProvider
+    with HandlerHelperMixin, Handler<List<CodeLens>> {
   @override
   final AnalysisServer server;
 
@@ -24,10 +26,8 @@ abstract class AbstractCodeLensProvider with HandlerHelperMixin {
 
   /// Whether the client supports the `dart.goToLocation` command, as produced
   /// by [getNavigationCommand].
-  bool get clientSupportsGoToLocationCommand =>
-      server.lspClientCapabilities?.supportedCommands
-          .contains(ClientCommands.goToLocation) ??
-      false;
+  bool clientSupportsGoToLocationCommand(LspClientCapabilities capabilities) =>
+      capabilities.supportedCommands.contains(ClientCommands.goToLocation);
 
   /// Attempt to compute a [Location] to the declaration of [element].
   ///
@@ -62,11 +62,12 @@ abstract class AbstractCodeLensProvider with HandlerHelperMixin {
   ///
   /// If for any reason the location cannot be computed, returns `null`.
   Command? getNavigationCommand(
+    LspClientCapabilities clientCapabilities,
     String title,
     Element element,
     Map<String, LineInfo?> lineInfoCache,
   ) {
-    assert(clientSupportsGoToLocationCommand);
+    assert(clientSupportsGoToLocationCommand(clientCapabilities));
 
     var location = getLocation(element, lineInfoCache);
     if (location == null) {
@@ -87,5 +88,8 @@ abstract class AbstractCodeLensProvider with HandlerHelperMixin {
     Map<String, LineInfo?> lineInfoCache,
   );
 
-  bool isAvailable(CodeLensParams params);
+  bool isAvailable(
+    LspClientCapabilities clientCapabilities,
+    CodeLensParams params,
+  );
 }

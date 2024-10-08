@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryBraceInStringInterpsTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_brace_in_string_interps';
+  String get lintRule => LintNames.unnecessary_brace_in_string_interps;
 
   test_braces_bangAfter() async {
     await assertDiagnostics(r'''

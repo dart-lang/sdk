@@ -631,6 +631,30 @@ bool true
 ''');
   }
 
+  test_identical_type_functionType_different() async {
+    await assertNoErrorsInCode('''
+const c = identical(typeof<void Function()>, typeof<void Function()?>);
+typedef typeof<T> = T;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: <testLibraryFragment>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_type_functionType_same() async {
+    await assertNoErrorsInCode('''
+const c = identical(typeof<void Function()>, typeof<void Function()>);
+typedef typeof<T> = T;
+''');
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibraryFragment>::@topLevelVariable::c
+''');
+  }
+
   test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
     await assertNoErrorsInCode('''
 class C<T> {}

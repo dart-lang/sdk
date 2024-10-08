@@ -7,7 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
 import 'package:analyzer/src/lint/linter.dart';
@@ -58,7 +58,7 @@ class ColorComputer {
     if (memberName != null) {
       colorConst = _getMember(colorConst, memberName);
     } else if (index != null) {
-      colorConst = _getSwatchValue(colorConst, index);
+      colorConst = _getSwatchColor(colorConst, index);
     }
 
     return _tryRecordColor(expression, colorConst);
@@ -73,41 +73,60 @@ class ColorComputer {
     if (!expression.staticType.isColor) return false;
 
     var constructor = expression.constructorName;
-    var staticElement = constructor.staticElement;
-    var classElement = staticElement?.enclosingElement3;
+    var staticElement = constructor.element;
+    var classElement = staticElement?.enclosingElement2;
     var className = classElement?.name;
     var constructorName = constructor.name?.name;
-    var constructorArgs = expression.argumentList.arguments
-        .map((e) => e is Literal ? e : null)
-        .toList();
+    var constructorArgs = expression.argumentList.arguments.toList();
 
-    int? colorValue;
+    ColorInformation? color;
     if (_isDartUi(classElement) && className == 'Color') {
-      colorValue = _getDartUiColorValue(constructorName, constructorArgs);
+      color = _getDartUiColor(constructorName, constructorArgs);
     } else if (_isFlutterPainting(classElement) && className == 'ColorSwatch') {
-      colorValue =
-          _getFlutterSwatchColorValue(constructorName, constructorArgs);
+      color = _getFlutterSwatchColor(constructorName, constructorArgs);
     } else if (_isFlutterMaterial(classElement) &&
         className == 'MaterialAccentColor') {
-      colorValue =
-          _getFlutterMaterialAccentColorValue(constructorName, constructorArgs);
+      color = _getFlutterMaterialAccentColor(constructorName, constructorArgs);
     }
 
-    return _tryRecordColorValue(expression, colorValue);
+    return _tryRecordColorInformation(expression, color);
   }
 
-  /// Converts ARGB values into a single int value as 0xAARRGGBB as used by
-  /// the dart:ui Color class.
-  int _colorValueForComponents(int alpha, int red, int green, int blue) {
-    return (alpha << 24) | (red << 16) | (green << 8) | (blue << 0);
-  }
-
-  /// Extracts the color value from dart:ui Color constructor args.
-  int? _getDartUiColorValue(String? name, List<Literal?> args) {
+  /// Extracts the color information from dart:ui Color constructor args.
+  ColorInformation? _getDartUiColor(String? name, List<Expression> args) {
     if (name == null && args.length == 1) {
+      // Color(0xFF000000).
       var arg0 = args[0];
-      return arg0 is IntegerLiteral ? arg0.value : null;
+      return arg0 is IntegerLiteral ? getColorForInt(arg0.value) : null;
+    } else if (name == 'from') {
+      // Color.from(alpha: 1, red: 1, green: 1, blue: 1).
+      double? alpha, red, green, blue;
+      for (var arg in args.whereType<NamedExpression>()) {
+        var expression = arg.expression;
+        var value = expression is DoubleLiteral
+            ? expression.value
+            : expression is IntegerLiteral
+                ? expression.value?.toDouble()
+                : null;
+        switch (arg.name.label.name) {
+          case 'alpha':
+            alpha = value;
+          case 'red':
+            red = value;
+          case 'green':
+            green = value;
+          case 'blue':
+            blue = value;
+        }
+      }
+      return getColorForDoubles(
+        alpha: alpha,
+        red: red,
+        green: green,
+        blue: blue,
+      );
     } else if (name == 'fromARGB' && args.length == 4) {
+      // Color.fromARGB(255, 255, 255, 255).
       var arg0 = args[0];
       var arg1 = args[1];
       var arg2 = args[2];
@@ -119,9 +138,10 @@ class ColorComputer {
       var blue = arg3 is IntegerLiteral ? arg3.value : null;
 
       return alpha != null && red != null && green != null && blue != null
-          ? _colorValueForComponents(alpha, red, green, blue)
+          ? ColorInformation(alpha, red, green, blue)
           : null;
     } else if (name == 'fromRGBO' && args.length == 4) {
+      // Color.fromRGBO(255, 255, 255, 1.0).
       var arg0 = args[0];
       var arg1 = args[1];
       var arg2 = args[2];
@@ -138,24 +158,26 @@ class ColorComputer {
       var alpha = opacity != null ? (opacity * 255).toInt() : null;
 
       return alpha != null && red != null && green != null && blue != null
-          ? _colorValueForComponents(alpha, red, green, blue)
+          ? ColorInformation(alpha, red, green, blue)
           : null;
     } else {
       return null;
     }
   }
 
-  /// Extracts the color value from Flutter MaterialAccentColor constructor args.
-  int? _getFlutterMaterialAccentColorValue(String? name, List<Literal?> args) =>
+  /// Extracts the color from Flutter MaterialAccentColor constructor args.
+  ColorInformation? _getFlutterMaterialAccentColor(
+          String? name, List<Expression> args) =>
       // MaterialAccentColor is a subclass of SwatchColor and has the same
       // constructor.
-      _getFlutterSwatchColorValue(name, args);
+      _getFlutterSwatchColor(name, args);
 
-  /// Extracts the color value from Flutter ColorSwatch constructor args.
-  int? _getFlutterSwatchColorValue(String? name, List<Literal?> args) {
+  /// Extracts the color information from Flutter ColorSwatch constructor args.
+  ColorInformation? _getFlutterSwatchColor(
+      String? name, List<Expression> args) {
     if (name == null && args.isNotEmpty) {
       var arg0 = args[0];
-      return arg0 is IntegerLiteral ? arg0.value : null;
+      return arg0 is IntegerLiteral ? getColorForInt(arg0.value) : null;
     } else {
       return null;
     }
@@ -166,17 +188,17 @@ class ColorComputer {
   /// Well-known getters like `shade500` will be mapped onto the swatch value
   /// with a matching index.
   DartObject? _getMember(DartObject target, String memberName) {
-    var colorValue = target.getFieldFromHierarchy(memberName);
-    if (colorValue != null) {
-      return colorValue;
+    var color = target.getFieldFromHierarchy(memberName);
+    if (color != null) {
+      return color;
     }
 
-    // If we didn't get a value but it's a getter we know how to read from a
+    // If we didn't get a color but it's a getter we know how to read from a
     // swatch, try that.
     if (memberName.startsWith('shade')) {
       var shadeNumber = int.tryParse(memberName.substring(5));
       if (shadeNumber != null) {
-        return _getSwatchValue(target, shadeNumber);
+        return _getSwatchColor(target, shadeNumber);
       }
     }
 
@@ -184,7 +206,7 @@ class ColorComputer {
   }
 
   /// Extracts a specific shade index from a Flutter SwatchColor.
-  DartObject? _getSwatchValue(DartObject target, int swatchValue) {
+  DartObject? _getSwatchColor(DartObject target, int swatchValue) {
     var swatch = target.getFieldFromHierarchy('_swatch')?.toMapValue();
     if (swatch == null) return null;
 
@@ -197,78 +219,102 @@ class ColorComputer {
   }
 
   /// Checks whether this elements library is dart:ui.
-  bool _isDartUi(Element? element) => element?.library?.name == 'dart.ui';
+  bool _isDartUi(Element2? element) => element?.library2?.name == 'dart.ui';
 
   /// Checks whether this elements library is Flutter Material colors.
-  bool _isFlutterMaterial(Element? element) =>
-      element?.library?.identifier ==
+  bool _isFlutterMaterial(Element2? element) =>
+      element?.library2?.identifier ==
       'package:flutter/src/material/colors.dart';
 
   /// Checks whether this elements library is Flutter Painting colors.
-  bool _isFlutterPainting(Element? element) =>
-      element?.library?.identifier ==
+  bool _isFlutterPainting(Element2? element) =>
+      element?.library2?.identifier ==
       'package:flutter/src/painting/colors.dart';
 
-  /// Tries to record a color value from [colorConst] for [expression].
+  /// Tries to record a color from [colorConst] for [expression].
   ///
   /// Returns whether a valid color was found and recorded.
   bool _tryRecordColor(Expression expression, DartObject? colorConst) =>
-      _tryRecordColorValue(expression, _colorValueForColorConst(colorConst));
+      _tryRecordColorInformation(expression, getColorForObject(colorConst));
 
-  /// Tries to record the [colorValue] for [expression].
+  /// Tries to record the [color] for [expression].
   ///
   /// Returns whether a valid color was found and recorded.
-  bool _tryRecordColorValue(Expression expression, int? colorValue) {
-    if (colorValue == null) return false;
-
-    // Build color information from the Color value.
-    var color = _colorInformationForColorValue(colorValue);
+  bool _tryRecordColorInformation(
+      Expression expression, ColorInformation? color) {
+    if (color == null) return false;
 
     // Record the color against the original entire expression.
     _colors.add(ColorReference(expression.offset, expression.length, color));
     return true;
   }
 
-  static ColorInformation? getColorForValue(DartObject object) {
-    if (object.type.isColor) {
-      var colorValue = _colorValueForColorConst(object);
-      if (colorValue != null) {
-        return _colorInformationForColorValue(colorValue);
-      }
-    }
-    return null;
+  /// Gets [ColorInformation] from a set of doubles that are stored internally
+  /// in a dart:ui Color object.
+  static ColorInformation? getColorForDoubles({
+    required double? alpha,
+    required double? red,
+    required double? green,
+    required double? blue,
+  }) {
+    return alpha != null && red != null && green != null && blue != null
+        ? ColorInformation(
+            (alpha * 255.0).round() & 0xff,
+            (red * 255.0).round() & 0xff,
+            (green * 255.0).round() & 0xff,
+            (blue * 255.0).round() & 0xff,
+          )
+        : null;
   }
 
-  /// Creates a [ColorInformation] by extracting the argb values from
-  /// [value] encoded as 0xAARRGGBB as in the dart:ui Color class.
-  static ColorInformation _colorInformationForColorValue(int value) {
-    // Extract color information according to dart:ui Color values.
-    var alpha = (0xff000000 & value) >> 24;
-    var red = (0x00ff0000 & value) >> 16;
-    var blue = (0x000000ff & value) >> 0;
-    var green = (0x0000ff00 & value) >> 8;
-
-    return ColorInformation(alpha, red, green, blue);
+  /// Gets [ColorInformation] from a value like `0xFFFF9000` which is used in
+  /// the default `Color()` constructor.
+  static ColorInformation? getColorForInt(int? value) {
+    return value != null
+        ? ColorInformation(
+            (value >> 24) & 0xff,
+            (value >> 16) & 0xff,
+            (value >> 8) & 0xff,
+            value & 0xff,
+          )
+        : null;
   }
 
-  /// Extracts the integer color value from the dart:ui Color constant [color].
-  static int? _colorValueForColorConst(DartObject? color) {
-    if (color == null || color.isNull) return null;
+  /// Gets [ColorInformation] from the dart:ui Color object [color].
+  static ColorInformation? getColorForObject(DartObject? color) {
+    if (color == null || color.isNull || !color.type.isColor) return null;
 
     // If the object has a "color" field, walk down to that, because some colors
     // like CupertinoColors have a "value=0" with an overridden getter that
     // would always result in a value representing black.
     color = color.getFieldFromHierarchy('color') ?? color;
 
-    return color.getFieldFromHierarchy('value')?.toIntValue();
+    var alpha = color.getFieldFromHierarchy('a')?.toDoubleValue();
+    var red = color.getFieldFromHierarchy('r')?.toDoubleValue();
+    var green = color.getFieldFromHierarchy('g')?.toDoubleValue();
+    var blue = color.getFieldFromHierarchy('b')?.toDoubleValue();
+
+    return getColorForDoubles(
+      alpha: alpha,
+      red: red,
+      green: green,
+      blue: blue,
+    );
   }
 }
 
 /// Information about a color that is present in a document.
 class ColorInformation {
+  /// Alpha as a value from 0 to 255.
   final int alpha;
+
+  /// Red as a value from 0 to 255.
   final int red;
+
+  /// Green as a value from 0 to 255.
   final int green;
+
+  /// Blue as a value from 0 to 255.
   final int blue;
 
   ColorInformation(this.alpha, this.red, this.green, this.blue);
@@ -340,8 +386,8 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // Handle things like CupterinoColors.activeBlue.darkColor where we can't
-    // evaluate the whole expression, but can evaluate CupterinoColors.activeBlue
+    // Handle things like CupertinoColors.activeBlue.darkColor where we can't
+    // evaluate the whole expression, but can evaluate CupertinoColors.activeBlue
     // and read the darkColor.
     if (computer.tryAddColor(
       node,

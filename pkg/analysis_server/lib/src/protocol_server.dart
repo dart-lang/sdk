@@ -61,7 +61,7 @@ String? getColorHexString(engine.Element? element) {
   if (element is engine.VariableElement) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
-      var color = ColorComputer.getColorForValue(dartValue);
+      var color = ColorComputer.getColorForObject(dartValue);
       if (color != null) {
         return '#'
                 '${color.red.toRadixString(16).padLeft(2, '0')}'
@@ -291,7 +291,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement.definingCompilationUnit;
+    element = element.enclosingElement3;
   }
 
   for (var e in element.withAncestors) {

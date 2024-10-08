@@ -6,11 +6,13 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/assembler_test.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 namespace compiler {
@@ -6495,6 +6497,74 @@ ASSEMBLER_TEST_GENERATE(CallCodePreservesRegisters, assembler) {
 ASSEMBLER_TEST_RUN(CallCodePreservesRegisters, test) {
   const intptr_t result = test->InvokeWithCodeAndThread<int64_t>();
   EXPECT_EQ(42, result);
+}
+
+void CheckIsIdentity(Expect& expect, AssemblerTest* test) {
+  for (size_t i = 0; i < ARRAY_SIZE(kRegRegImmInputs); ++i) {
+    const intptr_t input = kRegRegImmInputs[i];
+    const intptr_t result = test->Invoke<intptr_t, intptr_t>(input);
+    expect.Equals(input, result);
+  }
+}
+
+void CheckMovesInputToReturnOnly(Expect& expect,
+                                 AssemblerTest* test,
+                                 bool is_direct) {
+  auto* const input_reg_name = cpu_reg_names[RegRegImmTests::kInputReg];
+  auto* const ret_reg_name = cpu_reg_names[RegRegImmTests::kReturnReg];
+  auto* const temp_reg_name = cpu_reg_names[TMP];
+  ZoneTextBuffer buf(Thread::Current()->zone());
+  if (!is_direct) {
+    RELEASE_ASSERT(RegRegImmTests::kInputReg != TMP);
+    buf.Printf("movq %s,%s\n", temp_reg_name, input_reg_name);
+  }
+  RELEASE_ASSERT(RegRegImmTests::kInputReg != RegRegImmTests::kReturnReg);
+  RELEASE_ASSERT(RegRegImmTests::kReturnReg != TMP);
+  buf.Printf("movq %s,%s\n", ret_reg_name,
+             is_direct ? input_reg_name : temp_reg_name);
+  buf.AddString("ret\n");
+  expect.StringEquals(buf.buffer(), test->RelativeDisassembly());
+}
+
+#define GENERATE_ASSEMBLER_IDENTITY_TEST(inst, rhs)                            \
+  ASSEMBLER_TEST_GENERATE(inst##_##rhs##_Identity_Direct, assembler) {         \
+    __ inst(RegRegImmTests::kInputReg, RegRegImmTests::kInputReg, rhs,         \
+            kWordBytes);                                                       \
+    __ MoveRegister(RegRegImmTests::kReturnReg, RegRegImmTests::kInputReg);    \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(inst##_##rhs##_Identity_Direct, test) {                   \
+    Expect expect(__FILE__, __LINE__);                                         \
+    CheckIsIdentity(expect, test);                                             \
+    CheckMovesInputToReturnOnly(expect, test, /*is_direct=*/true);             \
+  }                                                                            \
+  ASSEMBLER_TEST_GENERATE(inst##_##rhs##_Identity_Indirect, assembler) {       \
+    __ inst(TMP, RegRegImmTests::kInputReg, rhs, kWordBytes);                  \
+    __ MoveRegister(RegRegImmTests::kReturnReg, TMP);                          \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(inst##_##rhs##_Identity_Indirect, test) {                 \
+    Expect expect(__FILE__, __LINE__);                                         \
+    CheckIsIdentity(expect, test);                                             \
+    CheckMovesInputToReturnOnly(expect, test, /*is_direct=*/false);            \
+  }
+
+GENERATE_ASSEMBLER_IDENTITY_TEST(AndImmediate, kMaxUint64)
+GENERATE_ASSEMBLER_IDENTITY_TEST(LslImmediate, 0)
+GENERATE_ASSEMBLER_IDENTITY_TEST(ArithmeticShiftRightImmediate, 0)
+
+#undef GENERATE_ASSEMBLER_IDENTITY_TEST
+
+intptr_t RegRegImmTests::Lsl(intptr_t value, intptr_t shift, OperandSize sz) {
+  // For non-word sizes, the result is always zero extended to reduce
+  // instruction count.
+  return ZeroExtendValue(static_cast<uintptr_t>(value) << shift, sz);
+}
+
+intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
+  // For non-word sizes, the result is always zero extended to reduce
+  // instruction count.
+  return ZeroExtendValue(SignExtendValue(value, sz) >> shift, sz);
 }
 
 }  // namespace compiler

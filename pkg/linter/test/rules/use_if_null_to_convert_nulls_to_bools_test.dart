@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseIfNullToConvertNullsToBoolsTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_if_null_to_convert_nulls_to_bools';
+  String get lintRule => LintNames.use_if_null_to_convert_nulls_to_bools;
 
   test_equalEqual_false() async {
     await assertNoDiagnostics(r'''

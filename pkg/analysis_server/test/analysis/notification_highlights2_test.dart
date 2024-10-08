@@ -1999,18 +1999,20 @@ void g() {
 
   Future<void> test_PARAMETER_super_children() async {
     addTestFile('''
+const V1 = 1;
 class A {
   A(Object aaa);
 }
 class B extends A {
-  B(int super.aaa<T>(double a /*0*/));
+  B(@V1 /*0*/ int super.aaa<T>(double a /*1*/));
 }
 ''');
     await prepareHighlights();
+    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 /*0*/');
     assertHasRegion(HighlightRegionType.CLASS, 'int');
     assertHasRegion(HighlightRegionType.CLASS, 'double');
     assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T>');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a /*0*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a /*1*/');
   }
 
   Future<void> test_PARAMETER_super_requiredNamed() async {
@@ -2090,10 +2092,10 @@ void f((int, {int field1}) record) {
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 1');
+    assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, r'$1; // 1');
     assertHasRegion(
-        HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'field1; // 2');
-    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, r'$1; // 3');
+        HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'field1; // 2');
+    assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, r'$1; // 3');
     assertHasRegion(HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
         'notResolved');
   }

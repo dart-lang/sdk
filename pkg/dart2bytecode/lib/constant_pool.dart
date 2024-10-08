@@ -14,112 +14,18 @@ import 'bytecode_serialization.dart'
         StringTable;
 import 'object_table.dart' show ObjectHandle, ObjectTable;
 
-/*
-
-Constant pool is encoded in the following way
-(using notation from pkg/kernel/binary.md):
-
-type ConstantPool {
-  List<ConstantPoolEntry>
-}
-
-type ConstantIndex = UInt;
-
-abstract type ConstantPoolEntry {
-  Byte tag;
-}
-
-type ConstantStaticField extends ConstantPoolEntry {
-  Byte tag = 1;
-  PackedObject field;
-}
-
-// Occupies 2 entries in the constant pool.
-type ConstantInstanceField extends ConstantPoolEntry {
-  Byte tag = 2;
-  PackedObject field;
-}
-
-type ConstantClass extends ConstantPoolEntry {
-  Byte tag = 3;
-  PackedObject class;
-}
-
-type ConstantTypeArgumentsField extends ConstantPoolEntry {
-  Byte tag = 4;
-  PackedObject class;
-}
-
-type ConstantType extends ConstantPoolEntry {
-  Byte tag = 5;
-  PackedObject type;
-}
-
-type ConstantClosureFunction extends ConstantPoolEntry {
-  Byte tag = 6;
-  UInt closureIndex;
-}
-
-type ConstantEndClosureFunctionScope extends ConstantPoolEntry {
-  Byte tag = 7;
-}
-
-type ConstantSubtypeTestCache extends ConstantPoolEntry {
-  Byte tag = 8;
-}
-
-type ConstantEmptyTypeArguments extends ConstantPoolEntry {
-  Byte tag = 9;
-}
-
-type ConstantObjectRef extends ConstantPoolEntry {
-  Byte tag = 10;
-  PackedObject object;
-}
-
-// Occupies 2 entries in the constant pool.
-type ConstantDirectCall extends ConstantPoolEntry {
-  Byte tag = 11;
-  PackedObject target;
-  PackedObject argDesc;
-}
-
-// Occupies 2 entries in the constant pool.
-type ConstantInterfaceCall extends ConstantPoolEntry {
-  Byte tag = 12;
-  PackedObject target;
-  PackedObject argDesc;
-}
-
-// Occupies 3 entries in the constant pool.
-type ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
-  Byte tag = 13;
-  PackedObject target;
-  PackedObject argDesc;
-  PackedObject staticReceiverType;
-}
-
-// Occupies 2 entries in the constant pool
-type ConstantDynamicCall extends ConstantPoolEntry {
-  Byte tag = 14;
-  PackedObject selectorName;
-  PackedObject argDesc;
-}
-
-*/
-
 enum ConstantTag {
   kInvalid,
+  kObjectRef,
+  kClass,
+  kType,
   kStaticField,
   kInstanceField,
-  kClass,
   kTypeArgumentsField,
-  kType,
   kClosureFunction,
   kEndClosureFunctionScope,
   kSubtypeTestCache,
   kEmptyTypeArguments,
-  kObjectRef,
   kDirectCall,
   kInterfaceCall,
   kInstantiatedInterfaceCall,

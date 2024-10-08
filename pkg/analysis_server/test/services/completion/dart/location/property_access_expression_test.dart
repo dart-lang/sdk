@@ -724,6 +724,50 @@ suggestions
 ''');
   }
 
+  Future<void> test_property_assignmentLeft_newLine() async {
+    await computeSuggestions('''
+class A {
+  int? f01;
+  void m01() {}
+}
+
+void f(A? a, Object? v01) {
+  a.^
+  v01 = null;
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  m01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_property_assignmentLeft_newLine2() async {
+    await computeSuggestions('''
+class A {
+  int? f01;
+  void m01() {}
+}
+
+void f(A? a, Object? v01) {
+  (a).^
+  v01 = null;
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  m01
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_target_assignmentLeft() async {
     await computeSuggestions('''
 void f(Object v01) {

@@ -1,4 +1,4 @@
-## 1.16.0-dev
+## 1.16.0
 
 - Add `TargetKind`s to a few annotations to match custom-wired behavior that the
   Dart analyzer has been providing:
@@ -56,6 +56,8 @@
   // Ok, because `int _actual` is similar to a parameter declaration.
   extension type const FancyInt(@mustBeConst int _actual) {}
   ```
+
+- Renamed `@ResourceIdentifier` to `@RecordUse`.
 
 ## 1.15.0
 

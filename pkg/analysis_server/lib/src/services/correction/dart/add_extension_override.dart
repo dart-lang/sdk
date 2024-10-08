@@ -24,10 +24,12 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     var dartFixContext = context.dartFixContext;
     if (dartFixContext == null) return const [];
 
-    var nodeName = Name(
-        dartFixContext.resolvedResult.libraryElement.source.uri, node.name);
+    var libraryFragment = dartFixContext.resolvedResult.unit.declaredElement!;
+    var libraryElement = libraryFragment.library;
+
+    var nodeName = Name(libraryElement.source.uri, node.name);
     var extensions =
-        libraryElement.accessibleExtensions.havingMemberWithBaseName(nodeName);
+        libraryFragment.accessibleExtensions.havingMemberWithBaseName(nodeName);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;

@@ -438,16 +438,16 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
   // be kept in sync with pkg/dart2bytecode/lib/constant_pool.dart.
   enum ConstantPoolTag {
     kInvalid,
+    kObjectRef,
+    kClass,
+    kType,
     kStaticField,
     kInstanceField,
-    kClass,
     kTypeArgumentsField,
-    kType,
     kClosureFunction,
     kEndClosureFunctionScope,
     kSubtypeTestCache,
     kEmptyTypeArguments,
-    kObjectRef,
     kDirectCall,
     kInterfaceCall,
     kInstantiatedInterfaceCall,
@@ -879,15 +879,15 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   enum ObjectKind {
     kInvalid,
     kLibrary,
+    kScript,
     kClass,
     kMember,
     kClosure,
     kName,
-    kTypeArguments,
     kConstObject,
-    kArgDesc,
-    kScript,
     kType,
+    kTypeArguments,
+    kArgDesc,
   };
 
   // Member flags, must be in sync with _MemberHandle constants in
@@ -1053,18 +1053,18 @@ ObjectPtr BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
   // pkg/dart2bytecode/lib/object_table.dart.
   enum ConstTag {
     kInvalid,
-    kInstance,
     kInt,
     kDouble,
-    kList,
-    kTearOff,
     kBool,
-    kSymbol,
-    kTearOffInstantiation,
     kString,
+    kSymbol,
+    kInstance,
+    kList,
     kMap,
     kSet,
     kRecord,
+    kTearOff,
+    kTearOffInstantiation,
   };
 
   switch (tag) {
@@ -1250,13 +1250,13 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
     kInvalid,
     kDynamic,
     kVoid,
-    kSimpleType,
-    kTypeParameter,
-    kGenericType,
-    kFunctionType,
-    kRecordType,
     kNull,
     kNever,
+    kSimpleType,
+    kGenericType,
+    kTypeParameter,
+    kFunctionType,
+    kRecordType,
   };
 
   // FunctionType flags, must be in sync with _FunctionTypeHandle constants in
@@ -1479,23 +1479,23 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
                                                  bool discard_fields) {
   // Field flags, must be in sync with FieldDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
-  const int kHasNontrivialInitializerFlag = 1 << 0;
-  const int kHasGetterFlag = 1 << 1;
-  const int kHasSetterFlag = 1 << 2;
-  const int kIsReflectableFlag = 1 << 3;
-  const int kIsStaticFlag = 1 << 4;
-  const int kIsConstFlag = 1 << 5;
-  const int kIsFinalFlag = 1 << 6;
-  const int kIsCovariantFlag = 1 << 7;
-  const int kIsGenericCovariantImplFlag = 1 << 8;
-  const int kHasSourcePositionsFlag = 1 << 9;
-  const int kHasAnnotationsFlag = 1 << 10;
-  const int kHasPragmaFlag = 1 << 11;
-  const int kHasCustomScriptFlag = 1 << 12;
-  const int kHasInitializerCodeFlag = 1 << 13;
-  const int kIsLateFlag = 1 << 14;
-  const int kIsExtensionMemberFlag = 1 << 15;
-  const int kHasInitializerFlag = 1 << 16;
+  const int kIsStaticFlag = 1 << 0;
+  const int kIsConstFlag = 1 << 1;
+  const int kIsFinalFlag = 1 << 2;
+  const int kIsLateFlag = 1 << 3;
+  const int kIsCovariantFlag = 1 << 4;
+  const int kIsCovariantByClassFlag = 1 << 5;
+  const int kIsExtensionMemberFlag = 1 << 6;
+  const int kIsReflectableFlag = 1 << 7;
+  const int kHasGetterFlag = 1 << 8;
+  const int kHasSetterFlag = 1 << 9;
+  const int kHasInitializerFlag = 1 << 10;
+  const int kHasNontrivialInitializerFlag = 1 << 11;
+  const int kHasInitializerCodeFlag = 1 << 12;
+  const int kHasSourcePositionsFlag = 1 << 13;
+  const int kHasAnnotationsFlag = 1 << 14;
+  const int kHasPragmaFlag = 1 << 15;
+  const int kHasCustomScriptFlag = 1 << 16;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -1546,8 +1546,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
 
     field.set_has_pragma(has_pragma);
     field.set_is_covariant((flags & kIsCovariantFlag) != 0);
-    field.set_is_generic_covariant_impl((flags & kIsGenericCovariantImplFlag) !=
-                                        0);
+    field.set_is_generic_covariant_impl((flags & kIsCovariantByClassFlag) != 0);
     field.set_has_nontrivial_initializer(has_nontrivial_initializer);
     field.set_is_extension_member(is_extension_member);
     field.set_has_initializer(has_initializer);
@@ -1628,7 +1627,11 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_accessor_field(field);
       function.set_is_extension_member(is_extension_member);
       SetupFieldAccessorFunction(cls, function, type);
-      function.AttachBytecode(Object::implicit_setter_bytecode());
+      if (is_static) {
+        function.AttachBytecode(Object::implicit_static_setter_bytecode());
+      } else {
+        function.AttachBytecode(Object::implicit_setter_bytecode());
+      }
       functions_->SetAt(function_index_++, function);
     }
 
@@ -1724,31 +1727,30 @@ InstancePtr BytecodeReaderHelper::Canonicalize(const Instance& instance) {
 void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   // Function flags, must be in sync with FunctionDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
-  const int kIsConstructorFlag = 1 << 0;
-  const int kIsGetterFlag = 1 << 1;
-  const int kIsSetterFlag = 1 << 2;
-  const int kIsFactoryFlag = 1 << 3;
-  const int kIsStaticFlag = 1 << 4;
-  const int kIsAbstractFlag = 1 << 5;
+  const int kIsStaticFlag = 1 << 0;
+  const int kIsAbstractFlag = 1 << 1;
+  const int kIsGetterFlag = 1 << 2;
+  const int kIsSetterFlag = 1 << 3;
+  const int kIsConstructorFlag = 1 << 4;
+  const int kIsFactoryFlag = 1 << 5;
   const int kIsConstFlag = 1 << 6;
   const int kHasOptionalPositionalParamsFlag = 1 << 7;
   const int kHasOptionalNamedParamsFlag = 1 << 8;
   const int kHasTypeParamsFlag = 1 << 9;
-  const int kIsReflectableFlag = 1 << 10;
-  const int kIsDebuggableFlag = 1 << 11;
-  const int kIsAsyncFlag = 1 << 12;
-  const int kIsAsyncStarFlag = 1 << 13;
-  const int kIsSyncStarFlag = 1 << 14;
-  // const int kIsForwardingStubFlag = 1 << 15;
-  const int kIsNoSuchMethodForwarderFlag = 1 << 16;
-  const int kIsNativeFlag = 1 << 17;
+  const int kHasParameterFlagsFlag = 1 << 10;
+  const int kIsExtensionMemberFlag = 1 << 11;
+  const int kIsReflectableFlag = 1 << 12;
+  const int kIsDebuggableFlag = 1 << 13;
+  const int kIsAsyncFlag = 1 << 14;
+  const int kIsAsyncStarFlag = 1 << 15;
+  const int kIsSyncStarFlag = 1 << 16;
+  const int kIsNoSuchMethodForwarderFlag = 1 << 17;
   const int kIsExternalFlag = 1 << 18;
-  const int kHasSourcePositionsFlag = 1 << 19;
-  const int kHasAnnotationsFlag = 1 << 20;
-  const int kHasPragmaFlag = 1 << 21;
-  const int kHasCustomScriptFlag = 1 << 22;
-  const int kIsExtensionMemberFlag = 1 << 23;
-  const int kHasParameterFlagsFlag = 1 << 24;
+  const int kIsNativeFlag = 1 << 19;
+  const int kHasSourcePositionsFlag = 1 << 20;
+  const int kHasAnnotationsFlag = 1 << 21;
+  const int kHasPragmaFlag = 1 << 22;
+  const int kHasCustomScriptFlag = 1 << 23;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2048,7 +2050,6 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
 
 void BytecodeReaderHelper::ReadLibraryDeclaration(
     const Library& library,
-    bool lookup_classes,
     const GrowableObjectArray& pending_classes) {
   // Library flags, must be in sync with LibraryDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
@@ -2087,18 +2088,10 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
       cls.set_is_declared_in_bytecode(true);
       library.set_toplevel_class(cls);
     } else {
-      if (lookup_classes) {
-        cls = library.LookupClassAllowPrivate(name);
-      }
-      if (lookup_classes && !cls.IsNull()) {
-        ASSERT(!cls.is_declaration_loaded());
-        cls.set_script(script);
-      } else {
-        cls = Class::New(library, name, script, TokenPosition::kNoSource,
-                         /*register_class=*/true);
-        cls.set_is_declared_in_bytecode(true);
-        library.AddClass(cls);
-      }
+      cls = Class::New(library, name, script, TokenPosition::kNoSource,
+                       /*register_class=*/true);
+      cls.set_is_declared_in_bytecode(true);
+      library.AddClass(cls);
     }
 
     BytecodeLoader* loader = thread_->bytecode_loader();
@@ -2117,25 +2110,34 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
   auto& pending_classes =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
 
+  // Verify that libraries in the dynamic module are not loaded yet.
+  {
+    AlternativeReadingScope alt(&reader_, reader_.offset());
+    for (intptr_t i = 0; i < num_libraries; ++i) {
+      uri ^= ReadObject();
+      reader_.ReadUInt();  // Skip library offset.
+
+      library = Library::LookupLibrary(thread_, uri);
+      if (!library.IsNull()) {
+        const String& msg = String::Handle(String::NewFormatted(
+            "Unable to load dynamic module: library \'%s\' is already loaded",
+            uri.ToCString()));
+        Exceptions::ThrowStateError(msg);
+      }
+    }
+  }
+
   for (intptr_t i = 0; i < num_libraries; ++i) {
     uri ^= ReadObject();
     const intptr_t library_offset =
         bytecode_component_->GetLibrariesOffset() + reader_.ReadUInt();
 
-    bool lookup_classes = true;
-    library = Library::LookupLibrary(thread_, uri);
-    if (library.IsNull()) {
-      lookup_classes = false;
-      library = Library::New(uri);
-      library.Register(thread_);
-    }
-
-    if (library.Loaded()) {
-      continue;
-    }
+    library = Library::New(uri);
+    library.Register(thread_);
+    ASSERT(!library.Loaded());
 
     AlternativeReadingScope alt(&reader_, library_offset);
-    ReadLibraryDeclaration(library, lookup_classes, pending_classes);
+    ReadLibraryDeclaration(library, pending_classes);
   }
 
   auto& cls = Class::Handle(Z);
@@ -2196,7 +2198,7 @@ void BytecodeReaderHelper::ReadParameterCovariance(
       if ((flags & Parameter::kIsCovariantFlag) != 0) {
         is_covariant->Add(i);
       }
-      if ((flags & Parameter::kIsGenericCovariantImplFlag) != 0) {
+      if ((flags & Parameter::kIsCovariantByClassFlag) != 0) {
         is_generic_covariant_impl->Add(i);
       }
     }

@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -230,9 +231,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// `null` if we are not inside a method or function.
   EnclosingExecutableContext _enclosingExecutable =
       EnclosingExecutableContext.empty();
-
-  /// A table mapping names to the exported elements.
-  final Map<String, Element> _exportedElements = HashMap<String, Element>();
 
   /// A set of the names of the variable initializers we are visiting now.
   final HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
@@ -571,7 +569,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
     var element = node.declaredElement as CompilationUnitElement;
     _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);
@@ -2095,7 +2093,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     Map<String, Element> definedNames = namespace.definedNames;
     for (String name in definedNames.keys) {
       var element = definedNames[name]!;
-      var prevElement = _exportedElements[name];
+      var prevElement = libraryContext._exportedElements[name];
       if (prevElement != null && prevElement != element) {
         errorReporter.atNode(
           directive.uri,
@@ -2108,7 +2106,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         return;
       } else {
-        _exportedElements[name] = element;
+        libraryContext._exportedElements[name] = element;
       }
     }
   }
@@ -3211,6 +3209,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             errorReporter: errorReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
+            inferenceUsingBoundsIsEnabled:
+                _featureSet?.isEnabled(Feature.inference_using_bounds) ?? true,
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
             typeSystemOperations: typeSystemOperations,
@@ -6283,7 +6283,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (library == null) {
       return '';
     }
-    var imports = _currentLibrary.libraryImports;
+    var name = element.name;
+    if (name == null) {
+      return '';
+    }
+    var imports = _currentUnit.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .toList();
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {
@@ -6291,15 +6297,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     List<String> indirectSources = <String>[];
-    for (int i = 0; i < count; i++) {
-      var importedLibrary = imports[i].importedLibrary;
+    for (var import in imports) {
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
-        for (LibraryElement exportedLibrary
-            in importedLibrary.exportedLibraries) {
-          if (identical(exportedLibrary, library)) {
-            indirectSources.add(
-                importedLibrary.definingCompilationUnit.source.uri.toString());
-          }
+        if (import.namespace.get(name) == element) {
+          indirectSources.add(
+              importedLibrary.definingCompilationUnit.source.uri.toString());
         }
       }
     }
@@ -6505,6 +6508,42 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     return fields.toList();
   }
+
+  /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
+  /// the given [constructor], but are not initialized.
+  static List<FieldElement2> computeNotInitializedFields2(
+      ConstructorDeclaration constructor) {
+    var fields = <FieldElement2>{};
+    var classDeclaration = constructor.parent as ClassDeclaration;
+    for (ClassMember fieldDeclaration in classDeclaration.members) {
+      if (fieldDeclaration is FieldDeclaration) {
+        for (VariableDeclaration field in fieldDeclaration.fields.variables) {
+          if (field.initializer == null) {
+            fields.add((field.declaredFragment as FieldFragment).element);
+          }
+        }
+      }
+    }
+
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+    for (FormalParameter parameter in parameters) {
+      parameter = parameter.notDefault;
+      if (parameter is FieldFormalParameter) {
+        var element =
+            (parameter.declaredFragment as FieldFormalParameterFragment)
+                .element;
+        fields.remove(element.field2);
+      }
+    }
+
+    for (ConstructorInitializer initializer in constructor.initializers) {
+      if (initializer is ConstructorFieldInitializer) {
+        fields.remove(initializer.fieldName.element);
+      }
+    }
+
+    return fields.toList();
+  }
 }
 
 /// A record of the elements that will be declared in some scope (block), but
@@ -6564,6 +6603,9 @@ class LibraryVerificationContext {
   final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
   final Map<FileState, FileAnalysis> files;
+
+  /// A table mapping names to the exported elements.
+  final Map<String, Element> _exportedElements = {};
 
   /// Elements referenced in `implements` clauses.
   /// Key: the declaration element.

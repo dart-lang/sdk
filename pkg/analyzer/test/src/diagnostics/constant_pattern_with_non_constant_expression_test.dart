@@ -53,13 +53,16 @@ GuardedPattern
       prefix: SimpleIdentifier
         token: A
         staticElement: <testLibraryFragment>::@class::A
+        element: <testLibraryFragment>::@class::A#element
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: a
         staticElement: <testLibraryFragment>::@class::A::@getter::a
+        element: <testLibraryFragment>::@class::A::@getter::a#element
         staticType: int
       staticElement: <testLibraryFragment>::@class::A::@getter::a
+      element: <testLibraryFragment>::@class::A::@getter::a#element
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -122,18 +125,22 @@ GuardedPattern
         prefix: SimpleIdentifier
           token: prefix
           staticElement: <testLibraryFragment>::@prefix::prefix
+          element: <testLibraryFragment>::@prefix2::prefix
           staticType: null
         period: .
         identifier: SimpleIdentifier
           token: A
           staticElement: package:test/a.dart::<fragment>::@class::A
+          element: package:test/a.dart::<fragment>::@class::A#element
           staticType: null
         staticElement: package:test/a.dart::<fragment>::@class::A
+        element: package:test/a.dart::<fragment>::@class::A#element
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
         token: a
         staticElement: package:test/a.dart::<fragment>::@class::A::@getter::a
+        element: package:test/a.dart::<fragment>::@class::A::@getter::a#element
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -164,18 +171,22 @@ GuardedPattern
         prefix: SimpleIdentifier
           token: prefix
           staticElement: <testLibraryFragment>::@prefix::prefix
+          element: <testLibraryFragment>::@prefix2::prefix
           staticType: null
         period: .
         identifier: SimpleIdentifier
           token: A
           staticElement: package:test/a.dart::<fragment>::@class::A
+          element: package:test/a.dart::<fragment>::@class::A#element
           staticType: null
         staticElement: package:test/a.dart::<fragment>::@class::A
+        element: package:test/a.dart::<fragment>::@class::A#element
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
         token: a
         staticElement: package:test/a.dart::<fragment>::@class::A::@getter::a
+        element: package:test/a.dart::<fragment>::@class::A::@getter::a#element
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -203,8 +214,10 @@ GuardedPattern
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
+          element2: <testLibraryFragment>::@class::A#element
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
+        element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -274,6 +287,7 @@ GuardedPattern
         SimpleIdentifier
           token: a
           staticElement: a@20
+          element: a@20
           staticType: int
       rightBracket: ]
       staticType: List<int>
@@ -308,6 +322,7 @@ GuardedPattern
     expression: SimpleIdentifier
       token: a
       staticElement: a@20
+      element: a@20
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -375,6 +390,7 @@ GuardedPattern
           key: SimpleIdentifier
             token: a
             staticElement: a@20
+            element: a@20
             staticType: int
           separator: :
           value: IntegerLiteral
@@ -423,6 +439,7 @@ GuardedPattern
           value: SimpleIdentifier
             token: a
             staticElement: a@20
+            element: a@20
             staticType: int
       rightBracket: }
       isMap: true
@@ -487,6 +504,7 @@ GuardedPattern
         SimpleIdentifier
           token: a
           staticElement: a@20
+          element: a@20
           staticType: int
       rightBracket: }
       isMap: false
@@ -525,6 +543,7 @@ GuardedPattern
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@getter::a
+      element: <testLibraryFragment>::@getter::a#element
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -549,6 +568,7 @@ GuardedPattern
     expression: SimpleIdentifier
       token: a
       staticElement: <testLibraryFragment>::@getter::a
+      element: <testLibraryFragment>::@getter::a#element
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -570,6 +590,7 @@ GuardedPattern
     expression: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: InvalidType
     matchedValueType: Object?
 ''');

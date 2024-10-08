@@ -45,6 +45,9 @@ import 'source_loader.dart'
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
@@ -73,7 +76,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      SourceLibraryBuilder libraryBuilder,
+      this.libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
@@ -84,15 +89,15 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       NameScheme nameScheme,
       {String? nativeMethodName})
       : _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
-            charOffset, nativeMethodName) {
+        super(metadata, modifiers, name, typeVariables, formals,
+            declarationBuilder, fileUri, charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
         nameScheme.isExtensionTypeMember
             ? ProcedureKind.Method
             : ProcedureKind.Factory,
         new FunctionNode(null),
-        fileUri: libraryBuilder.fileUri,
+        fileUri: fileUri,
         reference: procedureReference)
       ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
@@ -104,7 +109,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _factoryTearOff = createFactoryTearOffProcedure(
         nameScheme.getConstructorMemberName(name, isTearOff: true),
         libraryBuilder,
-        libraryBuilder.fileUri,
+        fileUri,
         charOffset,
         tearOffReference,
         forceCreateLowering: nameScheme.isExtensionTypeMember)
@@ -366,6 +371,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder declarationBuilder,
+      Uri fileUri,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
@@ -383,6 +390,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             typeVariables,
             formals,
             libraryBuilder,
+            declarationBuilder,
+            fileUri,
             startCharOffset,
             charOffset,
             charOpenParenOffset,

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AvoidFinalParametersTest extends LintRuleTest {
   @override
-  String get lintRule => 'avoid_final_parameters';
+  String get lintRule => LintNames.avoid_final_parameters;
 
   // TODO(srawlins): Test function-typed parameter like `void f(final p())`.
 

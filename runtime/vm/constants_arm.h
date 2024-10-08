@@ -572,6 +572,10 @@ struct SuspendStubABI {
   static constexpr Register kFunctionDataReg = R4;
   static constexpr Register kSrcFrameReg = R8;
   static constexpr Register kDstFrameReg = R9;
+
+  // Number of bytes to skip after
+  // suspend stub return address in order to resume.
+  static constexpr intptr_t kResumePcDistance = 0;
 };
 
 // ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,

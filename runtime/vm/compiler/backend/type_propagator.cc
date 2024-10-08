@@ -1743,7 +1743,7 @@ CompileType DoubleToSmiInstr::ComputeType() const {
 }
 
 CompileType ConstraintInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
+  return *value()->Type();
 }
 
 CompileType BoxIntegerInstr::ComputeType() const {

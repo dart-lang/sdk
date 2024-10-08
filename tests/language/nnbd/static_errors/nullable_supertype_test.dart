@@ -11,8 +11,8 @@ import 'dart:core' as core;
 main() {}
 
 class A {}
-class B extends A? {} //# 01: compile-time error
-class B implements A? {} //# 02: compile-time error
-class B with A? {} //# 03: compile-time error
-mixin B on A? {} //# 04: compile-time error
-mixin B implements A? {} //# 05: compile-time error
+class B extends A? {} //# 01: syntax error
+class B implements A? {} //# 02: syntax error
+class B with A? {} //# 03: syntax error
+mixin B on A? {} //# 04: syntax error
+mixin B implements A? {} //# 05: syntax error

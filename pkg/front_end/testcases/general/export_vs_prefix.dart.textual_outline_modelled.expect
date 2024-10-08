@@ -1,0 +1,3 @@
+import 'export_vs_prefix_lib1.dart';
+
+main() {}

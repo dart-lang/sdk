@@ -360,6 +360,14 @@ if (!self.dart_library) {
     // Map from module name to corresponding app to proxy library map.
     let _proxyLibs = new Map();
 
+    /**
+     * Returns an instantiated module given its module name.
+     *
+     * Note: this method is not meant to be used outside DDC generated code,
+     * however it is currently being used in many places becase DDC lacks an
+     * Embedding API. This API will be removed in the future once the Embedding
+     * API is established.
+     */
     function import_(name, appName) {
       // For backward compatibility.
       if (!appName && _lastStartedSubapp) {
@@ -609,8 +617,25 @@ if (!self.dart_library) {
     let _firstStartedAppName;
     let _lastStartedSubapp;
 
-    /// Starts a subapp that is identified with `uuid`, `moduleName`, and
-    /// `libraryName` inside a parent app that is identified by `appName`.
+    /**
+     * Runs a Dart program's main method.
+     *
+     * Intended to be invoked by the bootstrapping code where the application
+     * is being embedded.
+     *
+     * Because multiple programs can be part of a single application on a page
+     * at once, we identify the entrypoint using multiple keys: `appName`
+     * denotes the parent application, this program within that application
+     * (aka. the subapp) is identified by an `uuid`. Finally the entrypoint
+     * method is located from the `moduleName` and `libraryName`.
+     *
+     * Often, when a page contains a single app, the uuid is a fixed trivial
+     * value like '00000000-0000-0000-0000-000000000000'.
+     *
+     * This is one of the current public Embedding APIs exposed by DDC.
+     * Note: this API will be replaced by `dartDevEmbedder.runMain` in the
+     * future.
+     */
     function start(appName, uuid, moduleName, libraryName, isReload) {
       console.info(
         `DDC: Subapp Module [${appName}:${moduleName}:${uuid}] is starting`);
@@ -676,6 +701,75 @@ if (!self.dart_library) {
       library.main([]);
     }
     dart_library.start = start;
+
+
+    /**
+     * Configure the DDC runtime.
+     *
+     * Must be called before invoking [start].
+     *
+     * The configuration parameter is an object that may provide any of the
+     * following keys:
+     *
+     *   - weakNullSafetyErrors: throw errors when types violate sound null
+     *        safety (deprecated).
+     *
+     *   - nonNullAsserts: insert non-null assertions no non-nullable method
+     *        parameters (deprecated, was used to aid in null safety
+     *        migrations).
+     *
+     *   - nativeNonNullAsserts: inject non-null assertions checks to validate
+     *        that browser APIs are sound. This is helpful because browser APIs
+     *        are generated from IDLs and cannot be proven to be correct
+     *        statically.
+     *
+     *   - jsInteropNonNullAsserts: inject non-null assertiosn to check
+     *        nullability of `package:js` JS-interop APIs. The new
+     *        `dart:js_interop` always includes non-null assertions.
+     *
+     *   - dynamicModuleLoader: provide the implementation of dynamic module
+     *        loading. Dynamic modules is an experimental feature.
+     *        The DDC runtime delegates to the embedder how code for dynamic
+     *        modules is downloaded. This entry in the configuration must be a
+     *        function with the signature:
+     *            `function(String, onLoad)`
+     *        It accepts a `String` containing a Uri that denotes the module to
+     *        be loaded. When the load completes, the loader must invoke
+     *        `onLoad` and provide the module name of the dynamic module to it.
+     *
+     *        Note: eventually we may want to make the loader return a promise.
+     *        We avoided that for now because it interfereres with our testing
+     *        in d8.
+     */
+    dart_library.configure = function configure(appName, configuration) {
+      let runtimeLibrary = dart_library.import("dart_sdk", appName).dart;
+      if (!!configuration.weakNullSafetyErrors) {
+        runtimeLibrary.weakNullSafetyErrors(configuration.weakNullSafetyErrors);
+      }
+      if (!!configuration.nonNullAsserts) {
+        runtimeLibrary.nonNullAsserts(configuration.nonNullAsserts);
+      }
+      if (!!configuration.nativeNonNullAsserts) {
+        runtimeLibrary.nativeNonNullAsserts(configuration.nativeNonNullAsserts);
+      }
+      if (!!configuration.jsInteropNonNullAsserts) {
+        runtimeLibrary.jsInteropNonNullAsserts(
+          configuration.jsInteropNonNullAsserts);
+      }
+      if (!!configuration.dynamicModuleLoader) {
+        let loader = configuration.dynamicModuleLoader;
+        runtimeLibrary.setDynamicModuleLoader(loader, (moduleName) => {
+          //  As mentioned in the docs above, loader will not invoke the
+          //  entrypoint, but just return the moduleName to find where to call
+          //  it.  By using the module name, we don't need to expose the
+          //  `import` as part of the embedding API.
+          //  In the future module system, this will change to a library name,
+          //  rather than a module name.
+          return import_(moduleName, appName).__dynamic_module_entrypoint__();
+        });
+      }
+    }
+
   })(dart_library);
 }
 
@@ -757,14 +851,20 @@ if (!self.dart_library) {
     };
   }
 
-  // Loads a single script onto the page.
-  // TODO(markzipan): Is there a cleaner way to integrate this?
-  self.$dartLoader.forceLoadScript = function (jsFile) {
+  /**
+   * Loads [jsFile] onto this instance's DDC app's page, then invokes
+   * [onLoad].
+   * @param {string} jsFile
+   * @param {?function()} onLoad Callback after a successful load
+   */
+  self.$dartLoader.forceLoadScript = function (jsFile, onLoad) {
+    // A head element won't be created for D8, so just load synchronously.
     if (self.dart_library.isD8) {
       self.load(jsFile);
+      onLoad?.();
       return;
     }
-    let script = self.dart_library.createScript();
+    let script = dart_library.createScript();
     let policy = {
       createScriptURL: function (src) { return src; }
     };
@@ -772,7 +872,10 @@ if (!self.dart_library) {
       policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
     }
     script.setAttribute('src', policy.createScriptURL(jsFile));
-    document.head.appendChild(script);
+    script.async = false;
+    script.defer = true;
+    script.onload = onLoad;
+    self.document.head.appendChild(script);
   };
 
   self.$dartLoader.forceLoadModule = function (moduleName) {
@@ -811,14 +914,6 @@ if (!self.dart_library) {
         this.loadConfig.loadScriptFn(this);
       };
 
-      // The current hot restart generation.
-      //
-      // 0-indexed and increases by 1 on every successful hot restart.
-      // This value is read to determine the 'current' hot restart generation
-      // in our hot restart tests. This closely tracks but is not the same as
-      // `hotRestartIteration` in DDC's runtime.
-      this.hotRestartGeneration = 0;
-
       // The current 'intended' hot restart generation.
       //
       // 0-indexed and increases by 1 on every successful hot restart.
@@ -827,11 +922,6 @@ if (!self.dart_library) {
       // This is used to synchronize D8 timers and lookup files to load in
       // each generation for hot restart testing.
       this.intendedHotRestartGeneration = 0;
-
-      // The current hot reload generation.
-      //
-      // 0-indexed and increases by 1 on every successful hot reload.
-      this.hotReloadGeneration = 0;
     }
 
     // True if we are still processing scripts from the script queue.
@@ -1052,18 +1142,6 @@ if (!self.dart_library) {
       }
       this.processAfterLoadOrErrorEvent();
     };
-
-    // Initiates a hot reload.
-    // TODO(markzipan): This function is currently stubbed out for testing.
-    hotReload() {
-      this.hotReloadGeneration += 1;
-    }
-
-    // Initiates a hot restart.
-    hotRestart() {
-      this.intendedHotRestartGeneration += 1;
-      self.dart_library.reload();
-    }
   };
 
   let policy = {
@@ -1286,8 +1364,36 @@ if (!self.deferred_loader) {
     // These are the result of calling a library's initialization function.
     libraries = Object.create(null);
 
+    pendingHotReloadLibraryNames = null;
+    pendingHotReloadFileUrls = null;
+    pendingHotReloadLibraryInitializers = Object.create(null);
+
+    // The name of the entrypoint module. Set when the application starts for
+    // the first time and used during a hot restart.
+    savedEntryPointLibraryName = null;
+
+    // The current hot restart generation.
+    //
+    // 0-indexed and increases by 1 on every successful hot restart.
+    // This value is read to determine the 'current' hot restart generation
+    // in our hot restart tests. This closely tracks but is not the same as
+    // `hotRestartIteration` in DDC's runtime.
+    // TODO(nshahan): This value should become shared across the embedder and
+    // the runtime.
+    hotRestartGeneration = 0;
+
     // TODO(nshahan): Set to true at the start of the hot reload process.
     hotReloadInProgress = false;
+
+    // The current hot reload generation.
+    //
+    // 0-indexed and increases by 1 on every successful hot reload.
+    hotReloadGeneration = 0;
+
+    // The name of the entrypoint module. Set when the application starts for
+    // the first time and used during a hot restart.
+    savedEntryPointLibraryName = null;
+    savedDartSdkRuntimeOptions = null;
 
     createEmptyLibrary() {
       return Object.create(null);
@@ -1295,10 +1401,12 @@ if (!self.deferred_loader) {
 
     // See docs on `DartDevEmbedder.runMain`.
     defineLibrary(libraryName, initializer) {
-      if (this.hotReloadInProgress) {
-        // TODO(nshahan): Store initialization functions on the side once a
-        // hot reload starts because the app could continue to run until the
-        // newly compiled libraries all arrive in the browser.
+      // TODO(nshahan): Make this test stronger and check for generations. A
+      // library that is part of a pending hot reload could also be defined as
+      // part of the previous generation.
+      if (this.hotReloadInProgress
+        && this.pendingHotReloadLibraryNames.includes(libraryName)) {
+        this.pendingHotReloadLibraryInitializers[libraryName] = initializer;
       } else {
         this.libraryInitializers[libraryName] = initializer;
       }
@@ -1318,21 +1426,25 @@ if (!self.deferred_loader) {
       if (currentLibrary == null) {
         currentLibrary = this.createEmptyLibrary();
         // Run the initialization logic.
-        // TODO(nshahan): Refactor so the init function does not return a value,
-        // it should modify the library object passed in.
         let initializer = this.libraryInitializers[libraryName];
         if (initializer == null) {
           throw 'Library not defined: ' + libraryName + '. Failed to initialize.';
         }
-        currentLibrary = initializer(currentLibrary);
+        initializer(currentLibrary);
+        // We make the library available in the map before linking to break out
+        // of cycles in library dependencies.
+        // Invariant: during linking a library dependency can be read in a state
+        // where it is initialized but may not be linked.
+        this.libraries[libraryName] = currentLibrary;
         // Link the library. This action will trigger the initialization and
         // linking of dependency libraries as needed.
         currentLibrary.link();
-        this.libraries[libraryName] = currentLibrary;
       }
       if (installFn != null) {
         installFn(currentLibrary);
       }
+      // Invariant: at this point the library and all of its recursive
+      // dependencies are fully initialized and linked.
       return currentLibrary;
     }
 
@@ -1365,35 +1477,148 @@ if (!self.deferred_loader) {
       });
     }
 
+    /**
+     * Forces the SDK libraries with side effects on the JavaScript side to be
+     * initialized and linked.
+     *
+     * These side effects could be required for correct Dart semantics
+     * (ex: dart:_interceptors) or observable from a carefully crafted user
+     * program (ex: dart:html). In either case, the dependencies on the side
+     * effects are not expressed through a Dart import so the libraries need
+     * to be loaded manually before the user program starts running.
+     */
+    triggerSDKLibrariesSideEffects() {
+      this.initializeAndLinkLibrary('dart:_runtime');
+      this.initializeAndLinkLibrary('dart:_interceptors');
+      this.initializeAndLinkLibrary('dart:_native_typed_data');
+      this.initializeAndLinkLibrary('dart:html');
+      this.initializeAndLinkLibrary('dart:svg');
+      this.initializeAndLinkLibrary('dart:web_audio');
+      this.initializeAndLinkLibrary('dart:web_gl');
+    }
+
     // See docs on `DartDevEmbedder.runMain`.
     runMain(entryPointLibraryName, dartSdkRuntimeOptions) {
-      console.log('Setting Dart SDK runtime options.');
-      let dartRuntimeLibrary = this.initializeAndLinkLibrary('dart:_runtime');
-
-      // TODO(nshahan) Use a single method in the Dart SDK to set all options.
-      dartRuntimeLibrary.weakNullSafetyErrors(dartSdkRuntimeOptions.weakNullSafetyErrors);
-      dartRuntimeLibrary.nonNullAsserts(dartSdkRuntimeOptions.nonNullAsserts);
-      dartRuntimeLibrary.nativeNonNullAsserts(dartSdkRuntimeOptions.nativeNonNullAsserts);
-      dartRuntimeLibrary.jsInteropNonNullAsserts(dartSdkRuntimeOptions.jsInteropNonNullAsserts);
-
+      this.triggerSDKLibrariesSideEffects();
+      this.setDartSDKRuntimeOptions(dartSdkRuntimeOptions);
       console.log('Starting application from main method in: ' + entryPointLibraryName + '.');
       let entryPointLibrary = this.initializeAndLinkLibrary(entryPointLibraryName);
+      this.savedEntryPointLibraryName = entryPointLibraryName;
+      this.savedDartSdkRuntimeOptions = dartSdkRuntimeOptions;
       entryPointLibrary.main();
+    }
+
+    setDartSDKRuntimeOptions(options) {
+      let dartRuntimeLibrary = this.importLibrary('dart:_runtime');
+      // TODO(nshahan) Use a single method in the Dart SDK to set all options?
+      // Or assign the single JS object and read it from the SDK?
+      if (options.weakNullSafetyErrors != null) {
+        dartRuntimeLibrary.weakNullSafetyErrors(options.weakNullSafetyErrors);
+      }
+      if (options.nonNullAsserts != null) {
+        dartRuntimeLibrary.nonNullAsserts(options.nonNullAsserts);
+      }
+      if (options.nativeNonNullAsserts != null) {
+        dartRuntimeLibrary.nativeNonNullAsserts(options.nativeNonNullAsserts);
+      }
+      if (options.jsInteropNonNullAsserts != null) {
+        dartRuntimeLibrary.jsInteropNonNullAsserts(options.jsInteropNonNullAsserts);
+      }
     }
 
     /**
      * Begins a hot reload operation.
+     *
+     * @param {Array<String>} filesToLoad The urls of the files that contain
+     * the libraries to hot reload.
+     * @param {Array<String>} librariesToReload The names of the libraries to
+     * hot reload.
      */
     async hotReloadStart(filesToLoad, librariesToReload) {
-      // TODO(nshahan): Request newly compiled files and call `hotReloadEnd()`
-      // when complete.
+      this.hotReloadInProgress = true;
+      this.pendingHotReloadFileUrls ??= filesToLoad;
+      this.pendingHotReloadLibraryNames ??= librariesToReload;
+      // Trigger download of the new library versions.
+      let reloadFilePromises = [];
+      for (let file of this.pendingHotReloadFileUrls) {
+        reloadFilePromises.push(
+          new Promise((resolve) => {
+            self.$dartLoader.forceLoadScript(file, resolve)
+          })
+        );
+      }
+      await Promise.all(reloadFilePromises).then((_) => {
+        this.hotReloadEnd();
+      });
     }
 
     /**
      * Completes a hot reload operation.
+     *
+     * This method runs synchronously to guarantee that all libraries
+     * are in a consistent state before yielding control back to the
+     * application.
      */
-    hotReloadEnd(librariesToReload) {
-      // TODO(nshahan): Initialize and link all the newly compiled libraries.
+    hotReloadEnd() {
+      // On a hot reload, we reuse the existing library objects to ensure all
+      // references remain valid and continue to be unique. We track in
+      // `previouslyLoaded` which libraries already exist in the system, so we
+      // can properly initialize and link them with the new version of the code.
+      let previouslyLoaded = Object.create(null);
+      for (let name of this.pendingHotReloadLibraryNames) {
+        previouslyLoaded[name] = (this.libraries[name] != null);
+      }
+
+      // All initializers are updated, but only libraries that were previously
+      // loaded need to be reinitialized.
+      for (let name of this.pendingHotReloadLibraryNames) {
+        let initializer = this.pendingHotReloadLibraryInitializers[name];
+        this.libraryInitializers[name] = initializer;
+        if (previouslyLoaded[name]) {
+          initializer(this.libraries[name]);
+        }
+      }
+
+      // Then we link the existing libraries. Note this may trigger initializing
+      // and linking new library dependencies that were not present before and
+      // requires for all library intitializers to be up to date.
+      for (let name in this.pendingHotReloadLibraryInitializers) {
+        if (previouslyLoaded[name]) {
+          this.libraries[name].link();
+        }
+      }
+      // Cleanup.
+      this.pendingHotReloadLibraryInitializers = Object.create(null);
+      this.pendingHotReloadLibraryNames = null;
+      this.pendingHotReloadFileUrls = null;
+      this.hotReloadInProgress = false;
+      this.hotReloadGeneration += 1;
+    }
+
+    /**
+     * Completes a hot restart operation.
+     */
+    hotRestart() {
+      if (!this.savedEntryPointLibraryName) {
+        throw "Error: Hot restart requested before application started.";
+      }
+      // TODO(nshahan): Stop calling hotRestart in the SDK when scheduled
+      // futures no longer keep lazy initialized values from the previous
+      // generation alive.
+      let dart = this.importLibrary('dart:_runtime');
+      dart.hotRestart();
+      // Clear all libraries.
+      this.libraries = Object.create(null);
+      this.triggerSDKLibrariesSideEffects();
+      this.setDartSDKRuntimeOptions(this.savedDartSdkRuntimeOptions);
+      let entryPointLibrary = this.initializeAndLinkLibrary(this.savedEntryPointLibraryName);
+      // TODO(nshahan): Start sharing a single source of truth for the restart
+      // generation between the dart:_runtime and this module system.
+      this.hotRestartGeneration += 1;
+      console.log('Hot restarting application from main method in: ' +
+        this.savedEntryPointLibraryName + ' (generation: ' +
+        this.hotRestartGeneration + ').');
+      entryPointLibrary.main();
     }
   }
 
@@ -1455,6 +1680,48 @@ if (!self.deferred_loader) {
      */
     importLibrary(libraryName, installFn) {
       return libraryManager.importLibrary(libraryName, installFn);
+    }
+
+    /**
+     * DDC's entrypoint for triggering a hot reload.
+     *
+     * Previous generations may continue to run until all specified files
+     * have been loaded and initialized.
+     *
+     * @param {Array<String>} filesToLoad The urls of the files that contain
+     * the libraries to hot reload.
+     * @param {Array<String>} librariesToReload The names of the libraries to
+     * hot reload.
+     */
+    async hotReload(filesToLoad, librariesToReload) {
+      await libraryManager.hotReloadStart(filesToLoad, librariesToReload);
+    }
+
+    /**
+     * Immediately triggers a hot restart of the application losing all state
+     * and running the main method again.
+     */
+    hotRestart() {
+      self.$dartReloadModifiedModules(
+        libraryManager.savedEntryPointLibraryName,
+        () => { libraryManager.hotRestart(); });
+    }
+
+
+    /**
+     * @return {Number} The current hot reload generation of the running
+     *  application.
+     */
+    get hotReloadGeneration() {
+      return libraryManager.hotReloadGeneration;
+    }
+
+    /**
+     * @return {Number} The current hot restart generation of the running
+     *  application.
+     */
+    get hotRestartGeneration() {
+      return libraryManager.hotRestartGeneration;
     }
   }
 

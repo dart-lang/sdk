@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -35,31 +35,29 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var getter = node.writeOrReadElement;
-    if (getter is! PropertyAccessorElement) {
-      return;
-    }
+    var getter = node.writeOrReadElement2;
 
     // The accessor must be a getter, and it must be synthetic.
-    if (!(getter.isGetter && getter.isSynthetic)) {
+    if (!(getter is GetterElement && getter.isSynthetic)) {
       return;
     }
 
     // The variable must be not synthetic, and have no setter yet.
-    var variable = getter.variable2;
+    var variable = getter.variable3;
     if (variable == null) {
       return;
     }
-    if (variable.isSynthetic || variable.setter != null) {
+    if (variable.isSynthetic || variable.setter2 != null) {
       return;
     }
 
     // It must be a field declaration.
-    if (getter.enclosingElement3 is! ClassElement) {
+    if (getter.enclosingElement2 is! ClassElement2) {
       return;
     }
 
-    var declaration = await sessionHelper.getElementDeclaration(variable);
+    var declaration =
+        await sessionHelper.getElementDeclaration2(variable.firstFragment!);
     var variableNode = declaration?.node;
     if (variableNode is! VariableDeclaration) {
       return;

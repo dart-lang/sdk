@@ -36,9 +36,11 @@
 /// represented by an element.
 library;
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -54,29 +56,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-/// A library augmentation import directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class AugmentationImportElement implements _ExistingElement {
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  LibraryOrAugmentationElement get enclosingElement;
-
-  @override
-  LibraryOrAugmentationElement get enclosingElement3;
-
-  /// The [LibraryAugmentationElement], if [uri] is a
-  /// [DirectiveUriWithAugmentation].
-  LibraryAugmentationElement? get importedAugmentation;
-
-  /// The offset of the `import` keyword.
-  int get importKeywordOffset;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
-}
 
 /// The result of applying augmentations to a [ClassElement].
 ///
@@ -387,6 +366,9 @@ abstract class ClassMemberElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitElement implements UriReferencedElement {
+  /// The extension elements accessible within this unit.
+  List<ExtensionElement> get accessibleExtensions;
+
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -436,6 +418,12 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The parts included by this unit.
   List<PartElement> get parts;
+
+  /// The scope used to resolve names within this compilation unit.
+  ///
+  /// It includes all of the elements that are declared in the library, and all
+  /// of the elements imported into this unit or parent units.
+  Scope get scope;
 
   @override
   AnalysisSession get session;
@@ -533,14 +521,6 @@ abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUri {}
-
-/// [DirectiveUriWithSource] that references a [LibraryAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class DirectiveUriWithAugmentation extends DirectiveUriWithSource {
-  /// The library augmentation referenced by the [source].
-  LibraryAugmentationElement get augmentation;
-}
 
 /// [DirectiveUriWithSource] that references a [LibraryElement].
 ///
@@ -1212,8 +1192,6 @@ abstract class ElementLocation {
 /// * ThrowingElementVisitor which implements every visit method by throwing an
 ///   exception.
 abstract class ElementVisitor<R> {
-  R? visitAugmentationImportElement(AugmentationImportElement element);
-
   R? visitClassElement(ClassElement element);
 
   R? visitCompilationUnitElement(CompilationUnitElement element);
@@ -1235,8 +1213,6 @@ abstract class ElementVisitor<R> {
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
 
   R? visitLabelElement(LabelElement element);
-
-  R? visitLibraryAugmentationElement(LibraryAugmentationElement element);
 
   R? visitLibraryElement(LibraryElement element);
 
@@ -1923,16 +1899,6 @@ abstract class LabelElement implements Element {
   String get name;
 }
 
-/// A library augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class LibraryAugmentationElement
-    implements LibraryOrAugmentationElement, _ExistingElement {
-  /// The library that is augmented by this augmentation.
-  LibraryOrAugmentationElement get augmentationTarget;
-}
-
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1950,6 +1916,7 @@ abstract class LibraryElement
   FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryElement> get exportedLibraries;
 
   /// The export [Namespace] of this library.
@@ -1963,9 +1930,11 @@ abstract class LibraryElement
   ///
   /// This includes all of the libraries that are imported using a prefix, and
   /// those that are imported without a prefix.
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   List<LibraryElement> get importedLibraries;
 
   /// Whether the library is an application that can be run in the browser.
+  @Deprecated('Not used anymore')
   bool get isBrowserApplication;
 
   /// Whether the library is the `dart:async` library.
@@ -1988,6 +1957,7 @@ abstract class LibraryElement
   String get name;
 
   /// The list of `part` directives of this library.
+  @Deprecated('Use CompilationUnitElement.parts')
   List<PartElement> get parts;
 
   /// The public [Namespace] of this library.
@@ -2046,6 +2016,9 @@ abstract class LibraryImportElement implements _ExistingElement {
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @override
+  CompilationUnitElement get enclosingElement3;
+
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get importedLibrary;
 
@@ -2087,11 +2060,8 @@ class LibraryLanguageVersion {
 @experimental
 abstract class LibraryOrAugmentationElement implements Element {
   /// The extension elements accessible within this library.
+  @Deprecated('Use CompilationUnitElement.accessibleExtensions instead')
   List<ExtensionElement> get accessibleExtensions;
-
-  /// The augmentation imports specified in this library.
-  @experimental
-  List<AugmentationImportElement> get augmentationImports;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement get definingCompilationUnit;
@@ -2113,20 +2083,24 @@ abstract class LibraryOrAugmentationElement implements Element {
   LibraryElement get library;
 
   /// The exports defined in this library.
+  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryExportElement> get libraryExports;
 
   /// The imports defined in this library.
+  @Deprecated('Use CompilationUnitElement.libraryImports')
   List<LibraryImportElement> get libraryImports;
 
   /// The prefixes used to `import` libraries into this library.
   ///
   /// Each prefix can be used in more than one `import` directive.
+  @Deprecated('Use CompilationUnitElement.libraryImportPrefixes')
   List<PrefixElement> get prefixes;
 
   /// The name lookup scope for this library.
   ///
   /// It consists of elements that are either declared in the library, or
   /// imported into it.
+  @Deprecated('Use CompilationUnitElement.scope')
   Scope get scope;
 
   @override
@@ -2241,12 +2215,18 @@ sealed class NamespaceCombinator {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterElement
-    implements PromotableElement, ConstantEvaluationTarget {
+    implements
+        PromotableElement,
+        ConstantEvaluationTarget,
+        SharedNamedFunctionParameterStructure<DartType> {
   @override
   ParameterElement get declaration;
 
   /// The code of the default value, or `null` if no default value.
   String? get defaultValueCode;
+
+  @experimental
+  FormalParameterElement get element;
 
   /// Whether the parameter has a default value.
   bool get hasDefaultValue;
@@ -2295,6 +2275,7 @@ abstract class ParameterElement
   /// change the meaning of this getter. The parameter `{@required int x}`
   /// will return `false` and the parameter `{@required required int x}`
   /// will return `true`.
+  @override
   bool get isRequired;
 
   /// Whether the parameter is both a required and named parameter.
@@ -2361,6 +2342,7 @@ abstract class PatternVariableElement implements LocalVariableElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
   /// The library, or library augmentation that encloses this element.
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement;
 
@@ -2614,7 +2596,9 @@ abstract class TypeAliasElement
   /// Note that this always instantiates the typedef itself, so for a
   /// [TypeAliasElement] the returned [DartType] might still be a generic
   /// type, with type formals. For example, if the typedef is:
+  ///
   ///     typedef F<T> = void Function<U>(T, U);
+  ///
   /// then `F<int>` will produce `void Function<U>(int, U)`.
   DartType instantiate({
     required List<DartType> typeArguments,
@@ -2630,7 +2614,8 @@ abstract class TypeDefiningElement implements Element {}
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterElement implements TypeDefiningElement {
+abstract class TypeParameterElement
+    implements TypeDefiningElement, SharedTypeParameterStructure<DartType> {
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound. Being able to
   /// distinguish between an implicit and explicit bound is needed by the

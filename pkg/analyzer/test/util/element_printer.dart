@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -25,12 +26,6 @@ class ElementPrinter {
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
       _sink.writeln('<null>');
-    } else if (uri is DirectiveUriWithAugmentation) {
-      _sink.writeln('DirectiveUriWithAugmentation');
-      _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.augmentation.source);
-        _sink.writelnWithIndent('uri: $uriStr');
-      });
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
@@ -72,8 +67,6 @@ class ElementPrinter {
         _writeMember(element);
       case MultiplyDefinedElement():
         _sink.writeln('<null>');
-      case AugmentationImportElement():
-        _writeAugmentationImportElement(element);
       case LibraryExportElement():
         _writeLibraryExportElement(element);
       case LibraryImportElement():
@@ -86,10 +79,84 @@ class ElementPrinter {
     }
   }
 
+  void writeElement2(Element2? element) {
+    switch (element) {
+      case null:
+        _sink.write('<null>');
+      case TypeParameterElementImpl2():
+        // TODO(scheglov): update when implemented
+        _sink.write('<not-implemented>');
+      case ConstructorElement2 element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      case DynamicElementImpl():
+        _sink.write('dynamic@-1');
+      case FormalParameterElementImpl():
+        var firstFragment = element.firstFragment;
+        var referenceStr = _elementToReferenceString(firstFragment);
+        _sink.write(referenceStr);
+        _sink.write('#element');
+      case FragmentedElementMixin element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference!;
+        writeReference(reference);
+        _sink.write('#element');
+      case GetterElement element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      case LabelElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LabelElementImpl2():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LibraryElementImpl e:
+        writeReference(e.reference!);
+      case LocalFunctionElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LocalVariableElementImpl():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case LocalVariableElementImpl2():
+        _sink.write('${element.name}@${element.nameOffset}');
+      case MaybeAugmentedInstanceElementMixin element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference!;
+        writeReference(reference);
+        _sink.write('#element');
+      case MethodElement2 element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      case MultiplyDefinedElementImpl():
+        _sink.write('<null>');
+      case NeverElementImpl():
+        _sink.write('Never@-1');
+      case PrefixElementImpl2 element:
+        writeReference(element.reference);
+      case SetterElement element:
+        var firstFragment = element.firstFragment as ElementImpl;
+        var reference = firstFragment.reference;
+        writeReference(reference!);
+        _sink.write('#element');
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
+    }
+  }
+
   void writeElementList(String name, List<Element> elements) {
     _sink.writeElements(name, elements, (element) {
       _sink.writeIndent();
       writeElement(element);
+    });
+  }
+
+  void writelnNamedElement2(String name, Element2? element) {
+    _sink.writeIndentedLine(() {
+      _sink.write('$name: ');
+      writeElement2(element);
     });
   }
 
@@ -117,6 +184,7 @@ class ElementPrinter {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
             writeNamedElement('element', type.element);
+            writelnNamedElement2('element', type.element3);
           });
         }
       }
@@ -226,14 +294,6 @@ class ElementPrinter {
 
   String _typeStr(DartType type) {
     return type.getDisplayString();
-  }
-
-  void _writeAugmentationImportElement(AugmentationImportElement element) {
-    _sink.writeln('AugmentationImportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
   }
 
   void _writeLibraryExportElement(LibraryExportElement element) {

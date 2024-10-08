@@ -1,0 +1,22 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "org-dartlang-test:///usage.dart";
+
+  part part.dart;
+  class Foo extends dart.core::Object { // from org-dartlang-test:///part.dart
+    synthetic constructor •() → lib::Foo
+      : super dart.core::Object::•()
+      ;
+  }
+  static method hmm() → void {
+    lib::Foo f = new lib::Foo::•();
+    usa::foo(f);
+  }
+}
+library from "org-dartlang-test:///usage.dart" as usa {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method foo(lib::Foo foo) → void {}
+}

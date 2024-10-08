@@ -198,18 +198,13 @@ class DartUnitHighlightsComputer {
       }
     }
 
-    if (_isAnnotationIdentifier(parent)) {
-      semanticModifiers ??= {};
-      semanticModifiers.add(CustomSemanticTokenModifiers.annotation);
-    }
-
     // add region
-    return _addRegion_token(
-      nameToken,
-      type,
-      semanticTokenType: semanticType,
-      semanticTokenModifiers: semanticModifiers,
-    );
+    return _addRegion_token(nameToken, type,
+        semanticTokenType: semanticType,
+        semanticTokenModifiers: semanticModifiers,
+        additionalSemanticTokenModifiers: _isAnnotationIdentifier(parent)
+            ? {CustomSemanticTokenModifiers.annotation}
+            : null);
   }
 
   bool _addIdentifierRegion_constructor(
@@ -307,7 +302,7 @@ class DartUnitHighlightsComputer {
       var staticType = parent.realTarget.staticType;
       if (staticType is RecordType) {
         type = staticType.fieldByName(nameToken.lexeme) != null
-            ? HighlightRegionType.INSTANCE_FIELD_REFERENCE
+            ? HighlightRegionType.INSTANCE_GETTER_REFERENCE
             : HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
       }
     }
@@ -316,7 +311,7 @@ class DartUnitHighlightsComputer {
       return _addRegion_token(
         nameToken,
         type,
-        semanticTokenModifiers: _isAnnotationIdentifier(parent)
+        additionalSemanticTokenModifiers: _isAnnotationIdentifier(parent)
             ? {CustomSemanticTokenModifiers.annotation}
             : null,
       );
@@ -461,7 +456,11 @@ class DartUnitHighlightsComputer {
     if (element is! TypeParameterElement) {
       return false;
     }
-    return _addRegion_token(nameToken, HighlightRegionType.TYPE_PARAMETER);
+    return _addRegion_token(
+      nameToken,
+      HighlightRegionType.TYPE_PARAMETER,
+      additionalSemanticTokenModifiers: _additionalModifiersForElement(element),
+    );
   }
 
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
@@ -496,11 +495,22 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
+  /// Returns a set of additional semantic token modifiers that apply to
+  /// [element].
+  Set<SemanticTokenModifiers>? _additionalModifiersForElement(
+      Element? element) {
+    return (element?.isWildcardVariable ?? false)
+        ? {CustomSemanticTokenModifiers.wildcard}
+        : null;
+  }
+
   /// Adds a highlight region/semantic token for the given [offset]/[length].
   ///
   /// If [semanticTokenType] or [semanticTokenModifiers] are not provided, the
   /// values from the default LSP mapping for [type] (also used for plugins)
-  /// will be used instead.
+  /// will be used instead. If [additionalSemanticTokenModifiers] are provided,
+  /// they will always be added in addition to [semanticTokenModifiers]/the
+  /// defaults.
   ///
   /// If the computer has a [range] set, tokens that fall outside of that range
   /// will not be recorded.
@@ -510,6 +520,7 @@ class DartUnitHighlightsComputer {
     HighlightRegionType type, {
     SemanticTokenTypes? semanticTokenType,
     Set<SemanticTokenModifiers>? semanticTokenModifiers,
+    Set<SemanticTokenModifiers>? additionalSemanticTokenModifiers,
   }) {
     var range = this.range;
     if (range != null) {
@@ -526,6 +537,14 @@ class DartUnitHighlightsComputer {
       // Use default mappings if an overridden type/modifiers were not supplied.
       semanticTokenType ??= highlightRegionTokenTypes[type];
       semanticTokenModifiers ??= highlightRegionTokenModifiers[type];
+
+      if (additionalSemanticTokenModifiers != null &&
+          additionalSemanticTokenModifiers.isNotEmpty) {
+        semanticTokenModifiers = {
+          ...?semanticTokenModifiers,
+          ...additionalSemanticTokenModifiers
+        };
+      }
       if (semanticTokenType != null) {
         _semanticTokens.add(SemanticTokenInfo(
             offset, length, semanticTokenType, semanticTokenModifiers));
@@ -563,13 +582,19 @@ class DartUnitHighlightsComputer {
     HighlightRegionType type, {
     SemanticTokenTypes? semanticTokenType,
     Set<SemanticTokenModifiers>? semanticTokenModifiers,
+    Set<SemanticTokenModifiers>? additionalSemanticTokenModifiers,
   }) {
     if (token != null) {
       var offset = token.offset;
       var length = token.length;
-      _addRegion(offset, length, type,
-          semanticTokenType: semanticTokenType,
-          semanticTokenModifiers: semanticTokenModifiers);
+      _addRegion(
+        offset,
+        length,
+        type,
+        semanticTokenType: semanticTokenType,
+        semanticTokenModifiers: semanticTokenModifiers,
+        additionalSemanticTokenModifiers: additionalSemanticTokenModifiers,
+      );
     }
     return true;
   }
@@ -638,15 +663,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
-    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.importKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(
-        node.augmentKeyword, HighlightRegionType.BUILT_IN);
-    super.visitAugmentationImportDirective(node);
-  }
-
-  @override
   void visitAugmentedExpression(AugmentedExpression node) {
     computer._addRegion_token(
         node.augmentedKeyword, HighlightRegionType.KEYWORD);
@@ -709,13 +725,21 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     var exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
-      computer._addRegion_token(exceptionParameter.name,
-          HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+      computer._addRegion_token(
+        exceptionParameter.name,
+        HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+        additionalSemanticTokenModifiers:
+            _additionalModifiersForElement(exceptionParameter.declaredElement),
+      );
     }
     var stackTraceParameter = node.stackTraceParameter;
     if (stackTraceParameter != null) {
-      computer._addRegion_token(stackTraceParameter.name,
-          HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+      computer._addRegion_token(
+        stackTraceParameter.name,
+        HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+        additionalSemanticTokenModifiers:
+            _additionalModifiersForElement(stackTraceParameter.declaredElement),
+      );
     }
 
     super.visitCatchClause(node);
@@ -818,6 +842,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
       node.name,
       HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+      additionalSemanticTokenModifiers:
+          _additionalModifiersForElement(node.declaredElement),
     );
 
     super.visitDeclaredIdentifier(node);
@@ -971,16 +997,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       HighlightRegionType.KEYWORD,
     );
 
-    var element = node.declaredElement;
-    if (element is FieldFormalParameterElement) {
-      var field = element.field;
-      if (field != null) {
-        computer._addRegion_token(
-          node.name,
-          HighlightRegionType.INSTANCE_FIELD_REFERENCE,
-        );
-      }
-    }
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.INSTANCE_FIELD_REFERENCE,
+      additionalSemanticTokenModifiers:
+          _additionalModifiersForElement(node.declaredElement),
+    );
 
     super.visitFieldFormalParameter(node);
   }
@@ -1190,16 +1212,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(
-        node.libraryKeyword, HighlightRegionType.BUILT_IN);
-    computer._addRegion_token(
-        node.augmentKeyword, HighlightRegionType.BUILT_IN);
-    super.visitLibraryAugmentationDirective(node);
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(
@@ -1398,7 +1410,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
       node.fieldName,
       HighlightRegionType.INSTANCE_FIELD_DECLARATION,
-      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
 
     super.visitRepresentationDeclaration(node);
@@ -1443,11 +1454,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
 
+    var declaredElement = node.declaredElement!;
     computer._addRegion_token(
       node.name,
-      node.declaredElement!.type is DynamicType
+      declaredElement.type is DynamicType
           ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
           : HighlightRegionType.PARAMETER_DECLARATION,
+      additionalSemanticTokenModifiers:
+          _additionalModifiersForElement(declaredElement),
     );
 
     super.visitSimpleFormalParameter(node);
@@ -1501,12 +1515,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addRegion_token(
       node.name,
-      HighlightRegionType.PARAMETER_DECLARATION,
+      node.declaredElement!.type is DynamicType
+          ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+          : HighlightRegionType.PARAMETER_DECLARATION,
     );
 
-    node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    super.visitSuperFormalParameter(node);
   }
 
   @override
@@ -1577,7 +1591,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    computer._addRegion_token(node.name, HighlightRegionType.TYPE_PARAMETER);
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.TYPE_PARAMETER,
+      additionalSemanticTokenModifiers:
+          _additionalModifiersForElement(node.declaredElement),
+    );
     super.visitTypeParameter(node);
   }
 
@@ -1597,6 +1616,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         element.type is DynamicType
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+        additionalSemanticTokenModifiers:
+            _additionalModifiersForElement(element),
       );
     } else if (element is TopLevelVariableElement) {
       computer._addRegion_token(
@@ -1632,6 +1653,16 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitWildcardPattern(WildcardPattern node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+
+    // For consistency, wildcard patterns are treated like wildcard variable
+    // declarations.
+    // https://github.com/dart-lang/sdk/issues/56567
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+      additionalSemanticTokenModifiers: {CustomSemanticTokenModifiers.wildcard},
+    );
+
     super.visitWildcardPattern(node);
   }
 
@@ -1650,6 +1681,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitYieldStatement(node);
+  }
+
+  /// Returns a set of additional semantic token modifiers that apply to
+  /// [element].
+  Set<SemanticTokenModifiers>? _additionalModifiersForElement(
+      Element? element) {
+    return computer._additionalModifiersForElement(element);
   }
 
   void _addRegions_configurations(List<Configuration> configurations) {

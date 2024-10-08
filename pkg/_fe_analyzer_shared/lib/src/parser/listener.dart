@@ -1183,7 +1183,8 @@ class Listener implements UnescapeErrorListener {
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
-      Token name) {}
+      Token name,
+      String? enclosingDeclarationName) {}
 
   /// Handle the end of a class method declaration.  Substructures:
   /// - metadata

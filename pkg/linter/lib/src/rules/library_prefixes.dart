@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
@@ -14,33 +14,11 @@ import '../utils.dart';
 const _desc =
     r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
-const _details = r'''
-**DO** use `lowercase_with_underscores` when specifying a library prefix.
-
-**BAD:**
-```dart
-import 'dart:math' as Math;
-import 'dart:json' as JSON;
-import 'package:js/js.dart' as JS;
-import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
-```
-
-**GOOD:**
-```dart
-import 'dart:math' as math;
-import 'dart:json' as json;
-import 'package:js/js.dart' as js;
-import 'package:javascript_utils/javascript_utils.dart' as js_utils;
-```
-
-''';
-
 class LibraryPrefixes extends LintRule {
   LibraryPrefixes()
       : super(
-          name: 'library_prefixes',
+          name: LintNames.library_prefixes,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -49,7 +27,7 @@ class LibraryPrefixes extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.libraryElement);
+    var visitor = _Visitor(this, context.libraryElement2);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -60,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  _Visitor(this.rule, LibraryElement? library)
+  _Visitor(this.rule, LibraryElement2? library)
       : _wildCardVariablesEnabled =
             library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 

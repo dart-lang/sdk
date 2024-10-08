@@ -150,7 +150,7 @@ linter:
     var completion = assertSuggestion('annotate_overrides');
     expect(
       completion.docComplete,
-      contains('**DO** annotate overridden methods and fields'),
+      contains('Annotate overridden members.'),
     );
   }
 
@@ -265,7 +265,6 @@ class InternalRule extends LintRule {
           name: 'internal_lint',
           state: State.internal(),
           description: '',
-          details: '',
         );
 
   @override

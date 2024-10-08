@@ -5,11 +5,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:meta/meta.dart';
 
 /// The optional generator for prefix that should be used for new imports.
 typedef ImportPrefixGenerator = String Function(Uri);
@@ -107,6 +109,52 @@ abstract class DartEditBuilder implements EditBuilder {
       DartType? type,
       String? typeGroupName});
 
+  /// Writes the code for a single parameter with the given [name].
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  ///
+  /// If a [type] is provided, then it will be used as the type of the
+  /// parameter.
+  ///
+  /// If a [nameGroupName] is provided, then the name of the parameter will be
+  /// included in a linked edit.
+  ///
+  /// If a [type] and [typeGroupName] are both provided, then the type of the
+  /// parameter will be included in a linked edit.
+  ///
+  /// If [isCovariant] is `true` then the keyword `covariant` will be included
+  /// in the parameter declaration.
+  ///
+  /// If [isRequiredNamed] is `true` then the keyword `required` will be
+  /// included in the parameter declaration.
+  ///
+  /// If [isRequiredType] is `true` then the type is always written.
+  @experimental
+  void writeFormalParameter(String name,
+      {bool isCovariant,
+      bool isRequiredNamed,
+      ExecutableElement2? methodBeingCopied,
+      String? nameGroupName,
+      DartType? type,
+      String? typeGroupName,
+      bool isRequiredType});
+
+  /// Writes the code for a list of [parameters], including the surrounding
+  /// parentheses and default values (unless [includeDefaultValues] is `false`).
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  ///
+  /// If [requiredTypes] is `true`, then the types are always written.
+  @experimental
+  void writeFormalParameters(Iterable<FormalParameterElement> parameters,
+      {ExecutableElement2? methodBeingCopied,
+      bool includeDefaultValues = true,
+      bool requiredTypes});
+
   /// Writes the code for a declaration of a function with the given [name].
   ///
   /// If a [bodyWriter] is provided, it will be invoked to write the body of the
@@ -198,6 +246,22 @@ abstract class DartEditBuilder implements EditBuilder {
   /// the override.
   void writeOverride(
     ExecutableElement element, {
+    StringBuffer? displayTextBuffer,
+    bool invokeSuper = false,
+    bool setSelection = true,
+  });
+
+  /// Appends a placeholder for an override of the specified inherited
+  /// [element].
+  ///
+  /// If provided, writes a string value suitable for display (e.g., in a
+  /// completion popup) in the given [displayTextBuffer]. If [invokeSuper] is
+  /// `true`, then the corresponding `super.name()` will be added in the body.
+  /// If [setSelection] is `true`, then the cursor will be placed in the body of
+  /// the override.
+  @experimental
+  void writeOverride2(
+    ExecutableElement2 element, {
     StringBuffer? displayTextBuffer,
     bool invokeSuper = false,
     bool setSelection = true,
@@ -309,6 +373,30 @@ abstract class DartEditBuilder implements EditBuilder {
       ExecutableElement? methodBeingCopied,
       bool required = false});
 
+  /// Writes the code for a type annotation for the given [type].
+  ///
+  /// If the [type] is either `null` or represents the type `dynamic`, then the
+  /// behavior depends on whether a type is [required]. If [required] is `true`,
+  /// then the keyword `var` will be written; otherwise, nothing is written.
+  ///
+  /// If the [groupName] is not `null`, then the name of the type (including
+  /// type parameters) will be included as a region in the linked edit group
+  /// with that name. If the [groupName] is not `null` and
+  /// [addSupertypeProposals] is `true`, then all of the supertypes of the
+  /// [type] will be added as suggestions for alternatives to the type name.
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  ///
+  /// Returns `true` if any text was written.
+  @experimental
+  bool writeType2(DartType? type,
+      {bool addSupertypeProposals = false,
+      String? groupName,
+      ExecutableElement2? methodBeingCopied,
+      bool required = false});
+
   /// Writes the code to declare the given [typeParameter].
   ///
   /// The enclosing angle brackets are not automatically written.
@@ -319,6 +407,17 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeTypeParameter(TypeParameterElement typeParameter,
       {ExecutableElement? methodBeingCopied});
 
+  /// Writes the code to declare the given [typeParameter].
+  ///
+  /// The enclosing angle brackets are not automatically written.
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  @experimental
+  void writeTypeParameter2(TypeParameterElement2 typeParameter,
+      {ExecutableElement2? methodBeingCopied});
+
   /// Writes the code to declare the given list of [typeParameters]. The
   /// enclosing angle brackets are automatically written.
   ///
@@ -327,6 +426,16 @@ abstract class DartEditBuilder implements EditBuilder {
   /// types.
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
       {ExecutableElement? methodBeingCopied});
+
+  /// Writes the code to declare the given list of [typeParameters]. The
+  /// enclosing angle brackets are automatically written.
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  @experimental
+  void writeTypeParameters2(List<TypeParameterElement2> typeParameters,
+      {ExecutableElement2? methodBeingCopied});
 
   /// Writes the code for a comma-separated list of [types], optionally prefixed
   /// by a [prefix].

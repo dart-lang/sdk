@@ -67,7 +67,16 @@ class DartDevelopmentServiceClient {
   ///
   /// Returned future completes when the peer is closed.
   Future<void> listen() => _clientPeer.listen().then(
-        (_) => dds.streamManager.clientDisconnect(this),
+        (_) async {
+          dds.streamManager.clientDisconnect(this);
+
+          for (final pair in createdServiceIdZones) {
+            await _vmServicePeer.sendRequest('deleteIdZone', {
+              'isolateId': pair.isolateId,
+              'idZoneId': pair.serviceIdZoneId,
+            });
+          }
+        },
       );
 
   /// Close the connection to the client.
@@ -260,6 +269,21 @@ class DartDevelopmentServiceClient {
       },
     );
 
+    _clientPeer.registerMethod('createIdZone',
+        (json_rpc.Parameters parameters) async {
+      final response = await _vmServicePeer.sendRequest(
+        parameters.method,
+        parameters.value,
+      ) as Map<String, dynamic>;
+      if (response.containsKey('id')) {
+        createdServiceIdZones.add((
+          serviceIdZoneId: response['id']!,
+          isolateId: parameters['isolateId'].asString,
+        ));
+      }
+      return response;
+    });
+
     _clientPeer.registerMethod(
       'getCachedCpuSamples',
       dds.isolateManager.getCachedCpuSamples,
@@ -372,6 +396,12 @@ class DartDevelopmentServiceClient {
   final DartDevelopmentServiceImpl dds;
   final StreamChannel connection;
   final Map<String, String> services = {};
+
+  /// Pairs of 1) the ID of a Service ID zone created by this client and 2) the
+  /// ID of the isolate in which that zone was created.
+  final List<({String serviceIdZoneId, String isolateId})>
+      createdServiceIdZones = [];
+
   final Set<String> profilerUserTagFilters = {};
   final json_rpc.Peer _vmServicePeer;
   late json_rpc.Peer _clientPeer;

@@ -105,12 +105,6 @@ class BytecodeAssembler {
     }
   }
 
-  void emitYieldPointSourcePosition(int yieldSourcePosition) {
-    if (!isUnreachable) {
-      sourcePositions.addYieldPoint(offset, yieldSourcePosition);
-    }
-  }
-
   void _grow() {
     final newSize = _buffer.length << 1;
     final newBuffer = new Uint8List(newSize);

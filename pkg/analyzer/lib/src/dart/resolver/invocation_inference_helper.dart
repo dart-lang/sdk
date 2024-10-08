@@ -59,6 +59,7 @@ class InvocationInferenceHelper {
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
+  final bool _inferenceUsingBoundsIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
@@ -70,7 +71,9 @@ class InvocationInferenceHelper {
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
         _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
-            .isEnabled(Feature.generic_metadata);
+            .isEnabled(Feature.generic_metadata),
+        _inferenceUsingBoundsIsEnabled = resolver.definingLibrary.featureSet
+            .isEnabled(Feature.inference_using_bounds);
 
   /// If the constructor referenced by the [constructorName] is generic,
   /// and the [constructorName] does not have explicit type arguments,
@@ -130,6 +133,7 @@ class InvocationInferenceHelper {
         errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         strictCasts: _resolver.analysisOptions.strictCasts,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,

@@ -2,21 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 
-/// [ExecutableElement], its parameters, and operations on them.
+/// [ExecutableElement2], its parameters, and operations on them.
 class ExecutableParameters {
   final AnalysisSessionHelper sessionHelper;
-  final ExecutableElement executable;
+  final ExecutableElement2 executable;
+  final ExecutableFragment firstFragment;
 
-  final List<ParameterElement> required = [];
-  final List<ParameterElement> optionalPositional = [];
-  final List<ParameterElement> named = [];
+  final List<FormalParameterElement> required = [];
+  final List<FormalParameterElement> optionalPositional = [];
+  final List<FormalParameterElement> named = [];
 
-  ExecutableParameters._(this.sessionHelper, this.executable) {
-    for (var parameter in executable.parameters) {
+  ExecutableParameters._(
+    this.sessionHelper,
+    this.executable,
+    this.firstFragment,
+  ) {
+    for (var parameter in executable.formalParameters) {
       if (parameter.isRequiredPositional) {
         required.add(parameter);
       } else if (parameter.isOptionalPositional) {
@@ -28,7 +34,7 @@ class ExecutableParameters {
   }
 
   /// Return the path of the file in which the executable is declared.
-  String get file => executable.source.fullName;
+  String get file => firstFragment.libraryFragment.source.fullName;
 
   /// Return the names of the named parameters.
   List<String> get namedNames {
@@ -38,7 +44,7 @@ class ExecutableParameters {
   /// Return the [FormalParameterList] of the [executable], or `null` if it
   /// can't be found.
   Future<FormalParameterList?> getParameterList() async {
-    var result = await sessionHelper.getElementDeclaration(executable);
+    var result = await sessionHelper.getElementDeclaration2(firstFragment);
     var targetDeclaration = result?.node;
     if (targetDeclaration is ConstructorDeclaration) {
       return targetDeclaration.parameters;
@@ -51,10 +57,11 @@ class ExecutableParameters {
     return null;
   }
 
-  /// Return the [FormalParameter] of the [element] in [FormalParameterList],
+  /// Return the [FormalParameter] of the [fragment] in [FormalParameterList],
   /// or `null` if it can't be found.
-  Future<FormalParameter?> getParameterNode(ParameterElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
+  Future<FormalParameter?> getParameterNode2(
+      FormalParameterFragment fragment) async {
+    var result = await sessionHelper.getElementDeclaration2(fragment);
     var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {
@@ -66,19 +73,23 @@ class ExecutableParameters {
 
   static ExecutableParameters? forInvocation(
       AnalysisSessionHelper sessionHelper, AstNode? invocation) {
-    Element? element;
+    Element2? element;
     // This doesn't handle FunctionExpressionInvocation.
     if (invocation is Annotation) {
-      element = invocation.element;
+      element = invocation.element2;
     } else if (invocation is InstanceCreationExpression) {
-      element = invocation.constructorName.staticElement;
+      element = invocation.constructorName.element;
     } else if (invocation is MethodInvocation) {
-      element = invocation.methodName.staticElement;
+      element = invocation.methodName.element;
     } else if (invocation is ConstructorReferenceNode) {
-      element = invocation.staticElement;
+      element = invocation.element;
     }
-    if (element is ExecutableElement && !element.isSynthetic) {
-      return ExecutableParameters._(sessionHelper, element);
+    var firstFragment =
+        element.ifTypeOrNull<FragmentedElement>()?.firstFragment;
+    if (element is ExecutableElement2 &&
+        !element.isSynthetic &&
+        firstFragment is ExecutableFragment) {
+      return ExecutableParameters._(sessionHelper, element, firstFragment);
     } else {
       return null;
     }

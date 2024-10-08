@@ -55,50 +55,50 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/foo.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/foo.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/foo.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/foo.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
     <testLibrary>::@fragment::package:test/foo.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo.dart::@class::A#element
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo.dart::@class::A#element
     class A
-      reference: <testLibrary>::@fragment::package:test/foo.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo.dart::@class::A
 ''');
   }
@@ -143,50 +143,50 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/foo_io.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_io.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/foo_io.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/foo_io.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
     <testLibrary>::@fragment::package:test/foo_io.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -231,50 +231,50 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/foo_io.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_io.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/foo_io.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/foo_io.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
     <testLibrary>::@fragment::package:test/foo_io.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A#element
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
 ''');
   }
@@ -319,50 +319,50 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/foo_html.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_html.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/foo_html.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/foo_html.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
     <testLibrary>::@fragment::package:test/foo_html.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -407,50 +407,50 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/foo_html.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           supertype: A
             element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+            element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     <testLibrary>::@fragment::package:test/foo_html.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/foo_html.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/foo_html.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
+          element: <testLibraryFragment>::@class::B#element
     <testLibrary>::@fragment::package:test/foo_html.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
           reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
   classes
     class B
-      reference: <testLibraryFragment>::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
         element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
+        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A#element
     class A
-      reference: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
 ''');
   }
@@ -471,23 +471,19 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
@@ -495,11 +491,14 @@ library
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
@@ -554,147 +553,136 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_2
           uri: package:test/a11.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/a11.dart
         part_3
           uri: package:test/a12.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-          enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
     <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-          enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_4
           uri: package:test/b11.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           unit: <testLibrary>::@fragment::package:test/b11.dart
         part_5
           uri: package:test/b12.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           unit: <testLibrary>::@fragment::package:test/b12.dart
     <testLibrary>::@fragment::package:test/b11.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-          enclosingElement: <testLibrary>::@fragment::package:test/b11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b12.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-          enclosingElement: <testLibrary>::@fragment::package:test/b12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b12.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
+          element: <testLibraryFragment>::@class::Z#element
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
     <testLibrary>::@fragment::package:test/a11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
+          element: <testLibrary>::@fragment::package:test/a11.dart::@class::A11#element
     <testLibrary>::@fragment::package:test/a12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
+          element: <testLibrary>::@fragment::package:test/a12.dart::@class::A12#element
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
       nextFragment: <testLibrary>::@fragment::package:test/b12.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
+          element: <testLibrary>::@fragment::package:test/b11.dart::@class::B11#element
     <testLibrary>::@fragment::package:test/b12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b11.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
+          element: <testLibrary>::@fragment::package:test/b12.dart::@class::B12#element
   classes
     class Z
-      reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
-      reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
-      reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
-      reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
-      reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }
@@ -711,17 +699,17 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: noRelativeUriString
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -745,71 +733,67 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class B @22
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::B
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
 ----------------------------------------
 library
   reference: <testLibrary>
   name: my.lib
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @22
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
+              element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
 ''');
   }
@@ -831,70 +815,66 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement: <testLibraryFragment>::@class::A
+              enclosingElement3: <testLibraryFragment>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       classes
         class B @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           constructors
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingElement: <testLibrary>::@fragment::package:test/a.dart::@class::B
+              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
           constructors
             synthetic new @-1
               reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingFragment: <testLibraryFragment>::@class::A
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::B#element
           constructors
             synthetic new @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-              enclosingFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
+              element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
   classes
     class A
-      reference: <testLibraryFragment>::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
       constructors
         synthetic new
-          reference: <none>
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
 ''');
   }
@@ -911,17 +891,17 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: relativeUri 'foo:bar'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -937,17 +917,17 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: source 'package:test/test.dart'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -964,17 +944,17 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: source 'package:test/a.dart'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -990,17 +970,17 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: source 'package:test/a.dart'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -1016,17 +996,17 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: relativeUriString ':'
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
 ''');
   }
 
@@ -1053,34 +1033,33 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
@@ -1135,147 +1114,136 @@ library
     part_1
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
         part_1
           uri: package:test/b.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
-          enclosingElement: <testLibraryFragment>
+          enclosingElement3: <testLibraryFragment>
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_2
           uri: package:test/a11.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/a11.dart
         part_3
           uri: package:test/a12.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           unit: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          enclosingElement: <testLibrary>::@fragment::package:test/a.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a11.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-          enclosingElement: <testLibrary>::@fragment::package:test/a11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a11.dart
     <testLibrary>::@fragment::package:test/a12.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-          enclosingElement: <testLibrary>::@fragment::package:test/a12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/a12.dart
     <testLibrary>::@fragment::package:test/b.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       parts
         part_4
           uri: package:test/b11.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           unit: <testLibrary>::@fragment::package:test/b11.dart
         part_5
           uri: package:test/b12.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           unit: <testLibrary>::@fragment::package:test/b12.dart
     <testLibrary>::@fragment::package:test/b11.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-          enclosingElement: <testLibrary>::@fragment::package:test/b11.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b12.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-          enclosingElement: <testLibrary>::@fragment::package:test/b12.dart
+          enclosingElement3: <testLibrary>::@fragment::package:test/b12.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
+          element: <testLibraryFragment>::@class::Z#element
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
     <testLibrary>::@fragment::package:test/a11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A11 @24
           reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
+          element: <testLibrary>::@fragment::package:test/a11.dart::@class::A11#element
     <testLibrary>::@fragment::package:test/a12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
         class A12 @24
           reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
+          element: <testLibrary>::@fragment::package:test/a12.dart::@class::A12#element
     <testLibrary>::@fragment::package:test/b.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b11.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
       nextFragment: <testLibrary>::@fragment::package:test/b12.dart
       classes
         class B11 @24
           reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
+          element: <testLibrary>::@fragment::package:test/b11.dart::@class::B11#element
     <testLibrary>::@fragment::package:test/b12.dart
+      element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/b11.dart
       classes
         class B12 @24
           reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
+          element: <testLibrary>::@fragment::package:test/b12.dart::@class::B12#element
   classes
     class Z
-      reference: <testLibraryFragment>::@class::Z
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibraryFragment>::@class::Z
     class A
-      reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
     class A11
-      reference: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@class::A11
     class A12
-      reference: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@class::A12
     class B11
-      reference: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b11.dart::@class::B11
     class B12
-      reference: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
-      enclosingElement2: <testLibrary>
       firstFragment: <testLibrary>::@fragment::package:test/b12.dart::@class::B12
 ''');
   }

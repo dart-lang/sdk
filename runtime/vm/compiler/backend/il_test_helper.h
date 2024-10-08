@@ -136,7 +136,7 @@ enum MatchOpCode {
 #define DEFINE_MATCH_OPCODES(Instruction, _)                                   \
   kMatch##Instruction, kMatchAndMove##Instruction,                             \
       kMatchAndMoveOptional##Instruction,
-  FOR_EACH_INSTRUCTION(DEFINE_MATCH_OPCODES)
+  FOR_EACH_CONCRETE_INSTRUCTION(DEFINE_MATCH_OPCODES)
       FOR_EACH_ABSTRACT_INSTRUCTION(DEFINE_MATCH_OPCODES)
 #undef DEFINE_MATCH_OPCODES
 
@@ -180,7 +180,7 @@ class MatchCode {
       : opcode_(opcode), capture_(reinterpret_cast<Instruction**>(capture)) {  \
     RELEASE_ASSERT(opcode == kMatch##Type || opcode == kMatchAndMove##Type);   \
   }
-  FOR_EACH_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
+  FOR_EACH_CONCRETE_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
   FOR_EACH_ABSTRACT_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
 #undef DEFINE_TYPED_CONSTRUCTOR
 
@@ -447,6 +447,21 @@ class FlowGraphBuilderHelper {
   };
   GrowableArray<PendingPhiInput> pending_phis_;
 };
+
+template <typename... Args>
+ObjectPtr Invoke(const Library& lib, const char* name, const Args&... args) {
+  Thread* thread = Thread::Current();
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
+  Dart_Handle argv[] = {Api::NewHandle(thread, args.ptr())...};
+  Dart_Handle result;
+  {
+    TransitionVMToNative transition(thread);
+    result =
+        Dart_Invoke(api_lib, NewString(name), /*argc=*/sizeof...(Args), argv);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(result);
+}
 
 }  // namespace dart
 

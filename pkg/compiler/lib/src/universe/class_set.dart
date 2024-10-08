@@ -55,7 +55,7 @@ class ClassHierarchyNode {
     Instantiation.DIRECTLY_INSTANTIATED,
     Instantiation.INDIRECTLY_INSTANTIATED,
     Instantiation.ABSTRACTLY_INSTANTIATED,
-  ], fixed: true);
+  ]);
 
   /// Enum set for selecting directly and abstractly instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
@@ -64,40 +64,33 @@ class ClassHierarchyNode {
       EnumSet.fromValues(const [
     Instantiation.DIRECTLY_INSTANTIATED,
     Instantiation.ABSTRACTLY_INSTANTIATED
-  ], fixed: true);
+  ]);
 
   /// Enum set for selecting all classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
   static final EnumSet<Instantiation> ALL =
-      EnumSet.fromValues(Instantiation.values, fixed: true);
+      EnumSet.fromValues(Instantiation.values);
 
   /// Creates an enum set for selecting the returned classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
   static EnumSet<Instantiation> createMask(
-      {bool includeDirectlyInstantiated = true,
-      bool includeIndirectlyInstantiated = true,
-      bool includeUninstantiated = true,
-      bool includeAbstractlyInstantiated = true}) {
-    EnumSet<Instantiation> mask = EnumSet();
-    if (includeDirectlyInstantiated) {
-      mask.add(Instantiation.DIRECTLY_INSTANTIATED);
-    }
-    if (includeIndirectlyInstantiated) {
-      mask.add(Instantiation.INDIRECTLY_INSTANTIATED);
-    }
-    if (includeUninstantiated) {
-      mask.add(Instantiation.UNINSTANTIATED);
-    }
-    if (includeAbstractlyInstantiated) {
-      mask.add(Instantiation.ABSTRACTLY_INSTANTIATED);
-    }
-    return mask;
-  }
+          {bool includeDirectlyInstantiated = true,
+          bool includeIndirectlyInstantiated = true,
+          bool includeUninstantiated = true,
+          bool includeAbstractlyInstantiated = true}) =>
+      EnumSet.fromValues([
+        if (includeDirectlyInstantiated) Instantiation.DIRECTLY_INSTANTIATED,
+        if (includeIndirectlyInstantiated)
+          Instantiation.INDIRECTLY_INSTANTIATED,
+        if (includeUninstantiated) Instantiation.UNINSTANTIATED,
+        if (includeAbstractlyInstantiated)
+          Instantiation.ABSTRACTLY_INSTANTIATED,
+      ]);
 
   final ClassHierarchyNode? parentNode;
-  final EnumSet<Instantiation> _mask =
+  EnumSet<Instantiation> _mask =
       EnumSet.fromValues(const [Instantiation.UNINSTANTIATED]);
   final ClassEntity cls;
 
@@ -152,16 +145,16 @@ class ClassHierarchyNode {
       {required bool add}) {
     ClassHierarchyNode? parent = parentNode;
     if (add) {
-      _mask.remove(Instantiation.UNINSTANTIATED);
-      _mask.add(instantiation);
+      _mask -= Instantiation.UNINSTANTIATED;
+      _mask += instantiation;
       while (parent != null) {
         parent._updateInstantiatedSubclassCount(1);
         parent = parent.parentNode;
       }
     } else {
-      _mask.remove(instantiation);
+      _mask -= instantiation;
       if (_mask.isEmpty) {
-        _mask.add(Instantiation.UNINSTANTIATED);
+        _mask += Instantiation.UNINSTANTIATED;
       }
       while (parent != null) {
         parent._updateInstantiatedSubclassCount(-1);
@@ -190,12 +183,12 @@ class ClassHierarchyNode {
     bool after = isIndirectlyInstantiated;
     if (before != after) {
       if (after) {
-        _mask.remove(Instantiation.UNINSTANTIATED);
-        _mask.add(Instantiation.INDIRECTLY_INSTANTIATED);
+        _mask -= Instantiation.UNINSTANTIATED;
+        _mask += Instantiation.INDIRECTLY_INSTANTIATED;
       } else {
-        _mask.remove(Instantiation.INDIRECTLY_INSTANTIATED);
+        _mask -= Instantiation.INDIRECTLY_INSTANTIATED;
         if (_mask.isEmpty) {
-          _mask.add(Instantiation.UNINSTANTIATED);
+          _mask += Instantiation.UNINSTANTIATED;
         }
       }
     }
@@ -226,7 +219,7 @@ class ClassHierarchyNode {
     source.end(tag);
     return ClassHierarchyNode(parentNode, cls, hierarchyDepth)
       .._instantiatedSubclassCount = instantiatedSubclassCount
-      .._mask.value = maskValue;
+      .._mask = EnumSet(maskValue);
   }
 
   /// Serializes this [ClassHierarchyNode] to [sink].
@@ -234,7 +227,7 @@ class ClassHierarchyNode {
     sink.begin(tag);
     sink.writeClass(cls);
     sink.writeClassOrNull(parentNode?.cls);
-    sink.writeInt(_mask.value);
+    sink.writeInt(_mask.mask);
     sink.writeInt(hierarchyDepth);
     sink.writeInt(_instantiatedSubclassCount);
     sink.end(tag);

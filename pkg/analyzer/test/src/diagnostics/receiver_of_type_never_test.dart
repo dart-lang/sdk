@@ -48,9 +48,11 @@ BinaryExpression
       staticType: int
     parameter: <null>
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: Never
 ''');
@@ -71,6 +73,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: ==
   rightOperand: BinaryExpression
@@ -84,9 +87,11 @@ BinaryExpression
       staticType: int
     parameter: <null>
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: Never
 ''');
@@ -107,6 +112,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: +
   rightOperand: ParenthesizedExpression
@@ -121,12 +127,14 @@ BinaryExpression
         parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::<fragment>::@class::num::@method::+
+      element: dart:core::<fragment>::@class::num::@method::+#element
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     parameter: <null>
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: Never
 ''');
@@ -144,6 +152,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: ==
   rightOperand: BinaryExpression
@@ -157,9 +166,11 @@ BinaryExpression
       staticType: int
     parameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   staticElement: dart:core::<fragment>::@class::Object::@method::==
+  element: dart:core::<fragment>::@class::Object::@method::==#element
   staticInvokeType: bool Function(Object)
   staticType: bool
 ''');
@@ -182,6 +193,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: +
   rightOperand: ParenthesizedExpression
@@ -196,12 +208,14 @@ BinaryExpression
         parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::<fragment>::@class::num::@method::+
+      element: dart:core::<fragment>::@class::num::@method::+#element
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     parameter: <null>
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: InvalidType
 ''');
@@ -241,12 +255,14 @@ BinaryExpression
         parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::<fragment>::@class::num::@method::+
+      element: dart:core::<fragment>::@class::num::@method::+#element
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     parameter: <null>
     staticType: int
   staticElement: <null>
+  element: <null>
   staticInvokeType: null
   staticType: Never
 ''');
@@ -306,6 +322,7 @@ IndexExpression
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
@@ -314,6 +331,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: Never
 ''');
   }
@@ -335,6 +353,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -343,6 +362,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: BinaryExpression
@@ -356,13 +376,17 @@ AssignmentExpression
       staticType: int
     parameter: <null>
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: InvalidType
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -383,6 +407,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -391,6 +416,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: BinaryExpression
@@ -404,13 +430,17 @@ AssignmentExpression
       staticType: int
     parameter: <null>
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -430,6 +460,7 @@ IndexExpression
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
@@ -438,6 +469,7 @@ IndexExpression
     staticType: int
   rightBracket: ]
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -459,6 +491,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -467,6 +500,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: BinaryExpression
@@ -480,13 +514,17 @@ AssignmentExpression
       staticType: int
     parameter: <null>
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: InvalidType
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -507,6 +545,7 @@ AssignmentExpression
     target: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -515,6 +554,7 @@ AssignmentExpression
       staticType: int
     rightBracket: ]
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: BinaryExpression
@@ -528,13 +568,17 @@ AssignmentExpression
       staticType: int
     parameter: <null>
     staticElement: dart:core::<fragment>::@class::num::@method::+
+    element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -563,11 +607,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -583,6 +629,7 @@ MethodInvocation
           staticType: int
         parameter: <null>
         staticElement: dart:core::<fragment>::@class::num::@method::+
+        element: dart:core::<fragment>::@class::num::@method::+#element
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -607,11 +654,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
+    element: <null>
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -627,6 +676,7 @@ MethodInvocation
           staticType: int
         parameter: <null>
         staticElement: dart:core::<fragment>::@class::num::@method::+
+        element: dart:core::<fragment>::@class::num::@method::+#element
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -650,11 +700,13 @@ MethodInvocation
   target: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: .
   methodName: SimpleIdentifier
     token: toString
     staticElement: dart:core::<fragment>::@class::Object::@method::toString
+    element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -670,6 +722,7 @@ MethodInvocation
           staticType: int
         parameter: <null>
         staticElement: dart:core::<fragment>::@class::num::@method::+
+        element: dart:core::<fragment>::@class::num::@method::+#element
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -704,6 +757,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: <null>
+    element: <null>
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -727,13 +781,17 @@ PostfixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::x
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never
   staticElement: <null>
+  element: <null>
   staticType: Never
 ''');
   }
@@ -753,13 +811,17 @@ PostfixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   operator: ++
   readElement: <testLibraryFragment>::@function::f::@parameter::x
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never?
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never?
   staticElement: <null>
+  element: <null>
   staticType: Never?
 ''');
   }
@@ -780,12 +842,16 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never
   staticElement: <null>
+  element: <null>
   staticType: Never
 ''');
   }
@@ -806,12 +872,16 @@ PrefixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   readElement: <testLibraryFragment>::@function::f::@parameter::x
+  readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never?
   writeElement: <testLibraryFragment>::@function::f::@parameter::x
+  writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never?
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -829,13 +899,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: Never
   staticElement: <null>
+  element: <null>
   staticType: Never
 ''');
   }
@@ -853,13 +926,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: hashCode
     staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: Never
   staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+  element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   staticType: Never
 ''');
   }
@@ -880,13 +956,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     period: .
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
@@ -894,10 +973,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: InvalidType
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -915,13 +997,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: toString
     staticElement: dart:core::<fragment>::@class::Object::@method::toString
+    element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: Never
   staticElement: dart:core::<fragment>::@class::Object::@method::toString
+  element: dart:core::<fragment>::@class::Object::@method::toString#element
   staticType: Never
 ''');
   }
@@ -942,13 +1027,16 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: x
       staticElement: <testLibraryFragment>::@function::f::@parameter::x
+      element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     period: .
     identifier: SimpleIdentifier
       token: foo
       staticElement: <null>
+      element: <null>
       staticType: null
     staticElement: <null>
+    element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -956,10 +1044,13 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: <null>
+  readElement2: <null>
   readType: null
   writeElement: <null>
+  writeElement2: <null>
   writeType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: int
 ''');
   }
@@ -980,13 +1071,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
     token: foo
     staticElement: <null>
+    element: <null>
     staticType: InvalidType
   staticElement: <null>
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -1004,13 +1098,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
     token: hashCode
     staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+  element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   staticType: int
 ''');
   }
@@ -1028,13 +1125,16 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
+    element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
     token: toString
     staticElement: dart:core::<fragment>::@class::Object::@method::toString
+    element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
   staticElement: dart:core::<fragment>::@class::Object::@method::toString
+  element: dart:core::<fragment>::@class::Object::@method::toString#element
   staticType: String Function()
 ''');
   }
@@ -1062,6 +1162,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: toString
     staticElement: dart:core::<fragment>::@class::Object::@method::toString
+    element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
   staticType: String Function()
 ''');
@@ -1090,6 +1191,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: hashCode
     staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
+    element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticType: int
 ''');

@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart'
-    show IndexedClass, IndexedContainer, IndexedLibrary;
+    show IndexedClass, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../api_prototype/experimental_flags.dart';
@@ -23,55 +23,39 @@ import '../base/messages.dart';
 import '../base/modifier.dart'
     show
         abstractMask,
-        augmentMask,
         constMask,
-        externalMask,
         finalMask,
         declaresConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
         superInitializingFormalMask,
-        lateMask,
         namedMixinApplicationMask,
         staticMask;
-import '../base/name_space.dart';
-import '../base/problems.dart' show internalProblem, unexpected, unhandled;
+import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
-import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
+import '../builder/void_type_builder.dart';
+import '../fragment/fragment.dart';
 import '../util/local_stack.dart';
 import 'builder_factory.dart';
-import 'name_scheme.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
-import 'source_extension_builder.dart';
-import 'source_extension_type_declaration_builder.dart';
-import 'source_factory_builder.dart';
-import 'source_field_builder.dart';
-import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
-import 'source_procedure_builder.dart';
-import 'source_type_alias_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
@@ -81,19 +65,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   /// The object used as the root for creating augmentation libraries.
   // TODO(johnniwinther): Remove this once parts support augmentations.
-  final SourceLibraryBuilder _augmentationRoot;
+  final SourceCompilationUnit _augmentationRoot;
 
-  /// [SourceLibraryBuilder] used for passing a parent [Builder] to created
-  /// [Builder]s. These uses are only needed because we creating [Builder]s
-  /// instead of fragments.
-  // TODO(johnniwinther): Remove this when we no longer create [Builder]s in
-  // the outline builder.
-  final SourceLibraryBuilder _parent;
-
-  final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
-
-  @override
-  TypeParameterScopeBuilder currentTypeParameterScopeBuilder;
+  final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
   /// Index of the library we use references for.
   final IndexedLibrary? indexedLibrary;
@@ -117,9 +91,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   final List<Export> exports = <Export>[];
 
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? _prefixBuilders;
-
   /// Map from synthesized names used for omitted types to their corresponding
   /// synthesized type declarations.
   ///
@@ -127,19 +98,23 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// inferred types in the original code.
   final Map<String, Builder>? _omittedTypeDeclarationBuilders;
 
+  /// Map from mixin application classes to their mixin types.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
   Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
 
   final List<NominalVariableBuilder> _unboundNominalVariables = [];
 
   final List<StructuralVariableBuilder> _unboundStructuralVariables = [];
 
-  final List<SourceFunctionBuilder> _nativeMethods = [];
+  final List<FactoryFragment> _nativeFactoryFragments = [];
 
-  final LibraryName libraryName;
+  final List<MethodFragment> _nativeMethodFragments = [];
 
-  final LookupScope _scope;
+  final List<ConstructorFragment> _nativeConstructorFragments = [];
 
-  final NameSpace _nameSpace;
+  final LookupScope _compilationUnitScope;
 
   /// Index for building unique lowered names for wildcard variables.
   int wildcardVariableIndex = 0;
@@ -157,24 +132,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   BuilderFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
-      required SourceLibraryBuilder augmentationRoot,
-      required SourceLibraryBuilder parent,
-      required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      required SourceCompilationUnit augmentationRoot,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       required ProblemReporting problemReporting,
       required LookupScope scope,
-      required NameSpace nameSpace,
-      required LibraryName libraryName,
       required IndexedLibrary? indexedLibrary,
       required Map<String, Builder>? omittedTypeDeclarationBuilders})
       : _compilationUnit = compilationUnit,
         _augmentationRoot = augmentationRoot,
-        _libraryTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
-        currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
+        _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _problemReporting = problemReporting,
-        _parent = parent,
-        _scope = scope,
-        _nameSpace = nameSpace,
-        libraryName = libraryName,
+        _compilationUnitScope = scope,
         indexedLibrary = indexedLibrary,
         _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders,
         _typeScopes =
@@ -188,11 +156,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginClassOrNamedMixinApplicationHeader() {
-    currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.classOrNamedMixinApplication,
-            "class or mixin application");
-
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -206,10 +169,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginClassDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    currentTypeParameterScopeBuilder.markAsClassDeclaration(
-        name, charOffset, typeVariables);
-    _declarationFragments.push(
-        new ClassFragment(name, charOffset, _typeScopes.current.lookupScope));
+    _declarationFragments.push(new ClassFragment(
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -219,45 +185,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endClassDeclaration(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.classDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        name.startsWith(currentTypeParameterScopeBuilder.name),
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
+  void endClassDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.classDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.classDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void endClassDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.classDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.classDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -274,10 +214,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginMixinDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    currentTypeParameterScopeBuilder.markAsMixinDeclaration(
-        name, charOffset, typeVariables);
-    _declarationFragments.push(
-        new MixinFragment(name, charOffset, _typeScopes.current.lookupScope));
+    _declarationFragments.push(new MixinFragment(
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -287,45 +230,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endMixinDeclaration(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.mixinDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        name == currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
+  void endMixinDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.mixinDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void endMixinDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.mixinDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
     assert(bodyScope.kind == TypeScopeKind.mixinDeclaration,
         "Unexpected type scope: $bodyScope.");
@@ -341,47 +258,20 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginNamedMixinApplication(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
-        name, charOffset, typeVariables);
-  }
+      List<NominalVariableBuilder>? typeVariables) {}
 
   @override
   void endNamedMixinApplication(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.namedMixinApplication;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        name == currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
   @override
   void endNamedMixinApplicationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.namedMixinApplication;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -391,8 +281,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginEnumDeclarationHeader(String name) {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.enumDeclaration, name);
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -406,10 +294,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginEnumDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    currentTypeParameterScopeBuilder.markAsEnumDeclaration(
-        name, charOffset, typeVariables);
-    _declarationFragments.push(
-        new EnumFragment(name, charOffset, _typeScopes.current.lookupScope));
+    _declarationFragments.push(new EnumFragment(
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -420,51 +311,22 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endEnumDeclaration(String name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.enumDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        name == currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.enumDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.enumDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
   }
 
   @override
   void endEnumDeclarationForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.enumDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.enumDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.enumDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
     _declarationFragments.pop();
@@ -475,10 +337,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginExtensionOrExtensionTypeHeader() {
-    currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
-            "extension");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -492,60 +350,46 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   void beginExtensionDeclaration(String? name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    currentTypeParameterScopeBuilder.markAsExtensionDeclaration(
-        name, charOffset, typeVariables);
     _declarationFragments.push(new ExtensionFragment(
-        name, charOffset, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
   void beginExtensionBody(TypeBuilder? extensionThisType) {
+    ExtensionFragment declarationFragment =
+        _declarationFragments.current as ExtensionFragment;
     _typeScopes.push(new TypeScope(TypeScopeKind.extensionDeclaration,
-        _declarationFragments.current.bodyScope, _typeScopes.current));
+        declarationFragment.bodyScope, _typeScopes.current));
     if (extensionThisType != null) {
-      currentTypeParameterScopeBuilder
-          .registerExtensionThisType(extensionThisType);
+      declarationFragment.registerExtensionThisType(extensionThisType);
     }
   }
 
   @override
-  TypeParameterScopeBuilder endExtensionDeclaration(String? name) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.extensionDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        name == currentTypeParameterScopeBuilder.name ||
-            currentTypeParameterScopeBuilder.name ==
-                UnnamedExtensionName.unnamedExtensionSentinel,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
+  void endExtensionDeclaration(String? name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.extensionDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.extensionDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   void beginExtensionTypeDeclaration(String name, int charOffset,
       List<NominalVariableBuilder>? typeVariables) {
-    currentTypeParameterScopeBuilder.markAsExtensionTypeDeclaration(
-        name, charOffset, typeVariables);
     _declarationFragments.push(new ExtensionTypeFragment(
-        name, charOffset, _typeScopes.current.lookupScope));
+        name,
+        _compilationUnit.fileUri,
+        charOffset,
+        typeVariables,
+        _typeScopes.current.lookupScope,
+        _nominalParameterNameSpaces.current));
   }
 
   @override
@@ -555,39 +399,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  TypeParameterScopeBuilder endExtensionTypeDeclaration(String name) {
-    TypeParameterScopeKind kind =
-        TypeParameterScopeKind.extensionTypeDeclaration;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        name == currentTypeParameterScopeBuilder.name,
-        // Coverage-ignore(suite): Not run.
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-
+  void endExtensionTypeDeclaration(String name) {
     TypeScope bodyScope = _typeScopes.pop();
-    assert(
-        bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
-        // Coverage-ignore(suite): Not run.
+    assert(bodyScope.kind == TypeScopeKind.extensionTypeDeclaration,
         "Unexpected type scope: $bodyScope.");
     TypeScope typeParameterScope = _typeScopes.pop();
-    assert(
-        typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    return previous;
   }
 
   @override
   void beginFactoryMethod() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.factoryMethod, "#factory_method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -600,29 +422,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endFactoryMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.factoryMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void endFactoryMethodForParserRecovery() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.factoryMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
@@ -633,8 +440,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginConstructor() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.constructor, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -647,34 +452,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endConstructor() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.constructor;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
   @override
   void endConstructorForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.constructor;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -684,8 +471,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginStaticMethod() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.staticMethod, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -698,17 +483,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endStaticMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.staticMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -716,12 +492,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   // Coverage-ignore(suite): Not run.
   void endStaticMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.staticMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
@@ -733,8 +503,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginInstanceMethod() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.instanceMethod, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -747,34 +515,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endInstanceMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.instanceMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
   @override
   void endInstanceMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.instanceMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -784,8 +534,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginTopLevelMethod() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.topLevelMethod, "#method");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -798,34 +546,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endTopLevelMethod() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.topLevelMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
   @override
   void endTopLevelMethodForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.topLevelMethod;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
 
     _nominalParameterNameSpaces.pop().addTypeVariables(
@@ -835,8 +565,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginTypedef() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.typedef, "#typedef");
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -849,17 +577,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endTypedef() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.typedef;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
   }
 
@@ -867,12 +586,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   // Coverage-ignore(suite): Not run.
   void endTypedefForParserRecovery(
       List<NominalVariableBuilder>? typeVariables) {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.typedef;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
     assert(typeVariableScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
@@ -884,8 +597,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void beginFunctionType() {
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder
-        .createNested(TypeParameterScopeKind.functionType, "#function_type");
     Map<String, StructuralVariableBuilder> structuralParameterScope = {};
     _structuralParameterScopes.push(structuralParameterScope);
     _typeScopes.push(new TypeScope(
@@ -897,98 +608,29 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   void endFunctionType() {
-    TypeParameterScopeKind kind = TypeParameterScopeKind.functionType;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.functionTypeParameters,
-        // Coverage-ignore(suite): Not run.
+    assert(typeVariableScope.kind == TypeScopeKind.functionTypeParameters,
         "Unexpected type scope: $typeVariableScope.");
-  }
-
-  void beginUnnamedMixinApplication() {
-    currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(
-            TypeParameterScopeKind.unnamedMixinApplication,
-            "mixin application");
-    NominalParameterNameSpace nominalParameterNameSpace =
-        new NominalParameterNameSpace();
-    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
-    _typeScopes.push(new TypeScope(
-        TypeScopeKind.unnamedMixinApplication,
-        new NominalParameterScope(
-            _typeScopes.current.lookupScope, nominalParameterNameSpace),
-        _typeScopes.current));
-  }
-
-  void endUnnamedMixinApplication() {
-    TypeParameterScopeKind kind =
-        TypeParameterScopeKind.unnamedMixinApplication;
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-    TypeScope typeVariableScope = _typeScopes.pop();
-    assert(
-        typeVariableScope.kind == TypeScopeKind.unnamedMixinApplication,
-        // Coverage-ignore(suite): Not run.
-        "Unexpected type scope: $typeVariableScope.");
-    assert(
-        typeVariableScope.isEmpty, // Coverage-ignore(suite): Not run.
-        "Unexpected type scope: $typeVariableScope");
   }
 
   @override
   void checkStacks() {
     assert(
         _typeScopes.isSingular,
-        // Coverage-ignore(suite): Not run.
         "Unexpected type scope stack: "
         "$_typeScopes.");
     assert(
         _declarationFragments.isEmpty,
-        // Coverage-ignore(suite): Not run.
         "Unexpected declaration fragment stack: "
         "$_declarationFragments.");
     assert(
         _nominalParameterNameSpaces.isEmpty,
-        // Coverage-ignore(suite): Not run.
         "Unexpected nominal parameter name space stack : "
         "$_nominalParameterNameSpaces.");
     assert(
         _structuralParameterScopes.isEmpty,
-        // Coverage-ignore(suite): Not run.
         "Unexpected structural parameter scope stack : "
         "$_structuralParameterScopes.");
-  }
-
-  // TODO(johnniwinther): Use [_indexedContainer] for library members and make
-  // it [null] when there is null corresponding [IndexedContainer].
-  IndexedContainer? _indexedContainer;
-
-  @override
-  void beginIndexedContainer(String name,
-      {required bool isExtensionTypeDeclaration}) {
-    if (indexedLibrary != null) {
-      if (isExtensionTypeDeclaration) {
-        _indexedContainer =
-            indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
-      } else {
-        _indexedContainer = indexedLibrary!.lookupIndexedClass(name);
-      }
-    }
-  }
-
-  @override
-  void endIndexedContainer() {
-    _indexedContainer = null;
   }
 
   @override
@@ -1042,14 +684,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // through the file uri of this library. See issue #52964.
     Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
         _resolve(_compilationUnit.fileUri, uri, charOffset);
-    // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
-    // [LibraryBuilder] to represent both libraries and parts.
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
-        origin: _compilationUnit.isAugmenting ? _augmentationRoot.origin : null,
+        origin: _compilationUnit.isAugmenting ? _augmentationRoot : null,
         originImportUri: _compilationUnit.originImportUri,
         fileUri: newFileUri,
         accessor: _compilationUnit,
-        isPatch: _compilationUnit.isAugmenting);
+        isPatch: _compilationUnit.isAugmenting,
+        referencesFromIndex: indexedLibrary,
+        referenceIsPartOwner: indexedLibrary != null);
     _parts.add(new Part(charOffset, compilationUnit));
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
@@ -1101,8 +743,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool deferred,
       required int charOffset,
       required int prefixCharOffset,
-      required int uriOffset,
-      required int importIndex}) {
+      required int uriOffset}) {
     if (configurations != null) {
       for (Configuration config in configurations) {
         if (loader.getLibrarySupportValue(config.dottedName) ==
@@ -1141,16 +782,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
 
     Import import = new Import(
-        _parent,
+        _compilationUnit,
         compilationUnit,
         isAugmentationImport,
         deferred,
         prefix,
         combinators,
         configurations,
+        _compilationUnit.fileUri,
         charOffset,
         prefixCharOffset,
-        importIndex,
         nativeImportPath: nativePath);
     imports.add(import);
     offsetMap?.registerImport(importKeyword!, import);
@@ -1208,27 +849,45 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
-    _addClass(
-        offsetMap,
-        metadata,
-        modifiers,
-        identifier,
-        typeVariables,
-        supertype,
-        mixins,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endOffset,
-        supertypeOffset,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinDeclaration: false,
-        isMixinClass: isMixinClass);
+    String className = identifier.name;
+
+    endClassDeclaration(className);
+
+    ClassFragment declarationFragment =
+        _declarationFragments.pop() as ClassFragment;
+
+    NominalParameterNameSpace nominalParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
+        ownerName: className, allowNameConflict: false);
+
+    if (declarationFragment.declaresConstConstructor) {
+      modifiers |= declaresConstConstructorMask;
+    }
+
+    declarationFragment.compilationUnitScope = _compilationUnitScope;
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.supertype = supertype;
+    declarationFragment.mixins = mixins;
+    declarationFragment.interfaces = interfaces;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.charOffset = nameOffset;
+    declarationFragment.endOffset = endOffset;
+    declarationFragment.isAugmentation = isAugmentation;
+    declarationFragment.isBase = isBase;
+    declarationFragment.isFinal = isFinal;
+    declarationFragment.isInterface = isInterface;
+    declarationFragment.isMacro = isMacro;
+    declarationFragment.isMixinClass = isMixinClass;
+    declarationFragment.isSealed = isSealed;
+
+    _constructorReferences.clear();
+
+    _addFragment(declarationFragment);
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
@@ -1245,63 +904,33 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String name = identifier.name;
     int charOffset = identifier.nameOffset;
 
-    IndexedClass? referencesFromIndexedClass;
-    if (indexedLibrary != null) {
-      referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
-    }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     endEnumDeclaration(name);
 
-    DeclarationFragment declarationFragment = _declarationFragments.pop();
+    EnumFragment declarationFragment =
+        _declarationFragments.pop() as EnumFragment;
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
-    SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
-        metadata,
-        name,
-        typeVariables,
-        loader.target.underscoreEnumType,
-        _applyMixins(
-            loader.target.underscoreEnumType,
-            supertypeBuilder,
-            startCharOffset,
-            charOffset,
-            charEndOffset,
-            name,
-            /* isMixinDeclaration = */
-            false,
-            typeVariables: typeVariables,
-            isMacro: false,
-            isSealed: false,
-            isBase: false,
-            isInterface: false,
-            isFinal: false,
-            isAugmentation: false,
-            isMixinClass: false),
-        interfaceBuilders,
-        enumConstantInfos,
-        _parent,
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
-        startCharOffset,
-        charOffset,
-        charEndOffset,
-        referencesFromIndexedClass,
-        typeParameterScope,
-        nameSpaceBuilder);
-    declarationFragment.bodyScope.declarationBuilder = enumBuilder;
+    declarationFragment.compilationUnitScope = _compilationUnitScope;
+    declarationFragment.metadata = metadata;
+    declarationFragment.supertypeBuilder = supertypeBuilder;
+    declarationFragment.interfaces = interfaceBuilders;
+    declarationFragment.enumConstantInfos = enumConstantInfos;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startCharOffset = startCharOffset;
+    declarationFragment.charOffset = charOffset;
+    declarationFragment.charEndOffset = charEndOffset;
 
     _constructorReferences.clear();
 
-    _addBuilderInternal(name, enumBuilder, charOffset,
-        getterReference: referencesFromIndexedClass?.cls.reference);
+    _addFragment(declarationFragment);
 
-    offsetMap.registerNamedDeclaration(identifier, enumBuilder);
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
@@ -1329,121 +958,42 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             supertype.charOffset!);
       }
     }
-    _addClass(
-        offsetMap,
-        metadata,
-        0,
-        identifier,
-        typeVariables,
-        supertype,
-        mixinApplication,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endOffset,
-        supertypeOffset,
-        isMacro: false,
-        isSealed: false,
-        isBase: isBase,
-        isInterface: false,
-        isFinal: false,
-        isAugmentation: isAugmentation,
-        isMixinDeclaration: true,
-        isMixinClass: false);
-  }
 
-  void _addClass(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixins,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinDeclaration,
-      required bool isMixinClass}) {
     String className = identifier.name;
-    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    TypeParameterScopeBuilder declaration;
-    if (isMixinDeclaration) {
-      declaration = endMixinDeclaration(className);
-    } else {
-      declaration = endClassDeclaration(className);
-    }
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
+    endMixinDeclaration(className);
 
-    DeclarationFragment declarationFragment = _declarationFragments.pop();
+    MixinFragment declarationFragment =
+        _declarationFragments.pop() as MixinFragment;
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: className, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
-
-    if (isMixinDeclaration) {
-      modifiers = abstractMask;
-    }
+    int modifiers = abstractMask;
     if (declarationFragment.declaresConstConstructor) {
       modifiers |= declaresConstConstructorMask;
     }
-    SourceClassBuilder classBuilder = new SourceClassBuilder(
-        metadata,
-        modifiers,
-        className,
-        typeVariables,
-        _applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
-            className, isMixinDeclaration,
-            typeVariables: typeVariables,
-            isMacro: false,
-            isSealed: false,
-            isBase: false,
-            isInterface: false,
-            isFinal: false,
-            // TODO(johnniwinther): How can we support class with mixins?
-            isAugmentation: false,
-            isMixinClass: false),
-        interfaces,
-        // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
-        // here.
-        null,
-        typeParameterScope,
-        nameSpaceBuilder,
-        _parent,
-        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
-        startOffset,
-        nameOffset,
-        endOffset,
-        _indexedContainer as IndexedClass?,
-        isMixinDeclaration: isMixinDeclaration,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass);
-    declarationFragment.bodyScope.declarationBuilder = classBuilder;
+
+    declarationFragment.compilationUnitScope = _compilationUnitScope;
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.supertype = supertype;
+    declarationFragment.mixins = mixinApplication;
+    declarationFragment.interfaces = interfaces;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.charOffset = nameOffset;
+    declarationFragment.endOffset = endOffset;
+    declarationFragment.isAugmentation = isAugmentation;
+    declarationFragment.isBase = isBase;
 
     _constructorReferences.clear();
 
-    _addBuilderInternal(className, classBuilder, nameOffset,
-        getterReference: _indexedContainer?.reference);
-    offsetMap.registerNamedDeclaration(identifier, classBuilder);
+    _addFragment(declarationFragment);
+
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
@@ -1474,34 +1024,52 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNamedMixinApplication(name);
-    supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
-        charOffset, charEndOffset, name, false,
-        metadata: metadata,
-        name: name,
-        typeVariables: typeVariables,
-        modifiers: modifiers,
-        interfaces: interfaces,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass)!;
+
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: supertype.declaration!.name, allowNameConflict: false);
+        ownerName: name, allowNameConflict: false);
+
+    _addFragment(new NamedMixinApplicationFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charEndOffset: charEndOffset,
+        modifiers: modifiers,
+        metadata: metadata,
+        typeParameters: typeVariables,
+        supertype: supertype,
+        mixins: mixinApplication,
+        interfaces: interfaces,
+        isAugmentation: isAugmentation,
+        isBase: isBase,
+        isFinal: isFinal,
+        isInterface: isInterface,
+        isMacro: isMacro,
+        isMixinClass: isMixinClass,
+        isSealed: isSealed,
+        compilationUnitScope: _compilationUnitScope));
   }
 
-  TypeBuilder? _applyMixins(
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixinApplications,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
-      String subclassName,
-      bool isMixinDeclaration,
-      {List<MetadataBuilder>? metadata,
+  static TypeBuilder? applyMixins(
+      {required ProblemReporting problemReporting,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required List<NominalVariableBuilder> unboundNominalVariables,
+      required TypeBuilder? supertype,
+      required MixinApplicationBuilder? mixinApplicationBuilder,
+      required int startCharOffset,
+      required int charOffset,
+      required int charEndOffset,
+      required String subclassName,
+      required bool isMixinDeclaration,
+      required IndexedLibrary? indexedLibrary,
+      required LookupScope compilationUnitScope,
+      required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+      required Uri fileUri,
+      List<MetadataBuilder>? metadata,
       String? name,
       List<NominalVariableBuilder>? typeVariables,
       int modifiers = 0,
@@ -1512,19 +1080,22 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isInterface,
       required bool isFinal,
       required bool isAugmentation,
-      required bool isMixinClass}) {
+      required bool isMixinClass,
+      required TypeBuilder objectTypeBuilder,
+      required void Function(String name, Builder declaration, int charOffset,
+              {Reference? getterReference})
+          addBuilder}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
       if (metadata != null) {
-        unhandled("metadata", "unnamed mixin application", charOffset,
-            _compilationUnit.fileUri);
+        unhandled("metadata", "unnamed mixin application", charOffset, fileUri);
       } else if (interfaces != null) {
-        unhandled("interfaces", "unnamed mixin application", charOffset,
-            _compilationUnit.fileUri);
+        unhandled(
+            "interfaces", "unnamed mixin application", charOffset, fileUri);
       }
     }
-    if (mixinApplications != null) {
+    if (mixinApplicationBuilder != null) {
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -1541,7 +1112,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      supertype ??= loader.target.objectType;
+      supertype ??= objectTypeBuilder;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it
@@ -1595,10 +1166,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
-      for (int i = 0; i < mixinApplications.mixins.length; i++) {
-        TypeBuilder mixin = mixinApplications.mixins[i];
+      for (int i = 0; i < mixinApplicationBuilder.mixins.length; i++) {
+        TypeBuilder mixin = mixinApplicationBuilder.mixins[i];
         isNamedMixinApplication =
-            name != null && mixin == mixinApplications.mixins.last;
+            name != null && mixin == mixinApplicationBuilder.mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
           if (typeVariableNames != null) {
@@ -1625,10 +1196,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           // Otherwise, we pass the fresh type variables to the mixin
           // application in the same order as they're declared on the subclass.
           if (isGeneric) {
-            beginUnnamedMixinApplication();
+            NominalParameterNameSpace nominalParameterNameSpace =
+                new NominalParameterNameSpace();
 
             NominalVariableCopy nominalVariableCopy = copyTypeVariables(
-                typeVariables,
+                unboundNominalVariables, typeVariables,
                 kind: TypeVariableKind.extensionSynthesized,
                 instanceTypeVariableAccess:
                     InstanceTypeVariableAccessState.Allowed)!;
@@ -1640,8 +1212,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             Map<NominalVariableBuilder, TypeBuilder> substitutionMap =
                 nominalVariableCopy.substitutionMap;
 
-            endUnnamedMixinApplication();
-
             applicationTypeArguments = [];
             for (NominalVariableBuilder typeVariable in typeVariables!) {
               TypeBuilder applicationTypeArgument =
@@ -1652,14 +1222,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                       // the class that extend the anonymous mixin application.
                       typeVariable,
                       const NullabilityBuilder.omitted(),
-                      fileUri: _compilationUnit.fileUri,
+                      fileUri: fileUri,
                       charOffset: charOffset,
                       instanceTypeVariableAccess:
                           InstanceTypeVariableAccessState.Allowed);
               applicationTypeArguments.add(applicationTypeArgument);
             }
-            _nominalParameterNameSpaces.pop().addTypeVariables(
-                _problemReporting, applicationTypeVariables,
+            nominalParameterNameSpace.addTypeVariables(
+                problemReporting, applicationTypeVariables,
                 ownerName: fullname, allowNameConflict: true);
             if (supertype != null) {
               supertype = new SynthesizedTypeBuilder(
@@ -1677,11 +1247,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         IndexedClass? referencesFromIndexedClass;
         if (indexedLibrary != null) {
           referencesFromIndexedClass =
-              indexedLibrary!.lookupIndexedClass(fullname);
+              indexedLibrary.lookupIndexedClass(fullname);
         }
 
         LookupScope typeParameterScope =
-            TypeParameterScope.fromList(_scope, typeVariables);
+            TypeParameterScope.fromList(compilationUnitScope, typeVariables);
         DeclarationNameSpaceBuilder nameSpaceBuilder =
             new DeclarationNameSpaceBuilder.empty();
         SourceClassBuilder application = new SourceClassBuilder(
@@ -1697,11 +1267,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                 : isMixinDeclaration
                     ? [supertype!, mixin]
                     : null,
-            null, // No `on` clause types.
+            null,
+            // No `on` clause types.
             typeParameterScope,
             nameSpaceBuilder,
-            _parent,
+            enclosingLibraryBuilder,
             <ConstructorReferenceBuilder>[],
+            fileUri,
             computedStartCharOffset,
             charOffset,
             charEndOffset,
@@ -1718,33 +1290,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        _addBuilderInternal(fullname, application, charOffset,
-            getterReference: referencesFromIndexedClass?.cls.reference);
+        addBuilder(fullname, application, charOffset,
+            getterReference: referencesFromIndexedClass?.reference);
         supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             application, const NullabilityBuilder.omitted(),
             arguments: applicationTypeArguments,
-            fileUri: _compilationUnit.fileUri,
+            fileUri: fileUri,
             charOffset: charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
-        _registerMixinApplication(application, mixin);
+        mixinApplications[application] = mixin;
       }
       return supertype;
     } else {
       return supertype;
     }
-  }
-
-  /// Registers that [mixinApplication] is a mixin application introduced by
-  /// the [mixedInType] in a with-clause.
-  ///
-  /// This is used to check that super access in mixin declarations have a
-  /// concrete target.
-  void _registerMixinApplication(
-      SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
-    assert(
-        _mixinApplications != null, "Late registration of mixin application.");
-    _mixinApplications![mixinApplication] = mixedInType;
   }
 
   @override
@@ -1762,49 +1322,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     String? name = identifier?.name;
     // Nested declaration began in
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
-    TypeParameterScopeBuilder declaration = endExtensionDeclaration(name);
+    endExtensionDeclaration(name);
 
     ExtensionFragment declarationFragment =
         _declarationFragments.pop() as ExtensionFragment;
 
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.onType = type;
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.nameOffset = nameOffset;
+    declarationFragment.endOffset = endOffset;
 
-    Extension? referenceFrom;
-    ExtensionName extensionName = declarationFragment.extensionName;
-    if (name != null) {
-      referenceFrom = indexedLibrary?.lookupExtension(name);
-    }
-
-    ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
-        metadata,
-        modifiers,
-        extensionName,
-        typeVariables,
-        type,
-        typeParameterScope,
-        nameSpaceBuilder,
-        _parent,
-        startOffset,
-        nameOffset,
-        endOffset,
-        referenceFrom);
-    declarationFragment.bodyScope.declarationBuilder = extensionBuilder;
     _constructorReferences.clear();
 
-    _addBuilderInternal(extensionBuilder.name, extensionBuilder, nameOffset,
-        getterReference: referenceFrom?.reference);
+    _addFragment(declarationFragment);
+
     if (identifier != null) {
-      offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
+      offsetMap.registerNamedDeclarationFragment(
+          identifier, declarationFragment);
     } else {
-      offsetMap.registerUnnamedDeclaration(beginToken, extensionBuilder);
+      offsetMap.registerUnnamedDeclaration(beginToken, declarationFragment);
     }
   }
 
@@ -1820,56 +1363,28 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int endOffset) {
     String name = identifier.name;
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration = endExtensionTypeDeclaration(name);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
+    endExtensionTypeDeclaration(name);
 
-    DeclarationFragment declarationFragment = _declarationFragments.pop();
+    ExtensionTypeFragment declarationFragment =
+        _declarationFragments.pop() as ExtensionTypeFragment;
 
     NominalParameterNameSpace nominalParameterNameSpace =
         _nominalParameterNameSpaces.pop();
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope = declarationFragment.typeParameterScope;
-    DeclarationNameSpaceBuilder nameSpaceBuilder = declarationFragment
-        .toDeclarationNameSpaceBuilder(nominalParameterNameSpace);
+    declarationFragment.metadata = metadata;
+    declarationFragment.modifiers = modifiers;
+    declarationFragment.interfaces = interfaces;
+    declarationFragment.constructorReferences =
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences);
+    declarationFragment.startOffset = startOffset;
+    declarationFragment.endOffset = endOffset;
 
-    IndexedContainer? indexedContainer =
-        indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
-
-    List<SourceFieldBuilder>? primaryConstructorFields =
-        declarationFragment.primaryConstructorFields;
-    SourceFieldBuilder? representationFieldBuilder;
-    if (primaryConstructorFields != null &&
-        primaryConstructorFields.isNotEmpty) {
-      representationFieldBuilder = primaryConstructorFields.first;
-    }
-
-    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-        new SourceExtensionTypeDeclarationBuilder(
-            metadata,
-            modifiers,
-            declaration.name,
-            typeVariables,
-            interfaces,
-            typeParameterScope,
-            nameSpaceBuilder,
-            _parent,
-            new List<ConstructorReferenceBuilder>.of(_constructorReferences),
-            startOffset,
-            identifier.nameOffset,
-            endOffset,
-            indexedContainer,
-            representationFieldBuilder);
-    declarationFragment.bodyScope.declarationBuilder =
-        extensionTypeDeclarationBuilder;
     _constructorReferences.clear();
 
-    _addBuilderInternal(extensionTypeDeclarationBuilder.name,
-        extensionTypeDeclarationBuilder, identifier.nameOffset,
-        getterReference: indexedContainer?.reference);
-    offsetMap.registerNamedDeclaration(
-        identifier, extensionTypeDeclarationBuilder);
+    _addFragment(declarationFragment);
+    offsetMap.registerNamedDeclarationFragment(identifier, declarationFragment);
   }
 
   @override
@@ -1885,17 +1400,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             VarianceCalculationValue.pending;
       }
     }
-    Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
-    TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
-        metadata, name, typeVariables, type, _parent, charOffset,
-        referenceFrom: referenceFrom);
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
         ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
-    _addBuilderInternal(name, typedefBuilder, charOffset,
-        getterReference: referenceFrom?.reference);
+    TypedefFragment fragment = new TypedefFragment(
+        metadata: metadata,
+        name: name,
+        typeVariables: typeVariables,
+        type: type,
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: charOffset);
+    _addFragment(fragment);
   }
 
   @override
@@ -1922,6 +1439,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required AsyncMarker asyncModifier,
       required String? nativeMethodName,
       required ProcedureKind? kind}) {
+    DeclarationFragment declarationFragment = _declarationFragments.current;
+    // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
+    // [isConstructor]. The former is based on the enclosing declaration name
+    // and get/set keyword. The latter also takes initializers into account.
     if (inConstructor) {
       endConstructor();
     } else if (isStatic) {
@@ -1930,62 +1451,87 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       endInstanceMethod();
     }
 
-    String? constructorName;
     if (isConstructor) {
-      constructorName = computeAndValidateConstructorName(
-              currentTypeParameterScopeBuilder, identifier) ??
-          name;
-    }
-    bool cloneTypeVariablesFromEnclosingDeclaration;
-    switch (currentTypeParameterScopeBuilder.kind) {
-      case TypeParameterScopeKind.extensionDeclaration:
-      case TypeParameterScopeKind.extensionTypeDeclaration:
-        cloneTypeVariablesFromEnclosingDeclaration = !isStatic;
-      case TypeParameterScopeKind.library:
-      case TypeParameterScopeKind.classOrNamedMixinApplication:
-      case TypeParameterScopeKind.classDeclaration:
-      case TypeParameterScopeKind.mixinDeclaration:
-      case TypeParameterScopeKind.unnamedMixinApplication:
-      case TypeParameterScopeKind.namedMixinApplication:
-      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
-      case TypeParameterScopeKind.typedef:
-      case TypeParameterScopeKind.staticMethod:
-      case TypeParameterScopeKind.instanceMethod:
-      case TypeParameterScopeKind.constructor:
-      case TypeParameterScopeKind.topLevelMethod:
-      case TypeParameterScopeKind.factoryMethod:
-      case TypeParameterScopeKind.functionType:
-      case TypeParameterScopeKind.enumDeclaration:
-        cloneTypeVariablesFromEnclosingDeclaration = false;
-    }
-    if (cloneTypeVariablesFromEnclosingDeclaration) {
-      TypeParameterScopeBuilder declaration = currentTypeParameterScopeBuilder;
-      NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-          declaration.typeVariables,
-          kind: TypeVariableKind.extensionSynthesized,
-          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
+      switch (declarationFragment) {
+        case ExtensionFragment():
+        case ExtensionTypeFragment():
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+              _unboundNominalVariables, declarationFragment.typeParameters,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
 
-      if (nominalVariableCopy != null) {
-        if (typeVariables != null) {
-          typeVariables = nominalVariableCopy.newVariableBuilders
-            ..addAll(typeVariables);
-        } else {
-          typeVariables = nominalVariableCopy.newVariableBuilders;
-        }
+          if (nominalVariableCopy != null) {
+            if (typeVariables != null) {
+              // Coverage-ignore-block(suite): Not run.
+              typeVariables = nominalVariableCopy.newVariableBuilders
+                ..addAll(typeVariables);
+            } else {
+              typeVariables = nominalVariableCopy.newVariableBuilders;
+            }
+          }
+        case ClassFragment():
+        case MixinFragment():
+        case EnumFragment():
       }
+    } else if (!isStatic) {
+      switch (declarationFragment) {
+        case ExtensionFragment():
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+              _unboundNominalVariables, declarationFragment.typeParameters,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
 
-      if (!isConstructor) {
-        List<FormalParameterBuilder> synthesizedFormals = [];
-        TypeBuilder thisType;
-        if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
-          thisType = declaration.extensionThisType;
-        } else {
-          thisType = addNamedType(
-              new SyntheticTypeName(declaration.name, charOffset),
+          if (nominalVariableCopy != null) {
+            if (typeVariables != null) {
+              typeVariables = nominalVariableCopy.newVariableBuilders
+                ..addAll(typeVariables);
+            } else {
+              typeVariables = nominalVariableCopy.newVariableBuilders;
+            }
+          }
+
+          TypeBuilder thisType = declarationFragment.extensionThisType;
+          if (nominalVariableCopy != null) {
+            thisType = new SynthesizedTypeBuilder(
+                thisType,
+                nominalVariableCopy.newToOldVariableMap,
+                nominalVariableCopy.substitutionMap);
+          }
+          List<FormalParameterBuilder> synthesizedFormals = [
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                finalMask, thisType, syntheticThisName, charOffset,
+                fileUri: _compilationUnit.fileUri,
+                isExtensionThis: true,
+                hasImmediatelyDeclaredInitializer: false)
+          ];
+          if (formals != null) {
+            synthesizedFormals.addAll(formals);
+          }
+          formals = synthesizedFormals;
+        case ExtensionTypeFragment():
+          NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
+              _unboundNominalVariables, declarationFragment.typeParameters,
+              kind: TypeVariableKind.extensionSynthesized,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
+
+          if (nominalVariableCopy != null) {
+            if (typeVariables != null) {
+              typeVariables = nominalVariableCopy.newVariableBuilders
+                ..addAll(typeVariables);
+            } else {
+              typeVariables = nominalVariableCopy.newVariableBuilders;
+            }
+          }
+
+          TypeBuilder thisType = addNamedType(
+              new SyntheticTypeName(declarationFragment.name, charOffset),
               const NullabilityBuilder.omitted(),
-              declaration.typeVariables != null
+              declarationFragment.typeParameters != null
                   ? new List<TypeBuilder>.generate(
-                      declaration.typeVariables!.length,
+                      declarationFragment.typeParameters!.length,
                       (int index) =>
                           new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                               typeVariables![index],
@@ -1996,31 +1542,34 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               charOffset,
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Allowed);
-        }
-        if (nominalVariableCopy != null) {
-          thisType = new SynthesizedTypeBuilder(
-              thisType,
-              nominalVariableCopy.newToOldVariableMap,
-              nominalVariableCopy.substitutionMap);
-        }
-        synthesizedFormals.add(new FormalParameterBuilder(
-            FormalParameterKind.requiredPositional,
-            finalMask,
-            thisType,
-            syntheticThisName,
-            null,
-            charOffset,
-            fileUri: _compilationUnit.fileUri,
-            isExtensionThis: true,
-            hasImmediatelyDeclaredInitializer: false));
-        if (formals != null) {
-          synthesizedFormals.addAll(formals);
-        }
-        formals = synthesizedFormals;
+
+          if (nominalVariableCopy != null) {
+            thisType = new SynthesizedTypeBuilder(
+                thisType,
+                nominalVariableCopy.newToOldVariableMap,
+                nominalVariableCopy.substitutionMap);
+          }
+          List<FormalParameterBuilder> synthesizedFormals = [
+            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+                finalMask, thisType, syntheticThisName, charOffset,
+                fileUri: _compilationUnit.fileUri,
+                isExtensionThis: true,
+                hasImmediatelyDeclaredInitializer: false)
+          ];
+          if (formals != null) {
+            synthesizedFormals.addAll(formals);
+          }
+          formals = synthesizedFormals;
+        case ClassFragment():
+        case MixinFragment():
+        case EnumFragment():
       }
     }
 
-    if (constructorName != null) {
+    if (isConstructor) {
+      String constructorName =
+          computeAndValidateConstructorName(declarationFragment, identifier) ??
+              name;
       addConstructor(
           offsetMap,
           metadata,
@@ -2075,7 +1624,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       String? nativeMethodName,
       {Token? beginInitializers,
       required bool forAbstractClassOrMixin}) {
-    SourceFunctionBuilder builder = _addConstructor(
+    ConstructorFragment fragment = _addConstructor(
         metadata,
         modifiers,
         constructorName,
@@ -2087,8 +1636,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charEndOffset,
         nativeMethodName,
         beginInitializers: beginInitializers,
-        forAbstractClassOrMixin: forAbstractClassOrMixin);
-    offsetMap.registerConstructor(identifier, builder);
+        forAbstractClassOrMixin: forAbstractClassOrMixin,
+        isConst: modifiers & constMask != 0);
+    offsetMap.registerConstructorFragment(identifier, fragment);
   }
 
   @override
@@ -2102,23 +1652,28 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     beginConstructor();
     endConstructor();
     NominalVariableCopy? nominalVariableCopy = copyTypeVariables(
-        currentTypeParameterScopeBuilder.typeVariables,
+        _unboundNominalVariables, _declarationFragments.current.typeParameters,
         kind: TypeVariableKind.extensionSynthesized,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     List<NominalVariableBuilder>? typeVariables =
         nominalVariableCopy?.newVariableBuilders;
 
-    SourceFunctionBuilder builder = _addConstructor(
+    ConstructorFragment builder = _addConstructor(
         null,
         isConst ? constMask : 0,
         constructorName,
         typeVariables,
         formals,
-        /* startCharOffset = */ charOffset,
+        /* startCharOffset = */
         charOffset,
-        /* charOpenParenOffset = */ charOffset,
-        /* charEndOffset = */ charOffset,
-        /* nativeMethodName = */ null,
+        charOffset,
+        /* charOpenParenOffset = */
+        charOffset,
+        /* charEndOffset = */
+        charOffset,
+        /* nativeMethodName = */
+        null,
+        isConst: isConst,
         forAbstractClassOrMixin: false);
     offsetMap.registerPrimaryConstructor(beginToken, builder);
   }
@@ -2132,16 +1687,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     _declarationFragments.current.addPrimaryConstructorField(_addField(
         metadata,
         finalMask,
-        /* isTopLevel = */ false,
+        /* isTopLevel = */
+        false,
         type,
         name,
-        /* charOffset = */ charOffset,
-        /* charEndOffset = */ charOffset,
-        /* initializerToken = */ null,
-        /* hasInitializer = */ false));
+        /* charOffset = */
+        charOffset,
+        /* charEndOffset = */
+        charOffset,
+        /* initializerToken = */
+        null,
+        /* hasInitializer = */
+        false));
   }
 
-  SourceFunctionBuilder _addConstructor(
+  ConstructorFragment _addConstructor(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String constructorName,
@@ -2153,92 +1713,44 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int charEndOffset,
       String? nativeMethodName,
       {Token? beginInitializers,
+      required bool isConst,
       required bool forAbstractClassOrMixin}) {
-    ContainerType containerType = _declarationFragments.current.containerType;
-    ContainerName? containerName = _declarationFragments.current.containerName;
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: false,
-        containerName: containerName,
-        containerType: containerType,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.library.reference)
-            : libraryName);
+    ConstructorFragment fragment = new ConstructorFragment(
+        name: constructorName,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        modifiers: modifiers & ~abstractMask,
+        metadata: metadata,
+        returnType: addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        nativeMethodName: nativeMethodName,
+        forAbstractClassOrMixin: forAbstractClassOrMixin,
+        beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
 
-    Reference? constructorReference;
-    Reference? tearOffReference;
+            // const constructors will have their initializers compiled and
+            // written into the outline. In case of super-parameters language
+            // feature, the super initializers are required to infer the types
+            // of super parameters.
+            // TODO(johnniwinther): Avoid using a dummy token to ensure building
+            // of constant constructors in the outline phase.
+            ? (beginInitializers ?? new Token.eof(-1))
+            : null);
 
-    IndexedContainer? indexedContainer = _indexedContainer;
-    if (indexedContainer != null) {
-      constructorReference = indexedContainer.lookupConstructorReference(
-          nameScheme
-              .getConstructorMemberName(constructorName, isTearOff: false)
-              .name);
-      tearOffReference = indexedContainer.lookupGetterReference(nameScheme
-          .getConstructorMemberName(constructorName, isTearOff: true)
-          .name);
-    }
-    AbstractSourceConstructorBuilder constructorBuilder;
-
-    if (currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionTypeDeclaration) {
-      constructorBuilder = new SourceExtensionTypeConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          addInferableType(),
-          constructorName,
-          typeVariables,
-          formals,
-          _parent,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          nameScheme,
-          nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
-    } else {
-      constructorBuilder = new DeclaredSourceConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          addInferableType(),
-          constructorName,
-          typeVariables,
-          formals,
-          _parent,
-          _compilationUnit.fileUri,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          nameScheme,
-          nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
-    }
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: constructorBuilder.name, allowNameConflict: true);
-    // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    _addBuilderInternal(constructorName, constructorBuilder, charOffset,
-        getterReference: constructorReference);
+        ownerName: constructorName, allowNameConflict: true);
+    _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeMethod(constructorBuilder);
+      _addNativeConstructorFragment(fragment);
     }
-    if (constructorBuilder.isConst) {
+    if (isConst) {
       _declarationFragments.current.declaresConstConstructor = true;
     }
-    if (constructorBuilder.isConst ||
-        libraryFeatures.superParameters.isEnabled) {
-      // const constructors will have their initializers compiled and written
-      // into the outline. In case of super-parameters language feature, the
-      // super initializers are required to infer the types of super parameters.
-      constructorBuilder.beginInitializers =
-          beginInitializers ?? new Token.eof(-1);
-    }
-    return constructorBuilder;
+    return fragment;
   }
 
   @override
@@ -2257,19 +1769,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       AsyncMarker asyncModifier) {
     TypeBuilder returnType;
     List<TypeBuilder>? returnTypeArguments;
-    TypeParameterScopeBuilder? parentDeclaration =
-        currentTypeParameterScopeBuilder.parent!;
-    if (parentDeclaration.kind == TypeParameterScopeKind.extensionDeclaration) {
+    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    if (enclosingDeclaration.kind ==
+        DeclarationFragmentKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
-      String name = currentTypeParameterScopeBuilder.parent!.name;
+      String name = enclosingDeclaration.name;
       returnType = new NamedTypeBuilderImpl.forInvalidType(
-          currentTypeParameterScopeBuilder.parent!.name,
+          name,
           const NullabilityBuilder.omitted(),
           messageExtensionDeclaresConstructor.withLocation(
               _compilationUnit.fileUri, charOffset, name.length));
     } else {
       returnType = addNamedType(
-          new SyntheticTypeName(parentDeclaration.name, charOffset),
+          new SyntheticTypeName(enclosingDeclaration.name, charOffset),
           const NullabilityBuilder.omitted(),
           returnTypeArguments = [],
           charOffset,
@@ -2279,7 +1791,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // Prepare the simple procedure name.
     String procedureName;
     String? constructorName = computeAndValidateConstructorName(
-        parentDeclaration, identifier,
+        enclosingDeclaration, identifier,
         isFactory: true);
     if (constructorName != null) {
       procedureName = constructorName;
@@ -2287,105 +1799,34 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       procedureName = identifier.name;
     }
 
-    DeclarationFragment? enclosingDeclaration =
-        _declarationFragments.currentOrNull;
-    ContainerType containerType =
-        enclosingDeclaration?.containerType ?? ContainerType.Library;
-    ContainerName? containerName = enclosingDeclaration?.containerName;
-
-    NameScheme procedureNameScheme = new NameScheme(
-        containerName: containerName,
-        containerType: containerType,
-        isInstanceMember: false,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(
-                (_indexedContainer ?? // Coverage-ignore(suite): Not run.
-                        indexedLibrary)!
-                    .library
-                    .reference)
-            : libraryName);
-
-    Reference? constructorReference;
-    Reference? tearOffReference;
-    if (_indexedContainer != null) {
-      constructorReference = _indexedContainer!.lookupConstructorReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = _indexedContainer!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    } else if (indexedLibrary != null) {
-      // Coverage-ignore-block(suite): Not run.
-      constructorReference = indexedLibrary!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = indexedLibrary!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    }
-
-    SourceFactoryBuilder procedureBuilder;
-    List<NominalVariableBuilder>? typeVariables;
-    if (redirectionTarget != null) {
-      procedureBuilder = new RedirectingFactoryBuilder(
-          metadata,
-          staticMask | modifiers,
-          returnType,
-          procedureName,
-          typeVariables = copyTypeVariables(parentDeclaration.typeVariables,
-                  kind: TypeVariableKind.function,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Allowed)
-              ?.newVariableBuilders,
-          formals,
-          _parent,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          procedureNameScheme,
-          nativeMethodName,
-          redirectionTarget);
-      (_parent.redirectingFactoryBuilders ??= [])
-          .add(procedureBuilder as RedirectingFactoryBuilder);
-    } else {
-      procedureBuilder = new SourceFactoryBuilder(
-          metadata,
-          staticMask | modifiers,
-          returnType,
-          procedureName,
-          typeVariables = copyTypeVariables(parentDeclaration.typeVariables,
-                  kind: TypeVariableKind.function,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Allowed)
-              ?.newVariableBuilders,
-          formals,
-          _parent,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          asyncModifier,
-          procedureNameScheme,
-          nativeMethodName: nativeMethodName);
-    }
+    List<NominalVariableBuilder>? typeVariables = copyTypeVariables(
+            _unboundNominalVariables, enclosingDeclaration.typeParameters,
+            kind: TypeVariableKind.function,
+            instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed)
+        ?.newVariableBuilders;
+    FactoryFragment fragment = new FactoryFragment(
+        name: procedureName,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        modifiers: staticMask | modifiers,
+        metadata: metadata,
+        returnType: returnType,
+        typeParameters: typeVariables,
+        formals: formals,
+        asyncModifier: asyncModifier,
+        nativeMethodName: nativeMethodName,
+        redirectionTarget: redirectionTarget);
 
     if (returnTypeArguments != null && typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables) {
         returnTypeArguments.add(addNamedType(
-            new SyntheticTypeName(
-                typeVariable.name, procedureBuilder.charOffset),
+            new SyntheticTypeName(typeVariable.name, charOffset),
             const NullabilityBuilder.omitted(),
             null,
-            procedureBuilder.charOffset,
+            charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed));
       }
@@ -2398,12 +1839,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _problemReporting, typeVariables,
         ownerName: identifier.name, allowNameConflict: true);
 
-    _addBuilderInternal(procedureName, procedureBuilder, charOffset,
-        getterReference: constructorReference);
+    _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeMethod(procedureBuilder);
+      _addNativeFactoryFragment(fragment);
     }
-    offsetMap.registerConstructor(identifier, procedureBuilder);
+    offsetMap.registerFactoryFragment(identifier, fragment);
   }
 
   @override
@@ -2420,21 +1860,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? typeArguments, Identifier? suffix, int charOffset) {
     // At the moment, the name of the type in a constructor reference can be
     // omitted only within an enum element declaration.
-    if (currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.enumDeclaration) {
+    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    if (enclosingDeclaration.kind == DeclarationFragmentKind.enumDeclaration) {
       if (libraryFeatures.enhancedEnums.isEnabled) {
         int constructorNameOffset = suffix?.nameOffset ?? charOffset;
         return addConstructorReference(
             new SyntheticTypeName(
-                currentTypeParameterScopeBuilder.name, constructorNameOffset),
+                enclosingDeclaration.name, constructorNameOffset),
             typeArguments,
             suffix?.name,
             constructorNameOffset);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         // For entries that consist of their name only, all of the elements
         // of the constructor reference should be null.
         if (typeArguments != null || suffix != null) {
-          // Coverage-ignore-block(suite): Not run.
           _compilationUnit.reportFeatureNotEnabled(
               libraryFeatures.enhancedEnums,
               _compilationUnit.fileUri,
@@ -2453,9 +1893,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   String? computeAndValidateConstructorName(
-      TypeParameterScopeBuilder parentDeclaration, Identifier identifier,
+      DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false}) {
-    String className = parentDeclaration.name;
+    String className = enclosingDeclaration.name;
     String prefix;
     String? suffix;
     int charOffset;
@@ -2484,16 +1924,26 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         prefix.length, _compilationUnit.fileUri,
         context: [
           templateConstructorWithWrongNameContext
-              .withArguments(parentDeclaration.name)
-              .withLocation(_compilationUnit.importUri,
-                  parentDeclaration.charOffset, parentDeclaration.name.length)
+              .withArguments(enclosingDeclaration.name)
+              .withLocation(
+                  _compilationUnit.importUri,
+                  enclosingDeclaration.fileOffset,
+                  enclosingDeclaration.name.length)
         ]);
 
     return suffix;
   }
 
-  void _addNativeMethod(SourceFunctionBuilder method) {
-    _nativeMethods.add(method);
+  void _addNativeMethodFragment(MethodFragment fragment) {
+    _nativeMethodFragments.add(fragment);
+  }
+
+  void _addNativeConstructorFragment(ConstructorFragment fragment) {
+    _nativeConstructorFragments.add(fragment);
+  }
+
+  void _addNativeFactoryFragment(FactoryFragment method) {
+    _nativeFactoryFragments.add(method);
   }
 
   @override
@@ -2516,24 +1966,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       {required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember}) {
-    assert(!isExtensionMember ||
-        currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionDeclaration);
-    assert(!isExtensionTypeMember ||
-        currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionTypeDeclaration);
     DeclarationFragment? enclosingDeclaration =
         _declarationFragments.currentOrNull;
-    ContainerType containerType =
-        enclosingDeclaration?.containerType ?? ContainerType.Library;
-    ContainerName? containerName = enclosingDeclaration?.containerName;
-    NameScheme nameScheme = new NameScheme(
-        containerName: containerName,
-        containerType: containerType,
-        isInstanceMember: isInstanceMember,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.library.reference)
-            : libraryName);
+    assert(!isExtensionMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionTypeDeclaration);
 
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
@@ -2543,62 +1983,30 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         returnType = addVoidType(charOffset);
       }
     }
-    Reference? procedureReference;
-    Reference? tearOffReference;
-    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
 
-    bool isAugmentation =
-        _compilationUnit.isAugmenting && (modifiers & augmentMask) != 0;
-    if (indexedContainer != null && !isAugmentation) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      if (kind == ProcedureKind.Setter) {
-        if ((isExtensionMember || isExtensionTypeMember) && isInstanceMember) {
-          // Extension (type) instance setters are encoded as methods.
-          procedureReference =
-              indexedContainer.lookupGetterReference(nameToLookup);
-        } else {
-          procedureReference =
-              indexedContainer.lookupSetterReference(nameToLookup);
-        }
-      } else {
-        procedureReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        if ((isExtensionMember || isExtensionTypeMember) &&
-            kind == ProcedureKind.Method) {
-          tearOffReference = indexedContainer.lookupGetterReference(nameScheme
-              .getProcedureMemberName(ProcedureKind.Getter, name)
-              .name);
-        }
-      }
-    }
-    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-        metadata,
-        modifiers,
-        returnType ?? addInferableType(),
-        name,
-        typeVariables,
-        formals,
-        kind,
-        _parent,
-        _compilationUnit.fileUri,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        procedureReference,
-        tearOffReference,
-        asyncModifier,
-        nameScheme,
+    MethodFragment fragment = new MethodFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        metadata: metadata,
+        modifiers: modifiers,
+        returnType: returnType ?? addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        kind: kind,
+        asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
     _nominalParameterNameSpaces.pop().addTypeVariables(
         _problemReporting, typeVariables,
-        ownerName: procedureBuilder.name, allowNameConflict: true);
-    _addBuilderInternal(name, procedureBuilder, charOffset,
-        getterReference: procedureReference);
+        ownerName: name, allowNameConflict: true);
+    _addFragment(fragment);
     if (nativeMethodName != null) {
-      _addNativeMethod(procedureBuilder);
+      _addNativeMethodFragment(fragment);
     }
-    offsetMap.registerProcedure(identifier, procedureBuilder);
+    offsetMap.registerProcedure(identifier, fragment);
   }
 
   @override
@@ -2642,7 +2050,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
   }
 
-  SourceFieldBuilder _addField(
+  FieldFragment _addField(
       List<MetadataBuilder>? metadata,
       int modifiers,
       bool isTopLevel,
@@ -2656,126 +2064,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    bool isLate = (modifiers & lateMask) != 0;
-    bool isFinal = (modifiers & finalMask) != 0;
-    bool isStatic = (modifiers & staticMask) != 0;
-    bool isExternal = (modifiers & externalMask) != 0;
-    final bool fieldIsLateWithLowering = isLate &&
-        (loader.target.backendTarget.isLateFieldLoweringEnabled(
-                hasInitializer: hasInitializer,
-                isFinal: isFinal,
-                isStatic: isTopLevel || isStatic) ||
-            (loader.target.backendTarget.useStaticFieldLowering &&
-                (isStatic || isTopLevel)));
-
-    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
-            TypeParameterScopeKind.library &&
-        (modifiers & staticMask) == 0;
-    final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionDeclaration;
-    final bool isExtensionTypeMember = currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionTypeDeclaration;
-    DeclarationFragment? enclosingDeclaration =
-        _declarationFragments.currentOrNull;
-    ContainerType containerType =
-        enclosingDeclaration?.containerType ?? ContainerType.Library;
-    ContainerName? containerName = enclosingDeclaration?.containerName;
-
-    Reference? fieldReference;
-    Reference? fieldGetterReference;
-    Reference? fieldSetterReference;
-    Reference? lateIsSetFieldReference;
-    Reference? lateIsSetGetterReference;
-    Reference? lateIsSetSetterReference;
-    Reference? lateGetterReference;
-    Reference? lateSetterReference;
-
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: isInstanceMember,
-        containerName: containerName,
-        containerType: containerType,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.reference)
-            : libraryName);
-    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
-    if (indexedContainer != null) {
-      if ((isExtensionMember || isExtensionTypeMember) &&
-          isInstanceMember &&
-          isExternal) {
-        /// An external extension (type) instance field is special. It is
-        /// treated as an external getter/setter pair and is therefore encoded
-        /// as a pair of top level methods using the extension instance member
-        /// naming convention.
-        fieldGetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name);
-        fieldSetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name);
-      } else if (isExtensionTypeMember && isInstanceMember) {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.RepresentationField, name,
-                isSynthesized: true)
-            .name;
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-      } else {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.Field, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        fieldSetterReference =
-            indexedContainer.lookupSetterReference(nameToLookup);
-      }
-
-      if (fieldIsLateWithLowering) {
-        Name lateIsSetName = nameScheme
-            .getFieldMemberName(FieldNameType.IsSetField, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        lateIsSetFieldReference =
-            indexedContainer.lookupFieldReference(lateIsSetName);
-        lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetName);
-        lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetName);
-        lateGetterReference = indexedContainer.lookupGetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Getter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-        lateSetterReference = indexedContainer.lookupSetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Setter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-      }
-    }
-
-    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-        metadata,
-        type,
-        name,
-        modifiers,
-        isTopLevel,
-        _parent,
-        _compilationUnit.fileUri,
-        charOffset,
-        charEndOffset,
-        nameScheme,
-        fieldReference: fieldReference,
-        fieldGetterReference: fieldGetterReference,
-        fieldSetterReference: fieldSetterReference,
-        lateIsSetFieldReference: lateIsSetFieldReference,
-        lateIsSetGetterReference: lateIsSetGetterReference,
-        lateIsSetSetterReference: lateIsSetSetterReference,
-        lateGetterReference: lateGetterReference,
-        lateSetterReference: lateSetterReference,
+    FieldFragment fragment = new FieldFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        charOffset: charOffset,
+        charEndOffset: charEndOffset,
         initializerToken: initializerToken,
-        constInitializerToken: constInitializerToken);
-    _addBuilderInternal(name, fieldBuilder, charOffset,
-        getterReference: fieldGetterReference,
-        setterReference: fieldSetterReference);
-    return fieldBuilder;
+        constInitializerToken: constInitializerToken,
+        metadata: metadata,
+        type: type,
+        isTopLevel: isTopLevel,
+        modifiers: modifiers);
+    _addFragment(fragment);
+    return fragment;
   }
 
   @override
@@ -2790,9 +2091,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int charOffset,
       Token? initializerToken,
       {bool lowerWildcard = false}) {
-    assert(
-        !hasThis || !hasSuper,
-        // Coverage-ignore(suite): Not run.
+    assert(!hasThis || !hasSuper,
         "Formal parameter '${name}' has both 'this' and 'super' prefixes.");
     if (hasThis) {
       modifiers |= initializingFormalMask;
@@ -2808,7 +2107,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       wildcardVariableIndex++;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        kind, modifiers, type, formalName, _parent, charOffset,
+        kind, modifiers, type, formalName, charOffset,
         fileUri: _compilationUnit.fileUri,
         hasImmediatelyDeclaredInitializer: initializerToken != null,
         isWildcard: isWildcard)
@@ -2906,13 +2205,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   TypeBuilder addVoidType(int charOffset) {
-    // 'void' is always nullable.
-    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new VoidTypeDeclarationBuilder(const VoidType(), _parent, charOffset),
-        const NullabilityBuilder.inherent(),
-        charOffset: charOffset,
-        fileUri: _compilationUnit.fileUri,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+    return new VoidTypeBuilder(_compilationUnit.fileUri, charOffset);
   }
 
   @override
@@ -2927,7 +2220,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       wildcardVariableIndex++;
     }
     NominalVariableBuilder builder = new NominalVariableBuilder(
-        variableName, _parent, charOffset, fileUri,
+        variableName, charOffset, fileUri,
         bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
 
     _unboundNominalVariables.add(builder);
@@ -2949,15 +2242,21 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       wildcardVariableIndex++;
     }
     StructuralVariableBuilder builder = new StructuralVariableBuilder(
-        variableName, _parent, charOffset, fileUri,
+        variableName, charOffset, fileUri,
         bound: bound, metadata: metadata, isWildcard: isWildcard);
 
     _unboundStructuralVariables.add(builder);
     return builder;
   }
 
-  @override
-  NominalVariableCopy? copyTypeVariables(
+  /// Creates a [NominalVariableCopy] object containing a copy of
+  /// [oldVariableBuilders] into the scope of [declaration].
+  ///
+  /// This is used for adding copies of class type parameters to factory
+  /// methods and unnamed mixin applications, and for adding copies of
+  /// extension type parameters to extension instance methods.
+  static NominalVariableCopy? copyTypeVariables(
+      List<NominalVariableBuilder> _unboundNominalVariables,
       List<NominalVariableBuilder>? oldVariableBuilders,
       {required TypeVariableKind kind,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
@@ -2975,10 +2274,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         <NominalVariableBuilder>[];
     for (NominalVariableBuilder oldVariable in oldVariableBuilders) {
       NominalVariableBuilder newVariable = new NominalVariableBuilder(
-          oldVariable.name,
-          _parent,
-          oldVariable.charOffset,
-          oldVariable.fileUri,
+          oldVariable.name, oldVariable.charOffset, oldVariable.fileUri,
           kind: kind,
           variableVariance: oldVariable.parameter.isLegacyCovariant
               ? null
@@ -3022,147 +2318,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
-  @override
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
-    return _addBuilderToLibrary(name, declaration, charOffset);
-  }
-
-  void _addBuilderInternal(String name, Builder declaration, int charOffset,
-      {Reference? getterReference, Reference? setterReference}) {
-    if (getterReference != null) {
-      loader.buildersCreatedWithReferences[getterReference] = declaration;
-    }
-    if (setterReference != null) {
-      loader.buildersCreatedWithReferences[setterReference] = declaration;
-    }
-    _addBuilder(name, declaration, charOffset);
-  }
-
-  void _addBuilder(String name, Builder declaration, int charOffset) {
-    if (currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder) {
-      _addBuilderToLibrary(name, declaration, charOffset);
+  void _addFragment(Fragment fragment) {
+    if (_declarationFragments.isEmpty) {
+      _libraryNameSpaceBuilder.addFragment(fragment);
     } else {
-      _addBuilderToDeclaration(name, declaration, charOffset);
+      _declarationFragments.current.addFragment(fragment);
     }
-  }
-
-  Builder _addBuilderToLibrary(
-      String name, Builder declaration, int charOffset) {
-    assert(
-        currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder);
-    if (declaration is SourceExtensionBuilder &&
-        declaration.isUnnamedExtension) {
-      declaration.parent = _parent;
-      currentTypeParameterScopeBuilder.extensions!.add(declaration);
-      return declaration;
-    }
-
-    if (declaration is MemberBuilder) {
-      declaration.parent = _parent;
-    } else if (declaration is TypeDeclarationBuilder) {
-      declaration.parent = _parent;
-    } else if (declaration is PrefixBuilder) {
-      assert(declaration.parent == _parent);
-    } else {
-      return unhandled("${declaration.runtimeType}", "addBuilder", charOffset,
-          _compilationUnit.fileUri);
-    }
-
-    assert(
-        !(declaration is FunctionBuilder &&
-            (declaration.isConstructor || declaration.isFactory)),
-        // Coverage-ignore(suite): Not run.
-        "Unexpected constructor in library: $declaration.");
-
-    Map<String, Builder> members = declaration.isSetter
-        ? currentTypeParameterScopeBuilder.setters!
-        : currentTypeParameterScopeBuilder.members!;
-
-    Builder? existing = members[name];
-
-    if (existing == declaration) return declaration;
-
-    if (declaration.next != null && declaration.next != existing) {
-      unexpected(
-          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
-          "${existing?.fileUri}@${existing?.charOffset}",
-          declaration.charOffset,
-          declaration.fileUri);
-    }
-    declaration.next = existing;
-    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
-      assert(existing.next is! PrefixBuilder);
-      Builder? deferred;
-      Builder? other;
-      if (declaration.deferred) {
-        deferred = declaration;
-        other = existing;
-      } else if (existing.deferred) {
-        deferred = existing;
-        other = declaration;
-      }
-      if (deferred != null) {
-        // Coverage-ignore-block(suite): Not run.
-        _problemReporting.addProblem(
-            templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset,
-            noLength,
-            _compilationUnit.fileUri,
-            context: [
-              templateDeferredPrefixDuplicatedCause
-                  .withArguments(name)
-                  .withLocation(
-                      _compilationUnit.fileUri, other!.charOffset, noLength)
-            ]);
-      }
-      existing.mergeScopes(declaration, _problemReporting, _nameSpace,
-          uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
-      return existing;
-    } else if (isDuplicatedDeclaration(existing, declaration)) {
-      String fullName = name;
-      _problemReporting.addProblem(
-          templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset,
-          fullName.length,
-          declaration.fileUri!,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(fullName)
-                .withLocation(
-                    existing!.fileUri!, existing.charOffset, fullName.length)
-          ]);
-    } else if (declaration.isExtension) {
-      // We add the extension declaration to the extension scope only if its
-      // name is unique. Only the first of duplicate extensions is accessible
-      // by name or by resolution and the remaining are dropped for the output.
-      currentTypeParameterScopeBuilder.extensions!
-          .add(declaration as SourceExtensionBuilder);
-    } else if (declaration.isAugment) {
-      if (existing != null) {
-        if (declaration.isSetter) {
-          (currentTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
-              .add(declaration);
-        } else {
-          (currentTypeParameterScopeBuilder.augmentations[name] ??= [])
-              .add(declaration);
-        }
-      } else {
-        // TODO(cstefantsova): Report an error.
-      }
-    } else if (declaration is PrefixBuilder) {
-      _prefixBuilders ??= <PrefixBuilder>[];
-      _prefixBuilders!.add(declaration);
-    }
-    return members[name] = declaration;
-  }
-
-  void _addBuilderToDeclaration(
-      String name, Builder declaration, int charOffset) {
-    assert(currentTypeParameterScopeBuilder.parent ==
-        _libraryTypeParameterScopeBuilder);
-
-    _declarationFragments.current
-        .addBuilder(name, declaration, _compilationUnit.fileUri, charOffset);
   }
 
   @override
@@ -3200,18 +2361,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   List<MetadataBuilder>? get metadata => _metadata;
 
   @override
-  Iterable<Builder> get members =>
-      _libraryTypeParameterScopeBuilder.members!.values;
-
-  @override
-  Iterable<Builder> get setters =>
-      _libraryTypeParameterScopeBuilder.setters!.values;
-
-  @override
-  Iterable<ExtensionBuilder> get extensions =>
-      _libraryTypeParameterScopeBuilder.extensions!;
-
-  @override
   bool get isPart => _partOfName != null || _partOfUri != null;
 
   @override
@@ -3224,17 +2373,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   List<Part> get parts => _parts;
 
   @override
-  List<PrefixBuilder>? get prefixBuilders => _prefixBuilders;
-
-  @override
-  void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes) {
-    for (NamedTypeBuilder unboundType in unboundTypes) {
-      // Coverage-ignore-block(suite): Not run.
-      _registerUnresolvedNamedType(unboundType);
-    }
-  }
-
-  @override
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables) {
     this._unboundStructuralVariables.addAll(unboundTypeVariables);
@@ -3242,10 +2380,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   int finishNativeMethods() {
-    for (SourceFunctionBuilder method in _nativeMethods) {
-      method.becomeNative(loader);
+    for (FactoryFragment fragment in _nativeFactoryFragments) {
+      fragment.builder.becomeNative(loader);
     }
-    return _nativeMethods.length;
+    for (MethodFragment fragment in _nativeMethodFragments) {
+      fragment.builder.becomeNative(loader);
+    }
+    for (ConstructorFragment fragment in _nativeConstructorFragments) {
+      fragment.builder.becomeNative(loader);
+    }
+    return _nativeFactoryFragments.length;
   }
 
   @override

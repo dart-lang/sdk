@@ -13,46 +13,6 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
 
-const _details = r'''
-**DO** Use the cascading style when successively invoking methods on the same
-reference.
-
-**BAD:**
-```dart
-SomeClass someReference = SomeClass();
-someReference.firstMethod();
-someReference.secondMethod();
-```
-
-**BAD:**
-```dart
-SomeClass someReference = SomeClass();
-...
-someReference.firstMethod();
-someReference.aProperty = value;
-someReference.secondMethod();
-```
-
-**GOOD:**
-```dart
-SomeClass someReference = SomeClass()
-    ..firstMethod()
-    ..aProperty = value
-    ..secondMethod();
-```
-
-**GOOD:**
-```dart
-SomeClass someReference = SomeClass();
-...
-someReference
-    ..firstMethod()
-    ..aProperty = value
-    ..secondMethod();
-```
-
-''';
-
 Element? _getElementFromVariableDeclarationStatement(
     VariableDeclarationStatement statement) {
   var variables = statement.variables.variables;
@@ -109,9 +69,8 @@ class CascadeInvocations extends LintRule {
   /// Default constructor.
   CascadeInvocations()
       : super(
-          name: 'cascade_invocations',
+          name: LintNames.cascade_invocations,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -283,7 +242,7 @@ class _CascadableExpression {
   }
 }
 
-class _NodeVisitor extends UnifyingAstVisitor {
+class _NodeVisitor extends UnifyingAstVisitor<void> {
   final _CascadableExpression expressionBox;
 
   bool foundCriticalNode = false;

@@ -20,7 +20,7 @@ class NoLeadingUnderscoresForLibraryPrefixesTest extends LintRuleTest {
       [WarningCode.UNUSED_IMPORT, WarningCode.UNUSED_LOCAL_VARIABLE];
 
   @override
-  String get lintRule => 'no_leading_underscores_for_library_prefixes';
+  String get lintRule => LintNames.no_leading_underscores_for_library_prefixes;
 
   test_leadingUnderscore() async {
     await assertDiagnostics(r'''

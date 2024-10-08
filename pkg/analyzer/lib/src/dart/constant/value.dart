@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_invalid_type.dart';
@@ -476,7 +475,7 @@ class DartObjectImpl implements DartObject, Constant {
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
-  /// Return the result of invoking the '==' operator on this object with the
+  /// Returns the result of invoking the '==' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
@@ -597,18 +596,6 @@ class DartObjectImpl implements DartObject, Constant {
       typeSystem.typeProvider.intType,
       state.integerDivide(rightOperand.state),
     );
-  }
-
-  /// Return the result of invoking the identical function on this object with
-  /// the [rightOperand]. The [typeProvider] is the type provider used to find
-  /// known types.
-  @Deprecated('Use isIdentical2() instead')
-  DartObjectImpl isIdentical(
-      TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    var typeSystem = TypeSystemImpl(
-      typeProvider: typeProvider,
-    );
-    return isIdentical2(typeSystem, rightOperand);
   }
 
   /// Return the result of invoking the identical function on this object with
@@ -769,7 +756,7 @@ class DartObjectImpl implements DartObject, Constant {
     throw StateError("negated returned a ${result.runtimeType}");
   }
 
-  /// Return the result of invoking the '!=' operator on this object with the
+  /// Returns the result of invoking the '!=' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an

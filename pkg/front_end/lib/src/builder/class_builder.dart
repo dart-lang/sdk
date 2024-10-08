@@ -180,8 +180,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? _thisType;
 
   ClassBuilderImpl(List<MetadataBuilder>? metadata, int modifiers, String name,
-      LibraryBuilder parent, int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset);
+      LibraryBuilder parent, Uri fileUri, int fileOffset)
+      : super(metadata, modifiers, name, parent, fileUri, fileOffset);
 
   @override
   String get debugName => "ClassBuilder";

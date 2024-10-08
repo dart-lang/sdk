@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -15,65 +15,18 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
 
-const _details = r'''
-From the [style guide for the flutter repo](https://flutter.dev/style-guide/):
-
-**DO** specify type annotations.
-
-Avoid `var` when specifying that a type is unknown and short-hands that elide
-type annotations.  Use `dynamic` if you are being explicit that the type is
-unknown.  Use `Object` if you are being explicit that you want an object that
-implements `==` and `hashCode`.
-
-**BAD:**
-```dart
-var foo = 10;
-final bar = Bar();
-const quux = 20;
-```
-
-**GOOD:**
-```dart
-int foo = 10;
-final Bar bar = Bar();
-String baz = 'hello';
-const int quux = 20;
-```
-
-NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API
-authors can special-case type variables whose type needs to be dynamic but whose
-declaration should be treated as optional.  For example, suppose you have a
-`Key` object whose type parameter you'd like to treat as optional.  Using the
-`@optionalTypeArgs` would look like this:
-
-```dart
-import 'package:meta/meta.dart';
-
-@optionalTypeArgs
-class Key<T> {
- ...
-}
-
-main() {
-  Key s = Key(); // OK!
-}
-```
-
-''';
-
 class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
       : super(
-          name: 'always_specify_types',
+          name: LintNames.always_specify_types,
           description: _desc,
-          details: _details,
         );
 
   @override
   List<String> get incompatibleRules => const [
-        'avoid_types_on_closure_parameters',
-        'omit_local_variable_types',
-        'omit_obvious_local_variable_types',
+        LintNames.avoid_types_on_closure_parameters,
+        LintNames.omit_local_variable_types,
+        LintNames.omit_obvious_local_variable_types,
       ];
 
   @override
@@ -114,8 +67,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
-      var element = node.declaredElement;
-      if (element is VariableElement) {
+      var element = node.declaredElement2;
+      if (element is VariableElement2) {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportLintForToken(keyword,
               arguments: [keyword.lexeme, element!.type],
@@ -156,9 +109,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      var element = namedType.element;
-      if (element is TypeParameterizedElement &&
-          element.typeParameters.isNotEmpty &&
+      var element = namedType.element2;
+      if (element is TypeParameterizedElement2 &&
+          element.typeParameters2.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !element.hasOptionalTypeArgs) {
@@ -178,9 +131,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = param.name;
     if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
       var keyword = param.keyword;
+      var type = param.declaredFragment?.element.type;
       if (keyword != null) {
-        var type = param.declaredElement?.type;
-
         if (keyword.type == Keyword.VAR &&
             type != null &&
             type is! DynamicType) {
@@ -191,9 +143,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportLintForToken(keyword,
               errorCode: LinterLintCode.always_specify_types_add_type);
         }
-      } else if (param.declaredElement != null) {
-        var type = param.declaredElement!.type;
-
+      } else if (type != null) {
         if (type is DynamicType) {
           rule.reportLint(param,
               errorCode: LinterLintCode.always_specify_types_add_type);
@@ -260,9 +210,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (initializer != null) {
         DartType? type;
         if (initializer is Identifier) {
-          var staticElement = initializer.staticElement;
-          if (staticElement is VariableElement) {
-            type = staticElement.type;
+          var element = initializer.element;
+          if (element is LocalVariableElement2) {
+            type = element.type;
           }
         }
 

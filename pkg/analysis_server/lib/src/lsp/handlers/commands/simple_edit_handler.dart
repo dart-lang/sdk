@@ -27,18 +27,20 @@ abstract class SimpleEditCommandHandler
   }
 
   Future<ErrorOr<void>> sendSourceEditsToClient(
-      OptionalVersionedTextDocumentIdentifier docIdentifier,
-      CompilationUnit unit,
-      List<SourceEdit> edits) async {
+    OptionalVersionedTextDocumentIdentifier docIdentifier,
+    CompilationUnit unit,
+    List<SourceEdit> edits,
+  ) async {
     // If there are no edits to apply, just complete the command without going
     // back to the client.
     if (edits.isEmpty) {
       return success(null);
     }
 
-    var clientCapabilities = server.lspClientCapabilities;
+    // Use the editor capabilities, since we're building edits to send to the
+    // editor regardless of who called us.
+    var clientCapabilities = server.editorClientCapabilities;
     if (clientCapabilities == null) {
-      // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 

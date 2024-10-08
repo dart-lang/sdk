@@ -23,7 +23,12 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// into the source file.
 class DocumentColorPresentationHandler extends SharedMessageHandler<
     ColorPresentationParams, List<ColorPresentation>> {
+  /// A pattern for removing trailing zeros (and if no decimal part, the period)
+  /// from numbers formatted for code.
+  final _trailingZerosAndPeriodPattern = RegExp(r'\.?0+$');
+
   DocumentColorPresentationHandler(super.server);
+
   @override
   Method get handlesMessage => Method.textDocument_colorPresentation;
 
@@ -70,7 +75,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     required ResolvedUnitResult unit,
     required SourceRange editRange,
     required InterfaceElement colorType,
-    required String label,
+    required String typeName,
     required String invocationString,
     required bool includeConstKeyword,
   }) async {
@@ -101,7 +106,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         editsForThisFile.where((edit) => edit.offset != editRange.offset);
 
     return ColorPresentation(
-      label: label,
+      label: '$typeName$invocationString',
       textEdit: toTextEdit(unit.lineInfo, mainEdit),
       additionalTextEdits: otherEdits.isNotEmpty
           ? otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList()
@@ -122,13 +127,23 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       return success([]);
     }
 
+    var alphaDouble = params.color.alpha;
+    var redDouble = params.color.red;
+    var greenDouble = params.color.green;
+    var blueDouble = params.color.blue;
+    var opacityDouble = params.color.alpha;
+
+    var alphaDoubleRounded = _roundDouble(alphaDouble);
+    var redDoubleRounded = _roundDouble(redDouble);
+    var greenDoubleRounded = _roundDouble(greenDouble);
+    var blueDoubleRounded = _roundDouble(blueDouble);
+
     // The values in LSP are decimals 0-1 so should be scaled up to 255 that
     // we use internally (except for opacity is which 0-1).
-    var alpha = (params.color.alpha * 255).toInt();
-    var red = (params.color.red * 255).toInt();
-    var green = (params.color.green * 255).toInt();
-    var blue = (params.color.blue * 255).toInt();
-    var opacity = params.color.alpha;
+    var alpha = (alphaDouble * 255).toInt();
+    var red = (redDouble * 255).toInt();
+    var green = (greenDouble * 255).toInt();
+    var blue = (blueDouble * 255).toInt();
 
     var editStart = toOffset(unit.lineInfo, params.range.start);
     var editEnd = toOffset(unit.lineInfo, params.range.end);
@@ -155,7 +170,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         unit: unit,
         editRange: editRange,
         colorType: colorType,
-        label: 'Color.fromARGB($alpha, $red, $green, $blue)',
+        typeName: 'Color',
         invocationString: '.fromARGB($alpha, $red, $green, $blue)',
         includeConstKeyword: requiresConstKeyword,
       );
@@ -164,8 +179,19 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         unit: unit,
         editRange: editRange,
         colorType: colorType,
-        label: 'Color.fromRGBO($red, $green, $blue, $opacity)',
-        invocationString: '.fromRGBO($red, $green, $blue, $opacity)',
+        typeName: 'Color',
+        invocationString: '.fromRGBO($red, $green, $blue, $opacityDouble)',
+        includeConstKeyword: requiresConstKeyword,
+      );
+
+      var colorFrom = await _createColorPresentation(
+        unit: unit,
+        editRange: editRange,
+        colorType: colorType,
+        typeName: 'Color',
+        invocationString:
+            '.from(alpha: $alphaDoubleRounded, red: $redDoubleRounded, '
+            'green: $greenDoubleRounded, blue: $blueDoubleRounded)',
         includeConstKeyword: requiresConstKeyword,
       );
 
@@ -173,7 +199,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         unit: unit,
         editRange: editRange,
         colorType: colorType,
-        label: 'Color($colorValueHex)',
+        typeName: 'Color',
         invocationString: '($colorValueHex)',
         includeConstKeyword: requiresConstKeyword,
       );
@@ -181,9 +207,23 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       return success([
         colorFromARGB,
         colorFromRGBO,
+        colorFrom,
         colorDefault,
       ]);
     });
+  }
+
+  /// Rounds doubles to 3 decimal places for writing into code because that's
+  /// enough to preserve the 255 values supported by color pickers without
+  /// looking like:
+  ///
+  /// ```
+  /// Color.from(alpha: 1, red: 0.7490196078431373, green: 0.5019607843137255, blue: 0.25098039215686274)
+  /// ```
+  String _roundDouble(num value) {
+    return value
+        .toStringAsFixed(3)
+        .replaceAll(_trailingZerosAndPeriodPattern, '');
   }
 
   /// Checks whether a `const` keyword is required in front of inserted

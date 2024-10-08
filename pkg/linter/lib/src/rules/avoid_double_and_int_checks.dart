@@ -4,50 +4,18 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid `double` and `int` checks.';
 
-const _details = r'''
-**AVOID** to check if type is `double` or `int`.
-
-When compiled to JS, integer values are represented as floats. That can lead to
-some unexpected behavior when using either `is` or `is!` where the type is
-either `int` or `double`.
-
-**BAD:**
-```dart
-f(num x) {
-  if (x is double) {
-    ...
-  } else if (x is int) {
-    ...
-  }
-}
-```
-
-**GOOD:**
-```dart
-f(dynamic x) {
-  if (x is num) {
-    ...
-  } else {
-    ...
-  }
-}
-```
-
-''';
-
 class AvoidDoubleAndIntChecks extends LintRule {
   AvoidDoubleAndIntChecks()
       : super(
-          name: 'avoid_double_and_int_checks',
+          name: LintNames.avoid_double_and_int_checks,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -83,8 +51,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             ifExpression.name == elseIsExpression.name &&
             ifCondition.type.type == typeProvider.doubleType &&
             elseCondition.type.type == typeProvider.intType &&
-            (ifExpression.staticElement is ParameterElement ||
-                ifExpression.staticElement is LocalVariableElement)) {
+            (ifExpression.element is FormalParameterElement ||
+                ifExpression.element is LocalVariableElement2)) {
           rule.reportLint(elseCondition);
         }
       }

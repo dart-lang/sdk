@@ -29,6 +29,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         StandardFileSystem,
         Verbosity,
         getMessageUri,
+        kernelForModule,
         kernelForProgram,
         parseExperimentalArguments,
         parseExperimentalFlags,
@@ -60,7 +61,7 @@ import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
-import 'transformations/resource_identifier.dart' as resource_identifier;
+import 'transformations/record_use/record_use.dart' as record_use;
 import 'transformations/to_string_transformer.dart' as to_string_transformer;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -112,8 +113,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('native-assets',
       help:
           'Provide the native-assets mapping for @Native external functions.');
-  args.addOption('resources-file',
-      help: 'The path to store the collected usages of resource identifiers.');
+  args.addOption('recorded-usages-file',
+      help: 'The path to store the recorded usages.');
   args.addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
@@ -204,7 +205,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   final String? nativeAssetsPath = options['native-assets'];
-  final String? resourcesFilePath = options['resources-file'];
+  final String? recordedUsagesFile = options['recorded-usages-file'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? input = options.rest.singleOrNull;
   if ((input == null && (nativeAssetsPath == null || splitOutputByPackages)) ||
@@ -292,8 +293,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? nativeAssetsUri =
       nativeAssetsPath == null ? null : resolveInputUri(nativeAssetsPath);
 
-  final Uri? resourcesFileUri =
-      resourcesFilePath == null ? null : resolveInputUri(resourcesFilePath);
+  final Uri? recordedUsagesUri =
+      recordedUsagesFile == null ? null : resolveInputUri(recordedUsagesFile);
 
   final String? dynamicInterfaceFilePath = options['dynamic-interface'];
   final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
@@ -339,7 +340,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       options: compilerOptions,
       additionalSources: additionalSources,
       nativeAssets: nativeAssetsUri,
-      resourcesFile: resourcesFileUri,
+      recordedUsages: recordedUsagesUri,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       keepClassNamesImplementing: options['keep-class-names-implementing'],
@@ -448,7 +449,8 @@ class KernelCompilationArguments {
   final CompilerOptions? options;
   final List<Uri> additionalSources;
   final Uri? nativeAssets;
-  final Uri? resourcesFile;
+  final Uri? recordedUsages;
+  final bool requireMain;
   final bool includePlatform;
   final List<String> deleteToStringPackageUris;
   final List<String> keepClassNamesImplementing;
@@ -469,7 +471,8 @@ class KernelCompilationArguments {
     this.options,
     this.additionalSources = const <Uri>[],
     this.nativeAssets,
-    this.resourcesFile,
+    this.recordedUsages,
+    this.requireMain = true,
     this.includePlatform = false,
     this.deleteToStringPackageUris = const <String>[],
     this.keepClassNamesImplementing = const <String>[],
@@ -521,8 +524,11 @@ Future<KernelCompilationResults> compileToKernel(
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    compilerResult = await kernelForProgram(args.source!, options,
-        additionalSources: args.additionalSources);
+    compilerResult = args.requireMain
+        ? await kernelForProgram(args.source!, options,
+            additionalSources: args.additionalSources)
+        : await kernelForModule(
+            [args.source!, ...args.additionalSources], options);
   }
   final Component? component = compilerResult?.component;
 
@@ -601,8 +607,9 @@ Future runGlobalTransformations(Target target, Component component,
 
   final dynamicInterface = args.dynamicInterface;
   if (dynamicInterface != null) {
+    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
     dynamic_interface_annotator.annotateComponent(
-        File(dynamicInterface.toFilePath()).readAsStringSync(),
+        File(fileUri.toFilePath()).readAsStringSync(),
         dynamicInterface,
         component,
         coreTypes);
@@ -653,9 +660,10 @@ Future runGlobalTransformations(Target target, Component component,
 
   deferred_loading.transformComponent(component, coreTypes, target);
 
-  final resourcesFile = args.resourcesFile;
-  if (resourcesFile != null) {
-    resource_identifier.transformComponent(component, resourcesFile);
+  final recordedUsagesFile = args.recordedUsages;
+  if (recordedUsagesFile != null) {
+    assert(args.source != null);
+    record_use.transformComponent(component, recordedUsagesFile, args.source!);
   }
 }
 

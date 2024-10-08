@@ -196,6 +196,9 @@ extension NotInstantiatedExtensionsExtensions<R>
     var genericMetadataIsEnabled = targetLibrary.featureSet.isEnabled(
       Feature.generic_metadata,
     );
+    var inferenceUsingBoundsIsEnabled = targetLibrary.featureSet.isEnabled(
+      Feature.inference_using_bounds,
+    );
 
     var instantiated = <R>[];
 
@@ -215,6 +218,7 @@ extension NotInstantiatedExtensionsExtensions<R>
         typeSystem,
         freshTypeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         strictInference: false,
         typeSystemOperations: typeSystemOperations,
         dataForTesting: null,

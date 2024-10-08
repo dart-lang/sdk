@@ -20,8 +20,8 @@ int forInListOfInt(List<int> list) {
 void matchIL$forInListOfInt(FlowGraph graph) {
   graph.match([
     match.block('Graph', [
-      'int 0' << match.UnboxedConstant(),
-      'int 1' << match.UnboxedConstant(),
+      'int 0' << match.UnboxedConstant(value: 0),
+      'int 1' << match.UnboxedConstant(value: 1),
     ]),
     match.block('Function', [
       'list' << match.Parameter(index: 0),
@@ -31,17 +31,20 @@ void matchIL$forInListOfInt(FlowGraph graph) {
     'B14' <<
         match.block('Join', [
           'result' << match.Phi('int 0', 'result^e'),
-          'index' << match.Phi('int 0', 'index+1'),
+          'index' << match.Phi(match.any, 'index+1'),
           match.Branch(match.RelationalOp(match.any, match.any, kind: '>=')),
         ]),
     'B4' << match.block('Target'),
     'B10' <<
         match.block('Target', [
-          if (is32BitConfiguration) 'box(index)' << match.BoxInt64('index'),
+          if (is32BitConfiguration) 'box(index)' << match.BoxInt32('index'),
           'e' <<
               match.LoadIndexed(
                   'list.data', is32BitConfiguration ? 'box(index)' : 'index'),
-          'index+1' << match.BinaryInt64Op('index', 'int 1'),
+          if (is32BitConfiguration)
+            'index+1' << match.BinaryInt32Op('index', 'int 1')
+          else
+            'index+1' << match.BinaryInt64Op('index', 'int 1'),
           'unbox(e)' << match.UnboxInt64('e'),
           'result^e' << match.BinaryInt64Op('result', 'unbox(e)'),
           match.Goto('B14'),

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -158,7 +158,8 @@ class UnnecessaryNullableForFinalVariableDeclarationsTest
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 
   @override
-  String get lintCode => 'unnecessary_nullable_for_final_variable_declarations';
+  String get lintCode =>
+      LintNames.unnecessary_nullable_for_final_variable_declarations;
 
   Future<void> test_const_field_static() async {
     await resolveTestCode('''

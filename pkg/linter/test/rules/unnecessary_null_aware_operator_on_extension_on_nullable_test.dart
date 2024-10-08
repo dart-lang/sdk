@@ -18,7 +18,7 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullableTest
     extends LintRuleTest {
   @override
   String get lintRule =>
-      'unnecessary_null_aware_operator_on_extension_on_nullable';
+      LintNames.unnecessary_null_aware_operator_on_extension_on_nullable;
 
   test_extensionOverride_getter() async {
     await assertNoDiagnostics(r'''

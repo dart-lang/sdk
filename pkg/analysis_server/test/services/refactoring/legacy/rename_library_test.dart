@@ -18,6 +18,7 @@ void main() {
 class RenameLibraryTest extends RenameRefactoringTest {
   Future<void> test_checkNewName() async {
     await indexTestUnit('''
+// @dart = 3.4
 library my.app;
 ''');
     _createRenameRefactoring();
@@ -36,9 +37,11 @@ library my.app;
 
   Future<void> test_createChange() async {
     newFile('$testPackageLibPath/part.dart', '''
+// @dart = 3.4
 part of my.app;
 ''');
     await indexTestUnit('''
+// @dart = 3.4
 library my.app;
 part 'part.dart';
 ''');
@@ -49,19 +52,23 @@ part 'part.dart';
     refactoring.newName = 'the.new.name';
     // validate change
     await assertSuccessfulRefactoring('''
+// @dart = 3.4
 library the.new.name;
 part 'part.dart';
 ''');
     assertFileChangeResult('$testPackageLibPath/part.dart', '''
+// @dart = 3.4
 part of the.new.name;
 ''');
   }
 
   Future<void> test_createChange_hasWhitespaces() async {
     newFile('$testPackageLibPath/part.dart', '''
+// @dart = 3.4
 part of my .  app;
 ''');
     await indexTestUnit('''
+// @dart = 3.4
 library my    . app;
 part 'part.dart';
 ''');
@@ -72,10 +79,12 @@ part 'part.dart';
     refactoring.newName = 'the.new.name';
     // validate change
     await assertSuccessfulRefactoring('''
+// @dart = 3.4
 library the.new.name;
 part 'part.dart';
 ''');
     assertFileChangeResult('$testPackageLibPath/part.dart', '''
+// @dart = 3.4
 part of the.new.name;
 ''');
   }

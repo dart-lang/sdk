@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -162,6 +163,16 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
 
   ElementDeclarationResultImpl(
       this.element, this.node, this.parsedUnit, this.resolvedUnit);
+
+  @override
+  Element2 get element2 {
+    if (element case Fragment fragment) {
+      return fragment.element;
+    } else if (element case Element2 element) {
+      return element;
+    }
+    throw UnimplementedError('Could not compute and element');
+  }
 }
 
 class ErrorsResultImpl implements ErrorsResult {
@@ -169,13 +180,10 @@ class ErrorsResultImpl implements ErrorsResult {
   final List<AnalysisError> errors;
 
   @override
-  final bool isAugmentation;
-
-  @override
   final bool isLibrary;
 
   @override
-  final bool isMacroAugmentation;
+  final bool isMacroPart;
 
   @override
   final bool isPart;
@@ -204,9 +212,8 @@ class ErrorsResultImpl implements ErrorsResult {
     required this.content,
     required this.uri,
     required this.lineInfo,
-    required this.isAugmentation,
     required this.isLibrary,
-    required this.isMacroAugmentation,
+    required this.isMacroPart,
     required this.isPart,
     required this.errors,
     required this.analysisOptions,
@@ -226,9 +233,6 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final LineInfo lineInfo;
 
   @override
-  final bool isAugmentation;
-
-  @override
   final bool isLibrary;
 
   @override
@@ -239,7 +243,6 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
     required this.fileState,
   })  : content = fileState.content,
         lineInfo = fileState.lineInfo,
-        isAugmentation = fileState.kind is AugmentationFileKind,
         isLibrary = fileState.kind is LibraryFileKind,
         isPart = fileState.kind is PartFileKind;
 
@@ -250,7 +253,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   File get file => fileState.resource;
 
   @override
-  bool get isMacroAugmentation {
+  bool get isMacroPart {
     return fileState.isMacroPart;
   }
 
@@ -266,6 +269,9 @@ class LibraryElementResultImpl implements LibraryElementResult {
   final LibraryElement element;
 
   LibraryElementResultImpl(this.element);
+
+  @override
+  LibraryElement2 get element2 => element as LibraryElement2;
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -306,6 +312,14 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(element, declaration, unitResult, null);
+  }
+
+  @override
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+    if (fragment case Element element) {
+      return getElementDeclaration(element);
+    }
+    throw UnimplementedError();
   }
 }
 
@@ -401,6 +415,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   });
 
   @override
+  LibraryElement2 get element2 => element as LibraryElement2;
+
+  @override
   TypeProvider get typeProvider => element.typeProvider;
 
   @override
@@ -431,6 +448,14 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     }
 
     return ElementDeclarationResultImpl(element, declaration, null, unitResult);
+  }
+
+  @override
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+    if (fragment case Element element) {
+      return getElementDeclaration(element);
+    }
+    throw UnimplementedError();
   }
 
   @override
@@ -468,6 +493,12 @@ class ResolvedUnitResultImpl extends FileResultImpl
   }
 
   @override
+  LibraryElement2 get libraryElement2 => libraryFragment.element;
+
+  @override
+  LibraryFragment get libraryFragment => unit.declaredFragment!;
+
+  @override
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
@@ -484,4 +515,7 @@ class UnitElementResultImpl extends FileResultImpl
     required super.fileState,
     required this.element,
   });
+
+  @override
+  LibraryFragment get fragment => element as LibraryFragment;
 }

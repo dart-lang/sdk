@@ -20,21 +20,18 @@ class JSArray<E> extends JavaScriptObject
   /// Array. Used for creating literal lists.
   factory JSArray.of(@notNull Object list) {
     // TODO(sra): Move this to core.List for better readability.
-    jsObjectSetPrototypeOf(list, JS('', 'this.prototype'));
     JS('', '#.# = #', list, _arrayRtiSymbol, JS_RTI_PARAMETER());
     return JS('-dynamic', '#', list);
   }
 
   // TODO(jmesserly): consider a fixed array subclass instead.
   factory JSArray.fixed(@notNull Object list) {
-    jsObjectSetPrototypeOf(list, JS('', 'this.prototype'));
     JS('', r'#.fixed$length = Array', list);
     JS('', '#.# = #', list, _arrayRtiSymbol, JS_RTI_PARAMETER());
     return JS('-dynamic', '#', list);
   }
 
   factory JSArray.unmodifiable(@notNull Object list) {
-    jsObjectSetPrototypeOf(list, JS('', 'this.prototype'));
     JS('', r'#.fixed$length = Array', list);
     JS('', r'#.immutable$list = Array', list);
     JS('', '#.# = #', list, _arrayRtiSymbol, JS_RTI_PARAMETER());

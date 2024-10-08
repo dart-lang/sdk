@@ -307,6 +307,7 @@ JSNativeRegExp regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
 /// it finds a match.
 int regExpCaptureCount(JSSyntaxRegExp regexp) {
   final nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
+  nativeAnchoredRegExp.lastIndex = 0.toJS;
   final match = nativeAnchoredRegExp.exec(''.toJS)!;
   // The native-anchored regexp always have one capture more than the original,
   // and always matches the empty string.

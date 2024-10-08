@@ -1783,7 +1783,7 @@ extension on LibraryElement {
   ///
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
-    for (var imp in library.libraryImports) {
+    for (var imp in library.definingCompilationUnit.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;

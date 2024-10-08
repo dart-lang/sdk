@@ -16,6 +16,9 @@ abstract class CodeStyleOptions {
   /// Return `true` if local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 
+  /// Return `true` if `prefer_int_literals` is enabled.
+  bool get preferIntLiterals;
+
   /// Return the preferred quote based on the enabled lints, otherwise a single
   /// quote.
   String get preferredQuoteForStrings;
@@ -30,6 +33,9 @@ abstract class CodeStyleOptions {
   /// Return `true` if the formatter should be used on code changes in this
   /// context.
   bool get useFormatter;
+
+  /// Return `true` if URIs should be always added with a package scheme.
+  bool get usePackageUris;
 
   /// Return `true` if URIs should be "relative", meaning without a scheme,
   /// whenever possible.

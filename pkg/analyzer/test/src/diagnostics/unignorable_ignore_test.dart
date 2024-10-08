@@ -21,7 +21,7 @@ main() {
 class UnignorableIgnoreTest extends PubPackageResolutionTest {
   test_file_lowerCase() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(unignorableNames: ['undefined_annotation']),
+      analysisOptionsContent(unignorableNames: ['undefined_annotation']),
     );
     await assertErrorsInCode(r'''
 // ignore_for_file: undefined_annotation
@@ -33,7 +33,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest {
 
   test_file_upperCase() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(unignorableNames: ['UNDEFINED_ANNOTATION']),
+      analysisOptionsContent(unignorableNames: ['UNDEFINED_ANNOTATION']),
     );
     await assertErrorsInCode(r'''
 // ignore_for_file: UNDEFINED_ANNOTATION
@@ -45,7 +45,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest {
 
   test_line() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(unignorableNames: ['undefined_annotation']),
+      analysisOptionsContent(unignorableNames: ['undefined_annotation']),
     );
     await assertErrorsInCode(r'''
 // ignore: undefined_annotation
@@ -57,8 +57,10 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest {
 
   test_lint() async {
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-          unignorableNames: ['avoid_int'], lints: ['avoid_int']),
+      analysisOptionsContent(
+        unignorableNames: ['avoid_int'],
+        rules: ['avoid_int'],
+      ),
     );
     var avoidIntRule = _AvoidIntRule();
     Registry.ruleRegistry.register(avoidIntRule);
@@ -79,7 +81,6 @@ class _AvoidIntRule extends LintRule {
       : super(
           name: 'avoid_int',
           description: '',
-          details: '',
         );
 
   @override

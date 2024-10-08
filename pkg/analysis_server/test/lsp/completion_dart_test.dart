@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
 import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -4472,7 +4472,6 @@ void f() {
 
   Future<void> test_snippets_testBlock() async {
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = pathContext.toUri(mainFilePath);
     var content = '''
 void f() {
   test^
@@ -4497,7 +4496,6 @@ void f() {
 
   Future<void> test_snippets_testGroupBlock() async {
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = pathContext.toUri(mainFilePath);
     var content = '''
 void f() {
   group^

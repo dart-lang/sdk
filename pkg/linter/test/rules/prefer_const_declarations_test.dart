@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferConstDeclarationsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_const_declarations';
+  String get lintRule => LintNames.prefer_const_declarations;
 
   test_recordLiteral() async {
     await assertDiagnostics(r'''

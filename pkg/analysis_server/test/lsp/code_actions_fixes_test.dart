@@ -36,7 +36,6 @@ class DeprecatedCamelCaseTypes extends LintRule {
           name: 'camel_case_types',
           state: State.deprecated(),
           description: '',
-          details: '',
         );
 
   @override
@@ -151,10 +150,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        "Import library 'package:test/class.dart'",
-        "Import library 'class.dart'",
-      ]),
+      containsAllInOrder(["Import library 'package:test/class.dart'"]),
     );
   }
 
@@ -180,10 +176,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        "Import library 'class.dart'",
-        "Import library 'package:test/class.dart'",
-      ]),
+      containsAllInOrder(["Import library 'class.dart'"]),
     );
   }
 
@@ -793,7 +786,7 @@ class A {
   void a() => c((cell) => cell.south);
   void b() => c((cell) => cell.west);
 
-  ${1:c}(${2:Function(dynamic cell)} ${3:param0}) {}
+  ${1:void} ${2:c}(${3:Function(dynamic cell)} ${4:param0}) {}
 }
 ''';
 

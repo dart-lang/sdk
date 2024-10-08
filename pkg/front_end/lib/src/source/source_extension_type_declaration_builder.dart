@@ -24,11 +24,13 @@ import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
 import 'class_declaration.dart';
+import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -72,35 +74,41 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   List<TypeBuilder>? interfaceBuilders;
 
-  final SourceFieldBuilder? representationFieldBuilder;
+  FieldFragment? _representationFieldFragment;
+
+  SourceFieldBuilder? _representationFieldBuilder;
 
   final IndexedContainer? indexedContainer;
 
   Nullability? _nullability;
 
   SourceExtensionTypeDeclarationBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      this.typeParameters,
-      this.interfaceBuilders,
-      this.typeParameterScope,
-      this._nameSpaceBuilder,
-      SourceLibraryBuilder parent,
-      this.constructorReferences,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      this.indexedContainer,
-      this.representationFieldBuilder)
+      {required List<MetadataBuilder>? metadata,
+      required int modifiers,
+      required String name,
+      required this.typeParameters,
+      required this.interfaceBuilders,
+      required this.typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required SourceLibraryBuilder enclosingLibraryBuilder,
+      required this.constructorReferences,
+      required Uri fileUri,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required this.indexedContainer,
+      required FieldFragment? representationFieldFragment})
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
-            fileUri: parent.fileUri,
+            fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset) {}
+        _nameSpaceBuilder = nameSpaceBuilder,
+        _representationFieldFragment = representationFieldFragment,
+        super(metadata, modifiers, name, enclosingLibraryBuilder, fileUri,
+            nameOffset);
 
   @override
   LookupScope get scope => _scope;
@@ -111,9 +119,25 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   ConstructorScope get constructorScope => _constructorScope;
 
+  SourceFieldBuilder? get representationFieldBuilder {
+    if (_representationFieldBuilder == null) {
+      _representationFieldBuilder = _representationFieldFragment?.builder;
+      _representationFieldFragment = null;
+    }
+    return _representationFieldBuilder;
+  }
+
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    _nameSpace = _nameSpaceBuilder.buildNameSpace(libraryBuilder, this);
+    _nameSpace = _nameSpaceBuilder.buildNameSpace(
+        loader: libraryBuilder.loader,
+        problemReporting: libraryBuilder,
+        enclosingLibraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        indexedLibrary: libraryBuilder.indexedLibrary,
+        indexedContainer: indexedContainer,
+        containerType: ContainerType.ExtensionType,
+        containerName: new ClassName(name));
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension type $name",
         parent: typeParameterScope);
@@ -598,7 +622,7 @@ class SourceExtensionTypeDeclarationBuilder
         return combineNullabilitiesForSubstitution(
             inner: _computeNullabilityFromType(
                 declaration.unalias(typeBuilder.typeArguments,
-                    unboundTypes: [], unboundTypeVariables: [])!,
+                    unboundTypeVariables: [])!,
                 traversalState: traversalState),
             outer: nullability);
       case ExtensionTypeDeclarationBuilder():
@@ -706,9 +730,7 @@ class SourceExtensionTypeDeclarationBuilder
             memberBuilder.charOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionTypeRepresentationField:
-        assert(
-            tearOff == null, // Coverage-ignore(suite): Not run.
-            "Unexpected tear-off $tearOff");
+        assert(tearOff == null, "Unexpected tear-off $tearOff");
         extensionTypeDeclaration.addProcedure(member as Procedure);
     }
   }

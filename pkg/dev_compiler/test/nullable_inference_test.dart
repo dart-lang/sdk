@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler/shared_command.dart';
-import 'package:dev_compiler/src/kernel/command.dart'
+import 'package:dev_compiler/src/command/command.dart'
     show addGeneratedVariables, getSdkPath;
+import 'package:dev_compiler/src/command/options.dart';
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
@@ -657,7 +657,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
   int _functionNesting = 0;
   late TypeEnvironment _typeEnvironment;
   late StatefulStaticTypeContext _staticTypeContext;
-  late SharedCompilerOptions _options;
+  late Options _options;
 
   _TestRecursiveVisitor(this.librariesFromDill);
 
@@ -671,7 +671,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
     );
     _typeEnvironment = jsTypeRep.types;
     _staticTypeContext = StatefulStaticTypeContext.stacked(_typeEnvironment);
-    _options = SharedCompilerOptions(moduleName: 'module_for_test');
+    _options = Options(moduleName: 'module_for_test');
     inference ??=
         NullableInference(jsTypeRep, _staticTypeContext, options: _options);
 

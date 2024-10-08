@@ -39,38 +39,35 @@ library
   reference: <testLibrary>
   libraryExports
     dart:io
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryExports
         dart:io
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
 ''');
   }
@@ -94,19 +91,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryExports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation
@@ -114,15 +108,19 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
 ''');
   }
@@ -143,40 +141,37 @@ library
   reference: <testLibrary>
   libraryImports
     dart:io
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   parts
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       libraryImports
         dart:io
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       libraryImports
         dart:io
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
@@ -202,19 +197,16 @@ library
     part_0
   units
     <testLibraryFragment>
-      enclosingElement: <testLibrary>
+      enclosingElement3: <null>
       parts
         part_0
           uri: package:test/a.dart
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibraryFragment>
           unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement: <testLibrary>
       enclosingElement3: <testLibraryFragment>
       libraryImports
         dart:math
-          enclosingElement: <testLibrary>
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           metadata
             Annotation
@@ -222,15 +214,19 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ----------------------------------------
 library
   reference: <testLibrary>
   fragments
     <testLibraryFragment>
+      element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
+      element: <testLibrary>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
@@ -240,8 +236,10 @@ library
               name: SimpleIdentifier
                 token: deprecated @22
                 staticElement: dart:core::<fragment>::@getter::deprecated
+                element: dart:core::<fragment>::@getter::deprecated#element
                 staticType: null
               element: dart:core::<fragment>::@getter::deprecated
+              element2: dart:core::<fragment>::@getter::deprecated#element
 ''');
   }
 
@@ -506,6 +504,54 @@ package:test/aaa.dart
     getter: dart:io::<fragment>::@class::File
   prefix.Random
     prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
+    getter: dart:math::<fragment>::@class::Random
+''');
+  }
+
+  test_scope_hasPrefix_append_skipFile() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+part 'aa.dart';
+''');
+
+    newFile('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+import 'dart:math' as prefix;
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:io' as prefix;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(library, [
+      Uri.parse('package:test/test.dart'),
+      Uri.parse('package:test/a.dart'),
+      Uri.parse('package:test/aa.dart'),
+    ], [
+      'prefix.File',
+      'prefix.Random',
+    ], r'''
+package:test/test.dart
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:io::<fragment>::@class::File
+  prefix.Random
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: <null>
+package:test/a.dart
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:io::<fragment>::@class::File
+  prefix.Random
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: <null>
+package:test/aa.dart
+  prefix.File
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: dart:io::<fragment>::@class::File
+  prefix.Random
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
     getter: dart:math::<fragment>::@class::Random
 ''');
   }
@@ -1327,7 +1373,7 @@ package:test/a.dart
         if (withAccessibleExtensions) {
           elementPrinter.writeElementList(
             'accessibleExtensions',
-            fragment.scope.accessibleExtensions.sortedBy((e) => e.name ?? ''),
+            fragment.accessibleExtensions.sortedBy((e) => e.name ?? ''),
           );
         }
       });

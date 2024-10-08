@@ -80,6 +80,8 @@ regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # private fields in class.
 records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 general/constructor_inference_interdependence: semiFuzzFailureOnForceRebuildBodies # sealed class ending up in another library.
+general/shadow_export: semiFuzzFailureOnForceRebuildBodies # Uses exports
+general/export_vs_prefix: semiFuzzFailureOnForceRebuildBodies # Uses exports
 
 # FUZZ FRAMEWORK FAILURES
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
@@ -89,6 +91,7 @@ inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForce
 dart2js/tear_off_patch/main: SemiFuzzFailure
 dartdevc/factory_patch/main: SemiFuzzFailure
 general/constructor_patch/main: SemiFuzzFailure
+general/export_dart_conflict/main: SemiFuzzFailure
 general/factory_patch/main: SemiFuzzFailure
 general/inject_private_patch/main: SemiFuzzFailure
 general/inject_public/main: SemiFuzzFailure
@@ -139,6 +142,8 @@ macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't s
 macros/augment_same_file: SemiFuzzFailure # probably augment imports that isn't split correctly.
 nnbd/constants: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242441
 macros/multiple_augment_class: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49990
+
+inference_using_bounds/f_bounded_experiment_2: SemiFuzzCrash
 
 # These tests have "privacy issues" and isn't compatible with splitting files (fuzzing):
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method

@@ -1074,7 +1074,7 @@ Instruction* FlowGraphDeserializer::ReadTrait<Instruction*>::Read(
 #define READ_INSTRUCTION(type, attrs)                                          \
   case Instruction::k##type:                                                   \
     return new (d->zone()) type##Instr(d);
-    FOR_EACH_INSTRUCTION(READ_INSTRUCTION)
+    FOR_EACH_CONCRETE_INSTRUCTION(READ_INSTRUCTION)
 #undef READ_INSTRUCTION
     case Instruction::kNumInstructions:
       return nullptr;

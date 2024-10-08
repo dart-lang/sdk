@@ -37,7 +37,6 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -313,9 +312,7 @@ class VariableUseGenerator extends Generator {
 
   VariableUseGenerator(
       ExpressionGeneratorHelper helper, Token token, this.variable)
-      : assert(
-            variable.isAssignable, // Coverage-ignore(suite): Not run.
-            'Variable $variable is not assignable'),
+      : assert(variable.isAssignable, 'Variable $variable is not assignable'),
         super(helper, token);
 
   @override
@@ -1410,16 +1407,10 @@ class StaticAccessGenerator extends Generator {
   final int? typeOffset;
   final bool isNullAware;
 
-  /// The builder for the parent of [readTarget] and [writeTarget]. This is
-  /// either the builder for the enclosing library,  class, or extension.
-  final Builder? parentBuilder;
-
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.targetName, this.parentBuilder, this.readTarget, this.writeTarget,
+      this.targetName, this.readTarget, this.writeTarget,
       {this.typeOffset, this.isNullAware = false})
       : assert(readTarget != null || writeTarget != null),
-        assert(parentBuilder is DeclarationBuilder ||
-            parentBuilder is LibraryBuilder),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
@@ -1435,18 +1426,10 @@ class StaticAccessGenerator extends Generator {
     // class/extension.
     assert(getterBuilder == null ||
         setterBuilder == null ||
-        (getterBuilder.parent is LibraryBuilder &&
-            setterBuilder.parent is LibraryBuilder) ||
-        getterBuilder.parent == setterBuilder.parent);
-    return new StaticAccessGenerator(
-        helper,
-        token,
-        targetName,
-        getterBuilder?.parent ?? setterBuilder?.parent,
-        getterBuilder?.readTarget,
-        setterBuilder?.writeTarget,
-        typeOffset: typeOffset,
-        isNullAware: isNullAware);
+        getterBuilder.declarationBuilder == setterBuilder.declarationBuilder);
+    return new StaticAccessGenerator(helper, token, targetName,
+        getterBuilder?.readTarget, setterBuilder?.writeTarget,
+        typeOffset: typeOffset, isNullAware: isNullAware);
   }
 
   @override
@@ -3261,7 +3244,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         if (send is PropertySelector) {
           assert(
               send.typeArguments == null,
-              // Coverage-ignore(suite): Not run.
               "Unexpected non-null typeArguments of "
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
@@ -4159,7 +4141,7 @@ class PrefixUseGenerator extends Generator {
           fileOffset,
           lengthForToken(token));
     }
-    Object result = _helper.scopeLookup(prefix.exportScope, nameToken,
+    Object result = _helper.scopeLookup(prefix.prefixScope, nameToken,
         prefix: prefix, prefixToken: token);
     if (prefix.deferred) {
       if (result is Generator) {
@@ -4189,9 +4171,7 @@ class PrefixUseGenerator extends Generator {
   @override
   Expression_Generator buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
-    assert(
-        selector.name.text == selector.token.lexeme,
-        // Coverage-ignore(suite): Not run.
+    assert(selector.name.text == selector.token.lexeme,
         "'${selector.name.text}' != ${selector.token.lexeme}");
     selector.reportNewAsSelector();
     Object result = qualifiedLookup(selector.token);

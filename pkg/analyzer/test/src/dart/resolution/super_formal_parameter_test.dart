@@ -78,6 +78,7 @@ SuperFormalParameter
   type: NamedType
     name: T
     element: T@62
+    element2: <not-implemented>
     type: T
   superKeyword: super
   period: .
@@ -95,6 +96,7 @@ SuperFormalParameter
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
+        element2: dart:core::<fragment>::@class::int#element
         type: int
       name: b
       declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a::@parameter::b
@@ -231,6 +233,7 @@ class B extends A {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@class::A::@getter::a
+  element: <testLibraryFragment>::@class::A::@getter::a#element
   staticType: int
 ''');
   }
@@ -252,6 +255,7 @@ class B extends A {
 SimpleIdentifier
   token: a
   staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
   staticType: int
 ''');
   }

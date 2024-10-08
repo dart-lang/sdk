@@ -43,6 +43,10 @@ abstract class Feature {
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
+  /// Feature information for inference using bounds.
+  static final inference_using_bounds =
+      ExperimentalFeatures.inference_using_bounds;
+
   /// Feature information for inference-update-1.
   static final inference_update_1 = ExperimentalFeatures.inference_update_1;
 
@@ -51,6 +55,9 @@ abstract class Feature {
 
   /// Feature information for inference-update-3.
   static final inference_update_3 = ExperimentalFeatures.inference_update_3;
+
+  /// Feature information for inference-update-4.
+  static final inference_update_4 = ExperimentalFeatures.inference_update_4;
 
   /// Feature information for inline classes.
   static final inline_class = ExperimentalFeatures.inline_class;
@@ -92,6 +99,9 @@ abstract class Feature {
 
   /// Feature information for unnamed libraries.
   static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
+
+  /// Feature information for unquoted imports.
+  static final unquotedImports = ExperimentalFeatures.unquoted_imports;
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;

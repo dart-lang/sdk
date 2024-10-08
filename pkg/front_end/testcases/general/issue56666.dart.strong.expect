@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant X extends core::Object? = dynamic> = (X%) → X%;
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object? = dynamic>(self::C::call::T% t) → self::C::call::T%
+    return t;
+}
+class Checker<X extends core::Object? = dynamic> extends core::Object {
+  final field self::Checker::X% x;
+  constructor •(self::Checker::X% x) → self::Checker<self::Checker::X%>
+    : self::Checker::x = x, super core::Object::•()
+    ;
+  method expectStaticType<covariant-by-class Y extends (self::Checker::X%) → self::Checker::X%>() → self::Checker::X%
+    return this.{self::Checker::x}{self::Checker::X%};
+}
+static method f<X extends core::Object? = dynamic>((core::String) → self::f::X% g) → (core::String) → self::f::X%
+  return g;
+static method main() → void {
+  (core::String) → core::String g = self::f<core::String>((let final self::C #t1 = new self::C::•() in #t1 == null ?{<T extends core::Object? = dynamic>(T%) → T%} null : #t1.{self::C::call}{<T extends core::Object? = dynamic>(T%) → T%})<core::String>);
+  new self::Checker::•<(core::String) → core::String>(g).{self::Checker::expectStaticType}<((core::String) → core::String) → (core::String) → core::String>(){() → (core::String) → core::String};
+}

@@ -33,27 +33,14 @@ class ConvertQuotes extends _ConvertQuotes {
     var node = this.node;
     if (node is SimpleStringLiteral) {
       _fromDouble = !node.isSingleQuoted;
-      await _simpleStringLiteral(builder, node);
-      await removeBackslash(builder, node.literal);
+      await _simpleStringLiteral(builder, node, addBackslash: false);
+      await _removeBackslash(builder, node.literal);
     } else if (node is StringInterpolation) {
       _fromDouble = !node.isSingleQuoted;
       await _stringInterpolation(builder, node);
 
       for (var child in node.childEntities.whereType<InterpolationString>()) {
-        await removeBackslash(builder, child.contents);
-      }
-    }
-  }
-
-  Future<void> removeBackslash(ChangeBuilder builder, Token token) async {
-    var quote = _fromDouble ? '"' : "'";
-    var text = utils.getText(token.offset, token.length);
-    for (var i = 0; i + 1 < text.length; i++) {
-      if (text[i] == r'\' && text[i + 1] == quote) {
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(SourceRange(token.offset + i, 1));
-        });
-        i++;
+        await _removeBackslash(builder, child.contents);
       }
     }
   }
@@ -116,17 +103,49 @@ abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
     } else if (node is InterpolationString) {
       await _stringInterpolation(builder, node.parent as StringInterpolation);
     }
+    await _removeBackslash(builder, token);
+  }
+
+  Future<void> _addBackslash(ChangeBuilder builder, Token token) async {
+    var quote = _fromDouble ? "'" : '"';
+    var text = utils.getText(token.offset, token.length);
+    for (var i = 1; i + 1 < text.length; i++) {
+      if ((text[i + 1] == quote) && (text[i] != r'\')) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleInsertion(token.offset + 1 + i, r'\');
+        });
+      }
+    }
+  }
+
+  Future<void> _removeBackslash(ChangeBuilder builder, Token token) async {
+    var quote = _fromDouble ? '"' : "'";
+    var text = utils.getText(token.offset, token.length);
+    for (var i = 0; i + 1 < text.length; i++) {
+      if (text[i] == r'\' && text[i + 1] == quote) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(SourceRange(token.offset + i, 1));
+        });
+        i++;
+      }
+    }
   }
 
   Future<void> _simpleStringLiteral(
-      ChangeBuilder builder, SimpleStringLiteral node) async {
+      ChangeBuilder builder, SimpleStringLiteral node,
+      {bool addBackslash = true}) async {
     if (_fromDouble ? !node.isSingleQuoted : node.isSingleQuoted) {
       var newQuote = node.isMultiline
           ? (_fromDouble ? "'''" : '"""')
           : (_fromDouble ? "'" : '"');
       var quoteLength = node.isMultiline ? 3 : 1;
       var token = node.literal;
-      if (!token.isSynthetic && !token.lexeme.contains(newQuote)) {
+
+      if (addBackslash) {
+        await _addBackslash(builder, token);
+      }
+
+      if (!token.isSynthetic) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(
             SourceRange(node.offset + (node.isRaw ? 1 : 0), quoteLength),

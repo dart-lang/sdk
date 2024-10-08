@@ -9,41 +9,18 @@ import '../../linter_lint_codes.dart';
 
 const _desc = r'Use secure urls in `pubspec.yaml`.';
 
-const _details = r'''
-**DO** Use secure urls in `pubspec.yaml`.
-
-Use `https` instead of `http` or `git:`.
-
-**BAD:**
-```yaml
-repository: http://github.com/dart-lang/example
-```
-
-```yaml
-git:
-  url: git://github.com/dart-lang/example/example.git
-```
-
-**GOOD:**
-```yaml
-repository: https://github.com/dart-lang/example
-```
-
-''';
-
 class SecurePubspecUrls extends LintRule {
   SecurePubspecUrls()
       : super(
-          name: 'secure_pubspec_urls',
+          name: LintNames.secure_pubspec_urls,
           description: _desc,
-          details: _details,
         );
 
   @override
   LintCode get lintCode => LinterLintCode.secure_pubspec_urls;
 
   @override
-  PubspecVisitor getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

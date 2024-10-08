@@ -220,6 +220,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         startSessions: await server.currentSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
+        clientCapabilities: capabilities,
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:

@@ -40,8 +40,8 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 }
 abstract class M<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _DND1&Object extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_DND1&Object
+abstract class _DND1&Object extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_DND1&Object
     : super core::Object::•()
     ;
 }
@@ -50,8 +50,8 @@ class DND1 extends self::_DND1&Object {
     : super self::_DND1&Object::•()
     ;
 }
-abstract class _DND2&Object extends core::Object /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_DND2&Object
+abstract class _DND2&Object extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_DND2&Object
     : super core::Object::•()
     ;
 }

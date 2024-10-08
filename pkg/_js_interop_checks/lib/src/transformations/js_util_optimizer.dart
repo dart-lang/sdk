@@ -1082,7 +1082,9 @@ class ExtensionIndex {
   /// If not an interop extension type or extension member, returns null.
   FunctionType? getFunctionType(Procedure node) {
     if (getExtensionDescriptor(node) == null &&
-        getExtensionTypeDescriptor(node) == null) return null;
+        getExtensionTypeDescriptor(node) == null) {
+      return null;
+    }
 
     final functionType = node.signatureType ??
         node.function.computeFunctionType(Nullability.nonNullable);

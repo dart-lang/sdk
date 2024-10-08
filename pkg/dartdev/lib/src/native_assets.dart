@@ -9,7 +9,6 @@ import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
 
 import 'core.dart';
@@ -18,7 +17,7 @@ import 'core.dart';
 ///
 /// If provided, only native assets of all transitive dependencies of
 /// [runPackageName] are built.
-Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
+Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
   required bool verbose,
   String? runPackageName,
 }) async {
@@ -28,7 +27,16 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
   if (!await File.fromUri(
           workingDirectory.resolve('.dart_tool/package_config.json'))
       .exists()) {
-    return (true, <AssetImpl>[]);
+    if (await File.fromUri(workingDirectory.resolve('pubspec.yaml')).exists()) {
+      // Silently run `pub get`, this is what would happen in
+      // `getExecutableForCommand` later.
+      final result = await Process.run(sdk.dart, ['pub', 'get']);
+      if (result.exitCode != 0) {
+        return (true, <EncodedAsset>[]);
+      }
+    } else {
+      return (true, <EncodedAsset>[]);
+    }
   }
   final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
     // This always runs in JIT mode.
@@ -43,21 +51,28 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
     // When running in JIT mode, only the host OS needs to be build.
     target: target,
     // When running in JIT mode, only dynamic libraries are supported.
-    linkModePreference: LinkModePreferenceImpl.dynamic,
+    linkModePreference: LinkModePreference.dynamic,
     // Dart has no concept of release vs debug, default to release.
-    buildMode: BuildModeImpl.release,
+    buildMode: BuildMode.release,
     includeParentEnvironment: true,
     runPackageName: runPackageName,
-    supportedAssetTypes: [
-      NativeCodeAsset.type,
-    ],
     targetMacOSVersion: targetMacOSVersion,
     linkingEnabled: false,
+    supportedAssetTypes: [
+      CodeAsset.type,
+    ],
+    buildValidator: (config, output) async => [
+      ...await validateDataAssetBuildOutput(config, output),
+      ...await validateCodeAssetBuildOutput(config, output),
+    ],
+    applicationAssetValidator: (assets) async => [
+      ...await validateCodeAssetsInApplication(assets),
+    ],
   );
 
   return (
     buildResult.success,
-    buildResult.assets,
+    buildResult.encodedAssets,
   );
 }
 
@@ -79,14 +94,20 @@ Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile({
   if (!success) {
     return (false, null);
   }
+  final codeAssets = assets
+      .where((e) => e.type == CodeAsset.type)
+      .map(CodeAsset.fromEncoded)
+      .toList();
+  final dataAssets = assets
+      .where((e) => e.type == DataAsset.type)
+      .map(DataAsset.fromEncoded)
+      .toList();
   final kernelAssets = KernelAssets([
     ...[
-      for (final asset in assets.whereType<NativeCodeAssetImpl>())
-        _targetLocation(asset),
+      for (final asset in codeAssets) _targetLocation(asset),
     ],
     ...[
-      for (final asset in assets.whereType<DataAssetImpl>())
-        _dataTargetLocation(asset),
+      for (final asset in dataAssets) _dataTargetLocation(asset),
     ]
   ]);
 
@@ -100,21 +121,21 @@ ${kernelAssets.toNativeAssetsFile()}''';
   return (true, assetsUri);
 }
 
-KernelAsset _targetLocation(NativeCodeAssetImpl asset) {
+KernelAsset _targetLocation(CodeAsset asset) {
   final linkMode = asset.linkMode;
   final KernelAssetPath kernelAssetPath;
   switch (linkMode) {
-    case DynamicLoadingSystemImpl _:
+    case DynamicLoadingSystem _:
       kernelAssetPath = KernelAssetSystemPath(linkMode.uri);
-    case LookupInExecutableImpl _:
+    case LookupInExecutable _:
       kernelAssetPath = KernelAssetInExecutable();
-    case LookupInProcessImpl _:
+    case LookupInProcess _:
       kernelAssetPath = KernelAssetInProcess();
-    case DynamicLoadingBundledImpl _:
+    case DynamicLoadingBundled _:
       kernelAssetPath = KernelAssetAbsolutePath(asset.file!);
     default:
       throw Exception(
-        'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $asset',
+        'Unsupported CodeAsset linkMode ${linkMode.runtimeType} in asset $asset',
       );
   }
   return KernelAsset(
@@ -124,7 +145,7 @@ KernelAsset _targetLocation(NativeCodeAssetImpl asset) {
   );
 }
 
-KernelAsset _dataTargetLocation(DataAssetImpl asset) {
+KernelAsset _dataTargetLocation(DataAsset asset) {
   return KernelAsset(
     id: asset.id,
     target: Target.current,

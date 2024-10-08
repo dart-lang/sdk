@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum Enum {a, b}
+enum E {a, b}
 
 sealed class A {
-  final Enum a;
+  final E a;
   bool get b;
   A(this.a);
 }
@@ -17,16 +17,16 @@ class B extends A {
 
 void exhaustiveSwitch(A r) {
   switch (r) /* Ok */ {
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.b, b: false):
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
   }
@@ -37,14 +37,14 @@ void nonExhaustiveSwitch1(A r) {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: Enum.b, b: false)'.
-    case A(a: Enum.a, b: false):
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.b, b: false)'.
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
   }
@@ -55,14 +55,14 @@ void nonExhaustiveSwitch2(A r) {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: Enum.a, b: false)'.
-    case A(a: Enum.b, b: false):
+// [cfe] The type 'A' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.a, b: false)'.
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
   }
@@ -70,7 +70,7 @@ void nonExhaustiveSwitch2(A r) {
 
 void nonExhaustiveSwitchWithDefault(A r) {
   switch (r) /* Ok */ {
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
     default:
@@ -81,16 +81,16 @@ void nonExhaustiveSwitchWithDefault(A r) {
 
 void exhaustiveNullableSwitch(A? r) {
   switch (r) /* Ok */ {
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.b, b: false):
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
     case null:
@@ -105,16 +105,16 @@ void nonExhaustiveNullableSwitch1(A? r) {
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
 // [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.b, b: false):
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
   }
@@ -125,14 +125,14 @@ void nonExhaustiveNullableSwitch2(A? r) {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
 //        ^
-// [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'B(a: Enum.b, b: false)'.
-    case A(a: Enum.a, b: false):
+// [cfe] The type 'A?' is not exhaustively matched by the switch cases since it doesn't match 'B(a: E.b, b: false)'.
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
     case null:
@@ -143,19 +143,19 @@ void nonExhaustiveNullableSwitch2(A? r) {
 
 void unreachableCase1(A r) {
   switch (r) /* Ok */ {
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false) #1');
       break;
-    case A(a: Enum.b, b: false):
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
-    case A(a: Enum.a, b: false): // Unreachable
+    case A(a: E.a, b: false): // Unreachable
 //  ^^^^
 // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('(a, false) #2');
@@ -166,16 +166,16 @@ void unreachableCase1(A r) {
 void unreachableCase2(A r) {
   // TODO(johnniwinther): Should we avoid the unreachable error here?
   switch (r) /* Error */ {
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.b, b: false):
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
     case null: // Unreachable
@@ -186,16 +186,16 @@ void unreachableCase2(A r) {
 
 void unreachableCase3(A? r) {
   switch (r) /* Ok */ {
-    case A(a: Enum.a, b: false):
+    case A(a: E.a, b: false):
       print('A(a, false)');
       break;
-    case A(a: Enum.b, b: false):
+    case A(a: E.b, b: false):
       print('A(b, false)');
       break;
-    case A(a: Enum.a, b: true):
+    case A(a: E.a, b: true):
       print('A(a, true)');
       break;
-    case A(a: Enum.b, b: true):
+    case A(a: E.b, b: true):
       print('A(b, true)');
       break;
     case null:
@@ -205,6 +205,28 @@ void unreachableCase3(A? r) {
 //  ^^^^
 // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null #2');
+      break;
+  }
+}
+
+void unreachableDefault(A r) {
+  switch (r) /* Ok */ {
+    case A(a: E.a, b: false):
+      print('A(a, false)');
+      break;
+    case A(a: E.b, b: false):
+      print('A(b, false)');
+      break;
+    case A(a: E.a, b: true):
+      print('A(a, true)');
+      break;
+    case A(a: E.b, b: true):
+      print('A(b, true)');
+      break;
+    default: // Unreachable
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      print('default');
       break;
   }
 }

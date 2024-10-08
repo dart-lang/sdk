@@ -14,7 +14,8 @@ import 'package:dart_style/dart_style.dart';
 import 'generate_all.dart';
 import 'meta_model.dart';
 
-final formatter = DartFormatter();
+final formatter =
+    DartFormatter(languageVersion: DartFormatter.latestLanguageVersion);
 
 final _canParseFunctions = SplayTreeMap<String, String>();
 Map<String, Interface> _interfaces = {};

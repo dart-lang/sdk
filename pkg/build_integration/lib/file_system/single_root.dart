@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/build_integration.dart';
 
@@ -68,7 +70,7 @@ class SingleRootFileSystemEntity implements FileSystemEntity {
       delegate.existsAsyncIfPossible();
 
   @override
-  Future<List<int>> readAsBytes() async => delegate.readAsBytes();
+  Future<Uint8List> readAsBytes() async => delegate.readAsBytes();
 
   @override
   Future<List<int>> readAsBytesAsyncIfPossible() async =>

@@ -24,14 +24,21 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 /// to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         DartType,
+        ParameterElement,
         PromotableElement,
         TypeParameterElement,
         InterfaceType,
         InterfaceElement,
         AstNode>
     with
-        shared.TypeConstraintGeneratorMixin<DartType, PromotableElement,
-            TypeParameterElement, InterfaceType, InterfaceElement, AstNode> {
+        shared.TypeConstraintGeneratorMixin<
+            DartType,
+            ParameterElement,
+            PromotableElement,
+            TypeParameterElement,
+            InterfaceType,
+            InterfaceElement,
+            AstNode> {
   final TypeSystemImpl _typeSystem;
   final Set<TypeParameterElement> _typeParameters = Set.identity();
   final List<
@@ -164,13 +171,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // in case [performSubtypeConstraintGenerationForFutureOr] returns false, as
     // [performSubtypeConstraintGenerationForFutureOr] handles the rewinding of
     // the state itself.
-    if (leftSchema
-        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(
-            SharedTypeSchemaView(P), SharedTypeView(Q),
-            astNodeForTesting: nodeForTesting)
-        : performSubtypeConstraintGenerationForFutureOrRightSchema(
-            SharedTypeView(P), SharedTypeSchemaView(Q),
-            astNodeForTesting: nodeForTesting)) {
+    if (performSubtypeConstraintGenerationForFutureOr(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
       return true;
     }
 
@@ -312,15 +314,13 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // If `Q` is `Function` then the match holds under no constraints:
     //   If `P` is a function type.
     if (_typeSystemOperations.isDartCoreFunction(SharedTypeView(Q))) {
-      if (_typeSystemOperations.isFunctionType(SharedTypeView(P))) {
+      if (P is SharedFunctionTypeStructure) {
         return true;
       }
     }
 
-    if (_typeSystemOperations.isFunctionType(SharedTypeView(P)) &&
-        _typeSystemOperations.isFunctionType(SharedTypeView(Q))) {
-      return _functionType(P as FunctionType, Q as FunctionType, leftSchema,
-          nodeForTesting: nodeForTesting);
+    if (P is FunctionType && Q is FunctionType) {
+      return _functionType(P, Q, leftSchema, nodeForTesting: nodeForTesting);
     }
 
     // A type `P` is a subtype match for `Record` with respect to `L` under no
@@ -456,102 +456,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   /// respect to `L` under constraints `C0 + ... + Cr + C`.
   bool _functionType0(FunctionType f, FunctionType g, bool leftSchema,
       {required AstNode? nodeForTesting}) {
-    var rewind = _constraints.length;
-
-    // If `R0` is a subtype match for a type `R1` with respect to `L` under
-    // constraints `C`.
-    if (!trySubtypeMatch(f.returnType, g.returnType, leftSchema,
-        nodeForTesting: nodeForTesting)) {
-      _constraints.length = rewind;
-      return false;
+    bool? result = performSubtypeConstraintGenerationForFunctionTypes(f, g,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting);
+    if (result != null) {
+      return result;
     }
-
-    var fParameters = f.parameters;
-    var gParameters = g.parameters;
-
-    // And for `i` in `0...r`, `Ni` is a subtype match for `Mi` with respect
-    // to `L` under constraints `Ci`.
-    var fIndex = 0;
-    var gIndex = 0;
-    while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      var fParameter = fParameters[fIndex];
-      var gParameter = gParameters[gIndex];
-      if (fParameter.isRequiredPositional) {
-        if (gParameter.isRequiredPositional) {
-          if (trySubtypeMatch(gParameter.type, fParameter.type, leftSchema,
-              nodeForTesting: nodeForTesting)) {
-            fIndex++;
-            gIndex++;
-          } else {
-            _constraints.length = rewind;
-            return false;
-          }
-        } else {
-          _constraints.length = rewind;
-          return false;
-        }
-      } else if (fParameter.isOptionalPositional) {
-        if (gParameter.isPositional) {
-          if (trySubtypeMatch(gParameter.type, fParameter.type, leftSchema,
-              nodeForTesting: nodeForTesting)) {
-            fIndex++;
-            gIndex++;
-          } else {
-            _constraints.length = rewind;
-            return false;
-          }
-        } else {
-          _constraints.length = rewind;
-          return false;
-        }
-      } else if (fParameter.isNamed) {
-        if (gParameter.isNamed) {
-          var compareNames = fParameter.name.compareTo(gParameter.name);
-          if (compareNames == 0) {
-            if (trySubtypeMatch(gParameter.type, fParameter.type, leftSchema,
-                nodeForTesting: nodeForTesting)) {
-              fIndex++;
-              gIndex++;
-            } else {
-              _constraints.length = rewind;
-              return false;
-            }
-          } else if (compareNames < 0) {
-            if (fParameter.isRequiredNamed) {
-              _constraints.length = rewind;
-              return false;
-            } else {
-              fIndex++;
-            }
-          } else {
-            assert(compareNames > 0);
-            // The subtype must accept all parameters of the supertype.
-            _constraints.length = rewind;
-            return false;
-          }
-        } else {
-          break;
-        }
-      }
-    }
-
-    // The supertype must provide all required parameters to the subtype.
-    while (fIndex < fParameters.length) {
-      var fParameter = fParameters[fIndex++];
-      if (fParameter.isRequired) {
-        _constraints.length = rewind;
-        return false;
-      }
-    }
-
-    // The subtype must accept all parameters of the supertype.
-    assert(fIndex == fParameters.length);
-    if (gIndex < gParameters.length) {
-      _constraints.length = rewind;
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   /// If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match

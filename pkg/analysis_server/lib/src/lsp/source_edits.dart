@@ -91,7 +91,12 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     // Create a new formatter on every request because it may contain state that
     // affects repeated formats.
     // https://github.com/dart-lang/dart_style/issues/1337
-    formattedResult = DartFormatter(pageWidth: lineLength).formatSource(code);
+    var languageVersion =
+        result.unit.declaredElement?.library.languageVersion.effective ??
+            DartFormatter.latestLanguageVersion;
+    formattedResult =
+        DartFormatter(pageWidth: lineLength, languageVersion: languageVersion)
+            .formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the

@@ -10,40 +10,11 @@ import '../linter_lint_codes.dart';
 
 const _desc = r'Use a function declaration to bind a function to a name.';
 
-const _details = r'''
-From [Effective Dart](https://dart.dev/effective-dart/usage#do-use-a-function-declaration-to-bind-a-function-to-a-name):
-
-**DO** use a function declaration to bind a function to a name.
-
-As Dart allows local function declarations, it is a good practice to use them in
-the place of function literals.
-
-**BAD:**
-```dart
-void main() {
-  var localFunction = () {
-    ...
-  };
-}
-```
-
-**GOOD:**
-```dart
-void main() {
-  localFunction() {
-    ...
-  }
-}
-```
-
-''';
-
 class PreferFunctionDeclarationsOverVariables extends LintRule {
   PreferFunctionDeclarationsOverVariables()
       : super(
-          name: 'prefer_function_declarations_over_variables',
+          name: LintNames.prefer_function_declarations_over_variables,
           description: _desc,
-          details: _details,
         );
 
   @override
@@ -67,7 +38,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer is FunctionExpression) {
       var function = node.thisOrAncestorOfType<FunctionBody>();
-      var declaredElement = node.declaredElement;
       if (function == null) {
         // When there is no enclosing function body, this is a variable
         // definition for a field or a top-level variable, which should only
@@ -76,8 +46,9 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportLint(node);
         }
       } else {
+        var declaredElement = node.declaredElement2;
         if (declaredElement != null &&
-            !function.isPotentiallyMutatedInScope(declaredElement)) {
+            !function.isPotentiallyMutatedInScope2(declaredElement)) {
           rule.reportLint(node);
         }
       }

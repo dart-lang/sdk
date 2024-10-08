@@ -30,6 +30,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
+    element: <testLibraryFragment>::@function::foo#element
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -71,6 +72,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
+    element: <testLibraryFragment>::@function::foo#element
     staticType: void Function<T>({required T x, required T y})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -82,6 +84,7 @@ MethodInvocation
             staticElement: ParameterMember
               base: <testLibraryFragment>::@function::foo::@parameter::x
               substitution: {T: int}
+            element: <testLibraryFragment>::@function::foo::@parameter::x#element
             staticType: null
           colon: :
         expression: IntegerLiteral
@@ -116,6 +119,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
+    element: <testLibraryFragment>::@function::foo#element
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -151,6 +155,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
+    element: <testLibraryFragment>::@function::foo#element
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -196,6 +201,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
+    element: <testLibraryFragment>::@function::foo#element
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -217,6 +223,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: z
             staticElement: <null>
+            element: <null>
             staticType: null
           colon: :
         expression: IntegerLiteral

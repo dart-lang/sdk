@@ -340,8 +340,9 @@ void LookupCache::Insert(intptr_t receiver_cid,
 Interpreter::Interpreter()
     : stack_(nullptr),
       fp_(nullptr),
-      pp_(nullptr),
-      argdesc_(nullptr),
+      pp_(ObjectPool::null()),
+      argdesc_(Array::null()),
+      subtype_test_cache_(SubtypeTestCache::null()),
       lookup_cache_() {
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
@@ -383,8 +384,9 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter() {
   delete[] stack_;
-  pp_ = nullptr;
-  argdesc_ = nullptr;
+  pp_ = ObjectPool::null();
+  argdesc_ = Array::null();
+  subtype_test_cache_ = SubtypeTestCache::null();
 #if defined(DEBUG)
   if (trace_file_ != nullptr) {
     FlushTraceBuffer();
@@ -622,7 +624,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // (in the case of an unhandled exception) or it must be returned to the
   // caller of the interpreter to be propagated.
   const intptr_t result_cid = result->GetClassId();
-  if (result_cid == kUnhandledExceptionCid) {
+  if (UNLIKELY(result_cid == kUnhandledExceptionCid)) {
     (*SP)[0] = UnhandledException::RawCast(result)->untag()->exception();
     (*SP)[1] = UnhandledException::RawCast(result)->untag()->stacktrace();
     (*SP)[2] = 0;  // Do not bypass debugger.
@@ -634,7 +636,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     }
     UNREACHABLE();
   }
-  if (IsErrorClassId(result_cid)) {
+  if (UNLIKELY(IsErrorClassId(result_cid))) {
     // Unwind to entry frame.
     fp_ = *FP;
     pc_ = SavedCallerPC(fp_);
@@ -1163,8 +1165,11 @@ bool Interpreter::AssertAssignable(Thread* thread,
                                    ObjectPtr* args,
                                    SubtypeTestCachePtr cache) {
   ObjectPtr null_value = Object::null();
-  if (cache != null_value) {
+  if ((cache != null_value) &&
+      (Smi::Value(cache->untag()->cache()->untag()->length()) <=
+       SubtypeTestCache::kMaxLinearCacheSize)) {
     InstancePtr instance = Instance::RawCast(args[0]);
+    AbstractTypePtr dst_type = AbstractType::RawCast(args[1]);
     TypeArgumentsPtr instantiator_type_arguments =
         static_cast<TypeArgumentsPtr>(args[2]);
     TypeArgumentsPtr function_type_arguments =
@@ -1225,7 +1230,9 @@ bool Interpreter::AssertAssignable(Thread* thread,
            parent_function_type_arguments) &&
           (entries->untag()->element(
                i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments)) {
+           delayed_function_type_arguments) &&
+          (entries->untag()->element(i + SubtypeTestCache::kDestinationType) ==
+           dst_type)) {
         if (Bool::True().ptr() ==
             entries->untag()->element(i + SubtypeTestCache::kTestResult)) {
           return true;
@@ -1258,8 +1265,47 @@ bool Interpreter::AssertAssignableField(Thread* thread,
                                         InstancePtr instance,
                                         FieldPtr field,
                                         InstancePtr value) {
-  // TODO(alexmarkov)
-  return true;
+  AbstractTypePtr field_type = field->untag()->type();
+  // Handle 'dynamic' early as it is not handled by the runtime type check.
+  if ((field_type->GetClassId() == kTypeCid) &&
+      (Type::RawCast(field_type)->untag()->type_class_id() == kDynamicCid)) {
+    return true;
+  }
+
+  SubtypeTestCachePtr cache = subtype_test_cache_;
+  if (UNLIKELY(cache == SubtypeTestCache::null())) {
+    // Allocate new cache.
+    SP[1] = instance;        // Preserve.
+    SP[2] = field;           // Preserve.
+    SP[3] = value;           // Preserve.
+    SP[4] = Object::null();  // Result slot.
+
+    Exit(thread, FP, SP + 5, pc);
+    if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
+                       NativeArguments(thread, 0, /* argv */ SP + 4,
+                                       /* retval */ SP + 4))) {
+      return false;
+    }
+
+    // Reload objects after the call which may trigger GC.
+    instance = static_cast<InstancePtr>(SP[1]);
+    field = static_cast<FieldPtr>(SP[2]);
+    value = static_cast<InstancePtr>(SP[3]);
+    cache = static_cast<SubtypeTestCachePtr>(SP[4]);
+    field_type = field->untag()->type();
+
+    subtype_test_cache_ = cache;
+  }
+
+  // Push arguments of type test.
+  SP[1] = value;
+  SP[2] = field_type;
+  // Provide type arguments of instance as instantiator.
+  SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
+  SP[4] = Object::null();  // Implicit setters cannot be generic.
+  SP[5] = is_getter ? Symbols::FunctionResult().ptr() : field->untag()->name();
+  return AssertAssignable(thread, pc, FP, /* call_top */ SP + 5,
+                          /* args */ SP + 1, cache);
 }
 
 ObjectPtr Interpreter::Call(const Function& function,
@@ -1581,13 +1627,15 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
   pp_ = bytecode->untag()->object_pool();
   fp_ = FP;
 
-  return Run(thread, FP - 1);
+  return Run(thread, FP - 1, /*rethrow_exception=*/false);
 }
 
 ObjectPtr Interpreter::Resume(Thread* thread,
                               uword resumed_frame_fp,
                               uword resumed_frame_sp,
-                              ObjectPtr value) {
+                              ObjectPtr value,
+                              ObjectPtr exception,
+                              ObjectPtr stack_trace) {
   const intptr_t suspend_state_index_from_fp =
       runtime_frame_layout.FrameSlotForVariableIndex(
           SuspendState::kSuspendStateVarIndex);
@@ -1639,7 +1687,14 @@ ObjectPtr Interpreter::Resume(Thread* thread,
       resumed_frame_fp + suspend_state_index_from_fp * kWordSize);
 
   ObjectPtr* SP = FP + (interp_frame_size >> kWordSizeLog2);
-  SP[0] = value;
+
+  const bool rethrow_exception = (exception != Object::null());
+  if (rethrow_exception) {
+    SP[0] = exception;
+    *++SP = stack_trace;
+  } else {
+    SP[0] = value;
+  }
 
   argdesc_ = Array::null();
   pc_ = reinterpret_cast<const KBCInstr*>(bytecode->untag()->instructions_ +
@@ -1647,10 +1702,24 @@ ObjectPtr Interpreter::Resume(Thread* thread,
   pp_ = bytecode->untag()->object_pool();
   fp_ = FP;
 
-  return Run(thread, SP);
+  return Run(thread, SP, rethrow_exception);
 }
 
-ObjectPtr Interpreter::Run(Thread* thread, ObjectPtr* sp) {
+BytecodePtr Interpreter::GetSuspendedLocation(const SuspendState& suspend_state,
+                                              uword* pc_offset) {
+  ASSERT(suspend_state.pc() == StubCode::ResumeInterpreter().EntryPoint());
+  ASSERT(suspend_state.frame_size() > kKBCSuspendedFrameFixedSlots);
+  ObjectPtr* sp = reinterpret_cast<ObjectPtr*>(suspend_state.payload());
+  *pc_offset = static_cast<uword>(
+      Smi::Value(Smi::RawCast(sp[kKBCPcOffsetSlotInSuspendedFrame])));
+  FunctionPtr function =
+      Function::RawCast(sp[kKBCFunctionSlotInSuspendedFrame]);
+  return Function::GetBytecode(function);
+}
+
+ObjectPtr Interpreter::Run(Thread* thread,
+                           ObjectPtr* sp,
+                           bool rethrow_exception) {
   // Interpreter state (see constants_kbc.h for high-level overview).
   const KBCInstr* pc =
       pc_;              // Program Counter: points to the next op to execute.
@@ -1673,6 +1742,10 @@ ObjectPtr Interpreter::Run(Thread* thread, ObjectPtr* sp) {
   BoolPtr true_value = Bool::True().ptr();
   BoolPtr false_value = Bool::False().ptr();
   ObjectPtr null_value = Object::null();
+
+  if (rethrow_exception) {
+    goto RethrowException;
+  }
 
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
@@ -1843,7 +1916,8 @@ SwitchDispatch:
         SP[1] = 0;    // Space for result.
         Exit(thread, FP, SP + 2, pc);
         INVOKE_RUNTIME(DRT_Throw, NativeArguments(thread, 1, SP, SP + 1));
-      } else {      // ReThrow
+      } else {  // ReThrow
+      RethrowException:
         SP[1] = 0;  // Do not bypass debugger.
         SP[2] = 0;  // Space for result.
         Exit(thread, FP, SP + 3, pc);
@@ -3140,6 +3214,19 @@ SwitchDispatch:
     instance = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
     value = Instance::RawCast(FrameArguments(FP, kArgc)[1]);
 
+    if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
+      // Check that final field was not initialized already.
+      ObjectPtr old_value = GET_FIELD(instance, offset_in_words);
+      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+        SP[0] = field;
+        SP[1] = 0;  // Unused space for result.
+        Exit(thread, FP, SP + 2, pc);
+        INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                       NativeArguments(thread, 1, SP, SP + 1));
+        UNREACHABLE();
+      }
+    }
+
     if (InterpreterHelpers::FieldNeedsGuardUpdate(thread, field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
       SP[2] = field;
@@ -3205,6 +3292,38 @@ SwitchDispatch:
     }
 #endif
 
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitStaticSetter, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) == UntaggedFunction::kImplicitSetter);
+
+    // Field object is cached in function's data_.
+    FieldPtr field = Field::RawCast(function->untag()->data());
+    intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+
+    // Static fields use setters only if they are final.
+    ASSERT(Field::FinalBit::decode(field->untag()->kind_bits_));
+    // Check that final field was not initialized already.
+    ObjectPtr old_value = thread->field_table_values()[field_id];
+    if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+      ++SP;
+      SP[0] = field;
+      SP[1] = 0;  // Unused space for result.
+      Exit(thread, FP, SP + 2, pc);
+      INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                     NativeArguments(thread, 1, SP, SP + 1));
+      UNREACHABLE();
+    }
+
+    const intptr_t kArgc = 1;
+    InstancePtr value = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
+    thread->field_table_values()[field_id] = value;
+
+    *++SP = null_value;
     DISPATCH();
   }
 
@@ -3507,7 +3626,8 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitConstructorClosure, 0);
+    BYTECODE(VMInternal_ImplicitConstructorClosure, D_F);
+
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
@@ -3522,13 +3642,51 @@ SwitchDispatch:
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
     ObjectPtr* argv = FrameArguments(FP, argc);
 
+    // Reserve space for the result (instance).
+    *++SP = null_value;
+    ASSERT(SP == FP);
+
+    // Reserve space for receiver.
+    *++SP = null_value;
+    ObjectPtr* call_base = SP;
+    // Copy arguments.
+    for (intptr_t i = receiver_idx + 1; i < argc; i++) {
+      *++SP = argv[i];
+    }
+
     ClassPtr cls = Function::Owner(target);
     TypeParametersPtr type_params = cls->untag()->type_parameters();
-    TypeArgumentsPtr type_args =
-        (type_params == null_value)
-            ? TypeArguments::null()
-            : ((type_args_len > 0) ? TypeArguments::RawCast(argv[0])
-                                   : type_params->untag()->defaults());
+    TypeArgumentsPtr type_args;
+    if (type_params == null_value) {
+      if (type_args_len > 0) {
+        SP[1] = function;
+        goto NoSuchMethodFromPrologue;
+      }
+      type_args = TypeArguments::null();
+    } else {
+      TypeArgumentsPtr delayed_type_arguments =
+          Closure::RawCast(argv[receiver_idx])
+              ->untag()
+              ->delayed_type_arguments();
+      if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
+        if (type_args_len > 0) {
+          SP[1] = function;
+          goto NoSuchMethodFromPrologue;
+        }
+        type_args = delayed_type_arguments;
+      } else {
+        if (type_args_len > 0) {
+          if (type_args_len !=
+              Smi::Value(type_params->untag()->names()->untag()->length())) {
+            SP[1] = function;
+            goto NoSuchMethodFromPrologue;
+          }
+          type_args = TypeArguments::RawCast(argv[0]);
+        } else {
+          type_args = type_params->untag()->defaults();
+        }
+      }
+    }
 
     SP[1] = target;    // Save target.
     SP[2] = argdesc_;  // Save arguments descriptor.
@@ -3537,9 +3695,8 @@ SwitchDispatch:
     SP[3] = cls;
     SP[4] = type_args;
     Exit(thread, FP, SP + 5, pc);
-    INVOKE_RUNTIME(DRT_AllocateObject,
-                   NativeArguments(thread, 2, SP + 3, argv + receiver_idx));
-
+    INVOKE_RUNTIME(DRT_AllocateObject, NativeArguments(thread, 2, SP + 3, FP));
+    call_base[0] = FP[0];  // Copy receiver.
     argdesc_ = Array::RawCast(SP[2]);
 
     if (type_args_len > 0) {
@@ -3553,7 +3710,12 @@ SwitchDispatch:
       argdesc_ = Array::RawCast(SP[2]);
     }
 
-    goto TailCallSP1;
+    ObjectPtr* call_top = SP + 1;
+    if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+      HANDLE_EXCEPTION;
+    }
+
+    DISPATCH();
   }
 
   {
@@ -3782,6 +3944,7 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 void Interpreter::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pp_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&argdesc_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&subtype_test_cache_));
 }
 
 }  // namespace dart

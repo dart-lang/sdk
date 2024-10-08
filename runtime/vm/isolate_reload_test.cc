@@ -1110,13 +1110,14 @@ TEST_CASE(IsolateReload_LibraryLookup) {
   result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsLibrary(result));
 
-  // Reload and remove 'test:lib1' from isolate.
+  // Reload, making 'test:lib1' unreachable along the import graph from the root
+  // library.
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
 
-  // Fail to find 'test:lib1' in the isolate.
+  // Continue to find 'test:lib1' in the isolate.
   result = Dart_LookupLibrary(NewString("test:lib1"));
-  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_IsLibrary(result));
 }
 
 TEST_CASE(IsolateReload_LibraryHide) {
@@ -2257,6 +2258,49 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("true true true true true true true true true ",
                SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_EnumDeleteMultiple) {
+  // See https://github.com/dart-lang/sdk/issues/56583.
+  // Accessing Fruit.values will cause a const array with all the enum values
+  // to stick around in the canonical table for _List.
+  const char* kScript =
+      "enum Fruit { Apple, Banana, Cherry }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Fruit.values[0];\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  // Both Banana and Cherry forwarded to the deleted-enum sentinel, and
+  // two copies of the sentinel remain in Fruit's canonical table.
+  const char* kReloadScript0 =
+      "enum Fruit { Apple }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript0);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+
+  // When visiting Fruit's canonical table, we try to forward both entries of
+  // the old sentinel to the new sentinel, creating a become conflict.
+  const char* kReloadScript1 =
+      "enum Fruit { Apple }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  return retained.toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript1);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_EnumShapeChange) {
@@ -6769,6 +6813,74 @@ abstract class A5 { }
   Dart_SetFileModifiedCallback(nullptr);
 
   check_class_hierarchy_state();
+}
+
+// https://github.com/flutter/flutter/issues/153536
+TEST_CASE(IsolateReload_ClosureHashStablity) {
+  const char* kScript =
+      "var retained;\n"
+      "var retainedHashes;\n"
+      "static1() {} \n"
+      "static2<T>() {} \n"
+      "static3<T extends num>() {} \n"
+      "class Foo {\n"
+      "  method1() {}\n"
+      "  method2<T>() {}\n"
+      "  method3<T extends num>() {}\n"
+      "}\n"
+      "extension Ext on Foo {\n"
+      "  extensionMethod1() {}\n"
+      "  extensionMethod2<T>() {}\n"
+      "  extensionMethod3<T extends num>() {}\n"
+      "}\n"
+      "main() {\n"
+      "  local1() {}\n"
+      "  local2<T>() {}\n"
+      "  local3<T extends num>() {}\n"
+      "  var f = new Foo();\n"
+      "  retained = [ static1, static2<String>, static3,\n"
+      "               f.method1, f.method2<String>, f.method3,\n"
+      "               f.extensionMethod1, f.extensionMethod2<String>,\n"
+      "               f.extensionMethod3,\n"
+      "               local1, local2<String>, local3 ];\n"
+      "  retainedHashes = retained.map((c) => c.hashCode).toList();\n"
+      "  return 'Setup';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_VALID(Dart_FinalizeAllClasses());
+  EXPECT_STREQ("Setup", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "extraFunctionShiftingDownAllTokenPositions() {}\n"
+      "var retained;\n"
+      "var retainedHashes;\n"
+      "static1() {} \n"
+      "static2<T>() {} \n"
+      "static3<T extends num>() {} \n"
+      "class Foo {\n"
+      "  method1() {}\n"
+      "  method2<T>() {}\n"
+      "  method3<T extends num>() {}\n"
+      "}\n"
+      "extension Ext on Foo {\n"
+      "  extensionMethod1() {}\n"
+      "  extensionMethod2<T>() {}\n"
+      "  extensionMethod3<T extends num>() {}\n"
+      "}\n"
+      "main() {\n"
+      "  for (var i = 0; i < retained.length; i++) {\n"
+      "    if (retained[i].hashCode != retainedHashes[i]){\n"
+      "      return 'Changed: ${retained[i]}';\n"
+      "    }\n"
+      "  }\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

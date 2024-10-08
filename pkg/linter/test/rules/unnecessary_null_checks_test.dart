@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_null_checks';
+  String get lintRule => LintNames.unnecessary_null_checks;
 
   test_assignment_await_nullableTarget() async {
     await assertDiagnostics(r'''

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class PreferConstructorsOverStaticMethodsTest extends LintRuleTest {
   @override
-  String get lintRule => 'prefer_constructors_over_static_methods';
+  String get lintRule => LintNames.prefer_constructors_over_static_methods;
 
   test_extensionMethod() async {
     await assertNoDiagnostics(r'''

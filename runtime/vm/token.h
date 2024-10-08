@@ -225,6 +225,23 @@ class Token {
   static const Kind kLastKeyword = kWITH;
   static constexpr int kNumKeywords = kLastKeyword - kFirstKeyword + 1;
 
+  static bool IsCommutativeOp(Kind op) {
+    switch (op) {
+      case Token::kMUL:
+        FALL_THROUGH;
+      case Token::kADD:
+        FALL_THROUGH;
+      case Token::kBIT_AND:
+        FALL_THROUGH;
+      case Token::kBIT_OR:
+        FALL_THROUGH;
+      case Token::kBIT_XOR:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static bool IsAssignmentOperator(Kind tok) {
     return kASSIGN <= tok && tok <= kASSIGN_COND;
   }

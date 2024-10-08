@@ -99,6 +99,7 @@ class Become {
   ~Become();
 
   void Add(const Object& before, const Object& after);
+
   void Forward();
   void Exchange() { UNIMPLEMENTED(); }
 

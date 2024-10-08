@@ -84,7 +84,6 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
       Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<TypeBuilder> unboundTypes,
       List<StructuralVariableBuilder> unboundTypeVariables,
       {Variance variance = Variance.covariant}) {
     return null;
@@ -198,7 +197,6 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
   void registerInferable(Inferable inferable) {
     assert(
         _inferable == null,
-        // Coverage-ignore(suite): Not run.
         "Inferable $_inferable has already been register, "
         "trying to register $inferable.");
     _inferable = inferable;
@@ -217,9 +215,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
       } else {
         registerInferredType(const DynamicType());
       }
-      assert(
-          hasType, // Coverage-ignore(suite): Not run.
-          "No type computed for $this");
+      assert(hasType, "No type computed for $this");
     }
     return type;
   }

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class SlashForDocCommentsTest extends LintRuleTest {
   @override
-  String get lintRule => 'slash_for_doc_comments';
+  String get lintRule => LintNames.slash_for_doc_comments;
 
   test_class() async {
     await assertDiagnostics(r'''

@@ -968,7 +968,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     gatherer.constrainArguments([onType], [receiverType],
         treeNodeForTesting: treeNodeForTesting);
     inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParameters, inferredTypes);
+        gatherer, typeParameters, inferredTypes,
+        inferenceUsingBoundsIsEnabled:
+            libraryFeatures.inferenceUsingBounds.isEnabled,
+        dataForTesting: dataForTesting,
+        treeNodeForTesting: treeNodeForTesting);
     return inferredTypes;
   }
 
@@ -1313,9 +1317,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType getGetterTypeForMemberTarget(
       Member interfaceMember, DartType receiverType,
       {required bool isSuper}) {
-    assert(
-        interfaceMember is Field || interfaceMember is Procedure,
-        // Coverage-ignore(suite): Not run.
+    assert(interfaceMember is Field || interfaceMember is Procedure,
         "Unexpected interface member $interfaceMember.");
     DartType calleeType =
         isSuper ? interfaceMember.superGetterType : interfaceMember.getterType;
@@ -1337,9 +1339,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType getSetterTypeForMemberTarget(
       Member interfaceMember, DartType receiverType,
       {required bool isSuper}) {
-    assert(
-        interfaceMember is Field || interfaceMember is Procedure,
-        // Coverage-ignore(suite): Not run.
+    assert(interfaceMember is Field || interfaceMember is Procedure,
         "Unexpected interface member $interfaceMember.");
     DartType calleeType =
         isSuper ? interfaceMember.superSetterType : interfaceMember.setterType;
@@ -1649,7 +1649,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ?.typeInferenceResult,
           treeNodeForTesting: arguments);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, calleeTypeParameters, null);
+          gatherer, calleeTypeParameters, /* previouslyInferredTypes= */ null,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: arguments);
       instantiator = new FunctionTypeInstantiator.fromIterables(
           calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -1738,7 +1742,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Object? argument = argumentsEvaluationOrder[evaluationOrderIndex];
       assert(
           argument is Expression || argument is NamedExpression,
-          // Coverage-ignore(suite): Not run.
           "Expected the argument to be either an Expression "
           "or a NamedExpression, got '${argument.runtimeType}'.");
       int index;
@@ -1821,7 +1824,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           .planReconciliationStages()) {
         if (gatherer != null && !isFirstStage) {
           inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-              gatherer, calleeTypeParameters, inferredTypes);
+              gatherer, calleeTypeParameters, inferredTypes,
+              inferenceUsingBoundsIsEnabled:
+                  libraryFeatures.inferenceUsingBounds.isEnabled,
+              dataForTesting: dataForTesting,
+              treeNodeForTesting: arguments);
           instantiator = new FunctionTypeInstantiator.fromIterables(
               calleeTypeParameters, inferredTypes);
         }
@@ -1855,12 +1862,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     assert(
         positionalIndex == arguments.positional.length,
-        // Coverage-ignore(suite): Not run.
         "Expected 'positionalIndex' to be ${arguments.positional.length}, "
         "got ${positionalIndex}.");
     assert(
         namedIndex == arguments.named.length,
-        // Coverage-ignore(suite): Not run.
         "Expected 'namedIndex' to be ${arguments.named.length}, "
         "got ${namedIndex}.");
 
@@ -1922,44 +1927,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       arguments.named = uniqueNamed;
     }
 
-    if (inferenceNeeded) {
-      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer!, calleeTypeParameters, inferredTypes!);
-      assert(
-          inferredTypes.every((type) => isKnown(type)),
-          // Coverage-ignore(suite): Not run.
-          "Unknown type(s) in inferred types: $inferredTypes.");
-      assert(
-          inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
-          // Coverage-ignore(suite): Not run.
-          "Promoted type variable(s) in inferred types: $inferredTypes.");
-      instantiator = new FunctionTypeInstantiator.fromIterables(
-          calleeTypeParameters, inferredTypes);
-      instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
-          new InstrumentationValueForTypeArgs(inferredTypes));
-      arguments.types.clear();
-      arguments.types.addAll(inferredTypes);
-      if (dataForTesting != null) {
-        // Coverage-ignore-block(suite): Not run.
-        assert(arguments.fileOffset != TreeNode.noOffset);
-        dataForTesting!.typeInferenceResult.inferredTypeArguments[arguments] =
-            inferredTypes;
-      }
-    }
-    LocatedMessage? argMessage = helper.checkArgumentsForType(
-        calleeType, arguments, offset,
-        isExtensionMemberInvocation: isExtensionMemberInvocation);
-    if (argMessage != null) {
-      return new WrapInProblemInferenceResult(
-          const InvalidType(),
-          const InvalidType(),
-          argMessage.messageObject,
-          argMessage.charOffset,
-          argMessage.length,
-          helper,
-          isInapplicable: true,
-          hoistedArguments: localHoistedExpressions);
-    } else {
+    void forEachArgument(
+        void Function(
+                {required DartType actualType,
+                required DartType expectedType,
+                required DartType formalType,
+                required Expression argumentExpression,
+                required bool coerceExpression,
+                required NamedExpression? namedArgumentExpression,
+                required int positionalArgumentIndex,
+                required int overallArgumentIndex})
+            argumentHandlingCallback) {
       // Argument counts and names match. Compare types.
       int positionalShift = isImplicitExtensionMember ? 1 : 0;
       int positionalIndex = 0;
@@ -1985,11 +1963,119 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   ?.contains(namedExpression.name) ??
               false);
         }
-        expression = ensureAssignable(expectedType, actualType, expression,
-            isVoidAllowed: expectedType is VoidType,
+
+        argumentHandlingCallback(
+            actualType: actualType,
+            expectedType: expectedType,
+            formalType: formalType,
+            argumentExpression: expression,
+            namedArgumentExpression: namedExpression,
             coerceExpression: coerceExpression,
-            // TODO(johnniwinther): Specialize message for operator
-            // invocations.
+            positionalArgumentIndex: positionalShift + positionalIndex,
+            overallArgumentIndex: i);
+
+        if (namedExpression == null) {
+          positionalIndex++;
+        } else {
+          namedIndex++;
+        }
+      }
+    }
+
+    List<ExpressionInferenceResult> argumentInferenceResultsToCheck = [];
+
+    // Before choosing the final types, we perform coercion and feed the
+    // resulting types back into the type inference via constraint generation.
+    forEachArgument((
+        {required DartType actualType,
+        required DartType expectedType,
+        required DartType formalType,
+        required Expression argumentExpression,
+        required bool coerceExpression,
+        required NamedExpression? namedArgumentExpression,
+        required int positionalArgumentIndex,
+        required int overallArgumentIndex}) {
+      ExpressionInferenceResult argumentResult =
+          new ExpressionInferenceResult(actualType, argumentExpression);
+      if (coerceExpression) {
+        ExpressionInferenceResult? coercionResult =
+            coerceExpressionForAssignment(expectedType, argumentResult,
+                isVoidAllowed: expectedType is VoidType,
+                treeNodeForTesting: argumentResult.expression);
+
+        if (coercionResult != null) {
+          argumentResult = coercionResult;
+          argumentExpression = argumentResult.expression;
+          if (namedArgumentExpression == null) {
+            arguments.positional[positionalArgumentIndex] = argumentExpression
+              ..parent = arguments;
+          } else {
+            namedArgumentExpression.value = argumentExpression
+              ..parent = namedArgumentExpression;
+          }
+
+          // Feed the coercion result back to the inference.
+          gatherer?.tryConstrainLower(formalType, argumentResult.inferredType,
+              treeNodeForTesting: arguments);
+        }
+      }
+      argumentInferenceResultsToCheck.add(argumentResult);
+    });
+
+    if (inferenceNeeded) {
+      inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
+          gatherer!, calleeTypeParameters, inferredTypes!,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
+          dataForTesting: dataForTesting,
+          treeNodeForTesting: arguments);
+      assert(inferredTypes.every((type) => isKnown(type)),
+          "Unknown type(s) in inferred types: $inferredTypes.");
+      assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
+          "Promoted type variable(s) in inferred types: $inferredTypes.");
+      instantiator = new FunctionTypeInstantiator.fromIterables(
+          calleeTypeParameters, inferredTypes);
+      instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
+          new InstrumentationValueForTypeArgs(inferredTypes));
+      arguments.types.clear();
+      arguments.types.addAll(inferredTypes);
+      if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
+        assert(arguments.fileOffset != TreeNode.noOffset);
+        dataForTesting!.typeInferenceResult.inferredTypeArguments[arguments] =
+            inferredTypes;
+      }
+    }
+
+    LocatedMessage? argMessage = helper.checkArgumentsForType(
+        calleeType, arguments, offset,
+        isExtensionMemberInvocation: isExtensionMemberInvocation);
+    if (argMessage != null) {
+      return new WrapInProblemInferenceResult(
+          const InvalidType(),
+          const InvalidType(),
+          argMessage.messageObject,
+          argMessage.charOffset,
+          argMessage.length,
+          helper,
+          isInapplicable: true,
+          hoistedArguments: localHoistedExpressions);
+    } else {
+      forEachArgument((
+          {required DartType actualType,
+          required DartType expectedType,
+          required DartType formalType,
+          required Expression argumentExpression,
+          required bool coerceExpression,
+          required NamedExpression? namedArgumentExpression,
+          required int positionalArgumentIndex,
+          required int overallArgumentIndex}) {
+        ExpressionInferenceResult? argumentResultToCheck =
+            argumentInferenceResultsToCheck[overallArgumentIndex];
+        argumentResultToCheck = reportAssignabilityErrors(
+            expectedType, argumentResultToCheck,
+            isVoidAllowed: expectedType is VoidType,
+            isCoercionAllowed: coerceExpression,
             errorTemplate: templateArgumentTypeNotAssignable,
             nullabilityErrorTemplate:
                 templateArgumentTypeNotAssignableNullability,
@@ -1999,16 +2085,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 templateArgumentTypeNotAssignableNullabilityNull,
             nullabilityNullTypeErrorTemplate:
                 templateArgumentTypeNotAssignableNullabilityNullType);
-        if (namedExpression == null) {
-          arguments.positional[positionalShift + positionalIndex] = expression
+
+        argumentExpression = argumentResultToCheck.expression;
+        if (namedArgumentExpression == null) {
+          arguments.positional[positionalArgumentIndex] = argumentExpression
             ..parent = arguments;
-          positionalIndex++;
         } else {
-          namedExpression.value = expression..parent = namedExpression;
-          namedIndex++;
+          namedArgumentExpression.value = argumentExpression
+            ..parent = namedArgumentExpression;
         }
-      }
+      });
     }
+
     DartType inferredType;
     if (instantiator != null) {
       calleeType = instantiator.substitute(calleeType.withoutTypeParameters)
@@ -2017,7 +2105,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     inferredType = calleeType.returnType;
     assert(
         !containsFreeFunctionTypeVariables(inferredType),
-        // Coverage-ignore(suite): Not run.
         "Inferred return type $inferredType contains free variables. "
         "Inferred function type: $calleeType.");
 
@@ -2580,7 +2667,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         method.kind == ProcedureKind.Method ||
             // Coverage-ignore(suite): Not run.
             method.kind == ProcedureKind.Operator,
-        // Coverage-ignore(suite): Not run.
         "Unexpected instance method $method");
     Name methodName = method.name;
 
@@ -2645,7 +2731,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(
           inferredFunctionType is FunctionType &&
               invocationTargetType is InvocationTargetFunctionType,
-          // Coverage-ignore(suite): Not run.
           "No function type found for $receiver.$methodName ($target) on "
           "$receiverType");
       InstanceAccessKind kind;
@@ -3535,7 +3620,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                     ?.typeInferenceResult,
                 treeNodeForTesting: treeNodeForTesting);
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParameters, inferredTypes);
+            gatherer, typeParameters, inferredTypes,
+            inferenceUsingBoundsIsEnabled:
+                libraryFeatures.inferenceUsingBounds.isEnabled,
+            dataForTesting: dataForTesting,
+            treeNodeForTesting: treeNodeForTesting);
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 typeParameters, inferredTypes);
@@ -4659,12 +4748,10 @@ class _ObjectAccessDescriptor {
             FunctionNode function = interfaceMember.function;
             assert(
                 function.namedParameters.isEmpty,
-                // Coverage-ignore(suite): Not run.
                 "Unexpected named parameters on $classNode member "
                 "$interfaceMember.");
             assert(
                 function.typeParameters.isEmpty,
-                // Coverage-ignore(suite): Not run.
                 "Unexpected type parameters on $classNode member "
                 "$interfaceMember.");
             functionType = new FunctionType(

@@ -528,6 +528,12 @@ class SimpleToken implements Token {
   TokenType get type => _tokenTypesByIndex[_typeAndOffset & 0xff];
 
   /**
+   * The index of the type.
+   */
+  @override
+  int get typeIndex => _typeAndOffset & 0xff;
+
+  /**
    * The offset from the beginning of the file to the first character in the
    * token.
    */
@@ -715,7 +721,7 @@ class StringToken extends SimpleToken {
       : _value = StringUtilities.intern(value);
 
   @override
-  bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
+  bool get isIdentifier => kind == IDENTIFIER_TOKEN;
 
   @override
   String get lexeme => _value;
@@ -1019,6 +1025,11 @@ abstract class Token implements SyntacticEntity {
    * Return the type of the token.
    */
   TokenType get type;
+
+  /**
+   * Return the index of the type of the token.
+   */
+  int get typeIndex;
 
   /**
    * Return `true` if this token has any one of the given [types].

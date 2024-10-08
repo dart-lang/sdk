@@ -766,7 +766,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
       if (!forAnnotation &&
-          !_resolver.definingLibrary.shouldIgnoreUndefined(
+          !_resolver.libraryFragment.shouldIgnoreUndefined(
             prefix: target.name,
             name: identifier.name,
           )) {

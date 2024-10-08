@@ -4,58 +4,18 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../linter_lint_codes.dart';
 
 const _desc = r"Don't implicitly reopen classes.";
 
-// TODO(pq): link out to (upcoming) dart.dev docs.
-// https://github.com/dart-lang/site-www/issues/4833
-const _details = r'''
-Using an `interface`, `base`, `final`, or `sealed` modifier on a class,
-or a `base` modifier on a mixin,
-authors can control whether classes and mixins allow being implemented,
-extended, and/or mixed in from outside of the library where they're defined.
-In some cases, it's possible for an author to inadvertently relax these controls
-and implicitly "reopen" a class. (A similar reopening cannot occur with a mixin.)
-
-This lint guards against unintentionally reopening a class by requiring such
-cases to be made explicit with the
-[`@reopen`](https://pub.dev/documentation/meta/latest/meta/reopen-constant.html)
-annotation in `package:meta`.
-
-**BAD:**
-```dart
-interface class I {}
-
-class C extends I {} // LINT
-```
-
-**GOOD:**
-```dart
-interface class I {}
-
-final class C extends I {}
-```
-
-```dart
-import 'package:meta/meta.dart';
-
-interface class I {}
-
-@reopen
-class C extends I {}
-```
-''';
-
 class ImplicitReopen extends LintRule {
   ImplicitReopen()
       : super(
-          name: 'implicit_reopen',
+          name: LintNames.implicit_reopen,
           description: _desc,
-          details: _details,
           state: State.experimental(),
         );
 
@@ -71,22 +31,22 @@ class ImplicitReopen extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
 
-  void checkElement(InterfaceElement? element, NamedCompilationUnitMember node,
+  void checkElement(InterfaceElement2? element, NamedCompilationUnitMember node,
       {required String type}) {
-    if (element is! ClassElement) return;
+    if (element is! ClassElement2) return;
     if (element.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
-    var library = element.library;
-    var supertype = element.supertype?.element;
-    if (supertype is! ClassElement) return;
-    if (supertype.library != library) return;
+    var library = element.library2;
+    var supertype = element.supertype?.element3;
+    if (supertype is! ClassElement2) return;
+    if (supertype.library2 != library) return;
 
     if (element.isBase) {
       if (supertype.isFinal) {
@@ -110,8 +70,8 @@ class _Visitor extends SimpleAstVisitor {
   void reportLint(
     NamedCompilationUnitMember member, {
     required String type,
-    required InterfaceElement target,
-    required InterfaceElement other,
+    required InterfaceElement2 target,
+    required InterfaceElement2 other,
     required String reason,
   }) {
     rule.reportLintForToken(member.name,
@@ -120,15 +80,15 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    checkElement(node.declaredElement, node, type: 'class');
+    checkElement(node.declaredFragment?.element, node, type: 'class');
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    checkElement(node.declaredElement, node, type: 'class');
+    checkElement(node.declaredFragment?.element, node, type: 'class');
   }
 }
 
-extension on ClassElement {
+extension on ClassElement2 {
   bool get hasNoModifiers => !isInterface && !isBase && !isSealed && !isFinal;
 }

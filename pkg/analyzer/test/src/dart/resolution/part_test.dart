@@ -62,14 +62,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -84,14 +87,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -108,6 +114,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a.dart::@class::A
+          element2: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
           type: A?
         variables
           VariableDeclaration
@@ -164,14 +171,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -186,14 +196,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -210,6 +223,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a_html.dart::@class::A
+          element2: <testLibrary>::@fragment::package:test/a_html.dart::@class::A#element
           type: A?
         variables
           VariableDeclaration
@@ -242,6 +256,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -273,6 +288,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: StringInterpolation
@@ -314,6 +330,7 @@ Configuration
       SimpleIdentifier
         token: x
         staticElement: <null>
+        element: <null>
         staticType: null
   rightParenthesis: )
   uri: SimpleStringLiteral
@@ -369,14 +386,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: html
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -391,14 +411,17 @@ CompilationUnit
               SimpleIdentifier
                 token: dart
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: library
                 staticElement: <null>
+                element: <null>
                 staticType: null
               SimpleIdentifier
                 token: io
                 staticElement: <null>
+                element: <null>
                 staticType: null
           rightParenthesis: )
           uri: SimpleStringLiteral
@@ -415,6 +438,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a_io.dart::@class::A
+          element2: <testLibrary>::@fragment::package:test/a_io.dart::@class::A#element
           type: A?
         variables
           VariableDeclaration
@@ -521,18 +545,18 @@ PartDirective
 
   test_inLibrary_withPart_partOfName() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
 library my.lib;
 part 'b.dart';
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
+// @dart = 3.4
 part of my.lib;
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(ParserErrorCode.PART_OF_NAME, 8, 6),
-    ]);
+    assertNoErrorsInResult();
 
     await resolveFile2(a);
     assertNoErrorsInResult();
@@ -681,29 +705,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithUnit
     uri: package:test/foo.g.dart
-''');
-  }
-
-  test_inLibrary_withSource_notPart_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_NON_PART, 5, 8),
-    ]);
-
-    var node = findNode.singlePartDirective;
-    assertResolvedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-  element: DirectiveUriWithSource
-    source: package:test/a.dart
 ''');
   }
 

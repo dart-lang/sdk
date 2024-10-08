@@ -300,7 +300,7 @@ class DeclarationHelper {
 
   void addImportPrefixes() {
     var library = request.libraryElement;
-    for (var element in library.libraryImports) {
+    for (var element in library.definingCompilationUnit.libraryImports) {
       var importPrefix = element.prefix;
       if (importPrefix == null) {
         continue;
@@ -436,7 +436,7 @@ class DeclarationHelper {
     }
     for (var accessor in extension.accessors) {
       if (!accessor.isStatic) {
-        _suggestFieldOrProperty(
+        _suggestProperty(
             accessor: accessor,
             referencingInterface: referencingInterface,
             importData: importData);
@@ -704,8 +704,10 @@ class DeclarationHelper {
     required bool includeSetters,
   }) {
     var libraryElement = request.libraryElement;
+    var libraryFragment = request.libraryFragment;
 
-    var applicableExtensions = libraryElement.accessibleExtensions.applicableTo(
+    var accessibleExtensions = libraryFragment.accessibleExtensions;
+    var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
       targetType: type.isDartCoreNull
@@ -822,7 +824,7 @@ class DeclarationHelper {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.libraryImports) {
+    for (var importElement in library.definingCompilationUnit.libraryImports) {
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addConstructorsImportedFrom(
@@ -840,7 +842,7 @@ class DeclarationHelper {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.libraryImports) {
+    for (var importElement in library.definingCompilationUnit.libraryImports) {
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
@@ -880,8 +882,8 @@ class DeclarationHelper {
             matcherScore: matcherScore),
         MixinElement() => MixinSuggestion(
             importData: null, element: element, matcherScore: matcherScore),
-        PropertyAccessorElement() => TopLevelPropertyAccessSuggestion(
-            importData: null, element: element, matcherScore: matcherScore),
+        PropertyAccessorElement() =>
+          _createSuggestionFromTopLevelProperty(element, matcherScore),
         TopLevelVariableElement() => TopLevelVariableSuggestion(
             importData: null, element: element, matcherScore: matcherScore),
         TypeAliasElement() => TypeAliasSuggestion(
@@ -931,7 +933,7 @@ class DeclarationHelper {
             referencingInterface: referencingInterface,
           );
         case PropertyAccessorElement():
-          _suggestFieldOrProperty(
+          _suggestProperty(
               accessor: member, referencingInterface: referencingInterface);
       }
     }
@@ -1417,6 +1419,26 @@ class DeclarationHelper {
     return true;
   }
 
+  ImportableSuggestion? _createSuggestionFromTopLevelProperty(
+      PropertyAccessorElement element, double matcherScore,
+      {ImportData? importData}) {
+    if (element.isSynthetic) {
+      if (element.isGetter) {
+        var variable = element.variable2;
+        if (variable is TopLevelVariableElement) {
+          return TopLevelVariableSuggestion(
+              importData: importData,
+              element: variable,
+              matcherScore: matcherScore);
+        }
+      }
+    } else {
+      return TopLevelPropertyAccessSuggestion(
+          importData: importData, element: element, matcherScore: matcherScore);
+    }
+    return null;
+  }
+
   /// Returns `true` if the [identifier] is a wildcard (a single `_`).
   bool _isWildcard(String? identifier) => identifier == '_';
 
@@ -1634,30 +1656,6 @@ class DeclarationHelper {
             referencingInterface: referencingInterface);
         collector.addSuggestion(suggestion);
       }
-    }
-  }
-
-  /// Adds a suggestion for a [FieldElement] or a [PropertyAccessorElement].
-  void _suggestFieldOrProperty(
-      {required PropertyAccessorElement accessor,
-      required InterfaceElement? referencingInterface,
-      ImportData? importData}) {
-    if (accessor.isSynthetic) {
-      // Avoid visiting a field twice. All fields induce a getter, but only
-      // non-final fields induce a setter, so we don't add a suggestion for a
-      // synthetic setter.
-      if (accessor.isGetter) {
-        var variable = accessor.variable2;
-        if (variable is FieldElement) {
-          _suggestField(
-              field: variable, referencingInterface: referencingInterface);
-        }
-      }
-    } else {
-      _suggestProperty(
-          accessor: accessor,
-          referencingInterface: referencingInterface,
-          importData: importData);
     }
   }
 
@@ -1960,11 +1958,12 @@ class DeclarationHelper {
       }
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
-        var suggestion = TopLevelPropertyAccessSuggestion(
-            importData: importData,
-            element: element,
-            matcherScore: matcherScore);
-        collector.addSuggestion(suggestion);
+        var suggestion = _createSuggestionFromTopLevelProperty(
+            element, matcherScore,
+            importData: importData);
+        if (suggestion != null) {
+          collector.addSuggestion(suggestion);
+        }
       }
     }
   }

@@ -34,6 +34,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -62,6 +63,7 @@ ExportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -88,6 +90,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
+          element: dart:math::<fragment>::@class::Random#element
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -116,6 +119,7 @@ ExportDirective
         SimpleIdentifier
           token: Unresolved
           staticElement: <null>
+          element: <null>
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -155,14 +159,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -177,14 +184,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -229,14 +239,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -251,14 +264,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -303,14 +319,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: html
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -325,14 +344,17 @@ ExportDirective
           SimpleIdentifier
             token: dart
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: library
             staticElement: <null>
+            element: <null>
             staticType: null
           SimpleIdentifier
             token: io
             staticElement: <null>
+            element: <null>
             staticType: null
       rightParenthesis: )
       uri: SimpleStringLiteral
@@ -492,30 +514,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-''');
-  }
-
-  test_inLibrary_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-augment library 'test.dart';
-''');
-
-    await assertErrorsInCode(r'''
-export 'a.dart';
-''', [
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
-
-    var node = findNode.export('a.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithSource
-      source: package:test/a.dart
 ''');
   }
 
@@ -742,38 +740,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-''');
-  }
-
-  test_inPart_notLibrary_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-export 'c.dart';
-''');
-
-    newFile('$testPackageLibPath/c.dart', r'''
-augment library 'b.dart';
-''');
-
-    await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 25, 8),
-    ]);
-
-    var node = findNode.export('c.dart');
-    assertResolvedNodeText(node, r'''
-ExportDirective
-  exportKeyword: export
-  uri: SimpleStringLiteral
-    literal: 'c.dart'
-  semicolon: ;
-  element: LibraryExportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
 ''');
   }
 

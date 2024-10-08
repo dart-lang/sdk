@@ -380,34 +380,39 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    bool got_unwind;
+    char* main_error = nullptr;
     {
       ASSERT(Isolate::Current() == nullptr);
       StartIsolateScope start_scope(isolate);
-      got_unwind = RunMain(isolate);
+      main_error = RunMain(isolate);
     }
 
-    // FinishedInitializing should be called irrespective of whether
-    // running main caused an error or not. Otherwise, other isolates
-    // waiting for service isolate to come up will deadlock.
-    ServiceIsolate::FinishedInitializing();
-
-    if (got_unwind) {
-      ShutdownIsolate(reinterpret_cast<uword>(isolate));
+    // If we failed to run 'main' of the service isolate then there is
+    // reason to keep it running, it might be in an inconsistent state.
+    // e.g. it could have no port to communicate with it. Declare
+    // initialization failure and shut it down.
+    if (main_error != nullptr) {
+      ShutdownIsolate(reinterpret_cast<Dart_Isolate>(isolate));
+      ServiceIsolate::InitializingFailed(main_error);
       return;
     }
 
-    isolate->message_handler()->Run(isolate->group()->thread_pool(), nullptr,
-                                    ShutdownIsolate,
-                                    reinterpret_cast<uword>(isolate));
+    ServiceIsolate::FinishedInitializing();
+    isolate->message_handler()->Run(
+        isolate->group()->thread_pool(), nullptr,
+        [](uword parameter) {
+          ShutdownIsolate(reinterpret_cast<Dart_Isolate>(parameter));
+          ServiceIsolate::FinishedExiting();
+        },
+        reinterpret_cast<uword>(isolate));
   }
 
  protected:
-  static void ShutdownIsolate(uword parameter) {
+  static void ShutdownIsolate(Dart_Isolate isolate) {
     if (FLAG_trace_service) {
       OS::PrintErr("vm-service: ShutdownIsolate\n");
     }
-    Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
+    Dart_EnterIsolate(isolate);
     {
       auto T = Thread::Current();
       TransitionNativeToVM transition(T);
@@ -435,10 +440,10 @@ class RunServiceTask : public ThreadPool::Task {
     if (FLAG_trace_service) {
       OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Shutdown.\n");
     }
-    ServiceIsolate::FinishedExiting();
   }
 
-  bool RunMain(Isolate* I) {
+  // Returns an error message if fails.
+  DART_WARN_UNUSED_RESULT char* RunMain(Isolate* I) {
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);
@@ -448,10 +453,10 @@ class RunServiceTask : public ThreadPool::Task {
     if (root_library.IsNull()) {
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME
-                     ": Embedder did not install a script.");
+                     ": Embedder did not install a script.\n");
       }
       // Service isolate is not supported by embedder.
-      return false;
+      return Utils::StrDup("Service isolate is not supported by embedder.");
     }
     ASSERT(!root_library.IsNull());
     const String& entry_name = String::Handle(Z, String::New("main"));
@@ -462,27 +467,27 @@ class RunServiceTask : public ThreadPool::Task {
       // Service isolate is not supported by embedder.
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME
-                     ": Embedder did not provide a main function.");
+                     ": Embedder did not provide a main function.\n");
       }
-      return false;
+      return Utils::StrDup(
+          "Embedder did not provide main function for service isolate.");
     }
     ASSERT(!entry.IsNull());
     const Object& result = Object::Handle(
         Z, DartEntry::InvokeFunction(entry, Object::empty_array()));
     if (result.IsError()) {
       // Service isolate did not initialize properly.
+      const char* error_cstr = Error::Cast(result).ToErrorCString();
       if (FLAG_trace_service) {
-        const Error& error = Error::Cast(result);
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME
-                     ": Calling main resulted in an error: %s",
-                     error.ToErrorCString());
+                     ": Calling main resulted in an error: %s\n",
+                     error_cstr);
       }
-      if (result.IsUnwindError()) {
-        return true;
-      }
-      return false;
+      return OS::SCreate(/*zone=*/nullptr,
+                         "Service isolate main resulted in error: %s",
+                         error_cstr);
     }
-    return false;
+    return nullptr;  // No error.
   }
 };
 

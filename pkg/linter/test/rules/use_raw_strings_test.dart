@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class UseRawStringsTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_raw_strings';
+  String get lintRule => LintNames.use_raw_strings;
 
   test_escapedBackslash() async {
     await assertDiagnostics(r'''

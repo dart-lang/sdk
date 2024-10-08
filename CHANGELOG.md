@@ -55,6 +55,8 @@ number, like `.`, `x`, or the `e` in scientific notation.
 - Added `length` and `[]`/`[]=` operators to `JSArray`.
 - Added `toJSCaptureThis` so `this` is passed in from JavaScript to the
   callback as the first parameter.
+- Added a static `from` method on `JSArray` to create a `JSArray` from a given
+  JavaScript iterable or array-like object.
 
 ### Tools
 
@@ -69,6 +71,12 @@ number, like `.`, `x`, or the `e` in scientific notation.
 
 [#56466]: https://github.com/dart-lang/sdk/issues/56466
 
+#### Dart format
+
+- Preserve type parameters on old-style function-typed formals that also use
+  `this.` or `super.`.
+- Correctly format imports with both `as` and `if` clauses.
+
 #### Wasm compiler (dart2wasm)
 
 - The condition `dart.library.js` is now false on conditional imports in
@@ -76,6 +84,50 @@ number, like `.`, `x`, or the `e` in scientific notation.
   directly (see [#55266][]).
 
 [#55266]: https://github.com/dart-lang/sdk/issues/55266
+
+#### Pub
+
+- Support for workspaces. This allows you to develop and resolve multiple
+  packages from the same repo together. See https://dart.dev/go/pub-workspaces
+  for more info.
+- New command `dart pub bump`. Increments the version number of the current
+  package.
+
+  For example: `dart pub bump minor` will change the version from `1.2.3` to
+  `1.3.0`.
+- New validation: `dart pub publish` will warn if your `git status` is not
+  clean.
+- New flag `dart pub upgrade --unlock-transitive`.
+
+- `dart pub upgrade --unlock-transitive pkg`, will unlock and upgrade all the
+  dependencies of `pkg` instead of just `pkg`.
+
+#### Analyzer
+
+- Add the [`use_truncating_division`][] lint rule.
+- Add the experimental [`omit_obvious_local_variable_types`][] lint rule.
+- Add the experimental [`specify_nonobvious_local_variable_types`][] lint rule.
+- Add the experimental [`avoid_futureor_void`][] lint rule.
+- Add quick fixes for more than 14 diagnostics.
+- Add new assists: "add digit separators", "remove digit separators", and
+  "invert conditional expression".
+
+[`use_truncating_division`]: https://dart.dev/lints/use_truncating_division
+[`omit_obvious_local_variable_types`]: https://dart.dev/lints/omit_obvious_local_variable_types
+[`specify_nonobvious_local_variable_types`]: https://dart.dev/lints/specify_nonobvious_local_variable_types
+[`avoid_futureor_void`]: https://dart.dev/lints/avoid_futureor_void
+
+## 3.5.3 - 2024-09-11
+
+- Fixes an issue with the DevTools Memory tool causing OOMs. and an
+issue resulting in a missing tab bar when DevTools is embedded in
+IntelliJ and Android Studio (issue[#56607][]).
+- Fixes an issue with the DevTools release notes showing each time
+DevTools is opened instead of only the first time (issue[#56607][]).
+- Fixes an issue resulting in a missing tab bar when DevTools is
+embedded in IntelliJ and Android Studio (issue[#56607][]).
+
+[#56607]: https://github.com/dart-lang/sdk/issues/56607
 
 ## 3.5.2 - 2024-08-28
 
@@ -213,11 +265,16 @@ number, like `.`, `x`, or the `e` in scientific notation.
 
 ### Tools
 
-#### Linter
+#### Analyzer
 
-- Added the [`unintended_html_in_doc_comment`][] lint.
-- Added the [`invalid_runtime_check_with_js_interop_types`][] lint.
-- Added the [`document_ignores`][] lint.
+- Add the [`unintended_html_in_doc_comment`][] lint rule.
+- Add the [`invalid_runtime_check_with_js_interop_types`][] lint rule.
+- Add the [`document_ignores`][] lint rule.
+- Add quick fixes for more than 70 diagnostics.
+- The "Add missing switch cases" quick fix now adds multiple cases, such that
+  the switch becomes exhaustive.
+- The "Remove const" quick fix now adds `const` keywords to child nodes, where
+  appropriate.
 
 [`unintended_html_in_doc_comment`]: https://dart.dev/lints/unintended_html_in_doc_comment
 [`invalid_runtime_check_with_js_interop_types`]: https://dart.dev/lints/invalid_runtime_check_with_js_interop_types

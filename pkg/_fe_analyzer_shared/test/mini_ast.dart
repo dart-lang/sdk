@@ -109,7 +109,8 @@ String computeLocation() {
     stackLine = callStack[2];
     assert(
         stackLine.contains('type_inference_test.dart') ||
-            stackLine.contains('flow_analysis_test.dart'),
+            stackLine.contains('flow_analysis_test.dart') ||
+            stackLine.contains('type_constraint_gatherer_test.dart'),
         'Unexpected file: $stackLine');
   }
 
@@ -298,11 +299,12 @@ Expression localFunction(List<ProtoStatement> body) {
 }
 
 /// Creates a map entry containing the given [key] and [value] subexpressions.
-CollectionElement mapEntry(ProtoExpression key, ProtoExpression value) {
+CollectionElement mapEntry(ProtoExpression key, ProtoExpression value,
+    {bool isKeyNullAware = false}) {
   var location = computeLocation();
   return MapEntry._(key.asExpression(location: location),
       value.asExpression(location: location),
-      location: location);
+      isKeyNullAware: isKeyNullAware, location: location);
 }
 
 /// Creates a map literal containing the given [elements].
@@ -1775,10 +1777,6 @@ class Harness {
     operations.addSuperInterfaces(className, template);
   }
 
-  void addTypeVariable(String name, {String? bound}) {
-    operations.addTypeVariable(name, bound: bound);
-  }
-
   void disableFieldPromotion() {
     assert(!_started);
     _fieldPromotionEnabled = false;
@@ -2526,8 +2524,10 @@ abstract class LValue extends Expression {
 class MapEntry extends CollectionElement {
   final Expression key;
   final Expression value;
+  final bool isKeyNullAware;
 
-  MapEntry._(this.key, this.value, {required super.location});
+  MapEntry._(this.key, this.value,
+      {required this.isKeyNullAware, required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -2536,7 +2536,7 @@ class MapEntry extends CollectionElement {
   }
 
   @override
-  String toString() => '$key: $value';
+  String toString() => '${isKeyNullAware ? '?' : ''}$key: $value';
 
   @override
   void visit(Harness h, CollectionElementContext context) {
@@ -2549,8 +2549,11 @@ class MapEntry extends CollectionElement {
       default:
         keySchema = valueSchema = h.operations.unknownType;
     }
-    h.typeAnalyzer.analyzeExpression(key, keySchema);
+    var keyType = h.typeAnalyzer.analyzeExpression(key, keySchema);
+    h.flow.nullAwareMapEntry_valueBegin(key, keyType,
+        isKeyNullAware: isKeyNullAware);
     h.typeAnalyzer.analyzeExpression(value, valueSchema);
+    h.flow.nullAwareMapEntry_end(isKeyNullAware: isKeyNullAware);
     h.irBuilder.apply(
         'mapEntry', [Kind.expression, Kind.expression], Kind.collectionElement,
         location: location);
@@ -2668,12 +2671,8 @@ class MapPatternEntry extends Node implements MapPatternElement {
 }
 
 class MiniAstOperations
-    with
-        TypeAnalyzerOperationsMixin<Type, Var, PromotedTypeVariableType, Type,
-            String>
-    implements
-        TypeAnalyzerOperations<Type, Var, PromotedTypeVariableType, Type,
-            String> {
+    with TypeAnalyzerOperationsMixin<Type, Var, TypeParameter, Type, String>
+    implements TypeAnalyzerOperations<Type, Var, TypeParameter, Type, String> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -2779,6 +2778,8 @@ class MiniAstOperations
 
   final TypeSystem _typeSystem = TypeSystem();
 
+  final _variance = <String, List<Variance>>{};
+
   @override
   final SharedTypeView<Type> boolType = SharedTypeView(Type('bool'));
 
@@ -2835,8 +2836,8 @@ class MiniAstOperations
     _typeSystem.addSuperInterfaces(className, template);
   }
 
-  void addTypeVariable(String name, {String? bound}) {
-    _typeSystem.addTypeVariable(name, bound: bound);
+  void addVariance(String typeName, List<Variance> varianceByArgument) {
+    _variance[typeName] = varianceByArgument;
   }
 
   @override
@@ -2874,7 +2875,7 @@ class MiniAstOperations
 
   @override
   Type futureTypeInternal(Type argumentType) {
-    return PrimaryType('Future', args: [argumentType]);
+    return PrimaryType(TypeRegistry.future, args: [argumentType]);
   }
 
   @override
@@ -2891,8 +2892,7 @@ class MiniAstOperations
   @override
   Variance getTypeParameterVariance(
       String typeDeclaration, int parameterIndex) {
-    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
-    return Variance.covariant;
+    return _variance[typeDeclaration]?[parameterIndex] ?? Variance.covariant;
   }
 
   @override
@@ -2950,11 +2950,6 @@ class MiniAstOperations
   }
 
   @override
-  bool isFunctionType(SharedTypeView<Type> type) {
-    return type.unwrapTypeView() is FunctionType;
-  }
-
-  @override
   bool isInterfaceType(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType && unwrappedType.isInterfaceType;
@@ -2975,9 +2970,13 @@ class MiniAstOperations
         unwrappedType is VoidType ||
         unwrappedType is NullType) {
       return false;
-    } else if (unwrappedType is PromotedTypeVariableType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none) {
-      return isNonNullable(SharedTypeSchemaView(unwrappedType.promotion));
+    } else if (unwrappedType
+        case TypeParameterType(
+          :var promotion,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return promotion != null &&
+          isNonNullable(SharedTypeSchemaView(promotion));
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
@@ -3015,7 +3014,7 @@ class MiniAstOperations
   @override
   bool isTypeParameterType(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PromotedTypeVariableType &&
+    return unwrappedType is TypeParameterType &&
         unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
   }
 
@@ -3035,13 +3034,13 @@ class MiniAstOperations
   @override
   SharedTypeSchemaView<Type> iterableTypeSchema(
       SharedTypeSchemaView<Type> elementTypeSchema) {
-    return SharedTypeSchemaView(PrimaryType('Iterable',
+    return SharedTypeSchemaView(PrimaryType(TypeRegistry.iterable,
         args: [elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
   @override
   Type listTypeInternal(Type elementType) {
-    return PrimaryType('List', args: [elementType]);
+    return PrimaryType(TypeRegistry.list, args: [elementType]);
   }
 
   @override
@@ -3084,7 +3083,7 @@ class MiniAstOperations
     required Type keyType,
     required Type valueType,
   }) {
-    return PrimaryType('Map', args: [keyType, valueType]);
+    return PrimaryType(TypeRegistry.map, args: [keyType, valueType]);
   }
 
   @override
@@ -3096,9 +3095,16 @@ class MiniAstOperations
   }
 
   @override
-  PromotedTypeVariableType? matchInferableParameter(SharedTypeView<Type> type) {
-    // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
-    return null;
+  TypeParameter? matchInferableParameter(SharedTypeView<Type> type) {
+    if (type.unwrapTypeView()
+        case TypeParameterType(
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return typeParameter;
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -3155,25 +3161,23 @@ class MiniAstOperations
   }
 
   @override
-  TypeDeclarationMatchResult? matchTypeDeclarationType(
+  TypeDeclarationMatchResult<Type, String, Type>? matchTypeDeclarationType(
       SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is! PrimaryType) return null;
+    TypeDeclarationKind typeDeclarationKind;
     if (unwrappedType.isInterfaceType) {
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
-          typeDeclaration: unwrappedType.type,
-          typeDeclarationType: unwrappedType,
-          typeArguments: unwrappedType.args);
+      typeDeclarationKind = TypeDeclarationKind.interfaceDeclaration;
     } else if (isExtensionType(type)) {
-      return new TypeDeclarationMatchResult(
-          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
-          typeDeclaration: unwrappedType.type,
-          typeDeclarationType: unwrappedType,
-          typeArguments: unwrappedType.args);
+      typeDeclarationKind = TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
     }
+    return new TypeDeclarationMatchResult(
+        typeDeclarationKind: typeDeclarationKind,
+        typeDeclaration: unwrappedType.name,
+        typeDeclarationType: unwrappedType,
+        typeArguments: unwrappedType.args);
   }
 
   @override
@@ -3203,14 +3207,14 @@ class MiniAstOperations
       positionalTypes: positional,
       namedTypes: [
         for (var (name, type) in named) NamedType(name: name, type: type)
-      ],
+      ]..sort((a, b) => a.name.compareTo(b.name)),
     );
   }
 
   @override
   SharedTypeSchemaView<Type> streamTypeSchema(
       SharedTypeSchemaView<Type> elementTypeSchema) {
-    return SharedTypeSchemaView(PrimaryType('Stream',
+    return SharedTypeSchemaView(PrimaryType(TypeRegistry.stream,
         args: [elementTypeSchema.unwrapTypeSchemaView()]));
   }
 
@@ -3265,6 +3269,8 @@ class Node {
   final String location;
 
   String? _errorId;
+
+  factory Node.placeholder() => Node._(location: computeLocation());
 
   Node._({required this.location}) : id = _nextId++;
 
@@ -5410,7 +5416,7 @@ class _MiniAstErrors
 class _MiniAstTypeAnalyzer
     with
         TypeAnalyzer<Type, Node, Statement, Expression, Var, Pattern, void,
-            PromotedTypeVariableType, Type, String> {
+            TypeParameter, Type, String> {
   final Harness _harness;
 
   @override
@@ -5595,6 +5601,15 @@ class _MiniAstTypeAnalyzer
     var methodType = _handlePropertyTargetAndMemberLookup(
         null, target, methodName,
         location: node.location);
+    if (methodType is FunctionType) {
+      if (methodType.namedParameters.isNotEmpty) {
+        throw UnimplementedError('Named parameters are not supported yet');
+      } else if (methodType.requiredPositionalParameterCount !=
+          methodType.positionalParameters.length) {
+        throw UnimplementedError(
+            'Optional positional parameters are not supported yet');
+      }
+    }
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
     for (var i = 0; i < arguments.length; i++) {

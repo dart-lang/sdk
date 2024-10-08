@@ -86,6 +86,7 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
+import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
@@ -290,22 +291,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       ServerSetClientCapabilitiesParams([]);
 
   @override
-  final lspClientCapabilities = lsp.LspClientCapabilities(
-    lsp.ClientCapabilities(
-      textDocument: lsp.TextDocumentClientCapabilities(
-        hover: lsp.HoverClientCapabilities(
-          contentFormat: [
-            lsp.MarkupKind.Markdown,
-          ],
-        ),
-      ),
-      workspace: lsp.WorkspaceClientCapabilities(
-        workspaceEdit: lsp.WorkspaceEditClientCapabilities(
-          documentChanges: true,
-        ),
-      ),
-    ),
-  );
+  final editorClientCapabilities = lsp.fixedBasicLspClientCapabilities;
 
   @override
   final lsp.LspClientConfiguration lspClientConfiguration;
@@ -621,7 +607,8 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Handle a [request] that was read from the communication channel.
   void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
     if (requestOrResponse is Request) {
-      handleRequest(requestOrResponse);
+      messageScheduler.add(LegacyMessage(request: requestOrResponse));
+      messageScheduler.notify();
     } else if (requestOrResponse is Response) {
       handleResponse(requestOrResponse);
     }

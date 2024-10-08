@@ -53,9 +53,15 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType!;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement!.type;
+      if (parent.declaredElement2 case var declaredElement?) {
+        toType = declaredElement.type;
+      } else if (parent.declaredFragment case var declaredFragment?) {
+        toType = declaredFragment.element.type;
+      } else {
+        return;
+      }
     } else if (parent is ArgumentList) {
-      var staticType = target.staticParameterElement?.type;
+      var staticType = target.correspondingParameter?.type;
       if (staticType == null) return;
       toType = staticType;
     } else {

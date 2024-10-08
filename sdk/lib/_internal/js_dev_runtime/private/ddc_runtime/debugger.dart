@@ -287,7 +287,11 @@ Object getObjectMetadata(@notNull Object object) {
   var reifiedType = getReifiedType(object);
   var className = typeName(reifiedType);
   var libraryId = null;
-  var cls = _get<Object?>(object, 'constructor');
+  var cls = JS<bool>('!', '#.Array.isArray(#)', global_, object)
+      // When the object is actually represented by a JavaScript Array use the
+      // interceptor class that matches the reified type.
+      ? JS_CLASS_REF(JSArray)
+      : _get<Object?>(object, 'constructor');
   if (cls != null) {
     libraryId = getLibraryUri(cls);
   }
@@ -298,16 +302,16 @@ Object getObjectMetadata(@notNull Object object) {
   });
 
   if (object is String) {
-    _set(result, 'length', _get(object, 'length'));
+    _set(result, 'length', object.length);
   } else if (object is List) {
     _set(result, 'runtimeKind', RuntimeObjectKind.list);
-    _set(result, 'length', _get(object, 'length'));
+    _set(result, 'length', object.length);
   } else if (object is Map) {
     _set(result, 'runtimeKind', RuntimeObjectKind.map);
-    _set(result, 'length', _get(object, 'length'));
+    _set(result, 'length', object.length);
   } else if (object is Set) {
     _set(result, 'runtimeKind', RuntimeObjectKind.set);
-    _set(result, 'length', _get(object, 'length'));
+    _set(result, 'length', object.length);
   } else if (object is Function) {
     _set(result, 'runtimeKind', RuntimeObjectKind.function);
   } else if (object is RecordImpl) {

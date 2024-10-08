@@ -1,4 +1,21 @@
-## 6.9.0-dev
+## 6.10.0-dev
+* Deprecated `LibraryElement.accessibleExtensions`, use
+  `CompilationUnitElement.accessibleExtensions` instead.
+* Deprecated `LibraryElement.exportedLibraries`.
+* Deprecated `LibraryElement.importedLibraries`.
+* Deprecated `LibraryElement.isBrowserApplication`.
+* Deprecated `LibraryElement.libraryExports`,
+  use `CompilationUnitElement.libraryExports` instead.
+* Deprecated `LibraryElement.libraryImports`,
+  use `CompilationUnitElement.libraryImports` instead.
+* Deprecated `LibraryElement.prefixes`,
+  use `CompilationUnitElement.libraryImportPrefixes` instead.
+* Deprecated `LibraryElement.parts`,
+  use `CompilationUnitElement.parts` instead.
+* Deprecated `LibraryElement.scope`,
+  use `CompilationUnitElement.scope` instead.
+
+## 6.9.0
 * `NormalFormalParameter` now implements `AnnotatedNode`.
 * Deprecated `Element.enclosingElement`, use `enclosingElement3`.
 

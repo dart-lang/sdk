@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class UseSettersToChangePropertiesTest extends LintRuleTest {
   @override
-  String get lintRule => 'use_setters_to_change_properties';
+  String get lintRule => LintNames.use_setters_to_change_properties;
 
   test_abstract() async {
     await assertNoDiagnostics(r'''

@@ -391,8 +391,10 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// body.
   ///
   /// We cannot simply rewrite `<receiver>.m()` to:
+  ///
   ///     temp = <receiver>.m;
   ///     temp();
+  ///
   /// Because this leaves `this` unbound in the call. To solve this we `bind`
   /// the receiver to the tear-off to re-establish the `this` context.
   ///

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <emscripten.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -21,6 +22,31 @@ EMSCRIPTEN_KEEPALIVE
 void clearStruct(struct MyStruct* s) {
     s->x = 0.0;
     s->y = 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+struct MyStruct* getNull() {
+    return NULL;
+}
+
+EMSCRIPTEN_KEEPALIVE
+bool isNull(struct MyStruct *ptr) {
+    return ptr == NULL;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int64_t* allocateInt64(int64_t i) {
+    int64_t *ptr = malloc(sizeof(int64_t));
+    *ptr = i;
+    return ptr;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int64_t** getPointerOfPointer() {
+    int64_t *ptr = allocateInt64(123);
+    int64_t **ptrOfPtr = malloc(sizeof(int64_t*));
+    *ptrOfPtr = ptr;
+    return ptrOfPtr;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -162,4 +188,14 @@ size_t incrementSize(size_t a) {
 EMSCRIPTEN_KEEPALIVE
 wchar_t incrementWchar(wchar_t a) {
     return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double sqrtDouble(double d) {
+    return sqrt(d);
+}
+
+EMSCRIPTEN_KEEPALIVE
+float sqrtFloat(float d) {
+    return sqrtf(d);
 }

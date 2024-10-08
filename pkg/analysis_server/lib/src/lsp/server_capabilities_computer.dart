@@ -328,7 +328,7 @@ class ServerCapabilitiesComputer {
 
   RegistrationContext _createRegistrationContext() {
     return RegistrationContext(
-      clientCapabilities: _server.lspClientCapabilities!,
+      clientCapabilities: _server.editorClientCapabilities!,
       clientConfiguration: _server.lspClientConfiguration,
       customDartSchemes: _server.uriConverter.supportedNonFileSchemes,
       dartFilters: [

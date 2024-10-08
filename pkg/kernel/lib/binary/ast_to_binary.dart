@@ -879,8 +879,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           !(includeSources &&
               _sourcesFromRealImplementation.length > i &&
               _sourcesFromRealImplementation[i] == true)) {
-        source = new Source(
-            <int>[], const <int>[], source?.importUri, source?.fileUri);
+        source =
+            new Source.emptySource(<int>[], source?.importUri, source?.fileUri);
       }
 
       String uriAsString = "$uri";

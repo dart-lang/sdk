@@ -18,7 +18,7 @@ class SortPubDependenciesTest extends LintRuleTest {
   bool get dumpAstOnFailures => false;
 
   @override
-  String get lintRule => 'sort_pub_dependencies';
+  String get lintRule => LintNames.sort_pub_dependencies;
 
   test_dependencies_duplicates() async {
     await assertNoPubspecDiagnostics(r'''

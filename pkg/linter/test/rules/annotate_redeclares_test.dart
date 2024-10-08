@@ -18,7 +18,7 @@ class AnnotateRedeclaresTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  String get lintRule => 'annotate_redeclares';
+  String get lintRule => LintNames.annotate_redeclares;
 
   test_augmentationClass_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -82,7 +82,7 @@ extension type E(A a) implements A {
 
   test_method_annotated() async {
     await assertNoDiagnostics(r'''
-import 'package:meta/meta.dart';   
+import 'package:meta/meta.dart';
 class A {
   void m() {}
 }

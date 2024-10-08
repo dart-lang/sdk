@@ -12,18 +12,11 @@ import '../linter_lint_codes.dart';
 // TODO(nshahan): update description as scope increases.
 const _desc = r"Don't do 'is' checks on DartTypes.";
 
-const _details = r'''
-Experimental WIP lint to help ensure `DartType` accesses are safe in the dev_compiler.
-
-**For internal use only.**
-''';
-
 class EraseDartTypeExtensionTypes extends LintRule {
   EraseDartTypeExtensionTypes()
       : super(
-          name: 'erase_dart_type_extension_types',
+          name: LintNames.erase_dart_type_extension_types,
           description: _desc,
-          details: _details,
           state: State.internal(),
         );
 
@@ -38,7 +31,7 @@ class EraseDartTypeExtensionTypes extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 

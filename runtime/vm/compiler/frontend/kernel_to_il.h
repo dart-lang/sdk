@@ -51,7 +51,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1,
-                   bool inlining_unchecked_entry = false);
+                   bool inlining_unchecked_entry = false,
+                   const Function* caller = nullptr);
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
@@ -573,7 +574,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Zone* zone_;
 
   ParsedFunction* parsed_function_;
-  const bool optimizing_;
   ZoneGrowableArray<const ICData*>& ic_data_array_;
 
   intptr_t next_function_id_;

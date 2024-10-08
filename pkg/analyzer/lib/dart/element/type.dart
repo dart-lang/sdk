@@ -23,9 +23,11 @@ library;
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
+import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
@@ -45,6 +47,11 @@ abstract class DartType implements SharedTypeStructure<DartType> {
   @Deprecated('Use element instead')
   Element? get element2;
 
+  /// Return the element representing the declaration of this type, or `null`
+  /// if the type is not associated with an element.
+  @experimental
+  Element2? get element3;
+
   /// The extension type erasure of this type.
   ///
   /// The extension type erasure of a type `V` is obtained by recursively
@@ -63,7 +70,7 @@ abstract class DartType implements SharedTypeStructure<DartType> {
   /// dart:async library.
   bool get isDartAsyncFuture;
 
-  /// Return `true` if this type represents the type 'FutureOr<T>' defined in
+  /// Return `true` if this type represents the type `FutureOr<T>` defined in
   /// the dart:async library.
   bool get isDartAsyncFutureOr;
 
@@ -177,6 +184,24 @@ abstract class DartType implements SharedTypeStructure<DartType> {
   /// the interface implemented by the bound.
   InterfaceType? asInstanceOf(InterfaceElement element);
 
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  ///
+  /// For a [TypeParameterType] with a bound (declared or promoted), returns
+  /// the interface implemented by the bound.
+  @experimental
+  InterfaceType? asInstanceOf2(InterfaceElement2 element);
+
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
   ///
@@ -223,13 +248,21 @@ abstract class DynamicType implements DartType {}
 ///   T<sub>xk</sub> xk}) &rarr; T</i>.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionType implements DartType {
+abstract class FunctionType
+    implements
+        DartType,
+        SharedFunctionTypeStructure<DartType, TypeParameterElement,
+            ParameterElement> {
   @override
   Null get element;
 
   @Deprecated('Use element instead')
   @override
   Null get element2;
+
+  /// The formal parameters.
+  @experimental
+  List<FormalParameterElement> get formalParameters;
 
   /// A map from the names of named parameters to the types of the named
   /// parameters of this type of function.
@@ -269,6 +302,7 @@ abstract class FunctionType implements DartType {
   List<ParameterElement> get parameters;
 
   /// The type of object returned by this type of function.
+  @override
   DartType get returnType;
 
   /// The formal type parameters of this generic function; for example,
@@ -278,7 +312,12 @@ abstract class FunctionType implements DartType {
   // These are distinct from the `typeParameters` list, which contains type
   // parameters from surrounding contexts, and thus are free type variables
   // from the perspective of this function type.
+  @override
   List<TypeParameterElement> get typeFormals;
+
+  /// The type parameters.
+  @experimental
+  List<TypeParameterElement2> get typeParameters;
 
   /// Produces a new function type by substituting type parameters of this
   /// function type with the given [argumentTypes].
@@ -292,6 +331,10 @@ abstract class FunctionType implements DartType {
 abstract class InstantiatedTypeAliasElement {
   /// The alias element that is instantiated to produce a [DartType].
   TypeAliasElement get element;
+
+  /// The alias element that is instantiated to produce a [DartType].
+  @experimental
+  TypeAliasElement2 get element2;
 
   /// The type arguments with which the [element] was instantiated.
   /// This list will be empty if the [element] is not generic.
@@ -314,12 +357,24 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;
 
+  /// Return a list containing all of the constructors declared in this type.
+  @experimental
+  List<ConstructorElement2> get constructors2;
+
   @override
   InterfaceElement get element;
 
   @Deprecated('Use element instead')
   @override
   InterfaceElement get element2;
+
+  @experimental
+  @override
+  InterfaceElement2 get element3;
+
+  /// Return a list containing all of the getters declared in this type.
+  @experimental
+  List<GetterElement> get getters;
 
   /// Return a list containing all of the interfaces that are implemented by
   /// this interface. Note that this is <b>not</b>, in general, equivalent to
@@ -330,12 +385,20 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the methods declared in this type.
   List<MethodElement> get methods;
 
+  /// Return a list containing all of the methods declared in this type.
+  @experimental
+  List<MethodElement2> get methods2;
+
   /// Return a list containing all of the mixins that are applied to the class
   /// being extended in order to derive the superclass of this class. Note that
   /// this is <b>not</b>, in general, equivalent to getting the mixins from this
   /// type's element because the types returned by this method will have had
   /// their type parameters replaced.
   List<InterfaceType> get mixins;
+
+  /// Return a list containing all of the setters declared in this type.
+  @experimental
+  List<SetterElement> get setters;
 
   /// Return the type representing the superclass of this type, or null if this
   /// type represents the class 'Object'. Note that this is <b>not</b>, in
@@ -533,6 +596,10 @@ abstract class TypeParameterType implements DartType {
   @Deprecated('Use element instead')
   @override
   TypeParameterElement get element2;
+
+  @experimental
+  @override
+  TypeParameterElement2 get element3;
 }
 
 /// The special type `void` is used to indicate that the value of an
