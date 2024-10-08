@@ -7872,7 +7872,7 @@ GENERATE_ASSEMBLER_IDENTITY_TEST(ArithmeticShiftRightImmediate, 0)
 intptr_t RegRegImmTests::Lsl(intptr_t value, intptr_t shift, OperandSize sz) {
   // On ARM64, the results of non-word-sized operations are zero-extended
   // to 64 bits.
-  return ZeroExtendValue(value << shift, sz);
+  return ZeroExtendValue(static_cast<uintptr_t>(value) << shift, sz);
 }
 
 intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {

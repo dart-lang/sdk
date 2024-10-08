@@ -6558,7 +6558,7 @@ GENERATE_ASSEMBLER_IDENTITY_TEST(ArithmeticShiftRightImmediate, 0)
 intptr_t RegRegImmTests::Lsl(intptr_t value, intptr_t shift, OperandSize sz) {
   // For non-word sizes, the result is always zero extended to reduce
   // instruction count.
-  return ZeroExtendValue(value << shift, sz);
+  return ZeroExtendValue(static_cast<uintptr_t>(value) << shift, sz);
 }
 
 intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
