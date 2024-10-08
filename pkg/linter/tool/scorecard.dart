@@ -14,7 +14,7 @@ import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 
 import '../tool/util/path_utils.dart';
-import 'crawl.dart';
+import 'lint_sets.dart';
 import 'parse.dart';
 
 void main() async {
@@ -192,8 +192,8 @@ class ScoreCard {
   static Future<ScoreCard> calculate() async {
     var lintsWithFixes = _getLintsWithFixes();
     var lintsWithAssists = _getLintsWithAssists();
-    var flutterRuleset = await flutterRules;
-    var flutterRepoRuleset = await flutterRepoRules;
+    var flutterRuleset = await flutterUserLints;
+    var flutterRepoRuleset = await flutterRepoLints;
 
     var scorecard = ScoreCard();
     for (var lint in registeredLints!) {

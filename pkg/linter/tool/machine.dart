@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
@@ -15,21 +16,18 @@ import 'package:yaml/yaml.dart';
 
 import '../tool/util/path_utils.dart';
 import 'messages_info.dart';
-import 'util/score_utils.dart' as score_utils;
 
-/// Generates a list of lint rules in machine format suitable for consumption by
-/// other tools.
+/// Generates a list of built-in lint rules in JSON suitable for
+/// consumption by other tools.
+///
+/// **Deprecated:** This tool and the resulting generated file in
+/// `tool/machine/rules.json` are deprecated and should not be relied on.
 void main(List<String> args) async {
   var parser = ArgParser()
-    ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.')
-    ..addFlag('pretty',
-        abbr: 'p', help: 'Pretty-print output.', defaultsTo: true)
-    ..addFlag('sets', abbr: 's', help: 'Include rule sets', defaultsTo: true);
+    ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
   var options = parser.parse(args);
 
-  var json = await generateRulesJson(
-      pretty: options['pretty'] == true,
-      includeSetInfo: options['sets'] == true);
+  var json = await generateRulesJson();
 
   if (options['write'] == true) {
     var outFile = machineJsonFile();
@@ -40,48 +38,31 @@ void main(List<String> args) async {
   }
 }
 
-Future<String> generateRulesJson({
-  bool pretty = true,
-  bool includeSetInfo = true,
-}) async {
+Future<String> generateRulesJson() async {
   registerLintRules();
   var fixStatusMap = readFixStatusMap();
   return await getMachineListing(Registry.ruleRegistry,
-      fixStatusMap: fixStatusMap, pretty: pretty);
+      fixStatusMap: fixStatusMap);
 }
 
 Future<String> getMachineListing(
   Iterable<LintRule> ruleRegistry, {
-  Map<String, String>? fixStatusMap,
-  bool pretty = true,
-  bool includeSetInfo = true,
+  Map<String, String> fixStatusMap = const {},
 }) async {
-  var rules = List<LintRule>.of(ruleRegistry, growable: false)
-    ..sort((a, b) => a.name.compareTo(b.name));
-  var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
-  fixStatusMap ??= {};
+  var rulesToDocument = List<LintRule>.of(ruleRegistry, growable: false)
+      .where((rule) => !rule.state.isInternal)
+      .sortedBy((rule) => rule.name);
 
-  var (
-    coreRules: coreRules,
-    recommendedRules: recommendedRules,
-    flutterRules: flutterRules
-  ) = await _fetchSetRules(fetch: includeSetInfo);
-
-  var json = encoder.convert([
-    for (var (rule, info) in rules
-        .where((rule) => !rule.state.isInternal)
-        .map((rule) => (rule, messagesRuleInfo[rule.name]!)))
+  var json = JsonEncoder.withIndent('  ').convert([
+    for (var (rule, info)
+        in rulesToDocument.map((rule) => (rule, messagesRuleInfo[rule.name]!)))
       {
         'name': rule.name,
         'description': rule.description,
         'categories': info.categories.toList(growable: false),
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
-        'sets': [
-          if (coreRules.contains(rule.name)) 'core',
-          if (recommendedRules.contains(rule.name)) 'recommended',
-          if (flutterRules.contains(rule.name)) 'flutter',
-        ],
+        'sets': const [],
         'fixStatus':
             fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
         'details': info.deprecatedDetails,
@@ -112,29 +93,4 @@ Map<String, String> readFixStatusMap() {
     for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
       if (code.startsWith('LintCode.')) code: value['status'] as String,
   };
-}
-
-Future<
-    ({
-      Set<String> coreRules,
-      Set<String> recommendedRules,
-      Set<String> flutterRules,
-    })> _fetchSetRules({bool fetch = true}) async {
-  if (!fetch) {
-    return const (
-      coreRules: <String>{},
-      recommendedRules: <String>{},
-      flutterRules: <String>{},
-    );
-  }
-
-  var coreRules = {...await score_utils.coreRules};
-  var recommendedRules = {...coreRules, ...await score_utils.recommendedRules};
-  var flutterRules = {...recommendedRules, ...await score_utils.flutterRules};
-
-  return (
-    coreRules: coreRules,
-    recommendedRules: recommendedRules,
-    flutterRules: flutterRules,
-  );
 }

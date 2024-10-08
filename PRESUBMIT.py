@@ -430,8 +430,6 @@ def _CheckAnalyzerFiles(input_api, output_api):
     #   content, when `pkg/analyzer/messages.yaml` is modified.
     # * Verify that `diagnostics/generate.dart` does not produce different
     #   content, when `pkg/analyzer/messages.yaml` is modified.
-    # * Verify that `machine.json` is not outdated, when any
-    #   `pkg/linter/lib/src/rules` file is modified.
     # * Maybe "verify_no_solo" for individual modified (not deleted test files
     #   in Analyzer-team-owned directories.
 
