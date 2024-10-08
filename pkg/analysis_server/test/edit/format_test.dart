@@ -23,7 +23,49 @@ class FormatTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
-  Future<void> test_format_longLine() async {
+  Future<void> test_format_longLine_analysisOptions() async {
+    writeTestPackageAnalysisOptionsFile(r'''
+formatter:
+  page_width: 100
+''');
+    var content = '''
+fun(firstParam, secondParam, thirdParam, fourthParam) {
+  if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
+}
+''';
+    addTestFile(content);
+    await waitForTasksFinished();
+    var formatResult = await _formatAt(0, 3);
+
+    expect(formatResult.edits, isNotNull);
+    expect(formatResult.edits, hasLength(0));
+
+    expect(formatResult.selectionOffset, equals(0));
+    expect(formatResult.selectionLength, equals(3));
+  }
+
+  Future<void> test_format_longLine_analysisOptions_overridesParameter() async {
+    writeTestPackageAnalysisOptionsFile(r'''
+formatter:
+  page_width: 100
+''');
+    var content = '''
+fun(firstParam, secondParam, thirdParam, fourthParam) {
+  if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
+}
+''';
+    addTestFile(content);
+    await waitForTasksFinished();
+    var formatResult = await _formatAt(0, 3, lineLength: 50);
+
+    expect(formatResult.edits, isNotNull);
+    expect(formatResult.edits, hasLength(0));
+
+    expect(formatResult.selectionOffset, equals(0));
+    expect(formatResult.selectionLength, equals(3));
+  }
+
+  Future<void> test_format_longLine_parameter() async {
     var content = '''
 fun(firstParam, secondParam, thirdParam, fourthParam) {
   if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
