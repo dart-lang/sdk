@@ -10,6 +10,7 @@ import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/ffi/ffi_sources.gni")
 import("../vm/heap/heap_sources.gni")
+import("../vm/regexp/regexp_sources.gni")
 import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
 import("builtin_sources.gni")
@@ -1055,6 +1056,7 @@ source_set("run_vm_tests_set") {
   vm_tests = rebase_path(vm_sources_tests, ".", "../vm")
   compiler_tests = rebase_path(compiler_sources_tests, ".", "../vm/compiler")
   heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
+  regexp_tests = rebase_path(regexp_sources_tests, ".", "../vm/regexp")
 
   sources = [
               "builtin.cc",
@@ -1072,7 +1074,7 @@ source_set("run_vm_tests_set") {
               "vmservice_impl.cc",
               "vmservice_impl.h",
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
-            io_impl_tests
+            regexp_tests + io_impl_tests
 }
 
 executable("run_vm_tests") {

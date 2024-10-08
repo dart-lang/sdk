@@ -39,6 +39,7 @@ import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
 import("ffi/ffi_sources.gni")
 import("heap/heap_sources.gni")
+import("regexp/regexp_sources.gni")
 import("vm_sources.gni")
 
 config("libdart_vm_config") {
@@ -193,7 +194,8 @@ library_for_all_configs("libdart_vm") {
   sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
             rebase_path(disassembler_sources, ".", "./compiler/") +
             rebase_path(ffi_sources, ".", "./ffi/") +
-            rebase_path(heap_sources, ".", "./heap/")
+            rebase_path(heap_sources, ".", "./heap/") +
+            rebase_path(regexp_sources, ".", "./regexp/")
   if (is_android) {
     # Android specific workaround for a kernel bug. This source file can't
     # go into vm_sources list because it will break Windows build which

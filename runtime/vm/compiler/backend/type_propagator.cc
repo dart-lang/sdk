@@ -9,7 +9,7 @@
 #include "vm/bit_vector.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
-#include "vm/regexp_assembler.h"
+#include "vm/regexp/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/timeline.h"
 

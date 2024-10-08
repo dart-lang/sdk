@@ -4,8 +4,8 @@
 //
 // This file was generated at 2014-10-08 15:25:47.940335 (in v8, copied to dart)
 
-#include "vm/unibrow.h"
-#include "vm/unibrow-inl.h"
+#include "vm/regexp/unibrow.h"
+#include "vm/regexp/unibrow-inl.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -4,7 +4,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/regexp_assembler_ir.h"
+#include "vm/regexp/regexp_assembler_ir.h"
 
 #include <utility>
 
@@ -17,7 +17,7 @@
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"

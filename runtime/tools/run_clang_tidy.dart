@@ -132,7 +132,7 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/vm/os_thread_linux.h',
   'runtime/vm/os_thread_macos.h',
   'runtime/vm/os_thread_win.h',
-  'runtime/vm/regexp_assembler_bytecode_inl.h',
+  'runtime/vm/regexp/regexp_assembler_bytecode_inl.h',
   'runtime/vm/simulator_arm.h',
   'runtime/vm/simulator_arm64.h',
   'runtime/vm/simulator_riscv.h',

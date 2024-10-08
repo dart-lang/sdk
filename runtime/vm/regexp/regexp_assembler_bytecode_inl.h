@@ -4,10 +4,10 @@
 
 // A light-weight assembler for the Irregexp byte code.
 
-#include "vm/regexp_bytecodes.h"
+#include "vm/regexp/regexp_bytecodes.h"
 
-#ifndef RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
-#define RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#ifndef RUNTIME_VM_REGEXP_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#define RUNTIME_VM_REGEXP_REGEXP_ASSEMBLER_BYTECODE_INL_H_
 
 namespace dart {
 
@@ -51,4 +51,4 @@ void BytecodeRegExpMacroAssembler::Emit32(uint32_t word) {
 
 }  // namespace dart
 
-#endif  // RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#endif  // RUNTIME_VM_REGEXP_REGEXP_ASSEMBLER_BYTECODE_INL_H_

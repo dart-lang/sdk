@@ -37,7 +37,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp_assembler_ir.h"
+#include "vm/regexp/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"

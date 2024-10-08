@@ -58,7 +58,7 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/reverse_pc_lookup_cache.h"
