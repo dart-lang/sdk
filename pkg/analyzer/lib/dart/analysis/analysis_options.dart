@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:pub_semver/src/version_constraint.dart';
@@ -37,6 +38,9 @@ abstract class AnalysisOptions {
   /// Return a list of exclude patterns used to exclude some sources from
   /// analysis.
   List<String> get excludePatterns;
+
+  /// Return the options used to control the formatter.
+  FormatterOptions get formatterOptions;
 
   /// Return `true` if analysis is to generate hint results (e.g. best practices
   /// and analysis based on certain annotations).

@@ -39,6 +39,9 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
     AnalyzerOptions.codeStyle: MapProducer({
       AnalyzerOptions.format: BooleanProducer(),
     }),
+    AnalyzerOptions.formatter: MapProducer({
+      AnalyzerOptions.pageWidth: EmptyProducer(),
+    }),
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
     AnalyzerOptions.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.

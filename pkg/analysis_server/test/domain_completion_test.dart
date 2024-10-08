@@ -2035,6 +2035,8 @@ suggestions
     kind: identifier
   |code-style: |
     kind: identifier
+  |formatter: |
+    kind: identifier
   |include: |
     kind: identifier
   |linter: |

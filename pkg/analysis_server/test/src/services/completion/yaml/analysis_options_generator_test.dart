@@ -128,9 +128,18 @@ code-style:
     getCompletions('^');
     assertSuggestion('${AnalyzerOptions.analyzer}: ');
     assertSuggestion('${AnalyzerOptions.codeStyle}: ');
+    assertSuggestion('${AnalyzerOptions.formatter}: ');
     assertSuggestion('${AnalyzerOptions.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
+  }
+
+  void test_formatter() {
+    getCompletions('''
+formatter:
+  ^
+''');
+    assertSuggestion('${AnalyzerOptions.pageWidth}: ');
   }
 
   void test_linter() {

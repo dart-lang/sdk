@@ -829,7 +829,7 @@ class BulkFixProcessor {
           continue;
         }
 
-        var formatResult = generateEditsForFormatting(result, null);
+        var formatResult = generateEditsForFormatting(result);
         await formatResult.mapResult((formatResult) async {
           var edits = formatResult ?? [];
           if (edits.isNotEmpty) {

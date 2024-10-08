@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
+import 'package:analyzer/src/analysis_options/formatter_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/lint/linter.dart';
@@ -239,6 +241,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   late CodeStyleOptions codeStyleOptions;
 
+  @override
+  late FormatterOptions formatterOptions;
+
   /// The set of "un-ignorable" error names, as parsed in [AnalyzerOptions] from
   /// an analysis options file.
   Set<String> unignorableNames = {};
@@ -247,12 +252,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// values.
   AnalysisOptionsImpl({this.file}) {
     codeStyleOptions = CodeStyleOptionsImpl(this, useFormatter: false);
+    formatterOptions = FormatterOptionsImpl(this);
   }
 
   /// Initialize a newly created set of analysis options to have the same values
   /// as those in the given set of analysis [options].
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     codeStyleOptions = options.codeStyleOptions;
+    formatterOptions = options.formatterOptions;
     contextFeatures = options.contextFeatures;
     enabledLegacyPluginNames = options.enabledLegacyPluginNames;
     errorProcessors = options.errorProcessors;

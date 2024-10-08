@@ -20,6 +20,11 @@ void main() {
 
 @reflectiveTest
 class FormatTest extends AbstractLspAnalysisServerTest {
+  /// Some sample code that is over 50 characters and will be wrapped if the
+  /// page width is set to 40.
+  static const codeThatWrapsAt40 =
+      "var a = '        10        20        30        40';";
+
   Future<List<TextEdit>> expectFormattedContents(
       Uri uri, String original, String expected) async {
     var formatEdits = (await formatDocument(uri))!;
@@ -34,6 +39,11 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
+  }
+
+  Future<String> formatContents(Uri uri, String original) async {
+    var formatEdits = (await formatDocument(uri))!;
+    return applyTextEdits(original, formatEdits);
   }
 
   Future<void> test_alreadyFormatted() async {
@@ -381,6 +391,83 @@ void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 1
     await expectFormattedContents(mainFileUri, contents, expectedDefault);
     await updateConfig({'lineLength': 500});
     await expectFormattedContents(mainFileUri, contents, expectedLongLines);
+  }
+
+  Future<void> test_lineLength_analysisOptions() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(mainFilePath, codeContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), contains('\n'));
+  }
+
+  Future<void> test_lineLength_analysisOptions_nestedEmpty() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+    var nestedAnalysisOptionsPath =
+        join(projectFolderPath, 'lib', 'analysis_options.yaml');
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(
+        nestedAnalysisOptionsPath, '# empty'); // suppress the parent options.
+    newFile(mainFilePath, codeContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), isNot(contains('\n')));
+  }
+
+  Future<void> test_lineLength_analysisOptions_nestedIncludes() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+    var nestedAnalysisOptionsPath =
+        join(projectFolderPath, 'lib', 'analysis_options.yaml');
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(nestedAnalysisOptionsPath, 'include: ../analysis_options.yaml');
+    newFile(mainFilePath, codeContent);
+    await initialize();
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), contains('\n'));
+  }
+
+  Future<void> test_lineLength_analysisOptions_overridesConfig() async {
+    const codeContent = codeThatWrapsAt40;
+    const optionsContent = '''
+formatter:
+  page_width: 40
+''';
+
+    newFile(analysisOptionsPath, optionsContent);
+    newFile(mainFilePath, codeContent);
+    await provideConfig(
+      initialize,
+      {
+        // This won't apply because analysis_options wins.
+        'lineLength': 100,
+      },
+    );
+
+    // Ignore trailing newlines when checking for wrapping.
+    var formatted = await formatContents(mainFileUri, codeContent);
+    expect(formatted.trim(), contains('\n'));
   }
 
   Future<void> test_lineLength_outsideWorkspaceFolders() async {

@@ -39,7 +39,7 @@ class FormattingHandler
     }
 
     var lineLength = server.lspClientConfiguration.forResource(path).lineLength;
-    return generateEditsForFormatting(result, lineLength);
+    return generateEditsForFormatting(result, defaultPageWidth: lineLength);
   }
 
   @override

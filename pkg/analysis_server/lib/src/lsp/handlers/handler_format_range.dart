@@ -39,7 +39,8 @@ class FormatRangeHandler extends SharedMessageHandler<
     }
 
     var lineLength = server.lspClientConfiguration.forResource(path).lineLength;
-    return generateEditsForFormatting(result, lineLength, range: range);
+    return generateEditsForFormatting(result,
+        defaultPageWidth: lineLength, range: range);
   }
 
   @override

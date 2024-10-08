@@ -78,12 +78,24 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
   return ErrorOr.success((content: newContent, edits: serverEdits));
 }
 
+/// Generates a list of [TextEdit]s to format the code for [result].
+///
+/// [defaultPageWidth] will be used as the default page width if [result] does
+/// not have an analysis_options file that defines a page width.
+///
+/// If [range] is provided, only edits that intersect with this range will be
+/// returned.
 ErrorOr<List<TextEdit>?> generateEditsForFormatting(
-  ParsedUnitResult result,
-  int? lineLength, {
+  ParsedUnitResult result, {
+  int? defaultPageWidth,
   Range? range,
 }) {
   var unformattedSource = result.content;
+
+  // The analysis options page width always takes priority over the default from
+  // the LSP configuration.
+  var effectivePageWidth =
+      result.analysisOptions.formatterOptions.pageWidth ?? defaultPageWidth;
 
   var code = SourceCode(unformattedSource);
   SourceCode formattedResult;
@@ -94,9 +106,9 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     var languageVersion =
         result.unit.declaredElement?.library.languageVersion.effective ??
             DartFormatter.latestLanguageVersion;
-    formattedResult =
-        DartFormatter(pageWidth: lineLength, languageVersion: languageVersion)
-            .formatSource(code);
+    var formatter = DartFormatter(
+        pageWidth: effectivePageWidth, languageVersion: languageVersion);
+    formattedResult = formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the
