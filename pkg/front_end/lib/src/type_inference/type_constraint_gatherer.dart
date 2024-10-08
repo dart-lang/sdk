@@ -123,7 +123,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   /// a subtype of [type] under any set of constraints.
   bool tryConstrainLower(DartType type, DartType bound,
       {required TreeNode? treeNodeForTesting}) {
-    return _tryNullabilityAwareSubtypeMatch(bound, type,
+    return _isNullabilityAwareSubtypeMatch(bound, type,
         constrainSupertype: true, treeNodeForTesting: treeNodeForTesting);
   }
 
@@ -133,7 +133,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   /// a subtype of [bound] under any set of constraints.
   bool tryConstrainUpper(DartType type, DartType bound,
       {required TreeNode? treeNodeForTesting}) {
-    return _tryNullabilityAwareSubtypeMatch(type, bound,
+    return _isNullabilityAwareSubtypeMatch(type, bound,
         constrainSupertype: false, treeNodeForTesting: treeNodeForTesting);
   }
 
@@ -149,34 +149,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       {required TreeNode? treeNodeForTesting}) {
     int baseConstraintCount = _protoConstraints.length;
     bool isMatch = _isNullabilityObliviousSubtypeMatch(subtype, supertype,
-        treeNodeForTesting: treeNodeForTesting);
-    if (!isMatch) {
-      _protoConstraints.length = baseConstraintCount;
-    }
-    return isMatch;
-  }
-
-  /// Tries to match [subtype] against [supertype].
-  ///
-  /// If the match succeeds, the member returns true, and the resulting type
-  /// constraints are recorded for later use by [computeConstraints].  If the
-  /// match fails, the member returns false, and the set of type constraints is
-  /// unchanged.
-  ///
-  /// In contrast with [_tryNullabilityObliviousSubtypeMatch], this method
-  /// distinguishes between cases when the type parameters to constraint occur
-  /// in [subtype] and in [supertype].  If [constrainSupertype] is true, the
-  /// type parameters to constrain occur in [supertype]; otherwise, they occur
-  /// in [subtype].  If one type contains the type parameters to constrain, the
-  /// other one isn't allowed to contain them.  The type that contains the type
-  /// parameters isn't allowed to also contain [UnknownType], that is, to be a
-  /// type schema.
-  bool _tryNullabilityAwareSubtypeMatch(DartType subtype, DartType supertype,
-      {required bool constrainSupertype,
-      required TreeNode? treeNodeForTesting}) {
-    int baseConstraintCount = _protoConstraints.length;
-    bool isMatch = _isNullabilityAwareSubtypeMatch(subtype, supertype,
-        constrainSupertype: constrainSupertype,
         treeNodeForTesting: treeNodeForTesting);
     if (!isMatch) {
       _protoConstraints.length = baseConstraintCount;
@@ -367,10 +339,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   /// Matches [p] against [q] as a subtype against supertype.
   ///
-  /// Returns true if [p] is a subtype of [q] under some constraints, and false
-  /// otherwise.  The constraints making the relation possible are recorded to
-  /// [_protoConstraints].  It is the responsibility of the caller to cleanup
-  /// [_protoConstraints] in case [p] can't be a subtype of [q].
+  /// If [p] is a subtype of [q] under some constraints, the constraints making
+  /// the relation possible are recorded to [_protoConstraints], and `true` is
+  /// returned. Otherwise, [_protoConstraints] is left unchanged (or rolled
+  /// back), and `false` is returned.
   ///
   /// If [constrainSupertype] is true, the type parameters to constrain occur in
   /// [supertype]; otherwise, they occur in [subtype].  If one type contains the
@@ -505,7 +477,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
               treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
 
       if ((p is SharedDynamicTypeStructure || p is SharedVoidTypeStructure) &&
           _isNullabilityAwareSubtypeMatch(
@@ -514,7 +485,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
               treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
 
       bool isMatchWithRawQ = _isNullabilityAwareSubtypeMatch(p, rawQ,
           constrainSupertype: constrainSupertype,
@@ -524,7 +494,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       if (isMatchWithRawQ && matchWithRawQAddsConstraints) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
 
       if (_isNullabilityAwareSubtypeMatch(
           p, typeOperations.nullType.unwrapTypeView(),
@@ -532,12 +501,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
           treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
 
       if (isMatchWithRawQ && !matchWithRawQAddsConstraints) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
     }
 
     // If P is FutureOr<P0> the match holds under constraint set C1 + C2:
@@ -616,22 +583,18 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // already eliminated the case that X is a variable in L.
     if (p is TypeParameterType) {
       // Coverage-ignore-block(suite): Not run.
-      final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(p.bound, q,
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
     } else if (p is StructuralParameterType) {
       // Coverage-ignore-block(suite): Not run.
-      final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(p.bound, q,
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
-      _protoConstraints.length = baseConstraintCount;
     }
 
     bool? constraintGenerationResult =
@@ -774,6 +737,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         }
       }
       if (sameNames) {
+        final int baseConstraintCount = _protoConstraints.length;
         bool isMatch = true;
         for (int i = 0; isMatch && i < p.positional.length; i++) {
           isMatch = isMatch &&
@@ -788,6 +752,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                   treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
+        // Coverage-ignore(suite): Not run.
+        _protoConstraints.length = baseConstraintCount;
       }
     }
 

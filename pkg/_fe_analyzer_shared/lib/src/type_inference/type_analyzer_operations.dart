@@ -898,23 +898,18 @@ abstract class TypeConstraintGenerator<
   List<TypeStructure>? getTypeArgumentsAsInstanceOf(
       TypeDeclarationType type, TypeDeclaration typeDeclaration);
 
-  /// Matches [p] against [q] as a subtype against supertype and returns true if
-  /// [p] and [q] are both function types, and [p] is a subtype of [q] under
-  /// some constraints imposed on type parameters occurring in [q]; false if
-  /// both [p] and [q] are function types, but [p] can't possibly be a subtype
-  /// of [q] under any constraints; and null otherwise.
+  /// Matches [p] against [q].
+  ///
+  /// If [p] and [q] are both non-generic function types, and [p] is a subtype
+  /// of [q] under some constraints, the constraints making the relation
+  /// possible are recorded, and `true` is returned. Otherwise, the constraint
+  /// state is unchanged (or rolled back using [restoreState]), and `null` is
+  /// returned.
   ///
   /// An invariant of the type inference is that only [p] or [q] may be a
   /// schema (in other words, may contain the unknown type `_`); the other must
   /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
   /// `false`, [q] may contain `_`.
-  ///
-  /// As the generator computes the constraints making the relation possible, it
-  /// changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
   bool? performSubtypeConstraintGenerationForFunctionTypes(
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
@@ -943,7 +938,6 @@ abstract class TypeConstraintGenerator<
         if (!performSubtypeConstraintGenerationInternal(
             p.returnType, q.returnType,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-          restoreState(state);
           return null;
         }
         for (int i = 0; i < q.positionalParameterTypes.length; ++i) {
@@ -973,7 +967,6 @@ abstract class TypeConstraintGenerator<
         if (!performSubtypeConstraintGenerationInternal(
             p.returnType, q.returnType,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-          restoreState(state);
           return null;
         }
         for (int i = 0; i < p.positionalParameterTypes.length; ++i) {
@@ -1048,23 +1041,18 @@ abstract class TypeConstraintGenerator<
     return null;
   }
 
-  /// Matches [p] against [q] as a subtype against supertype and returns true if
-  /// [p] and [q] are both FutureOr, with or without nullability suffixes as
-  /// defined by [enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr],
-  /// and [p] is a subtype of [q] under some constraints imposed on type
-  /// parameters occurring in [q], and false otherwise.
+  /// Matches [p] against [q].
+  ///
+  /// If [q] is of the form `FutureOr<q0>` for some `q0`, and [p] is a subtype
+  /// of [q] under some constraints, the constraints making the relation
+  /// possible are recorded, and `true` is returned. Otherwise, the constraint
+  /// state is unchanged (or rolled back using [restoreState]), and `false` is
+  /// returned.
   ///
   /// An invariant of the type inference is that only [p] or [q] may be a
   /// schema (in other words, may contain the unknown type `_`); the other must
   /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
   /// `false`, [q] may contain `_`.
-  ///
-  /// As the generator computes the constraints making the relation possible,
-  /// it changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
   bool performSubtypeConstraintGenerationForFutureOr(
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
@@ -1083,7 +1071,6 @@ abstract class TypeConstraintGenerator<
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
           return true;
         }
-        restoreState(state);
       }
 
       // Or if `P` is a subtype match for `Future<Q0>` under non-empty
@@ -1095,14 +1082,12 @@ abstract class TypeConstraintGenerator<
       if (isMatchWithFuture && matchWithFutureAddsConstraints) {
         return true;
       }
-      restoreState(state);
 
       // Or if `P` is a subtype match for `Q0` under constraint set `C`.
       if (performSubtypeConstraintGenerationInternal(p, q0,
           leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
         return true;
       }
-      restoreState(state);
 
       // Or if `P` is a subtype match for `Future<Q0>` under empty
       // constraint set `C`.
@@ -1114,24 +1099,22 @@ abstract class TypeConstraintGenerator<
     return false;
   }
 
-  /// Matches [p] against [q] as a subtype against supertype and returns true if
-  /// [p] and [q] are both type declaration types as defined by the enum
-  /// [TypeDeclarationKind], and [p] is a subtype of [q] under some constraints
-  /// imposed on type parameters occurring in [q]; false if both [p] and [q] are
-  /// type declaration types, but [p] can't possibly be a subtype of [q] under
-  /// any constraints; and null otherwise.
+  /// Matches [p] against [q] as a subtype against supertype.
+  ///
+  /// If [p] and [q] are both type declaration types, then:
+  ///
+  /// - If [p] is a subtype of [q] under some constraints, the constraints
+  ///   making the relation possible are recorded, and `true` is returned.
+  /// - Otherwise, the constraint state is unchanged (or rolled back using
+  ///   [restoreState]), and `false` is returned.
+  ///
+  /// Otherwise (either [p] or [q] is not a type declaration type), the
+  /// constraint state is unchanged, and `null` is returned.
   ///
   /// An invariant of the type inference is that only [p] or [q] may be a
   /// schema (in other words, may contain the unknown type `_`); the other must
   /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
   /// `false`, [q] may contain `_`.
-  ///
-  /// As the generator computes the constraints making the relation possible, it
-  /// changes its internal state. The current state of the generator can be
-  /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
   bool? performSubtypeConstraintGenerationForTypeDeclarationTypes(
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
@@ -1174,6 +1157,14 @@ abstract class TypeConstraintGenerator<
     }
   }
 
+  /// Implementation backing [performSubtypeConstraintGenerationLeftSchema] and
+  /// [performSubtypeConstraintGenerationRightSchema].
+  ///
+  /// If [p] is a subtype of [q] under some constraints, the constraints making
+  /// the relation possible are recorded, and `true` is returned. Otherwise,
+  /// the constraint state is unchanged (or rolled back using [restoreState]),
+  /// and `false` is returned.
+  ///
   /// [performSubtypeConstraintGenerationInternal] should be implemented by
   /// concrete classes implementing [TypeConstraintGenerator]. The
   /// implementations of [performSubtypeConstraintGenerationLeftSchema] and
@@ -1201,9 +1192,8 @@ abstract class TypeConstraintGenerator<
   /// As the generator computes the constraints making the relation possible,
   /// it changes its internal state. The current state of the generator can be
   /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
+  /// via [restoreState]. If this method returns `false`, it restores the state,
+  /// so it is not necessary for the caller to do so.
   ///
   /// The algorithm for subtype constraint generation is described in
   /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
@@ -1219,9 +1209,8 @@ abstract class TypeConstraintGenerator<
   /// As the generator computes the constraints making the relation possible,
   /// it changes its internal state. The current state of the generator can be
   /// obtained by [currentState], and the generator can be restored to a state
-  /// via [restoreState]. All of the shared constraint generation methods are
-  /// supposed to restore the generator to the prior state in case of a
-  /// mismatch, taking that responsibility away from the caller.
+  /// via [restoreState]. If this method returns `false`, it restores the state,
+  /// so it is not necessary for the caller to do so.
   ///
   /// The algorithm for subtype constraint generation is described in
   /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#subtype-constraint-generation
@@ -1271,6 +1260,13 @@ abstract class TypeConstraintGenerator<
     return true;
   }
 
+  /// Matches [p] against [q], assuming both [p] and [q] are both type
+  /// declaration types that refer to different type declarations.
+  ///
+  /// If [p] is a subtype of [q] under some constraints, the constraints making
+  /// the relation possible are recorded, and `true` is returned. Otherwise,
+  /// the constraint state is unchanged (or rolled back using [restoreState]),
+  /// and `false` is returned.
   bool _interfaceTypes(TypeStructure p, TypeStructure q, bool leftSchema,
       {required AstNode? astNodeForTesting}) {
     if (p.nullabilitySuffix != NullabilitySuffix.none) {
