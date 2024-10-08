@@ -120,8 +120,8 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "e623652744c82533829f2e62b1aba1a6cf06e291",
-  "async_rev": "c0d81f8699682d01d657a9bf827107d11904a247",
+  "args_rev": "e623652744c82533829f2e62b1aba1a6cf06e291", #
+  "async_rev": "5f70a996f673d625e3502597084653686c3e754c",
   "bazel_worker_rev": "aa3cc9e826350b960e0c5a67e6065bcedba8b0ac",
   "benchmark_harness_rev": "44f125ae1d045aa3de09fe88a8dd70cb7352d563",
   "boolean_selector_rev": "d6c7c36ae1111f11cc24306d71d3ab2deea8fa68",
@@ -129,9 +129,9 @@ vars = {
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
   "cli_util_rev": "c36b3941e38092d6d6f87ac27d9e88f153d3ac38",
   "clock_rev": "7956d60042f4ea979c4554d43eeb57d087627869",
-  "collection_rev": "24b75d85df6a26aac7be13b56ff1ce4360c04a64",
-  "convert_rev": "9035cafefc1da4315f26058734d0c2a19d5ab56a",
-  "crypto_rev": "eede7d6918c51159c1422b7449f40dbac660ee57",
+  "collection_rev": "887b826b50f48d6a9cd2c0684aa353e8e3a0fad0",
+  "convert_rev": "d361833e117cb2438d2a2a6d0b0acb28ff0910fb",
+  "crypto_rev": "3d26ef4cf22d4b218ba30e616544ad3cf52f64a1",
   "csslib_rev": "a3700b05bbcc42782e8a7024790dbf019d89c249",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -153,9 +153,9 @@ vars = {
   "html_rev": "6d3bc86cf2ab530ef3fa5f84b5980dc318a02af4",
   "http_rev": "f59cd79e1322c6272481e4f2ccfa9afcb37a6525",
   "http_multi_server_rev": "e7515b5896b83d522189802a1e14e103e19426c0",
-  "http_parser_rev": "ce528cf82f3d26ac761e29b2494a9e0c270d4939",
+  "http_parser_rev": "23d775898ee90be9daf3297e298a8869bc755d84",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
-  "json_rpc_2_rev": "b4810dc7bee5828f240586c81f3f34853cacdbce",
+  "json_rpc_2_rev": "c9b616bded8cdb5bfdc836ba7648afa6aba40062",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "5016d63c889936b2100520f999591d0492d9afe3",
   "logging_rev": "6fa056098ceca03d399bff64592822b2ae5dee6e",
@@ -166,7 +166,7 @@ vars = {
   "native_rev": "659511886501bcce638c3966590df04984909ef0", # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "bafff8e90be25e1985f7e3ee40ea1d22571a93e6",
   "path_rev": "e969f42ed112dd702a9453beb9df6c12ae2d3805",
-  "pool_rev": "924fb04353cec915d927f9f1aed88e2eda92b98a",
+  "pool_rev": "7bfc71b39742753a88688e56e55a828a2f5dc0bf",
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "1efd3f5e274e153637d99698b0ee454f6f2550ab", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "8cce9d00431b6653026cdfcf6cf8548078c56f02",
@@ -184,17 +184,17 @@ vars = {
   "test_descriptor_rev": "a3db1efe3dc725dcae9ee61647d3bfc19b3231ac",
   "test_process_rev": "52ee3f5ab70ed965bb7122c1d499081fbccd0bde",
   "test_reflective_loader_rev": "598af2f503955020af0eaa82558d574a03934078",
-  "tools_rev": "d4995d47b99d5e9564abfed2218f4a23df75983b",
-  "typed_data_rev": "2bb9e6ead6394e2d4ec6068c5ece8b2ec0e2b945",
+  "tools_rev": "d4995d47b99d5e9564abfed2218f4a23df75983b", #
+  "typed_data_rev": "6abfafdcf661cd8a814619d7e2a3e99edb3a3862",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "3b850778ad0b62db3aa2cfe48832870c2461db30",
   "web_rev": "8478cd27d574249eca3d41f9135458dfda2762c8",
-  "web_socket_channel_rev": "0e1d6e2eb5a0bfd62e45b772ac7107d796176cf6",
+  "web_socket_channel_rev": "40aa29f1d2167467f5934d755891a8beb62a1239",
   "webdev_rev": "5f30c560dc4e3df341356c43ec1a766ee6b74a7c",
   "webdriver_rev": "accfed557c005c87df56ffb626458f87da9f2125",
   "webkit_inspection_protocol_rev": "b459c427b74bf5e0919a083a97a167fb74d8bff1",
   "yaml_rev": "e773005ab84e1b4d24132b0a687be7f9a3bfda15",
-  "yaml_edit_rev": "5c54d455f272bbb83c948ac420c677371e69ae77",
+  "yaml_edit_rev": "35f4248c7bbba289b3899fa55486e2f31ef1a8c5",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
