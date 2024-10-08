@@ -7267,11 +7267,6 @@ class MethodElementImpl extends ExecutableElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
-  /// If this method is a synthetic element which is based on another method
-  /// with some modifications (such as making some parameters covariant),
-  /// this field contains the base method.
-  MethodElement? prototype;
-
   /// The element corresponding to this fragment.
   MethodElement2? _element;
 
@@ -7280,7 +7275,7 @@ class MethodElementImpl extends ExecutableElementImpl
   MethodElementImpl(super.name, super.offset);
 
   @override
-  MethodElement get declaration => prototype ?? this;
+  MethodElement get declaration => this;
 
   @override
   String get displayName {
@@ -8687,11 +8682,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement, GetterFragment, SetterFragment {
   PropertyInducingElementImpl? _variable;
 
-  /// If this method is a synthetic element which is based on another method
-  /// with some modifications (such as making some parameters covariant),
-  /// this field contains the base method.
-  PropertyAccessorElement? prototype;
-
   /// The element corresponding to this fragment.
   ///
   /// The element will always be an instance of either `GetterElement` or
@@ -8748,7 +8738,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       correspondingSetter as SetterFragment?;
 
   @override
-  PropertyAccessorElement get declaration => prototype ?? this;
+  PropertyAccessorElement get declaration => this;
 
   @override
   ExecutableElement2 get element {
