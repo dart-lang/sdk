@@ -25,11 +25,18 @@ class SmartConsole extends Console {
     write('\x1b[${column + 1}`');
   }
 
+  void hideCursor() {
+    write('\x1b[? 5l');
+  }
+
+  void showCursor() {
+    write('\x1b[? 5h');
+  }
+
   ReadLineResult smartReadLine() {
     final buffer = LineEditBuffer();
 
     drawPrompt(buffer);
-
     while (true) {
       final key = readKey();
 
@@ -73,6 +80,7 @@ class SmartConsole extends Console {
   }
 
   void drawPrompt(LineEditBuffer buffer) {
+    hideCursor();
     const prefix = '(hsa) ';
 
     moveCursorToColumn(0);
@@ -93,6 +101,7 @@ class SmartConsole extends Console {
     }
 
     moveCursorToColumn(prefix.length + buffer.index);
+    showCursor();
   }
 }
 
