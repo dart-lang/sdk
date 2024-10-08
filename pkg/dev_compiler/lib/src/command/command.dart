@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,21 +19,21 @@ import 'package:kernel/text/debug_printer.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
-import '../command/arguments.dart';
-import '../command/options.dart';
-import '../command/result.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
-import 'compiler.dart';
-import 'compiler_new.dart';
-import 'module_metadata.dart';
-import 'module_symbols.dart';
-import 'module_symbols_collector.dart';
-import 'target.dart';
+import '../kernel/compiler.dart';
+import '../kernel/compiler_new.dart';
+import '../kernel/module_metadata.dart';
+import '../kernel/module_symbols.dart';
+import '../kernel/module_symbols_collector.dart';
+import '../kernel/target.dart';
+import 'arguments.dart';
+import 'options.dart';
+import 'result.dart';
 
 const _binaryName = 'dartdevc';
 

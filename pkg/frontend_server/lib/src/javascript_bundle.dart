@@ -9,8 +9,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/command/command.dart';
 import 'package:dev_compiler/src/js_ast/nodes.dart';
-import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
