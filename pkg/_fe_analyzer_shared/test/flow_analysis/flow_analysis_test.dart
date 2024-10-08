@@ -608,7 +608,8 @@ main() {
           FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView<Type>>(
               h.typeOperations, AssignedVariables<Node, Var>(),
               respectImplicitlyTypedVarInitializers: true,
-              fieldPromotionEnabled: true);
+              fieldPromotionEnabled: true,
+              inferenceUpdate4Enabled: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);

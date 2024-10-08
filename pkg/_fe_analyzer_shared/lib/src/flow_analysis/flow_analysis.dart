@@ -140,14 +140,21 @@ class ExpressionPropertyTarget<Expression extends Object>
 /// while visiting the code for type inference.
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Node, Variable extends Object, Type extends Object> {
-  factory FlowAnalysis(FlowAnalysisOperations<Variable, Type> operations,
-      AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      required bool fieldPromotionEnabled}) {
-    return new _FlowAnalysisImpl(operations, assignedVariables,
-        respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        fieldPromotionEnabled: fieldPromotionEnabled);
+  factory FlowAnalysis(
+    FlowAnalysisOperations<Variable, Type> operations,
+    AssignedVariables<Node, Variable> assignedVariables, {
+    required bool respectImplicitlyTypedVarInitializers,
+    required bool fieldPromotionEnabled,
+    required bool inferenceUpdate4Enabled,
+  }) {
+    return new _FlowAnalysisImpl(
+      operations,
+      assignedVariables,
+      respectImplicitlyTypedVarInitializers:
+          respectImplicitlyTypedVarInitializers,
+      fieldPromotionEnabled: fieldPromotionEnabled,
+      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+    );
   }
 
   factory FlowAnalysis.legacy(FlowAnalysisOperations<Variable, Type> operations,
@@ -1162,13 +1169,17 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   factory FlowAnalysisDebug(FlowAnalysisOperations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
       {required bool respectImplicitlyTypedVarInitializers,
-      required bool fieldPromotionEnabled}) {
+      required bool fieldPromotionEnabled,
+      required bool inferenceUpdate4Enabled}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
-        operations, assignedVariables,
-        respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        fieldPromotionEnabled: fieldPromotionEnabled));
+      operations,
+      assignedVariables,
+      respectImplicitlyTypedVarInitializers:
+          respectImplicitlyTypedVarInitializers,
+      fieldPromotionEnabled: fieldPromotionEnabled,
+      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+    ));
   }
 
   factory FlowAnalysisDebug.legacy(
@@ -4299,6 +4310,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   final bool fieldPromotionEnabled;
 
+  final bool inferenceUpdate4Enabled;
+
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
@@ -4315,10 +4328,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final List<_Reference<Type>> _cascadeTargetStack = [];
 
-  _FlowAnalysisImpl(this.operations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers,
-      required this.fieldPromotionEnabled})
-      : promotionKeyStore = _assignedVariables.promotionKeyStore {
+  _FlowAnalysisImpl(
+    this.operations,
+    this._assignedVariables, {
+    required this.respectImplicitlyTypedVarInitializers,
+    required this.fieldPromotionEnabled,
+    required this.inferenceUpdate4Enabled,
+  }) : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }

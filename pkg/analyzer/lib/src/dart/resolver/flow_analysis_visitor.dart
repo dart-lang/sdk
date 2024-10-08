@@ -87,24 +87,34 @@ class FlowAnalysisHelper {
 
   final bool fieldPromotionEnabled;
 
+  final bool inferenceUpdate4Enabled;
+
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
       SharedTypeView<DartType>>? flow;
 
   FlowAnalysisHelper(bool retainDataForTesting, FeatureSet featureSet,
       {required TypeSystemOperations typeSystemOperations})
-      : this._(typeSystemOperations,
-            retainDataForTesting ? FlowAnalysisDataForTesting() : null,
-            isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
-            respectImplicitlyTypedVarInitializers:
-                featureSet.isEnabled(Feature.constructor_tearoffs),
-            fieldPromotionEnabled:
-                featureSet.isEnabled(Feature.inference_update_2));
+      : this._(
+          typeSystemOperations,
+          retainDataForTesting ? FlowAnalysisDataForTesting() : null,
+          isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
+          respectImplicitlyTypedVarInitializers:
+              featureSet.isEnabled(Feature.constructor_tearoffs),
+          fieldPromotionEnabled:
+              featureSet.isEnabled(Feature.inference_update_2),
+          inferenceUpdate4Enabled:
+              featureSet.isEnabled(Feature.inference_update_4),
+        );
 
-  FlowAnalysisHelper._(this.typeOperations, this.dataForTesting,
-      {required this.isNonNullableByDefault,
-      required this.respectImplicitlyTypedVarInitializers,
-      required this.fieldPromotionEnabled});
+  FlowAnalysisHelper._(
+    this.typeOperations,
+    this.dataForTesting, {
+    required this.isNonNullableByDefault,
+    required this.respectImplicitlyTypedVarInitializers,
+    required this.fieldPromotionEnabled,
+    required this.inferenceUpdate4Enabled,
+  });
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -261,10 +271,14 @@ class FlowAnalysisHelper {
     }
     flow = isNonNullableByDefault
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-                SharedTypeView<DartType>>(typeOperations, assignedVariables!,
+            SharedTypeView<DartType>>(
+            typeOperations,
+            assignedVariables!,
             respectImplicitlyTypedVarInitializers:
                 respectImplicitlyTypedVarInitializers,
-            fieldPromotionEnabled: fieldPromotionEnabled)
+            fieldPromotionEnabled: fieldPromotionEnabled,
+            inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+          )
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
                 SharedTypeView<DartType>>.legacy(
             typeOperations, assignedVariables!);
