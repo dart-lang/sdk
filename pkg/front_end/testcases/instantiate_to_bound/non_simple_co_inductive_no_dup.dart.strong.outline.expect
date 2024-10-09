@@ -14,7 +14,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef C<unrelated TypeX extends invalid-type> = invalid-type;
+typedef C<unrelated TypeX extends core::Map<invalid-type, invalid-type> = invalid-type> = invalid-type;
 class A<TypeX extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::TypeX%>
     ;

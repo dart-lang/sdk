@@ -30,6 +30,9 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
       : super(typedef.name, parent, typedef.fileUri, typedef.fileOffset);
 
   @override
+  Reference get reference => typedef.reference;
+
+  @override
   List<NominalVariableBuilder>? get typeVariables {
     if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
       _typeVariables = computeTypeVariableBuilders(
