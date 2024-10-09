@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Verify that if an `await` expression appears in a syntactic postion that
+// Verify that if an `await` expression appears in a syntactic position that
 // doesn't impose a context on it, it supplies a context of `FutureOr<_>` to its
 // operand, rather than `_` (which was the behavior prior to fixing
 // https://github.com/dart-lang/language/issues/3648).

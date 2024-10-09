@@ -13,7 +13,7 @@ main() {
   if (!v.jsNumbers) {
     Expect.throws<UnsupportedError>(() => truncdiv_test.foo(12, 0));
   } else {
-    // Web numbers consider infinities to be large-magnitide 'int' values.
+    // Web numbers consider infinities to be large-magnitude 'int' values.
     truncdiv_test.foo(12, 0);
   }
   Expect.throws<UnsupportedError>(() => truncdiv_test.foo2(0));

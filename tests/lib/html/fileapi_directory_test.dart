@@ -8,7 +8,7 @@ import 'package:async_helper/async_minitest.dart';
 
 main() {
   if (!FileSystem.supported) return;
-  // Prepend this file name to prevent collisions among tests runnning on the
+  // Prepend this file name to prevent collisions among tests running on the
   // same browser.
   const prefix = 'fileapi_directory_';
 

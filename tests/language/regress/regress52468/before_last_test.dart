@@ -6,7 +6,7 @@
 //
 // Similar to simple_test.dart, but ensure the logic works also when the
 // unevaluated constant is not the last record entry (tracks properly managing
-// the internal state of unevaluated constnats on sequence of subexpressions).
+// the internal state of unevaluated constants on sequence of subexpressions).
 //
 // Regression test for https://github.com/dart-lang/sdk/issues/52468
 const unevaluated = const bool.fromEnvironment('a.b.c') ? 1 : 2;

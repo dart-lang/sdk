@@ -9,7 +9,7 @@ import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_sam
 main() {
   test('indexedAccessTest', () {
     // FIXME: we need some massaging to dart:html to enable HTMLOptionsCollection.add
-    // and hence programatic building of collection.
+    // and hence programmatic building of collection.
     SelectElement selectElement = new Element.html('''
       <select>
         <option value="0">Option0</option>

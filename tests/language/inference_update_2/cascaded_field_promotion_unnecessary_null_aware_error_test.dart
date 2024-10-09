@@ -100,7 +100,7 @@ void writeCapturedValueFieldsArePromotable(C c) {
 void writeDefeatsLaterAccessesButNotCascadeTarget(C c) {
   // If a write to a variable happens during a cascade, any promotions based on
   // that variable are invalidated, but the target of the cascade remains
-  // promoted, since it's stored in an implicit temporarly variable that's
+  // promoted, since it's stored in an implicit temporary variable that's
   // unaffected by the write.
   c._field as C;
   c._field.expectStaticType<Exactly<C>>();

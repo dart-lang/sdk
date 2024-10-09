@@ -51,7 +51,7 @@ void main() {
   assertThrows(() => RegExp(r"[\c]", unicode: true));
   // test262/built-ins/RegExp/unicode_restricted_identity_escape_c
   assertThrows(() => RegExp(r"[\c0]", unicode: true));
-  // test262/built-ins/RegExp/unicode_restricted_incomple_quantifier
+  // test262/built-ins/RegExp/unicode_restricted_incomplete_quantifier
   assertThrows(() => RegExp(r"a{", unicode: true));
   assertThrows(() => RegExp(r"a{1,", unicode: true));
   assertThrows(() => RegExp(r"{", unicode: true));

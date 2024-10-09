@@ -48,7 +48,7 @@ class B4 {
 }
 
 class D4 extends B4 {
-  // The default value is negative, so the conversion is neccessary. The
+  // The default value is negative, so the conversion is necessary. The
   // conversion will be optimized away if the negative default value is ignored
   // in the global type analysis.
   int foo4([int a = -16]) => a | 1;

@@ -50,7 +50,7 @@ void testFarAwayDates() {
   Expect.equals(true, dt.hour >= 0 && dt.hour < 24);
   // Not much we can test for the minute and second.
   //
-  // Historical timezones can have arbitrary offets. For example, "Pacific
+  // Historical timezones can have arbitrary offsets. For example, "Pacific
   // Standard Time" in the United States is represented by Los Angeles. Prior to
   // the adoption of "Railway Time" in the United States at noon on 18 November
   // 1883, the local time in Los Angeles had an offset of a few minutes from the

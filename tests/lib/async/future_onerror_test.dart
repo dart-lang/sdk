@@ -23,7 +23,7 @@ main() {
 
   /// Perform `onError` on [future] with arguments, and expect [result].
   ///
-  /// If [result] is [AsyncError], expecte an error result with
+  /// If [result] is [AsyncError], expect an error result with
   /// that error and stack trace.
   /// If [result.stackTrace] is [StackTrace.empty],
   /// check that the stack trace is *not* the original [stack].

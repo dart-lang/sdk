@@ -57,7 +57,7 @@ void main() {
 
   // NaN maps need to have nullable value types because the forEach method
   // cannot look up the value and therefore might find `null` instead of the
-  // actuall value. See MapMixin.forEach in dart:collection/maps.dart
+  // actual value. See MapMixin.forEach in dart:collection/maps.dart
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String?>());
   testNaNKeys(new HashMap());

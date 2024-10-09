@@ -16,7 +16,7 @@ main() {
 test(n) {
   var a = []; //    Growable list.
   var b = new List<dynamic>.filled(10, null); // Fixed size list.
-  var c = const [1, 2, 3, 4]; // Constant aray.
+  var c = const [1, 2, 3, 4]; // Constant array.
   // In optimized mode the class checks will be eliminated since the
   // constructors above provide information about exact types.
   a.add(4);

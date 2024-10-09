@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regresion test for bug discovered in frog handling super calls: the test case
-// mixes generics, super calls, and purposely doesn't allocate the base type.
+// Regression test for bug discovered in frog handling super calls:
+// the test case mixes generics, super calls, and purposely doesn't
+// allocate the base type.
 //
 // Also is a regression test for https://github.com/dart-lang/sdk/issues/31973
 
