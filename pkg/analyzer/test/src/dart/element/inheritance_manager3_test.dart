@@ -2396,7 +2396,6 @@ class C extends B implements A {}
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.declaration, same(findElement.method('foo', of: 'B')));
     expect(member.parameters[0].isCovariant, isTrue);
   }
 
@@ -2658,7 +2657,6 @@ class C extends B implements A {}
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.declaration, same(findElement.setter('foo', of: 'B')));
     expect(member.parameters[0].isCovariant, isTrue);
   }
 

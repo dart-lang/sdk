@@ -38,6 +38,7 @@ lib/src/collections.dart
 lib/src/computer/computer_closing_labels.dart
 lib/src/computer/computer_color.dart
 lib/src/computer/computer_folding.dart
+lib/src/computer/computer_highlights.dart
 lib/src/computer/computer_selection_ranges.dart
 lib/src/context_manager.dart
 lib/src/domain_analysis_flags.dart

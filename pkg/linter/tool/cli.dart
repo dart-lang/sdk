@@ -18,7 +18,7 @@ import 'package:linter/src/test_utilities/analyzer_utils.dart';
 import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:linter/src/test_utilities/test_linter.dart';
 
-import 'util/score_utils.dart';
+import 'lint_sets.dart';
 
 /// Starts linting from the command-line.
 Future<void> main(List<String> args) async {
@@ -186,9 +186,9 @@ Future<void> writeBenchmarks(
     });
   }
 
-  var coreRuleset = await coreRules;
-  var recommendedRuleset = await recommendedRules;
-  var flutterRuleset = await flutterRules;
+  var coreRuleset = await dartCoreLints;
+  var recommendedRuleset = await dartRecommendedLints;
+  var flutterRuleset = await flutterUserLints;
 
   var stats = timings.keys.map((t) {
     var sets = <String>[];

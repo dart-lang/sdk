@@ -88,6 +88,14 @@ void main(List<String> args) {
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
 
+  // TODO(devoncarew): Temporarily ignore the second package:file and
+  // package:file_testing locations.
+  packages.removeWhere((p) {
+    final path = posix(p.rootUri);
+    return path == 'third_party/pkg/file/packages/file' ||
+        path == 'third_party/pkg/file/packages/file_testing';
+  });
+
   // Remove any packages with identical names.
   final uniqueNames = packages.map((p) => p.name).toSet();
 

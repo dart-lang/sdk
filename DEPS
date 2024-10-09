@@ -102,7 +102,7 @@ vars = {
   "boringssl_rev": "2db0eb3f96a5756298dcd7f9319e56a98585bd10",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "f5e84f91b32b219d646cfb87a891cd143dc84056",
+  "devtools_rev": "dcef4f6efe986f110f55dbbe7f3731802e86690a",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -184,7 +184,7 @@ vars = {
   "test_descriptor_rev": "a3db1efe3dc725dcae9ee61647d3bfc19b3231ac",
   "test_process_rev": "52ee3f5ab70ed965bb7122c1d499081fbccd0bde",
   "test_reflective_loader_rev": "598af2f503955020af0eaa82558d574a03934078",
-  "tools_rev": "d4995d47b99d5e9564abfed2218f4a23df75983b", #
+  "tools_rev": "3f7a46606496f826c2f60586ab71c2b7a9bfbf15",
   "typed_data_rev": "6abfafdcf661cd8a814619d7e2a3e99edb3a3862",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "3b850778ad0b62db3aa2cfe48832870c2461db30",

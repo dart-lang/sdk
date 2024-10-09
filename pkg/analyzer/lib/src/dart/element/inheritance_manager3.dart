@@ -1056,7 +1056,6 @@ class InheritanceManager3 {
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
-      result.prototype = executable;
       result.returnType = executable.returnType;
       result.typeParameters = executable.typeParameters;
       return result;
@@ -1069,7 +1068,6 @@ class InheritanceManager3 {
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
-      result.prototype = executable;
       result.returnType = executable.returnType;
 
       var field = executable.variable2!;
