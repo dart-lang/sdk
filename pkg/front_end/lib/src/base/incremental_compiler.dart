@@ -666,7 +666,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
-    nextGoodKernelTarget.loader.fragmentsCreatedWithReferences.clear();
     nextGoodKernelTarget.loader.hierarchyBuilder.clear();
     nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
@@ -2049,7 +2048,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           indexedLibrary: null,
           mayImplementRestrictedTypes: false);
 
+      SourceLibraryBuilder? orgDebugLibrary = debugLibrary;
       debugLibrary = debugCompilationUnit.createLibrary();
+
+      // Copy over the prefix namespace for extensions
+      // (`forEachExtensionInScope`) to be found when imported via prefixes.
+      // TODO(johnniwinther): Extensions should be available through
+      // [parentScope].
+      orgDebugLibrary.prefixNameSpace.forEachLocalMember((name, member) {
+        debugLibrary.prefixNameSpace
+            .addLocalMember(name, member, setter: false);
+      });
+      // Does a prefix namespace ever have anything but locals?
+      orgDebugLibrary.prefixNameSpace.forEachLocalSetter((name, member) {
+        debugLibrary.prefixNameSpace.addLocalMember(name, member, setter: true);
+      });
+      orgDebugLibrary.prefixNameSpace.forEachLocalExtension((member) {
+        debugLibrary.prefixNameSpace.addExtension(member);
+      });
+      orgDebugLibrary = null;
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;

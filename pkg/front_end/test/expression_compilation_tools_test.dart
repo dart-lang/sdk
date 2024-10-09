@@ -17,12 +17,12 @@ void main() {
         "1",
         "0",
       ]),
-      [new ParsedType("dart:core", "_OneByteString", 1)]);
+      [new ParsedType.interface("dart:core", "_OneByteString", 1)]);
 
   // List<something it can't represent which thus becomes an explicit
   // dynamic/null>, kNonNullable.
   expect(parseDefinitionTypes(["dart:core", "List", "1", "1", "null"]), [
-    new ParsedType("dart:core", "List", 1)
+    new ParsedType.interface("dart:core", "List", 1)
       ..arguments!.add(new ParsedType.nullType())
   ]);
 
@@ -39,8 +39,8 @@ void main() {
         "0",
       ]),
       [
-        new ParsedType("dart:core", "_GrowableList", 1)
-          ..arguments!.add(new ParsedType("dart:core", "int", 1))
+        new ParsedType.interface("dart:core", "_GrowableList", 1)
+          ..arguments!.add(new ParsedType.interface("dart:core", "int", 1))
       ]);
 
   // Map<int, int>, kNonNullable
@@ -60,9 +60,9 @@ void main() {
         "0",
       ]),
       [
-        new ParsedType("dart:core", "Map", 1)
-          ..arguments!.add(new ParsedType("dart:core", "int", 1))
-          ..arguments!.add(new ParsedType("dart:core", "int", 1))
+        new ParsedType.interface("dart:core", "Map", 1)
+          ..arguments!.add(new ParsedType.interface("dart:core", "int", 1))
+          ..arguments!.add(new ParsedType.interface("dart:core", "int", 1))
       ]);
 
   // [0] = String
@@ -102,33 +102,52 @@ void main() {
       ]),
       <ParsedType>[
         // String
-        new ParsedType("dart:core", "_OneByteString", 1),
+        new ParsedType.interface("dart:core", "_OneByteString", 1),
         // int
-        new ParsedType("dart:core", "_Smi", 1),
+        new ParsedType.interface("dart:core", "_Smi", 1),
         // List<String>
-        new ParsedType("dart:core", "_GrowableList", 1)
+        new ParsedType.interface("dart:core", "_GrowableList", 1)
           ..arguments!.addAll([
-            new ParsedType("dart:core", "String", 1),
+            new ParsedType.interface("dart:core", "String", 1),
           ]),
         // Bar
-        new ParsedType("file://wherever/t.dart", "Bar", 1),
+        new ParsedType.interface("file://wherever/t.dart", "Bar", 1),
         // null value
         new ParsedType.nullType(),
         // HashMap<Map<int, List<int>>, List<String>>
-        new ParsedType("dart:collection", "_InternalLinkedHashMap", 1)
+        new ParsedType.interface("dart:collection", "_InternalLinkedHashMap", 1)
           ..arguments!.addAll([
-            new ParsedType("dart:core", "Map", 1)
+            new ParsedType.interface("dart:core", "Map", 1)
               ..arguments!.addAll([
-                new ParsedType("dart:core", "int", 1),
-                new ParsedType("dart:core", "List", 1)
+                new ParsedType.interface("dart:core", "int", 1),
+                new ParsedType.interface("dart:core", "List", 1)
                   ..arguments!.addAll([
-                    new ParsedType("dart:core", "int", 1),
+                    new ParsedType.interface("dart:core", "int", 1),
                   ]),
               ]),
-            new ParsedType("dart:core", "List", 1)
+            new ParsedType.interface("dart:core", "List", 1)
               ..arguments!.addAll([
-                new ParsedType("dart:core", "String", 1),
+                new ParsedType.interface("dart:core", "String", 1),
               ]),
           ]),
       ]);
+
+  // Set<(int, {int foo})>, kNonNullable
+  expect(
+    parseDefinitionTypes([
+      //
+      /**/ "dart:_compact_hash", "_Set", "1", "1",
+      /*  */ "record", "1", "2", "1", "foo",
+      /*    */ "dart:core", "int", "1", "0",
+      /*    */ "dart:core", "int", "1", "0",
+    ]),
+    [
+      new ParsedType.interface("dart:_compact_hash", "_Set", 1)
+        ..arguments!.add(
+          new ParsedType.record(1, [null, "foo"])
+            ..arguments!.add(new ParsedType.interface("dart:core", "int", 1))
+            ..arguments!.add(new ParsedType.interface("dart:core", "int", 1)),
+        )
+    ],
+  );
 }

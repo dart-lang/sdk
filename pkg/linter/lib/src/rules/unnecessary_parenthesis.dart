@@ -104,8 +104,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // `(List<int>).toString()` is OK.
     if (expression is TypeLiteral) return;
 
-    if (expression is SimpleIdentifier ||
-        expression.containsNullAwareInvocationInChain()) {
+    if (expression.isOneToken ||
+        expression.containsNullAwareInvocationInChain) {
       if (parent is PropertyAccess) {
         var name = parent.propertyName.name;
         if (name == 'hashCode' || name == 'runtimeType') {
@@ -233,9 +233,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       // inside one of the following nodes, the readability is not affected.
       if (parent is! AssignmentExpression &&
           parent is! ConstructorFieldInitializer &&
-          parent is! VariableDeclaration &&
           parent is! ExpressionFunctionBody &&
+          parent is! RecordLiteral &&
           parent is! ReturnStatement &&
+          parent is! VariableDeclaration &&
           parent is! YieldStatement &&
           !node.isArgument) {
         return;
@@ -350,4 +351,15 @@ extension on Expression {
   bool get isArgument =>
       parent is ArgumentList ||
       (parent is NamedExpression && parent?.parent is ArgumentList);
+
+  /// Whether this expression is a sigle token.
+  ///
+  /// This excludes type literals because they often need to be parenthesized.
+  bool get isOneToken =>
+      this is SimpleIdentifier ||
+      this is StringLiteral ||
+      this is IntegerLiteral ||
+      this is DoubleLiteral ||
+      this is NullLiteral ||
+      this is BooleanLiteral;
 }

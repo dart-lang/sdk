@@ -546,7 +546,7 @@ class SimpleToken implements Token {
    */
   @override
   void set offset(int value) {
-    assert(_tokenTypesByIndex.length < 256);
+    assert(_tokenTypesByIndex.length == 256);
     // See https://github.com/dart-lang/sdk/issues/50048 for details.
     assert(value >= -1);
     _typeAndOffset = ((value + 1) << 8) | (_typeAndOffset & 0xff);
@@ -580,7 +580,7 @@ class SimpleToken implements Token {
     assert(offset >= -1);
 
     // Assert the encoding of the [type] is fully reversible.
-    assert(type.index < 256 && _tokenTypesByIndex.length < 256);
+    assert(type.index < 256 && _tokenTypesByIndex.length == 256);
     assert(identical(offset, this.offset));
     assert(identical(type, this.type), '$type != ${this.type}');
 
@@ -1226,6 +1226,9 @@ class TokenClass {
  * Clients may not extend, implement or mix-in this class.
  */
 class TokenType {
+  static const TokenType UNUSED = const TokenType(
+      /* index = */ 255, '', 'UNUSED', NO_PRECEDENCE, EOF_TOKEN);
+
   /**
    * The type of the token that marks the start or end of the input.
    */
@@ -1234,7 +1237,7 @@ class TokenType {
 
   static const TokenType DOUBLE = const TokenType(
       /* index = */ 1, 'double', 'DOUBLE', NO_PRECEDENCE, DOUBLE_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType DOUBLE_WITH_SEPARATORS = const TokenType(
       /* index = */ 2,
@@ -1242,11 +1245,11 @@ class TokenType {
       'DOUBLE_WITH_SEPARATORS',
       NO_PRECEDENCE,
       DOUBLE_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType HEXADECIMAL = const TokenType(/* index = */ 3,
       'hexadecimal', 'HEXADECIMAL', NO_PRECEDENCE, HEXADECIMAL_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType HEXADECIMAL_WITH_SEPARATORS = const TokenType(
       /* index = */ 4,
@@ -1254,34 +1257,34 @@ class TokenType {
       'HEXADECIMAL_WITH_SEPARATORS',
       NO_PRECEDENCE,
       HEXADECIMAL_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType IDENTIFIER = const TokenType(/* index = */ 5,
       'identifier', 'IDENTIFIER', NO_PRECEDENCE, IDENTIFIER_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType INT = const TokenType(
       /* index = */ 6, 'int', 'INT', NO_PRECEDENCE, INT_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType INT_WITH_SEPARATORS = const TokenType(
       /* index = */ 7, 'int', 'INT_WITH_SEPARATORS', NO_PRECEDENCE, INT_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType MULTI_LINE_COMMENT = const TokenType(/* index = */ 8,
       'comment', 'MULTI_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType SCRIPT_TAG = const TokenType(
       /* index = */ 9, 'script', 'SCRIPT_TAG', NO_PRECEDENCE, SCRIPT_TOKEN);
 
   static const TokenType SINGLE_LINE_COMMENT = const TokenType(/* index = */ 10,
       'comment', 'SINGLE_LINE_COMMENT', NO_PRECEDENCE, COMMENT_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType STRING = const TokenType(
       /* index = */ 11, 'string', 'STRING', NO_PRECEDENCE, STRING_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   static const TokenType AMPERSAND = const TokenType(/* index = */ 12, '&',
       'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
@@ -1592,7 +1595,7 @@ class TokenType {
    */
   static const TokenType BAD_INPUT = const TokenType(/* index = */ 80,
       'malformed input', 'BAD_INPUT', NO_PRECEDENCE, BAD_INPUT_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   /**
    * Token type used by synthetic tokens that are created during parser
@@ -1600,7 +1603,7 @@ class TokenType {
    */
   static const TokenType RECOVERY = const TokenType(
       /* index = */ 81, 'recovery', 'RECOVERY', NO_PRECEDENCE, RECOVERY_TOKEN,
-      stringValue: null);
+      stringValueShouldBeNull: true);
 
   // TODO(danrubel): "all" is misleading
   // because this list does not include all TokenType instances.
@@ -1767,8 +1770,8 @@ class TokenType {
       this.isOperator = false,
       this.isTopLevelKeyword = false,
       this.isUserDefinableOperator = false,
-      String? stringValue = 'unspecified'})
-      : this.stringValue = stringValue == 'unspecified' ? lexeme : stringValue;
+      bool stringValueShouldBeNull = false})
+      : this.stringValue = stringValueShouldBeNull ? null : lexeme;
 
   /**
    * Return `true` if this type of token represents an additive operator.
@@ -1875,9 +1878,11 @@ class TokenType {
   String toString() => name;
 }
 
-/**
- * Constant list of [TokenType] and [Keyword] ordered by index.
- */
+/// Constant list of [TokenType] and [Keyword] ordered by index.
+///
+/// This list should always have length 256 to avoid bounds checks in
+/// SimpleToken.type:
+/// DartDocTest(_tokenTypesByIndex.length, 256)
 const List<TokenType> _tokenTypesByIndex = [
   TokenType.EOF,
   TokenType.DOUBLE,
@@ -2034,4 +2039,133 @@ const List<TokenType> _tokenTypesByIndex = [
   Keyword.WHILE,
   Keyword.WITH,
   Keyword.YIELD,
+  // Fill to length 256 to avoid bounds check in SimpleToken.type.
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
 ];
+
+extension TokenIsAExtension on Token {
+  /// Returns true if this has the token type [value].
+  @pragma("vm:prefer-inline")
+  bool isA(TokenType value) {
+    return value.index == typeIndex;
+  }
+
+  /// Returns true if this has the token type [value].
+  ///
+  /// Use when doing more isA queries on the same thing, until
+  /// https://github.com/dart-lang/sdk/issues/56828 and
+  /// https://github.com/dart-lang/sdk/issues/56839 are fixed at which point
+  /// `isA` calls should be better.
+  @pragma("vm:prefer-inline")
+  bool isA2(TokenType value) {
+    return identical(value, type);
+  }
+}
+
+extension TokenTypeIsAExtension on TokenType {
+  /// Returns true if this is the token type [value].
+  @pragma("vm:prefer-inline")
+  bool isA(TokenType value) {
+    return identical(value, this);
+  }
+}

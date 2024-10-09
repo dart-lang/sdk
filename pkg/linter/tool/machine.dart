@@ -14,8 +14,8 @@ import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
-import '../tool/util/path_utils.dart';
 import 'messages_info.dart';
+import 'util/path_utils.dart';
 
 /// Generates a list of built-in lint rules in JSON suitable for
 /// consumption by other tools.

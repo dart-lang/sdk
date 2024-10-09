@@ -24,7 +24,6 @@ import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart'
     show LocatedMessage, Message, Severity, noLength, templateUnspecified;
-import '../fragment/fragment.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
@@ -400,14 +399,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
     Map<Reference, Builder>? sourceBuildersMap =
         loader.currentSourceLoader?.buildersCreatedWithReferences;
-    Map<Reference, Fragment>? fragmentMap =
-        loader.currentSourceLoader?.fragmentsCreatedWithReferences;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node as NamedNode;
-      Builder? declaration = sourceBuildersMap?[reference] ??
-          fragmentMap?[reference]
-              // Coverage-ignore(suite): Not run.
-              ?.builder;
+      Builder? declaration = sourceBuildersMap?[reference];
       String name;
       if (declaration != null) {
         // Coverage-ignore-block(suite): Not run.
@@ -476,7 +470,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       assert(
           (declaration is ClassBuilder && node == declaration.cls) ||
               (declaration is TypeAliasBuilder &&
-                  node == declaration.typedef) ||
+                  reference == declaration.reference) ||
               (declaration is MemberBuilder && node == declaration.member) ||
               (declaration is ExtensionBuilder &&
                   node == declaration.extension) ||

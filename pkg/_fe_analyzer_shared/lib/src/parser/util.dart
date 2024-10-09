@@ -11,13 +11,7 @@ import '../messages/codes.dart' show noLength;
 import '../scanner/scanner.dart' show Token;
 
 import '../scanner/token.dart'
-    show BeginToken, SimpleToken, SyntheticToken, TokenType;
-
-/// Returns true if [token] has the token type [value].
-@pragma("vm:prefer-inline")
-bool optional2(TokenType value, Token token) {
-  return value.index == token.typeIndex;
-}
+    show BeginToken, SimpleToken, SyntheticToken, TokenIsAExtension, TokenType;
 
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
@@ -74,24 +68,14 @@ bool isLetterOrDigit(int c) => isLetter(c) || isDigit(c);
 
 bool isWhitespace(int c) => c == 0x20 || c == 0xA || c == 0xD || c == 0x9;
 
-/// Return true if the given token matches one of the given values.
-bool isOneOf(Token token, Iterable<String> values) {
-  for (String tokenValue in values) {
-    if (optional(tokenValue, token)) {
+bool isAnyOf(Token token, List<TokenType> values) {
+  TokenType type = token.type;
+  for (TokenType tokenValue in values) {
+    if (tokenValue == type) {
       return true;
     }
   }
   return false;
-}
-
-/// Return true if the given token matches one of the given values or is EOF.
-bool isOneOfOrEof(Token token, Iterable<String> values) {
-  for (String tokenValue in values) {
-    if (optional(tokenValue, token)) {
-      return true;
-    }
-  }
-  return token.isEof;
 }
 
 /// A null-aware alternative to `token.length`.  If [token] is `null`, returns
@@ -111,14 +95,14 @@ int lengthOfSpan(Token? begin, Token? end) {
 
 Token skipMetadata(Token token) {
   token = token.next!;
-  assert(optional('@', token));
+  assert(token.isA(TokenType.AT));
   Token next = token.next!;
   // Corresponds to 'ensureIdentifier' in [parseMetadata].
   if (next.isIdentifier) {
     token = next;
     next = token.next!;
     // Corresponds to 'parseQualifiedRestOpt' in [parseMetadata].
-    if (optional('.', next)) {
+    if (next.isA(TokenType.PERIOD)) {
       token = next;
       next = token.next!;
       if (next.isIdentifier) {
@@ -127,13 +111,13 @@ Token skipMetadata(Token token) {
       }
     }
     // Corresponds to 'computeTypeParamOrArg' in [parseMetadata].
-    if (optional('<', next) && !next.endGroup!.isSynthetic) {
+    if (next.isA(TokenType.LT) && !next.endGroup!.isSynthetic) {
       token = next.endGroup!;
       next = token.next!;
     }
 
     // The extra .identifier after arguments in [parseMetadata].
-    if (optional('.', next)) {
+    if (next.isA(TokenType.PERIOD)) {
       token = next;
       next = token.next!;
       if (next.isIdentifier) {
@@ -143,7 +127,7 @@ Token skipMetadata(Token token) {
     }
 
     // Corresponds to 'parseArgumentsOpt' in [parseMetadata].
-    if (optional('(', next) && !next.endGroup!.isSynthetic) {
+    if (next.isA(TokenType.OPEN_PAREN) && !next.endGroup!.isSynthetic) {
       token = next.endGroup!;
       next = token.next!;
     }
@@ -154,7 +138,7 @@ Token skipMetadata(Token token) {
 /// Split `>=` into two separate tokens.
 /// Call [Token.setNext] to add the token to the stream.
 Token splitGtEq(Token token) {
-  assert(optional('>=', token));
+  assert(token.isA(TokenType.GT_EQ));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 1)
@@ -166,7 +150,7 @@ Token splitGtEq(Token token) {
 /// Split `>>` into two separate tokens.
 /// Call [Token.setNext] to add the token to the stream.
 SimpleToken splitGtGt(Token token) {
-  assert(optional('>>', token));
+  assert(token.isA(TokenType.GT_GT));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
@@ -178,7 +162,7 @@ SimpleToken splitGtGt(Token token) {
 /// Split `>>=` into three separate tokens.
 /// Call [Token.setNext] to add the token to the stream.
 Token splitGtGtEq(Token token) {
-  assert(optional('>>=', token));
+  assert(token.isA(TokenType.GT_GT_EQ));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
@@ -191,7 +175,7 @@ Token splitGtGtEq(Token token) {
 /// Split `>>=` into two separate tokens... `>` followed by `>=`.
 /// Call [Token.setNext] to add the token to the stream.
 Token splitGtFromGtGtEq(Token token) {
-  assert(optional('>>=', token));
+  assert(token.isA(TokenType.GT_GT_EQ));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT_EQ, token.charOffset + 1)
@@ -203,7 +187,7 @@ Token splitGtFromGtGtEq(Token token) {
 /// Split `>>>` into two separate tokens... `>` followed by `>>`.
 /// Call [Token.setNext] to add the token to the stream.
 Token splitGtFromGtGtGt(Token token) {
-  assert(optional('>>>', token));
+  assert(token.isA(TokenType.GT_GT_GT));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT_GT, token.charOffset + 1)
@@ -215,7 +199,7 @@ Token splitGtFromGtGtGt(Token token) {
 /// Split `>>>=` into two separate tokens... `>` followed by `>>=`.
 /// Call [Token.setNext] to add the token to the stream.
 Token splitGtFromGtGtGtEq(Token token) {
-  assert(optional('>>>=', token));
+  assert(token.isA(TokenType.GT_GT_GT_EQ));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT_GT_EQ, token.charOffset + 1)

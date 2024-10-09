@@ -62,7 +62,6 @@ import '../codes/cfe_codes.dart';
 import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
-import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -125,8 +124,6 @@ class SourceLoader extends Loader {
   /// that builder. This is used for looking up source builders when finalizing
   /// exports in dill builders.
   Map<Reference, Builder> buildersCreatedWithReferences = {};
-
-  Map<Reference, Fragment> fragmentsCreatedWithReferences = {};
 
   /// Used when checking whether a return type of an async function is valid.
   ///

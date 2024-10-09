@@ -53,15 +53,12 @@ class _Added {
       case TypedefFragment():
         Reference? reference = indexedLibrary?.lookupTypedef(fragment.name);
         SourceTypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
-            metadata: fragment.metadata,
             name: fragment.name,
-            typeVariables: fragment.typeVariables,
-            type: fragment.type,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
             fileOffset: fragment.fileOffset,
+            fragment: fragment,
             reference: reference);
-        fragment.builder = typedefBuilder;
         builders.add(new _AddBuilder(fragment.name, typedefBuilder,
             fragment.fileUri, fragment.fileOffset));
         if (reference != null) {

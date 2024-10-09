@@ -57,6 +57,17 @@ void f(Future<void> f, Future<void>? g) async {
 ''');
   }
 
+  test_binaryExpressionInside_constructorFieldInitializer() async {
+    await assertDiagnostics(r'''
+class C {
+  bool f;
+  C() : f = (true && false);
+}
+''', [
+      lint(32, 15),
+    ]);
+  }
+
   test_binaryExpressionInside_namedArgument() async {
     await assertDiagnostics(r'''
 void f({required int p}) {
@@ -83,6 +94,16 @@ var x = ~(1 | 2);
 ''');
   }
 
+  test_binaryExpressionInside_recordLiteral() async {
+    await assertDiagnostics(r'''
+Record f() {
+  return (1, (2 + 2));
+}
+''', [
+      lint(26, 7),
+    ]);
+  }
+
   test_binaryExpressionInside_returnExpression() async {
     await assertDiagnostics(r'''
 bool f() {
@@ -91,6 +112,26 @@ bool f() {
 ''', [
       lint(20, 7),
     ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4041
+  test_cascadeAssignmentInside_nullAware() async {
+    await assertNoDiagnostics(r'''
+class A {
+  var b = false;
+  void m() {}
+  set setter(int i) {}
+}
+
+void f(A? a) {
+  (a?..b = true)?.m();
+  (a?..b = true)?.setter = 1;
+}
+
+void g(List<int>? list) {
+  (list?..[0] = 1)?.length;
+}
+''');
   }
 
   test_conditionalExpressionInside_argument() async {
@@ -141,55 +182,12 @@ void f(int i) {
 ''');
   }
 
-  test_constructorFieldInitializer_binaryInside() async {
-    await assertDiagnostics(r'''
-class C {
-  bool f;
-  C() : f = (true && false);
-}
-''', [
-      lint(32, 15),
-    ]);
-  }
-
-  test_constructorFieldInitializer_equalityInside() async {
-    await assertNoDiagnostics(r'''
-class C {
-  bool f;
-  C() : f = (1 == 2);
-}
-''');
-  }
-
   test_constructorFieldInitializer_functionExpressionInAssignment() async {
     await assertNoDiagnostics(r'''
 class C {
   final bool Function() e;
 
   C(bool Function()? e) : e = e ??= (() => true);
-}
-''');
-  }
-
-  /// https://github.com/dart-lang/linter/issues/1395
-  test_constructorFieldInitializer_functionExpressionInCascade() async {
-    await assertNoDiagnostics(r'''
-class C {
-  Object f;
-
-  C() : f = (C()..f = () => 42);
-}
-''');
-  }
-
-  /// https://github.com/dart-lang/linter/issues/1395
-  test_constructorFieldInitializer_functionExpressionInCascade2() async {
-    await assertNoDiagnostics(r'''
-class C {
-  dynamic f;
-
-  C()
-      : f = (C()..f = (C()..f = () => 42));
 }
 ''');
   }
@@ -215,6 +213,15 @@ class C {
 ''');
   }
 
+  test_equalityInside_constructorFieldInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  bool f;
+  C() : f = (1 == 2);
+}
+''');
+  }
+
   test_equalityInside_expressionBody() async {
     await assertDiagnostics(r'''
 bool f() => (1 == 1);
@@ -223,20 +230,43 @@ bool f() => (1 == 1);
     ]);
   }
 
-  test_inListLiteral() async {
-    await assertDiagnostics(r'''
-final items = [1, (DateTime.now())];
-''', [
-      lint(18, 16),
-    ]);
-  }
-
-  test_isExpressionInside_targetOfMethodInvocation() async {
+  test_expressionInside_targetOfMethodInvocation() async {
     await assertNoDiagnostics(r'''
 void f(Object o) {
   (o is num).toString();
 }
 ''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1395
+  test_functionExpressionInCascade2Inside_constructorFieldInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  dynamic f;
+
+  C()
+      : f = (C()..f = (C()..f = () => 42));
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/1395
+  test_functionExpressionInCascadeInside_constructorFieldInitializer() async {
+    await assertNoDiagnostics(r'''
+class C {
+  Object f;
+
+  C() : f = (C()..f = () => 42);
+}
+''');
+  }
+
+  test_listLiteral() async {
+    await assertDiagnostics(r'''
+final items = [1, (DateTime.now())];
+''', [
+      lint(18, 16),
+    ]);
   }
 
   test_notEqualInside_returnExpression() async {
@@ -247,24 +277,15 @@ bool f() {
 ''');
   }
 
-  /// https://github.com/dart-lang/linter/issues/4041
-  test_nullAware_cascadeAssignment() async {
-    await assertNoDiagnostics(r'''
-class A {
-  var b = false;
-  void m() {}
-  set setter(int i) {}
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4062')
+  test_parenthesizedPattern_nonPatternOutside() async {
+    await assertDiagnostics(r'''
+void f(num n) {
+  if (1 case (int())) {}
 }
-
-void f(A? a) {
-  (a?..b = true)?.m();
-  (a?..b = true)?.setter = 1;
-}
-
-void g(List<int>? list) {
-  (list?..[0] = 1)?.length;
-}
-''');
+''', [
+      lint(20, 7),
+    ]);
   }
 
   test_positionalArgument() async {
@@ -293,7 +314,17 @@ void f(bool b) {
 ''');
   }
 
-  test_record_assignment() async {
+  test_propertyAccessInside_recordLiteral() async {
+    await assertDiagnostics(r'''
+Record f() {
+  return (1.isEven, (2.isEven));
+}
+''', [
+      lint(33, 10),
+    ]);
+  }
+
+  test_recordInside_assignment() async {
     await assertDiagnostics(r'''
 void f() {
   (int,) r = ((3,));
@@ -303,7 +334,7 @@ void f() {
     ]);
   }
 
-  test_record_namedParam() async {
+  test_recordInside_namedParam() async {
     await assertDiagnostics(r'''
 void f() {
   g(i: ((3,)));
@@ -315,7 +346,7 @@ void g({required (int,) i}) {}
     ]);
   }
 
-  test_record_param() async {
+  test_recordInside_param() async {
     await assertDiagnostics(r'''
 void f() {
   g(((3,)));
@@ -340,7 +371,7 @@ void f() {
     ]);
   }
 
-  test_singleElementRecordWithNoTrailingComma_namedParam() async {
+  test_singleElementRecordWithNoTrailingCommaInside_namedArgument() async {
     await assertDiagnostics(r'''
 void f() {
   g(i: (3));
@@ -357,7 +388,7 @@ void g({required (int,) i}) {}
   }
 
   /// https://github.com/dart-lang/linter/issues/4876
-  test_singleElementRecordWithNoTrailingComma_param() async {
+  test_singleElementRecordWithNoTrailingCommaInside_positionalArgument() async {
     await assertDiagnostics(r'''
 void f() {
   g((3));
@@ -389,15 +420,17 @@ void f(Object? p) {
 ''');
   }
 
-  test_switchExpression_expressionStatement() async {
-    await assertNoDiagnostics(r'''
-void f(Object? x) {
-  (switch (x) { _ => 0 });
+  test_stringLiteralInside() async {
+    await assertDiagnostics(r'''
+void f() {
+  '' + ('');
 }
-''');
+''', [
+      lint(18, 4),
+    ]);
   }
 
-  test_switchExpression_invocationArgument() async {
+  test_switchExpressionInside_argument() async {
     await assertDiagnostics(r'''
 void f(Object? x) {
   print((switch (x) { _ => 0 }));
@@ -407,7 +440,15 @@ void f(Object? x) {
     ]);
   }
 
-  test_switchExpression_variableDeclaration() async {
+  test_switchExpressionInside_expressionStatement() async {
+    await assertNoDiagnostics(r'''
+void f(Object? x) {
+  (switch (x) { _ => 0 });
+}
+''');
+  }
+
+  test_switchExpressionInside_variableDeclaration() async {
     await assertDiagnostics(r'''
 void f(Object? x) {
   final v = (switch (x) { _ => 0 });

@@ -150,7 +150,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
-    hitCount: 849,
+    hitCount: 846,
     missCount: 0,
   ),
   // 100.0%.
@@ -450,7 +450,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_library_builder.dart": (
-    hitCount: 339,
+    hitCount: 335,
     missCount: 0,
   ),
   // 100.0%.
@@ -470,7 +470,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_type_alias_builder.dart": (
-    hitCount: 47,
+    hitCount: 50,
     missCount: 0,
   ),
   // 100.0%.
@@ -856,7 +856,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1362,
+    hitCount: 1361,
     missCount: 0,
   ),
   // 100.0%.
@@ -876,7 +876,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_type_alias_builder.dart": (
-    hitCount: 335,
+    hitCount: 349,
     missCount: 0,
   ),
   // 100.0%.
@@ -886,7 +886,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 698,
+    hitCount: 694,
     missCount: 0,
   ),
   // 100.0%.

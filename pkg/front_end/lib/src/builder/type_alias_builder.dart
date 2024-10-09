@@ -9,7 +9,13 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   TypeBuilder get type;
 
   /// The [Typedef] built by this builder.
+  ///
+  /// For a typedef built from source, this is only available after AST nodes
+  /// have been built in [SourceLoader.buildOutlineNodes].
   Typedef get typedef;
+
+  /// Reference for the typedef built by this builder.
+  Reference get reference;
 
   DartType? thisType;
 

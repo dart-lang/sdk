@@ -143,7 +143,7 @@ class PSEntry {
   PSEntry(this.key, this.value);
 
   @override
-  String toString() => '${key != null ? ('$key: ') : ''}$value';
+  String toString() => '${key != null ? '$key: ' : ''}$value';
 }
 
 /// Representation of environment in `pubspec.yaml`.

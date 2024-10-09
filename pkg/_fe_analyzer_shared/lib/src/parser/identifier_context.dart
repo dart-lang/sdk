@@ -5,13 +5,12 @@
 import '../messages/codes.dart'
     show Message, Template, templateExpectedIdentifier;
 
-import '../scanner/token.dart' show Token, TokenType;
+import '../scanner/token.dart'
+    show Keyword, Token, TokenIsAExtension, TokenType;
 
 import 'identifier_context_impl.dart';
 
 import 'parser_impl.dart' show Parser;
-
-import 'util.dart' show isOneOfOrEof, optional;
 
 /// Information about the parser state that is passed to the listener at the
 /// time an identifier is encountered. It is also used by the parser for error
@@ -140,7 +139,12 @@ abstract class IdentifierContext {
   /// Identifier is a name being declared by a top level variable declaration.
   static const TopLevelDeclarationIdentifierContext
       topLevelVariableDeclaration = const TopLevelDeclarationIdentifierContext(
-          'topLevelVariableDeclaration', const [';', '=', ',']);
+          'topLevelVariableDeclaration', const [
+    TokenType.SEMICOLON,
+    TokenType.EQ,
+    TokenType.COMMA,
+    TokenType.EOF
+  ]);
 
   /// Identifier is a name being declared by a field declaration.
   static const FieldDeclarationIdentifierContext fieldDeclaration =
@@ -149,8 +153,15 @@ abstract class IdentifierContext {
   /// Identifier is the name being declared by a top level function declaration.
   static const TopLevelDeclarationIdentifierContext
       topLevelFunctionDeclaration = const TopLevelDeclarationIdentifierContext(
-          'topLevelFunctionDeclaration',
-          const ['<', '(', '{', '=>', 'async', 'sync']);
+          'topLevelFunctionDeclaration', const [
+    TokenType.LT,
+    TokenType.OPEN_PAREN,
+    TokenType.OPEN_CURLY_BRACKET,
+    TokenType.FUNCTION,
+    Keyword.ASYNC,
+    Keyword.SYNC,
+    TokenType.EOF
+  ]);
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.
@@ -333,25 +344,25 @@ abstract class IdentifierContext {
 bool looksLikeExpressionStart(Token next) =>
     next.isIdentifier ||
     next.isKeyword && !looksLikeStatementStart(next) ||
-    next.type == TokenType.DOUBLE ||
-    next.type == TokenType.DOUBLE_WITH_SEPARATORS ||
-    next.type == TokenType.HASH ||
-    next.type == TokenType.HEXADECIMAL ||
-    next.type == TokenType.HEXADECIMAL_WITH_SEPARATORS ||
-    next.type == TokenType.IDENTIFIER ||
-    next.type == TokenType.INT ||
-    next.type == TokenType.INT_WITH_SEPARATORS ||
-    next.type == TokenType.STRING ||
-    optional('{', next) ||
-    optional('(', next) ||
-    optional('[', next) ||
-    optional('[]', next) ||
-    optional('<', next) ||
-    optional('!', next) ||
-    optional('-', next) ||
-    optional('~', next) ||
-    optional('++', next) ||
-    optional('--', next);
+    next.isA2(TokenType.DOUBLE) ||
+    next.isA2(TokenType.DOUBLE_WITH_SEPARATORS) ||
+    next.isA2(TokenType.HASH) ||
+    next.isA2(TokenType.HEXADECIMAL) ||
+    next.isA2(TokenType.HEXADECIMAL_WITH_SEPARATORS) ||
+    next.isA2(TokenType.IDENTIFIER) ||
+    next.isA2(TokenType.INT) ||
+    next.isA2(TokenType.INT_WITH_SEPARATORS) ||
+    next.isA2(TokenType.STRING) ||
+    next.isA2(TokenType.OPEN_CURLY_BRACKET) ||
+    next.isA2(TokenType.OPEN_PAREN) ||
+    next.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
+    next.isA2(TokenType.INDEX) ||
+    next.isA2(TokenType.LT) ||
+    next.isA2(TokenType.BANG) ||
+    next.isA2(TokenType.MINUS) ||
+    next.isA2(TokenType.TILDE) ||
+    next.isA2(TokenType.PLUS_PLUS) ||
+    next.isA2(TokenType.MINUS_MINUS);
 
 /// Returns `true` if [next] should be treated like the start of a pattern for
 /// the purposes of recovery.
@@ -360,48 +371,59 @@ bool looksLikeExpressionStart(Token next) =>
 /// we mostly re-use [looksLikeExpressionStart].
 bool looksLikePatternStart(Token next) =>
     next.isIdentifier ||
-    next.type == TokenType.DOUBLE ||
-    next.type == TokenType.DOUBLE_WITH_SEPARATORS ||
-    next.type == TokenType.HASH ||
-    next.type == TokenType.HEXADECIMAL ||
-    next.type == TokenType.HEXADECIMAL_WITH_SEPARATORS ||
-    next.type == TokenType.IDENTIFIER ||
-    next.type == TokenType.INT ||
-    next.type == TokenType.INT_WITH_SEPARATORS ||
-    next.type == TokenType.STRING ||
-    optional('null', next) ||
-    optional('false', next) ||
-    optional('true', next) ||
-    optional('{', next) ||
-    optional('(', next) ||
-    optional('[', next) ||
-    optional('[]', next) ||
-    optional('<', next) ||
-    optional('<=', next) ||
-    optional('>', next) ||
-    optional('>=', next) ||
-    optional('!=', next) ||
-    optional('==', next) ||
-    optional('var', next) ||
-    optional('final', next) ||
-    optional('const', next);
+    next.isA2(TokenType.DOUBLE) ||
+    next.isA2(TokenType.DOUBLE_WITH_SEPARATORS) ||
+    next.isA2(TokenType.HASH) ||
+    next.isA2(TokenType.HEXADECIMAL) ||
+    next.isA2(TokenType.HEXADECIMAL_WITH_SEPARATORS) ||
+    next.isA2(TokenType.IDENTIFIER) ||
+    next.isA2(TokenType.INT) ||
+    next.isA2(TokenType.INT_WITH_SEPARATORS) ||
+    next.isA2(TokenType.STRING) ||
+    next.isA2(Keyword.NULL) ||
+    next.isA2(Keyword.FALSE) ||
+    next.isA2(Keyword.TRUE) ||
+    next.isA2(TokenType.OPEN_CURLY_BRACKET) ||
+    next.isA2(TokenType.OPEN_PAREN) ||
+    next.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
+    next.isA2(TokenType.INDEX) ||
+    next.isA2(TokenType.LT) ||
+    next.isA2(TokenType.LT_EQ) ||
+    next.isA2(TokenType.GT) ||
+    next.isA2(TokenType.GT_EQ) ||
+    next.isA2(TokenType.BANG_EQ) ||
+    next.isA2(TokenType.EQ_EQ) ||
+    next.isA2(Keyword.VAR) ||
+    next.isA2(Keyword.FINAL) ||
+    next.isA2(Keyword.CONST);
 
 /// Return `true` if the given [token] should be treated like the start of
 /// a new statement for the purposes of recovery.
-bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [
-      '@',
-      'assert', 'break', 'continue', 'do', 'else', 'final', 'for', //
-      'if', 'return', 'switch', 'try', 'var', 'void', 'while', //
-    ]);
+bool looksLikeStatementStart(Token token) =>
+    token.isA2(TokenType.AT) ||
+    token.isA2(Keyword.ASSERT) ||
+    token.isA2(Keyword.BREAK) ||
+    token.isA2(Keyword.CONTINUE) ||
+    token.isA2(Keyword.DO) ||
+    token.isA2(Keyword.ELSE) ||
+    token.isA2(Keyword.FINAL) ||
+    token.isA2(Keyword.FOR) ||
+    token.isA2(Keyword.IF) ||
+    token.isA2(Keyword.RETURN) ||
+    token.isA2(Keyword.SWITCH) ||
+    token.isA2(Keyword.TRY) ||
+    token.isA2(Keyword.VAR) ||
+    token.isA2(Keyword.VOID) ||
+    token.isA2(Keyword.WHILE) ||
+    token.isA2(TokenType.EOF);
+
+bool isOkNextValueInFormalParameter(Token token) =>
+    token.isA2(TokenType.EQ) ||
+    token.isA2(TokenType.COLON) ||
+    token.isA2(TokenType.COMMA) ||
+    token.isA2(TokenType.CLOSE_PAREN) ||
+    token.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
+    token.isA2(TokenType.CLOSE_CURLY_BRACKET);
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
 typedef _MessageWithArgument<T> = Message Function(T);
-
-const List<String> okNextValueInFormalParameter = const [
-  '=',
-  ':',
-  ',',
-  ')',
-  ']',
-  '}',
-];
