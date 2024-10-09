@@ -39,6 +39,7 @@ lib/src/rules/cast_nullable_to_non_nullable.dart
 lib/src/rules/close_sinks.dart
 lib/src/rules/combinators_ordering.dart
 lib/src/rules/comment_references.dart
+lib/src/rules/conditional_uri_does_not_exist.dart
 lib/src/rules/constant_identifier_names.dart
 lib/src/rules/control_flow_in_finally.dart
 lib/src/rules/curly_braces_in_flow_control_structures.dart
@@ -138,6 +139,7 @@ lib/src/rules/unnecessary_breaks.dart
 lib/src/rules/unnecessary_const.dart
 lib/src/rules/unnecessary_constructor_name.dart
 lib/src/rules/unnecessary_final.dart
+lib/src/rules/unnecessary_getters_setters.dart
 lib/src/rules/unnecessary_late.dart
 lib/src/rules/unnecessary_library_directive.dart
 lib/src/rules/unnecessary_library_name.dart

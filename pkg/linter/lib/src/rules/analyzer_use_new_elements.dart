@@ -25,6 +25,8 @@ bool _isOldModelElement(Element2? element) {
       if (const {
         'DirectiveUri',
         'DirectiveUriWithRelativeUri',
+        'DirectiveUriWithRelativeUriString',
+        'DirectiveUriWithSource',
         'ElementAnnotation',
         'ElementKind',
       }.contains(firstFragment.name)) {
