@@ -14,7 +14,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart';
-import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
+import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -103,7 +103,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       IndexedClass? referencesFromIndexed)
       : super(
             metadata,
-            0,
+            Modifiers.empty,
             name,
             typeVariables,
             supertypeBuilder,
@@ -174,14 +174,14 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
         FormalParameterBuilder nameFormalParameterBuilder =
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0, stringType, "#name", charOffset,
+                Modifiers.empty, stringType, "#name", charOffset,
                 fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
         member.formals!.insert(0, nameFormalParameterBuilder);
         nameFormalParameterBuilder.parent = member;
 
         FormalParameterBuilder indexFormalParameterBuilder =
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0, intType, "#index", charOffset,
+                Modifiers.empty, intType, "#index", charOffset,
                 fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
         member.formals!.insert(0, indexFormalParameterBuilder);
         indexFormalParameterBuilder.parent = member;
@@ -315,7 +315,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         /* metadata = */ null,
         listType,
         "values",
-        constMask | staticMask | hasInitializerMask,
+        Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
         /* isTopLevel = */ false,
         libraryBuilder,
         this,
@@ -354,7 +354,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       synthesizedDefaultConstructorBuilder =
           new DeclaredSourceConstructorBuilder(
               /* metadata = */ null,
-              constMask,
+              Modifiers.Const,
               /* returnType = */ libraryBuilder.loader.inferableTypes
                   .addInferableType(),
               /* name = */ "",
@@ -393,7 +393,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
         /* metadata = */ null,
-        0,
+        Modifiers.empty,
         stringType,
         "_enumToString",
         /* typeVariables = */ null,
@@ -484,7 +484,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             metadata,
             libraryBuilder.loader.inferableTypes.addInferableType(),
             name,
-            constMask | staticMask | hasInitializerMask,
+            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
             /* isTopLevel = */ false,
             libraryBuilder,
             this,

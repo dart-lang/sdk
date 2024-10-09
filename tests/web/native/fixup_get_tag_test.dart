@@ -54,7 +54,7 @@ main() {
   Expect.equals('isA', a.token());
 
   // This call succeeds because the fixed-up 'getTag' method returns Foo's
-  // dispatch tag, and B is a faithful polyfil for Foo/A.
+  // dispatch tag, and B is a faithful polyfill for Foo/A.
   Expect.equals('isB', b.token());
 
   Expect.isTrue(a is Foo);

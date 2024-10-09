@@ -8,7 +8,7 @@ import "dart:collection";
 
 // Pre-feature declarations which ignore platform library restrictions.
 // Used to test that feature-enabled libraries behave correctly when
-// going througn pre-feature super-declarations.
+// going through pre-feature super-declarations.
 
 // Ignoring rule against extending, implementing, mixing in and `on`-typing
 // a final declaration.

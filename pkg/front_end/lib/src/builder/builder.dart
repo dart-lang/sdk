@@ -332,7 +332,6 @@ abstract class BuilderImpl implements Builder {
   bool get isAugmenting => this != origin;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isAugment => false;
 
   @override

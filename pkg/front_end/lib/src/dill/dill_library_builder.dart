@@ -221,10 +221,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Uri get fileUri => library.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  String? get name => library.name;
-
-  @override
   LibraryBuilder get nameOriginBuilder => this;
 
   @override

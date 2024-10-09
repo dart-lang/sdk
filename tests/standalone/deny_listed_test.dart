@@ -6,8 +6,6 @@
 // Test that certain interfaces/classes are denylisted from being
 // implemented or extended (VM corelib only).
 
-library BlackListedTest;
-
 class MyBool extends Bool {} // //# 01: compile-time error
 
 class MyDouble extends Double {} // //# 02: compile-time error

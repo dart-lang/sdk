@@ -170,9 +170,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Uri? get packageUriForTesting => _packageUri;
 
   @override
-  String? get name => compilationUnit.name;
-
-  @override
   LibraryBuilder? get partOfLibrary => compilationUnit.partOfLibrary;
 
   List<MetadataBuilder>? get metadata => compilationUnit.metadata;
@@ -684,7 +681,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.isUnsupported = isUnsupported;
     addDependencies(library, new Set<SourceCompilationUnit>());
 
-    library.name = name;
+    library.name = compilationUnit.name;
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
@@ -1063,7 +1060,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // should create a class that represents qualified names that we can
     // relativize when printing a message, but still store the full URI in
     // .dill files.
-    return name ?? "<library '$fileUri'>";
+    return compilationUnit.name ?? "<library '$fileUri'>";
   }
 
   @override

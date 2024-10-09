@@ -11,6 +11,7 @@ import '../base/configuration.dart' show Configuration;
 import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
 import '../base/import.dart';
+import '../base/modifiers.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -219,7 +220,7 @@ abstract class BuilderFactory {
   void addClass(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder? supertype,
@@ -228,14 +229,7 @@ abstract class BuilderFactory {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass});
+      int supertypeOffset);
 
   void addEnum(
       OffsetMap offsetMap,
@@ -252,7 +246,7 @@ abstract class BuilderFactory {
       OffsetMap offsetMap,
       Token beginToken,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier? identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder type,
@@ -263,7 +257,7 @@ abstract class BuilderFactory {
   void addExtensionTypeDeclaration(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? interfaces,
@@ -273,6 +267,7 @@ abstract class BuilderFactory {
   void addMixinDeclaration(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
+      Modifiers modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? supertypeConstraints,
@@ -280,28 +275,19 @@ abstract class BuilderFactory {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset,
-      {required bool isBase,
-      required bool isAugmentation});
+      int supertypeOffset);
 
   void addNamedMixinApplication(
       List<MetadataBuilder>? metadata,
       String name,
       List<NominalVariableBuilder>? typeVariables,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder? supertype,
       MixinApplicationBuilder mixinApplication,
       List<TypeBuilder>? interfaces,
       int startCharOffset,
       int charOffset,
-      int charEndOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass});
+      int charEndOffset);
 
   MixinApplicationBuilder addMixinApplication(
       List<TypeBuilder> mixins, int charOffset);
@@ -326,7 +312,7 @@ abstract class BuilderFactory {
       required int endCharOffset,
       required int charOffset,
       required int formalsOffset,
-      required int modifiers,
+      required Modifiers modifiers,
       required bool inConstructor,
       required bool isStatic,
       required bool isConstructor,
@@ -340,7 +326,7 @@ abstract class BuilderFactory {
   void addConstructor(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       String constructorName,
       List<NominalVariableBuilder>? typeVariables,
@@ -370,7 +356,7 @@ abstract class BuilderFactory {
   void addFactoryMethod(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       List<FormalParameterBuilder>? formals,
       ConstructorReferenceBuilder? redirectionTarget,
@@ -388,7 +374,7 @@ abstract class BuilderFactory {
   void addProcedure(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder? returnType,
       Identifier identifier,
       String name,
@@ -408,7 +394,7 @@ abstract class BuilderFactory {
   void addFields(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       bool isTopLevel,
       TypeBuilder? type,
       List<FieldInfo> fieldInfos);
@@ -416,7 +402,7 @@ abstract class BuilderFactory {
   FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder>? metadata,
       FormalParameterKind kind,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder type,
       String name,
       bool hasThis,

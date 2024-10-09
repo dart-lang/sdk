@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 
-import '../base/modifier.dart';
+import '../base/modifiers.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -74,7 +74,7 @@ class ClassFragment extends DeclarationFragment implements Fragment {
 
   late final LookupScope compilationUnitScope;
   late final List<MetadataBuilder>? metadata;
-  late final int modifiers;
+  late final Modifiers modifiers;
   late final TypeBuilder? supertype;
   late final MixinApplicationBuilder? mixins;
   late final List<TypeBuilder>? interfaces;
@@ -82,13 +82,6 @@ class ClassFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int charOffset;
   late final int endOffset;
-  late final bool isAugmentation;
-  late final bool isBase;
-  late final bool isFinal;
-  late final bool isInterface;
-  late final bool isMacro;
-  late final bool isMixinClass;
-  late final bool isSealed;
 
   ClassFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
       super.typeParameterScope, super._nominalParameterNameSpace);
@@ -124,7 +117,7 @@ class MixinFragment extends DeclarationFragment implements Fragment {
 
   late final LookupScope compilationUnitScope;
   late final List<MetadataBuilder>? metadata;
-  late final int modifiers;
+  late final Modifiers modifiers;
   late final TypeBuilder? supertype;
   late final MixinApplicationBuilder? mixins;
   late final List<TypeBuilder>? interfaces;
@@ -132,8 +125,6 @@ class MixinFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int charOffset;
   late final int endOffset;
-  late final bool isAugmentation;
-  late final bool isBase;
 
   MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
       super.typeParameterScope, super._nominalParameterNameSpace);
@@ -165,19 +156,12 @@ class NamedMixinApplicationFragment implements Fragment {
   final int startCharOffset;
   final int charOffset;
   final int charEndOffset;
-  final int modifiers;
+  final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final List<NominalVariableBuilder>? typeParameters;
   final TypeBuilder? supertype;
   final MixinApplicationBuilder mixins;
   final List<TypeBuilder>? interfaces;
-  final bool isAugmentation;
-  final bool isBase;
-  final bool isFinal;
-  final bool isInterface;
-  final bool isMacro;
-  final bool isMixinClass;
-  final bool isSealed;
   final LookupScope compilationUnitScope;
 
   SourceClassBuilder? _builder;
@@ -194,13 +178,6 @@ class NamedMixinApplicationFragment implements Fragment {
       required this.supertype,
       required this.mixins,
       required this.interfaces,
-      required this.isAugmentation,
-      required this.isBase,
-      required this.isFinal,
-      required this.isInterface,
-      required this.isMacro,
-      required this.isMixinClass,
-      required this.isSealed,
       required this.compilationUnitScope});
 
   @override
@@ -277,7 +254,7 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   SourceExtensionBuilder? _builder;
 
   late final List<MetadataBuilder>? metadata;
-  late final int modifiers;
+  late final Modifiers modifiers;
   late final TypeBuilder onType;
   late final int startOffset;
   late final int nameOffset;
@@ -351,7 +328,7 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
   final int nameOffset;
 
   late final List<MetadataBuilder>? metadata;
-  late final int modifiers;
+  late final Modifiers modifiers;
   late final List<TypeBuilder>? interfaces;
   late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
@@ -399,7 +376,7 @@ class FieldFragment implements Fragment {
   final List<MetadataBuilder>? metadata;
   final TypeBuilder type;
   final bool isTopLevel;
-  final int modifiers;
+  final Modifiers modifiers;
 
   SourceFieldBuilder? _builder;
 
@@ -442,16 +419,6 @@ class FieldFragment implements Fragment {
     _builder = value;
   }
 
-  bool get isLate => (modifiers & lateMask) != 0;
-
-  bool get isFinal => (modifiers & finalMask) != 0;
-
-  bool get isStatic => (modifiers & staticMask) != 0;
-
-  bool get isExternal => (modifiers & externalMask) != 0;
-
-  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
-
   @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
@@ -464,7 +431,7 @@ class MethodFragment implements Fragment {
   final int charOpenParenOffset;
   final int charEndOffset;
   final List<MetadataBuilder>? metadata;
-  final int modifiers;
+  final Modifiers modifiers;
   final TypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
@@ -501,10 +468,6 @@ class MethodFragment implements Fragment {
     _builder = value;
   }
 
-  bool get isAugment => (modifiers & augmentMask) != 0;
-
-  bool get isStatic => (modifiers & staticMask) != 0;
-
   @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
@@ -516,7 +479,7 @@ class ConstructorFragment implements Fragment {
   final int charOffset;
   final int charOpenParenOffset;
   final int charEndOffset;
-  final int modifiers;
+  final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final OmittedTypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;
@@ -573,7 +536,7 @@ class FactoryFragment implements Fragment {
   final int charOffset;
   final int charOpenParenOffset;
   final int charEndOffset;
-  final int modifiers;
+  final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final TypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;

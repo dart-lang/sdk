@@ -35,8 +35,6 @@ class DillExtensionTypeDeclarationBuilder
       this._extensionTypeDeclaration, DillLibraryBuilder parent)
       : _nameSpace = new DeclarationNameSpaceImpl(),
         super(
-            /*metadata builders*/ null,
-            /* modifiers*/ 0,
             _extensionTypeDeclaration.name,
             parent,
             _extensionTypeDeclaration.fileUri,

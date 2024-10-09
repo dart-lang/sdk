@@ -13,7 +13,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/modifier.dart' show covariantMask, hasInitializerMask, lateMask;
+import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart' show LookupScope;
 import '../builder/declaration_builders.dart';
@@ -52,7 +52,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   final MemberName _memberName;
 
   @override
-  final int modifiers;
+  final Modifiers modifiers;
 
   late FieldEncoding _fieldEncoding;
 
@@ -338,16 +338,13 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Member get member => _fieldEncoding.field;
 
   @override
-  String get debugName => "FieldBuilder";
-
-  @override
   bool get isField => true;
 
-  bool get isLate => (modifiers & lateMask) != 0;
+  bool get isLate => modifiers.isLate;
 
-  bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
+  bool get isCovariantByDeclaration => modifiers.isCovariant;
 
-  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
+  bool get hasInitializer => modifiers.hasInitializer;
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.

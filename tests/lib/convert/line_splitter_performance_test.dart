@@ -9,7 +9,7 @@ import 'dart:convert';
 import "package:expect/expect.dart";
 
 void main() {
-  testEfficency();
+  testEfficiency();
 }
 
 /// Regression test for https://dartbug.com/51167
@@ -17,7 +17,7 @@ void main() {
 /// Had quadratic time behavior when concatenating chunks without linebreaks.
 ///
 /// Should now only use linear time/space for buffering.
-void testEfficency() {
+void testEfficiency() {
   // After fix: finishes in < 1 second on desktop.
   // Before fix, with N = 100000, took 25 seconds.
   const N = 1000000;

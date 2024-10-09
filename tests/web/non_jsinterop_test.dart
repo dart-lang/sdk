@@ -5,7 +5,7 @@
 // TODO(johnniwinther): Share this test with ddc.
 
 // Test for positive and negative uses of js-interop declarations in a library
-// _without_ a @JS() anntaotion. This file is also used in
+// _without_ a @JS() annotation. This file is also used in
 // tests/compiler/dart2js/model/native_test.dart.
 
 library lib;

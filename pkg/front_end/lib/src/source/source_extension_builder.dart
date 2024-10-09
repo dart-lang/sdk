@@ -5,7 +5,10 @@
 import 'package:kernel/ast.dart';
 
 import '../base/common.dart';
+import '../base/modifiers.dart';
 import '../base/name_space.dart';
+import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -17,8 +20,6 @@ import '../codes/cfe_codes.dart'
         messagePatchDeclarationOrigin,
         noLength;
 import '../kernel/body_builder_context.dart';
-import '../base/problems.dart';
-import '../base/scope.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
@@ -27,6 +28,11 @@ import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
+  @override
+  final List<MetadataBuilder>? metadata;
+
+  final Modifiers _modifiers;
+
   final Extension _extension;
 
   SourceExtensionBuilder? _origin;
@@ -54,8 +60,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final ExtensionName extensionName;
 
   SourceExtensionBuilder(
-      {required List<MetadataBuilder>? metadata,
-      required int modifiers,
+      {required this.metadata,
+      required Modifiers modifiers,
       required this.extensionName,
       required this.typeParameters,
       required this.onType,
@@ -67,7 +73,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       required int nameOffset,
       required int endOffset,
       required Reference? reference})
-      : _extension = new Extension(
+      : _modifiers = modifiers,
+        _extension = new Extension(
             name: extensionName.name,
             fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
@@ -76,8 +83,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
         _nameSpaceBuilder = nameSpaceBuilder,
-        super(metadata, modifiers, extensionName.name, enclosingLibraryBuilder,
-            fileUri, nameOffset) {
+        super(
+            extensionName.name, enclosingLibraryBuilder, fileUri, nameOffset) {
     extensionName.attachExtension(_extension);
   }
 
@@ -90,6 +97,21 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => _modifiers.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => _modifiers.isFinal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStatic => _modifiers.isStatic;
+
+  @override
+  bool get isAugment => _modifiers.isAugment;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {

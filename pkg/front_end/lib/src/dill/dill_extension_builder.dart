@@ -29,8 +29,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
       : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(/* metadata = */ null, 0, extension.name, parent,
-            extension.fileUri, extension.fileOffset) {
+        super(extension.name, parent, extension.fileUri, extension.fileOffset) {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
         parent: parent.scope);

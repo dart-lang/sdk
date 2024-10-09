@@ -37,34 +37,33 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   @override
   final Uri? fileUri;
 
+  final List<MetadataBuilder>? metadata;
+
   TypeVariableBuilder(String name, int charOffset, this.fileUri,
       {this.bound,
       this.defaultType,
       required this.kind,
       Variance? variableVariance,
-      List<MetadataBuilder>? metadata,
+      this.metadata,
       this.isWildcard = false})
-      : super(metadata, 0, name, null, charOffset);
+      : super(name, null, charOffset);
 
   @override
   bool get isTypeVariable => true;
 
   @override
-  String get debugName => "TypeVariableBuilderBase";
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StringBuffer printOn(StringBuffer buffer) {
-    buffer.write(name);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(runtimeType);
+    sb.write('(');
+    sb.write(name);
     if (bound != null) {
-      buffer.write(" extends ");
-      bound!.printOn(buffer);
+      sb.write(" extends ");
+      bound!.printOn(sb);
     }
-    return buffer;
+    sb.write(')');
+    return sb.toString();
   }
-
-  @override
-  String toString() => "${printOn(new StringBuffer())}";
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -243,9 +242,6 @@ class NominalVariableBuilder extends TypeVariableBuilder {
     _nullabilityFromParameterBound =
         TypeParameterType.computeNullabilityFromBound(parameter);
   }
-
-  @override
-  String get debugName => "NominalVariableBuilder";
 
   @override
   NominalVariableBuilder get origin => actualOrigin ?? this;
@@ -604,9 +600,6 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
   bool get isTypeVariable => true;
 
   @override
-  String get debugName => "StructuralVariableBuilder";
-
-  @override
   Variance get variance => parameter.variance;
 
   @override
@@ -648,20 +641,6 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
 
   @override
   int get hashCode => parameter.hashCode;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  StringBuffer printOn(StringBuffer buffer) {
-    buffer.write(name);
-    if (bound != null) {
-      buffer.write(" extends ");
-      bound!.printOn(buffer);
-    }
-    return buffer;
-  }
-
-  @override
-  String toString() => "${printOn(new StringBuffer())}";
 
   @override
   StructuralVariableBuilder get origin => actualOrigin ?? this;

@@ -19,9 +19,6 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       : super("FutureOr", type, compilationUnit, charOffset);
 
   @override
-  String get debugName => "FutureOrTypeDeclarationBuilder";
-
-  @override
   DartType buildAliasedType(
       LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder,

@@ -17,6 +17,7 @@ import 'package:kernel/text/ast_to_text.dart';
 import '../base/combinator.dart';
 import '../base/configuration.dart';
 import '../base/identifiers.dart';
+import '../base/modifiers.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -250,8 +251,8 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
-    new FormalParameterBuilder(FormalParameterKind.requiredPositional, 0,
-        const ImplicitTypeBuilder(), '', -1,
+    new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+        Modifiers.empty, const ImplicitTypeBuilder(), '', -1,
         fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,

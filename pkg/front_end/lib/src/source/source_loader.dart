@@ -42,6 +42,7 @@ import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
+import '../base/modifiers.dart';
 import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
@@ -1359,7 +1360,7 @@ severity: $severity
     }
     SourceProcedureBuilder builder = new SourceProcedureBuilder(
         /* metadata = */ null,
-        /* modifier flags = */ 0,
+        Modifiers.empty,
         const ImplicitTypeBuilder(),
         "debugExpr",
         /* type variables = */ null,

@@ -15,7 +15,7 @@ class OmittedTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   OmittedTypeDeclarationBuilder(
       String name, this.omittedTypeBuilder, SourceLibraryBuilder parent)
-      : super(null, 0, name, parent, TreeNode.noOffset);
+      : super(name, parent, TreeNode.noOffset);
 
   @override
   DartType buildAliasedType(
@@ -53,9 +53,6 @@ class OmittedTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     throw new UnimplementedError(
         '${runtimeType}.computeNullabilityWithArguments');
   }
-
-  @override
-  String get debugName => 'OmittedTypeDeclarationBuilder';
 
   @override
   Uri? get fileUri => parent!.fileUri;

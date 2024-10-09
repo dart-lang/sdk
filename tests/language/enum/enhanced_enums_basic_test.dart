@@ -236,7 +236,7 @@ enum EnumAll<S extends num, T extends num>
   // constructors and the implicit element creation expressions.)
   // Cannot have const factory constructor, because they *must* redirect to
   // generative constructors.
-  // Cannot have `super`-constuctor invocations in initializer lists.
+  // Cannot have `super`-constructor invocations in initializer lists.
 
   // Instance members.
 

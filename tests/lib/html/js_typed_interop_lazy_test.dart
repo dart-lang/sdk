@@ -101,7 +101,7 @@ main() {
   group('lazy class', () {
     test('type literal', () {
       // Fine because we can determine the class literals are equal without
-      // having to determine what (non-existant) JS type they correspond to.
+      // having to determine what (non-existent) JS type they correspond to.
       var x = LazyClass;
       var y = LazyClass;
       expect(x == y, isTrue);
@@ -191,7 +191,7 @@ baz.LazyClass = function LazyClass(a) {
   group('nested lazy class', () {
     test('type literal', () {
       // Fine because we can determine the class literals are equal without
-      // having to determine what (non-existant) JS type they correspond to.
+      // having to determine what (non-existent) JS type they correspond to.
       var x = NestedLazyClass;
       var y = NestedLazyClass;
       expect(x == y, isTrue);

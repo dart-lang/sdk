@@ -38,7 +38,6 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'modifier_builder.dart';
 import 'name_iterator.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
@@ -392,7 +391,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   }
 }
 
-abstract class LibraryBuilderImpl extends ModifierBuilderImpl
+abstract class LibraryBuilderImpl extends BuilderImpl
     implements LibraryBuilder {
   @override
   final Uri fileUri;
@@ -414,14 +413,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   bool get isPart => false;
 
   @override
-  String get debugName => "$runtimeType";
-
-  @override
   Loader get loader;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get modifiers => 0;
 
   @override
   Uri get importUri;
@@ -615,8 +607,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
-  StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(isPart || isAugmenting ? fileUri : importUri);
+  String toString() {
+    return '$runtimeType(${isPart || isAugmenting ? fileUri : importUri})';
   }
 }

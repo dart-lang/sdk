@@ -20,6 +20,7 @@ import '../base/messages.dart'
         messageRedirectingConstructorWithSuperInitializer,
         messageSuperInitializerNotLast,
         noLength;
+import '../base/modifiers.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -95,7 +96,7 @@ abstract class AbstractSourceConstructorBuilder
 
   AbstractSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       this.returnType,
       String name,
       List<NominalVariableBuilder>? typeVariables,
@@ -405,7 +406,7 @@ class DeclaredSourceConstructorBuilder
 
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       OmittedTypeBuilder returnType,
       String name,
       List<NominalVariableBuilder>? typeVariables,
@@ -1153,7 +1154,7 @@ class SourceExtensionTypeConstructorBuilder
 
   SourceExtensionTypeConstructorBuilder(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       OmittedTypeBuilder returnType,
       String name,
       List<NominalVariableBuilder>? typeVariables,

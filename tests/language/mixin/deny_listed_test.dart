@@ -1,16 +1,14 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.19
-
-// Check mixin of black-listed types.
+// Check mixin of deny-listed types.
 
 import 'package:expect/expect.dart';
 
-class C {}
+mixin C {}
 
-class D {}
+mixin D {}
 
 class C1 extends Object
 with String //# 01: compile-time error

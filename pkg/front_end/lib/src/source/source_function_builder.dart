@@ -17,7 +17,7 @@ import '../base/messages.dart'
         messagePatchNonExternal,
         noLength,
         templateRequiredNamedParameterHasDefaultValueError;
-import '../base/modifier.dart';
+import '../base/modifiers.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -127,7 +127,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   final List<MetadataBuilder>? metadata;
 
   @override
-  final int modifiers;
+  final Modifiers modifiers;
 
   @override
   final String name;
@@ -167,16 +167,13 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
-  @override
-  String get debugName => "${runtimeType}";
-
   AsyncMarker get asyncModifier;
 
   @override
   bool get isConstructor => false;
 
   @override
-  bool get isAbstract => (modifiers & abstractMask) != 0;
+  bool get isAbstract => modifiers.isAbstract;
 
   @override
   bool get isRegularMethod => identical(ProcedureKind.Method, kind);
@@ -194,7 +191,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   bool get isFactory => identical(ProcedureKind.Factory, kind);
 
   @override
-  bool get isExternal => (modifiers & externalMask) != 0;
+  bool get isExternal => modifiers.isExternal;
 
   @override
   // Coverage-ignore(suite): Not run.

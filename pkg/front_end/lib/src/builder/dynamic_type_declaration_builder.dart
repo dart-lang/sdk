@@ -16,9 +16,6 @@ class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       : super("dynamic", type, compilationUnit, charOffset);
 
   @override
-  String get debugName => "DynamicTypeDeclarationBuilder";
-
-  @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
       {required Map<TypeVariableBuilder, TraversalState>
           typeVariablesTraversalState}) {

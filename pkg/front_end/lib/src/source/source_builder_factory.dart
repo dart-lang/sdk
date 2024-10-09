@@ -20,17 +20,7 @@ import '../base/export.dart' show Export;
 import '../base/identifiers.dart' show Identifier, QualifiedNameIdentifier;
 import '../base/import.dart' show Import;
 import '../base/messages.dart';
-import '../base/modifier.dart'
-    show
-        abstractMask,
-        constMask,
-        finalMask,
-        declaresConstConstructorMask,
-        hasInitializerMask,
-        initializingFormalMask,
-        superInitializingFormalMask,
-        namedMixinApplicationMask,
-        staticMask;
+import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../base/uris.dart';
@@ -832,7 +822,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addClass(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder? supertype,
@@ -841,14 +831,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass}) {
+      int supertypeOffset) {
     String className = identifier.name;
 
     endClassDeclaration(className);
@@ -862,7 +845,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         ownerName: className, allowNameConflict: false);
 
     if (declarationFragment.declaresConstConstructor) {
-      modifiers |= declaresConstConstructorMask;
+      modifiers |= Modifiers.DeclaresConstConstructor;
     }
 
     declarationFragment.compilationUnitScope = _compilationUnitScope;
@@ -876,13 +859,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.startOffset = startOffset;
     declarationFragment.charOffset = nameOffset;
     declarationFragment.endOffset = endOffset;
-    declarationFragment.isAugmentation = isAugmentation;
-    declarationFragment.isBase = isBase;
-    declarationFragment.isFinal = isFinal;
-    declarationFragment.isInterface = isInterface;
-    declarationFragment.isMacro = isMacro;
-    declarationFragment.isMixinClass = isMixinClass;
-    declarationFragment.isSealed = isSealed;
 
     _constructorReferences.clear();
 
@@ -937,6 +913,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addMixinDeclaration(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
+      Modifiers modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? supertypeConstraints,
@@ -944,9 +921,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset,
-      {required bool isBase,
-      required bool isAugmentation}) {
+      int supertypeOffset) {
     TypeBuilder? supertype;
     MixinApplicationBuilder? mixinApplication;
     if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
@@ -970,9 +945,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     nominalParameterNameSpace.addTypeVariables(_problemReporting, typeVariables,
         ownerName: className, allowNameConflict: false);
 
-    int modifiers = abstractMask;
+    modifiers |= Modifiers.Abstract;
     if (declarationFragment.declaresConstConstructor) {
-      modifiers |= declaresConstConstructorMask;
+      modifiers |= Modifiers.DeclaresConstConstructor;
     }
 
     declarationFragment.compilationUnitScope = _compilationUnitScope;
@@ -986,8 +961,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     declarationFragment.startOffset = startOffset;
     declarationFragment.charOffset = nameOffset;
     declarationFragment.endOffset = endOffset;
-    declarationFragment.isAugmentation = isAugmentation;
-    declarationFragment.isBase = isBase;
 
     _constructorReferences.clear();
 
@@ -1008,20 +981,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<MetadataBuilder>? metadata,
       String name,
       List<NominalVariableBuilder>? typeVariables,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder? supertype,
       MixinApplicationBuilder mixinApplication,
       List<TypeBuilder>? interfaces,
       int startCharOffset,
       int charOffset,
-      int charEndOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass}) {
+      int charEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNamedMixinApplication(name);
 
@@ -1044,13 +1010,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         supertype: supertype,
         mixins: mixinApplication,
         interfaces: interfaces,
-        isAugmentation: isAugmentation,
-        isBase: isBase,
-        isFinal: isFinal,
-        isInterface: isInterface,
-        isMacro: isMacro,
-        isMixinClass: isMixinClass,
-        isSealed: isSealed,
         compilationUnitScope: _compilationUnitScope));
   }
 
@@ -1072,15 +1031,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<MetadataBuilder>? metadata,
       String? name,
       List<NominalVariableBuilder>? typeVariables,
-      int modifiers = 0,
+      required Modifiers modifiers,
       List<TypeBuilder>? interfaces,
-      required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass,
       required TypeBuilder objectTypeBuilder,
       required void Function(String name, Builder declaration, int charOffset,
               {Reference? getterReference})
@@ -1257,8 +1209,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
-                ? modifiers | namedMixinApplicationMask
-                : abstractMask,
+                ? modifiers | Modifiers.NamedMixinApplication
+                : Modifiers.Abstract,
             fullname,
             applicationTypeVariables,
             isMixinDeclaration ? null : supertype,
@@ -1278,14 +1230,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             charOffset,
             charEndOffset,
             referencesFromIndexedClass,
-            mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
-            isMacro: isNamedMixinApplication && isMacro,
-            isSealed: isNamedMixinApplication && isSealed,
-            isBase: isNamedMixinApplication && isBase,
-            isInterface: isNamedMixinApplication && isInterface,
-            isFinal: isNamedMixinApplication && isFinal,
-            isAugmentation: isNamedMixinApplication && isAugmentation,
-            isMixinClass: isNamedMixinApplication && isMixinClass);
+            mixedInTypeBuilder: isMixinDeclaration ? null : mixin);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -1312,7 +1257,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       OffsetMap offsetMap,
       Token beginToken,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier? identifier,
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder type,
@@ -1355,7 +1300,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addExtensionTypeDeclaration(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       List<NominalVariableBuilder>? typeVariables,
       List<TypeBuilder>? interfaces,
@@ -1429,7 +1374,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int endCharOffset,
       required int charOffset,
       required int formalsOffset,
-      required int modifiers,
+      required Modifiers modifiers,
       required bool inConstructor,
       required bool isStatic,
       required bool isConstructor,
@@ -1501,7 +1446,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           }
           List<FormalParameterBuilder> synthesizedFormals = [
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                finalMask, thisType, syntheticThisName, charOffset,
+                Modifiers.Final, thisType, syntheticThisName, charOffset,
                 fileUri: _compilationUnit.fileUri,
                 isExtensionThis: true,
                 hasImmediatelyDeclaredInitializer: false)
@@ -1551,7 +1496,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           }
           List<FormalParameterBuilder> synthesizedFormals = [
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                finalMask, thisType, syntheticThisName, charOffset,
+                Modifiers.Final, thisType, syntheticThisName, charOffset,
                 fileUri: _compilationUnit.fileUri,
                 isExtensionThis: true,
                 hasImmediatelyDeclaredInitializer: false)
@@ -1612,7 +1557,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addConstructor(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       String constructorName,
       List<NominalVariableBuilder>? typeVariables,
@@ -1637,7 +1582,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nativeMethodName,
         beginInitializers: beginInitializers,
         forAbstractClassOrMixin: forAbstractClassOrMixin,
-        isConst: modifiers & constMask != 0);
+        isConst: modifiers.isConst);
     offsetMap.registerConstructorFragment(identifier, fragment);
   }
 
@@ -1660,7 +1605,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     ConstructorFragment builder = _addConstructor(
         null,
-        isConst ? constMask : 0,
+        isConst ? Modifiers.Const : Modifiers.empty,
         constructorName,
         typeVariables,
         formals,
@@ -1686,24 +1631,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int charOffset}) {
     _declarationFragments.current.addPrimaryConstructorField(_addField(
         metadata,
-        finalMask,
-        /* isTopLevel = */
-        false,
+        Modifiers.Final,
+        /* isTopLevel = */ false,
         type,
         name,
-        /* charOffset = */
-        charOffset,
-        /* charEndOffset = */
-        charOffset,
-        /* initializerToken = */
-        null,
-        /* hasInitializer = */
-        false));
+        /* charOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* initializerToken = */ null,
+        /* hasInitializer = */ false));
   }
 
   ConstructorFragment _addConstructor(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       String constructorName,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -1722,7 +1662,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charOffset: charOffset,
         charOpenParenOffset: charOpenParenOffset,
         charEndOffset: charEndOffset,
-        modifiers: modifiers & ~abstractMask,
+        modifiers: modifiers - Modifiers.Abstract,
         metadata: metadata,
         returnType: addInferableType(),
         typeParameters: typeVariables,
@@ -1757,7 +1697,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addFactoryMethod(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       Identifier identifier,
       List<FormalParameterBuilder>? formals,
       ConstructorReferenceBuilder? redirectionTarget,
@@ -1811,7 +1751,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charOffset: charOffset,
         charOpenParenOffset: charOpenParenOffset,
         charEndOffset: charEndOffset,
-        modifiers: staticMask | modifiers,
+        modifiers: modifiers | Modifiers.Static,
         metadata: metadata,
         returnType: returnType,
         typeParameters: typeVariables,
@@ -1950,7 +1890,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addProcedure(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder? returnType,
       Identifier identifier,
       String name,
@@ -2013,13 +1953,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void addFields(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       bool isTopLevel,
       TypeBuilder? type,
       List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
-      bool isConst = modifiers & constMask != 0;
-      bool isFinal = modifiers & finalMask != 0;
+      bool isConst = modifiers.isConst;
+      bool isFinal = modifiers.isFinal;
       bool potentiallyNeedInitializerInOutline = isConst || isFinal;
       Token? startToken;
       if (potentiallyNeedInitializerInOutline || type == null) {
@@ -2052,7 +1992,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   FieldFragment _addField(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       bool isTopLevel,
       TypeBuilder type,
       String name,
@@ -2062,7 +2002,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       bool hasInitializer,
       {Token? constInitializerToken}) {
     if (hasInitializer) {
-      modifiers |= hasInitializerMask;
+      modifiers |= Modifiers.HasInitializer;
     }
     FieldFragment fragment = new FieldFragment(
         name: name,
@@ -2083,7 +2023,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder>? metadata,
       FormalParameterKind kind,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder type,
       String name,
       bool hasThis,
@@ -2094,10 +2034,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(!hasThis || !hasSuper,
         "Formal parameter '${name}' has both 'this' and 'super' prefixes.");
     if (hasThis) {
-      modifiers |= initializingFormalMask;
+      modifiers |= Modifiers.InitializingFormal;
     }
     if (hasSuper) {
-      modifiers |= superInitializingFormalMask;
+      modifiers |= Modifiers.SuperInitializingFormal;
     }
     String formalName = name;
     bool isWildcard =
