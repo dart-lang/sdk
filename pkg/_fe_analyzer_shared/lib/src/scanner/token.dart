@@ -546,7 +546,7 @@ class SimpleToken implements Token {
    */
   @override
   void set offset(int value) {
-    assert(_tokenTypesByIndex.length < 256);
+    assert(_tokenTypesByIndex.length == 256);
     // See https://github.com/dart-lang/sdk/issues/50048 for details.
     assert(value >= -1);
     _typeAndOffset = ((value + 1) << 8) | (_typeAndOffset & 0xff);
@@ -580,7 +580,7 @@ class SimpleToken implements Token {
     assert(offset >= -1);
 
     // Assert the encoding of the [type] is fully reversible.
-    assert(type.index < 256 && _tokenTypesByIndex.length < 256);
+    assert(type.index < 256 && _tokenTypesByIndex.length == 256);
     assert(identical(offset, this.offset));
     assert(identical(type, this.type), '$type != ${this.type}');
 
@@ -1226,6 +1226,9 @@ class TokenClass {
  * Clients may not extend, implement or mix-in this class.
  */
 class TokenType {
+  static const TokenType UNUSED = const TokenType(
+      /* index = */ 255, '', 'UNUSED', NO_PRECEDENCE, EOF_TOKEN);
+
   /**
    * The type of the token that marks the start or end of the input.
    */
@@ -1875,9 +1878,11 @@ class TokenType {
   String toString() => name;
 }
 
-/**
- * Constant list of [TokenType] and [Keyword] ordered by index.
- */
+/// Constant list of [TokenType] and [Keyword] ordered by index.
+///
+/// This list should always have length 256 to avoid bounds checks in
+/// SimpleToken.type:
+/// DartDocTest(_tokenTypesByIndex.length, 256)
 const List<TokenType> _tokenTypesByIndex = [
   TokenType.EOF,
   TokenType.DOUBLE,
@@ -2034,4 +2039,106 @@ const List<TokenType> _tokenTypesByIndex = [
   Keyword.WHILE,
   Keyword.WITH,
   Keyword.YIELD,
+  // Fill to length 256 to avoid bounds check in SimpleToken.type.
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
+  TokenType.UNUSED,
 ];
