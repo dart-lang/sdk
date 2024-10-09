@@ -5,16 +5,15 @@
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/// Parse the given map into a lint config.
-/// Return `null` if [optionsMap] is `null` or does not have `linter` map.
-LintConfig? parseConfig(YamlMap? optionsMap) {
-  if (optionsMap != null) {
-    var options = optionsMap.valueAt('linter');
-    // Quick check of basic contract.
-    if (options is YamlMap) {
-      return LintConfig.parseMap(options);
-    }
+/// Parses [optionsMap] into a [LintConfig], returning the config, or `null` if
+/// [optionsMap] does not have `linter` map.
+LintConfig? parseConfig(YamlMap optionsMap) {
+  var options = optionsMap.valueAt('linter');
+  // Quick check of basic contract.
+  if (options is YamlMap) {
+    return LintConfig.parseMap(options);
   }
+
   return null;
 }
 
