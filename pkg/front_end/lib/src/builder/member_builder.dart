@@ -6,13 +6,11 @@ library fasta.member_builder;
 
 import 'package:kernel/ast.dart';
 
-import '../base/modifier.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
-import 'modifier_builder.dart';
 
 abstract class MemberBuilder implements Builder {
   String get name;
@@ -93,8 +91,7 @@ abstract class MemberBuilder implements Builder {
   Iterable<Annotatable> get annotatables;
 }
 
-abstract class MemberBuilderImpl extends ModifierBuilderImpl
-    implements MemberBuilder {
+abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {
   @override
   String get name;
 
@@ -166,12 +163,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isTopLevel => !isDeclarationMember;
-
-  @override
-  bool get isExternal => (modifiers & externalMask) != 0;
-
-  @override
-  bool get isAbstract => (modifiers & abstractMask) != 0;
 
   @override
   bool get isConflictingSetter => false;

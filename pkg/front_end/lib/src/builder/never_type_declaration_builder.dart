@@ -22,9 +22,6 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   }
 
   @override
-  String get debugName => "NeverTypeDeclarationBuilder";
-
-  @override
   DartType buildAliasedType(
       LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder,

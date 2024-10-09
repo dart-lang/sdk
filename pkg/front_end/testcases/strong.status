@@ -131,6 +131,7 @@ static_field_lowering/opt_in: SemiFuzzFailure
 
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
+macros/duplicate_augment: semiFuzzFailureOnForceRebuildBodies
 macros/extend_augmented: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
 
 const_functions/const_functions_list: SemiFuzzCrash

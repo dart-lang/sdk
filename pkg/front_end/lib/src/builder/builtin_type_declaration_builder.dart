@@ -14,7 +14,7 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   BuiltinTypeDeclarationBuilder(
       String name, this.type, LibraryBuilder compilationUnit, int charOffset)
       : fileUri = compilationUnit.fileUri,
-        super(null, 0, name, compilationUnit, charOffset);
+        super(name, compilationUnit, charOffset);
 
   @override
   DartType buildAliasedType(
@@ -41,7 +41,4 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullability);
   }
-
-  @override
-  String get debugName => "BuiltinTypeDeclarationBuilder";
 }

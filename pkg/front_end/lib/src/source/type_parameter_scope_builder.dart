@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
 import '../base/messages.dart';
+import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
@@ -30,27 +31,11 @@ import 'source_loader.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
-sealed class _Added {
-  void getAddBuilders(
-      {required ProblemReporting problemReporting,
-      required SourceLoader loader,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      required List<NominalVariableBuilder> unboundNominalVariables,
-      required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
-      required List<_AddBuilder> builders,
-      required IndexedLibrary? indexedLibrary,
-      required ContainerType containerType,
-      IndexedContainer? indexedContainer,
-      ContainerName? containerName});
-}
-
-class _AddedFragment implements _Added {
+class _Added {
   final Fragment fragment;
 
-  _AddedFragment(this.fragment);
+  _Added(this.fragment);
 
-  @override
   void getAddBuilders(
       {required ProblemReporting problemReporting,
       required SourceLoader loader,
@@ -107,14 +92,7 @@ class _AddedFragment implements _Added {
                 subclassName: fragment.name,
                 isMixinDeclaration: false,
                 typeVariables: fragment.typeParameters,
-                isMacro: false,
-                isSealed: false,
-                isBase: false,
-                isInterface: false,
-                isFinal: false,
-                // TODO(johnniwinther): How can we support class with mixins?
-                isAugmentation: false,
-                isMixinClass: false,
+                modifiers: Modifiers.empty,
                 addBuilder: (String name, Builder declaration, int charOffset,
                     {Reference? getterReference}) {
                   if (getterReference != null) {
@@ -135,14 +113,7 @@ class _AddedFragment implements _Added {
             fragment.charOffset,
             fragment.endOffset,
             indexedClass,
-            isMixinDeclaration: false,
-            isMacro: fragment.isMacro,
-            isSealed: fragment.isSealed,
-            isBase: fragment.isBase,
-            isInterface: fragment.isInterface,
-            isFinal: fragment.isFinal,
-            isAugmentation: fragment.isAugmentation,
-            isMixinClass: fragment.isMixinClass);
+            isMixinDeclaration: false);
         fragment.builder = classBuilder;
         fragment.bodyScope.declarationBuilder = classBuilder;
         builders.add(new _AddBuilder(fragment.name, classBuilder,
@@ -176,14 +147,7 @@ class _AddedFragment implements _Added {
                 subclassName: fragment.name,
                 isMixinDeclaration: true,
                 typeVariables: fragment.typeParameters,
-                isMacro: false,
-                isSealed: false,
-                isBase: false,
-                isInterface: false,
-                isFinal: false,
-                // TODO(johnniwinther): How can we support class with mixins?
-                isAugmentation: false,
-                isMixinClass: false,
+                modifiers: Modifiers.empty,
                 addBuilder: (String name, Builder declaration, int charOffset,
                     {Reference? getterReference}) {
                   if (getterReference != null) {
@@ -206,14 +170,7 @@ class _AddedFragment implements _Added {
             fragment.charOffset,
             fragment.endOffset,
             indexedClass,
-            isMixinDeclaration: true,
-            isMacro: false,
-            isSealed: false,
-            isBase: fragment.isBase,
-            isInterface: false,
-            isFinal: false,
-            isAugmentation: fragment.isAugmentation,
-            isMixinClass: false);
+            isMixinDeclaration: true);
         fragment.builder = mixinBuilder;
         fragment.bodyScope.declarationBuilder = mixinBuilder;
         builders.add(new _AddBuilder(fragment.name, mixinBuilder,
@@ -244,13 +201,6 @@ class _AddedFragment implements _Added {
             typeVariables: fragment.typeParameters,
             modifiers: fragment.modifiers,
             interfaces: fragment.interfaces,
-            isMacro: fragment.isMacro,
-            isSealed: fragment.isSealed,
-            isBase: fragment.isBase,
-            isInterface: fragment.isInterface,
-            isFinal: fragment.isFinal,
-            isAugmentation: fragment.isAugmentation,
-            isMixinClass: fragment.isMixinClass,
             addBuilder: (String name, Builder declaration, int charOffset,
                 {Reference? getterReference}) {
               if (getterReference != null) {
@@ -286,13 +236,7 @@ class _AddedFragment implements _Added {
                 subclassName: fragment.name,
                 isMixinDeclaration: false,
                 typeVariables: fragment.typeParameters,
-                isMacro: false,
-                isSealed: false,
-                isBase: false,
-                isInterface: false,
-                isFinal: false,
-                isAugmentation: false,
-                isMixinClass: false,
+                modifiers: Modifiers.empty,
                 addBuilder: (String name, Builder declaration, int charOffset,
                     {Reference? getterReference}) {
                   if (getterReference != null) {
@@ -384,17 +328,18 @@ class _AddedFragment implements _Added {
       case FieldFragment():
         String name = fragment.name;
 
-        final bool fieldIsLateWithLowering = fragment.isLate &&
+        final bool fieldIsLateWithLowering = fragment.modifiers.isLate &&
             (loader.target.backendTarget.isLateFieldLoweringEnabled(
-                    hasInitializer: fragment.hasInitializer,
-                    isFinal: fragment.isFinal,
-                    isStatic: fragment.isTopLevel || fragment.isStatic) ||
+                    hasInitializer: fragment.modifiers.hasInitializer,
+                    isFinal: fragment.modifiers.isFinal,
+                    isStatic:
+                        fragment.isTopLevel || fragment.modifiers.isStatic) ||
                 (loader.target.backendTarget.useStaticFieldLowering &&
                     // Coverage-ignore(suite): Not run.
-                    (fragment.isStatic || fragment.isTopLevel)));
+                    (fragment.modifiers.isStatic || fragment.isTopLevel)));
 
-        final bool isInstanceMember =
-            containerType != ContainerType.Library && !fragment.isStatic;
+        final bool isInstanceMember = containerType != ContainerType.Library &&
+            !fragment.modifiers.isStatic;
         final bool isExtensionMember = containerType == ContainerType.Extension;
         final bool isExtensionTypeMember =
             containerType == ContainerType.ExtensionType;
@@ -419,7 +364,7 @@ class _AddedFragment implements _Added {
         if (indexedContainer != null) {
           if ((isExtensionMember || isExtensionTypeMember) &&
               isInstanceMember &&
-              fragment.isExternal) {
+              fragment.modifiers.isExternal) {
             /// An external extension (type) instance field is special. It is
             /// treated as an external getter/setter pair and is therefore
             /// encoded as a pair of top level methods using the extension
@@ -512,8 +457,8 @@ class _AddedFragment implements _Added {
         String name = fragment.name;
         ProcedureKind kind = fragment.kind;
 
-        final bool isInstanceMember =
-            containerType != ContainerType.Library && !fragment.isStatic;
+        final bool isInstanceMember = containerType != ContainerType.Library &&
+            !fragment.modifiers.isStatic;
         final bool isExtensionMember = containerType == ContainerType.Extension;
         final bool isExtensionTypeMember =
             containerType == ContainerType.ExtensionType;
@@ -530,8 +475,8 @@ class _AddedFragment implements _Added {
         Reference? tearOffReference;
         indexedContainer ??= indexedLibrary;
 
-        bool isAugmentation =
-            enclosingLibraryBuilder.isAugmenting && fragment.isAugment;
+        bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
+            fragment.modifiers.isAugment;
         if (indexedContainer != null && !isAugmentation) {
           Name nameToLookup =
               nameScheme.getProcedureMemberName(kind, name).name;
@@ -752,7 +697,7 @@ class LibraryNameSpaceBuilder {
   List<_Added> _added = [];
 
   void addFragment(Fragment fragment) {
-    _added.add(new _AddedFragment(fragment));
+    _added.add(new _Added(fragment));
   }
 
   void includeBuilders(LibraryNameSpaceBuilder other) {
@@ -960,7 +905,7 @@ abstract class DeclarationFragment {
   }
 
   void addFragment(Fragment fragment) {
-    _added.add(new _AddedFragment(fragment));
+    _added.add(new _Added(fragment));
   }
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder() {

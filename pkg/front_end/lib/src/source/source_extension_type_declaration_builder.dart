@@ -10,6 +10,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/messages.dart';
+import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
@@ -49,6 +50,11 @@ class SourceExtensionTypeDeclarationBuilder
         Comparable<SourceExtensionTypeDeclarationBuilder>,
         ClassDeclaration {
   @override
+  final List<MetadataBuilder>? metadata;
+
+  final Modifiers _modifiers;
+
+  @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
@@ -83,8 +89,8 @@ class SourceExtensionTypeDeclarationBuilder
   Nullability? _nullability;
 
   SourceExtensionTypeDeclarationBuilder(
-      {required List<MetadataBuilder>? metadata,
-      required int modifiers,
+      {required this.metadata,
+      required Modifiers modifiers,
       required String name,
       required this.typeParameters,
       required this.interfaceBuilders,
@@ -98,7 +104,8 @@ class SourceExtensionTypeDeclarationBuilder
       required int endOffset,
       required this.indexedContainer,
       required FieldFragment? representationFieldFragment})
-      : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
+      : _modifiers = modifiers,
+        _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
@@ -107,8 +114,7 @@ class SourceExtensionTypeDeclarationBuilder
           ..fileOffset = nameOffset,
         _nameSpaceBuilder = nameSpaceBuilder,
         _representationFieldFragment = representationFieldFragment,
-        super(metadata, modifiers, name, enclosingLibraryBuilder, fileUri,
-            nameOffset);
+        super(name, enclosingLibraryBuilder, fileUri, nameOffset);
 
   @override
   LookupScope get scope => _scope;
@@ -118,6 +124,21 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => _modifiers.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => _modifiers.isFinal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStatic => _modifiers.isStatic;
+
+  @override
+  bool get isAugment => _modifiers.isAugment;
 
   SourceFieldBuilder? get representationFieldBuilder {
     if (_representationFieldBuilder == null) {

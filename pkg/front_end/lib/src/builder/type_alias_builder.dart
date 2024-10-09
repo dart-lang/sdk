@@ -130,9 +130,9 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   List<TypeAliasBuilder> _typeAliasesUsedInUnaliasing = [];
 
-  TypeAliasBuilderImpl(List<MetadataBuilder>? metadata, String name,
-      LibraryBuilder parent, this.fileUri, int fileOffset)
-      : super(metadata, 0, name, parent, fileOffset);
+  TypeAliasBuilderImpl(
+      String name, LibraryBuilder parent, this.fileUri, int fileOffset)
+      : super(name, parent, fileOffset);
 
   @override
   String get debugName => "TypeAliasBuilder";

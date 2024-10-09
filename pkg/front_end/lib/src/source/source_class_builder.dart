@@ -21,6 +21,7 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
@@ -91,6 +92,10 @@ class SourceClassBuilder extends ClassBuilderImpl
         Comparable<SourceClassBuilder>,
         ClassDeclaration,
         SourceDeclarationBuilder {
+  final Modifiers _modifiers;
+
+  final List<MetadataBuilder>? metadata;
+
   final Class actualCls;
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
@@ -125,27 +130,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   final IndexedClass? indexedClass;
 
   @override
-  final bool isMacro;
-
-  @override
-  final bool isSealed;
-
-  @override
-  final bool isBase;
-
-  @override
-  final bool isInterface;
-
-  @override
-  final bool isFinal;
-
-  /// Set to `true` if this class is declared using the `augment` modifier.
-  final bool isAugmentation;
-
-  @override
-  final bool isMixinClass;
-
-  @override
   bool isMixinDeclaration;
 
   bool? _isConflictingAugmentationMember;
@@ -167,8 +151,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   MergedClassMemberScope? _mergedScope;
 
   SourceClassBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
+      this.metadata,
+      this._modifiers,
       String name,
       this.typeVariables,
       this.supertypeBuilder,
@@ -184,21 +168,56 @@ class SourceClassBuilder extends ClassBuilderImpl
       int charEndOffset,
       this.indexedClass,
       {this.mixedInTypeBuilder,
-      this.isMixinDeclaration = false,
-      this.isMacro = false,
-      this.isSealed = false,
-      this.isBase = false,
-      this.isInterface = false,
-      this.isFinal = false,
-      bool isAugmentation = false,
-      this.isMixinClass = false})
+      this.isMixinDeclaration = false})
       : actualCls = initializeClass(typeVariables, name, fileUri,
             startCharOffset, nameOffset, charEndOffset, indexedClass,
-            isAugmentation: isAugmentation),
-        isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, parent, fileUri, nameOffset) {
+            isAugmentation: _modifiers.isAugment),
+        super(name, parent, fileUri, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
+
+  @override
+  bool get isAbstract => _modifiers.isAbstract;
+
+  @override
+  bool get isNamedMixinApplication {
+    return isMixinApplication && _modifiers.isNamedMixinApplication;
+  }
+
+  @override
+  bool get declaresConstConstructor => _modifiers.declaresConstConstructor;
+
+  @override
+  bool get isMacro => _modifiers.isMacro;
+
+  @override
+  bool get isSealed => _modifiers.isSealed;
+
+  @override
+  bool get isBase => _modifiers.isBase;
+
+  @override
+  bool get isInterface => _modifiers.isInterface;
+
+  @override
+  bool get isFinal => _modifiers.isFinal;
+
+  /// Set to `true` if this class is declared using the `augment` modifier.
+  bool get isAugmentation => _modifiers.isAugment;
+
+  @override
+  bool get isMixinClass => _modifiers.isMixin;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => _modifiers.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStatic => _modifiers.isStatic;
+
+  @override
+  bool get isAugment => _modifiers.isAugment;
 
   @override
   LookupScope get scope => _scope;

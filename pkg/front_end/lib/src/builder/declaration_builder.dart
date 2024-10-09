@@ -53,9 +53,9 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   @override
   final Uri fileUri;
 
-  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
+  DeclarationBuilderImpl(
       String name, LibraryBuilder parent, this.fileUri, int fileOffset)
-      : super(metadata, modifiers, name, parent, fileOffset);
+      : super(name, parent, fileOffset);
 
   @override
   LibraryBuilder get libraryBuilder {

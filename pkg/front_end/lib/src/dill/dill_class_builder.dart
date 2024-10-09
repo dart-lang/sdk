@@ -8,7 +8,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
-import '../base/modifier.dart' show abstractMask, namedMixinApplicationMask;
 import '../base/name_space.dart';
 import '../base/problems.dart' show unimplemented;
 import '../base/scope.dart';
@@ -66,8 +65,7 @@ class DillClassBuilder extends ClassBuilderImpl
 
   DillClassBuilder(this.cls, DillLibraryBuilder parent)
       : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
-            parent, cls.fileUri, cls.fileOffset) {
+        super(cls.name, parent, cls.fileUri, cls.fileOffset) {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class ${cls.name}",
         parent: parent.scope);
@@ -115,6 +113,12 @@ class DillClassBuilder extends ClassBuilderImpl
 
   @override
   bool get isFinal => cls.isFinal;
+
+  @override
+  bool get isAbstract => cls.isAbstract;
+
+  @override
+  bool get isNamedMixinApplication => cls.isMixinApplication;
 
   @override
   List<NominalVariableBuilder>? get typeVariables {
@@ -252,17 +256,6 @@ class DillClassBuilder extends ClassBuilderImpl
     _interfaceBuilders = null;
     _typeVariables = null;
   }
-}
-
-int computeModifiers(Class cls) {
-  int modifiers = 0;
-  if (cls.isAbstract) {
-    modifiers |= abstractMask;
-  }
-  if (cls.isMixinApplication) {
-    modifiers |= namedMixinApplicationMask;
-  }
-  return modifiers;
 }
 
 TypeBuilder? computeTypeBuilder(

@@ -60,8 +60,7 @@ import '../base/identifiers.dart'
         SimpleIdentifier;
 import '../base/label_scope.dart';
 import '../base/local_scope.dart';
-import '../base/modifier.dart'
-    show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
+import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem, unhandled, unsupported;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -281,9 +280,9 @@ class BodyBuilder extends StackListenerImpl
 
   DartType? currentLocalVariableType;
 
-  // Using non-null value to initialize this field based on performance advice
-  // from VM engineers. TODO(ahe): Does this still apply?
-  int currentLocalVariableModifiers = -1;
+  static const Modifiers noCurrentLocalVariableModifiers = const Modifiers(-1);
+
+  Modifiers currentLocalVariableModifiers = noCurrentLocalVariableModifiers;
 
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
@@ -1618,7 +1617,7 @@ class BodyBuilder extends StackListenerImpl
                 }
                 return new FormalParameterBuilder(
                     FormalParameterKind.requiredPositional,
-                    /* modifiers = */ 0,
+                    Modifiers.empty,
                     const ImplicitTypeBuilder(),
                     formalName,
                     formal.fileOffset,
@@ -3689,7 +3688,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void beginVariableInitializer(Token token) {
-    if ((currentLocalVariableModifiers & lateMask) != 0) {
+    if (currentLocalVariableModifiers.isLate) {
       // This is matched by the call to [endNode] in [endVariableInitializer].
       typeInferrer.assignedVariables.beginNode();
     }
@@ -3700,7 +3699,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
     AssignedVariablesNodeInfo? assignedVariablesInfo;
-    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
+    bool isLate = currentLocalVariableModifiers.isLate;
     Expression initializer = popForValue();
     if (isLate) {
       assignedVariablesInfo = typeInferrer.assignedVariables
@@ -3718,7 +3717,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
-    bool isConst = (currentLocalVariableModifiers & constMask) != 0;
+    bool isConst = currentLocalVariableModifiers.isConst;
     Expression? initializer;
     if (!optional("in", token.next!)) {
       // A for-in loop-variable can't have an initializer. So let's remain
@@ -3745,11 +3744,11 @@ class BodyBuilder extends StackListenerImpl
       return;
     }
     Identifier identifier = node as Identifier;
-    assert(currentLocalVariableModifiers != -1);
-    bool isConst = (currentLocalVariableModifiers & constMask) != 0;
-    bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
-    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
-    bool isRequired = (currentLocalVariableModifiers & requiredMask) != 0;
+    assert(currentLocalVariableModifiers != noCurrentLocalVariableModifiers);
+    bool isConst = currentLocalVariableModifiers.isConst;
+    bool isFinal = currentLocalVariableModifiers.isFinal;
+    bool isLate = currentLocalVariableModifiers.isLate;
+    bool isRequired = currentLocalVariableModifiers.isRequired;
     assert(isConst == (constantContext == ConstantContext.inferred));
     String name = identifier.name;
     bool isWildcard =
@@ -3842,17 +3841,16 @@ class BodyBuilder extends StackListenerImpl
         ? buildDartType(unresolvedType, TypeUse.variableType,
             allowPotentiallyConstantType: false)
         : null;
-    int modifiers = (lateToken != null ? lateMask : 0) |
-        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
+    Modifiers modifiers =
+        Modifiers.from(lateToken: lateToken, varFinalOrConst: varFinalOrConst);
     _enterLocalState(inLateLocalInitializer: lateToken != null);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValues.Type);
     currentLocalVariableType = type;
     currentLocalVariableModifiers = modifiers;
     super.push(constantContext);
-    constantContext = ((modifiers & constMask) != 0)
-        ? ConstantContext.inferred
-        : ConstantContext.none;
+    constantContext =
+        modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
   }
 
   @override
@@ -3862,7 +3860,7 @@ class BodyBuilder extends StackListenerImpl
       Object? node = pop();
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
-      currentLocalVariableModifiers = pop() as int;
+      currentLocalVariableModifiers = pop() as Modifiers;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (node is ParserRecovery) {
         push(node);
@@ -3882,7 +3880,7 @@ class BodyBuilder extends StackListenerImpl
               .popNonNullable(stack, count, dummyVariableDeclaration);
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
-      currentLocalVariableModifiers = pop() as int;
+      currentLocalVariableModifiers = pop() as Modifiers;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (variables == null) {
         push(new ParserRecovery(offsetForToken(endToken)));
@@ -5323,9 +5321,10 @@ class BodyBuilder extends StackListenerImpl
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     _insideOfFormalParameterType = true;
-    push((covariantToken != null ? covariantMask : 0) |
-        (requiredToken != null ? requiredMask : 0) |
-        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
+    push(Modifiers.from(
+        requiredToken: requiredToken,
+        covariantToken: covariantToken,
+        varFinalOrConst: varFinalOrConst));
     push(varFinalOrConst ?? NullValues.Token);
   }
 
@@ -5370,9 +5369,9 @@ class BodyBuilder extends StackListenerImpl
           varOrFinalOrConst,
           varOrFinalOrConst);
     }
-    int modifiers = pop() as int;
+    Modifiers modifiers = pop() as Modifiers;
     if (inCatchClause) {
-      modifiers |= finalMask;
+      modifiers |= Modifiers.Final;
     }
     List<Expression>? annotations = pop() as List<Expression>?;
     if (nameNode is ParserRecovery) {
@@ -9786,8 +9785,7 @@ class BodyBuilder extends StackListenerImpl
       VariableDeclaration declaredVariable = forest.createVariableDeclaration(
           variable.charOffset, variable.lexeme,
           type: patternType,
-          isFinal:
-              Modifier.validateVarFinalOrConst(keyword?.lexeme) == finalMask);
+          isFinal: Modifiers.from(varFinalOrConst: keyword).isFinal);
       pattern = forest.createVariablePattern(
           variable.charOffset, patternType, declaredVariable);
       declareVariable(declaredVariable, _localScope);

@@ -19,7 +19,7 @@ import '../base/combinator.dart' as type;
 import '../base/configuration.dart' as type;
 import '../base/constant_context.dart' as type;
 import '../base/identifiers.dart' as type;
-import '../base/modifier.dart' as type;
+import '../base/modifiers.dart' as type;
 import '../base/operator.dart' as type;
 import '../base/scope.dart' as type;
 import '../builder/constructor_reference_builder.dart' as type;
@@ -143,10 +143,7 @@ class ValueKinds {
   static const ValueKind MixinApplicationBuilderOrNull =
       const SingleValueKind<type.MixinApplicationBuilder>(
           NullValues.MixinApplicationBuilder);
-  static const ValueKind Modifiers =
-      const SingleValueKind<List<type.Modifier>>();
-  static const ValueKind ModifiersOrNull =
-      const SingleValueKind<List<type.Modifier>>(NullValues.Modifiers);
+  static const ValueKind Modifiers = const SingleValueKind<type.Modifiers>();
   static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =
       const SingleValueKind<type.NamedExpression>();

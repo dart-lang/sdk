@@ -29,6 +29,8 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
+  final List<MetadataBuilder>? metadata;
+
   @override
   TypeBuilder type;
 
@@ -45,7 +47,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
-      {required List<MetadataBuilder>? metadata,
+      {required this.metadata,
       required String name,
       required List<NominalVariableBuilder>? typeVariables,
       required this.type,
@@ -60,7 +62,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             reference: reference)
           ..fileOffset = fileOffset,
         _typeVariables = typeVariables,
-        super(metadata, name, enclosingLibraryBuilder, fileUri, fileOffset);
+        super(name, enclosingLibraryBuilder, fileUri, fileOffset);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>

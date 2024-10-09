@@ -252,7 +252,8 @@ Future<void> main() async {
         " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check(
-        "TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
+        "TypeUseGenerator(offset: 4, declaration: NominalVariableBuilder(T), "
+        "plainNameForRead: foo)",
         new TypeUseGenerator(
             helper, token, declaration, new SyntheticTypeName("foo", -1)));
     check(

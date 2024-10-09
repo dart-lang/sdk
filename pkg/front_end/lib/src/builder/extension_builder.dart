@@ -33,9 +33,9 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionBuilder {
-  ExtensionBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
+  ExtensionBuilderImpl(
       String name, LibraryBuilder parent, Uri fileUri, int fileOffset)
-      : super(metadata, modifiers, name, parent, fileUri, fileOffset);
+      : super(name, parent, fileUri, fileOffset);
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(
@@ -52,9 +52,6 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   bool get isExtension => true;
-
-  @override
-  String get debugName => "ExtensionBuilder";
 
   @override
   // Coverage-ignore(suite): Not run.

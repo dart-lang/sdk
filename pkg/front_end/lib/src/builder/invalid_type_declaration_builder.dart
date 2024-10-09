@@ -7,9 +7,6 @@ part of 'declaration_builders.dart';
 class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     with ErroneousMemberBuilderMixin
     implements TypeDeclarationBuilder {
-  @override
-  String get debugName => "InvalidTypeDeclarationBuilder";
-
   final LocatedMessage message;
 
   final List<LocatedMessage>? context;
@@ -18,7 +15,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   InvalidTypeDeclarationBuilder(String name, this.message,
       {this.context, this.suppressMessage = true})
-      : super(null, 0, name, null, message.charOffset);
+      : super(name, null, message.charOffset);
 
   @override
   // Coverage-ignore(suite): Not run.

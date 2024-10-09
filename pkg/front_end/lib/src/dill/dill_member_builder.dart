@@ -16,9 +16,6 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ProcedureStubKind;
 
-import '../base/modifier.dart'
-    show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
-import '../base/problems.dart' show unhandled;
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/field_builder.dart';
@@ -29,21 +26,14 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
 
 abstract class DillMemberBuilder extends MemberBuilderImpl {
-  @override
-  final int modifiers;
-
   DillMemberBuilder(Member member, Builder parent)
-      : modifiers = computeModifiers(member),
-        super(parent, member.fileUri, member.fileOffset);
+      : super(parent, member.fileUri, member.fileOffset);
 
   @override
   Member get member;
 
   @override
   Iterable<Member> get exportedMembers => [member];
-
-  @override
-  String get debugName => "DillMemberBuilder";
 
   @override
   String get name => member.name.text;
@@ -78,6 +68,13 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   bool get isFactory => identical(ProcedureKind.Factory, kind);
+
+  @override
+  bool get isAbstract => member.isAbstract;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExternal => member.isExternal;
 
   @override
   bool get isSynthetic {
@@ -138,6 +135,17 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
 
   @override
   bool get isAssignable => field.hasSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => field.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => field.isFinal;
+
+  @override
+  bool get isStatic => field.isStatic;
 }
 
 abstract class DillProcedureBuilder extends DillMemberBuilder
@@ -153,6 +161,13 @@ abstract class DillProcedureBuilder extends DillMemberBuilder
 
   @override
   FunctionNode get function => procedure.function;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => procedure.isConst;
+
+  @override
+  bool get isStatic => procedure.isStatic;
 }
 
 class DillGetterBuilder extends DillProcedureBuilder {
@@ -280,6 +295,9 @@ class DillConstructorBuilder extends DillMemberBuilder
 
   @override
   Constructor get invokeTarget => constructor;
+
+  @override
+  bool get isConst => constructor.isConst;
 }
 
 class DillClassMember extends BuilderClassMember {
@@ -367,26 +385,4 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
-}
-
-int computeModifiers(Member member) {
-  int modifier = member.isAbstract ? abstractMask : 0;
-  modifier |= member.isExternal ? externalMask : 0;
-  if (member is Field) {
-    modifier |= member.isConst ? constMask : 0;
-    modifier |= member.isFinal ? finalMask : 0;
-    modifier |= member.isLate ? lateMask : 0;
-    modifier |= member.isStatic ? staticMask : 0;
-  } else if (member is Procedure) {
-    modifier |= member.isConst ? constMask : 0;
-    modifier |= member.isStatic ? staticMask : 0;
-  } else if (member is Constructor) {
-    modifier |= member.isConst ? constMask : 0;
-  } else {
-    // Coverage-ignore-block(suite): Not run.
-    dynamic parent = member.parent;
-    unhandled("${member.runtimeType}", "computeModifiers", member.fileOffset,
-        Uri.base.resolve(parent.fileUri));
-  }
-  return modifier;
 }

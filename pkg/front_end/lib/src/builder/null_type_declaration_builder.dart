@@ -19,9 +19,6 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       : super("Null", type, compilationUnit, charOffset);
 
   @override
-  String get debugName => "NullTypeBuilder";
-
-  @override
   // Coverage-ignore(suite): Not run.
   DartType buildAliasedType(
       LibraryBuilder library,

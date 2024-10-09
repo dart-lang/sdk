@@ -39,6 +39,8 @@ mixin SourceDeclarationBuilderMixin
   @override
   Uri get fileUri;
 
+  List<MetadataBuilder>? get metadata;
+
   /// Returns the [Annotatable] node that holds the annotations declared on
   /// this declaration or its augmentations.
   Annotatable get annotatable;

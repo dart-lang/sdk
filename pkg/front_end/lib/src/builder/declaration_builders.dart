@@ -9,7 +9,6 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../base/loader.dart';
 import '../base/messages.dart';
-import '../base/modifier.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unexpected, unhandled;
 import '../base/scope.dart';
@@ -25,7 +24,6 @@ import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'modifier_builder.dart';
 import 'name_iterator.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';

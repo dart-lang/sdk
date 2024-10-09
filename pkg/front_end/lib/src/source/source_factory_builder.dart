@@ -15,6 +15,7 @@ import '../base/messages.dart'
         templateIncompatibleRedirecteeFunctionType,
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateTypeArgumentMismatch;
+import '../base/modifiers.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -71,7 +72,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       this.returnType,
       String name,
       List<NominalVariableBuilder>? typeVariables,
@@ -365,7 +366,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   RedirectingFactoryBuilder(
       List<MetadataBuilder>? metadata,
-      int modifiers,
+      Modifiers modifiers,
       TypeBuilder returnType,
       String name,
       List<NominalVariableBuilder>? typeVariables,

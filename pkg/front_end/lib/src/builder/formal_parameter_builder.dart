@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/modifier.dart';
+import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -26,7 +26,6 @@ import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
-import 'modifier_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
@@ -51,7 +50,7 @@ abstract class ParameterBuilder {
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends ModifierBuilderImpl
+class FormalParameterBuilder extends BuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
@@ -60,8 +59,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   final int charOffset;
 
-  @override
-  final int modifiers;
+  final Modifiers modifiers;
 
   @override
   TypeBuilder type;
@@ -121,9 +119,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   @override
-  String get debugName => "FormalParameterBuilder";
-
-  @override
   bool get isRequiredPositional => kind.isRequiredPositional;
 
   // TODO(johnniwinther): This was previously named `isOptional` so we might
@@ -144,12 +139,17 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   bool get isLocal => true;
 
-  bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
+  bool get isInitializingFormal => modifiers.isInitializingFormal;
 
-  bool get isSuperInitializingFormal =>
-      (modifiers & superInitializingFormalMask) != 0;
+  bool get isSuperInitializingFormal => modifiers.isSuperInitializingFormal;
 
-  bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
+  bool get isCovariantByDeclaration => modifiers.isCovariant;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  @override
+  bool get isFinal => modifiers.isFinal;
 
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
@@ -195,8 +195,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
-    return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
-        builderFactory.addInferableType(), name, charOffset,
+    return new FormalParameterBuilder(
+        kind,
+        modifiers | Modifiers.InitializingFormal,
+        builderFactory.addInferableType(),
+        name,
+        charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
@@ -208,7 +212,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
           kind,
-          modifiers | finalMask | initializingFormalMask,
+          modifiers | Modifiers.Final | Modifiers.InitializingFormal,
           type,
           name,
           charOffset,
@@ -220,7 +224,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
           kind,
-          modifiers | finalMask | superInitializingFormalMask,
+          modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
           type,
           name,
           charOffset,
@@ -299,6 +303,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
     initializerToken = null;
   }
+
+  @override
+  String toString() => '$runtimeType($name)';
 }
 
 class FunctionTypeParameterBuilder implements ParameterBuilder {
