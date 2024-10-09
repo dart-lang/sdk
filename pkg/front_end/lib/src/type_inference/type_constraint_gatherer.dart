@@ -448,12 +448,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    constraintGenerationResult =
-        performSubtypeConstraintGenerationForFunctionTypes(p, q,
-            leftSchema: constrainSupertype,
-            astNodeForTesting: treeNodeForTesting);
-    if (constraintGenerationResult != null) {
-      return constraintGenerationResult;
+    if (performSubtypeConstraintGenerationForFunctionTypes(p, q,
+        leftSchema: constrainSupertype,
+        astNodeForTesting: treeNodeForTesting)) {
+      return true;
     }
 
     // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a

@@ -387,7 +387,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     if (P_typeFormals.isEmpty && Q_typeFormals.isEmpty) {
-      return _functionType0(P, Q, leftSchema, nodeForTesting: nodeForTesting);
+      return performSubtypeConstraintGenerationForFunctionTypes(P, Q,
+          leftSchema: leftSchema, astNodeForTesting: nodeForTesting);
     }
 
     // We match two generic function types:
@@ -438,8 +439,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         .toList();
     var P_instantiated = P.instantiate(typeArguments);
     var Q_instantiated = Q.instantiate(typeArguments);
-    if (!_functionType0(P_instantiated, Q_instantiated, leftSchema,
-        nodeForTesting: nodeForTesting)) {
+    if (!performSubtypeConstraintGenerationForFunctionTypes(
+        P_instantiated, Q_instantiated,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
       _constraints.length = rewind;
       return false;
     }
@@ -450,26 +452,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // TODO(scheglov): do closure
 
     return true;
-  }
-
-  /// Matches [P] against [Q], where [P] and [Q] are both non-generic function
-  /// types.
-  ///
-  /// If [P] is a subtype of [Q] under some constraints, the constraints making
-  /// the relation possible are recorded to [_constraints], and `true` is
-  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
-  /// and `false` is returned.
-  bool _functionType0(FunctionType f, FunctionType g, bool leftSchema,
-      {required AstNode? nodeForTesting}) {
-    // A function type `(M0,..., Mn, [M{n+1}, ..., Mm]) -> R0` is a subtype
-    // match for a function type `(N0,..., Nk, [N{k+1}, ..., Nr]) -> R1` with
-    // respect to `L` under constraints `C0 + ... + Cr + C`.
-    bool? result = performSubtypeConstraintGenerationForFunctionTypes(f, g,
-        leftSchema: leftSchema, astNodeForTesting: nodeForTesting);
-    if (result != null) {
-      return result;
-    }
-    return false;
   }
 
   /// Matches [P] against [Q], where [P] and [Q] are both record types.

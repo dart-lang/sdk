@@ -62,7 +62,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('int Function(int)'), Type('String Function(int)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -71,7 +71,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function(int)'), Type('void Function(String)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -80,7 +80,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function()'), Type('void Function([int])'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -89,7 +89,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function(int)'), Type('void Function([int])'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
     });
@@ -146,7 +146,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('int Function({int x})'), Type('String Function({int x})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -157,7 +157,7 @@ main() {
                 Type('void Function({String x})'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -168,7 +168,7 @@ main() {
                 Type('void Function()'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -177,7 +177,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function()'), Type('void Function({int x})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -189,7 +189,7 @@ main() {
                 Type('void Function({int z})'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
     });
@@ -215,7 +215,7 @@ main() {
                 Type('void Function(int, [String])'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -226,7 +226,7 @@ main() {
                 Type('void Function(int, String)'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
     });
