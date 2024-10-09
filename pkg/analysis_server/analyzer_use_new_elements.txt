@@ -306,6 +306,7 @@ lib/src/services/correction/dart/create_getter.dart
 lib/src/services/correction/dart/create_local_variable.dart
 lib/src/services/correction/dart/create_method.dart
 lib/src/services/correction/dart/create_method_or_function.dart
+lib/src/services/correction/dart/create_mixin.dart
 lib/src/services/correction/dart/create_no_such_method.dart
 lib/src/services/correction/dart/create_parameter.dart
 lib/src/services/correction/dart/create_setter.dart
