@@ -100,28 +100,28 @@ extension AstNodeNullableExtension on AstNode? {
     return null;
   }
 
+  /// Whether the expression is null-aware, or if one of its recursive targets
+  /// is null-aware.
+  bool get containsNullAwareInvocationInChain {
+    var node = this;
+    if (node is PropertyAccess) {
+      if (node.isNullAware) return true;
+      return node.target.containsNullAwareInvocationInChain;
+    } else if (node is MethodInvocation) {
+      if (node.isNullAware) return true;
+      return node.target.containsNullAwareInvocationInChain;
+    } else if (node is IndexExpression) {
+      if (node.isNullAware) return true;
+      return node.target.containsNullAwareInvocationInChain;
+    }
+    return false;
+  }
+
   bool get isFieldNameShortcut {
     var node = this;
     if (node is NullCheckPattern) node = node.parent;
     if (node is NullAssertPattern) node = node.parent;
     return node is PatternField && node.name != null && node.name?.name == null;
-  }
-
-  /// Return `true` if the expression is null aware, or if one of its recursive
-  /// targets is null aware.
-  bool containsNullAwareInvocationInChain() {
-    var node = this;
-    if (node is PropertyAccess) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain();
-    } else if (node is MethodInvocation) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain();
-    } else if (node is IndexExpression) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain();
-    }
-    return false;
   }
 }
 
