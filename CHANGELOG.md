@@ -7,8 +7,10 @@ IntelliJ and Android Studio (issue[#56607][]).
 DevTools is opened instead of only the first time (issue[#56607][]).
 - Fixes an issue resulting in a missing tab bar when DevTools is
 embedded in IntelliJ and Android Studio (issue[#56607][]).
+- Fixes record runtime type's hash code in dart2wasm (Flutter issue [#155510]).
 
 [#56607]: https://github.com/dart-lang/sdk/issues/56607
+[#155510]: https://github.com/flutter/flutter/issues/155510
 
 ## 3.5.2 - 2024-08-28
 
