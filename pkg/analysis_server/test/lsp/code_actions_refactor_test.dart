@@ -8,13 +8,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
+import 'request_helpers_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -113,42 +113,9 @@ void f() {
 }
 
 @reflectiveTest
-class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest {
+class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest
+    with LspProgressNotificationsMixin {
   final extractMethodTitle = 'Extract Method';
-
-  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
-  /// requests and notifications for convenience in testing.
-  ///
-  /// Analyzing statuses are not included.
-  Stream<String> get progressUpdates {
-    var controller = StreamController<String>();
-
-    requestsFromServer
-        .where((r) => r.method == Method.window_workDoneProgress_create)
-        .listen((request) async {
-      var params = WorkDoneProgressCreateParams.fromJson(
-          request.params as Map<String, Object?>);
-      if (params.token != analyzingProgressToken) {
-        controller.add('CREATE');
-      }
-    }, onDone: controller.close);
-    notificationsFromServer
-        .where((n) => n.method == Method.progress)
-        .listen((notification) {
-      var params =
-          ProgressParams.fromJson(notification.params as Map<String, Object?>);
-      if (params.token != analyzingProgressToken) {
-        if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-          controller.add('BEGIN');
-        } else if (WorkDoneProgressEnd.canParse(
-            params.value, nullLspJsonReporter)) {
-          controller.add('END');
-        }
-      }
-    });
-
-    return controller.stream;
-  }
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
@@ -460,7 +427,8 @@ void newMethod() {
 }
 ''';
 
-    // Ensure the progress messages come through and in the correct order.
+    // Expect create/begin/end progress updates, because in this case the server
+    // generates the token.
     expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
 
     setWorkDoneProgressSupport();

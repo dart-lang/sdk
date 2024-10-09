@@ -5,8 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../lsp/request_helpers_mixin.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -16,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveTopLevelToFileTest extends RefactoringTest {
+class MoveTopLevelToFileTest extends RefactoringTest
+    with LspProgressNotificationsMixin {
   /// Simple file content with a single class named 'A'.
   static const simpleClassContent = '''
 class ^A {}
@@ -1282,6 +1285,72 @@ import 'package:test/setter.dart';
     );
   }
 
+  Future<void> test_progress_clientProvided() async {
+    var originalSource = 'class A^ {}';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+class A {}<<<<<<<<<<
+>>>>>>>>>> lib/main.dart empty
+''';
+
+    // Expect begin/end progress updates without a create, since the
+    // token was supplied by us (the client).
+    expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      commandWorkDoneToken: clientProvidedTestWorkDoneToken,
+    );
+  }
+
+  Future<void> test_progress_notSupported() async {
+    var originalSource = 'class A^ {}';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+class A {}<<<<<<<<<<
+>>>>>>>>>> lib/main.dart empty
+''';
+
+    var didGetProgressNotifications = false;
+    progressUpdates.listen((_) => didGetProgressNotifications = true);
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+
+    expect(didGetProgressNotifications, isFalse);
+  }
+
+  Future<void> test_progress_serverGenerated() async {
+    var originalSource = 'class A^ {}';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+class A {}<<<<<<<<<<
+>>>>>>>>>> lib/main.dart empty
+''';
+
+    // Expect create/begin/end progress updates, because in this case the server
+    // generates the token.
+    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
+
+    setWorkDoneProgressSupport();
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void>
       test_protocol_available_withClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
@@ -1858,10 +1927,11 @@ class B {}
     required String expected,
     String? otherFilePath,
     String? otherFileContent,
+    ProgressToken? commandWorkDoneToken,
   }) async {
     if (originalSource.contains('>>>>') ||
         (otherFileContent?.contains('>>>>>') ?? false)) {
-      throw '>>>>>';
+      throw 'File content must not include >>>>>';
     }
     addTestSource(originalSource);
     if (otherFilePath != null) {
@@ -1870,7 +1940,11 @@ class B {}
 
     await initializeServer();
     var action = await expectCodeAction(actionTitle);
-    await verifyCommandEdits(action.command!, expected);
+    await verifyCommandEdits(
+      action.command!,
+      expected,
+      workDoneToken: commandWorkDoneToken,
+    );
   }
 
   Future<void> _singleDeclaration({
@@ -1879,6 +1953,7 @@ class B {}
     required String expected,
     String? otherFilePath,
     String? otherFileContent,
+    ProgressToken? commandWorkDoneToken,
   }) async {
     await _refactor(
       originalSource: originalSource,
@@ -1886,6 +1961,7 @@ class B {}
       actionTitle: "Move '$declarationName' to file",
       otherFilePath: otherFilePath,
       otherFileContent: otherFileContent,
+      commandWorkDoneToken: commandWorkDoneToken,
     );
   }
 
