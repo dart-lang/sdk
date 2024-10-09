@@ -17,7 +17,6 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
-import 'package:analyzer/src/analysis_options/formatter_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/lint/linter.dart';
@@ -239,17 +238,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   late CodeStyleOptions codeStyleOptions;
 
   @override
-  late FormatterOptions formatterOptions;
+  FormatterOptions formatterOptions = FormatterOptions();
 
-  /// The set of "un-ignorable" error names, as parsed in [AnalyzerOptions] from
-  /// an analysis options file.
+  /// The set of "un-ignorable" error names, as parsed from an analysis options
+  /// file.
   Set<String> unignorableNames = {};
 
   /// Initialize a newly created set of analysis options to have their default
   /// values.
   AnalysisOptionsImpl({this.file}) {
     codeStyleOptions = CodeStyleOptionsImpl(this, useFormatter: false);
-    formatterOptions = FormatterOptionsImpl(this);
   }
 
   /// Initialize a newly created set of analysis options to have the same values
