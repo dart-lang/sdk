@@ -77,6 +77,129 @@ export 'package:analyzer/dart/element/element.dart'
         ElementAnnotation,
         ElementKind;
 
+/// An element or fragment that can have either annotations (metadata), a
+/// documentation comment, or both associated with it.
+abstract class Annotatable {
+  /// The content of the documentation comment (including delimiters) for this
+  /// element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the comment will be a
+  /// concatenation of the comments from all of the fragments.
+  ///
+  /// Returns `null` if the receiver doesn't have documentation.
+  String? get documentationComment;
+
+  /// Whether the receiver has an annotation of the form `@alwaysThrows`.
+  bool get hasAlwaysThrows;
+
+  /// Whether the receiver has an annotation of the form `@deprecated`
+  /// or `@Deprecated('..')`.
+  bool get hasDeprecated;
+
+  /// Whether the receiver has an annotation of the form `@doNotStore`.
+  bool get hasDoNotStore;
+
+  /// Whether the receiver has an annotation of the form `@doNotSubmit`.
+  bool get hasDoNotSubmit;
+
+  /// Whether the receiver has an annotation of the form `@factory`.
+  bool get hasFactory;
+
+  /// Whether the receiver has an annotation of the form `@immutable`.
+  bool get hasImmutable;
+
+  /// Whether the receiver has an annotation of the form `@internal`.
+  bool get hasInternal;
+
+  /// Whether the receiver has an annotation of the form `@isTest`.
+  bool get hasIsTest;
+
+  /// Whether the receiver has an annotation of the form `@isTestGroup`.
+  bool get hasIsTestGroup;
+
+  /// Whether the receiver has an annotation of the form `@JS(..)`.
+  bool get hasJS;
+
+  /// Whether the receiver has an annotation of the form `@literal`.
+  bool get hasLiteral;
+
+  /// Whether the receiver has an annotation of the form `@mustBeConst`.
+  bool get hasMustBeConst;
+
+  /// Whether the receiver has an annotation of the form `@mustBeOverridden`.
+  bool get hasMustBeOverridden;
+
+  /// Whether the receiver has an annotation of the form `@mustCallSuper`.
+  bool get hasMustCallSuper;
+
+  /// Whether the receiver has an annotation of the form `@nonVirtual`.
+  bool get hasNonVirtual;
+
+  /// Whether the receiver has an annotation of the form `@optionalTypeArgs`.
+  bool get hasOptionalTypeArgs;
+
+  /// Whether the receiver has an annotation of the form `@override`.
+  bool get hasOverride;
+
+  /// Whether the receiver has an annotation of the form `@protected`.
+  bool get hasProtected;
+
+  /// Whether the receiver has an annotation of the form `@redeclare`.
+  bool get hasRedeclare;
+
+  /// Whether the receiver has an annotation of the form `@reopen`.
+  bool get hasReopen;
+
+  /// Whether the receiver has an annotation of the form `@required`.
+  bool get hasRequired;
+
+  /// Whether the receiver has an annotation of the form `@sealed`.
+  bool get hasSealed;
+
+  /// Whether the receiver has an annotation of the form `@useResult`
+  /// or `@UseResult('..')`.
+  bool get hasUseResult;
+
+  /// Whether the receiver has an annotation of the form `@visibleForOverriding`.
+  bool get hasVisibleForOverriding;
+
+  /// Whether the receiver has an annotation of the form `@visibleForTemplate`.
+  bool get hasVisibleForTemplate;
+
+  /// Whether the receiver has an annotation of the form `@visibleForTesting`.
+  bool get hasVisibleForTesting;
+
+  /// Whether the receiver has an annotation of the form
+  /// `@visibleOutsideTemplate`.
+  bool get hasVisibleOutsideTemplate;
+
+  /// The metadata associated with the element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the list will include
+  /// all of the metadata from all of the fragments.
+  ///
+  /// The list will be empty if the receiver does not have any metadata or if
+  /// the library containing this element has not yet been fully resolved.
+  List<ElementAnnotation> get metadata;
+
+  /// The version where this SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in the SDK, or doesn't have
+  /// a `@Since()` annotation applied to it.
+  Version? get sinceSdkVersion;
+}
+
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
 
 /// A class.
@@ -612,7 +735,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, _Annotatable, FragmentedElement {
+    implements PromotableElement2, Annotatable, FragmentedElement {
   @override
   FormalParameterElement get baseElement;
 
@@ -708,7 +831,7 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, _Annotatable {
+    implements PromotableFragment, Annotatable {
   @override
   FormalParameterElement get element;
 
@@ -1086,7 +1209,7 @@ abstract class LabelElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement2
-    implements Element2, _Annotatable, FragmentedElement {
+    implements Element2, Annotatable, FragmentedElement {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -1240,7 +1363,7 @@ abstract class LibraryExport {
 }
 
 /// The portion of a [LibraryElement2] coming from a single compilation unit.
-abstract class LibraryFragment implements Fragment, _Annotatable {
+abstract class LibraryFragment implements Fragment, Annotatable {
   /// The extension elements accessible within this fragment.
   List<ExtensionElement2> get accessibleExtensions2;
 
@@ -1594,7 +1717,7 @@ abstract class PromotableFragment implements VariableFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, _Annotatable, FragmentedElement {
+    implements VariableElement2, Annotatable, FragmentedElement {
   @override
   PropertyInducingFragment? get firstFragment;
 
@@ -1625,7 +1748,7 @@ abstract class PropertyInducingElement2
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingFragment
-    implements VariableFragment, _Annotatable {
+    implements VariableFragment, Annotatable {
   @override
   PropertyInducingElement2 get element;
 
@@ -1886,7 +2009,7 @@ abstract class TypeAliasFragment
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeDefiningElement2
-    implements Element2, _Annotatable, FragmentedElement {
+    implements Element2, Annotatable, FragmentedElement {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
 }
@@ -1894,7 +2017,7 @@ abstract class TypeDefiningElement2
 /// The portion of a [TypeDefiningElement2] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningFragment implements Fragment, _Annotatable {
+abstract class TypeDefiningFragment implements Fragment, Annotatable {
   @override
   TypeDefiningElement2 get element;
 }
@@ -1950,7 +2073,7 @@ abstract class TypeParameterFragment implements TypeDefiningFragment {
 /// An element that has type parameters, such as a class, typedef, or method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterizedElement2 implements Element2, _Annotatable {
+abstract class TypeParameterizedElement2 implements Element2, Annotatable {
   /// If the element defines a type, indicates whether the type may safely
   /// appear without explicit type arguments as the bounds of a type parameter
   /// declaration.
@@ -1969,7 +2092,7 @@ abstract class TypeParameterizedElement2 implements Element2, _Annotatable {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterizedFragment implements Fragment, _Annotatable {
+abstract class TypeParameterizedFragment implements Fragment, Annotatable {
   @override
   TypeParameterizedElement2 get element;
 
@@ -2051,127 +2174,4 @@ abstract class VariableFragment implements Fragment {
   /// Variables that are declared with the 'const' modifier will return `false`
   /// even though they are implicitly final.
   bool get isFinal;
-}
-
-/// An element or fragment that can have either annotations (metadata), a
-/// documentation comment, or both associated with it.
-abstract class _Annotatable {
-  /// The content of the documentation comment (including delimiters) for this
-  /// element or fragment.
-  ///
-  /// If the receiver is an element that has fragments, the comment will be a
-  /// concatenation of the comments from all of the fragments.
-  ///
-  /// Returns `null` if the receiver doesn't have documentation.
-  String? get documentationComment;
-
-  /// Whether the receiver has an annotation of the form `@alwaysThrows`.
-  bool get hasAlwaysThrows;
-
-  /// Whether the receiver has an annotation of the form `@deprecated`
-  /// or `@Deprecated('..')`.
-  bool get hasDeprecated;
-
-  /// Whether the receiver has an annotation of the form `@doNotStore`.
-  bool get hasDoNotStore;
-
-  /// Whether the receiver has an annotation of the form `@doNotSubmit`.
-  bool get hasDoNotSubmit;
-
-  /// Whether the receiver has an annotation of the form `@factory`.
-  bool get hasFactory;
-
-  /// Whether the receiver has an annotation of the form `@immutable`.
-  bool get hasImmutable;
-
-  /// Whether the receiver has an annotation of the form `@internal`.
-  bool get hasInternal;
-
-  /// Whether the receiver has an annotation of the form `@isTest`.
-  bool get hasIsTest;
-
-  /// Whether the receiver has an annotation of the form `@isTestGroup`.
-  bool get hasIsTestGroup;
-
-  /// Whether the receiver has an annotation of the form `@JS(..)`.
-  bool get hasJS;
-
-  /// Whether the receiver has an annotation of the form `@literal`.
-  bool get hasLiteral;
-
-  /// Whether the receiver has an annotation of the form `@mustBeConst`.
-  bool get hasMustBeConst;
-
-  /// Whether the receiver has an annotation of the form `@mustBeOverridden`.
-  bool get hasMustBeOverridden;
-
-  /// Whether the receiver has an annotation of the form `@mustCallSuper`.
-  bool get hasMustCallSuper;
-
-  /// Whether the receiver has an annotation of the form `@nonVirtual`.
-  bool get hasNonVirtual;
-
-  /// Whether the receiver has an annotation of the form `@optionalTypeArgs`.
-  bool get hasOptionalTypeArgs;
-
-  /// Whether the receiver has an annotation of the form `@override`.
-  bool get hasOverride;
-
-  /// Whether the receiver has an annotation of the form `@protected`.
-  bool get hasProtected;
-
-  /// Whether the receiver has an annotation of the form `@redeclare`.
-  bool get hasRedeclare;
-
-  /// Whether the receiver has an annotation of the form `@reopen`.
-  bool get hasReopen;
-
-  /// Whether the receiver has an annotation of the form `@required`.
-  bool get hasRequired;
-
-  /// Whether the receiver has an annotation of the form `@sealed`.
-  bool get hasSealed;
-
-  /// Whether the receiver has an annotation of the form `@useResult`
-  /// or `@UseResult('..')`.
-  bool get hasUseResult;
-
-  /// Whether the receiver has an annotation of the form `@visibleForOverriding`.
-  bool get hasVisibleForOverriding;
-
-  /// Whether the receiver has an annotation of the form `@visibleForTemplate`.
-  bool get hasVisibleForTemplate;
-
-  /// Whether the receiver has an annotation of the form `@visibleForTesting`.
-  bool get hasVisibleForTesting;
-
-  /// Whether the receiver has an annotation of the form
-  /// `@visibleOutsideTemplate`.
-  bool get hasVisibleOutsideTemplate;
-
-  /// The metadata associated with the element or fragment.
-  ///
-  /// If the receiver is an element that has fragments, the list will include
-  /// all of the metadata from all of the fragments.
-  ///
-  /// The list will be empty if the receiver does not have any metadata or if
-  /// the library containing this element has not yet been fully resolved.
-  List<ElementAnnotation> get metadata;
-
-  /// The version where this SDK API was added.
-  ///
-  /// A `@Since()` annotation can be applied to a library declaration,
-  /// any public declaration in a library, or in a class, or to an optional
-  /// parameter, etc.
-  ///
-  /// The returned version is "effective", so that if a library is annotated
-  /// then all elements of the library inherit it; or if a class is annotated
-  /// then all members and constructors of the class inherit it.
-  ///
-  /// If multiple `@Since()` annotations apply to the same element, the latest
-  /// version takes precedence.
-  ///
-  /// Returns `null` if the element is not declared in the SDK, or doesn't have
-  /// a `@Since()` annotation applied to it.
-  Version? get sinceSdkVersion;
 }
