@@ -5821,7 +5821,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
           Type currentType = currentPromotionInfo.promotedTypes?.last ??
               operations.variableType(variable);
-          NonPromotionHistory? nonPromotionHistory =
+          NonPromotionHistory<Type>? nonPromotionHistory =
               currentPromotionInfo.nonPromotionHistory;
           while (nonPromotionHistory != null) {
             Type nonPromotedType = nonPromotionHistory.type;
