@@ -1,3 +1,7 @@
+## 6.11.0-dev
+* Un-deprecated `LibraryElement.exportedLibraries`.
+* Un-deprecated `LibraryElement.importedLibraries`.
+
 ## 6.10.0
 * Deprecated `LibraryElement.accessibleExtensions`, use
   `CompilationUnitElement.accessibleExtensions` instead.
