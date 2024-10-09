@@ -2658,7 +2658,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ExpressionInferenceResult conditionResult = inferExpression(
           element.condition!, coreTypes.boolRawType(Nullability.nonNullable),
           isVoidAllowed: false);
-      element.condition = conditionResult.expression..parent = element;
+      Expression assignableCondition = ensureAssignable(
+          coreTypes.boolRawType(Nullability.nonNullable),
+          conditionResult.inferredType,
+          conditionResult.expression);
+      element.condition = assignableCondition..parent = element;
       inferredConditionTypes[element.condition!] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, element.condition);
@@ -2816,28 +2820,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           checkElement(otherwise, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case ForElement(:Expression? condition, :Expression body):
-        if (condition != null) {
-          DartType conditionType = inferredConditionTypes[condition]!;
-          Expression assignableCondition = ensureAssignable(
-              coreTypes.boolRawType(Nullability.nonNullable),
-              conditionType,
-              condition);
-          item.condition = assignableCondition..parent = item;
-        }
+      case ForElement(:Expression body):
         if (body is ControlFlowElement) {
           checkElement(body, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case PatternForElement(:Expression? condition, :Expression body):
-        if (condition != null) {
-          DartType conditionType = inferredConditionTypes[condition]!;
-          Expression assignableCondition = ensureAssignable(
-              coreTypes.boolRawType(Nullability.nonNullable),
-              conditionType,
-              condition);
-          item.condition = assignableCondition..parent = item;
-        }
+      case PatternForElement(:Expression body):
         if (body is ControlFlowElement) {
           checkElement(body, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
@@ -4954,8 +4942,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ExpressionInferenceResult conditionResult = inferExpression(
           entry.condition!, coreTypes.boolRawType(Nullability.nonNullable),
           isVoidAllowed: false);
-      entry.condition = conditionResult.expression..parent = entry;
-      // TODO(johnniwinther): Ensure assignability of condition?
+      Expression condition = ensureAssignable(
+          coreTypes.boolRawType(Nullability.nonNullable),
+          conditionResult.inferredType,
+          conditionResult.expression);
+      entry.condition = condition..parent = entry;
       inferredConditionTypes[entry.condition!] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, entry.condition);
@@ -5210,26 +5201,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             entry.otherwise = otherwise..parent = entry;
           }
         case ForMapEntry():
-          if (entry.condition != null) {
-            DartType conditionType = inferredConditionTypes[entry.condition]!;
-            Expression condition = ensureAssignable(
-                coreTypes.boolRawType(Nullability.nonNullable),
-                conditionType,
-                entry.condition!);
-            entry.condition = condition..parent = entry;
-          }
           MapLiteralEntry body = checkMapEntry(entry.body, keyType, valueType,
               inferredSpreadTypes, inferredConditionTypes, offsets);
           entry.body = body..parent = entry;
         case PatternForMapEntry():
-          if (entry.condition != null) {
-            DartType conditionType = inferredConditionTypes[entry.condition]!;
-            Expression condition = ensureAssignable(
-                coreTypes.boolRawType(Nullability.nonNullable),
-                conditionType,
-                entry.condition!);
-            entry.condition = condition..parent = entry;
-          }
           MapLiteralEntry body = checkMapEntry(entry.body, keyType, valueType,
               inferredSpreadTypes, inferredConditionTypes, offsets);
           entry.body = body..parent = entry;
