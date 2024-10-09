@@ -2991,8 +2991,35 @@ static void CollectStringifiedType(Thread* thread,
     return;
   }
   if (type.IsRecordType()) {
-    // _Record class is not useful for the CFE. We use null instead.
+    const auto& record = RecordType::Cast(type);
+    const intptr_t num_fields = record.NumFields();
+    const Array& field_names =
+        Array::Handle(zone, record.GetFieldNames(thread));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
+
+    // Records have their own encoding:
+    // "record" <nullability> <num fields> <num positional fields>
+    // <field names> <encoding of field>
+    instance ^= String::New("record");
     output.Add(instance);
+    instance ^= Smi::New((intptr_t)type.nullability());
+    output.Add(instance);
+    instance ^= Smi::New(num_fields);
+    output.Add(instance);
+    instance ^= Smi::New(num_positional_fields);
+    output.Add(instance);
+
+    String& name = String::Handle(zone);
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      name ^= field_names.At(i);
+      output.Add(name);
+    }
+
+    AbstractType& field_type = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = num_fields; i < n; ++i) {
+      field_type = record.FieldTypeAt(i);
+      CollectStringifiedType(thread, zone, field_type, output);
+    }
     return;
   }
   if (type.IsDynamicType()) {
