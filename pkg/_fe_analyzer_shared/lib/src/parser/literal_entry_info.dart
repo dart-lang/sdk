@@ -6,7 +6,6 @@ import '../scanner/token.dart';
 import 'identifier_context.dart';
 import 'literal_entry_info_impl.dart';
 import 'parser_impl.dart';
-import 'util.dart';
 
 /// [simpleEntry] is the first step for parsing a literal entry
 /// without any control flow or spread collection operator.
@@ -56,15 +55,15 @@ class LiteralEntryInfo {
 /// Compute the [LiteralEntryInfo] for the literal list, map, or set entry.
 LiteralEntryInfo computeLiteralEntry(Token token) {
   Token next = token.next!;
-  if (optional2(Keyword.IF, next)) {
+  if (next.isA2(Keyword.IF)) {
     return ifCondition;
-  } else if (optional2(Keyword.FOR, next) ||
-      (optional2(Keyword.AWAIT, next) && optional2(Keyword.FOR, next.next!))) {
+  } else if (next.isA2(Keyword.FOR) ||
+      (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
     return new ForCondition();
-  } else if (optional2(TokenType.PERIOD_PERIOD_PERIOD, next) ||
-      optional2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION, next)) {
+  } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
+      next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
     return spreadOperator;
-  } else if (optional2(TokenType.QUESTION, next)) {
+  } else if (next.isA2(TokenType.QUESTION)) {
     return nullAwareEntry;
   }
   return simpleEntry;
@@ -72,10 +71,11 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
 
 /// Return `true` if the given [token] should be treated like the start of
 /// a literal entry in a list, set, or map for the purposes of recovery.
-bool looksLikeLiteralEntry(Token token) =>
-    looksLikeExpressionStart(token) ||
-    optional('...', token) ||
-    optional('...?', token) ||
-    optional('if', token) ||
-    optional('for', token) ||
-    (optional('await', token) && optional('for', token.next!));
+bool looksLikeLiteralEntry(Token token) {
+  return looksLikeExpressionStart(token) ||
+      token.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
+      token.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION) ||
+      token.isA2(Keyword.IF) ||
+      token.isA2(Keyword.FOR) ||
+      (token.isA2(Keyword.AWAIT) && token.next!.isA(Keyword.FOR));
+}

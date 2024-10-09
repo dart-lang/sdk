@@ -4,15 +4,15 @@
 
 library fasta.ignored_parser_errors;
 
-import 'package:_fe_analyzer_shared/src/parser/parser.dart' show optional;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show TokenIsAExtension, Keyword, Token;
 
 import '../codes/cfe_codes.dart' show Code, codeNonPartOfDirectiveInPart;
 
 bool isIgnoredParserError(Code<dynamic> code, Token token) {
   if (code == codeNonPartOfDirectiveInPart) {
     // Ignored. This error is handled in the outline phase (part resolution).
-    return optional("part", token);
+    return token.isA(Keyword.PART);
   } else {
     return false;
   }

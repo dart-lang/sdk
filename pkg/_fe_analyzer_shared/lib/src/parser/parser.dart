@@ -41,7 +41,7 @@ export 'parser_error.dart' show ParserError;
 
 export 'top_level_parser.dart' show TopLevelParser;
 
-export 'util.dart' show lengthForToken, lengthOfSpan, optional, optional2;
+export 'util.dart' show lengthForToken, lengthOfSpan, optional;
 
 class ErrorCollectingListener extends Listener {
   final List<ParserError> recoverableErrors = <ParserError>[];

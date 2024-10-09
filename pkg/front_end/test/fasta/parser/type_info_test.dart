@@ -2784,8 +2784,8 @@ Token scan(String source) {
 int countGtGtAndNullEnd(Token token) {
   int count = 0;
   while (!token.isEof) {
-    if ((optional('<', token) && token.endGroup == null) ||
-        optional('>>', token)) {
+    if ((token.isA2(TokenType.LT) && token.endGroup == null) ||
+        token.isA2(TokenType.GT_GT)) {
       ++count;
     }
     token = token.next!;

@@ -646,7 +646,7 @@ class TestParser extends Parser {
 
   @override
   Token? recoverySmallLookAheadSkipTokens(
-      final Token token, Iterable<String> lookFor) {
+      final Token token, List<TokenType> lookFor) {
     doPrint('recoverySmallLookAheadSkipTokens(' '$token, ' '$lookFor)');
     indent++;
     var result = super.recoverySmallLookAheadSkipTokens(token, lookFor);

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../messages/codes.dart' as codes;
-import '../scanner/token.dart' show Keyword, Token;
+import '../scanner/token.dart'
+    show Keyword, Token, TokenIsAExtension, TokenType;
 import 'formal_parameter_kind.dart';
 import 'member_kind.dart' show MemberKind;
 import 'parser_impl.dart' show Parser;
-import 'util.dart' show optional;
 
 bool isModifier(Token token) {
   if (!token.isModifier) {
@@ -27,7 +27,7 @@ bool isModifier(Token token) {
     Keyword? keyword = next.keyword;
     if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
       // Record type is a possibility.
-      if (optional("(", next)) {
+      if (next.isA(TokenType.OPEN_PAREN)) {
         Token afterGroup = next.endGroup!.next!;
         if (afterGroup.isIdentifier || _thisOrSuperWithDot(afterGroup)) {
           // We've seen either
@@ -35,7 +35,7 @@ bool isModifier(Token token) {
           // [modifier] [record type] `this` `.`, or
           // [modifier] [record type] `super` `.`
           return true;
-        } else if (optional('?', afterGroup) &&
+        } else if (afterGroup.isA(TokenType.QUESTION) &&
             (afterGroup.next!.isIdentifier ||
                 _thisOrSuperWithDot(afterGroup.next!))) {
           // We've seen either
@@ -52,8 +52,8 @@ bool isModifier(Token token) {
 }
 
 bool _thisOrSuperWithDot(Token token) {
-  if (optional("this", token) || optional("super", token)) {
-    return optional(".", token.next!);
+  if (token.isA2(Keyword.THIS) || token.isA2(Keyword.SUPER)) {
+    return token.next!.isA(TokenType.PERIOD);
   }
   return false;
 }
@@ -82,10 +82,10 @@ class ModifierContext {
     if (staticOrCovariant == null) {
       covariantToken = null;
       staticToken = null;
-    } else if (optional('covariant', staticOrCovariant)) {
+    } else if (staticOrCovariant.isA(Keyword.COVARIANT)) {
       covariantToken = staticOrCovariant;
       staticToken = null;
-    } else if (optional('static', staticOrCovariant)) {
+    } else if (staticOrCovariant.isA(Keyword.STATIC)) {
       covariantToken = null;
       staticToken = staticOrCovariant;
     } else {
@@ -101,15 +101,15 @@ class ModifierContext {
       varToken = null;
       finalToken = null;
       constToken = null;
-    } else if (optional('var', varFinalOrConst)) {
+    } else if (varFinalOrConst.isA(Keyword.VAR)) {
       varToken = varFinalOrConst;
       finalToken = null;
       constToken = null;
-    } else if (optional('final', varFinalOrConst)) {
+    } else if (varFinalOrConst.isA(Keyword.FINAL)) {
       varToken = null;
       finalToken = varFinalOrConst;
       constToken = null;
-    } else if (optional('const', varFinalOrConst)) {
+    } else if (varFinalOrConst.isA(Keyword.CONST)) {
       varToken = null;
       finalToken = null;
       constToken = varFinalOrConst;
@@ -365,7 +365,7 @@ class ModifierContext {
 
   Token _parseAbstract(Token token) {
     Token next = token.next!;
-    assert(optional('abstract', next));
+    assert(next.isA(Keyword.ABSTRACT));
     if (abstractToken == null) {
       abstractToken = next;
 
@@ -385,7 +385,7 @@ class ModifierContext {
 
   Token _parseAugment(Token token) {
     Token next = token.next!;
-    assert(optional('augment', next));
+    assert(next.isA(Keyword.AUGMENT));
     if (augmentToken == null) {
       augmentToken = next;
 
@@ -417,7 +417,7 @@ class ModifierContext {
 
   Token _parseConst(Token token) {
     Token next = token.next!;
-    assert(optional('const', next));
+    assert(next.isA(Keyword.CONST));
     if (varFinalOrConst == null && covariantToken == null) {
       constToken = next;
 
@@ -447,7 +447,7 @@ class ModifierContext {
 
   Token _parseCovariant(Token token) {
     Token next = token.next!;
-    assert(optional('covariant', next));
+    assert(next.isA(Keyword.COVARIANT));
     if (constToken == null &&
         covariantToken == null &&
         staticToken == null &&
@@ -482,7 +482,7 @@ class ModifierContext {
 
   Token _parseExternal(Token token) {
     Token next = token.next!;
-    assert(optional('external', next));
+    assert(next.isA(Keyword.EXTERNAL));
     if (externalToken == null) {
       externalToken = next;
 
@@ -512,7 +512,7 @@ class ModifierContext {
 
   Token _parseFinal(Token token) {
     Token next = token.next!;
-    assert(optional('final', next));
+    assert(next.isA(Keyword.FINAL));
     if (varFinalOrConst == null && !_afterFactory) {
       finalToken = next;
       return next;
@@ -538,7 +538,7 @@ class ModifierContext {
 
   Token _parseLate(Token token) {
     Token next = token.next!;
-    assert(optional('late', next));
+    assert(next.isA(Keyword.LATE));
     if (lateToken == null) {
       lateToken = next;
 
@@ -560,7 +560,7 @@ class ModifierContext {
 
   Token _parseRequired(Token token) {
     Token next = token.next!;
-    assert(optional('required', next));
+    assert(next.isA(Keyword.REQUIRED));
     if (requiredToken == null) {
       requiredToken = next;
 
@@ -584,7 +584,7 @@ class ModifierContext {
 
   Token _parseStatic(Token token) {
     Token next = token.next!;
-    assert(optional('static', next));
+    assert(next.isA(Keyword.STATIC));
     if (covariantToken == null && staticToken == null && !_afterFactory) {
       staticToken = next;
 
@@ -616,7 +616,7 @@ class ModifierContext {
 
   Token _parseVar(Token token) {
     Token next = token.next!;
-    assert(optional('var', next));
+    assert(next.isA(Keyword.VAR));
     if (varFinalOrConst == null && !_afterFactory) {
       varToken = next;
       return next;
@@ -656,14 +656,14 @@ class ModifierContext {
   // such as `import` or `class`.
   void reportTopLevelModifierError(Token? modifier, Token afterModifiers) {
     if (modifier != null) {
-      if (optional('const', modifier) && optional('class', afterModifiers)) {
+      if (modifier.isA(Keyword.CONST) && afterModifiers.isA(Keyword.CLASS)) {
         parser.reportRecoverableError(modifier, codes.messageConstClass);
-      } else if (optional('external', modifier)) {
-        if (optional('class', afterModifiers)) {
+      } else if (modifier.isA(Keyword.EXTERNAL)) {
+        if (afterModifiers.isA(Keyword.CLASS)) {
           parser.reportRecoverableError(modifier, codes.messageExternalClass);
-        } else if (optional('enum', afterModifiers)) {
+        } else if (afterModifiers.isA(Keyword.ENUM)) {
           parser.reportRecoverableError(modifier, codes.messageExternalEnum);
-        } else if (optional('typedef', afterModifiers)) {
+        } else if (afterModifiers.isA(Keyword.TYPEDEF)) {
           parser.reportRecoverableError(modifier, codes.messageExternalTypedef);
         } else {
           parser.reportRecoverableErrorWithToken(

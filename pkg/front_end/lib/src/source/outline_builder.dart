@@ -13,12 +13,12 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
-        lengthOfSpan,
-        optional;
+        lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
@@ -1689,8 +1689,8 @@ class OutlineBuilder extends StackListenerImpl {
 
   ProcedureKind computeProcedureKind(Token? token) {
     if (token == null) return ProcedureKind.Method;
-    if (optional("get", token)) return ProcedureKind.Getter;
-    if (optional("set", token)) return ProcedureKind.Setter;
+    if (token.isA2(Keyword.GET)) return ProcedureKind.Getter;
+    if (token.isA2(Keyword.SET)) return ProcedureKind.Setter;
     return unhandled(
         token.lexeme, "computeProcedureKind", token.charOffset, uri);
   }
@@ -1730,7 +1730,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? identifier = pop();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool isAbstract = kind == MethodBody.Abstract;
-    if (getOrSet != null && optional("set", getOrSet)) {
+    if (getOrSet != null && getOrSet.isA(Keyword.SET)) {
       if (formals == null || formals.length != 1) {
         // This isn't abstract as we'll add an error-recovery node in
         // [BodyBuilder.finishFunction].
@@ -2089,7 +2089,7 @@ class OutlineBuilder extends StackListenerImpl {
       // An error has been reported if this wasn't already sync.
       asyncModifier = AsyncMarker.Sync;
     }
-    if (getOrSet != null && optional("set", getOrSet)) {
+    if (getOrSet != null && getOrSet.isA(Keyword.SET)) {
       if (formals == null || formals.length != 1) {
         // This isn't abstract as we'll add an error-recovery node in
         // [BodyBuilder.finishFunction].
@@ -2582,7 +2582,7 @@ class OutlineBuilder extends StackListenerImpl {
 
       Token? tokenBeforeEnd = endToken.previous;
       if (tokenBeforeEnd != null &&
-          optional(",", tokenBeforeEnd) &&
+          tokenBeforeEnd.isA(TokenType.COMMA) &&
           kind == MemberKind.PrimaryConstructor &&
           declarationContext == DeclarationContext.ExtensionType) {
         _compilationUnit.addProblem(messageRepresentationFieldTrailingComma,

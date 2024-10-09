@@ -5,7 +5,6 @@
 import '../scanner/token.dart';
 import 'literal_entry_info.dart';
 import 'parser_impl.dart';
-import 'util.dart';
 
 /// [ifCondition] is the first step for parsing a literal entry
 /// starting with `if` control flow.
@@ -31,12 +30,12 @@ class ForCondition extends LiteralEntryInfo {
   Token parse(Token token, Parser parser) {
     Token next = token.next!;
     Token? awaitToken;
-    if (optional('await', next)) {
+    if (next.isA(Keyword.AWAIT)) {
       awaitToken = token = next;
       next = token.next!;
     }
     final Token forToken = next;
-    assert(optional('for', forToken));
+    assert(forToken.isA(Keyword.FOR));
     parser.listener.beginForControlFlow(awaitToken, forToken);
 
     ForPartsContext forPartsContext = new ForPartsContext();
@@ -44,7 +43,7 @@ class ForCondition extends LiteralEntryInfo {
         parser.parseForLoopPartsStart(awaitToken, forToken, forPartsContext);
     Token? patternKeyword = forPartsContext.patternKeyword;
     if (patternKeyword != null) {
-      if (optional('=', token.next!)) {
+      if (token.next!.isA(TokenType.EQ)) {
         // Process `for ( pattern = expression ; ... ; ... )`
         Token equals = token.next!;
         token = parser.parseExpression(equals);
@@ -54,7 +53,7 @@ class ForCondition extends LiteralEntryInfo {
         return parser.parseForLoopPartsRest(token, forToken, awaitToken);
       } else {
         // Process `for ( pattern in expression )`
-        assert(optional('in', token.next!));
+        assert(token.next!.isA(Keyword.IN));
         _inStyle = true;
         return parser.parseForInLoopPartsRest(token, awaitToken, forToken,
             patternKeyword, /* identifier = */ null);
@@ -63,7 +62,7 @@ class ForCondition extends LiteralEntryInfo {
     Token identifier = token.next!;
     token = parser.parseForLoopPartsMid(token, awaitToken, forToken);
 
-    if (optional('in', token.next!) || optional(':', token.next!)) {
+    if (token.next!.isA2(Keyword.IN) || token.next!.isA2(TokenType.COLON)) {
       // Process `for ( ... in ... )`
       _inStyle = true;
       token = parser.parseForInLoopPartsRest(
@@ -79,20 +78,21 @@ class ForCondition extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     Token next = token.next!;
-    if (optional('for', next) ||
-        (optional('await', next) && optional('for', next.next!))) {
+    if (next.isA2(Keyword.FOR) ||
+        (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
       return new Nested(
         new ForCondition(),
         _inStyle ? const ForInComplete() : const ForComplete(),
       );
-    } else if (optional('if', next)) {
+    } else if (next.isA(Keyword.IF)) {
       return new Nested(
         ifCondition,
         _inStyle ? const ForInComplete() : const ForComplete(),
       );
-    } else if (optional('...', next) || optional('...?', next)) {
+    } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
+        next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
       return _inStyle ? const ForInSpread() : const ForSpread();
-    } else if (optional('?', next)) {
+    } else if (next.isA2(TokenType.QUESTION)) {
       return new Nested(nullAwareEntry,
           _inStyle ? const ForInComplete() : const ForComplete());
     }
@@ -171,7 +171,7 @@ class IfCondition extends LiteralEntryInfo {
   @override
   Token parse(Token token, Parser parser) {
     final Token ifToken = token.next!;
-    assert(optional('if', ifToken));
+    assert(ifToken.isA(Keyword.IF));
     parser.listener.beginIfControlFlow(ifToken);
     Token result = parser.ensureParenthesizedCondition(ifToken,
         allowCase: parser.allowPatterns);
@@ -182,14 +182,15 @@ class IfCondition extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     Token next = token.next!;
-    if (optional('for', next) ||
-        (optional('await', next) && optional('for', next.next!))) {
+    if (next.isA2(Keyword.FOR) ||
+        (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
       return new Nested(new ForCondition(), const IfComplete());
-    } else if (optional('if', next)) {
+    } else if (next.isA2(Keyword.IF)) {
       return new Nested(ifCondition, const IfComplete());
-    } else if (optional('...', next) || optional('...?', next)) {
+    } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
+        next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
       return const IfSpread();
-    } else if (optional('?', next)) {
+    } else if (next.isA2(TokenType.QUESTION)) {
       return new Nested(nullAwareEntry, const IfComplete());
     }
     return const IfEntry();
@@ -219,7 +220,7 @@ class IfComplete extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    if (!optional('else', token.next!)) {
+    if (!token.next!.isA(Keyword.ELSE)) {
       parser.listener.endIfControlFlow(token);
     }
     return token;
@@ -227,7 +228,7 @@ class IfComplete extends LiteralEntryInfo {
 
   @override
   LiteralEntryInfo? computeNext(Token token) {
-    return optional('else', token.next!) ? const IfElse() : null;
+    return token.next!.isA(Keyword.ELSE) ? const IfElse() : null;
   }
 }
 
@@ -238,23 +239,24 @@ class IfElse extends LiteralEntryInfo {
   @override
   Token parse(Token token, Parser parser) {
     Token elseToken = token.next!;
-    assert(optional('else', elseToken));
+    assert(elseToken.isA(Keyword.ELSE));
     parser.listener.handleElseControlFlow(elseToken);
     return elseToken;
   }
 
   @override
   LiteralEntryInfo computeNext(Token token) {
-    assert(optional('else', token));
+    assert(token.isA(Keyword.ELSE));
     Token next = token.next!;
-    if (optional('for', next) ||
-        (optional('await', next) && optional('for', next.next!))) {
+    if (next.isA2(Keyword.FOR) ||
+        (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
       return new Nested(new ForCondition(), const IfElseComplete());
-    } else if (optional('if', next)) {
+    } else if (next.isA2(Keyword.IF)) {
       return new Nested(ifCondition, const IfElseComplete());
-    } else if (optional('...', next) || optional('...?', next)) {
+    } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
+        next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
       return const ElseSpread();
-    } else if (optional('?', next)) {
+    } else if (next.isA(TokenType.QUESTION)) {
       return new Nested(nullAwareEntry, const IfElseComplete());
     }
     return const ElseEntry();
@@ -296,7 +298,8 @@ class SpreadOperator extends LiteralEntryInfo {
   @override
   Token parse(Token token, Parser parser) {
     final Token operator = token.next!;
-    assert(optional('...', operator) || optional('...?', operator));
+    assert(operator.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
+        operator.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION));
     token = parser.parseExpression(operator);
     parser.listener.handleSpreadExpression(operator);
     return token;
@@ -328,12 +331,12 @@ class NullAwareEntry extends LiteralEntryInfo {
   @override
   Token parse(Token token, Parser parser) {
     final Token entryNullAwareToken = token.next!;
-    assert(optional('?', entryNullAwareToken));
+    assert(entryNullAwareToken.isA(TokenType.QUESTION));
     token = parser.parseExpression(entryNullAwareToken);
-    if (optional(':', token.next!)) {
+    if (token.next!.isA(TokenType.COLON)) {
       Token colon = token.next!;
       Token next = colon.next!;
-      if (optional('?', next)) {
+      if (next.isA(TokenType.QUESTION)) {
         token = parser.parseExpression(next);
         parser.listener.handleLiteralMapEntry(colon, token,
             nullAwareKeyToken: entryNullAwareToken, nullAwareValueToken: next);

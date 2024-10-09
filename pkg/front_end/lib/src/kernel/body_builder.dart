@@ -15,9 +15,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         MemberKind,
         Parser,
         lengthForToken,
-        lengthOfSpan,
-        optional,
-        optional2;
+        lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -30,7 +28,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show Token, TokenType;
+    show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -2415,7 +2413,7 @@ class BodyBuilder extends StackListenerImpl
       push(_createReadOnlyVariableAccess(expression.variable, token,
           expression.fileOffset, null, ReadOnlyAccessKind.LetVariable));
     } else {
-      bool isNullAware = optional('?..', token);
+      bool isNullAware = token.isA(TokenType.QUESTION_PERIOD_PERIOD);
       VariableDeclaration variable =
           createVariableDeclarationForValue(expression);
       push(new Cascade(variable, isNullAware: isNullAware)
@@ -2518,8 +2516,8 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
       ]),
     ]));
-    bool isAnd = optional("&&", token);
-    if (isAnd || optional("||", token)) {
+    bool isAnd = token.isA2(TokenType.AMPERSAND_AMPERSAND);
+    if (isAnd || token.isA2(TokenType.BAR_BAR)) {
       Expression lhs = popForValue();
       // This is matched by the call to [endNode] in
       // [doLogicalExpression].
@@ -2548,15 +2546,16 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (optional2(TokenType.PERIOD, token) ||
-        optional("..", token) ||
-        optional("?..", token)) {
+    if (token.isA2(TokenType.PERIOD) ||
+        token.isA2(TokenType.PERIOD_PERIOD) ||
+        token.isA2(TokenType.QUESTION_PERIOD_PERIOD)) {
       doDotOrCascadeExpression(token);
-    } else if (optional("&&", token) || optional("||", token)) {
+    } else if (token.isA2(TokenType.AMPERSAND_AMPERSAND) ||
+        token.isA2(TokenType.BAR_BAR)) {
       doLogicalExpression(token);
-    } else if (optional("??", token)) {
+    } else if (token.isA2(TokenType.QUESTION_QUESTION)) {
       doIfNull(token);
-    } else if (optional("?.", token)) {
+    } else if (token.isA2(TokenType.QUESTION_PERIOD)) {
       doIfNotNull(token);
     } else {
       doBinaryExpression(token);
@@ -2809,7 +2808,7 @@ class BodyBuilder extends StackListenerImpl
     Expression logicalExpression = forest.createLogicalExpression(
         offsetForToken(token), receiver, token.stringValue!, argument);
     push(logicalExpression);
-    if (optional("&&", token)) {
+    if (token.isA(TokenType.AMPERSAND_AMPERSAND)) {
       // This is matched by the call to [beginNode] in
       // [beginBinaryExpression].
       typeInferrer.assignedVariables.endNode(logicalExpression);
@@ -2890,8 +2889,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver =
-          optional2(TokenType.PERIOD, token) ? pop() : popForValue();
+      Object? receiver = token.isA(TokenType.PERIOD) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.
@@ -3719,7 +3717,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("NoVariableInitializer");
     bool isConst = currentLocalVariableModifiers.isConst;
     Expression? initializer;
-    if (!optional("in", token.next!)) {
+    if (!token.next!.isA(Keyword.IN)) {
       // A for-in loop-variable can't have an initializer. So let's remain
       // silent if the next token is `in`. Since a for-in loop can only have
       // one variable it must be followed by `in`.
@@ -4792,8 +4790,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
-    bool value = optional("true", token);
-    assert(value || optional("false", token));
+    bool value = token.isA(Keyword.TRUE);
+    assert(value || token.isA(Keyword.FALSE));
     push(forest.createBoolLiteral(offsetForToken(token), value));
   }
 
@@ -5363,7 +5361,7 @@ class BodyBuilder extends StackListenerImpl
     Token? varOrFinalOrConst = pop(NullValues.Token) as Token?;
     if (superKeyword != null &&
         varOrFinalOrConst != null &&
-        optional('var', varOrFinalOrConst)) {
+        varOrFinalOrConst.isA(Keyword.VAR)) {
       handleRecoverableError(
           fasta.templateExtraneousModifier.withArguments(varOrFinalOrConst),
           varOrFinalOrConst,
@@ -5810,11 +5808,11 @@ class BodyBuilder extends StackListenerImpl
     ]));
     debugEvent("UnaryPrefixExpression");
     Object? receiver = pop();
-    if (optional("!", token)) {
+    if (token.isA(TokenType.BANG)) {
       push(forest.createNot(offsetForToken(token), toValue(receiver)));
     } else {
       String operator = token.stringValue!;
-      if (optional("-", token)) {
+      if (token.isA(TokenType.MINUS)) {
         operator = "unary-";
       }
       int fileOffset = offsetForToken(token);
@@ -5829,8 +5827,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   Name incrementOperator(Token token) {
-    if (optional("++", token)) return plusName;
-    if (optional("--", token)) return minusName;
+    if (token.isA(TokenType.PLUS_PLUS)) return plusName;
+    if (token.isA(TokenType.MINUS_MINUS)) return minusName;
     return unhandled(token.lexeme, "incrementOperator", token.charOffset, uri);
   }
 
@@ -7970,7 +7968,7 @@ class BodyBuilder extends StackListenerImpl
         Token nextToken = conditionLastToken.next!;
         if (nextToken == conditionBoundary) {
           break;
-        } else if (optional(',', nextToken) &&
+        } else if (nextToken.isA(TokenType.COMMA) &&
             nextToken.next == conditionBoundary) {
           // The next token is trailing comma, which means current token is
           // the last token of the condition.
@@ -8708,7 +8706,7 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemTargetOutsideLocalFunction(
       String? name, Token keyword) {
     Statement problem;
-    bool isBreak = optional("break", keyword);
+    bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
       Template<Message Function(String)> template = isBreak
           ? fasta.templateBreakTargetOutsideFunction
