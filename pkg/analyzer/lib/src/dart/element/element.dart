@@ -2079,6 +2079,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   AnalysisContext get context => compilationUnit.library.context;
 
   @override
+  Element2? get element2 {
+    return element?.asElement2;
+  }
+
+  @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
   @override

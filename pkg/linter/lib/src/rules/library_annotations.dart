@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
@@ -89,9 +89,9 @@ extension on ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    var element = this.element;
-    return element is ConstructorElement &&
-        element.enclosingElement3.name == className &&
-        element.library.name == libraryName;
+    var element = element2;
+    return element is ConstructorElement2 &&
+        element.enclosingElement2.name == className &&
+        element.library2?.name == libraryName;
   }
 }
