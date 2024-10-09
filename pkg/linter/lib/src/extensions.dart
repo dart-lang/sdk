@@ -521,6 +521,26 @@ extension InhertanceManager3Extension on InheritanceManager3 {
     var libraryUri = interfaceElement.library.source.uri;
     return getInherited(interfaceElement.thisType, Name(libraryUri, name));
   }
+
+  /// Returns the class member that is overridden by [member], if there is one,
+  /// as defined by [getInherited].
+  ExecutableElement2? overriddenMember2(Element2? member) {
+    if (member == null) {
+      return null;
+    }
+
+    var interfaceElement = member.thisOrAncestorOfType2<InterfaceElement2>();
+    if (interfaceElement == null) {
+      return null;
+    }
+    var name = member.name;
+    if (name == null) {
+      return null;
+    }
+
+    var libraryUri = interfaceElement.library2.firstFragment.source.uri;
+    return getInherited3(interfaceElement.thisType, Name(libraryUri, name));
+  }
 }
 
 extension InterfaceElementExtension on InterfaceElement {

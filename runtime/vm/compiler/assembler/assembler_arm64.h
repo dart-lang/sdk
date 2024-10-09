@@ -1805,15 +1805,21 @@ class Assembler : public AssemblerBase {
   void MulImmediate(Register reg,
                     int64_t imm,
                     OperandSize width = kEightBytes) override {
+    MulImmediate(reg, reg, imm, width);
+  }
+  void MulImmediate(Register dest,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize width = kEightBytes) {
     ASSERT(width == kFourBytes || width == kEightBytes);
     if (Utils::IsPowerOfTwo(imm)) {
-      LslImmediate(reg, Utils::ShiftForPowerOfTwo(imm), width);
+      LslImmediate(dest, rn, Utils::ShiftForPowerOfTwo(imm), width);
     } else {
       LoadImmediate(TMP, imm);
       if (width == kFourBytes) {
-        mulw(reg, reg, TMP);
+        mulw(dest, rn, TMP);
       } else {
-        mul(reg, reg, TMP);
+        mul(dest, rn, TMP);
       }
     }
   }

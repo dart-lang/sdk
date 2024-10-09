@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r"Don't commit soloed tests.";
@@ -58,9 +58,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Annotation {
   bool get isSoloTest {
-    var element = this.element;
-    return element is PropertyAccessorElement &&
+    var element = element2;
+    return element is GetterElement &&
         element.name == 'soloTest' &&
-        element.library.name == 'test_reflective_loader';
+        element.library2?.name == 'test_reflective_loader';
   }
 }

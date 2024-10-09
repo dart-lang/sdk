@@ -153,6 +153,9 @@ class InheritanceManager3 {
   @experimental
   ExecutableElement2? getInherited3(InterfaceType type, Name name) {
     var element = getInherited(type, name);
+    if (element is ExecutableMember) {
+      return element as ExecutableElement2;
+    }
     return (element as ExecutableFragment?)?.element;
   }
 

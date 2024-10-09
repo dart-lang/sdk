@@ -863,12 +863,18 @@ class Assembler : public AssemblerBase {
   void MulImmediate(Register reg,
                     int32_t imm,
                     OperandSize width = kFourBytes) override {
+    MulImmediate(reg, reg, imm, width);
+  }
+  void MulImmediate(Register rd,
+                    Register rn,
+                    int32_t imm,
+                    OperandSize width = kFourBytes) {
     ASSERT(width == kFourBytes);
     if (Utils::IsPowerOfTwo(imm)) {
-      LslImmediate(reg, Utils::ShiftForPowerOfTwo(imm));
+      LslImmediate(rd, rn, Utils::ShiftForPowerOfTwo(imm));
     } else {
       LoadImmediate(TMP, imm);
-      mul(reg, reg, TMP);
+      mul(rd, rn, TMP);
     }
   }
   void AndImmediate(Register rd,
@@ -913,6 +919,7 @@ class Assembler : public AssemblerBase {
   void OrImmediate(Register rd, int32_t imm, Condition cond = AL) {
     OrImmediate(rd, rd, imm, cond);
   }
+  void XorImmediate(Register rd, Register rn, int32_t imm, Condition cond = AL);
   void LslImmediate(Register rd,
                     Register rn,
                     int32_t shift,

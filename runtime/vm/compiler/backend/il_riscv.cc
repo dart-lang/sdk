@@ -6576,44 +6576,72 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1, LocationRegisterOrConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
   Register out = locs()->out(0).reg();
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-      __ and_(out, left, right);
-      break;
-    case Token::kBIT_OR:
-      __ or_(out, left, right);
-      break;
-    case Token::kBIT_XOR:
-      __ xor_(out, left, right);
-      break;
-    case Token::kADD:
+  Register left = locs()->in(0).reg();
+  if (locs()->in(1).IsConstant()) {
+    int64_t right;
+    const bool ok = compiler::HasIntegerValue(locs()->in(1).constant(), &right);
+    RELEASE_ASSERT(ok);
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ AndImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kBIT_OR:
+        __ OrImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kBIT_XOR:
+        __ XorImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kADD:
+        __ AddImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      case Token::kSUB:
+        __ AddImmediate(out, left, -right, compiler::kFourBytes);
+        break;
+      case Token::kMUL:
+        __ MulImmediate(out, left, right, compiler::kFourBytes);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    Register right = locs()->in(1).reg();
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ and_(out, left, right);
+        break;
+      case Token::kBIT_OR:
+        __ or_(out, left, right);
+        break;
+      case Token::kBIT_XOR:
+        __ xor_(out, left, right);
+        break;
+      case Token::kADD:
 #if XLEN == 32
-      __ add(out, left, right);
+        __ add(out, left, right);
 #elif XLEN > 32
-      __ addw(out, left, right);
+        __ addw(out, left, right);
 #endif
-      break;
-    case Token::kSUB:
+        break;
+      case Token::kSUB:
 #if XLEN == 32
-      __ sub(out, left, right);
+        __ sub(out, left, right);
 #elif XLEN > 32
-      __ subw(out, left, right);
+        __ subw(out, left, right);
 #endif
-      break;
-    case Token::kMUL:
-      __ mul(out, left, right);
-      break;
-    default:
-      UNREACHABLE();
+        break;
+      case Token::kMUL:
+        __ mul(out, left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 
