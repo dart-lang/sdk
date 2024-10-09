@@ -280,6 +280,78 @@ workspaces
 ''');
   }
 
+  test_multiplePackageConfigWorkspace_singleAnalysisOptions_exclude() async {
+    configuration.withOptionFilesForContext = true;
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/b.g.dart', '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+''');
+
+    var nestedPath = '$testPackageLibPath/nested';
+    newFile('$nestedPath/lib/c.dart', '');
+    newFile('$nestedPath/lib/d.g.dart', '');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: nestedPath,
+      name: 'nested',
+    );
+    newPubspecYamlFile(nestedPath, r'''
+name: nested
+''');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    optionsFile: /home/test/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/lib/nested/.dart_tool/package_config.json
+    optionsFile: /home/test/analysis_options.yaml
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/lib/c.dart
+        uri: package:nested/c.dart
+        analysisOptions_0
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test/lib/nested
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test/lib/nested
+''');
+  }
+
   test_packageConfigWorkspace_enabledExperiment() async {
     configuration.withEnabledFeatures = true;
 
@@ -1119,6 +1191,9 @@ class _AnalysisContextCollectionPrinter {
     sink.writelnWithIndent(contextRoot.root.posixPath);
     sink.withIndent(() {
       _writeNamedFile('packagesFile', contextRoot.packagesFile);
+      if (configuration.withOptionFilesForContext) {
+        _writeNamedFile('optionsFile', contextRoot.optionsFile);
+      }
       sink.writelnWithIndent(
         'workspace: ${_idOfWorkspace(contextRoot.workspace)}',
       );
@@ -1265,4 +1340,5 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEmptyContextRoots = false;
   bool withEnabledFeatures = false;
   bool withLintRules = false;
+  bool withOptionFilesForContext = false;
 }
