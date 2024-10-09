@@ -3107,6 +3107,19 @@ void Assembler::OrImmediate(Register rd,
   }
 }
 
+void Assembler::XorImmediate(Register rd,
+                             Register rs,
+                             int32_t imm,
+                             Condition cond) {
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    eor(rd, rs, Operand(o), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    eor(rd, rs, Operand(TMP), cond);
+  }
+}
+
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {

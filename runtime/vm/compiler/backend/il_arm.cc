@@ -6967,37 +6967,65 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1, LocationRegisterOrConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
   Register out = locs()->out(0).reg();
+  Register left = locs()->in(0).reg();
   ASSERT(out != left);
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-      __ and_(out, left, compiler::Operand(right));
-      break;
-    case Token::kBIT_OR:
-      __ orr(out, left, compiler::Operand(right));
-      break;
-    case Token::kBIT_XOR:
-      __ eor(out, left, compiler::Operand(right));
-      break;
-    case Token::kADD:
-      __ add(out, left, compiler::Operand(right));
-      break;
-    case Token::kSUB:
-      __ sub(out, left, compiler::Operand(right));
-      break;
-    case Token::kMUL:
-      __ mul(out, left, right);
-      break;
-    default:
-      UNREACHABLE();
+  if (locs()->in(1).IsConstant()) {
+    int64_t right;
+    const bool ok = compiler::HasIntegerValue(locs()->in(1).constant(), &right);
+    RELEASE_ASSERT(ok);
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ AndImmediate(out, left, right);
+        break;
+      case Token::kBIT_OR:
+        __ OrImmediate(out, left, right);
+        break;
+      case Token::kBIT_XOR:
+        __ XorImmediate(out, left, right);
+        break;
+      case Token::kADD:
+        __ AddImmediate(out, left, right);
+        break;
+      case Token::kSUB:
+        __ AddImmediate(out, left, -right);
+        break;
+      case Token::kMUL:
+        __ MulImmediate(out, left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    Register right = locs()->in(1).reg();
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+        __ and_(out, left, compiler::Operand(right));
+        break;
+      case Token::kBIT_OR:
+        __ orr(out, left, compiler::Operand(right));
+        break;
+      case Token::kBIT_XOR:
+        __ eor(out, left, compiler::Operand(right));
+        break;
+      case Token::kADD:
+        __ add(out, left, compiler::Operand(right));
+        break;
+      case Token::kSUB:
+        __ sub(out, left, compiler::Operand(right));
+        break;
+      case Token::kMUL:
+        __ mul(out, left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 

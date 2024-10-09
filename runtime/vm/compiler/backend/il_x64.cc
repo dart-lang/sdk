@@ -6344,58 +6344,69 @@ LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1, LocationRegisterOrConstant(right()));
   summary->set_out(0, Token::IsCommutativeOp(op_kind())
                           ? Location::SameAsFirstOrSecondInput()
                           : Location::SameAsFirstInput());
   return summary;
 }
 
-template <typename OperandType>
-static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
-                                  Token::Kind op_kind,
-                                  Register left,
-                                  const OperandType& right) {
-  switch (op_kind) {
-    case Token::kADD:
-      __ addl(left, right);
-      break;
-    case Token::kSUB:
-      __ subl(left, right);
-      break;
-    case Token::kBIT_AND:
-      __ andl(left, right);
-      break;
-    case Token::kBIT_OR:
-      __ orl(left, right);
-      break;
-    case Token::kBIT_XOR:
-      __ xorl(left, right);
-      break;
-    case Token::kMUL:
-      __ imull(left, right);
-      break;
-    default:
-      UNREACHABLE();
-  }
-}
-
 void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
   Register out = locs()->out(0).reg();
+  Register left = locs()->in(0).reg();
   ASSERT(out == left);
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
-    case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL:
-      EmitIntegerArithmetic(compiler, op_kind(), left, right);
-      return;
-    default:
-      UNREACHABLE();
+  if (locs()->in(1).IsConstant()) {
+    int64_t value;
+    const bool ok = compiler::HasIntegerValue(locs()->in(1).constant(), &value);
+    RELEASE_ASSERT(ok);
+    compiler::Immediate right =
+        compiler::Immediate(static_cast<int32_t>(static_cast<uint32_t>(value)));
+    switch (op_kind()) {
+      case Token::kADD:
+        __ addl(left, right);
+        break;
+      case Token::kSUB:
+        __ subl(left, right);
+        break;
+      case Token::kBIT_AND:
+        __ andl(left, right);
+        break;
+      case Token::kBIT_OR:
+        __ orl(left, right);
+        break;
+      case Token::kBIT_XOR:
+        __ xorl(left, right);
+        break;
+      case Token::kMUL:
+        __ imull(left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    Register right = locs()->in(1).reg();
+    switch (op_kind()) {
+      case Token::kADD:
+        __ addl(left, right);
+        break;
+      case Token::kSUB:
+        __ subl(left, right);
+        break;
+      case Token::kBIT_AND:
+        __ andl(left, right);
+        break;
+      case Token::kBIT_OR:
+        __ orl(left, right);
+        break;
+      case Token::kBIT_XOR:
+        __ xorl(left, right);
+        break;
+      case Token::kMUL:
+        __ imull(left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 
