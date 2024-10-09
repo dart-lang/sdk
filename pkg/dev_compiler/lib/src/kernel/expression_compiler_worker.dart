@@ -218,7 +218,7 @@ class ExpressionCompilerWorker {
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri? sdkRoot,
     bool trackWidgetCreation = false,
-    bool soundNullSafety = false,
+    bool soundNullSafety = true,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
     bool enableAsserts = true,
