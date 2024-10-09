@@ -144,6 +144,7 @@ lib/src/rules/unnecessary_library_name.dart
 lib/src/rules/unnecessary_new.dart
 lib/src/rules/unnecessary_null_aware_assignments.dart
 lib/src/rules/unnecessary_null_in_if_null_operators.dart
+lib/src/rules/unnecessary_parenthesis.dart
 lib/src/rules/unnecessary_raw_strings.dart
 lib/src/rules/unnecessary_statements.dart
 lib/src/rules/unnecessary_string_escapes.dart
