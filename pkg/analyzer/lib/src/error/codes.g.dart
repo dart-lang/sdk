@@ -70,31 +70,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the member
   ///  1: the names of the declaring extensions
-  static const CompileTimeErrorCode
-      AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE = CompileTimeErrorCode(
+  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
+      CompileTimeErrorCode(
     'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
     "A member named '{0}' is defined in {1}, and none are more specific.",
     correctionMessage:
         "Try using an extension override to specify the extension you want to "
         "be chosen.",
     hasPublishedDocs: true,
-    uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
-  );
-
-  ///  Parameters:
-  ///  0: the name of the member
-  ///  1: the name of the first declaring extension
-  ///  2: the names of the second declaring extension
-  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO =
-      CompileTimeErrorCode(
-    'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-    "A member named '{0}' is defined in '{1}' and '{2}', and neither is more "
-        "specific.",
-    correctionMessage:
-        "Try using an extension override to specify the extension you want to "
-        "be chosen.",
-    hasPublishedDocs: true,
-    uniqueName: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
   );
 
   ///  Parameters:

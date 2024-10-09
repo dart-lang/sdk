@@ -408,16 +408,14 @@ CompileTimeErrorCode:
       export 'a.dart';
       export 'b.dart' hide C;
       ```
-  AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
-    sharedName: AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    problemMessage: "A member named '{0}' is defined in '{1}' and '{2}', and neither is more specific."
+  AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
+    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-      1: the name of the first declaring extension
-      2: the names of the second declaring extension
+      1: the names of the declaring extensions
     documentation: |-
       #### Description
 
@@ -473,15 +471,6 @@ CompileTimeErrorCode:
         print(E2(s).charCount);
       }
       ```
-  AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
-    sharedName: AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
-    correctionMessage: Try using an extension override to specify the extension you want to be chosen.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the member
-      1: the names of the declaring extensions
   AMBIGUOUS_IMPORT:
     problemMessage: "The name '{0}' is defined in the libraries {1}."
     correctionMessage: "Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports."
