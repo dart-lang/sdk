@@ -9,16 +9,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// The concrete implementation of [CodeStyleOptions].
 class CodeStyleOptionsImpl implements CodeStyleOptions {
   /// The analysis options that owns this instance.
-  final AnalysisOptions options;
+  final AnalysisOptions _options;
 
   @override
   final bool useFormatter;
 
-  CodeStyleOptionsImpl(this.options, {required this.useFormatter});
+  CodeStyleOptionsImpl(this._options, {required this.useFormatter});
 
   @override
-  bool get addTrailingCommas =>
-      options.isLintEnabled('require_trailing_commas');
+  bool get addTrailingCommas => _isLintEnabled('require_trailing_commas');
 
   @override
   bool get makeLocalsFinal => _isLintEnabled('prefer_final_locals');
@@ -36,8 +35,7 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get specifyTypes => _isLintEnabled('always_specify_types');
 
   @override
-  bool get usePackageUris =>
-      options.isLintEnabled('always_use_package_imports');
+  bool get usePackageUris => _isLintEnabled('always_use_package_imports');
 
   @override
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');
@@ -75,13 +73,13 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
     return doubleCount > singleCount ? '"' : "'";
   }
 
-  /// Return `true` if the lint with the given [name] is enabled.
-  bool _isLintEnabled(String name) => options.isLintEnabled(name);
+  /// Returns whether the lint rule with the given [name] is enabled.
+  bool _isLintEnabled(String name) => _options.isLintEnabled(name);
 
-  /// Return the preferred lint quote, otherwise `null`.
-  String? _lintQuote() => _isLintEnabled("prefer_single_quotes")
+  /// Returns the preferred lint quote, otherwise `null`.
+  String? _lintQuote() => _isLintEnabled('prefer_single_quotes')
       ? "'"
-      : _isLintEnabled("prefer_double_quotes")
+      : _isLintEnabled('prefer_double_quotes')
           ? '"'
           : null;
 }
