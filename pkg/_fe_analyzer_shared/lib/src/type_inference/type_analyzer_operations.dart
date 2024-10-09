@@ -903,14 +903,14 @@ abstract class TypeConstraintGenerator<
   /// If [p] and [q] are both non-generic function types, and [p] is a subtype
   /// of [q] under some constraints, the constraints making the relation
   /// possible are recorded, and `true` is returned. Otherwise, the constraint
-  /// state is unchanged (or rolled back using [restoreState]), and `null` is
+  /// state is unchanged (or rolled back using [restoreState]), and `false` is
   /// returned.
   ///
   /// An invariant of the type inference is that only [p] or [q] may be a
   /// schema (in other words, may contain the unknown type `_`); the other must
   /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
   /// `false`, [q] may contain `_`.
-  bool? performSubtypeConstraintGenerationForFunctionTypes(
+  bool performSubtypeConstraintGenerationForFunctionTypes(
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     if (p is SharedFunctionTypeStructure<TypeStructure, TypeParameterStructure,
@@ -938,14 +938,14 @@ abstract class TypeConstraintGenerator<
         if (!performSubtypeConstraintGenerationInternal(
             p.returnType, q.returnType,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-          return null;
+          return false;
         }
         for (int i = 0; i < q.positionalParameterTypes.length; ++i) {
           if (!performSubtypeConstraintGenerationInternal(
               q.positionalParameterTypes[i], p.positionalParameterTypes[i],
               leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
             restoreState(state);
-            return null;
+            return false;
           }
         }
         return true;
@@ -967,14 +967,14 @@ abstract class TypeConstraintGenerator<
         if (!performSubtypeConstraintGenerationInternal(
             p.returnType, q.returnType,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-          return null;
+          return false;
         }
         for (int i = 0; i < p.positionalParameterTypes.length; ++i) {
           if (!performSubtypeConstraintGenerationInternal(
               q.positionalParameterTypes[i], p.positionalParameterTypes[i],
               leftSchema: !leftSchema, astNodeForTesting: astNodeForTesting)) {
             restoreState(state);
-            return null;
+            return false;
           }
         }
         // Consume parameter names from p and q in order. Since the named
@@ -1011,13 +1011,13 @@ abstract class TypeConstraintGenerator<
           if (comparisonResult > 0) {
             // Extra parameter in q that q that doesn't exist in p. No match.
             restoreState(state);
-            return null;
+            return false;
           } else if (comparisonResult < 0) {
             // Extra parameter in p that doesn't exist in q. Ok if not
             // required.
             if (p.sortedNamedParameters[i].isRequired) {
               restoreState(state);
-              return null;
+              return false;
             } else {
               i++;
             }
@@ -1029,7 +1029,7 @@ abstract class TypeConstraintGenerator<
                 leftSchema: !leftSchema,
                 astNodeForTesting: astNodeForTesting)) {
               restoreState(state);
-              return null;
+              return false;
             }
             i++;
             j++;
@@ -1038,7 +1038,7 @@ abstract class TypeConstraintGenerator<
       }
     }
 
-    return null;
+    return false;
   }
 
   /// Matches [p] against [q].
