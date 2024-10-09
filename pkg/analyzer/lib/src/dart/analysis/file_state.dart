@@ -1062,7 +1062,7 @@ class FileState {
         var libraryName = directive.libraryName;
         var uri = directive.uri;
         if (libraryName != null) {
-          partOfNameDirective = UnlinkedPartOfNameDirective(
+          partOfNameDirective ??= UnlinkedPartOfNameDirective(
             docImports: buildDocImports(directive),
             name: libraryName.name,
             nameRange: UnlinkedSourceRange(
@@ -1071,7 +1071,7 @@ class FileState {
             ),
           );
         } else if (uri != null) {
-          partOfUriDirective = UnlinkedPartOfUriDirective(
+          partOfUriDirective ??= UnlinkedPartOfUriDirective(
             docImports: buildDocImports(directive),
             uri: uri.stringValue,
             uriRange: UnlinkedSourceRange(

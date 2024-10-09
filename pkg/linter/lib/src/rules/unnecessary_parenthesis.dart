@@ -68,19 +68,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't over-report on records missing trailing commas.
     // `(int,) r = (3);` is OK.
     if (parent is VariableDeclaration &&
-        parent.declaredElement?.type is RecordType) {
+        parent.declaredElement2?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
     // `g((3)); => g((int,) i) { }` is OK.
     if (parent is ArgumentList) {
-      var element = node.staticParameterElement;
+      var element = node.correspondingParameter;
       if (element?.type is RecordType && node.expression is! RecordLiteral) {
         return;
       }
     }
     // `g(i: (3)); => g({required (int,) i}) { }` is OK.
     if (parent is NamedExpression &&
-        parent.staticParameterElement?.type is RecordType) {
+        parent.correspondingParameter?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
 

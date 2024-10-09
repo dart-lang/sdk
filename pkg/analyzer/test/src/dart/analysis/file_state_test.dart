@@ -3008,6 +3008,70 @@ elementFactory
 ''');
   }
 
+  test_newFile_partOfUri_duplicate() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'c.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part 'c.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+part of 'a.dart';
+part of 'b.dart';
+''');
+
+    fileStateFor(a);
+    fileStateFor(b);
+    fileStateFor(c);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          partOfUriKnown_2
+        fileKinds: library_0 partOfUriKnown_2
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        libraryImports
+          library_3 dart:core synthetic
+        partIncludes
+          notPart file_2
+        fileKinds: library_1
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k00
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_0
+        library: library_0
+      referencingFiles: file_0 file_1
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_partOfUri_noRelativeUri() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of ':net';

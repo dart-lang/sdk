@@ -77,6 +77,38 @@ analyzer:
     _assertAnalyzedFiles2(root, [optionsFile, fooFile]);
   }
 
+  void test_locateRoots_excludedByOptions_in_subDirectory() {
+    var rootPath = convertPath('/home/test (copy)');
+    var rootFolder = newFolder(rootPath);
+    var optionsFile = newAnalysisOptionsYamlFile(rootPath, r'''
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+''');
+    newPackageConfigJsonFile(rootPath, '');
+    var fooFile = newFile('$rootPath/lib/foo.dart', '');
+    newFile('$rootPath/lib/bar.g.dart', '');
+
+    var pkg1Path = convertPath('$rootPath/lib/pkg1');
+    var pkg1Folder = newFolder(pkg1Path);
+    newPackageConfigJsonFile(pkg1Path, '');
+    newFile('$pkg1Path/lib/src/bar.g.dart', '');
+    var fooFile2 = newFile('$pkg1Path/lib/foo.dart', '');
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path],
+    );
+    expect(roots, hasLength(2));
+
+    var root = findRoot(roots, rootFolder);
+
+    _assertAnalyzedFiles2(root, [optionsFile, fooFile]);
+
+    root = findRoot(roots, pkg1Folder);
+    expect(root.optionsFile, optionsFile);
+
+    _assertAnalyzedFiles2(root, [fooFile2]);
+  }
+
   void test_locateRoots_link_file_toOutOfRoot() {
     Folder rootFolder = newFolder('/home/test');
     newFile('/home/test/lib/a.dart', '');
