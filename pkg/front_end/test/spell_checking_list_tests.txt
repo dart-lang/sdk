@@ -437,6 +437,7 @@ ing
 inhibit
 inlinable
 inlineable
+inoperable
 insights
 instrument
 instrumenter

@@ -14,6 +14,8 @@ import 'package:testing/testing.dart' show Step, TestDescription;
 import '../coverage_helper.dart';
 import 'testing/suite.dart';
 
+const String limitToArgument = "--limitTo=";
+
 Future<void> internalMain(
   CreateContext createContext, {
   List<String> arguments = const [],
@@ -25,6 +27,7 @@ Future<void> internalMain(
   Logger logger = const StdoutLogger();
   List<String>? argumentsTrimmed;
   Uri? coverageUri;
+  int? limitTo;
   for (int i = 0; i < arguments.length; i++) {
     String argument = arguments[i];
     bool trimmed = false;
@@ -41,6 +44,9 @@ Future<void> internalMain(
     } else if (argument.startsWith("--shard=")) {
       // Have this 1-indexed when given as an input.
       shard = int.parse(argument.substring("--shard=".length)) - 1;
+      trimmed = true;
+    } else if (argument.startsWith(limitToArgument)) {
+      limitTo = int.tryParse(argument.substring(limitToArgument.length));
       trimmed = true;
     }
 
@@ -63,6 +69,7 @@ Future<void> internalMain(
     configurationPath: configurationPath ?? "../../testing.json",
     shards: shards,
     shard: shard,
+    limitTo: limitTo,
     logger: logger,
   );
   if (coverageUri != null) {

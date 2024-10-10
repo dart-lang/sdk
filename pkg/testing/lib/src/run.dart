@@ -51,6 +51,7 @@ Future<void> runMe(List<String> arguments, CreateContext f,
     Uri? me,
     int shards = 1,
     int shard = 0,
+    int? limitTo,
     Logger logger = const StdoutLogger()}) {
   me ??= Platform.script;
   return withErrorHandling(() async {
@@ -61,7 +62,7 @@ Future<void> runMe(List<String> arguments, CreateContext f,
       if (me == suite.source) {
         ChainContext context = await f(suite, cl.environment);
         await context.run(suite, Set<String>.from(cl.selectors),
-            shards: shards, shard: shard, logger: logger);
+            shards: shards, shard: shard, limitTo: limitTo, logger: logger);
       }
     }
   }, logger: logger);
