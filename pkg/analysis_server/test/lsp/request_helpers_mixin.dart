@@ -710,7 +710,7 @@ mixin LspRequestHelpersMixin {
         request, _fromJsonList(CallHierarchyItem.fromJson));
   }
 
-  Future<PlaceholderAndRange?> prepareRename(Uri uri, Position pos) {
+  Future<PrepareRenamePlaceholder?> prepareRename(Uri uri, Position pos) {
     var request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
@@ -718,7 +718,8 @@ mixin LspRequestHelpersMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(request, PlaceholderAndRange.fromJson);
+    return expectSuccessfulResponseTo(
+        request, PrepareRenamePlaceholder.fromJson);
   }
 
   Future<List<TypeHierarchyItem>?> prepareTypeHierarchy(Uri uri, Position pos) {

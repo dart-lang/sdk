@@ -108,7 +108,7 @@ void main() {
     });
 
     test('toJson() converts lists of enums to their underlying values', () {
-      var kind = CompletionClientCapabilitiesCompletionItemKind(
+      var kind = ClientCompletionItemOptionsKind(
         valueSet: [CompletionItemKind.Color],
       );
       var json = kind.toJson();
@@ -444,11 +444,10 @@ void main() {
     ];
     var obj = InitializeParams(
       processId: 1,
-      clientInfo:
-          InitializeParamsClientInfo(name: 'server name', version: '1.2.3'),
+      clientInfo: ClientInfo(name: 'server name', version: '1.2.3'),
       rootPath: '!root',
       capabilities: ClientCapabilities(),
-      trace: TraceValues.Off,
+      trace: TraceValue.Off,
       workspaceFolders: workspaceFolders,
     );
     var json = jsonEncode(obj);

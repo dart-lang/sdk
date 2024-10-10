@@ -4390,10 +4390,56 @@ library
   topLevelVariables
     const x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
     const y
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::y#element
   getters
@@ -5191,6 +5237,29 @@ library
   topLevelVariables
     final foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
   getters
@@ -5236,10 +5305,56 @@ library
   topLevelVariables
     final foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
     final bar
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::bar
+      metadata
+        Annotation
+          atSign: @ @77
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: prefix0 @78
+              staticElement: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix::prefix0
+              element: <testLibrary>::@fragment::package:test/test.macro.dart::@prefix2::prefix0
+              staticType: null
+            period: . @85
+            identifier: SimpleIdentifier
+              token: A @86
+              staticElement: package:test/a.dart::<fragment>::@class::A
+              element: package:test/a.dart::<fragment>::@class::A#element
+              staticType: null
+            staticElement: package:test/a.dart::<fragment>::@class::A
+            element: package:test/a.dart::<fragment>::@class::A#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @87
+            rightParenthesis: ) @88
+          element: package:test/a.dart::<fragment>::@class::A::@constructor::new
+          element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::bar#element
   getters

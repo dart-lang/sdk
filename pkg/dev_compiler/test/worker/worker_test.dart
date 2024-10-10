@@ -113,7 +113,7 @@ void main() {
 
       expect(result.exitCode, 64);
       expect(result.stdout,
-          contains('Could not find an option named "does-not-exist"'));
+          contains('Could not find an option named "--does-not-exist"'));
       expect(result.stderr, isEmpty);
       expect(outputJsFile.existsSync(), isFalse);
     });

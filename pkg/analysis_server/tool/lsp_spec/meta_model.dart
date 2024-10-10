@@ -229,20 +229,21 @@ class NullableType extends TypeBase {
 class TypeAlias extends LspEntity {
   final TypeBase baseType;
 
-  /// Whether this alias is just a simple rename and not a name for a more
-  /// complex type.
-  ///
-  /// Renames will be followed when generating code, but other aliases may be
-  /// created as `typedef`s.
-  final bool isRename;
+  /// Whether this alias should be resolved to its base type when generating
+  /// code.
+  final bool renameReferences;
+
+  /// Whether a typedef should be created for this alias.
+  final bool generateTypeDef;
 
   TypeAlias({
     required super.name,
     super.comment,
     super.isProposed,
     required this.baseType,
-    required this.isRename,
-  });
+    required this.renameReferences,
+    bool? generateTypeDef,
+  }) : generateTypeDef = generateTypeDef ?? !renameReferences;
 }
 
 /// Base class for a Type parsed from the LSP JSON model.

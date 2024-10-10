@@ -45,8 +45,8 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
 
-/// A [TextDocumentFilterWithScheme] for Analysis Options files.
-final analysisOptionsFile = TextDocumentFilterWithScheme(
+/// A [TextDocumentFilterScheme] for Analysis Options files.
+final analysisOptionsFile = TextDocumentFilterScheme(
     language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
 
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
@@ -73,14 +73,14 @@ final fileOperationRegistrationOptions = FileOperationRegistrationOptions(
   ],
 );
 
-/// A [TextDocumentFilterWithScheme] for Fix Data files.
-final fixDataFile = TextDocumentFilterWithScheme(
+/// A [TextDocumentFilterScheme] for Fix Data files.
+final fixDataFile = TextDocumentFilterScheme(
     language: 'yaml',
     scheme: 'file',
     pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}');
 
-/// A [TextDocumentFilterWithScheme] for Pubspec files.
-final pubspecFile = TextDocumentFilterWithScheme(
+/// A [TextDocumentFilterScheme] for Pubspec files.
+final pubspecFile = TextDocumentFilterScheme(
     language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
 
 /// IDs of client-provided commands that the server knows about.

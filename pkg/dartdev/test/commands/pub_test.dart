@@ -91,6 +91,7 @@ void pub() {
     var result = await p.run(['pub', 'deps', '--foo']);
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
-    expect(result.stderr, startsWith('Could not find an option named "foo".'));
+    expect(
+        result.stderr, startsWith('Could not find an option named "--foo".'));
   });
 }

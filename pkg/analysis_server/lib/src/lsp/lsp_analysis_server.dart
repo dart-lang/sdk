@@ -61,7 +61,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Information about the connected client. Will be null prior to
   /// initialization or if the client did not provide it.
-  InitializeParamsClientInfo? _clientInfo;
+  ClientInfo? _clientInfo;
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
@@ -213,7 +213,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Information about the connected editor client. Will be `null` prior to
   /// initialization.
-  InitializeParamsClientInfo? get clientInfo => _clientInfo;
+  ClientInfo? get clientInfo => _clientInfo;
 
   /// The name of the remote when the client is running using a remote workspace.
   ///
@@ -407,7 +407,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   void handleClientConnection(
     ClientCapabilities capabilities,
-    InitializeParamsClientInfo? clientInfo,
+    ClientInfo? clientInfo,
     Object? initializationOptions,
   ) {
     _clientCapabilities = LspClientCapabilities(capabilities);

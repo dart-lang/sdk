@@ -86,16 +86,16 @@ void testValidation() {
       ['--timeout=1,2'], 'Integer value expected for option "--timeout".');
 
   expectValidationError(['--progress=unknown'],
-      '"unknown" is not an allowed value for option "progress".');
+      '"unknown" is not an allowed value for option "--progress".');
   // Don't allow multiple.
   expectValidationError(['--progress=compact,silent'],
-      '"compact,silent" is not an allowed value for option "progress".');
+      '"compact,silent" is not an allowed value for option "--progress".');
 
   expectValidationError(['--nnbd=unknown'],
-      '"unknown" is not an allowed value for option "nnbd".');
+      '"unknown" is not an allowed value for option "--nnbd".');
   // Don't allow multiple.
   expectValidationError(['--nnbd=weak,strong'],
-      '"weak,strong" is not an allowed value for option "nnbd".');
+      '"weak,strong" is not an allowed value for option "--nnbd".');
 
   // Don't allow invalid named configurations.
   expectValidationError(['-ninvalid-vm-android-simarm'],

@@ -4907,7 +4907,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
 
   /// Expect that there is a snippet for [prefix] with the label [label] at
   /// [position] in [content].
-  Future<({CompletionItem snippet, CompletionListItemDefaults? defaults})>
+  Future<({CompletionItem snippet, CompletionItemDefaults? defaults})>
       expectSnippet(
     TestCode code, {
     required String prefix,

@@ -751,7 +751,7 @@ mixin ClientCapabilitiesHelperMixin {
     var json = name == 'semanticTokens'
         ? SemanticTokensClientCapabilities(
             dynamicRegistration: true,
-            requests: SemanticTokensClientCapabilitiesRequests(),
+            requests: ClientSemanticTokensRequestOptions(),
             formats: [],
             tokenModifiers: [],
             tokenTypes: []).toJson()
@@ -1407,7 +1407,7 @@ mixin LspAnalysisServerTestMixin
       uri,
       [
         TextDocumentContentChangeEvent.t2(
-            TextDocumentContentChangeEvent2(text: content))
+            TextDocumentContentChangeWholeDocument(text: content))
       ],
     );
   }

@@ -159,8 +159,8 @@ class SemanticTokensRegistrations extends FeatureRegistration
   ToJsonable? get options => SemanticTokensRegistrationOptions(
         documentSelector: fullySupportedTypes,
         legend: semanticTokenLegend.lspLegend,
-        full: Either2<bool, SemanticTokensOptionsFull>.t2(
-          SemanticTokensOptionsFull(delta: false),
+        full: Either2<bool, SemanticTokensFullDelta>.t2(
+          SemanticTokensFullDelta(delta: false),
         ),
         range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
       );
@@ -173,7 +173,7 @@ class SemanticTokensRegistrations extends FeatureRegistration
   StaticOptions get staticOptions => Either2.t1(
         SemanticTokensOptions(
           legend: semanticTokenLegend.lspLegend,
-          full: Either2.t2(SemanticTokensOptionsFull(delta: false)),
+          full: Either2.t2(SemanticTokensFullDelta(delta: false)),
           range: Either2.t1(true),
         ),
       );
