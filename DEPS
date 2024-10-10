@@ -120,7 +120,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "e623652744c82533829f2e62b1aba1a6cf06e291", #
+  "args_rev": "09c0fca1785c9df39288a48f767994eed80bed40", #
   "async_rev": "5f70a996f673d625e3502597084653686c3e754c",
   "bazel_worker_rev": "aa3cc9e826350b960e0c5a67e6065bcedba8b0ac",
   "benchmark_harness_rev": "44f125ae1d045aa3de09fe88a8dd70cb7352d563",
