@@ -897,6 +897,16 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// other element.
   Element? get element;
 
+  /// Returns the element referenced by this annotation.
+  ///
+  /// In valid code this element can be a [GetterElement] of a constant
+  /// top-level variable, or a constant static field of a class; or a
+  /// constant [ConstructorElement].
+  ///
+  /// In invalid code this element can be `null`, or a reference to any
+  /// other element.
+  Element2? get element2;
+
   /// Whether the annotation marks the associated function as always throwing.
   bool get isAlwaysThrows;
 
@@ -1916,7 +1926,6 @@ abstract class LibraryElement
   FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
-  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryElement> get exportedLibraries;
 
   /// The export [Namespace] of this library.
@@ -1930,7 +1939,6 @@ abstract class LibraryElement
   ///
   /// This includes all of the libraries that are imported using a prefix, and
   /// those that are imported without a prefix.
-  @Deprecated('Use CompilationUnitElement.libraryImports')
   List<LibraryElement> get importedLibraries;
 
   /// Whether the library is an application that can be run in the browser.

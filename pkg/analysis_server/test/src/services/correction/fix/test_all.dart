@@ -291,6 +291,8 @@ import 'split_multiple_declarations_test.dart'
 import 'surround_with_parentheses_test.dart' as surround_with_parentheses;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_curly_braces_test.dart' as use_curly_braces;
+import 'use_different_division_operator_test.dart'
+    as use_different_division_operator;
 import 'use_effective_integer_division_test.dart'
     as use_effective_integer_division;
 import 'use_eq_eq_null_test.dart' as use_eq_eq_null;
@@ -549,6 +551,7 @@ void main() {
     surround_with_parentheses.main();
     update_sdk_constraints.main();
     use_curly_braces.main();
+    use_different_division_operator.main();
     use_effective_integer_division.main();
     use_eq_eq_null.main();
     use_is_not_empty.main();

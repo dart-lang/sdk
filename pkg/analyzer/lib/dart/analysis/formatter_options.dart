@@ -4,9 +4,9 @@
 
 /// A set of options related to the formatter that apply to the code within a
 /// single analysis context.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class FormatterOptions {
+final class FormatterOptions {
   /// The width configured for where the formatter should wrap code.
-  int? get pageWidth;
+  final int? pageWidth;
+
+  FormatterOptions({this.pageWidth});
 }

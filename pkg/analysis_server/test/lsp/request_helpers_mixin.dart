@@ -87,6 +87,46 @@ mixin LspEditHelpersMixin {
   }
 }
 
+mixin LspProgressNotificationsMixin {
+  Stream<NotificationMessage> get notificationsFromServer;
+
+  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
+  /// requests and notifications for convenience in testing.
+  ///
+  /// Analyzing statuses are not included.
+  Stream<String> get progressUpdates {
+    var controller = StreamController<String>();
+
+    requestsFromServer
+        .where((r) => r.method == Method.window_workDoneProgress_create)
+        .listen((request) async {
+      var params = WorkDoneProgressCreateParams.fromJson(
+          request.params as Map<String, Object?>);
+      if (params.token != analyzingProgressToken) {
+        controller.add('CREATE');
+      }
+    }, onDone: controller.close);
+    notificationsFromServer
+        .where((n) => n.method == Method.progress)
+        .listen((notification) {
+      var params =
+          ProgressParams.fromJson(notification.params as Map<String, Object?>);
+      if (params.token != analyzingProgressToken) {
+        if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
+          controller.add('BEGIN');
+        } else if (WorkDoneProgressEnd.canParse(
+            params.value, nullLspJsonReporter)) {
+          controller.add('END');
+        }
+      }
+    });
+
+    return controller.stream;
+  }
+
+  Stream<RequestMessage> get requestsFromServer;
+}
+
 /// Helpers to simplify building LSP requests for use in tests.
 ///
 /// The actual sending of requests must be supplied by the implementing class

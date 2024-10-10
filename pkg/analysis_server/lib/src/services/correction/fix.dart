@@ -1969,6 +1969,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Update the SDK constraints',
   );
+  static const USE_DIVISION = FixKind(
+    'dart.fix.use.division',
+    DartFixKindPriority.standard,
+    'Use / instead of undefined ~/',
+  );
   static const USE_EFFECTIVE_INTEGER_DIVISION = FixKind(
     'dart.fix.use.effectiveIntegerDivision',
     DartFixKindPriority.standard,

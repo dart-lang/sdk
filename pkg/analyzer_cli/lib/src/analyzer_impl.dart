@@ -71,18 +71,12 @@ class AnalyzerImpl {
       addCompilationUnitSource(unitElement, units);
     }
     // Add imported libraries.
-    var importedLibraries = library.units
-        .expand((unit) => unit.libraryImports)
-        .map((export) => export.importedLibrary)
-        .nonNulls;
+    var importedLibraries = library.importedLibraries;
     for (var child in importedLibraries) {
       addLibrarySources(child, libraries, units);
     }
     // Add exported libraries.
-    var exportedLibraries = library.units
-        .expand((unit) => unit.libraryExports)
-        .map((export) => export.exportedLibrary)
-        .nonNulls;
+    var exportedLibraries = library.exportedLibraries;
     for (var child in exportedLibraries) {
       addLibrarySources(child, libraries, units);
     }

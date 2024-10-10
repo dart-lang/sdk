@@ -2079,6 +2079,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   AnalysisContext get context => compilationUnit.library.context;
 
   @override
+  Element2? get element2 {
+    return element?.asElement2;
+  }
+
+  @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
   @override
@@ -5780,11 +5785,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return declarations.toList();
   }
 
-  @Deprecated('Use CompilationUnitElement.libraryExports')
   @override
   List<LibraryElementImpl> get exportedLibraries {
-    return libraryExports
-        .map((import) => import.exportedLibrary)
+    return fragments
+        .expand((fragment) => fragment.libraryExports)
+        .map((export) => export.exportedLibrary)
         .nonNulls
         .toSet()
         .toList();
@@ -5902,10 +5907,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get identifier => '${_definingCompilationUnit.source.uri}';
 
-  @Deprecated('Use CompilationUnitElement.libraryImports')
   @override
   List<LibraryElementImpl> get importedLibraries {
-    return libraryImports
+    return fragments
+        .expand((fragment) => fragment.libraryImports)
         .map((import) => import.importedLibrary)
         .nonNulls
         .toSet()

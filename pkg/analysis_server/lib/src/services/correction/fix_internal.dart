@@ -233,6 +233,7 @@ import 'package:analysis_server/src/services/correction/dart/split_multiple_decl
 import 'package:analysis_server/src/services/correction/dart/surround_with_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/use_different_division_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/use_effective_integer_division.dart';
 import 'package:analysis_server/src/services/correction/dart/use_eq_eq_null.dart';
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
@@ -881,6 +882,7 @@ final _builtInNonLintMultiProducers = {
   ],
   CompileTimeErrorCode.UNDEFINED_OPERATOR: [
     ImportLibrary.forExtensionMember,
+    UseDifferentDivisionOperator.new,
   ],
   CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [
     DataDriven.new,

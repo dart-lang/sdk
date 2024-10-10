@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
-import 'package:analyzer/src/analysis_options/formatter_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -159,7 +158,7 @@ extension on AnalysisOptionsImpl {
         pageWidth = formatValue;
       }
     }
-    return FormatterOptionsImpl(this, pageWidth: pageWidth);
+    return FormatterOptions(pageWidth: pageWidth);
   }
 
   void _applyLegacyPlugins(YamlNode? plugins) {
