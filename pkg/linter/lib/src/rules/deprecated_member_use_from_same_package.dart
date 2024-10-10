@@ -12,7 +12,6 @@ import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     'Avoid using deprecated elements from within the package in which they are '

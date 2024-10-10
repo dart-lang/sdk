@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = 'Invocation of various collection methods with arguments of '

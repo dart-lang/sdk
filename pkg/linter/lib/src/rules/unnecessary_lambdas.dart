@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";

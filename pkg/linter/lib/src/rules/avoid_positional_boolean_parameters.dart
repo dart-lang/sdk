@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
 

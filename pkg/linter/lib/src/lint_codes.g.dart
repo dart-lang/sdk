@@ -5,7 +5,7 @@
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/linter/messages.yaml' and run
-// 'dart run pkg/linter/tool/codes/generate.dart' to update.
+// 'dart run pkg/linter/tool/generate_lints.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -1954,6 +1954,9 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  /// A lint code that removed lints can specify as their `lintCode`.
+  ///
+  /// Avoid other usages as it should be made unnecessary and removed.
   static const LintCode removed_lint = LinterLintCode(
     'removed_lint',
     'Removed lint.',

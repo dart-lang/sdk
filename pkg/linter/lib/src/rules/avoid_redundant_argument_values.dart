@@ -9,7 +9,6 @@ import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_import
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid redundant argument values.';
 

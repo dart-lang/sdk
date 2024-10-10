@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/obvious_types.dart';
 
 const _desc = r'Specify non-obvious type annotations for local variables.';

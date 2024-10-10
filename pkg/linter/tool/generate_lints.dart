@@ -2,28 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Generation logic for `LinterLintCode` and its static members
-/// based on the entries in `pkg/linter/messages.yaml`.
+/// Generation logic for `LintNames` and `LinterLintCode` based on
+/// the entries in `pkg/linter/messages.yaml`.
 library;
 
 import 'package:analyzer_utilities/tools.dart';
 
-import '../../../analyzer/tool/messages/error_code_info.dart';
-import '../messages_info.dart';
-import '../util/path_utils.dart';
+import '../../analyzer/tool/messages/error_code_info.dart';
+import 'messages_info.dart';
+import 'util/path_utils.dart';
 
-Future<void> main() async {
-  await generateNamesFile().generate(generatedNamesPath);
-  await generateCodesFile().generate(linterPackageRoot);
+void main() async {
+  await GeneratedContent.generateAll(linterPackageRoot, [
+    generatedNamesFile,
+    generatedCodesFile,
+  ]);
 }
 
-String get generatedCodesPath =>
-    pathRelativeToPackageRoot(const ['lib', 'src', 'linter_lint_codes.dart']);
-
-String get generatedNamesPath =>
-    pathRelativeToPackageRoot(const ['lib', 'src', 'lint_names.dart']);
-
-GeneratedFile generateCodesFile() =>
+GeneratedFile get generatedCodesFile =>
     GeneratedFile(generatedCodesPath, (String pkgPath) async {
       var out = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
@@ -33,7 +29,7 @@ GeneratedFile generateCodesFile() =>
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/linter/messages.yaml' and run
-// 'dart run pkg/linter/tool/codes/generate.dart' to update.
+// 'dart run pkg/linter/tool/generate_lints.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -67,6 +63,9 @@ class LinterLintCode extends LintCode {
       }
 
       out.writeln('''
+  /// A lint code that removed lints can specify as their `lintCode`.
+  ///
+  /// Avoid other usages as it should be made unnecessary and removed.
   static const LintCode removed_lint = LinterLintCode(
     'removed_lint',
     'Removed lint.',
@@ -94,7 +93,10 @@ class LinterLintCode extends LintCode {
       return out.toString();
     });
 
-GeneratedFile generateNamesFile() =>
+String get generatedCodesPath =>
+    pathRelativeToPackageRoot(const ['lib', 'src', 'lint_codes.g.dart']);
+
+GeneratedFile get generatedNamesFile =>
     GeneratedFile(generatedNamesPath, (String pkgPath) async {
       var out = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
@@ -104,7 +106,7 @@ GeneratedFile generateNamesFile() =>
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/linter/messages.yaml' and run
-// 'dart run pkg/linter/tool/codes/generate.dart' to update.
+// 'dart run pkg/linter/tool/generate_lints.dart' to update.
 
 // We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
 // code, as they match names declared in the source configuration files.
@@ -122,3 +124,6 @@ abstract final class LintNames {
       out.writeln('}');
       return out.toString();
     });
+
+String get generatedNamesPath =>
+    pathRelativeToPackageRoot(const ['lib', 'src', 'lint_names.g.dart']);

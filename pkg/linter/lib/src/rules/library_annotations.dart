@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Attach library annotations to library directives.';
 

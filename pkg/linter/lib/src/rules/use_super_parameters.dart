@@ -10,7 +10,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: imple
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use super-initializer parameters where possible.';
 

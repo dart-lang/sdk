@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";

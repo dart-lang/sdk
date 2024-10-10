@@ -11,7 +11,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/linter_lint_codes.dart';
+import 'package:linter/src/lint_codes.dart';
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
   ReplaceWithDecoratedBox({required super.context});

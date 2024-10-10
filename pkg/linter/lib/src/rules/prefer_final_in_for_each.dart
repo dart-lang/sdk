@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';

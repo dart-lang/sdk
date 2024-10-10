@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../linter_lint_codes.dart';
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";

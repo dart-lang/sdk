@@ -24,7 +24,7 @@ import 'validate_no_rule_description_references_test.dart'
 import 'validate_rule_description_format_test.dart'
     as validate_rule_description_format;
 import 'verify_checks_test.dart' as verify_checks;
-import 'verify_generated_codes_test.dart' as verify_generated_codes;
+import 'verify_generated_files_test.dart' as verify_generated_files;
 import 'verify_reflective_test_suites_test.dart'
     as verify_reflective_test_suites;
 
@@ -49,6 +49,6 @@ void main() {
   validate_no_rule_description_references.main();
   validate_rule_description_format.main();
   verify_checks.main();
-  verify_generated_codes.main();
+  verify_generated_files.main();
   verify_reflective_test_suites.main();
 }
