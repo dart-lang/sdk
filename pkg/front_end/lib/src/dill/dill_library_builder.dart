@@ -473,7 +473,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
                   reference == declaration.reference) ||
               (declaration is MemberBuilder && node == declaration.member) ||
               (declaration is ExtensionBuilder &&
-                  node == declaration.extension) ||
+                  reference == declaration.reference) ||
               (declaration is ExtensionTypeDeclarationBuilder &&
                   node == declaration.extensionTypeDeclaration),
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "

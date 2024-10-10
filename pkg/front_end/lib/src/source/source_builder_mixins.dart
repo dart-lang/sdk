@@ -14,7 +14,6 @@ import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
@@ -38,8 +37,6 @@ mixin SourceDeclarationBuilderMixin
 
   @override
   Uri get fileUri;
-
-  List<MetadataBuilder>? get metadata;
 
   /// Returns the [Annotatable] node that holds the annotations declared on
   /// this declaration or its augmentations.
@@ -165,16 +162,6 @@ mixin SourceDeclarationBuilderMixin
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(
-        annotatable,
-        metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
-        libraryBuilder,
-        fileUri,
-        libraryBuilder.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(

@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type_system.dart'
     show TypeSystemImpl, ExtensionTypeErasure;
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';

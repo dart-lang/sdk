@@ -2,6 +2,16 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# After editing this file to add a new lint rule or code,
+# make sure to regenerate supporting classes by running:
+#
+#     dart run pkg/linter/tool/generate_lints.dart
+#
+# If you updated or added a `documentation` property,
+# make sure to regenerate the documentation by running:
+#
+#     dart run pkg/analyzer/tool/diagnostics/generate.dart
+
 # There is a fixed set of categories:
 #
 # * binarySize - rules that help to minimize binary size.
@@ -2688,8 +2698,8 @@ LintCode:
 
       **GOOD:**
       ```dart
-      extension MyFancyList<T> on List<T> { 
-        // ... 
+      extension MyFancyList<T> on List<T> {
+        // ...
       }
 
       extension SmartIterable<T> on Iterable<T> {
@@ -10413,7 +10423,7 @@ LintCode:
         type argument, but not C(14) if C accepts one or more type arguments.
       - e is a cascade whose target has an obvious type. For instance,
         1..isEven..isEven has an obvious type because 1 has an obvious type.
-      - e is a type cast. For instance, myComplexpression as int.
+      - e is a type cast. For instance, myComplexExpression as int.
 
       **BAD:**
       ```dart

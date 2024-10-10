@@ -7,10 +7,9 @@ import "vm_service_helper.dart" as vmService;
 class VMServiceHeapHelperSpecificExactLeakFinder
     extends vmService.LaunchingVMServiceHelper {
   final Set _interestsClassNames = {};
-  final Map<Uri, Map<String, List<String>>> _interests =
-      new Map<Uri, Map<String, List<String>>>();
-  final Map<Uri, Map<String, List<String>>> _prettyPrints =
-      new Map<Uri, Map<String, List<String>>>();
+  final Map<Uri, Map<String, List<String>>> _interests = {};
+  final Map<Uri, Map<String, List<String>>> _prettyPrints = {};
+  final Set<String> _shouldAlwaysFind = {};
   final bool throwOnPossibleLeak;
   bool verbose = false;
   int? timeout;
@@ -22,6 +21,9 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   }) {
     if (interests.isEmpty) throw "Empty list of interests given";
     for (Interest interest in interests) {
+      if (interest.expectToAlwaysFind) {
+        _shouldAlwaysFind.add("${interest.uri}|${interest.className}");
+      }
       Map<String, List<String>>? classToFields = _interests[interest.uri];
       if (classToFields == null) {
         classToFields = Map<String, List<String>>();
@@ -124,28 +126,34 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
       stopwatch.reset();
       List<Leak> leaks = [];
+      Set<String> leftToAlwaysFind = _shouldAlwaysFind.toSet();
       for (vmService.ClassHeapStats member in allocationProfile.members!) {
         if (_interestsClassNames.contains(member.classRef!.name)) {
+          String? libraryId = member.classRef?.library?.id;
+          if (libraryId == null) continue;
+          vmService.Library library = (await serviceClient.getObject(
+              _isolateRef.id!, libraryId)) as vmService.Library;
+          String? importUriString = library.uri;
+          if (importUriString == null) continue;
+          String? classId = member.classRef?.id;
+          if (classId == null) continue;
           vmService.Class c = (await serviceClient.getObject(
-              _isolateRef.id!, member.classRef!.id!)) as vmService.Class;
-          String? uriString = c.location?.script?.uri;
-          if (uriString == null) continue;
-          Uri uri = Uri.parse(uriString);
-          Map<String, List<String>>? uriInterest = _interests[uri];
-          if (uriInterest == null) continue;
-          List<String>? fieldsForClass = uriInterest[c.name];
-          if (fieldsForClass == null) continue;
+              _isolateRef.id!, classId)) as vmService.Class;
+          String? partUriString = c.location?.script?.uri;
+          if (partUriString == null) continue;
+          String? className = c.name;
+          if (className == null) continue;
 
-          List<String> fieldsForClassPrettyPrint = fieldsForClass;
-
-          uriInterest = _prettyPrints[uri];
-          if (uriInterest != null) {
-            if (uriInterest[c.name] != null) {
-              fieldsForClassPrettyPrint = uriInterest[c.name]!;
-            }
-          }
+          (List<String>, List<String>)? fieldsData =
+              _getFieldsForClassAndPrettyPrint(partUriString, className) ??
+                  _getFieldsForClassAndPrettyPrint(importUriString, className);
+          if (fieldsData == null) continue;
+          List<String> fieldsForClass = fieldsData.$1;
+          List<String> fieldsForClassPrettyPrint = fieldsData.$2;
 
           if (member.instancesCurrent != 0) {
+            leftToAlwaysFind.remove("$partUriString|$className");
+            leftToAlwaysFind.remove("$importUriString|$className");
             if (verbose) {
               print("Has ${member.instancesCurrent} instances of "
                   "${member.classRef!.name}");
@@ -166,6 +174,9 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       } else {
         noLeakDetected();
       }
+      if (leftToAlwaysFind.isNotEmpty) {
+        throw "Expected to find, but didn't: $leftToAlwaysFind";
+      }
 
       print("Looked for leaks in ${stopwatch.elapsedMilliseconds} ms");
 
@@ -179,6 +190,22 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
       _iterationNumber++;
     }
+  }
+
+  (List<String>, List<String>)? _getFieldsForClassAndPrettyPrint(
+      String uriString, String className) {
+    Uri uri = Uri.parse(uriString);
+    Map<String, List<String>>? uriInterest = _interests[uri];
+    if (uriInterest == null) return null;
+    List<String>? fieldsForClass = uriInterest[className];
+    if (fieldsForClass == null) return null;
+
+    List<String> fieldsForClassPrettyPrint = fieldsForClass;
+    uriInterest = _prettyPrints[uri];
+    if (uriInterest != null && uriInterest[className] != null) {
+      fieldsForClassPrettyPrint = uriInterest[className]!;
+    }
+    return (fieldsForClass, fieldsForClassPrettyPrint);
   }
 
   Future<List<Leak>> _findLeaks(
@@ -364,8 +391,10 @@ class Interest {
   final Uri uri;
   final String className;
   final List<String> fieldNames;
+  final bool expectToAlwaysFind;
 
-  Interest(this.uri, this.className, this.fieldNames);
+  Interest(this.uri, this.className, this.fieldNames,
+      {this.expectToAlwaysFind = false});
 }
 
 class Leak {

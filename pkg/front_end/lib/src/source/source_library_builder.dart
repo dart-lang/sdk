@@ -763,7 +763,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             case TypeAliasBuilder():
               library.additionalExports.add(builder.reference);
             case ExtensionBuilder():
-              library.additionalExports.add(builder.extension.reference);
+              library.additionalExports.add(builder.reference);
             case ExtensionTypeDeclarationBuilder():
               library.additionalExports
                   .add(builder.extensionTypeDeclaration.reference);

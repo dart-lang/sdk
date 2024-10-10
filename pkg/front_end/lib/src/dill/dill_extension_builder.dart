@@ -88,6 +88,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  Reference get reference => extension.reference;
+
+  @override
   int get charOffset => extension.fileOffset;
 
   @override

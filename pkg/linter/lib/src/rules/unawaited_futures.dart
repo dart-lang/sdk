@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `dart:async`.';

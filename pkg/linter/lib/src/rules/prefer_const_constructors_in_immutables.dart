@@ -10,7 +10,6 @@ import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 

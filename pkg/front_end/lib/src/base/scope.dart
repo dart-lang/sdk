@@ -1474,7 +1474,7 @@ extension on Builder {
     // TODO(johnniwinther): Handle all cases here.
   }
 
-  bool _hasPatchAnnotation(List<MetadataBuilder>? metadata) {
+  bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
     if (metadata == null) {
       return false;
     }

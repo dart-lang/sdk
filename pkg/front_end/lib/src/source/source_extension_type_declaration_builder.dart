@@ -61,7 +61,8 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   final Uri fileUri;
 
-  @override
+  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
+  //  patches should be computing from within the builder.
   final List<MetadataBuilder>? metadata;
 
   final Modifiers _modifiers;
@@ -722,6 +723,17 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        metadata,
+        createBodyBuilderContext(
+            inOutlineBuildingPhase: true,
+            inMetadata: true,
+            inConstFields: false),
+        libraryBuilder,
+        fileUri,
+        libraryBuilder.scope);
+
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
 
     Iterator<SourceMemberBuilder> iterator =

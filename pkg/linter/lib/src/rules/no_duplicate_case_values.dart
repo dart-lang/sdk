@@ -8,7 +8,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r"Don't use more than one case with same value.";
 

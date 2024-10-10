@@ -43,16 +43,16 @@ class TestLinter implements AnalysisErrorListener {
   }) : _resourceProvider =
             resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
-  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
+  Future<List<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     var errors = <AnalysisErrorInfo>[];
     var lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where(isDartFile)));
     numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where(isPubspecFile).forEach((path) {
+    files.where(isPubspecFile).forEach((file) {
       numSourcesAnalyzed++;
       var errorsForFile = lintPubspecSource(
-        contents: path.readAsStringSync(),
-        sourcePath: _resourceProvider.pathContext.normalize(path.absolute.path),
+        contents: file.readAsStringSync(),
+        sourcePath: _resourceProvider.pathContext.normalize(file.absolute.path),
       );
       errors.addAll(errorsForFile);
     });

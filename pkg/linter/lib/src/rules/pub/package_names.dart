@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../analyzer.dart';
-import '../../linter_lint_codes.dart';
 import '../../utils.dart';
 
 const _desc = r'Use `lowercase_with_underscores` for package names.';

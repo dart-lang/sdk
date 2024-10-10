@@ -52,7 +52,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   Map<Name, Procedure>? tearOffs;
 
-  TypedefFragment _introductory;
+  /// The `typedef` declaration that introduces this typedef. Subsequent
+  /// typedefs of the same name must be augmentations.
+  // TODO(johnniwinther): Add [_augmentations] field.
+  final TypedefFragment _introductory;
 
   SourceTypeAliasBuilder(
       {required this.name,

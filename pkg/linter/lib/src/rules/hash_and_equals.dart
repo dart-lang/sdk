@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Always override `hashCode` if overriding `==`.';
 

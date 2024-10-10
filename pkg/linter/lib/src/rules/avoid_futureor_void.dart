@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart'
     show TypeParameterElementImpl;
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r"Avoid using 'FutureOr<void>' as the type of a result.";
 

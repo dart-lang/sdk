@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../base/common.dart';
 import '../base/modifiers.dart';
@@ -19,7 +20,9 @@ import '../codes/cfe_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength;
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
+import '../kernel/kernel_helper.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
@@ -31,18 +34,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   final SourceLibraryBuilder parent;
 
-  @override
-  final int charOffset;
+  final int _nameOffset;
 
   @override
   final Uri fileUri;
 
-  @override
-  final List<MetadataBuilder>? metadata;
-
   final Modifiers _modifiers;
 
-  final Extension _extension;
+  late final Extension _extension;
 
   SourceExtensionBuilder? _origin;
   SourceExtensionBuilder? augmentationForTesting;
@@ -68,34 +67,53 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   final ExtensionName extensionName;
 
+  final Reference _reference;
+
+  /// The `extension` declaration that introduces this extension. Subsequent
+  /// extensions of the same name must be augmentations.
+  // TODO(johnniwinther): Add [_augmentations] field.
+  final ExtensionFragment _introductory;
+
   SourceExtensionBuilder(
-      {required this.metadata,
-      required Modifiers modifiers,
-      required this.extensionName,
-      required this.typeParameters,
-      required this.onType,
-      required this.typeParameterScope,
-      required DeclarationNameSpaceBuilder nameSpaceBuilder,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
+      {required SourceLibraryBuilder enclosingLibraryBuilder,
       required this.fileUri,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
+      required ExtensionFragment fragment,
       required Reference? reference})
-      : charOffset = nameOffset,
+      : _introductory = fragment,
+        _reference = reference ?? new Reference(),
+        _nameOffset = nameOffset,
         parent = enclosingLibraryBuilder,
-        _modifiers = modifiers,
-        _extension = new Extension(
-            name: extensionName.name,
-            fileUri: fileUri,
-            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
-                typeParameters),
-            reference: reference)
-          ..isUnnamedExtension = extensionName.isUnnamedExtension
-          ..fileOffset = nameOffset,
-        _nameSpaceBuilder = nameSpaceBuilder {
+        _modifiers = fragment.modifiers,
+        extensionName = fragment.extensionName,
+        typeParameters = fragment.typeParameters,
+        typeParameterScope = fragment.typeParameterScope,
+        onType = fragment.onType,
+        _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder() {
+    _introductory.builder = this;
+    _introductory.bodyScope.declarationBuilder = this;
+
+    // TODO(johnniwinther): Move this to the [build] once augmentations are
+    // handled through fragments.
+    _extension = new Extension(
+        name: extensionName.name,
+        fileUri: fileUri,
+        typeParameters:
+            NominalVariableBuilder.typeParametersFromBuilders(typeParameters),
+        reference: _reference)
+      ..isUnnamedExtension = extensionName.isUnnamedExtension
+      ..fileOffset = _nameOffset;
     extensionName.attachExtension(_extension);
   }
+
+  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
+  //  patches should be computing from within the builder.
+  Iterable<MetadataBuilder>? get metadata => _introductory.metadata;
+
+  @override
+  int get charOffset => _nameOffset;
 
   @override
   String get name => extensionName.name;
@@ -162,11 +180,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
 
   @override
-  Extension get extension => isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      origin._extension
-      : _extension;
+  Reference get reference => _reference;
+
+  @override
+  Extension get extension {
+    return isAugmenting ? origin.extension : _extension;
+  }
 
   @override
   BodyBuilderContext createBodyBuilderContext(
@@ -195,8 +214,24 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     _extension.onType = onType.build(libraryBuilder, TypeUse.extensionOnType);
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
     return _extension;
+  }
+
+  @override
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        _introductory.metadata,
+        createBodyBuilderContext(
+            inOutlineBuildingPhase: true,
+            inMetadata: true,
+            inConstFields: false),
+        libraryBuilder,
+        _introductory.fileUri,
+        libraryBuilder.scope);
+
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
   }
 
   @override
@@ -263,11 +298,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceExtensionBuilder) {
       augmentation._origin = this;
       if (retainDataForTesting) {
+        // Coverage-ignore-block(suite): Not run.
         augmentationForTesting = augmentation;
       }
       // TODO(johnniwinther): Check that type parameters and on-type match
@@ -280,7 +315,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
           member.applyAugmentation(memberAugmentation);
         }
       });
-      nameSpace.forEachLocalSetter((String name, Builder member) {
+      nameSpace.forEachLocalSetter(
+          // Coverage-ignore(suite): Not run.
+          (String name, Builder member) {
         Builder? memberAugmentation =
             augmentation.nameSpace.lookupLocalMember(name, setter: true);
         if (memberAugmentation != null) {
@@ -288,6 +325,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         }
       });
     } else {
+      // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
           augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(

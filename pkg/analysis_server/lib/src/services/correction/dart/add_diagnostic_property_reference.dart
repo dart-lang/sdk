@@ -15,8 +15,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:linter/src/lint_names.dart';
-import 'package:linter/src/linter_lint_codes.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   AddDiagnosticPropertyReference({required super.context});

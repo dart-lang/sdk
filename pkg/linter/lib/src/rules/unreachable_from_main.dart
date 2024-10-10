@@ -12,7 +12,6 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 

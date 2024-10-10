@@ -14,6 +14,7 @@ import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 
 import '../tool/util/path_utils.dart';
+import 'generate_lints.dart' show generatedNamesPath;
 import 'lint_sets.dart';
 import 'parse.dart';
 
@@ -239,15 +240,7 @@ class ScoreCard {
   }
 
   static List<String> _getLintsWithFixes() {
-    var lintNamesFilePath = pathRelativeToPkgDir([
-      'analysis_server',
-      'lib',
-      'src',
-      'services',
-      'linter',
-      'lint_names.dart'
-    ]);
-    var contents = File(lintNamesFilePath).readAsStringSync();
+    var contents = File(generatedNamesPath).readAsStringSync();
 
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: contents, name: 'lint_names.dart');

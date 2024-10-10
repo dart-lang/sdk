@@ -247,7 +247,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:linter/src/linter_lint_codes.dart';
+import 'package:linter/src/lint_codes.dart';
 
 final _builtInLintMultiProducers = {
   LinterLintCode.comment_references: [
@@ -941,6 +941,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddExplicitCast.new,
     AddNullCheck.new,
     WrapInText.new,
+    AddAwait.argumentType,
   ],
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
     AddAsync.new,
@@ -1104,6 +1105,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
+    AddAwait.assignment,
   ],
   CompileTimeErrorCode.INVALID_CONSTANT: [
     RemoveConst.new,

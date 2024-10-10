@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';

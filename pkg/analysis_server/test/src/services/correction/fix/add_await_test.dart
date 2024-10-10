@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,6 +14,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAwaitTest);
+    defineReflectiveTests(AddAwaitTestArgumentAndAssignment);
   });
 }
 
@@ -102,5 +104,137 @@ Future<void> f() async {
 }
 ''');
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_AWAIT;
+
+  Future<void> test_stringNamedParameter_futureInt() async {
+    await resolveTestCode('''
+void foo({required String s}) {}
+
+Future<int> bar() async => 0;
+
+void baz() {
+  foo(s: bar());
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_stringNamedParameter_futureString() async {
+    await resolveTestCode('''
+void foo({required String s}) {}
+
+Future<String> bar() async => '';
+
+void baz() {
+  foo(s: bar());
+}
+''');
+    await assertHasFix('''
+void foo({required String s}) {}
+
+Future<String> bar() async => '';
+
+void baz() {
+  foo(s: await bar());
+}
+''');
+  }
+
+  Future<void> test_stringParameter_futureInt() async {
+    await resolveTestCode('''
+void foo(String s) {}
+
+Future<int> bar() async => 0;
+
+void baz() {
+  foo(bar());
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_stringParameter_futureString() async {
+    await resolveTestCode('''
+void foo(String s) {}
+
+Future<String> bar() async => '';
+
+void baz() {
+  foo(bar());
+}
+''');
+    await assertHasFix('''
+void foo(String s) {}
+
+Future<String> bar() async => '';
+
+void baz() {
+  foo(await bar());
+}
+''');
+  }
+
+  Future<void> test_stringVariable_assignment_futureString() async {
+    await resolveTestCode('''
+Future<String> bar() async => '';
+
+void baz() {
+  String? variable;
+  variable = bar();
+}
+''');
+    await assertHasFix(
+      '''
+Future<String> bar() async => '';
+
+void baz() {
+  String? variable;
+  variable = await bar();
+}
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    );
+  }
+
+  Future<void> test_stringVariable_futureInt() async {
+    await resolveTestCode('''
+Future<int> bar() async => 0;
+
+void baz() {
+  String variable = bar();
+}
+''');
+    await assertNoFix(
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    );
+  }
+
+  Future<void> test_stringVariable_futureString() async {
+    await resolveTestCode('''
+Future<String> bar() async => '';
+
+void baz() {
+  String variable = bar();
+}
+''');
+    await assertHasFix(
+      '''
+Future<String> bar() async => '';
+
+void baz() {
+  String variable = await bar();
+}
+''',
+      errorFilter: (error) =>
+          error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    );
   }
 }

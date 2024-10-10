@@ -624,6 +624,7 @@ explosion
 exportable
 exportee
 exportees
+exposing
 expr
 expression's
 ext

@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implement
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
