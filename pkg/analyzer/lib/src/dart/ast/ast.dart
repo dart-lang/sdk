@@ -2731,7 +2731,7 @@ class ChildEntity {
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 abstract final class ClassDeclaration
-    implements NamedCompilationUnitMember, _FragmentDeclaration {
+    implements NamedCompilationUnitMember, FragmentDeclaration {
   /// The `abstract` keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
@@ -2967,7 +2967,7 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 ///
 ///    mixinApplication ::=
 ///        [NamedType] [WithClause] [ImplementsClause]? ';'
-abstract final class ClassTypeAlias implements TypeAlias, _FragmentDeclaration {
+abstract final class ClassTypeAlias implements TypeAlias, FragmentDeclaration {
   /// The token for the `abstract` keyword, or `null` if this isn't defining an
   /// abstract class.
   Token? get abstractKeyword;
@@ -4128,7 +4128,7 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 abstract final class ConstructorDeclaration
-    implements ClassMember, _FragmentDeclaration {
+    implements ClassMember, FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -5604,7 +5604,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 }
 
 /// The declaration of an enum constant.
-abstract final class EnumConstantDeclaration implements _FragmentDeclaration {
+abstract final class EnumConstantDeclaration implements FragmentDeclaration {
   /// The explicit arguments (there are always implicit `index` and `name`
   /// leading arguments) to the invoked constructor, or `null` if this constant
   /// doesn't provide any explicit arguments.
@@ -5707,7 +5707,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 abstract final class EnumDeclaration
-    implements NamedCompilationUnitMember, _FragmentDeclaration {
+    implements NamedCompilationUnitMember, FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
@@ -6427,7 +6427,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
 abstract final class ExtensionDeclaration
-    implements CompilationUnitMember, _FragmentDeclaration {
+    implements CompilationUnitMember, FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
@@ -6774,7 +6774,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///        '}'
 @experimental
 abstract final class ExtensionTypeDeclaration
-    implements NamedCompilationUnitMember, _FragmentDeclaration {
+    implements NamedCompilationUnitMember, FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
@@ -8157,6 +8157,16 @@ final class ForStatementImpl extends StatementImpl
   }
 }
 
+/// A declaration of a fragment of an element.
+@experimental
+abstract final class FragmentDeclaration implements Declaration {
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @experimental
+  Fragment? get declaredFragment;
+}
+
 /// A node representing the body of a function or method.
 ///
 ///    functionBody ::=
@@ -8274,7 +8284,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
 abstract final class FunctionDeclaration
-    implements NamedCompilationUnitMember, _FragmentDeclaration {
+    implements NamedCompilationUnitMember, FragmentDeclaration {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
   @experimental
   Token? get augmentKeyword;
@@ -8821,7 +8831,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///    functionPrefix ::=
 ///        [TypeAnnotation]? [SimpleIdentifier]
 abstract final class FunctionTypeAlias
-    implements TypeAlias, _FragmentDeclaration {
+    implements TypeAlias, FragmentDeclaration {
   @override
   TypeAliasElement? get declaredElement;
 
@@ -9183,7 +9193,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///        'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///        [FunctionType] ';'
 abstract final class GenericTypeAlias
-    implements TypeAlias, _FragmentDeclaration {
+    implements TypeAlias, FragmentDeclaration {
   /// The equal sign separating the name being defined from the function type.
   Token get equals;
 
@@ -11891,7 +11901,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 /// children of a class declaration. When the experiment is enabled, these nodes
 /// can also be children of an extension declaration.
 abstract final class MethodDeclaration
-    implements ClassMember, _FragmentDeclaration {
+    implements ClassMember, FragmentDeclaration {
   /// The token for the `augment` keyword.
   Token? get augmentKeyword;
 
@@ -12288,7 +12298,7 @@ abstract final class MethodReferenceExpression implements Expression {
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 abstract final class MixinDeclaration
-    implements NamedCompilationUnitMember, _FragmentDeclaration {
+    implements NamedCompilationUnitMember, FragmentDeclaration {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -18157,8 +18167,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///
 ///    typeParameter ::=
 ///        name ('extends' [TypeAnnotation])?
-abstract final class TypeParameter
-    implements Declaration, _FragmentDeclaration {
+abstract final class TypeParameter implements Declaration, FragmentDeclaration {
   /// The upper bound for legal arguments, or `null` if there's no explicit
   /// upper bound.
   TypeAnnotation? get bound;
@@ -18409,7 +18418,7 @@ class UriValidationCode {
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
 abstract final class VariableDeclaration
-    implements Declaration, _FragmentDeclaration {
+    implements Declaration, FragmentDeclaration {
   /// The element declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
@@ -19214,15 +19223,6 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
       }
     }
   }
-}
-
-/// A declaration of a fragment of an element.
-abstract final class _FragmentDeclaration implements Declaration {
-  /// The fragment declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved.
-  @experimental
-  Fragment? get declaredFragment;
 }
 
 /// An indication of the resolved kind of a [SetOrMapLiteral].
