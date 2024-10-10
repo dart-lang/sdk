@@ -4088,41 +4088,145 @@ library
       setter: <testLibraryFragment>::@setter::hasDocComment2#element
     hasAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation
+      metadata
+        Annotation
+          atSign: @ @66
+          name: SimpleIdentifier
+            token: Object @67
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @73
+            rightParenthesis: ) @74
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::hasAnnotation#element
       setter: <testLibraryFragment>::@setter::hasAnnotation#element
     hasAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
+      metadata
+        Annotation
+          atSign: @ @66
+          name: SimpleIdentifier
+            token: Object @67
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @73
+            rightParenthesis: ) @74
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::hasAnnotation2#element
       setter: <testLibraryFragment>::@setter::hasAnnotation2#element
     annotationThenComment
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment
+      metadata
+        Annotation
+          atSign: @ @112
+          name: SimpleIdentifier
+            token: Object @113
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @119
+            rightParenthesis: ) @120
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::annotationThenComment#element
       setter: <testLibraryFragment>::@setter::annotationThenComment#element
     annotationThenComment2
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
+      metadata
+        Annotation
+          atSign: @ @112
+          name: SimpleIdentifier
+            token: Object @113
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @119
+            rightParenthesis: ) @120
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::annotationThenComment2#element
       setter: <testLibraryFragment>::@setter::annotationThenComment2#element
     commentThenAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
+      metadata
+        Annotation
+          atSign: @ @234
+          name: SimpleIdentifier
+            token: Object @235
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @241
+            rightParenthesis: ) @242
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::commentThenAnnotation#element
       setter: <testLibraryFragment>::@setter::commentThenAnnotation#element
     commentThenAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
+      metadata
+        Annotation
+          atSign: @ @234
+          name: SimpleIdentifier
+            token: Object @235
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @241
+            rightParenthesis: ) @242
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::commentThenAnnotation2#element
       setter: <testLibraryFragment>::@setter::commentThenAnnotation2#element
     commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
+      metadata
+        Annotation
+          atSign: @ @311
+          name: SimpleIdentifier
+            token: Object @312
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @318
+            rightParenthesis: ) @319
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::commentAroundAnnotation#element
       setter: <testLibraryFragment>::@setter::commentAroundAnnotation#element
     commentAroundAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
+      metadata
+        Annotation
+          atSign: @ @311
+          name: SimpleIdentifier
+            token: Object @312
+            staticElement: dart:core::<fragment>::@class::Object
+            element: dart:core::<fragment>::@class::Object#element
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @318
+            rightParenthesis: ) @319
+          element: dart:core::<fragment>::@class::Object::@constructor::new
+          element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::commentAroundAnnotation2#element
       setter: <testLibraryFragment>::@setter::commentAroundAnnotation2#element

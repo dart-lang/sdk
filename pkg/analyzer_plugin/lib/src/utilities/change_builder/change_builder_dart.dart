@@ -948,6 +948,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeReference2(Element2 element) {
+    if (element.enclosingElement2 is LibraryElement2) {
+      _writeLibraryReference2(element);
+    }
+    write(element.displayName);
+  }
+
+  @override
   void writeSetterDeclaration(String name,
       {void Function()? bodyWriter,
       bool isStatic = false,
@@ -1502,6 +1510,42 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
+  /// Writes the import prefix to reference the [element], if needed.
+  ///
+  /// The prefix is not needed if the [element] is defined in the target
+  /// library, or there is already an import without prefix that exports the
+  /// [element]. If there are no existing import that exports the [element], a
+  /// library that exports the [element] is scheduled for import, possibly with
+  /// a prefix.
+  void _writeLibraryReference2(Element2 element) {
+    // If the element is defined in the library, then no prefix needed.
+    if (dartFileEditBuilder._isDefinedLocally2(element)) {
+      return;
+    }
+
+    // TODO(scheglov): We should use "methodBeingCopied" to verify that
+    // we really are just copying this type parameter.
+    if (element is TypeParameterElement2) {
+      return;
+    }
+
+    var import = dartFileEditBuilder._getImportElement2(element);
+    if (import == null) {
+      var library = element.library2?.firstFragment.source.uri;
+      if (library != null) {
+        import = dartFileEditBuilder._importLibrary(library);
+      }
+    }
+    if (import == null) {
+      return;
+    }
+    import.ensureShown(element.name!);
+    var prefix = import.prefix;
+    if (prefix.isNotEmpty) {
+      write('$prefix.');
+    }
+  }
+
   void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
       List<ParameterElement> parameters) {
     var isOperator = element.isOperator;
@@ -1921,6 +1965,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// them visible in the generated code.
   final Map<Element, _LibraryImport> _elementLibrariesToImport = {};
 
+  /// A mapping of [Element2]s to pending imports that will be added to make
+  /// them visible in the generated code.
+  final Map<Element2, _LibraryImport> _elementLibrariesToImport2 = {};
+
   /// Initializes a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder].
   ///
@@ -2000,6 +2048,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
     for (var entry in _elementLibrariesToImport.entries) {
       copy._elementLibrariesToImport[entry.key] = entry.value;
+    }
+    for (var entry in _elementLibrariesToImport2.entries) {
+      copy._elementLibrariesToImport2[entry.key] = entry.value;
     }
     return copy;
   }
@@ -2696,6 +2747,40 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return (libraryChangeBuilder ?? this)._elementLibrariesToImport[element];
   }
 
+  /// Returns information about the library used to import the given [element]
+  /// into the target library, or `null` if the element was not imported, such
+  /// as when the element is declared in the same library.
+  ///
+  /// The result may be an existing import, or one that is pending.
+  _LibraryImport? _getImportElement2(Element2 element) {
+    for (var import
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+      var definedNames = import.namespace.definedNames2;
+      if (definedNames.containsValue(element)) {
+        var importedLibrary = import.importedLibrary2;
+        if (importedLibrary != null) {
+          return _LibraryImport(
+            uriText: importedLibrary.firstFragment.source.uri.toString(),
+            isExplicitlyImported: true,
+            shownNames: [
+              for (var combinator in import.combinators)
+                if (combinator is ShowElementCombinator)
+                  combinator.shownNames.toList(),
+            ],
+            hiddenNames: [
+              for (var combinator in import.combinators)
+                if (combinator is HideElementCombinator)
+                  combinator.hiddenNames.toList(),
+            ],
+            prefix: import.prefix2?.name ?? '',
+          );
+        }
+      }
+    }
+
+    return (libraryChangeBuilder ?? this)._elementLibrariesToImport2[element];
+  }
+
   List<LibraryImportElement> _getImportsForUri(Uri uri) {
     return [
       for (var import
@@ -2827,6 +2912,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
+  }
+
+  /// Returns whether the [element] is defined in the target library.
+  bool _isDefinedLocally2(Element2 element) {
+    return element.library2 == resolvedUnit.libraryElement2;
   }
 
   /// Removes any pending imports (for [Element]s) that are no longer necessary

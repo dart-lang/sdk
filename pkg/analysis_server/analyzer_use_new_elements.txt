@@ -317,6 +317,7 @@ lib/src/services/correction/dart/exchange_operands.dart
 lib/src/services/correction/dart/extend_class_for_mixin.dart
 lib/src/services/correction/dart/extract_local_variable.dart
 lib/src/services/correction/dart/flutter_convert_to_children.dart
+lib/src/services/correction/dart/flutter_convert_to_stateful_widget.dart
 lib/src/services/correction/dart/flutter_move_down.dart
 lib/src/services/correction/dart/flutter_move_up.dart
 lib/src/services/correction/dart/flutter_remove_widget.dart

@@ -10361,6 +10361,7 @@ extension on Fragment {
     //  that's true then this getter isn't necessary and should be removed.
     return switch (this) {
       LibraryFragment(:var metadata) => metadata,
+      PropertyInducingFragment(:var metadata) => metadata,
       TypeDefiningFragment(:var metadata) => metadata,
       TypeParameterizedFragment(:var metadata) => metadata,
       FormalParameterFragment(:var metadata) => metadata,

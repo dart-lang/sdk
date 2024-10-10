@@ -8,6 +8,7 @@ lib/src/rules/always_put_required_named_parameters_first.dart
 lib/src/rules/always_require_non_null_named_parameters.dart
 lib/src/rules/always_specify_types.dart
 lib/src/rules/always_use_package_imports.dart
+lib/src/rules/annotate_overrides.dart
 lib/src/rules/avoid_annotating_with_dynamic.dart
 lib/src/rules/avoid_as.dart
 lib/src/rules/avoid_bool_literals_in_conditional_expressions.dart
@@ -67,6 +68,7 @@ lib/src/rules/invariant_booleans.dart
 lib/src/rules/iterable_contains_unrelated_type.dart
 lib/src/rules/join_return_with_assignment.dart
 lib/src/rules/leading_newlines_in_multiline_strings.dart
+lib/src/rules/library_annotations.dart
 lib/src/rules/library_names.dart
 lib/src/rules/library_prefixes.dart
 lib/src/rules/lines_longer_than_80_chars.dart
@@ -119,6 +121,7 @@ lib/src/rules/prefer_null_aware_operators.dart
 lib/src/rules/prefer_single_quotes.dart
 lib/src/rules/prefer_spread_collections.dart
 lib/src/rules/prefer_typing_uninitialized_variables.dart
+lib/src/rules/prefer_void_to_null.dart
 lib/src/rules/provide_deprecation_message.dart
 lib/src/rules/pub/depend_on_referenced_packages.dart
 lib/src/rules/pub/package_names.dart
