@@ -154,12 +154,11 @@ CompileTimeErrorCode.AMBIGUOUS_EXPORT:
 CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
   status: hasFix
 CompileTimeErrorCode.AMBIGUOUS_IMPORT:
-  status: needsFix
+  status: hasFix
   notes: |-
-    1. For each imported name, add a fix to hide the name.
-    2. For each imported name, add a fix to add a prefix. We wouldn't be able to
-       add the prefix everywhere, but could add it wherever the name was already
-       unambiguous.
+    For each imported name, add a fix to add a prefix. We wouldn't be able to
+    add the prefix everywhere, but could add it wherever the name was already
+    unambiguous.
 CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
   status: noFix
   notes: |-
