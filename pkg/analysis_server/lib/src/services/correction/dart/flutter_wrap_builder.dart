@@ -32,14 +32,14 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
 
-    var builderElement = await sessionHelper.getFlutterClass('Builder');
+    var builderElement = await sessionHelper.getFlutterClass2('Builder');
     if (builderElement == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
-        builder.writeReference(builderElement);
+        builder.writeReference2(builderElement);
 
         builder.writeln('(');
 
