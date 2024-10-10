@@ -50,6 +50,18 @@ class SourceExtensionTypeDeclarationBuilder
         Comparable<SourceExtensionTypeDeclarationBuilder>,
         ClassDeclaration {
   @override
+  final SourceLibraryBuilder parent;
+
+  @override
+  final int charOffset;
+
+  @override
+  final String name;
+
+  @override
+  final Uri fileUri;
+
+  @override
   final List<MetadataBuilder>? metadata;
 
   final Modifiers _modifiers;
@@ -91,20 +103,22 @@ class SourceExtensionTypeDeclarationBuilder
   SourceExtensionTypeDeclarationBuilder(
       {required this.metadata,
       required Modifiers modifiers,
-      required String name,
+      required this.name,
       required this.typeParameters,
       required this.interfaceBuilders,
       required this.typeParameterScope,
       required DeclarationNameSpaceBuilder nameSpaceBuilder,
       required SourceLibraryBuilder enclosingLibraryBuilder,
       required this.constructorReferences,
-      required Uri fileUri,
+      required this.fileUri,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
       required this.indexedContainer,
       required FieldFragment? representationFieldFragment})
-      : _modifiers = modifiers,
+      : parent = enclosingLibraryBuilder,
+        charOffset = nameOffset,
+        _modifiers = modifiers,
         _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: fileUri,
@@ -113,8 +127,7 @@ class SourceExtensionTypeDeclarationBuilder
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
         _nameSpaceBuilder = nameSpaceBuilder,
-        _representationFieldFragment = representationFieldFragment,
-        super(name, enclosingLibraryBuilder, fileUri, nameOffset);
+        _representationFieldFragment = representationFieldFragment;
 
   @override
   LookupScope get scope => _scope;

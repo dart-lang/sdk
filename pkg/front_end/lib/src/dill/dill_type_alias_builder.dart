@@ -15,6 +15,9 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
+  final DillLibraryBuilder parent;
+
+  @override
   final Typedef typedef;
 
   @override
@@ -26,8 +29,16 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   DartType? thisType;
 
-  DillTypeAliasBuilder(this.typedef, this.tearOffs, DillLibraryBuilder parent)
-      : super(typedef.name, parent, typedef.fileUri, typedef.fileOffset);
+  DillTypeAliasBuilder(this.typedef, this.tearOffs, this.parent);
+
+  @override
+  int get charOffset => typedef.fileOffset;
+
+  @override
+  String get name => typedef.name;
+
+  @override
+  Uri get fileUri => typedef.fileUri;
 
   @override
   Reference get reference => typedef.reference;

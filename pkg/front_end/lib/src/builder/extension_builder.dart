@@ -33,10 +33,6 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionBuilder {
-  ExtensionBuilderImpl(
-      String name, LibraryBuilder parent, Uri fileUri, int fileOffset)
-      : super(name, parent, fileUri, fileOffset);
-
   @override
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,

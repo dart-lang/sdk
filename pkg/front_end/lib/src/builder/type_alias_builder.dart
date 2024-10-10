@@ -129,25 +129,15 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
 abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     implements TypeAliasBuilder {
-  @override
-  final Uri fileUri;
-
   TypeBuilder? _unaliasedRhsType;
 
   List<TypeAliasBuilder> _typeAliasesUsedInUnaliasing = [];
-
-  TypeAliasBuilderImpl(
-      String name, LibraryBuilder parent, this.fileUri, int fileOffset)
-      : super(name, parent, fileOffset);
 
   @override
   String get debugName => "TypeAliasBuilder";
 
   @override
-  LibraryBuilder get parent => super.parent as LibraryBuilder;
-
-  @override
-  LibraryBuilder get libraryBuilder => super.parent as LibraryBuilder;
+  LibraryBuilder get libraryBuilder => parent;
 
   /// [arguments] have already been built.
   @override

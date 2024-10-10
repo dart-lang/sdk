@@ -92,6 +92,18 @@ class SourceClassBuilder extends ClassBuilderImpl
         Comparable<SourceClassBuilder>,
         ClassDeclaration,
         SourceDeclarationBuilder {
+  @override
+  final SourceLibraryBuilder parent;
+
+  @override
+  final int charOffset;
+
+  @override
+  final String name;
+
+  @override
+  final Uri fileUri;
+
   final Modifiers _modifiers;
 
   final List<MetadataBuilder>? metadata;
@@ -153,26 +165,26 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceClassBuilder(
       this.metadata,
       this._modifiers,
-      String name,
+      this.name,
       this.typeVariables,
       this.supertypeBuilder,
       this.interfaceBuilders,
       this.onTypes,
       this.typeParameterScope,
       this.nameSpaceBuilder,
-      SourceLibraryBuilder parent,
+      this.parent,
       this.constructorReferences,
-      Uri fileUri,
+      this.fileUri,
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
       this.indexedClass,
       {this.mixedInTypeBuilder,
       this.isMixinDeclaration = false})
-      : actualCls = initializeClass(typeVariables, name, fileUri,
+      : charOffset = nameOffset,
+        actualCls = initializeClass(typeVariables, name, fileUri,
             startCharOffset, nameOffset, charEndOffset, indexedClass,
-            isAugmentation: _modifiers.isAugment),
-        super(name, parent, fileUri, nameOffset) {
+            isAugmentation: _modifiers.isAugment) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 

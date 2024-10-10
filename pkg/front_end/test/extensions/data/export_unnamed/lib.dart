@@ -7,7 +7,7 @@
   _extension#1]*/
 
 /*class: _extension#1:
- builder-name=_unnamed-extension_,
+ builder-name=_extension#1,
  builder-onType=String,
  extension-members=[static staticMethod=_extension#1|staticMethod],
  extension-name=_extension#1,
