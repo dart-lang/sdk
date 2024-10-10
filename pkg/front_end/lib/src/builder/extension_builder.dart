@@ -13,6 +13,9 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// The type of the on-clause of the extension declaration.
   TypeBuilder get onType;
 
+  /// Reference for the extension built by this builder.
+  Reference get reference;
+
   /// Return the [Extension] built by this builder.
   Extension get extension;
 

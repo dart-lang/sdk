@@ -268,21 +268,13 @@ class _Added {
           reference = indexedLibrary?.lookupExtension(fragment.name);
         }
         SourceExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
-            metadata: fragment.metadata,
-            modifiers: fragment.modifiers,
-            extensionName: fragment.extensionName,
-            typeParameters: fragment.typeParameters,
-            onType: fragment.onType,
-            typeParameterScope: fragment.typeParameterScope,
-            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
             startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
             endOffset: fragment.endOffset,
+            fragment: fragment,
             reference: reference);
-        fragment.builder = extensionBuilder;
-        fragment.bodyScope.declarationBuilder = extensionBuilder;
         builders.add(new _AddBuilder(fragment.name, extensionBuilder,
             fragment.fileUri, fragment.fileOffset));
         if (reference != null) {

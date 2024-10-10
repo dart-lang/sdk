@@ -583,8 +583,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                   constrainSupertype: constrainSupertype,
                   treeNodeForTesting: treeNodeForTesting);
         }
+        // Coverage-ignore-block(suite): Not run.
         if (isMatch) return true;
-        // Coverage-ignore(suite): Not run.
         _protoConstraints.length = baseConstraintCount;
       }
     }
