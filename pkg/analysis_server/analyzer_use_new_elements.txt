@@ -251,6 +251,7 @@ lib/src/services/correction/dart/add_type_annotation.dart
 lib/src/services/correction/dart/assign_to_local_variable.dart
 lib/src/services/correction/dart/change_argument_name.dart
 lib/src/services/correction/dart/change_to_nearest_precise_value.dart
+lib/src/services/correction/dart/change_to_static_access.dart
 lib/src/services/correction/dart/change_type_annotation.dart
 lib/src/services/correction/dart/convert_add_all_to_spread.dart
 lib/src/services/correction/dart/convert_class_to_enum.dart
