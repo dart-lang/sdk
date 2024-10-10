@@ -179,10 +179,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
 
-  ClassBuilderImpl(
-      String name, LibraryBuilder parent, Uri fileUri, int fileOffset)
-      : super(name, parent, fileUri, fileOffset);
-
   @override
   bool get isMixinApplication => mixedInTypeBuilder != null;
 
@@ -299,9 +295,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool get isFutureOr {
     if (name == "FutureOr") {
-      LibraryBuilder parentLibrary = parent as LibraryBuilder;
-      if (parentLibrary.importUri.isScheme("dart") &&
-          parentLibrary.importUri.path == "async") {
+      if (parent.importUri.isScheme("dart") &&
+          parent.importUri.path == "async") {
         return true;
       }
     }

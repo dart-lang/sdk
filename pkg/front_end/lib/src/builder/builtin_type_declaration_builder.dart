@@ -6,15 +6,23 @@ part of 'declaration_builders.dart';
 
 abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
+  @override
+  final LibraryBuilder parent;
+
+  @override
+  final int charOffset;
+
+  @override
+  final String name;
+
   final DartType type;
 
   @override
   final Uri fileUri;
 
   BuiltinTypeDeclarationBuilder(
-      String name, this.type, LibraryBuilder compilationUnit, int charOffset)
-      : fileUri = compilationUnit.fileUri,
-        super(name, compilationUnit, charOffset);
+      this.name, this.type, this.parent, this.charOffset)
+      : fileUri = parent.fileUri;
 
   @override
   DartType buildAliasedType(

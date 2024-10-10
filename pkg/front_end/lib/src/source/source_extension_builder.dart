@@ -29,6 +29,15 @@ import 'type_parameter_scope_builder.dart';
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
   @override
+  final SourceLibraryBuilder parent;
+
+  @override
+  final int charOffset;
+
+  @override
+  final Uri fileUri;
+
+  @override
   final List<MetadataBuilder>? metadata;
 
   final Modifiers _modifiers;
@@ -68,12 +77,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       required this.typeParameterScope,
       required DeclarationNameSpaceBuilder nameSpaceBuilder,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      required Uri fileUri,
+      required this.fileUri,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
       required Reference? reference})
-      : _modifiers = modifiers,
+      : charOffset = nameOffset,
+        parent = enclosingLibraryBuilder,
+        _modifiers = modifiers,
         _extension = new Extension(
             name: extensionName.name,
             fileUri: fileUri,
@@ -82,11 +93,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             reference: reference)
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        _nameSpaceBuilder = nameSpaceBuilder,
-        super(
-            extensionName.name, enclosingLibraryBuilder, fileUri, nameOffset) {
+        _nameSpaceBuilder = nameSpaceBuilder {
     extensionName.attachExtension(_extension);
   }
+
+  @override
+  String get name => extensionName.name;
 
   @override
   LookupScope get scope => _scope;

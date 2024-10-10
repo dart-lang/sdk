@@ -28,6 +28,18 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
+  @override
+  final SourceLibraryBuilder parent;
+
+  @override
+  final int charOffset;
+
+  @override
+  final String name;
+
+  @override
+  final Uri fileUri;
+
   late TypeBuilder _type;
 
   final Reference _reference;
@@ -43,16 +55,17 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   TypedefFragment _introductory;
 
   SourceTypeAliasBuilder(
-      {required String name,
+      {required this.name,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      required Uri fileUri,
+      required this.fileUri,
       required int fileOffset,
       required TypedefFragment fragment,
       required Reference? reference})
-      : _reference = reference ?? new Reference(),
+      : charOffset = fileOffset,
+        parent = enclosingLibraryBuilder,
+        _reference = reference ?? new Reference(),
         _introductory = fragment,
-        _type = fragment.type,
-        super(name, enclosingLibraryBuilder, fileUri, fileOffset) {
+        _type = fragment.type {
     _introductory.builder = this;
   }
 

@@ -24,6 +24,12 @@ enum TypeVariableKind {
 
 sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
+  @override
+  final int charOffset;
+
+  @override
+  final String name;
+
   TypeBuilder? bound;
 
   TypeBuilder? defaultType;
@@ -39,14 +45,17 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   final List<MetadataBuilder>? metadata;
 
-  TypeVariableBuilder(String name, int charOffset, this.fileUri,
+  TypeVariableBuilder(this.name, this.charOffset, this.fileUri,
       {this.bound,
       this.defaultType,
       required this.kind,
       Variance? variableVariance,
       this.metadata,
-      this.isWildcard = false})
-      : super(name, null, charOffset);
+      this.isWildcard = false});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder? get parent => null;
 
   @override
   bool get isTypeVariable => true;

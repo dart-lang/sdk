@@ -30,7 +30,7 @@ extension Extension on int {
 }
 
 /*class: _extension#1:
- builder-name=_unnamed-extension_,
+ builder-name=_extension#1,
  builder-onType=String,
  extension-members=[
   stringMethod=_extension#1|stringMethod,

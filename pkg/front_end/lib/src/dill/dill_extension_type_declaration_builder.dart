@@ -17,6 +17,9 @@ import 'dill_member_builder.dart';
 class DillExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
     with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
+  @override
+  final DillLibraryBuilder parent;
+
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   late final LookupScope _scope;
@@ -32,13 +35,8 @@ class DillExtensionTypeDeclarationBuilder
   TypeBuilder? _declaredRepresentationTypeBuilder;
 
   DillExtensionTypeDeclarationBuilder(
-      this._extensionTypeDeclaration, DillLibraryBuilder parent)
-      : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(
-            _extensionTypeDeclaration.name,
-            parent,
-            _extensionTypeDeclaration.fileUri,
-            _extensionTypeDeclaration.fileOffset) {
+      this._extensionTypeDeclaration, this.parent)
+      : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.declaration,
         "extension type ${_extensionTypeDeclaration.name}",
         parent: parent.scope);
@@ -141,7 +139,18 @@ class DillExtensionTypeDeclarationBuilder
   }
 
   @override
-  DillLibraryBuilder get libraryBuilder => parent as DillLibraryBuilder;
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => _extensionTypeDeclaration.fileOffset;
+
+  @override
+  String get name => _extensionTypeDeclaration.name;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => _extensionTypeDeclaration.fileUri;
+
+  @override
+  DillLibraryBuilder get libraryBuilder => parent;
 
   @override
   // Coverage-ignore(suite): Not run.

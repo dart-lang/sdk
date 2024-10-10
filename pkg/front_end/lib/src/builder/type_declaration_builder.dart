@@ -61,17 +61,6 @@ abstract class ITypeDeclarationBuilder implements Builder {
 abstract class TypeDeclarationBuilderImpl extends BuilderImpl
     implements ITypeDeclarationBuilder {
   @override
-  final Builder? parent;
-
-  @override
-  final int charOffset;
-
-  @override
-  final String name;
-
-  TypeDeclarationBuilderImpl(this.name, this.parent, this.charOffset);
-
-  @override
   TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;
 
   @override

@@ -49,6 +49,9 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
 class DillClassBuilder extends ClassBuilderImpl
     with DillClassMemberAccessMixin {
   @override
+  final DillLibraryBuilder parent;
+
+  @override
   final Class cls;
 
   late final LookupScope _scope;
@@ -63,15 +66,23 @@ class DillClassBuilder extends ClassBuilderImpl
 
   List<TypeBuilder>? _interfaceBuilders;
 
-  DillClassBuilder(this.cls, DillLibraryBuilder parent)
-      : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(cls.name, parent, cls.fileUri, cls.fileOffset) {
+  DillClassBuilder(this.cls, this.parent)
+      : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class ${cls.name}",
         parent: parent.scope);
     _constructorScope =
         new DeclarationNameSpaceConstructorScope(cls.name, _nameSpace);
   }
+
+  @override
+  int get charOffset => cls.fileOffset;
+
+  @override
+  String get name => cls.name;
+
+  @override
+  Uri get fileUri => cls.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -129,9 +140,6 @@ class DillClassBuilder extends ClassBuilderImpl
     }
     return typeVariables;
   }
-
-  @override
-  Uri get fileUri => cls.fileUri;
 
   @override
   TypeBuilder? get supertypeBuilder {

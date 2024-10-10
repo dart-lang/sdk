@@ -7,14 +7,17 @@ import 'package:kernel/ast.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
+import 'dill_library_builder.dart';
 
 class DillExtensionBuilder extends ExtensionBuilderImpl
     with DillDeclarationBuilderMixin {
+  @override
+  final DillLibraryBuilder parent;
+
   @override
   final Extension extension;
 
@@ -27,9 +30,8 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   List<NominalVariableBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
-  DillExtensionBuilder(this.extension, LibraryBuilder parent)
-      : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(extension.name, parent, extension.fileUri, extension.fileOffset) {
+  DillExtensionBuilder(this.extension, this.parent)
+      : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
         parent: parent.scope);
@@ -84,6 +86,15 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
       }
     }
   }
+
+  @override
+  int get charOffset => extension.fileOffset;
+
+  @override
+  String get name => extension.name;
+
+  @override
+  Uri get fileUri => extension.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
