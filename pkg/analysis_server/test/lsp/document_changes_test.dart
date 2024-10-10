@@ -37,13 +37,13 @@ class Bar {
     if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
         range: Range(
             start: Position(line: 0, character: 6),
             end: Position(line: 0, character: 9)),
         text: 'Bar',
       )),
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
         range: Range(
             start: Position(line: 1, character: 21),
             end: Position(line: 1, character: 24)),
@@ -63,13 +63,13 @@ class Bar {
   Future<void> test_documentChange_updatesOverlay() async {
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
         range: Range(
             start: Position(line: 0, character: 6),
             end: Position(line: 0, character: 9)),
         text: 'Bar',
       )),
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
         range: Range(
             start: Position(line: 1, character: 21),
             end: Position(line: 1, character: 24)),

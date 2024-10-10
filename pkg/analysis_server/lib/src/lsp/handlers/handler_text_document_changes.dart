@@ -169,7 +169,7 @@ class TextDocumentRegistrations extends FeatureRegistration
   @override
   bool get supportsDynamic => clientDynamic.textSync;
 
-  List<TextDocumentFilterWithScheme> get synchronisedTypes {
+  List<TextDocumentFilterScheme> get synchronisedTypes {
     return {
       ...fullySupportedTypes,
       pubspecFile,

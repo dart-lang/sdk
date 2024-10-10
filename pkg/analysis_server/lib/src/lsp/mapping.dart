@@ -792,7 +792,7 @@ lsp.CompletionItem snippetToCompletionItem(
   LineInfo lineInfo,
   Position position,
   Snippet snippet,
-  CompletionListItemDefaults? defaults,
+  CompletionItemDefaults? defaults,
 ) {
   assert(capabilities.completionSnippets);
 

@@ -247,7 +247,7 @@ class CompletionHandler
 
   /// Computes all supported defaults for completion items based on
   /// [capabilities].
-  CompletionListItemDefaults? _computeCompletionDefaults(
+  CompletionItemDefaults? _computeCompletionDefaults(
     LspClientCapabilities capabilities,
     Range insertionRange,
     Range replacementRange,
@@ -258,7 +258,7 @@ class CompletionHandler
       return null;
     }
 
-    return CompletionListItemDefaults(
+    return CompletionItemDefaults(
       insertTextMode:
           capabilities.completionDefaultTextMode ? InsertTextMode.asIs : null,
       editRange: _computeDefaultEditRange(
@@ -268,7 +268,7 @@ class CompletionHandler
 
   /// Computes the default completion edit range based on [capabilities] and
   /// whether the insert/replacement ranges differ.
-  Either2<CompletionItemEditRange, Range>? _computeDefaultEditRange(
+  Either2<EditRangeWithInsertReplace, Range>? _computeDefaultEditRange(
     LspClientCapabilities capabilities,
     Range insertionRange,
     Range replacementRange,
@@ -279,10 +279,10 @@ class CompletionHandler
 
     if (!capabilities.insertReplaceCompletionRanges ||
         insertionRange == replacementRange) {
-      return Either2<CompletionItemEditRange, Range>.t2(replacementRange);
+      return Either2<EditRangeWithInsertReplace, Range>.t2(replacementRange);
     } else {
-      return Either2<CompletionItemEditRange, Range>.t1(
-        CompletionItemEditRange(
+      return Either2<EditRangeWithInsertReplace, Range>.t1(
+        EditRangeWithInsertReplace(
           insert: insertionRange,
           replace: replacementRange,
         ),
@@ -306,7 +306,7 @@ class CompletionHandler
     required int offset,
     required LineInfo lineInfo,
     required bool Function(String input) filter,
-    CompletionListItemDefaults? defaults,
+    CompletionItemDefaults? defaults,
   }) async {
     var request = DartSnippetRequest(
       unit: unit,
@@ -845,7 +845,7 @@ class CompletionRegistrations extends FeatureRegistration
               previewCommitCharacters ? dartCompletionCommitCharacters : null,
           resolveProvider: true,
           completionItem:
-              CompletionOptionsCompletionItem(labelDetailsSupport: true),
+              ServerCompletionItemOptions(labelDetailsSupport: true),
         ),
       ),
       (
@@ -862,7 +862,7 @@ class CompletionRegistrations extends FeatureRegistration
   ///
   /// We use two dynamic registrations because for Dart we support trigger
   /// characters but for other kinds of files we do not.
-  List<TextDocumentFilterWithScheme> get nonDartCompletionTypes {
+  List<TextDocumentFilterScheme> get nonDartCompletionTypes {
     var pluginTypesExcludingDart =
         pluginTypes.where((filter) => filter.pattern != '**/*.dart');
 
@@ -883,8 +883,7 @@ class CompletionRegistrations extends FeatureRegistration
         allCommitCharacters:
             previewCommitCharacters ? dartCompletionCommitCharacters : null,
         resolveProvider: true,
-        completionItem:
-            CompletionOptionsCompletionItem(labelDetailsSupport: true),
+        completionItem: ServerCompletionItemOptions(labelDetailsSupport: true),
       );
 
   @override
@@ -908,7 +907,7 @@ class _CompletionResults {
   /// Item defaults for completion items.
   ///
   /// Defaults are only supported on Dart server items (not plugins).
-  final CompletionListItemDefaults? defaults;
+  final CompletionItemDefaults? defaults;
 
   _CompletionResults({
     this.rankedItems = const [],

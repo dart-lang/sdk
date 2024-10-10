@@ -130,7 +130,7 @@ class LspMetaModelReader {
         comment: documentation,
         isProposed: _isProposed(documentation),
         baseType: type,
-        isRename: false,
+        renameReferences: false,
       ));
     }
   }
@@ -364,7 +364,7 @@ class LspMetaModelReader {
       comment: documentation,
       isProposed: _isProposed(documentation),
       baseType: _extractType(name, null, model['type']),
-      isRename: false,
+      renameReferences: false,
     );
   }
 }

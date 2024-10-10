@@ -165,12 +165,12 @@ List<LspEntity> getCustomClasses() {
     TypeAlias(
       name: 'LSPAny',
       baseType: TypeReference.LspAny,
-      isRename: false,
+      renameReferences: false,
     ),
     TypeAlias(
       name: 'LSPObject',
       baseType: TypeReference.LspObject,
-      isRename: false,
+      renameReferences: false,
     ),
     // The DocumentFilter more complex in v3.17's meta_model (to allow
     // TextDocumentFilters to be guaranteed to have at least one of language,
@@ -179,8 +179,8 @@ List<LspEntity> getCustomClasses() {
     // TODO(dantup): Improve this after the TS->JSON Spec migration.
     TypeAlias(
       name: 'DocumentFilter',
-      baseType: TypeReference('TextDocumentFilter2'),
-      isRename: true,
+      baseType: TypeReference('TextDocumentFilterScheme'),
+      renameReferences: true,
     ),
     // Similarly, the meta_model includes String as an option for
     // DocumentSelector which is deprecated and we never previously supported
@@ -189,8 +189,8 @@ List<LspEntity> getCustomClasses() {
     // TODO(dantup): Improve this after the TS->JSON Spec migration.
     TypeAlias(
       name: 'DocumentSelector',
-      baseType: ArrayType(TypeReference('TextDocumentFilterWithScheme')),
-      isRename: true,
+      baseType: ArrayType(TypeReference('TextDocumentFilterScheme')),
+      renameReferences: true,
     ),
     interface('Message', [
       field('jsonrpc', type: 'string'),
@@ -257,7 +257,7 @@ List<LspEntity> getCustomClasses() {
     TypeAlias(
       name: 'DocumentUri',
       baseType: TypeReference('Uri'),
-      isRename: false,
+      renameReferences: false,
     ),
     // The LSP Spec uses "URI" but since that's fairly generic and will show up
     // everywhere in code completion, we rename it to "LspUri" before using
@@ -265,12 +265,12 @@ List<LspEntity> getCustomClasses() {
     TypeAlias(
       name: 'URI',
       baseType: TypeReference('LSPUri'),
-      isRename: true,
+      renameReferences: true,
     ),
     TypeAlias(
       name: 'LSPUri',
       baseType: TypeReference('Uri'),
-      isRename: false,
+      renameReferences: false,
     ),
 
     interface('ConnectToDtdParams', [field('uri', type: 'Uri')]),
@@ -426,7 +426,7 @@ List<LspEntity> getCustomClasses() {
           TypeReference('TextEdit'),
         ]),
       ),
-      isRename: false,
+      renameReferences: false,
     ),
     //
     // Command parameter support

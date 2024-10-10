@@ -208,7 +208,7 @@ class LspMetaModelCleaner {
       name: typeAlias.name,
       comment: _cleanComment(typeAlias.comment),
       baseType: _cleanType(typeAlias.baseType),
-      isRename: typeAlias.isRename,
+      renameReferences: typeAlias.renameReferences,
     );
   }
 
@@ -419,22 +419,68 @@ class LspMetaModelCleaner {
   /// Renames types that may have been generated with bad (or long) names.
   Iterable<LspEntity> _renameTypes(List<LspEntity> types) sync* {
     const renames = <String, String>{
-      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
-          'CodeActionLiteralSupportCodeActionKind',
       'CompletionClientCapabilitiesCompletionItemInsertTextModeSupport':
           'CompletionItemInsertTextModeSupport',
       'CompletionClientCapabilitiesCompletionItemTagSupport':
           'CompletionItemTagSupport',
       'CompletionClientCapabilitiesCompletionItemResolveSupport':
           'CompletionItemResolveSupport',
-      'CompletionListItemDefaultsEditRange': 'CompletionItemEditRange',
       'SignatureHelpClientCapabilitiesSignatureInformationParameterInformation':
           'SignatureInformationParameterInformation',
-      'TextDocumentFilter2': 'TextDocumentFilterWithScheme',
-      'PrepareRenameResult1': 'PlaceholderAndRange',
       'Pattern': 'LspPattern',
       'URI': 'LSPUri',
+
+      // In LSP 3.18, many types that were previously inline and got generated
+      // names have been extracted to their own definitions with hand-written
+      // names.
+      // To reduce the size of the upcoming diff when this happens, these
+      // renames change our 3.17 generated names to those that will be used
+      // for 3.18.
+      // TODO(dantup): Remove these once LSP 3.18 release and we regenerate
+      // using it.
+      'TextDocumentFilter2': 'TextDocumentFilterScheme',
+      'PrepareRenameResult1': 'PrepareRenamePlaceholder',
+      'TextDocumentContentChangeEvent1': 'TextDocumentContentChangePartial',
+      'TextDocumentContentChangeEvent2':
+          'TextDocumentContentChangeWholeDocument',
+      'CompletionListItemDefaults': 'CompletionItemDefaults',
+      'InitializeParamsClientInfo': 'ClientInfo',
+      'SemanticTokensClientCapabilitiesRequests':
+          'ClientSemanticTokensRequestOptions',
+      'TraceValues': 'TraceValue',
+      'SemanticTokensOptionsFull': 'SemanticTokensFullDelta',
+      'CompletionListItemDefaultsEditRange': 'EditRangeWithInsertReplace',
+      'ServerCapabilitiesWorkspace': 'WorkspaceOptions',
+      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
+          'ClientCodeActionKindOptions',
+      'CompletionClientCapabilitiesCompletionItemKind':
+          'ClientCompletionItemOptionsKind',
+      'CompletionOptionsCompletionItem': 'ServerCompletionItemOptions',
+      'InitializeResultServerInfo': 'ServerInfo',
+      // End of temporary renames
     };
+
+    // Temporary aliases for old names used in g3
+    // TODO(dantup): Remove these once the internal code has been updated.
+    var typeNames = types.map((type) => type.name).toSet();
+    if (typeNames.contains('TextDocumentContentChangeEvent2')) {
+      yield TypeAlias(
+        name: 'TextDocumentContentChangeEvent2',
+        baseType: TypeReference('TextDocumentContentChangeWholeDocument'),
+        renameReferences: true,
+        generateTypeDef: true,
+      );
+    }
+    if (typeNames.contains(
+        'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind')) {
+      yield TypeAlias(
+        name: 'CodeActionLiteralSupportCodeActionKind',
+        baseType: TypeReference('ClientCodeActionKindOptions'),
+        renameReferences: true,
+        generateTypeDef: true,
+      );
+    }
+    // End temporary aliases
 
     for (var type in types) {
       var newName = renames[type.name];
@@ -449,7 +495,7 @@ class LspMetaModelCleaner {
         comment: type.comment,
         isProposed: type.isProposed,
         baseType: TypeReference(newName),
-        isRename: true,
+        renameReferences: true,
       );
 
       // Replace the type with an equivalent with the same name.
@@ -467,7 +513,15 @@ class LspMetaModelCleaner {
           comment: type.comment,
           isProposed: type.isProposed,
           baseType: type.baseType,
-          isRename: type.isRename,
+          renameReferences: type.renameReferences,
+        );
+      } else if (type is LspEnum) {
+        yield LspEnum(
+          name: newName,
+          comment: type.comment,
+          isProposed: type.isProposed,
+          typeOfValues: type.typeOfValues,
+          members: type.members,
         );
       } else {
         throw 'Renaming ${type.runtimeType} is not implemented';

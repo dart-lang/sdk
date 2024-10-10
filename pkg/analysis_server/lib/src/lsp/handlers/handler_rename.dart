@@ -82,7 +82,8 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
             ServerErrorCodes.RenameNotValid, initStatus.problem!.message);
       }
 
-      return success(TextDocumentPrepareRenameResult.t1(PlaceholderAndRange(
+      return success(
+          TextDocumentPrepareRenameResult.t1(PrepareRenamePlaceholder(
         range: toRange(
           unit.lineInfo,
           // If the offset is set to -1 it means there is no location for the

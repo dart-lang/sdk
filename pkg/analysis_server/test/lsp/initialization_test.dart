@@ -608,9 +608,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             .registrations;
 
     var documentFilterSql =
-        TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/*.sql');
+        TextDocumentFilterScheme(scheme: 'file', pattern: '**/*.sql');
     var documentFilterDart =
-        TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
+        TextDocumentFilterScheme(language: 'dart', scheme: 'file');
 
     expect(
       registrations,

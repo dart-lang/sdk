@@ -16,10 +16,10 @@ void main() {
     });
 
     test('with list fields can be checked for equality', () {
-      var a = CodeActionLiteralSupportCodeActionKind(
+      var a = ClientCodeActionKindOptions(
         valueSet: [CodeActionKind.QuickFix],
       );
-      var b = CodeActionLiteralSupportCodeActionKind(
+      var b = ClientCodeActionKindOptions(
         valueSet: [CodeActionKind.QuickFix],
       );
 
@@ -29,10 +29,10 @@ void main() {
 
     test('with aliased list fields can be checked for equality', () {
       var a = TextDocumentRegistrationOptions(documentSelector: [
-        TextDocumentFilterWithScheme(language: 'dart', scheme: 'file')
+        TextDocumentFilterScheme(language: 'dart', scheme: 'file')
       ]);
       var b = TextDocumentRegistrationOptions(documentSelector: [
-        TextDocumentFilterWithScheme(language: 'dart', scheme: 'file')
+        TextDocumentFilterScheme(language: 'dart', scheme: 'file')
       ]);
 
       expect(a, equals(b));
@@ -87,12 +87,12 @@ void main() {
 
     test('consider subclasses when checking for equality', () {
       var a = TextDocumentRegistrationOptions(documentSelector: [
-        TextDocumentFilterWithScheme(language: 'dart', scheme: 'file')
+        TextDocumentFilterScheme(language: 'dart', scheme: 'file')
       ]);
       var b = TextDocumentSaveRegistrationOptions(
           includeText: true,
           documentSelector: [
-            TextDocumentFilterWithScheme(language: 'dart', scheme: 'file')
+            TextDocumentFilterScheme(language: 'dart', scheme: 'file')
           ]);
 
       expect(a, isNot(equals(b)));

@@ -146,7 +146,7 @@ class ServerCapabilitiesComputer {
 
   ServerCapabilitiesComputer(this._server);
 
-  List<TextDocumentFilterWithScheme> get pluginTypes => AnalysisServer
+  List<TextDocumentFilterScheme> get pluginTypes => AnalysisServer
           .supportsPlugins
       ? _server.pluginManager.plugins
           .expand(
@@ -156,9 +156,9 @@ class ServerCapabilitiesComputer {
           // interestingFiles. Prefix a `**/` so that the glob matches nested
           // folders as well.
           .map((glob) =>
-              TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/$glob'))
+              TextDocumentFilterScheme(scheme: 'file', pattern: '**/$glob'))
           .toList()
-      : <TextDocumentFilterWithScheme>[];
+      : <TextDocumentFilterScheme>[];
 
   ServerCapabilities computeServerCapabilities(
     LspClientCapabilities clientCapabilities,
@@ -194,7 +194,7 @@ class ServerCapabilitiesComputer {
       typeHierarchyProvider: features.typeHierarchy.staticRegistration,
       executeCommandProvider: features.executeCommand.staticRegistration,
       workspaceSymbolProvider: features.workspaceSymbol.staticRegistration,
-      workspace: ServerCapabilitiesWorkspace(
+      workspace: WorkspaceOptions(
         workspaceFolders: WorkspaceFoldersServerCapabilities(
           supported: true,
           changeNotifications: features.changeNotifications.staticRegistration,
@@ -336,7 +336,7 @@ class ServerCapabilitiesComputer {
           'file',
           ..._server.uriConverter.supportedNonFileSchemes
         })
-          TextDocumentFilterWithScheme(language: 'dart', scheme: scheme)
+          TextDocumentFilterScheme(language: 'dart', scheme: scheme)
       ],
       pluginTypes: pluginTypes,
     );

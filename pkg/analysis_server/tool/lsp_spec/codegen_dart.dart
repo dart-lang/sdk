@@ -42,7 +42,7 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'InsertTextFormat' &&
       name != 'MarkupKind' &&
       name != 'ResourceOperationKind' &&
-      name != 'TraceValues';
+      name != 'TraceValue';
 }
 
 /// Generates the ultimate Dart code for [types], sorted and formatted.
@@ -96,7 +96,7 @@ TypeBase resolveTypeAlias(TypeBase type,
     }
 
     var alias = _typeAliases[type.name];
-    if (alias != null && (!onlyRenames || alias.isRename)) {
+    if (alias != null && (!onlyRenames || alias.renameReferences)) {
       // Resolve aliases recursively.
       var resolved = alias.baseType;
       for (int i = 0; i < 10; i++) {
@@ -1123,7 +1123,7 @@ void _writeType(IndentableStringBuffer buffer, LspEntity type) {
 }
 
 void _writeTypeAlias(IndentableStringBuffer buffer, TypeAlias alias) {
-  if (alias.isRename) return;
+  if (!alias.generateTypeDef) return;
   var baseType = alias.baseType;
   var typeName = baseType.dartTypeWithTypeArgs;
   _writeDocCommentsAndAnnotations(buffer, alias);

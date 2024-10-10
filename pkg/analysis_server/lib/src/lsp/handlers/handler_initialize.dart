@@ -74,7 +74,7 @@ class InitializeMessageHandler
 
     return success(InitializeResult(
       capabilities: capabilities,
-      serverInfo: InitializeResultServerInfo(
+      serverInfo: ServerInfo(
         name: 'Dart SDK LSP Analysis Server',
         version: sdkVersion,
       ),

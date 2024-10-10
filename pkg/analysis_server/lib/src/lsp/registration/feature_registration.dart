@@ -57,7 +57,7 @@ abstract class FeatureRegistration {
   ClientDynamicRegistrations get clientDynamic => _context.clientDynamic;
 
   /// A set of filters for the currently supported Dart files.
-  List<TextDocumentFilterWithScheme> get dartFiles => _context.dartFilters;
+  List<TextDocumentFilterScheme> get dartFiles => _context.dartFilters;
 
   /// Gets all dynamic registrations for this feature.
   ///
@@ -69,7 +69,7 @@ abstract class FeatureRegistration {
   /// File types like pubspec.yaml, analysis_options.yaml and fix_data files are
   /// not included here as their support is very limited and do not provide
   /// functionality in most handlers.
-  List<TextDocumentFilterWithScheme> get fullySupportedTypes {
+  List<TextDocumentFilterScheme> get fullySupportedTypes {
     return {
       ...dartFiles,
       ...pluginTypes,
@@ -77,7 +77,7 @@ abstract class FeatureRegistration {
   }
 
   /// Types of documents that loaded plugins are interested in.
-  List<TextDocumentFilterWithScheme> get pluginTypes => _context.pluginTypes;
+  List<TextDocumentFilterScheme> get pluginTypes => _context.pluginTypes;
 
   /// Whether both the client, and this feature, support dynamic registration.
   bool get supportsDynamic;
@@ -191,7 +191,7 @@ class RegistrationContext {
   final ClientDynamicRegistrations clientDynamic;
 
   /// Types of documents that loaded plugins are interested in.
-  final List<TextDocumentFilterWithScheme> pluginTypes;
+  final List<TextDocumentFilterScheme> pluginTypes;
 
   /// The capabilities of the client.
   final LspClientCapabilities clientCapabilities;
@@ -200,7 +200,7 @@ class RegistrationContext {
   final LspClientConfiguration clientConfiguration;
 
   /// Filters for all Dart files supported by the current server.
-  final List<TextDocumentFilterWithScheme> dartFilters;
+  final List<TextDocumentFilterScheme> dartFilters;
 
   /// Custom schemes supported for Dart files by the current server.
   ///
