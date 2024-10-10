@@ -52,13 +52,15 @@ String _escapePipe(String input) {
 }
 
 class DetailedReporter extends SimpleFormatter {
-  DetailedReporter(super.errors, super.filter, super.out,
-      {super.fileCount,
-      super.elapsedMs,
-      super.fileRoot,
-      super.showStatistics,
-      super.machineOutput,
-      super.quiet});
+  DetailedReporter(
+    super.errors,
+    super.out, {
+    super.fileCount,
+    super.elapsedMs,
+    super.fileRoot,
+    super.showStatistics,
+    super.machineOutput,
+  });
 
   @override
   void writeLint(AnalysisError error, {int? offset, int? line, int? column}) {
@@ -79,20 +81,23 @@ class DetailedReporter extends SimpleFormatter {
 
 abstract class ReportFormatter {
   factory ReportFormatter(
-          Iterable<AnalysisErrorInfo> errors, LintFilter? filter, IOSink out,
-          {int? fileCount,
-          int? elapsedMs,
-          String? fileRoot,
-          bool showStatistics = false,
-          bool machineOutput = false,
-          bool quiet = false}) =>
-      DetailedReporter(errors, filter, out,
-          fileCount: fileCount,
-          fileRoot: fileRoot,
-          elapsedMs: elapsedMs,
-          showStatistics: showStatistics,
-          machineOutput: machineOutput,
-          quiet: quiet);
+    Iterable<AnalysisErrorInfo> errors,
+    IOSink out, {
+    int? fileCount,
+    int? elapsedMs,
+    String? fileRoot,
+    bool showStatistics = false,
+    bool machineOutput = false,
+  }) =>
+      DetailedReporter(
+        errors,
+        out,
+        fileCount: fileCount,
+        fileRoot: fileRoot,
+        elapsedMs: elapsedMs,
+        showStatistics: showStatistics,
+        machineOutput: machineOutput,
+      );
 
   void write();
 }
@@ -101,29 +106,25 @@ abstract class ReportFormatter {
 class SimpleFormatter implements ReportFormatter {
   final IOSink out;
   final Iterable<AnalysisErrorInfo> errors;
-  final LintFilter? filter;
 
   int errorCount = 0;
-  int filteredLintCount = 0;
 
   final int? fileCount;
   final int? elapsedMs;
   final String? fileRoot;
   final bool showStatistics;
   final bool machineOutput;
-  final bool quiet;
 
   /// Cached for the purposes of statistics report formatting.
   int _summaryLength = 0;
 
   Map<String, int> stats = <String, int>{};
 
-  SimpleFormatter(this.errors, this.filter, this.out,
+  SimpleFormatter(this.errors, this.out,
       {this.fileCount,
       this.fileRoot,
       this.elapsedMs,
       this.showStatistics = false,
-      this.quiet = false,
       this.machineOutput = false});
 
   /// Override to influence error sorting
@@ -204,23 +205,15 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeLints() {
-    var filter = this.filter;
     for (var info in errors) {
       for (var e in (info.errors.toList()..sort(compare))) {
-        if (filter != null && filter.filter(e)) {
-          filteredLintCount++;
-        } else {
-          ++errorCount;
-          if (!quiet) {
-            _writeLint(e, info.lineInfo);
-          }
-          _recordStats(e);
-        }
+        ++errorCount;
+        _writeLint(e, info.lineInfo);
+
+        _recordStats(e);
       }
     }
-    if (!quiet) {
-      out.writeln();
-    }
+    out.writeln();
   }
 
   void writeStatistics() {
@@ -230,8 +223,7 @@ class SimpleFormatter implements ReportFormatter {
 
   void writeSummary() {
     var summary = '${pluralize("file", fileCount)} analyzed, '
-        '${pluralize("issue", errorCount)} found'
-        "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}, in $elapsedMs ms.";
+        '${pluralize("issue", errorCount)} found, in $elapsedMs ms.';
     out.writeln(summary);
     // Cache for output table sizing
     _summaryLength = summary.length;

@@ -230,15 +230,8 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
   }
 }
 
-/// A [LintFilter] that filters no lint.
-class NoFilter implements LintFilter {
-  @override
-  bool filter(AnalysisError lint) => false;
-}
-
 /// A [DetailedReporter] that filters no lint, only used in debug mode, when
 /// actual lints do not match expectations.
 class ResultReporter extends DetailedReporter {
-  ResultReporter(Iterable<AnalysisErrorInfo> errors)
-      : super(errors, NoFilter(), stdout);
+  ResultReporter(Iterable<AnalysisErrorInfo> errors) : super(errors, stdout);
 }

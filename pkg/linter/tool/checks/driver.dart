@@ -113,9 +113,7 @@ class Driver {
           }
         }
       }
-      ReportFormatter(
-              errors, null /*_TodoFilter()*/, silent ? MockIOSink() : io.stdout)
-          .write();
+      ReportFormatter(errors, silent ? MockIOSink() : io.stdout).write();
 
       for (var info in errors) {
         failedChecks.addAll(info.errors);

@@ -42,9 +42,8 @@ void defineTests() {
 
       var out = CollectingSink();
 
-      var reporter =
-          SimpleFormatter([info], null, out, fileCount: 1, elapsedMs: 13)
-            ..write();
+      var reporter = SimpleFormatter([info], out, fileCount: 1, elapsedMs: 13)
+        ..write();
 
       test('count', () {
         expect(reporter.errorCount, 1);
@@ -58,7 +57,7 @@ void defineTests() {
 
       test('stats', () {
         out.buffer.clear();
-        SimpleFormatter([info], null, out,
+        SimpleFormatter([info], out,
                 fileCount: 1, showStatistics: true, elapsedMs: 13)
             .write();
         expect(out.buffer.toString(),
@@ -93,29 +92,10 @@ mock_code                               1
 
       var out = CollectingSink();
 
-      group('filtered', () {
-        var reporter = SimpleFormatter([info], _RejectingFilter(), out,
-            fileCount: 1, elapsedMs: 13)
-          ..write();
-
-        test('error count', () {
-          expect(reporter.errorCount, 0);
-        });
-
-        test('filter count', () {
-          expect(reporter.filteredLintCount, 1);
-        });
-
-        test('write', () {
-          expect(out.buffer.toString().trim(),
-              '1 file analyzed, 0 issues found (1 filtered), in 13 ms.');
-        });
-      });
-
       group('machine-output', () {
         test('write', () {
           out.buffer.clear();
-          SimpleFormatter([info], null, out,
+          SimpleFormatter([info], out,
                   fileCount: 1, machineOutput: true, elapsedMs: 13)
               .write();
 
@@ -127,9 +107,4 @@ mock_code                               1
       });
     });
   });
-}
-
-class _RejectingFilter extends LintFilter {
-  @override
-  bool filter(AnalysisError lint) => true;
 }

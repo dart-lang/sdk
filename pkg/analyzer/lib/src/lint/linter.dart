@@ -187,18 +187,11 @@ final class LinterContextWithResolvedResults implements LinterContext {
 class LinterOptions extends DriverOptions {
   final Iterable<LintRule> enabledRules;
   final String? analysisOptions;
-  LintFilter? filter;
 
   LinterOptions({
     Iterable<LintRule>? enabledRules,
     this.analysisOptions,
-    this.filter,
   }) : enabledRules = enabledRules ?? Registry.ruleRegistry;
-}
-
-/// Filtered lints are omitted from linter output.
-abstract class LintFilter {
-  bool filter(AnalysisError lint);
 }
 
 /// Describes a lint rule.
