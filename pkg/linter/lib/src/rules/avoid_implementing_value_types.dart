@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -24,15 +24,18 @@ class AvoidImplementingValueTypes extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.inheritanceManager);
     registry.addClassDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  static var equalsName = Name(null, '==');
 
-  _Visitor(this.rule);
+  final LintRule rule;
+  final InheritanceManager3 inheritanceManager;
+
+  _Visitor(this.rule, this.inheritanceManager);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -40,18 +43,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (implementsClause == null) {
       return;
     }
+
     for (var interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
-          _overridesEquals(interfaceType.element)) {
+          _overridesEquals(interfaceType.element3)) {
         rule.reportLint(interface);
       }
     }
   }
 
-  static bool _overridesEquals(InterfaceElement element) {
-    var method = element.lookUpConcreteMethod('==', element.library);
-    var enclosing = method?.enclosingElement3;
-    return enclosing is ClassElement && !enclosing.isDartCoreObject;
+  bool _overridesEquals(InterfaceElement2 element) {
+    var member =
+        inheritanceManager.getMember4(element, equalsName, concrete: true);
+    var definingLibrary = member?.enclosingElement2?.library2;
+    return definingLibrary != null && !definingLibrary.isDartCore;
   }
 }

@@ -75,6 +75,13 @@ class C implements A {}
     ]);
   }
 
+  test_implementsClassWithoutEqualEqual() async {
+    await assertNoDiagnostics(r'''
+class A {}
+class C implements A {}
+''');
+  }
+
   test_mixin() async {
     await assertNoDiagnostics(r'''
 mixin M {
