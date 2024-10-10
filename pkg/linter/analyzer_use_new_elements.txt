@@ -1,6 +1,8 @@
 lib/src/analyzer.dart
+lib/src/lint_codes.dart
+lib/src/lint_codes.g.dart
 lib/src/lint_names.dart
-lib/src/linter_lint_codes.dart
+lib/src/lint_names.g.dart
 lib/src/rules.dart
 lib/src/rules/always_declare_return_types.dart
 lib/src/rules/always_put_control_body_on_new_line.dart
@@ -98,6 +100,7 @@ lib/src/rules/prefer_asserts_with_message.dart
 lib/src/rules/prefer_bool_in_asserts.dart
 lib/src/rules/prefer_collection_literals.dart
 lib/src/rules/prefer_conditional_assignment.dart
+lib/src/rules/prefer_const_constructors.dart
 lib/src/rules/prefer_const_declarations.dart
 lib/src/rules/prefer_const_literals_to_create_immutables.dart
 lib/src/rules/prefer_contains.dart
@@ -153,6 +156,7 @@ lib/src/rules/unnecessary_library_name.dart
 lib/src/rules/unnecessary_new.dart
 lib/src/rules/unnecessary_null_aware_assignments.dart
 lib/src/rules/unnecessary_null_in_if_null_operators.dart
+lib/src/rules/unnecessary_nullable_for_final_variable_declarations.dart
 lib/src/rules/unnecessary_parenthesis.dart
 lib/src/rules/unnecessary_raw_strings.dart
 lib/src/rules/unnecessary_statements.dart
@@ -431,7 +435,7 @@ test/validate_incompatible_rules_test.dart
 test/validate_no_rule_description_references_test.dart
 test/validate_rule_description_format_test.dart
 test/verify_checks_test.dart
-test/verify_generated_codes_test.dart
+test/verify_generated_files_test.dart
 test/verify_reflective_test_suites_test.dart
 test_data/rules/no_default_cases.dart
 test_data/rules/overridden_fields.dart
@@ -447,14 +451,14 @@ test_data/rules/unmocked/unsafe_html.dart
 test_data/rules/unnecessary_lambdas.dart
 test_data/rules/unnecessary_parenthesis.dart
 test_data/rules/void_checks.dart
+tool/benchmark.dart
 tool/changelog.dart
 tool/checks/check_all_yaml.dart
 tool/checks/check_messages_yaml.dart
 tool/checks/driver.dart
 tool/checks/rules/no_solo_tests.dart
 tool/checks/rules/no_trailing_spaces.dart
-tool/cli.dart
-tool/codes/generate.dart
+tool/generate_lints.dart
 tool/labeler/issue_config.dart
 tool/labeler/pr_config.dart
 tool/legacy_test_move.dart
