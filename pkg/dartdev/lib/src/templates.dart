@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'templates/cli.dart';
 import 'templates/console.dart';
 import 'templates/console_simple.dart';
+import 'templates/empty.dart';
 import 'templates/package.dart';
 import 'templates/server_shelf.dart';
 import 'templates/web.dart';
@@ -24,6 +25,7 @@ final List<Generator> generators = [
   PackageGenerator(),
   ServerShelfGenerator(),
   WebGenerator(),
+  EmptyGenerator(),
   // Deprecated generators:
   ConsoleSimpleGenerator(),
 ];
