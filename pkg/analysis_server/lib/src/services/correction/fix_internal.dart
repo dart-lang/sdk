@@ -941,6 +941,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddExplicitCast.new,
     AddNullCheck.new,
     WrapInText.new,
+    AddAwait.argumentType,
   ],
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
     AddAsync.new,
@@ -1104,6 +1105,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
+    AddAwait.assignment,
   ],
   CompileTimeErrorCode.INVALID_CONSTANT: [
     RemoveConst.new,
