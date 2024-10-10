@@ -178,7 +178,7 @@ vars = {
   "stream_channel_rev": "f4407168b275fcde9187baefd7dbce76d0992825",
   "string_scanner_rev": "2139417ffcd0392bde3ba9bc83ee13eaa5fbed01",
   "sync_http_rev": "91c0dd5ef9a008f0277aadcfd83036f82e572d09",
-  "tar_rev": "32ceb55e673141abff4e84b99483fe5eb881c291",
+  "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "term_glyph_rev": "19d8c08a4e81122639129c62049896021910c932",
   "test_rev": "8e8a83607d90a7a6813fa378b2d1962a2fc0d44b",
   "test_descriptor_rev": "a3db1efe3dc725dcae9ee61647d3bfc19b3231ac",
