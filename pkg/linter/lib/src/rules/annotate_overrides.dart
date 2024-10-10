@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -38,12 +38,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, this.context);
 
-  void check(Element? element, Token target) {
-    if (element == null || element.hasOverride) return;
+  void check(Element2? element, Token target) {
+    if (element == null) return;
+    if (element case Annotatable a when a.hasOverride) return;
 
-    var member = context.inheritanceManager.overriddenMember(element);
+    var member = context.inheritanceManager.overriddenMember2(element);
     if (member != null) {
-      rule.reportLintForToken(target, arguments: [member.name]);
+      rule.reportLintForToken(target, arguments: [member.name!]);
     }
   }
 
@@ -54,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.parent is ExtensionTypeDeclaration) return;
 
     for (var field in node.fields.variables) {
-      check(field.declaredElement, field.name);
+      check(field.declaredFragment?.element, field.name);
     }
   }
 
@@ -64,6 +65,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (node.parent is ExtensionTypeDeclaration) return;
 
-    check(node.declaredElement, node.name);
+    check(node.declaredFragment?.element, node.name);
   }
 }

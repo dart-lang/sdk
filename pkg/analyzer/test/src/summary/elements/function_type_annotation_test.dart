@@ -741,6 +741,52 @@ library
   topLevelVariables
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      metadata
+        Annotation
+          atSign: @ @29
+          name: SimpleIdentifier
+            token: A @30
+            staticElement: <testLibraryFragment>::@class::A
+            element: <testLibraryFragment>::@class::A#element
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @31
+            arguments
+              GenericFunctionType
+                returnType: NamedType
+                  name: int @32
+                  element: dart:core::<fragment>::@class::int
+                  element2: dart:core::<fragment>::@class::int#element
+                  type: int
+                functionKeyword: Function @36
+                parameters: FormalParameterList
+                  leftParenthesis: ( @44
+                  parameter: SimpleFormalParameter
+                    type: NamedType
+                      name: String @45
+                      element: dart:core::<fragment>::@class::String
+                      element2: dart:core::<fragment>::@class::String#element
+                      type: String
+                    name: a @52
+                    declaredElement: a@52
+                      type: String
+                  rightParenthesis: ) @53
+                declaredElement: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: required positional
+                      type: String
+                  returnType: int
+                  type: int Function(String)
+                type: int Function(String)
+            rightBracket: > @54
+          arguments: ArgumentList
+            leftParenthesis: ( @55
+            rightParenthesis: ) @56
+          element: ConstructorMember
+            base: <testLibraryFragment>::@class::A::@constructor::new
+            substitution: {T: int Function(String)}
+          element2: <testLibraryFragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibraryFragment>::@getter::v#element
       setter: <testLibraryFragment>::@setter::v#element

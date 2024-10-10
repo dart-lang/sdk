@@ -8494,11 +8494,31 @@ library
       getter: <testLibraryFragment>::@getter::foo#element
     isNotConst
       firstFragment: <testLibraryFragment>::@topLevelVariable::isNotConst
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: foo @17
+            staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       type: int
       getter: <testLibraryFragment>::@getter::isNotConst#element
       setter: <testLibraryFragment>::@setter::isNotConst#element
     const isConst
       firstFragment: <testLibraryFragment>::@topLevelVariable::isConst
+      metadata
+        Annotation
+          atSign: @ @42
+          name: SimpleIdentifier
+            token: foo @43
+            staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       type: int
       getter: <testLibraryFragment>::@getter::isConst#element
   getters
@@ -9648,6 +9668,16 @@ library
       getter: <testLibraryFragment>::@getter::a#element
     v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: a @17
+            staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       type: int
       getter: <testLibraryFragment>::@getter::v#element
       setter: <testLibraryFragment>::@setter::v#element
@@ -10259,6 +10289,16 @@ library
       getter: <testLibraryFragment>::@getter::a#element
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      metadata
+        Annotation
+          atSign: @ @13
+          name: SimpleIdentifier
+            token: a @14
+            staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       type: int
       getter: <testLibraryFragment>::@getter::x#element
       setter: <testLibraryFragment>::@setter::x#element
