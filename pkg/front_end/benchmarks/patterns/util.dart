@@ -241,7 +241,9 @@ class SeriesSet {
       sb.write(']),');
     }
     sb.write(']);');
-    return new DartFormatter().format(sb.toString());
+    return new DartFormatter(
+            languageVersion: DartFormatter.latestLanguageVersion)
+        .format(sb.toString());
   }
 }
 

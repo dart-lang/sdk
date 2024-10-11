@@ -61,16 +61,12 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   final Uri fileUri;
 
-  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
-  //  patches should be computing from within the builder.
-  final List<MetadataBuilder>? metadata;
-
   final Modifiers _modifiers;
 
   @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
-  final ExtensionTypeDeclaration _extensionTypeDeclaration;
+  late final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   SourceExtensionTypeDeclarationBuilder? _origin;
 
@@ -93,6 +89,8 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   List<TypeBuilder>? interfaceBuilders;
 
+  final ExtensionTypeFragment _introductory;
+
   FieldFragment? _representationFieldFragment;
 
   SourceFieldBuilder? _representationFieldBuilder;
@@ -102,33 +100,43 @@ class SourceExtensionTypeDeclarationBuilder
   Nullability? _nullability;
 
   SourceExtensionTypeDeclarationBuilder(
-      {required this.metadata,
-      required Modifiers modifiers,
-      required this.name,
-      required this.typeParameters,
-      required this.interfaceBuilders,
-      required this.typeParameterScope,
-      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      {required this.name,
       required SourceLibraryBuilder enclosingLibraryBuilder,
       required this.constructorReferences,
       required this.fileUri,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
+      required ExtensionTypeFragment fragment,
       required this.indexedContainer,
       required FieldFragment? representationFieldFragment})
       : parent = enclosingLibraryBuilder,
         charOffset = nameOffset,
-        _modifiers = modifiers,
-        _extensionTypeDeclaration = new ExtensionTypeDeclaration(
-            name: name,
-            fileUri: fileUri,
-            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
-                typeParameters),
-            reference: indexedContainer?.reference)
-          ..fileOffset = nameOffset,
-        _nameSpaceBuilder = nameSpaceBuilder,
-        _representationFieldFragment = representationFieldFragment;
+        _modifiers = fragment.modifiers,
+        typeParameters = fragment.typeParameters,
+        interfaceBuilders = fragment.interfaces,
+        typeParameterScope = fragment.typeParameterScope,
+        _introductory = fragment,
+        _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder(),
+        _representationFieldFragment = representationFieldFragment {
+    _introductory.builder = this;
+    _introductory.bodyScope.declarationBuilder = this;
+
+    // TODO(johnniwinther): Move this to the [build] once augmentations are
+    // handled through fragments.
+    _extensionTypeDeclaration = new ExtensionTypeDeclaration(
+        name: name,
+        fileUri: fileUri,
+        typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+            fragment.typeParameters),
+        reference: indexedContainer?.reference)
+      ..fileOffset = nameOffset;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
+  //  patches should be computing from within the builder.
+  List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
   LookupScope get scope => _scope;
@@ -725,13 +733,13 @@ class SourceExtensionTypeDeclarationBuilder
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         annotatable,
-        metadata,
+        _introductory.metadata,
         createBodyBuilderContext(
             inOutlineBuildingPhase: true,
             inMetadata: true,
             inConstFields: false),
         libraryBuilder,
-        fileUri,
+        _introductory.fileUri,
         libraryBuilder.scope);
 
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);

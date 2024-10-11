@@ -15,7 +15,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 6)),
 
   classModifiers(
       name: 'class-modifiers',
@@ -71,7 +71,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 6)),
 
   extensionMethods(
       name: 'extension-methods',

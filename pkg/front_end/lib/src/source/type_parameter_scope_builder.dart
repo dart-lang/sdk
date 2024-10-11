@@ -292,23 +292,16 @@ class _Added {
         }
         SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
             new SourceExtensionTypeDeclarationBuilder(
-                metadata: fragment.metadata,
-                modifiers: fragment.modifiers,
                 name: fragment.name,
-                typeParameters: fragment.typeParameters,
-                interfaceBuilders: fragment.interfaces,
-                typeParameterScope: fragment.typeParameterScope,
-                nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
                 enclosingLibraryBuilder: enclosingLibraryBuilder,
                 constructorReferences: fragment.constructorReferences,
                 fileUri: fragment.fileUri,
                 startOffset: fragment.startOffset,
                 nameOffset: fragment.nameOffset,
                 endOffset: fragment.endOffset,
+                fragment: fragment,
                 indexedContainer: indexedContainer,
                 representationFieldFragment: representationFieldFragment);
-        fragment.builder = extensionTypeDeclarationBuilder;
-        fragment.bodyScope.declarationBuilder = extensionTypeDeclarationBuilder;
         builders.add(new _AddBuilder(
             fragment.name,
             extensionTypeDeclarationBuilder,
