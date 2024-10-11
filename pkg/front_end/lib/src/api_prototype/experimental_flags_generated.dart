@@ -65,7 +65,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      experimentReleasedVersion: const Version(3, 6));
 
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
@@ -129,7 +129,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      experimentReleasedVersion: const Version(3, 6));
 
   static const ExperimentalFlag extensionMethods = const ExperimentalFlag(
       name: 'extension-methods',
