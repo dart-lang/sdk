@@ -213,6 +213,55 @@ class C {
 ''');
   }
 
+  test_constructorTearoffInside() async {
+    await assertDiagnostics(r'''
+class C {}
+void f() {
+  (C.new)();
+}
+''', [
+      lint(24, 7),
+    ]);
+  }
+
+  test_constructorTearoffInside_instantiatedThenCalled() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (List.filled)<int>(3, 0);
+}
+''');
+  }
+
+  test_constructorTearoffInstantiatedInside() async {
+    await assertDiagnostics(r'''
+void f() {
+  (List<int>.filled)(3, 0);
+}
+''', [
+      lint(13, 18),
+    ]);
+  }
+
+  test_constructorTearoffInstantiatedInside_assignment() async {
+    await assertDiagnostics(r'''
+var x = (List<int>.filled);
+''', [
+      lint(8, 18),
+    ]);
+  }
+
+  test_constructorTearoffReferenceInside() async {
+    await assertDiagnostics(r'''
+class C {}
+void f() {
+  var cNew = C.new;
+  (cNew)();
+}
+''', [
+      lint(44, 6),
+    ]);
+  }
+
   test_equalityInside_constructorFieldInitializer() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -261,6 +310,67 @@ class C {
 ''');
   }
 
+  test_functionExpressionInside_assignment() async {
+    await assertDiagnostics(r'''
+var f = (() => null);
+''', [
+      lint(8, 12),
+    ]);
+  }
+
+  test_functionExpressionInside_binaryExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (() => '') + 1;
+}
+extension on Function {
+  operator +(int x) {}
+}
+''');
+  }
+
+  test_functionExpressionInside_indexExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (() => '')[0];
+}
+extension on Function {
+  int operator [](int i) => 0;
+}
+''');
+  }
+
+  test_functionExpressionInside_targetOfAssignment() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (() => '').g = 1;
+}
+
+extension on Function {
+  set g(int value) {}
+}
+''');
+  }
+
+  test_functionExpressionInside_targetOfMethodInvocation() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (() {}).g();
+}
+extension on Function {
+  void g() {}
+}
+''');
+  }
+
+  test_functionExpressionInside_targetOfPropertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (() => '').hashCode;
+}
+''');
+  }
+
   test_listLiteral() async {
     await assertDiagnostics(r'''
 final items = [1, (DateTime.now())];
@@ -302,6 +412,14 @@ void f() {
     await assertNoDiagnostics(r'''
 void f(int i) {
   (i++).toString();
+}
+''');
+  }
+
+  test_postfixExpressionInside_targetOfPropertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f(int p) {
+  (p++).hashCode;
 }
 ''');
   }
@@ -358,7 +476,7 @@ void g((int,) i) {}
     ]);
   }
 
-  test_singleElementRecordWithNoTrailingComma_assignment() async {
+  test_singleElementRecordWithNoTrailingCommaInside_assignment() async {
     await assertDiagnostics(r'''
 void f() {
   (int,) r = (3);
@@ -494,22 +612,6 @@ extension on String? {
     await assertNoDiagnostics(r'''
 void f() {
   (List<int>).toString();
-}
-''');
-  }
-
-  test_unaryExpressionInside_targetOfMethodInvocation() async {
-    await assertNoDiagnostics(r'''
-void f(int p) {
-  (p++).toString();
-}
-''');
-  }
-
-  test_unaryExpressionInside_targetOfPropertyAccess() async {
-    await assertNoDiagnostics(r'''
-void f(int p) {
-  (p++).hashCode;
 }
 ''');
   }

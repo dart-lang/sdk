@@ -4,43 +4,6 @@
 
 import 'dart:async';
 
-/// https://github.com/dart-lang/linter/issues/2944
-void foo() {
-  final items = [];
-  (() => [].add('something')).compose(() {}); // OK
-  (() => '').hashCode; // OK
-  (() => '').f = 1; // OK
-  (() => '') + 1; // OK
-  (() => '')[0]; // OK
-}
-
-extension A on void Function() {
-  void Function() compose(void Function() other) => () {
-        this();
-        other();
-      };
-
-  set f(int f) {}
-  operator +(int x) {}
-  int operator [](int i) => 0;
-}
-
-var func = (() => null); // LINT
-
-class D {
-  D.d([int? x, int? y]);
-}
-
-/// https://github.com/dart-lang/linter/issues/2907
-void constructorTearOffs() {
-  var makeD = D.d;
-  (makeD)(1); // LINT
-  (D.d)(1); // LINT
-  (List<int>.filled)(3, 0); // LINT
-  (List.filled)<int>(3, 0); // OK
-  var tearoff = (List<int>.filled); // LINT
-}
-
 var a, b, c, d;
 
 main() async {
