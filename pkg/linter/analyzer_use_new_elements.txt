@@ -22,6 +22,7 @@ lib/src/rules/avoid_empty_else.dart
 lib/src/rules/avoid_escaping_inner_quotes.dart
 lib/src/rules/avoid_final_parameters.dart
 lib/src/rules/avoid_function_literals_in_foreach_calls.dart
+lib/src/rules/avoid_implementing_value_types.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
 lib/src/rules/avoid_print.dart
@@ -139,6 +140,7 @@ lib/src/rules/sort_constructors_first.dart
 lib/src/rules/sort_unnamed_constructors_first.dart
 lib/src/rules/specify_nonobvious_local_variable_types.dart
 lib/src/rules/super_goes_last.dart
+lib/src/rules/test_types_in_equals.dart
 lib/src/rules/throw_in_finally.dart
 lib/src/rules/tighten_type_of_initializing_formals.dart
 lib/src/rules/type_annotate_public_apis.dart

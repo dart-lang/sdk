@@ -2029,7 +2029,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
-    flowAnalysis.ifNullExpression_rightBegin(node.left, new SharedTypeView(t1));
+    flowAnalysis.ifNullExpression_rightBegin(left, new SharedTypeView(t1));
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
     //   - If `K` is `_` or `dynamic`, `J = T1`.

@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
 const unableToProcessExitCode = 64;
 
 Future<Iterable<AnalysisErrorInfo>> lintFiles(
-    TestLinter linter, List<File> filesToLint) async {
+    TestLinter linter, List<File> filesToLint, LintFilter filter) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
   var errorWatcher = _ErrorWatchingSink(errorSink);
@@ -38,7 +38,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
   if (errorWatcher.encounteredError) {
     exitCode = loggedAnalyzerErrorExitCode;
   } else if (errors.isNotEmpty) {
-    exitCode = _maxSeverity(errors, linter.options.filter);
+    exitCode = _maxSeverity(errors, filter);
   }
 
   return errors;
@@ -95,12 +95,13 @@ Future<void> runLinter(List<String> args) async {
   var ruleNames = options['rules'];
 
   LinterOptions linterOptions;
+  LintFilter? filter;
   if (configFile is String) {
     var config = LintConfig.parse(readFile(configFile));
     var enabledRules = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
-    var filter = _FileGlobFilter(config.fileIncludes, config.fileExcludes);
-    linterOptions = LinterOptions(enabledRules: enabledRules, filter: filter);
+    filter = _FileGlobFilter(config.fileIncludes, config.fileExcludes);
+    linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
     var rules = <LintRule>[];
     for (var ruleName in ruleNames) {
@@ -115,6 +116,7 @@ Future<void> runLinter(List<String> args) async {
   } else {
     linterOptions = LinterOptions();
   }
+  filter ??= _FileGlobFilter([], []);
 
   var customSdk = options['dart-sdk'];
   if (customSdk is String) {
@@ -130,14 +132,14 @@ Future<void> runLinter(List<String> args) async {
           .map(File.new),
   ];
 
-  await writeBenchmarks(outSink, filesToLint, linterOptions);
+  await writeBenchmarks(outSink, filesToLint, linterOptions, filter);
 }
 
-Future<void> writeBenchmarks(
-    IOSink out, List<File> filesToLint, LinterOptions linterOptions) async {
+Future<void> writeBenchmarks(IOSink out, List<File> filesToLint,
+    LinterOptions linterOptions, LintFilter filter) async {
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
-    await lintFiles(TestLinter(linterOptions), filesToLint);
+    await lintFiles(TestLinter(linterOptions), filesToLint, filter);
     lintRuleTimers.timers.forEach((n, t) {
       var timing = t.elapsedMilliseconds;
       var previous = timings[n];
@@ -167,16 +169,17 @@ Future<void> writeBenchmarks(
   out.writeTimings(stats, 0);
 }
 
-Iterable<AnalysisError> _filtered(
-        Iterable<AnalysisError> errors, LintFilter? filter) =>
-    (filter == null)
-        ? errors
-        : errors.where((AnalysisError e) => !filter.filter(e));
-
-int _maxSeverity(List<AnalysisErrorInfo> infos, LintFilter? filter) {
-  var allErrors = _filtered(infos.expand((i) => i.errors), filter);
-  return allErrors.fold(
+int _maxSeverity(List<AnalysisErrorInfo> infos, LintFilter filter) {
+  var filteredErrors = infos
+      .expand((i) => i.errors)
+      .where((AnalysisError e) => !filter.filter(e));
+  return filteredErrors.fold(
       0, (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal));
+}
+
+/// Filtered lints are omitted from linter output.
+abstract class LintFilter {
+  bool filter(AnalysisError lint);
 }
 
 class _ErrorWatchingSink implements IOSink {

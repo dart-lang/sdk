@@ -234,6 +234,7 @@ lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart
 lib/src/services/correction/dart/add_missing_parameter.dart
 lib/src/services/correction/dart/add_missing_parameter_named.dart
 lib/src/services/correction/dart/add_missing_required_argument.dart
+lib/src/services/correction/dart/add_missing_switch_cases.dart
 lib/src/services/correction/dart/add_ne_null.dart
 lib/src/services/correction/dart/add_null_check.dart
 lib/src/services/correction/dart/add_override.dart
@@ -250,6 +251,7 @@ lib/src/services/correction/dart/add_type_annotation.dart
 lib/src/services/correction/dart/assign_to_local_variable.dart
 lib/src/services/correction/dart/change_argument_name.dart
 lib/src/services/correction/dart/change_to_nearest_precise_value.dart
+lib/src/services/correction/dart/change_to_static_access.dart
 lib/src/services/correction/dart/change_type_annotation.dart
 lib/src/services/correction/dart/convert_add_all_to_spread.dart
 lib/src/services/correction/dart/convert_class_to_enum.dart
@@ -318,12 +320,16 @@ lib/src/services/correction/dart/extend_class_for_mixin.dart
 lib/src/services/correction/dart/extract_local_variable.dart
 lib/src/services/correction/dart/flutter_convert_to_children.dart
 lib/src/services/correction/dart/flutter_convert_to_stateful_widget.dart
+lib/src/services/correction/dart/flutter_convert_to_stateless_widget.dart
 lib/src/services/correction/dart/flutter_move_down.dart
 lib/src/services/correction/dart/flutter_move_up.dart
 lib/src/services/correction/dart/flutter_remove_widget.dart
 lib/src/services/correction/dart/flutter_swap_with_child.dart
 lib/src/services/correction/dart/flutter_swap_with_parent.dart
+lib/src/services/correction/dart/flutter_wrap.dart
+lib/src/services/correction/dart/flutter_wrap_builder.dart
 lib/src/services/correction/dart/flutter_wrap_generic.dart
+lib/src/services/correction/dart/flutter_wrap_stream_builder.dart
 lib/src/services/correction/dart/ignore_diagnostic.dart
 lib/src/services/correction/dart/import_add_show.dart
 lib/src/services/correction/dart/inline_invocation.dart

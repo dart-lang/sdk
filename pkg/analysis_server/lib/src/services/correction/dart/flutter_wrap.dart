@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -228,15 +228,15 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
     var selectedRange = range.startEnd(firstWidget, lastWidget);
     var src = utils.getRangeText(selectedRange);
     var parentClassElement =
-        await sessionHelper.getClass(_parentLibraryUri, _parentClassName);
-    var widgetClassElement = await sessionHelper.getFlutterClass('Widget');
+        await sessionHelper.getClass2(_parentLibraryUri, _parentClassName);
+    var widgetClassElement = await sessionHelper.getFlutterClass2('Widget');
     if (parentClassElement == null || widgetClassElement == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(selectedRange, (builder) {
-        builder.writeReference(parentClassElement);
+        builder.writeReference2(parentClassElement);
         builder.write('(');
 
         var indentOld = utils.getLinePrefix(firstWidget.offset);
@@ -295,10 +295,10 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     // If the wrapper class is specified, find its element.
     var parentLibraryUri = _parentLibraryUri;
     var parentClassName = _parentClassName;
-    ClassElement? parentClassElement;
+    ClassElement2? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
       parentClassElement =
-          await sessionHelper.getClass(parentLibraryUri, parentClassName);
+          await sessionHelper.getClass2(parentLibraryUri, parentClassName);
       if (parentClassElement == null) {
         return;
       }
@@ -309,7 +309,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
         } else {
-          builder.writeReference(parentClassElement);
+          builder.writeReference2(parentClassElement);
         }
         builder.write('(');
         // When there's no linked edit for the widget name, leave the selection

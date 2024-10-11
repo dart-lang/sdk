@@ -426,7 +426,7 @@ Future<void> main(List<String> args) async {
     }
 
     // Skip this test directory if this platform is excluded.
-    if (testConfig.excludedPlaforms.contains(runtimePlatform)) {
+    if (testConfig.excludedPlatforms.contains(runtimePlatform)) {
       _print('Skipping test on platform: ${runtimePlatform.text}',
           label: testName);
       continue;

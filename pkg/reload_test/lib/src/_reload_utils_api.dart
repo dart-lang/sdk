@@ -12,4 +12,5 @@ void hotRestart() => throw Exception('Not implemented on this platform.');
 int get hotReloadGeneration =>
     throw Exception('Not implemented on this platform.');
 
-void hotReload() => throw Exception('Not implemented on this platform.');
+Future<void> hotReload() =>
+    throw Exception('Not implemented on this platform.');
