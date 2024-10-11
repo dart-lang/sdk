@@ -44,7 +44,7 @@ f() {
 }
 ''', expectedNumberOfFixesForKind: 1, errorFilter: (error) {
       return error.errorCode ==
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS;
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO;
     });
   }
 
