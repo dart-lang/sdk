@@ -1,5 +1,14 @@
 ## 3.7.0
 
+###### Dart to Javascript Compiler (dart2js)
+
+- The dart2js compiler which is invoked when the command
+  'dart compile js' is used has been switched to use an AOT snapshot
+  instead of a JIT snapshot.
+
+[#53576]: https://github.com/dart-lang/sdk/issues/53576
+
+
 ## 3.6.0
 
 ### Language
