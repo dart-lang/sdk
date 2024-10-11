@@ -29,7 +29,7 @@
 // In brackets following each class name are the names of fields explicitly
 // declared in the corresponding class declaration.
 
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 import 'field_promotion_and_no_such_method_library_cycle_lib.dart';
 

@@ -7,7 +7,7 @@ import "dart:io";
 import "dart:isolate";
 import "dart:math";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 const String loopbackIPv4String = "127.0.0.1";
@@ -76,6 +76,7 @@ void testServerListenAfterConnect() {
 }
 
 const messageSize = 1000;
+
 // Configuration fields for the EchoServer.
 enum EchoServerTypes {
   // Max accumulated connections to server before close. Defaults to 1.

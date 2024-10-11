@@ -206,7 +206,6 @@
       "tests/standalone/",
       "tests/ffi/",
       "pkg/_fe_analyzer_shared/",
-      "pkg/async_helper/",
       "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/dart2native/",

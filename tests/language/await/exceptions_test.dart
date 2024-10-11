@@ -4,8 +4,8 @@
 
 // VMOptions=--optimization-counter-threshold=20
 
+import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 
 import 'dart:async';
 
@@ -70,7 +70,7 @@ test2() async {
   return '!';
 }
 
-test() async {
+Future test() async {
   var result;
   for (int i = 0; i < 10; i++) {
     await test0();

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test that an implicit dynamic cast of a null stream is caught.
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 void main() {
   asyncTest(() async {

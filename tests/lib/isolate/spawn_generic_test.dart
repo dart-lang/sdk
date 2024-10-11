@@ -8,7 +8,7 @@ library spawn_generic;
 import "dart:isolate";
 import "dart:async";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 void isomain(num args) {
   print(args);

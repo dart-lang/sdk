@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 class C1 {
   C1 get c => this;

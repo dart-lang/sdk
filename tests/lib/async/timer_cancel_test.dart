@@ -6,7 +6,7 @@ library timer_cancel_test;
 
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 final ms = const Duration(milliseconds: 1);

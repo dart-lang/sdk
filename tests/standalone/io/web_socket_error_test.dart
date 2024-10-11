@@ -16,7 +16,7 @@ import "dart:io";
 // ignore: IMPORT_INTERNAL_LIBRARY
 import "dart:_http" show TestingClass$_SHA1;
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 typedef _SHA1 = TestingClass$_SHA1;

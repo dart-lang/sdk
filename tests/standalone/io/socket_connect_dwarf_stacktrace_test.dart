@@ -11,7 +11,7 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:native_stack_traces/native_stack_traces.dart";
 import "package:path/path.dart" as path;

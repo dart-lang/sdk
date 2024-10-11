@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 Stream<int> subStream(int p) async* {
   yield p;
@@ -31,7 +31,7 @@ foo2(Stream subStream) async* {
   yield* subStream;
 }
 
-test() async {
+Future test() async {
   Expect.listEquals([0, 1], await (subStream(0).toList()));
   Completer<bool> finalized = new Completer<bool>();
   Expect.listEquals(["outer", 0, 1, "outer", 1, 2, "outer", 2],

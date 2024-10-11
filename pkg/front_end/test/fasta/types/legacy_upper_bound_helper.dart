@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:async_helper/async_helper.dart" show asyncTest;
+import "package:expect/async_helper.dart" show asyncTest;
 import "package:expect/expect.dart" show Expect;
 import "package:kernel/ast.dart";
 import 'package:kernel/testing/type_parser_environment.dart' as parser;

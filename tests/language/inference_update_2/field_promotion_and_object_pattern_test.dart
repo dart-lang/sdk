@@ -4,7 +4,7 @@
 
 // Tests interactions between field promotion logic and object patterns.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final int? _field;

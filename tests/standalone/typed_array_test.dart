@@ -8,8 +8,8 @@
 // Library tag to be able to run in html test framework.
 library TypedArray;
 
+import 'package:expect/async_helper.dart';
 import "package:expect/expect.dart";
-import 'package:async_helper/async_helper.dart';
 import 'dart:isolate';
 import 'dart:typed_data';
 

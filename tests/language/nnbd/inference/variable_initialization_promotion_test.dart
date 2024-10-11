@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// Test that the type of a local variable is treated as a "type of interest"
 /// for the variable, and that for non-final variables, the initialization (if

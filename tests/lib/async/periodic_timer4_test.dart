@@ -5,8 +5,8 @@
 library timer_test;
 
 import 'dart:async';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 const ms = const Duration(milliseconds: 1);
 

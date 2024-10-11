@@ -4,7 +4,7 @@
 
 // dart2jsOptions=--strong
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'deferred_function_types_lib1.dart' deferred as lib1;
 import 'deferred_function_types_lib2.dart' deferred as lib2;

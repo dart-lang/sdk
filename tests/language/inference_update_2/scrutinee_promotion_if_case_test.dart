@@ -5,7 +5,7 @@
 // Tests that field promotion takes effect when the thing being promoted is a
 // scrutinee of an if-case construct.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final Object? _o;

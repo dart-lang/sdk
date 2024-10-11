@@ -5,7 +5,7 @@
 // Tests that inherited abstract fields are properly accounted for when deciding
 // whether a `noSuchMethod` suppresses field promotion.
 
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 class A {
   final int? _f1;

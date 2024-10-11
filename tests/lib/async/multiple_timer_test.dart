@@ -5,7 +5,7 @@
 library multiple_timer_test;
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 const Duration TIMEOUT1 = const Duration(seconds: 1);

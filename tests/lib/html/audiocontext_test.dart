@@ -7,8 +7,8 @@ import 'dart:html';
 import 'dart:typed_data';
 import 'dart:web_audio';
 
-import 'package:async_helper/async_helper.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/async_helper.dart';
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
   var isAudioContext =

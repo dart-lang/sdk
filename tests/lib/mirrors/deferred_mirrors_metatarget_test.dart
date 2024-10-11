@@ -4,7 +4,7 @@
 
 /// Test that metaTargets can be reached via the mirrorSystem.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import "deferred_mirrors_metatarget_lib.dart" deferred as lib;

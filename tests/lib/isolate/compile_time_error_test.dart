@@ -9,7 +9,7 @@ library Isolate3NegativeTest;
 
 import 'dart:isolate';
 import 'dart:async';
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 class TestClass {
   TestClass.named(num this.fld1)

@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'package:compiler/src/elements/names.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;

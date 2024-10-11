@@ -4,7 +4,7 @@
 
 library async_star_pause_test;
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "dart:async";
 

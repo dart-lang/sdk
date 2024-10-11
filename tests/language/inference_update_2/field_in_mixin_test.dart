@@ -14,7 +14,7 @@
 // the order in which the mixin declaration and application are analyzed does
 // not influence the behavior.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C1 = Object with M;
 

@@ -5,8 +5,8 @@
 // Test for issue: https://github.com/dart-lang/sdk/issues/39994
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 Stream<String> testStream() async* {
   try {
@@ -23,7 +23,7 @@ testThrow() async {
   throw Exception();
 }
 
-test() async {
+Future test() async {
   var result = await testStream().toList();
   Expect.listEquals(["B", "C", "D"], result);
 }

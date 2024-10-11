@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 void ConnectorIsolate(Object sendPortObj) {

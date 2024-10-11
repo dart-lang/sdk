@@ -8,7 +8,7 @@
 // The way this happens is that the type parameter is "fixed" after the downward
 // inference phase and is not changed in further inference phases.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 testProductOfNums(List<num> values) {
   num a = values.fold(

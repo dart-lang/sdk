@@ -18,7 +18,6 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  async_helper: any
   expect: any
   lints: any
   test: any

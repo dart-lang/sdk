@@ -17,7 +17,7 @@
 //
 // This test exercises both ordinary final fields and late final fields.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // Main test mixin.
 mixin class M {

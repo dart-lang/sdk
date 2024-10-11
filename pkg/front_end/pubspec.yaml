@@ -20,7 +20,6 @@ dependencies:
 dev_dependencies:
   analyzer: any
   args: any
-  async_helper: any
   build_integration: any
   compiler: any
   dart_style: any
@@ -41,8 +40,6 @@ dependency_overrides:
     path: ../_fe_analyzer_shared
   _js_interop_checks:
     path: ../_js_interop_checks
-  async_helper:
-    path: ../async_helper
   build_integration:
     path: ../build_integration
   compiler:

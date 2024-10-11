@@ -26,7 +26,7 @@
 ///   library 5 = hunk of code shared by 1 & 2
 ///   library 6 = hunk of code shared by 2 & 3
 ///   library 7 = hunk of shared by 1, 2 & 3
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'dart:async';
 

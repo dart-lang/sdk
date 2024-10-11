@@ -9,8 +9,8 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 const String NAME_LENGTH_ERROR = 'Length of protocol must be between 1 and 255';
 

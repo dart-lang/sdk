@@ -5,10 +5,10 @@
 // VMOptions=
 // VMOptions=--optimization-counter-threshold=20
 
+import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:expect/variations.dart" show enabledAsserts;
-import "package:async_helper/async_helper.dart";
-import "dart:async";
 
 typedef dynamic DynamicToDynamic(dynamic d);
 

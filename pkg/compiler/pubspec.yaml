@@ -30,7 +30,6 @@ dev_dependencies:
   js: any
   path: any
   source_maps: any
-  async_helper: any
   dart2js_tools: any
   expect: any
   modular_test: any

@@ -7,7 +7,7 @@
 // See https://github.com/dart-lang/language/issues/3328 for the rationale for
 // allowing this.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 abstract class C {
   int? get _f;

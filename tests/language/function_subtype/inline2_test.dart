@@ -5,6 +5,7 @@
 
 // Check function subtyping of inlined function typed parameters.
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 import '../dynamic_type_helper.dart';
 
@@ -23,7 +24,7 @@ void test(var f, String constructorName) {
   testDynamicTypeError(false, () => f(m1), "'new C.$constructorName(m1)'");
   testDynamicTypeError(true, () => f(m2), "'new C.$constructorName(m2)'");
   testDynamicTypeError(
-      hasSoundNullSafety, () => f(m3), "'new C.$constructorName(m3)'");
+      !unsoundNullSafety, () => f(m3), "'new C.$constructorName(m3)'");
   testDynamicTypeError(true, () => f(m4), "'new C.$constructorName(m4)'");
   testDynamicTypeError(false, () => f(m5), "'new C.$constructorName(m5)'");
 }

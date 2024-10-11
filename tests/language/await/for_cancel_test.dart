@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 late bool canceled;
 
@@ -48,7 +48,7 @@ test2() async {
   }
 }
 
-test() async {
+Future test() async {
   await test1();
   await test2();
 }

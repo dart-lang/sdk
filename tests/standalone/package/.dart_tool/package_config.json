@@ -2,12 +2,6 @@
   "configVersion": 2,
   "packages": [
     {
-      "name": "async_helper",
-      "rootUri": "../../../pkg/async_helper",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "expect",
       "rootUri": "../../../../pkg/expect",
       "packageUri": "lib/",

@@ -6,7 +6,7 @@
 // to the specification in
 // https://github.com/dart-lang/language/blob/main/accepted/3.0/patterns/feature-specification.md#pattern-context-type-schema.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 test() {
   // The context type schema for a pattern `p` is:

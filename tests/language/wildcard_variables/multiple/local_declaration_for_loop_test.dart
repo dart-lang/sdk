@@ -6,7 +6,7 @@
 
 // SharedOptions=--enable-experiment=wildcard-variables
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 void main() async {
   // Multiple for-loop wildcard declarations.

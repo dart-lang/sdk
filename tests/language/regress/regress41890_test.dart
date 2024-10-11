@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 // This test contains many different Rti instances that are initialized at
 // startup.
@@ -43,7 +44,7 @@ void test() {
       var item = items[i];
       String code = answers[i];
       bool expected = code == 'T' ||
-          (code == 'S' && hasSoundNullSafety) ||
+          (code == 'S' && !unsoundNullSafety) ||
           (code == 'W' && hasUnsoundNullSafety);
       Expect.equals(expected, predicate(item), "$predicate '$code' $item");
     }

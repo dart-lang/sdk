@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class Test1 {
   void bar(dynamic condition) {
@@ -81,7 +82,7 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
     print(stacktrace);
     print('-----------------------------');
 
-    if (hasSoundNullSafety) {
+    if (!unsoundNullSafety) {
       Expect.isTrue(e is TypeError);
       Expect.equals(
           "type 'Null' is not a subtype of type 'bool'", e.toString());
@@ -101,9 +102,9 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
 }
 
 main() {
-  testStackTrace(test1, [9, 18]);
-  testStackTrace(test2, [26, 35]);
-  testStackTrace(test3, [45, 54]);
-  testStackTrace(test4, [60]); //# 01: ok
-  testStackTrace(test5, [67]); //# 02: ok
+  testStackTrace(test1, [10, 19]);
+  testStackTrace(test2, [27, 36]);
+  testStackTrace(test3, [46, 55]);
+  testStackTrace(test4, [61]); //# 01: ok
+  testStackTrace(test5, [68]); //# 02: ok
 }

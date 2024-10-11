@@ -7,7 +7,7 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:async_helper/async_helper.dart' show asyncStart, asyncEnd;
+import 'package:expect/async_helper.dart' show asyncStart, asyncEnd;
 import 'package:expect/expect.dart';
 
 Uint8List generateSampleList(final int size) {

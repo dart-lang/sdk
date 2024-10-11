@@ -5,7 +5,7 @@
 // Tests that field promotion works when the promotion condition is stored in a
 // local variable.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final Object? _o;

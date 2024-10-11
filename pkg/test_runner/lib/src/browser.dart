@@ -197,7 +197,7 @@ testErrorToStackTrace = function(error) {
 };
 
 runtime.addAsyncCallback = function() {
-  async_helper.async_helper.asyncStart();
+  expect.async_helper.asyncStart();
 };
 
 runtime.removeAsyncCallback = function() {
@@ -205,7 +205,7 @@ runtime.removeAsyncCallback = function() {
   // performed, but we don't want to report the test as being done until
   // after that operation completes, so wait for that callback to run.
   setTimeout(() => {
-    async_helper.async_helper.asyncEnd();
+    expect.async_helper.asyncEnd();
   }, 0);
 };
 """;
@@ -235,7 +235,7 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
       var import = 'dartDevEmbedder.importLibrary';
       libraryImports = """
         let runtime = $import("dart:_runtime");
-        let async_helper = $import("package:async_helper/async_helper.dart");
+        let expect = $import("package:expect/async_helper.dart");
         let _isolate_helper = $import("dart:_isolate_helper");
         let _debugger = $import("dart:_debugger");
       """;
@@ -255,7 +255,7 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
       libraryImports = """
         let sdk = dart_library.import("dart_sdk", "$appName");
         let runtime = sdk.dart;
-        let async_helper = dart_library.import("async_helper", "$appName");
+        let expect = dart_library.import("expect", "$appName");
         let _isolate_helper = sdk._isolate_helper;
         let _debugger = sdk._debugger;
       """;
@@ -305,8 +305,8 @@ $packagePaths
 <script type="text/javascript"
         src="/root_dart/third_party/requirejs/require.js"></script>
 <script type="text/javascript">
-requirejs(["$testName", "dart_sdk", "async_helper"],
-    function($testId, sdk, async_helper) {
+requirejs(["$testName", "dart_sdk", "expect"],
+    function($testId, sdk, expect) {
   let runtime = sdk.dart;
   let _isolate_helper = sdk._isolate_helper;
   let _debugger = sdk._debugger;

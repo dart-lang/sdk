@@ -5,7 +5,7 @@
 // Test the JS array proxy or reference that's created for lists for interop.
 
 import 'dart:js_interop';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS()
 external void eval(String code);

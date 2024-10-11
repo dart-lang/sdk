@@ -9,8 +9,8 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:typed_data';
 
-import 'package:async_helper/async_minitest.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+import 'package:expect/async_helper.dart';
 
 // Cache blocker is a workaround for:
 // https://code.google.com/p/dart/issues/detail?id=11834

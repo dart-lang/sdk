@@ -5,7 +5,7 @@
 // Tests that the representation variable may undergo field promotion, assuming
 // that it's private.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension type E(Object Function() _f) {
   testImplicitThisAccess() {

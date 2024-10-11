@@ -5,7 +5,7 @@
 // Regression test case for http://dartbug.com/23244
 import 'dart:async';
 import 'dart:isolate';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 enum Fisk {
   torsk,

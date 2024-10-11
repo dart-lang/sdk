@@ -4,8 +4,8 @@
 
 // This is a regression test for issue 2238
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 main() {
   f() async* {

@@ -6,7 +6,7 @@
 // assignment, or pattern variable declaration, and later used for type
 // promotion.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 void patternAssignment(int? x) {
   bool b;

@@ -6,7 +6,7 @@ library timer_test;
 
 import 'dart:async';
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 const int STARTTIMEOUT = 1050;
 const int DECREASE = 200;

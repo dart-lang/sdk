@@ -11,7 +11,7 @@ library external_extension_members_test;
 import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 // To test non-JS types for @staticInterop.
 import 'package:js/js.dart' as pkgJs;
 import 'package:js/js_util.dart' as js_util;

@@ -7,7 +7,7 @@ library canvas_rendering_context_2d_test;
 import 'dart:html';
 import 'dart:math';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // Some rounding errors in the browsers.
 checkPixel(List<int> pixel, List<int> expected) {

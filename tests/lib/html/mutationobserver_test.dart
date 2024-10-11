@@ -7,7 +7,7 @@ library mutationobserver_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // Due to https://code.google.com/p/chromium/issues/detail?id=329103
 // mutationObservers sometimes do not fire if the node being observed is GCed
