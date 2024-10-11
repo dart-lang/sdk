@@ -6911,7 +6911,14 @@ mixin MaybeAugmentedInstanceElementMixin
   Element2? get baseElement => declaration.baseElement;
 
   @override
-  List<Element2> get children2 => declaration.children2;
+  List<Element2> get children2 {
+    return [
+      ...fields2,
+      ...getters2,
+      ...setters2,
+      ...methods2,
+    ];
+  }
 
   @override
   InstanceElementImpl get declaration;
@@ -7286,6 +7293,14 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
 
   @override
   List<InterfaceType> get allSupertypes => declaration.allSupertypes;
+
+  @override
+  List<Element2> get children2 {
+    return [
+      ...super.children2,
+      ...constructors2,
+    ];
+  }
 
   @override
   List<ConstructorElement2> get constructors2 => constructors
