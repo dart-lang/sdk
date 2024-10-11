@@ -5,7 +5,7 @@
 // Test type parameters on @staticInterop factories.
 
 import 'package:js/js.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS()
 @staticInterop

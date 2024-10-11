@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:modular_test/src/find_sdk_root.dart';
 
 // This and the 'src/find_sdk_root2_test.dart' check that we can locate

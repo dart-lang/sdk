@@ -5,6 +5,7 @@
 // VMOptions=--deterministic --optimization_counter_threshold=150
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 dynamic getP2(x, y) => (x, y);
 dynamic getN2(x, y) => (foo: x, bar: y);
@@ -206,7 +207,7 @@ void verifyTypeParameterBoundsChecks() {
   checkTypeParameterBound<(int, int), (int, int)?>();
   Expect.throwsTypeError(
       () => checkTypeParameterBound<(int, Object), (int, int)>());
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(
         () => checkTypeParameterBound<(int, int?), (int, int)>());
     Expect.throwsTypeError(
@@ -218,7 +219,7 @@ void verifyTypeParameterBoundsChecks() {
       checkTypeParameterBound<(String, {int foo}), (String, {int bar})>());
   Expect.throwsTypeError(() =>
       checkTypeParameterBound<(String, {num foo}), (String, {int foo})>());
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() =>
         checkTypeParameterBound<(String, {int? foo}), (String, {int foo})>());
   }

@@ -7,8 +7,8 @@ library interactive_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:async_helper/async_minitest.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+import 'package:expect/async_helper.dart';
 
 // NOTE: To test enable chrome://flags/#enable-experimental-web-platform-features
 

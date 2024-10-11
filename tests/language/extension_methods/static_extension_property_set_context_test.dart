@@ -5,7 +5,7 @@
 /// Tests that type inference supplies the proper context for the right hand
 /// side of a property set that refers to an extension method.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension E on Object? {
   set s1(int i) {}

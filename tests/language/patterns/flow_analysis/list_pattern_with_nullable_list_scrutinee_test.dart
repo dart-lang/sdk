@@ -9,7 +9,7 @@
 // length mismatch, so it would incorrectly conclude that in the "match failure"
 // case, the scrutinee was `null`.
 
-import "../../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 test(List<Object?>? x) {
   switch (x) {

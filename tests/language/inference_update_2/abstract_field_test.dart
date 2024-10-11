@@ -4,7 +4,7 @@
 
 // Tests that field promotion logic properly handles abstract fields.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 abstract class C {
   abstract final int? _f1;

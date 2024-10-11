@@ -7,8 +7,8 @@
 import "dart:async";
 import "dart:js";
 import "dart:collection" show Queue;
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 var errors = new Queue();
 int ctr = 0;

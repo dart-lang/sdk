@@ -4,7 +4,7 @@
 
 library fasta.test.assert_locations_test;
 
-import 'package:async_helper/async_helper.dart' show asyncTest;
+import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;

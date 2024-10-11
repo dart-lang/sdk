@@ -8,7 +8,7 @@
 // naturally out of the fact that closures are analyzed last (so that their
 // types can depend on the types of other arguments).
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 withUnnamedArguments(int? i, void Function(void Function(), Object?) f) {
   if (i != null) {

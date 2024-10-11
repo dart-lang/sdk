@@ -7,7 +7,7 @@ library object_literal_constructor_test;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 extension type Literal._(JSObject _) implements JSObject {
   external Literal({double? a, String b, bool? c});

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 sumStream(Stream<int> s) async {
   int accum = 0;
@@ -14,7 +14,7 @@ sumStream(Stream<int> s) async {
   return accum;
 }
 
-test() async {
+Future test() async {
   var countStreamController;
   int i = 0;
   void tick() {

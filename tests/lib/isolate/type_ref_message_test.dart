@@ -7,11 +7,11 @@
 import "dart:async";
 import "dart:isolate";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-
 class B<T> {}
+
 class D<S> extends B<D> {}
 
 main() {
@@ -25,7 +25,6 @@ main() {
     asyncEnd();
   });
 
-
-  var list = <D<String>>[ new D() ];
+  var list = <D<String>>[new D()];
   port.sendPort.send(list);
 }

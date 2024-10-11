@@ -10,7 +10,7 @@ import 'dart:js' as js;
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS()
 @anonymous

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../common/testing.dart' as helper;
-import 'package:async_helper/async_helper.dart' show asyncExpectThrows;
+import 'package:expect/async_helper.dart' show asyncExpectThrows;
 
 // It is an error to load a module that provides a second definition for
 // a library that already exists in the application.

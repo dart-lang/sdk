@@ -4,8 +4,8 @@
 
 import 'dart:isolate';
 import 'dart:nativewrappers';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 echo(msg) {
   var data = msg[0];

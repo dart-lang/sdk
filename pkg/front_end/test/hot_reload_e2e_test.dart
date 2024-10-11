@@ -11,7 +11,7 @@ import 'dart:async' show Completer;
 import 'dart:convert' show LineSplitter, utf8;
 import 'dart:io' show Directory, File, Platform, Process;
 
-import 'package:async_helper/async_helper.dart' show asyncTest;
+import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;

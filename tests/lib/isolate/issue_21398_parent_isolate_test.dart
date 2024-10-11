@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
+import 'package:expect/async_helper.dart';
 import "package:expect/expect.dart";
-import 'package:async_helper/async_helper.dart';
 
 class FromMainIsolate {
   String toString() => 'from main isolate';

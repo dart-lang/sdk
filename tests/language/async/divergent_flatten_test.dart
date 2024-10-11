@@ -7,10 +7,10 @@
 
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 mixin Base {
   noSuchMethod(Invocation invocation) {

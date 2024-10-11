@@ -16,7 +16,7 @@
 // We need to verify that this rebasing logic handles all the possible ways that
 // field promotion can occur relative to a try/finally statement.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final Object? _o1;

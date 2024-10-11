@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'dart:async';
 
 main() {
@@ -13,8 +13,11 @@ main() {
   Expect.identical(Zone.root, Zone.current);
   Zone forked;
   forked = Zone.current.fork(specification: new ZoneSpecification(fork:
-      (Zone self, ZoneDelegate parent, Zone origin,
-          ZoneSpecification? zoneSpecification, Map<Object?, Object?>? mapValues) {
+      (Zone self,
+          ZoneDelegate parent,
+          Zone origin,
+          ZoneSpecification? zoneSpecification,
+          Map<Object?, Object?>? mapValues) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
     Expect.identical(Zone.root, Zone.current);

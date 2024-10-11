@@ -10,7 +10,7 @@ library javascriptobject_extensions_test;
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:expect/expect.dart' show hasUnsoundNullSafety;
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'dart:html' show Window;
 import 'dart:_interceptors'

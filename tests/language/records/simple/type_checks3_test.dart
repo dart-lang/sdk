@@ -5,6 +5,7 @@
 // VMOptions=--deterministic --optimization_counter_threshold=150
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class A<T> {}
 
@@ -45,7 +46,7 @@ doTests() {
   Expect.throwsTypeError(() => b2 as B<({double foo})>);
 
   b3 as B<(int, {int? foo})?>;
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => b3 as B<(int, {int? foo})>);
     Expect.throwsTypeError(() => b3 as B<(int, {int foo})?>);
   }
@@ -62,7 +63,7 @@ doTests() {
   A<({int foo})>() as A<({int? foo})>;
   A<({int foo})>() as A<({int foo})?>;
   A<({int foo})>() as A<({int foo})>?;
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => A<({int? foo})>() as A<({int foo})>);
     Expect.throwsTypeError(() => A<({int? foo})>() as A<({int foo})?>);
     Expect.throwsTypeError(() => A<({int? foo})>() as A<({int foo})>?);

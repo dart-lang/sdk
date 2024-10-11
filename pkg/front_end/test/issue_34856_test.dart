@@ -4,7 +4,7 @@
 
 import 'dart:io' show File;
 
-import 'package:async_helper/async_helper.dart' show asyncTest;
+import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 import 'package:front_end/src/api_prototype/kernel_generator.dart'

@@ -11,7 +11,7 @@
 /// Null, and we are performing an `== null` test, then we do mark the non-null
 /// branch as unreachable.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   Null get nullProperty => null;

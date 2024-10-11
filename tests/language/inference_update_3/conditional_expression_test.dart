@@ -6,7 +6,7 @@
 // https://github.com/dart-lang/language/issues/1618#issuecomment-1507241494,
 // using conditional expressions.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>` for the operand, or `Iterable<_>` if
 /// no type argument is supplied.

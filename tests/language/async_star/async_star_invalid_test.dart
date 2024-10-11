@@ -5,8 +5,8 @@
 // Test that various invalid uses of `yield` are disallowed.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 var yield = 42;
 

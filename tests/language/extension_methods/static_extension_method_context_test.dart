@@ -5,7 +5,7 @@
 /// Tests that the type inference for generic extension method invocations
 /// properly accounts for the downward inference context.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension E on Object? {
   T f<T>(List<T> t) => t.first;

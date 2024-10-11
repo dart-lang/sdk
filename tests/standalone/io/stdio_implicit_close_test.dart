@@ -4,7 +4,7 @@
 
 // OtherResources=stdio_implicit_close_script.dart
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "dart:io";
 

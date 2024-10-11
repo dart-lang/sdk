@@ -245,7 +245,7 @@ The properties of the `analyze` section are:
 
 To run the suite `my_suite` from `test.dart`, create a file named `mysuite_test.dart` with this content:
 
-    import 'package:async_helper/async_helper.dart' show asyncTest;
+    import 'package:expect/async_helper.dart' show asyncTest;
 
     import 'package:testing/testing.dart' show run;
 

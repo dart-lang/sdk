@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 then43() async {
   label:
@@ -41,7 +41,7 @@ now42() {
   return 43;
 }
 
-test() async {
+Future test() async {
   Expect.equals(42, await then42());
   Expect.equals(43, await then43());
   Expect.equals(42, now42());

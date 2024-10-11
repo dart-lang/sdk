@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // This test checks that a local boolean condition variable can be used for
 // promotion in various corner case scenarios involving try/finally statements.

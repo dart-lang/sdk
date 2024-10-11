@@ -415,6 +415,7 @@ lib/src/services/correction/dart/remove_unnecessary_raw_string.dart
 lib/src/services/correction/dart/remove_unnecessary_string_escape.dart
 lib/src/services/correction/dart/remove_unnecessary_string_interpolation.dart
 lib/src/services/correction/dart/remove_unnecessary_wildcard_pattern.dart
+lib/src/services/correction/dart/remove_unused.dart
 lib/src/services/correction/dart/remove_unused_catch_clause.dart
 lib/src/services/correction/dart/remove_unused_catch_stack.dart
 lib/src/services/correction/dart/remove_unused_import.dart

@@ -8,7 +8,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/dart2js.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -18,6 +17,7 @@ import 'package:compiler/src/source_file_provider.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:compiler/src/inferrer/debug.dart' show PRINT_GRAPH;
 import 'package:compiler/src/tracer.dart' show TRACE_FILTER_PATTERN_FOR_TEST;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';

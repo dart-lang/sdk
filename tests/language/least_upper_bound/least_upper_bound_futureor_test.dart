@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // Test least upper bound for types involving `FutureOr`.
 
