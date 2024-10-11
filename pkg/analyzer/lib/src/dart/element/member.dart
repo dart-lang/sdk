@@ -116,6 +116,11 @@ class ConstructorMember extends ExecutableMember
       visitor.visitConstructorElement(this);
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitConstructorElement(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeConstructorElement(this);
   }
@@ -330,6 +335,13 @@ abstract class ExecutableMember extends Member
   @override
   E? thisOrAncestorOfType2<E extends Element2>() =>
       _element2.thisOrAncestorOfType2();
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
 
   static ExecutableElement from2(
     ExecutableElement element,
@@ -576,6 +588,11 @@ class FieldMember extends VariableMember
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitFieldElement(this);
+  }
+
+  @override
   String displayString2(
       {bool multiline = false, bool preferTypeAlias = false}) {
     return _element2.displayString2(
@@ -597,6 +614,9 @@ class FieldMember extends VariableMember
   E? thisOrAncestorOfType2<E extends Element2>() {
     return _element2.thisOrAncestorOfType2<E>();
   }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 
   /// If the given [field]'s type is different when any type parameters from the
   /// defining type's declaration are replaced with the actual type arguments
@@ -692,6 +712,11 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitFunctionElement(this);
   }
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    throw UnimplementedError('Never created');
+  }
 }
 
 /// A getter element defined in a parameterized type where the values of the
@@ -725,6 +750,11 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
 
   @override
   GetterElement get _element2 => declaration.asElement2 as GetterElement;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitGetterElement(this);
+  }
 }
 
 /// An element defined in a parameterized type where the values of the type
@@ -1027,6 +1057,11 @@ class MethodMember extends ExecutableMember
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitMethodElement(this);
+  }
 
   /// If the given [method]'s type is different when any type parameters from
   /// the defining type's declaration are replaced with the actual type
@@ -1362,6 +1397,11 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
 
   @override
   SetterElement get _element2 => declaration.asElement2 as SetterElement;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitSetterElement(this);
+  }
 }
 
 class SuperFormalParameterMember extends ParameterMember
