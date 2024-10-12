@@ -5042,8 +5042,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }
-    // Invalidate any expression info that was associated with [operand].
-    _getExpressionInfo(operand);
   }
 
   @override
