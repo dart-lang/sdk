@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -39,17 +39,12 @@ class RemoveUnusedElement extends _RemoveUnused {
       return;
     }
 
-    var element = switch (node) {
-      ClassDeclaration() => node.declaredFragment?.element,
-      EnumDeclaration() => node.declaredFragment?.element,
-      FunctionDeclaration() =>
-        node.declaredElement2 ?? node.declaredFragment?.element,
-      FunctionTypeAlias() => node.declaredFragment?.element,
-      GenericTypeAlias() => node.declaredFragment?.element,
-      MethodDeclaration() => node.declaredFragment?.element,
-      VariableDeclaration() => node.declaredFragment?.element,
-      _ => null,
-    };
+    Element2? element;
+    if (LocalFunctionDeclarationView.of(node) case var localFunction?) {
+      element = localFunction.declaredElement;
+    } else if (node is FragmentDeclaration) {
+      element = node.declaredFragment?.element;
+    }
     if (element == null) {
       return;
     }

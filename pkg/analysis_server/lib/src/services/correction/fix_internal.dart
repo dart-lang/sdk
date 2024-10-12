@@ -748,7 +748,10 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
 };
 
 final _builtInNonLintMultiProducers = {
-  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
+    AddExtensionOverride.new,
+  ],
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
     AddExtensionOverride.new,
   ],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [

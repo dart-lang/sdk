@@ -11447,6 +11447,26 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
   Precedence get precedence => Precedence.primary;
 }
 
+// TODO(scheglov): parse into actual `LocalFunctionDeclarationImpl`.
+class LocalFunctionDeclarationView {
+  final FunctionDeclarationImpl declaration;
+
+  LocalFunctionDeclarationView(this.declaration);
+
+  LocalFunctionElement? get declaredElement {
+    return declaration.declaredElement2;
+  }
+
+  static LocalFunctionDeclarationView? of(AstNode declaration) {
+    if (declaration is FunctionDeclarationImpl) {
+      if (declaration.parent is FunctionDeclarationStatement) {
+        return LocalFunctionDeclarationView(declaration);
+      }
+    }
+    return null;
+  }
+}
+
 /// Additional information about local variables within a function or method
 /// produced at resolution time.
 class LocalVariableInfo {
