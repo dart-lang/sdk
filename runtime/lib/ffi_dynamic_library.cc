@@ -452,7 +452,7 @@ intptr_t FfiResolveInternal(const String& asset,
 
   // Native assets resolution.
   void* asset_result = FfiResolveAsset(thread, asset, symbol, error);
-  if (asset_result != nullptr) {
+  if (asset_result != nullptr || *error != nullptr) {
     return reinterpret_cast<intptr_t>(asset_result);
   }
 
