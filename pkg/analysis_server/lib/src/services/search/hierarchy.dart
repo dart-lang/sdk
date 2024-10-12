@@ -22,6 +22,18 @@ List<Element> getChildren(Element parent, [String? name]) {
   return children;
 }
 
+/// Returns direct children of [parent].
+List<Element2> getChildren2(Element2 parent, [String? name]) {
+  var children = <Element2>[];
+  visitChildren2(parent, (element) {
+    if (name == null || _getBaseName2(element) == name) {
+      children.add(element);
+    }
+    return false;
+  });
+  return children;
+}
+
 /// Returns direct non-synthetic children of the given [InterfaceElement].
 ///
 /// Includes: fields, accessors and methods.
@@ -306,6 +318,14 @@ Element getSyntheticAccessorVariable(Element element) {
 
 String? _getBaseName(Element element) {
   if (element is PropertyAccessorElement && element.isSetter) {
+    var name = element.name;
+    return name.substring(0, name.length - 1);
+  }
+  return element.name;
+}
+
+String? _getBaseName2(Element2 element) {
+  if (element is SetterElement) {
     var name = element.name;
     return name.substring(0, name.length - 1);
   }

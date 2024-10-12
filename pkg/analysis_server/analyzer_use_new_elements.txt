@@ -269,6 +269,7 @@ lib/src/services/correction/dart/convert_into_final_field.dart
 lib/src/services/correction/dart/convert_into_for_index.dart
 lib/src/services/correction/dart/convert_into_getter.dart
 lib/src/services/correction/dart/convert_into_is_not.dart
+lib/src/services/correction/dart/convert_into_is_not_empty.dart
 lib/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart
 lib/src/services/correction/dart/convert_part_of_to_uri.dart
 lib/src/services/correction/dart/convert_quotes.dart
