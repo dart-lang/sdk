@@ -107,6 +107,20 @@ class AnalysisSessionHelper {
     return null;
   }
 
+  /// Return the [MixinElement] with the given [name] that is exported
+  /// from the library with the given [libraryUri], or `null` if the library
+  /// does not export a class with such name.
+  Future<MixinElement2?> getMixin2(String libraryUri, String name) async {
+    var libraryResult = await session.getLibraryByUri(libraryUri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element2.exportNamespace.get2(name);
+      if (element is MixinElement2) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Return the resolved unit that declares the given [element].
   Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
     var libraryPath = element.library!.source.fullName;

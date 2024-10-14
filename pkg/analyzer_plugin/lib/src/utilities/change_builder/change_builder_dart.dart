@@ -17,6 +17,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -1961,13 +1962,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// the names used in generated code, to information about these imports.
   Map<Uri, _LibraryImport> librariesToImport = {};
 
-  /// A mapping of [Element]s to pending imports that will be added to make
-  /// them visible in the generated code.
-  final Map<Element, _LibraryImport> _elementLibrariesToImport = {};
-
-  /// A mapping of [Element2]s to pending imports that will be added to make
-  /// them visible in the generated code.
-  final Map<Element2, _LibraryImport> _elementLibrariesToImport2 = {};
+  /// A mapping of elements to pending imports that will be added to make them
+  /// visible in the generated code.
+  final Map<Element2, _LibraryImport> _elementLibrariesToImport = {};
 
   /// Initializes a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder].
@@ -2048,9 +2045,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
     for (var entry in _elementLibrariesToImport.entries) {
       copy._elementLibrariesToImport[entry.key] = entry.value;
-    }
-    for (var entry in _elementLibrariesToImport2.entries) {
-      copy._elementLibrariesToImport2[entry.key] = entry.value;
     }
     return copy;
   }
@@ -2145,7 +2139,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     var uriToImport = libraryToImport?.source.uri;
     if (uriToImport != null) {
-      var newImport = elementLibrariesToImport[element] = _importLibrary(
+      var newImport =
+          elementLibrariesToImport[element.asElement2!] = _importLibrary(
         uriToImport,
         isExplicitImport: false,
         shownName: element.name,
@@ -2156,6 +2151,55 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // imports in which case we could remove them to avoid adding unnecessary
       // imports.
       _removeUnnecessaryPendingElementImports(newImport, libraryToImport);
+    }
+  }
+
+  /// Arranges to have an import added that makes [element] available.
+  ///
+  /// If [element] is already available in the current library, does nothing.
+  ///
+  /// If the library [element] is declared in is inside the `src` folder, will
+  /// try to locate a public URI to import instead.
+  ///
+  /// If [useShow] is `true`, new imports will be added that `show` only the
+  /// requested element (or if there is a pending import for the library, added
+  /// to its `show` combinator).
+  Future<void> importElementLibrary2(Element2 element,
+      {Map<Element2, LibraryElement2?>? resultCache,
+      bool useShow = false}) async {
+    if (_isDefinedLocally2(element)) {
+      return;
+    }
+
+    var existingImport = _getImportElement2(element);
+    var name = element.name;
+    if (existingImport != null && name != null) {
+      existingImport.ensureShown(name, useShow: useShow);
+      return;
+    }
+
+    var elementLibrariesToImport =
+        (libraryChangeBuilder ?? this)._elementLibrariesToImport;
+    var libraryToImport = resultCache?[element] ??
+        await TopLevelDeclarations(resolvedUnit)
+            .publiclyExporting2(element, resultCache: resultCache) ??
+        // Fall back to the element's library if we didn't find a better one.
+        element.library2;
+
+    var uriToImport = libraryToImport?.firstFragment.source.uri;
+    if (uriToImport != null) {
+      var newImport = elementLibrariesToImport[element] = _importLibrary(
+        uriToImport,
+        isExplicitImport: false,
+        shownName: element.name,
+        useShow: useShow,
+      );
+
+      // It's possible this new import can satisfy other pending element's
+      // imports in which case we could remove them to avoid adding unnecessary
+      // imports.
+      _removeUnnecessaryPendingElementImports(
+          newImport, libraryToImport as LibraryElement);
     }
   }
 
@@ -2744,7 +2788,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    return (libraryChangeBuilder ?? this)._elementLibrariesToImport[element];
+    return (libraryChangeBuilder ?? this)
+        ._elementLibrariesToImport[element.asElement2];
   }
 
   /// Returns information about the library used to import the given [element]
@@ -2778,7 +2823,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    return (libraryChangeBuilder ?? this)._elementLibrariesToImport2[element];
+    return (libraryChangeBuilder ?? this)._elementLibrariesToImport[element];
   }
 
   List<LibraryImportElement> _getImportsForUri(Uri uri) {
@@ -2942,7 +2987,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
       // If this new import exports the other element, change it to this import
       // and record it as a removal candidate.
-      if (newLibrary?.exportNamespace.get(otherElement.displayName) ==
+      if (newLibrary?.exportNamespace.get2(otherElement.displayName) ==
           otherElement) {
         candidatesToRemove.add(otherImport);
         elementLibrariesToImport[otherElement] = newImport;

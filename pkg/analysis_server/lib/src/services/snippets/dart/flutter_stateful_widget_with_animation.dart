@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -15,14 +15,14 @@ class FlutterStatefulWidgetWithAnimationController
   static const prefix = 'stanim';
   static const label = 'Flutter Widget with AnimationController';
 
-  late ClassElement? classStatefulWidget;
-  late ClassElement? classState;
+  late ClassElement2? classStatefulWidget;
+  late ClassElement2? classState;
   @override
-  late ClassElement? classBuildContext;
+  late ClassElement2? classBuildContext;
   @override
-  late ClassElement? classKey;
-  late ClassElement? classAnimationController;
-  late MixinElement? classSingleTickerProviderStateMixin;
+  late ClassElement2? classKey;
+  late ClassElement2? classAnimationController;
+  late MixinElement2? classSingleTickerProviderStateMixin;
 
   FlutterStatefulWidgetWithAnimationController(super.request,
       {required super.elementImportCache});
@@ -65,15 +65,15 @@ class FlutterStatefulWidgetWithAnimationController
         builder.write('class _');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.write('State extends ');
-        builder.writeReference(classState);
+        builder.writeReference2(classState);
         builder.write('<');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.writeln('>');
         builder.write('    with ');
-        builder.writeReference(classSingleTickerProviderStateMixin);
+        builder.writeReference2(classSingleTickerProviderStateMixin);
         builder.writeln(' {');
         builder.write('  late ');
-        builder.writeReference(classAnimationController);
+        builder.writeReference2(classAnimationController);
         builder.writeln(' _controller;');
         builder.writeln();
         {
@@ -87,7 +87,7 @@ class FlutterStatefulWidgetWithAnimationController
               builder.writeln('{');
               builder.writeln('    super.initState();');
               builder.write('    _controller = ');
-              builder.writeReference(classAnimationController);
+              builder.writeReference2(classAnimationController);
               builder.writeln('(vsync: this);');
               builder.writeln('  }');
             },

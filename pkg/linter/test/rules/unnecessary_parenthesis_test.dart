@@ -566,6 +566,15 @@ void f(Object? x) {
 ''');
   }
 
+  test_switchExpressionInside_methodInvocation() async {
+    await assertNoDiagnostics(r'''
+void f(Object v) {
+  const v = 0;
+  (switch (v) { _ => Future.value() }).then((_) {});
+}
+''');
+  }
+
   test_switchExpressionInside_variableDeclaration() async {
     await assertDiagnostics(r'''
 void f(Object? x) {

@@ -38,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.name.lexeme == 'main') return;
+    if (node.name.lexeme == 'main' && node.parent is CompilationUnit) return;
     _check(
       declaredElement: node.declaredElement,
       returnType: node.returnType,

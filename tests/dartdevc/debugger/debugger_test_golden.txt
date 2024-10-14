@@ -5253,7 +5253,7 @@ Value:
             {
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "ExampleJSClass: "
+            "FormattedObject: "
         ],
         [
             "span",
@@ -5279,7 +5279,189 @@ Value:
             {
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "FormattedObject: "
+            "PackageJSClass: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "FormattedJSObject|constructor#_: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "FormattedJSObject|constructor#_#_#tearOff: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "Prototype|constructor#_: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "Prototype|constructor#_#_#tearOff: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "FooBar|constructor#_: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "FooBar|constructor#_#_#tearOff: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "unsafeCast: "
         ],
         [
             "span",
@@ -5384,32 +5566,6 @@ Value:
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "main: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {}
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "devtoolsFormatters: "
         ],
         [
             "span",
@@ -7203,7 +7359,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "Instance of 'TestGenericClass<ExampleJSClass<String>, int>'"
+    "Instance of 'TestGenericClass<PackageJSClass<String>, int>'"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop instance body
