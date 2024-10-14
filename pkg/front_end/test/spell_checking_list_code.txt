@@ -190,6 +190,7 @@ brevity
 brianwilkerson
 bridge
 bridges
+brief
 brute
 bs
 bsd
@@ -722,6 +723,7 @@ gardening
 garner
 gathers
 gb
+gc
 gen
 gendir
 generation
@@ -906,6 +908,7 @@ intersects
 interspersed
 interval
 intervals
+intervening
 intl
 introductory
 introspect
@@ -1264,6 +1267,7 @@ permit
 permits
 persist
 pertinent
+phrase
 physically
 pi
 picking
@@ -1314,6 +1318,7 @@ preorder
 prepares
 preprocess
 presented
+pressure
 presubmit
 presumably
 presuming

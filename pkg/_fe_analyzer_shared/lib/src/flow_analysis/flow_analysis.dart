@@ -138,6 +138,55 @@ class ExpressionPropertyTarget<Expression extends Object>
 /// The client should create one instance of this class for every method, field,
 /// or top level variable to be analyzed, and call the appropriate methods
 /// while visiting the code for type inference.
+///
+/// The API for flow analysis is event-based, consisting of methods that are
+/// intended to be called during a single-pass depth-first pre-order* traversal
+/// of the AST of the code being analyzed. The client only needs to make calls
+/// into flow analysis when this traversal visits "flow-relevant" AST nodes
+/// (i.e. statements and expressions that influence flow control, such as loops,
+/// return statements, etc., expressions that reference something potentially
+/// promotable, such as a variable and property gets, and anything that performs
+/// a type test). Other AST nodes (known as "flow-irrelevant" AST nodes) don't
+/// require calls to the flow analysis API on their own, but calls to flow
+/// analysis may still be required when visiting their children.
+///
+/// *Where child nodes are ordered according to when they first execute. Note
+/// that for most constructs this matches the order in which the nodes appear in
+/// the source text, but there are a small number of exceptions. For example, in
+/// `for (INITIALIZERS; CONDITION; UPDATERS) BODY;`, `UPDATERS` is executed
+/// after `BODY`, so `UPDATERS` should be visited after `BODY`. Also, in
+/// `PATTERN = EXPRESSION;`, `PATTERN` is executed after `EXPRESSION`, so
+/// `PATTERN` should be visited after `EXPRESSION`.
+///
+/// With a few exceptions, the methods in this class are named after a kind of
+/// AST node, followed by an underscore, followed by a brief phrase indicating
+/// when the method should be called during the visit of that kind of AST node.
+/// For example, when visiting an `if` statement, the client should call
+/// [ifStatement_thenBegin] after visiting its condition expression but before
+/// visiting its "then" block. The precise order for visiting any given AST node
+/// is described in comments below.
+///
+/// Some API calls have arguments representing either the AST node being visited
+/// or one of its child nodes. For example, [isExpression_end] has an argument
+/// `isExpression` representing the entire "is" expression, and
+/// [ifStatement_thenBegin] has an argument `condition` representing the
+/// "condition" part of the "if" statement.
+///
+/// Among other things, these arguments allow flow analysis to recognize
+/// parent/child relationships between parts of the syntax tree. For example,
+/// when analyzing `if (x is T)`, the AST node for `x is T` is passed first to
+/// [isExpression_end]'s `isExpression` argument and then, immediately
+/// afterwards, to [ifStatement_thenBegin]'s `condition` argument; this tells
+/// flow analysis that the "is" expression is an immediate child of the "if"
+/// statement, and therefore a type promotion should occur.
+///
+/// Whereas when analyzing `if (f(x is T))`, the same sequence of calls is made
+/// to flow analysis (since the AST node for the invocation of `f` is
+/// flow-irrelevant). But the node passed to [isExpression_end]'s `isExpression`
+/// argument is `x is T`, whereas the node passed to [ifStatement_thenBegin]'s
+/// `condition` argument is `f(x is T)`. Since these nodes are different, flow
+/// analysis knows that the "is" expression is *not* an immediate child of the
+/// "if" statement, so therefore no type promotion should occur.
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Node, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(
@@ -456,6 +505,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method to forward information on [oldExpression] to
   /// [newExpression].
+  ///
+  /// This method must be called immediately after visiting the expression, and
+  /// before continuing to visit its parent.
   ///
   /// This can be used to preserve promotions through a replacement from
   /// [oldExpression] to [newExpression]. For instance when rewriting
@@ -4285,18 +4337,57 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
   /// corresponding [ExpressionInfo] object.
+  ///
+  /// This field, along with [_expressionInfo], establishes a mechanism to allow
+  /// a flow analysis method that's handling a given AST node to retrieve an
+  /// [ExpressionInfo] that was previously created during the handling of one of
+  /// that node's children. The mechanism works as follows:
+  ///
+  /// While visiting the child, [_storeExpressionInfo] is called (passing in the
+  /// child node and the [ExpressionInfo]). It stores the child node in
+  /// [_expressionWithInfo] and the info in [_expressionInfo].
+  ///
+  /// While visiting the parent, [_getExpressionInfo] is called (passing in the
+  /// child node). It checks whether [_expressionWithInfo] matches the child
+  /// node; if it does match, that means there are no intervening
+  /// flow-irrelevant nodes, and so it returns [_expressionInfo]. If it doesn't
+  /// match, that means that some other flow-irrelevant was visited since the
+  /// last time [_storeExpressionInfo] was called, and so the info in
+  /// [_expressionInfo] is no longer relevant, and so it returns `null`.
+  ///
+  /// Note that if [_storeExpressionInfo] is called once for expression `e1` and
+  /// then again for expression `e2`, the second call will overwrite the info
+  /// stored by the first call. So if this is followed by a [_getExpressionInfo]
+  /// call for `e1`, `null` will be returned. In principle this situation should
+  /// never arise, since the client is expected to visit AST nodes in a
+  /// single-pass depth-first pre-order fashion. However, in practice, it
+  /// happens sometimes (see https://github.com/dart-lang/sdk/issues/56887).
   Expression? _expressionWithInfo;
 
   /// If [_expressionWithInfo] is not `null`, the [ExpressionInfo] object
   /// corresponding to it.  Otherwise `null`.
+  ///
+  /// See [_expressionWithInfo] for a detailed explanation.
   ExpressionInfo<Type>? _expressionInfo;
 
   /// The most recently visited expression which was a reference, or `null` if
   /// no such expression has been visited.
+  ///
+  /// This field serves the same role as [_expressionWithInfo], except that it
+  /// is only updated for expressions that might refer to something promotable
+  /// (a get of a local variable or a property), so it is less likely to have
+  /// trouble if the client doesn't visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   Expression? _expressionWithReference;
 
   /// If [_expressionWithReference] is not `null`, the reference corresponding
   /// to it. Otherwise `null`.
+  ///
+  /// This field serves the same role as [_expressionInfo], except that it is
+  /// only updated for expressions that might refer to something promotable (a
+  /// get of a local variable or a property), so it is less likely to have
+  /// trouble if the client doesn't visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   _Reference<Type>? _expressionReference;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
@@ -5723,6 +5814,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
+  ///
+  /// See [_expressionWithInfo] for details about how this works.
+  ///
+  /// To reduce GC pressure, if this method returns a non-null value, it resets
+  /// [_expressionInfo] to `null` as a side effect. This means that if
+  /// [_getExpressionInfo] is called twice for the same [expression] (without
+  /// an intervening call to [_storeExpressionInfo]), the second call will
+  /// return `null`. This should not be a problem because the client is expected
+  /// to visit AST nodes in a single-pass depth-first pre-order fashion.
   ExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
     if (identical(expression, _expressionWithInfo)) {
       ExpressionInfo<Type>? expressionInfo = _expressionInfo;
@@ -6108,6 +6208,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionInfo] object, and updates the
   /// current flow model state to correspond to it.
+  ///
+  /// See [_expressionWithInfo] for details about how this works.
   void _storeExpressionInfo(
       Expression expression, ExpressionInfo<Type> expressionInfo) {
     _expressionWithInfo = expression;
@@ -6116,6 +6218,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionReference] object.
+  ///
+  /// This method serves the same role as [_storeExpressionInfo], but it only
+  /// handles expressions that might refer to something promotable (a get of a
+  /// local variable or a property), so it is less likely to have trouble if the
+  /// client doesn't visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   void _storeExpressionReference(
       Expression expression, _Reference<Type> expressionReference) {
     _expressionWithReference = expression;
@@ -7150,6 +7258,13 @@ abstract class _PropertyTargetHelper<Expression extends Object,
   /// Gets the [_Reference] associated with the [expression] (which should be
   /// the last expression that was traversed).  If there is no [_Reference]
   /// associated with the [expression], then `null` is returned.
+  ///
+  /// This method serves the same role as
+  /// [_FlowAnalysisImpl._getExpressionInfo], but it only handles expressions
+  /// that might refer to something promotable (a get of a local variable or a
+  /// property), so it is less likely to have trouble if the client doesn't
+  /// visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   _Reference<Type>? _getExpressionReference(Expression? expression);
 }
 
