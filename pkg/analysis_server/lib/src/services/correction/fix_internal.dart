@@ -313,9 +313,6 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.avoid_multiple_declarations_per_line: [
     SplitMultipleDeclarations.new,
   ],
-  LinterLintCode.avoid_null_checks_in_equality_operators: [
-    RemoveComparison.new,
-  ],
   LinterLintCode.avoid_print: [
     MakeConditionalOnDebugMode.new,
     RemovePrint.new,

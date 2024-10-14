@@ -240,13 +240,6 @@ class LinterLintCode extends LintCode {
         "Try splitting the variable declarations into multiple lines.",
   );
 
-  static const LintCode avoid_null_checks_in_equality_operators =
-      LinterLintCode(
-    LintNames.avoid_null_checks_in_equality_operators,
-    "Unnecessary null comparison in implementation of '=='.",
-    correctionMessage: "Try removing the comparison.",
-  );
-
   static const LintCode avoid_positional_boolean_parameters = LinterLintCode(
     LintNames.avoid_positional_boolean_parameters,
     "'bool' parameters should be named parameters.",
