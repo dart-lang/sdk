@@ -34,7 +34,6 @@ import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/local_scope.dart';
 import '../base/problems.dart' show DebugAbort;
 import '../base/scope.dart';
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart'
     show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
@@ -65,7 +64,6 @@ class DietListener extends StackListenerImpl {
   final TypeInferenceEngine typeInferenceEngine;
 
   DeclarationBuilder? _currentDeclaration;
-  ClassBuilder? _currentClass;
   bool _inRedirectingFactory = false;
 
   bool currentClassIsParserRecovery = false;
@@ -109,14 +107,11 @@ class DietListener extends StackListenerImpl {
 
   void set currentDeclaration(DeclarationBuilder? builder) {
     if (builder == null) {
-      _currentClass = _currentDeclaration = null;
+      _currentDeclaration = null;
     } else {
       _currentDeclaration = builder;
-      _currentClass = builder is ClassBuilder ? builder : null;
     }
   }
-
-  ClassBuilder? get currentClass => _currentClass;
 
   @override
   void endMetadataStar(int count) {
@@ -375,11 +370,22 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery) return;
 
     Identifier identifier = name as Identifier;
-    final BodyBuilder listener = createFunctionListener(
-        _offsetMap.lookupProcedure(identifier),
-        inOutlineBuildingPhase: false,
-        inMetadata: false,
-        inConstFields: false);
+    ProcedureKind kind = computeProcedureKind(getOrSet);
+    SourceFunctionBuilder builder;
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Operator:
+        builder = _offsetMap.lookupMethod(identifier);
+      case ProcedureKind.Getter:
+        builder = _offsetMap.lookupGetter(identifier);
+      case ProcedureKind.Setter:
+        builder = _offsetMap.lookupSetter(identifier);
+      // Coverage-ignore(suite): Not run.
+      case ProcedureKind.Factory:
+        throw new UnsupportedError("Unexpected procedure kind: $kind");
+    }
+    final BodyBuilder listener = createFunctionListener(builder,
+        inOutlineBuildingPhase: false, inMetadata: false, inConstFields: false);
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
 
@@ -796,18 +802,19 @@ class DietListener extends StackListenerImpl {
     if (isConstructor) {
       builder = _offsetMap.lookupConstructor(identifier);
     } else {
-      Builder? memberBuilder = _offsetMap.lookupProcedure(identifier);
-      if (currentClass?.isEnum == true &&
-          memberBuilder is SourceFieldBuilder &&
-          // Coverage-ignore(suite): Not run.
-          memberBuilder.name == "values") {
-        // This is the case of a method with the name 'values' declared in an
-        // Enum. In that case the method is replaced with the synthesized field
-        // in the outline building phase, and the error is reported there. At
-        // this point we skip the member.
-        return;
+      ProcedureKind kind = computeProcedureKind(getOrSet);
+      switch (kind) {
+        case ProcedureKind.Method:
+        case ProcedureKind.Operator:
+          builder = _offsetMap.lookupMethod(identifier);
+        case ProcedureKind.Getter:
+          builder = _offsetMap.lookupGetter(identifier);
+        case ProcedureKind.Setter:
+          builder = _offsetMap.lookupSetter(identifier);
+        // Coverage-ignore(suite): Not run.
+        case ProcedureKind.Factory:
+          throw new UnsupportedError("Unexpected procedure kind: $kind");
       }
-      builder = memberBuilder as SourceFunctionBuilder;
     }
     if (!(builder is SourceExtensionTypeConstructorBuilder &&
         builder.isConst)) {
