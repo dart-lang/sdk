@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Produces a [Snippet] that creates a Flutter StatefulWidget and related State
@@ -14,12 +14,12 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
   static const prefix = 'stful';
   static const label = 'Flutter Stateful Widget';
 
-  late ClassElement? classStatefulWidget;
-  late ClassElement? classState;
+  late ClassElement2? classStatefulWidget;
+  late ClassElement2? classState;
   @override
-  late ClassElement? classBuildContext;
+  late ClassElement2? classBuildContext;
   @override
-  late ClassElement? classKey;
+  late ClassElement2? classKey;
 
   FlutterStatefulWidget(super.request, {required super.elementImportCache});
 
@@ -58,7 +58,7 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
         builder.write('class _');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.write('State extends ');
-        builder.writeReference(classState);
+        builder.writeReference2(classState);
         builder.write('<');
         builder.addSimpleLinkedEdit('name', widgetClassName);
         builder.writeln('> {');

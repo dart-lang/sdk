@@ -533,6 +533,9 @@ lib/src/services/refactoring/legacy/naming_conventions.dart
 lib/src/services/refactoring/move_selected_formal_parameters_left.dart
 lib/src/services/snippets/dart/class_declaration.dart
 lib/src/services/snippets/dart/do_statement.dart
+lib/src/services/snippets/dart/flutter_stateful_widget.dart
+lib/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart
+lib/src/services/snippets/dart/flutter_stateless_widget.dart
 lib/src/services/snippets/dart/for_in_statement.dart
 lib/src/services/snippets/dart/for_statement.dart
 lib/src/services/snippets/dart/function_declaration.dart
@@ -548,6 +551,8 @@ lib/src/services/snippets/dart/while_statement.dart
 lib/src/services/snippets/dart_snippet_request.dart
 lib/src/services/snippets/snippet.dart
 lib/src/services/snippets/snippet_context.dart
+lib/src/services/snippets/snippet_manager.dart
+lib/src/services/snippets/snippet_producer.dart
 lib/src/services/user_prompts/dart_fix_prompt_manager.dart
 lib/src/services/user_prompts/survey_manager.dart
 lib/src/services/user_prompts/user_prompts.dart
@@ -962,6 +967,7 @@ test/services/snippets/dart/test_definition_test.dart
 test/services/snippets/dart/test_group_definition_test.dart
 test/services/snippets/dart/try_catch_statement_test.dart
 test/services/snippets/dart/while_statement_test.dart
+test/services/snippets/snippet_manager_test.dart
 test/services/snippets/snippet_request_test.dart
 test/services/snippets/test_all.dart
 test/services/test_all.dart
