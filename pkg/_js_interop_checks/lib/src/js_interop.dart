@@ -222,7 +222,25 @@ List<String> stringAnnotationValues(Expression node) {
           'positional argument: $node.');
     } else if (argLength == 1) {
       var value = node.arguments.positional[0];
-      if (value is StringLiteral) values.addAll(value.value.split(','));
+      if (value is StringLiteral) {
+        values.addAll(value.value.split(','));
+      } else if (value is StaticGet) {
+        // Sometimes the CFE will translate the following to a StaticGet of a
+        // const field:
+        //
+        // const String fieldName = 'field';
+        // @JS(fieldName)
+        //
+        // In this case we derive the name from the intializer of the referenced
+        // field.
+        var target = value.target;
+        if (target is Field && target.isConst) {
+          final value = target.initializer;
+          if (value is StringLiteral) {
+            values.addAll(value.value.split(','));
+          }
+        }
+      }
     }
   }
   return values;
