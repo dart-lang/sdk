@@ -9,9 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 // Important! Do not add package: imports to this file.
-//
 // Do not add relative deps for libraries that themselves use package deps.
-//
 // This tool runs before the .dart_tool/package_config.json file is created, so
 // can not itself use package references.
 
@@ -89,6 +87,14 @@ void main(List<String> args) {
     ...makePackageConfigs(sampleDirs),
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
+
+  // TODO(devoncarew): Temporarily ignore the second package:file and
+  // package:file_testing locations.
+  packages.removeWhere((p) {
+    final path = posix(p.rootUri);
+    return path == 'third_party/pkg/file/packages/file' ||
+        path == 'third_party/pkg/file/packages/file_testing';
+  });
 
   // Remove any packages with identical names.
   final uniqueNames = packages.map((p) => p.name).toSet();

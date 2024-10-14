@@ -453,6 +453,8 @@ class SdkDeps {
     _findPackages(Directory('pkg'));
     _findPackages(Directory(path.join('third_party', 'devtools')));
     _findPackages(Directory(path.join('third_party', 'pkg')));
+    _findPackages(
+        Directory(path.join('third_party', 'pkg', 'file', 'packages')));
 
     if (verbose) {
       print('Package versions in the SDK:');
