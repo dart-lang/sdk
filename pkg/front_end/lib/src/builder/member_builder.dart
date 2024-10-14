@@ -22,19 +22,16 @@ abstract class MemberBuilder implements Builder {
   /// The declared name of this member;
   Name get memberName;
 
-  /// The [Member] built by this builder;
-  Member get member;
-
   /// The [Member] to use when reading from this member builder.
   ///
-  /// For a field, a getter or a regular method this is the [member] itself.
+  /// For a field, a getter or a regular method this is the member itself.
   /// For an instance extension method this is special tear-off function. For
   /// a constructor, an operator, a factory or a setter this is `null`.
   Member? get readTarget;
 
   /// The [Member] to use when write to this member builder.
   ///
-  /// For an assignable field or a setter this is the [member] itself. For
+  /// For an assignable field or a setter this is the member itself. For
   /// a constructor, a non-assignable field, a getter, an operator or a regular
   /// method this is `null`.
   Member? get writeTarget;
@@ -42,7 +39,7 @@ abstract class MemberBuilder implements Builder {
   /// The [Member] to use when invoking this member builder.
   ///
   /// For a constructor, a field, a regular method, a getter, an operator or
-  /// a factory this is the [member] itself. For a setter this is `null`.
+  /// a factory this is the member itself. For a setter this is `null`.
   Member? get invokeTarget;
 
   /// The members from this builder that are accessible in exports through
@@ -222,7 +219,7 @@ abstract class BuilderClassMember implements ClassMember {
   }
 
   @override
-  bool get isAbstract => memberBuilder.member.isAbstract;
+  bool get isAbstract => memberBuilder.isAbstract;
 
   @override
   bool get isSynthesized => false;

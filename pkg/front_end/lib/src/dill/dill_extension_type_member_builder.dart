@@ -102,7 +102,6 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
   Member? get writeTarget => isAssignable ? field : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => field;
 
   @override
@@ -198,7 +197,6 @@ class DillExtensionTypeStaticMethodBuilder
   Member? get writeTarget => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => procedure;
 }
 
@@ -251,6 +249,7 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
   FunctionNode get function => constructor.function;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Procedure get member => constructor;
 
   @override

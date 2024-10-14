@@ -29,7 +29,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   DillMemberBuilder(Member member, Builder parent)
       : super(parent, member.fileUri, member.fileOffset);
 
-  @override
   Member get member;
 
   @override
@@ -127,7 +126,6 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
   Member? get writeTarget => isAssignable ? field : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member? get invokeTarget => field;
 
   @override
@@ -186,7 +184,6 @@ class DillGetterBuilder extends DillProcedureBuilder {
   Member? get writeTarget => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => procedure;
 }
 
@@ -199,14 +196,12 @@ class DillSetterBuilder extends DillProcedureBuilder {
   Member get member => procedure;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member? get readTarget => null;
 
   @override
   Member get writeTarget => procedure;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member? get invokeTarget => null;
 }
 
@@ -222,11 +217,9 @@ class DillMethodBuilder extends DillProcedureBuilder {
   Member get readTarget => procedure;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => procedure;
 }
 

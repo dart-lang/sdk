@@ -335,9 +335,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  Member get member => _fieldEncoding.field;
-
-  @override
   bool get isField => true;
 
   bool get isLate => modifiers.isLate;
@@ -438,7 +435,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    return new FieldBodyBuilderContext(this,
+    return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember,
         inOutlineBuildingPhase: inOutlineBuildingPhase,
         inMetadata: inMetadata,
         inConstFields: inConstFields);
@@ -632,6 +629,9 @@ abstract class FieldEncoding {
   /// Returns the field that holds the field value at runtime.
   Field get field;
 
+  /// The [Member] built during [SourceFieldBuilder.buildOutlineExpressions].
+  Member get builtMember;
+
   /// Returns the members that holds the field annotations.
   Iterable<Annotatable> get annotatables;
 
@@ -768,6 +768,9 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   Field get field => _field;
+
+  @override
+  Member get builtMember => _field;
 
   @override
   Iterable<Annotatable> get annotatables => [_field];
@@ -1126,6 +1129,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   Field get field => _field;
+
+  @override
+  Member get builtMember => _field;
 
   @override
   Iterable<Annotatable> get annotatables {
@@ -1952,6 +1958,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
+  Member get builtMember => _getter;
+
+  @override
   Iterable<Annotatable> get annotatables {
     List<Annotatable> list = [_getter];
     if (_setter != null) {
@@ -2102,6 +2111,9 @@ class RepresentationFieldEncoding implements FieldEncoding {
   Field get field {
     throw new UnsupportedError("$runtimeType.field");
   }
+
+  @override
+  Member get builtMember => _getter;
 
   @override
   Iterable<Annotatable> get annotatables => [_getter];

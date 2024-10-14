@@ -624,6 +624,8 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
     implements BodyBuilderContext {
   T get _member;
 
+  Member get _builtMember;
+
   @override
   AugmentSuperTarget? get augmentSuperTarget {
     if (_member.isAugmentation) {
@@ -633,12 +635,12 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   }
 
   @override
-  void registerSuperCall() {
-    _member.member.transformerFlags |= TransformerFlag.superCalls;
-  }
+  int get memberCharOffset => _member.charOffset;
 
   @override
-  int get memberCharOffset => _member.charOffset;
+  void registerSuperCall() {
+    _builtMember.transformerFlags |= TransformerFlag.superCalls;
+  }
 }
 
 class FieldBodyBuilderContext extends BodyBuilderContext
@@ -646,7 +648,10 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   @override
   SourceFieldBuilder _member;
 
-  FieldBodyBuilderContext(this._member,
+  @override
+  final Member _builtMember;
+
+  FieldBodyBuilderContext(this._member, this._builtMember,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields})
@@ -780,7 +785,10 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
   @override
   final SourceProcedureBuilder _member;
 
-  ProcedureBodyBuilderContext(this._member,
+  @override
+  final Member _builtMember;
+
+  ProcedureBodyBuilderContext(this._member, this._builtMember,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields})
@@ -798,6 +806,8 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
 mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
     implements BodyBuilderContext {
   T get _member;
+
+  TreeNode get _initializerParent;
 
   @override
   DartType substituteFieldType(DartType fieldType) {
@@ -818,7 +828,7 @@ mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult}) {
     _member.addInitializer(initializer, helper,
-        inferenceResult: inferenceResult);
+        inferenceResult: inferenceResult, parent: _initializerParent);
   }
 
   @override
@@ -859,7 +869,10 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   final DeclaredSourceConstructorBuilder _member;
 
-  ConstructorBodyBuilderContext(this._member,
+  @override
+  final Member _builtMember;
+
+  ConstructorBodyBuilderContext(this._member, this._builtMember,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields})
@@ -883,6 +896,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
+
+  @override
+  TreeNode get _initializerParent => _member.invokeTarget;
 }
 
 class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
@@ -893,8 +909,10 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
         _MemberBodyBuilderContext<SourceExtensionTypeConstructorBuilder> {
   @override
   final SourceExtensionTypeConstructorBuilder _member;
+  @override
+  final Member _builtMember;
 
-  ExtensionTypeConstructorBodyBuilderContext(this._member,
+  ExtensionTypeConstructorBodyBuilderContext(this._member, this._builtMember,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields})
@@ -912,6 +930,9 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => true;
+
+  @override
+  TreeNode get _initializerParent => _member.invokeTarget;
 }
 
 class FactoryBodyBuilderContext extends BodyBuilderContext
@@ -921,7 +942,10 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   @override
   final SourceFactoryBuilder _member;
 
-  FactoryBodyBuilderContext(this._member,
+  @override
+  final Member _builtMember;
+
+  FactoryBodyBuilderContext(this._member, this._builtMember,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields})
@@ -953,7 +977,10 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   @override
   final RedirectingFactoryBuilder _member;
 
-  RedirectingFactoryBodyBuilderContext(this._member,
+  @override
+  final Member _builtMember;
+
+  RedirectingFactoryBodyBuilderContext(this._member, this._builtMember,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields})
@@ -1016,8 +1043,11 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
   @override
   final SourceProcedureBuilder _member;
 
+  @override
+  final Member _builtMember;
+
   ExpressionCompilerProcedureBodyBuildContext(
-      DietListener listener, this._member,
+      DietListener listener, this._member, this._builtMember,
       {required bool isDeclarationInstanceMember,
       required bool inOutlineBuildingPhase,
       required bool inMetadata,

@@ -3313,7 +3313,12 @@ class BodyBuilder extends StackListenerImpl
       assert(declaration.isStatic || declaration.isTopLevel);
       MemberBuilder memberBuilder = declaration as MemberBuilder;
       return new StaticAccessGenerator(
-          this, nameToken, name, memberBuilder.member, null);
+          this,
+          nameToken,
+          name,
+          memberBuilder.readTarget,
+          memberBuilder.invokeTarget,
+          memberBuilder.writeTarget);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       // Wildcard import prefixes are non-binding and cannot be used.
@@ -6515,9 +6520,9 @@ class BodyBuilder extends StackListenerImpl
                           typeDeclarationBuilder.name,
                           nameToken.charOffset));
                 }
-                target = constructorBuilder.member;
+                target = constructorBuilder.invokeTarget;
               } else {
-                target = constructorBuilder.member;
+                target = constructorBuilder.invokeTarget;
               }
               if (target is Constructor ||
                   (target is Procedure &&
@@ -6760,9 +6765,9 @@ class BodyBuilder extends StackListenerImpl
                     typeDeclarationBuilder.name,
                     nameToken.charOffset));
           }
-          target = constructorBuilder.member;
+          target = constructorBuilder.invokeTarget;
         } else {
-          target = constructorBuilder.member;
+          target = constructorBuilder.invokeTarget;
         }
         if (typeDeclarationBuilder.isEnum &&
             !(libraryFeatures.enhancedEnums.isEnabled &&
@@ -6796,7 +6801,7 @@ class BodyBuilder extends StackListenerImpl
           message = constructorBuilder.message
               .withLocation(uri, charOffset, noLength);
         } else {
-          target = constructorBuilder.member;
+          target = constructorBuilder.invokeTarget;
         }
         if (target != null) {
           return buildStaticInvocation(target, arguments,
@@ -9089,7 +9094,7 @@ class BodyBuilder extends StackListenerImpl
         MemberBuilder constructor =
             libraryBuilder.loader.getDuplicatedFieldInitializerError();
         Expression invocation = buildStaticInvocation(
-            constructor.member,
+            constructor.invokeTarget!,
             forest.createArguments(assignmentOffset, <Expression>[
               forest.createStringLiteral(assignmentOffset, name)
             ]),
