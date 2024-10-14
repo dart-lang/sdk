@@ -100,6 +100,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<FactoryFragment> _nativeFactoryFragments = [];
 
+  final List<GetterFragment> _nativeGetterFragments = [];
+
+  final List<SetterFragment> _nativeSetterFragments = [];
+
   final List<MethodFragment> _nativeMethodFragments = [];
 
   final List<ConstructorFragment> _nativeConstructorFragments = [];
@@ -1531,25 +1535,70 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           beginInitializers: beginInitializers,
           forAbstractClassOrMixin: forAbstractClassOrMixin);
     } else {
-      addProcedure(
-          offsetMap,
-          metadata,
-          modifiers,
-          returnType,
-          identifier,
-          name,
-          typeVariables,
-          formals,
-          kind!,
-          startCharOffset,
-          charOffset,
-          formalsOffset,
-          endCharOffset,
-          nativeMethodName,
-          asyncModifier,
-          isInstanceMember: !isStatic,
-          isExtensionMember: isExtensionMember,
-          isExtensionTypeMember: isExtensionTypeMember);
+      switch (kind!) {
+        case ProcedureKind.Method:
+        case ProcedureKind.Operator:
+          addMethod(
+              offsetMap,
+              metadata,
+              modifiers,
+              returnType,
+              identifier,
+              name,
+              typeVariables,
+              formals,
+              kind,
+              startCharOffset,
+              charOffset,
+              formalsOffset,
+              endCharOffset,
+              nativeMethodName,
+              asyncModifier,
+              isInstanceMember: !isStatic,
+              isExtensionMember: isExtensionMember,
+              isExtensionTypeMember: isExtensionTypeMember);
+        case ProcedureKind.Getter:
+          addGetter(
+              offsetMap,
+              metadata,
+              modifiers,
+              returnType,
+              identifier,
+              name,
+              typeVariables,
+              formals,
+              startCharOffset,
+              charOffset,
+              formalsOffset,
+              endCharOffset,
+              nativeMethodName,
+              asyncModifier,
+              isInstanceMember: !isStatic,
+              isExtensionMember: isExtensionMember,
+              isExtensionTypeMember: isExtensionTypeMember);
+        case ProcedureKind.Setter:
+          addSetter(
+              offsetMap,
+              metadata,
+              modifiers,
+              returnType,
+              identifier,
+              name,
+              typeVariables,
+              formals,
+              startCharOffset,
+              charOffset,
+              formalsOffset,
+              endCharOffset,
+              nativeMethodName,
+              asyncModifier,
+              isInstanceMember: !isStatic,
+              isExtensionMember: isExtensionMember,
+              isExtensionTypeMember: isExtensionTypeMember);
+        // Coverage-ignore(suite): Not run.
+        case ProcedureKind.Factory:
+          throw new UnsupportedError("Unexpected procedure kind: $kind");
+      }
     }
   }
 
@@ -1874,6 +1923,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return suffix;
   }
 
+  void _addNativeGetterFragment(GetterFragment fragment) {
+    _nativeGetterFragments.add(fragment);
+  }
+
+  void _addNativeSetterFragment(SetterFragment fragment) {
+    _nativeSetterFragments.add(fragment);
+  }
+
   void _addNativeMethodFragment(MethodFragment fragment) {
     _nativeMethodFragments.add(fragment);
   }
@@ -1887,7 +1944,115 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void addProcedure(
+  void addGetter(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      Modifiers modifiers,
+      TypeBuilder? returnType,
+      Identifier identifier,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      AsyncMarker asyncModifier,
+      {required bool isInstanceMember,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember}) {
+    DeclarationFragment? enclosingDeclaration =
+        _declarationFragments.currentOrNull;
+    assert(!isExtensionMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionTypeDeclaration);
+
+    GetterFragment fragment = new GetterFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        metadata: metadata,
+        modifiers: modifiers,
+        returnType: returnType ?? addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        asyncModifier: asyncModifier,
+        nativeMethodName: nativeMethodName);
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
+        ownerName: name, allowNameConflict: true);
+    _addFragment(fragment);
+    if (nativeMethodName != null) {
+      _addNativeGetterFragment(fragment);
+    }
+    offsetMap.registerGetter(identifier, fragment);
+  }
+
+  @override
+  void addSetter(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      Modifiers modifiers,
+      TypeBuilder? returnType,
+      Identifier identifier,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      AsyncMarker asyncModifier,
+      {required bool isInstanceMember,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember}) {
+    DeclarationFragment? enclosingDeclaration =
+        _declarationFragments.currentOrNull;
+    assert(!isExtensionMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        enclosingDeclaration?.kind ==
+            DeclarationFragmentKind.extensionTypeDeclaration);
+
+    if (returnType == null) {
+      returnType = addVoidType(charOffset);
+    }
+
+    SetterFragment fragment = new SetterFragment(
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        startCharOffset: startCharOffset,
+        charOffset: charOffset,
+        charOpenParenOffset: charOpenParenOffset,
+        charEndOffset: charEndOffset,
+        metadata: metadata,
+        modifiers: modifiers,
+        returnType: returnType,
+        typeParameters: typeVariables,
+        formals: formals,
+        asyncModifier: asyncModifier,
+        nativeMethodName: nativeMethodName);
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
+        ownerName: name, allowNameConflict: true);
+    _addFragment(fragment);
+    if (nativeMethodName != null) {
+      _addNativeSetterFragment(fragment);
+    }
+    offsetMap.registerSetter(identifier, fragment);
+  }
+
+  @override
+  void addMethod(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       Modifiers modifiers,
@@ -1920,6 +2085,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           identical(name, indexSetName.text)) {
         returnType = addVoidType(charOffset);
       } else if (kind == ProcedureKind.Setter) {
+        // Coverage-ignore-block(suite): Not run.
         returnType = addVoidType(charOffset);
       }
     }
@@ -1946,7 +2112,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     if (nativeMethodName != null) {
       _addNativeMethodFragment(fragment);
     }
-    offsetMap.registerProcedure(identifier, fragment);
+    offsetMap.registerMethod(identifier, fragment);
   }
 
   @override
@@ -2321,6 +2487,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   int finishNativeMethods() {
     for (FactoryFragment fragment in _nativeFactoryFragments) {
+      fragment.builder.becomeNative(loader);
+    }
+    for (GetterFragment fragment in _nativeGetterFragments) {
+      fragment.builder.becomeNative(loader);
+    }
+    for (SetterFragment fragment in _nativeSetterFragments) {
       fragment.builder.becomeNative(loader);
     }
     for (MethodFragment fragment in _nativeMethodFragments) {

@@ -423,6 +423,100 @@ class FieldFragment implements Fragment {
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
 
+class GetterFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charOpenParenOffset;
+  final int charEndOffset;
+  final List<MetadataBuilder>? metadata;
+  final Modifiers modifiers;
+  final TypeBuilder returnType;
+  final List<NominalVariableBuilder>? typeParameters;
+  final List<FormalParameterBuilder>? formals;
+  final AsyncMarker asyncModifier;
+  final String? nativeMethodName;
+
+  SourceProcedureBuilder? _builder;
+
+  GetterFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charOpenParenOffset,
+      required this.charEndOffset,
+      required this.metadata,
+      required this.modifiers,
+      required this.returnType,
+      required this.typeParameters,
+      required this.formals,
+      required this.asyncModifier,
+      required this.nativeMethodName});
+
+  @override
+  SourceProcedureBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceProcedureBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
+class SetterFragment implements Fragment {
+  final String name;
+  final Uri fileUri;
+  final int startCharOffset;
+  final int charOffset;
+  final int charOpenParenOffset;
+  final int charEndOffset;
+  final List<MetadataBuilder>? metadata;
+  final Modifiers modifiers;
+  final TypeBuilder returnType;
+  final List<NominalVariableBuilder>? typeParameters;
+  final List<FormalParameterBuilder>? formals;
+  final AsyncMarker asyncModifier;
+  final String? nativeMethodName;
+
+  SourceProcedureBuilder? _builder;
+
+  SetterFragment(
+      {required this.name,
+      required this.fileUri,
+      required this.startCharOffset,
+      required this.charOffset,
+      required this.charOpenParenOffset,
+      required this.charEndOffset,
+      required this.metadata,
+      required this.modifiers,
+      required this.returnType,
+      required this.typeParameters,
+      required this.formals,
+      required this.asyncModifier,
+      required this.nativeMethodName});
+
+  @override
+  SourceProcedureBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourceProcedureBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
 class MethodFragment implements Fragment {
   final String name;
   final Uri fileUri;

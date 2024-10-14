@@ -4,24 +4,23 @@
 
 library _fe_analyzer_shared.scanner;
 
-import 'dart:typed_data' show Uint8List;
-
 import 'dart:convert' show Utf8Encoder, unicodeReplacementCharacterRune;
-
-import 'token.dart' show Token;
+import 'dart:typed_data' show Uint8List;
 
 import 'abstract_scanner.dart'
     show LanguageVersionChanged, ScannerConfiguration;
-
-import 'string_scanner.dart' show StringScanner;
-
-import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
-
 import 'recover.dart' show scannerRecovery;
+import 'string_scanner.dart' show StringScanner;
+import 'token.dart' show Token;
+import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 export 'abstract_scanner.dart'
     show LanguageVersionChanged, ScannerConfiguration;
-
+export 'error_token.dart' show ErrorToken, buildUnexpectedCharacterToken;
+export 'string_scanner.dart' show StringScanner;
+export 'token.dart'
+    show LanguageVersionToken, Keyword, Token, TokenIsAExtension;
+export 'token_constants.dart' show EOF_TOKEN;
 export 'token_impl.dart'
     show
         StringTokenImpl,
@@ -30,18 +29,7 @@ export 'token_impl.dart'
         isTernaryOperator,
         isUnaryOperator,
         isUserDefinableOperator;
-
-export 'error_token.dart' show ErrorToken, buildUnexpectedCharacterToken;
-
-export 'token.dart' show LanguageVersionToken;
-
-export 'token_constants.dart' show EOF_TOKEN;
-
 export 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
-
-export 'string_scanner.dart' show StringScanner;
-
-export 'token.dart' show Keyword, Token;
 
 const int unicodeReplacementCharacter = unicodeReplacementCharacterRune;
 

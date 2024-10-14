@@ -23,11 +23,13 @@ import 'source_function_builder.dart';
 /// are created, with the [DietListener], where the objects are looked up.
 class OffsetMap {
   final Uri uri;
-  final Map<int, DeclarationFragment> _declarationFragments = {};
+  final Map<int, DeclarationFragment> _declarations = {};
   final Map<int, FieldFragment> _fields = {};
-  final Map<int, ConstructorFragment> _constructorFragments = {};
+  final Map<int, ConstructorFragment> _constructors = {};
   final Map<int, FactoryFragment> _factoryFragments = {};
-  final Map<int, MethodFragment> _procedures = {};
+  final Map<int, GetterFragment> _getters = {};
+  final Map<int, SetterFragment> _setters = {};
+  final Map<int, MethodFragment> _methods = {};
   final Map<int, LibraryPart> _parts = {};
   final Map<int, Import> _imports = {};
   final Map<int, Export> _exports = {};
@@ -75,21 +77,21 @@ class OffsetMap {
 
   void registerNamedDeclarationFragment(
       Identifier identifier, DeclarationFragment fragment) {
-    _declarationFragments[identifier.nameOffset] = fragment;
+    _declarations[identifier.nameOffset] = fragment;
   }
 
   DeclarationBuilder lookupNamedDeclaration(Identifier identifier) {
-    return _checkBuilder(_declarationFragments[identifier.nameOffset]?.builder,
+    return _checkBuilder(_declarations[identifier.nameOffset]?.builder,
         identifier.name, identifier.nameOffset);
   }
 
   void registerUnnamedDeclaration(
       Token beginToken, DeclarationFragment fragment) {
-    _declarationFragments[beginToken.charOffset] = fragment;
+    _declarations[beginToken.charOffset] = fragment;
   }
 
   DeclarationBuilder lookupUnnamedDeclaration(Token beginToken) {
-    return _checkBuilder(_declarationFragments[beginToken.charOffset]?.builder,
+    return _checkBuilder(_declarations[beginToken.charOffset]?.builder,
         '<unnamed-declaration>', beginToken.charOffset);
   }
 
@@ -104,17 +106,17 @@ class OffsetMap {
 
   void registerPrimaryConstructor(
       Token beginToken, ConstructorFragment builder) {
-    _constructorFragments[beginToken.charOffset] = builder;
+    _constructors[beginToken.charOffset] = builder;
   }
 
   SourceFunctionBuilder lookupPrimaryConstructor(Token beginToken) {
-    return _checkBuilder(_constructorFragments[beginToken.charOffset]?.builder,
+    return _checkBuilder(_constructors[beginToken.charOffset]?.builder,
         '<primary-constructor>', beginToken.charOffset);
   }
 
   void registerConstructorFragment(
       Identifier identifier, ConstructorFragment fragment) {
-    _constructorFragments[identifier.nameOffset] = fragment;
+    _constructors[identifier.nameOffset] = fragment;
   }
 
   void registerFactoryFragment(
@@ -124,18 +126,36 @@ class OffsetMap {
 
   SourceFunctionBuilder lookupConstructor(Identifier identifier) {
     return _checkBuilder(
-        _constructorFragments[identifier.nameOffset]?.builder ??
+        _constructors[identifier.nameOffset]?.builder ??
             _factoryFragments[identifier.nameOffset]?.builder,
         identifier.name,
         identifier.nameOffset);
   }
 
-  void registerProcedure(Identifier identifier, MethodFragment fragment) {
-    _procedures[identifier.nameOffset] = fragment;
+  void registerGetter(Identifier identifier, GetterFragment fragment) {
+    _getters[identifier.nameOffset] = fragment;
   }
 
-  SourceFunctionBuilder lookupProcedure(Identifier identifier) {
-    return _checkBuilder(_procedures[identifier.nameOffset]?.builder,
+  void registerSetter(Identifier identifier, SetterFragment fragment) {
+    _setters[identifier.nameOffset] = fragment;
+  }
+
+  void registerMethod(Identifier identifier, MethodFragment fragment) {
+    _methods[identifier.nameOffset] = fragment;
+  }
+
+  SourceFunctionBuilder lookupGetter(Identifier identifier) {
+    return _checkBuilder(_getters[identifier.nameOffset]?.builder,
+        identifier.name, identifier.nameOffset);
+  }
+
+  SourceFunctionBuilder lookupSetter(Identifier identifier) {
+    return _checkBuilder(_setters[identifier.nameOffset]?.builder,
+        identifier.name, identifier.nameOffset);
+  }
+
+  SourceFunctionBuilder lookupMethod(Identifier identifier) {
+    return _checkBuilder(_methods[identifier.nameOffset]?.builder,
         identifier.name, identifier.nameOffset);
   }
 
