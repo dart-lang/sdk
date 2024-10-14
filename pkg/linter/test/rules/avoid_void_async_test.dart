@@ -112,7 +112,6 @@ void f() {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4941')
   test_functionLocal_main_async_arrow() async {
     await assertDiagnostics(r'''
 void f() {
