@@ -146,9 +146,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  Member get member => _procedure;
-
-  @override
   SourceFactoryBuilder get origin => actualOrigin ?? this;
 
   @override
@@ -329,7 +326,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    return new FactoryBodyBuilderContext(this,
+    return new FactoryBodyBuilderContext(this, _procedure,
         inOutlineBuildingPhase: inOutlineBuildingPhase,
         inMetadata: inMetadata,
         inConstFields: inConstFields);
@@ -530,11 +527,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             classHierarchy, delayedDefaultValueCloners);
       }
       if (targetBuilder is FunctionBuilder) {
-        target = targetBuilder.member;
+        target = targetBuilder.invokeTarget!;
       }
       // Coverage-ignore(suite): Not run.
       else if (targetBuilder is DillMemberBuilder) {
-        target = targetBuilder.member;
+        target = targetBuilder.invokeTarget!;
       } else {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             charOffset, fileUri);
@@ -889,7 +886,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    return new RedirectingFactoryBodyBuilderContext(this,
+    return new RedirectingFactoryBodyBuilderContext(this, _procedure,
         inOutlineBuildingPhase: inOutlineBuildingPhase,
         inMetadata: inMetadata,
         inConstFields: inConstFields);

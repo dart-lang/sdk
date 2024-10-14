@@ -185,13 +185,13 @@ abstract class AbstractSourceConstructorBuilder
   List<Initializer> get initializers;
 
   void _injectInvalidInitializer(Message message, int charOffset, int length,
-      ExpressionGeneratorHelper helper) {
+      ExpressionGeneratorHelper helper, TreeNode parent) {
     Initializer lastInitializer = initializers.removeLast();
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
         helper.buildProblem(message, charOffset, length));
-    initializers.add(error..parent = member);
+    initializers.add(error..parent = parent);
     initializers.add(lastInitializer);
   }
 
@@ -201,19 +201,21 @@ abstract class AbstractSourceConstructorBuilder
 
   @override
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
+      {required InitializerInferenceResult? inferenceResult,
+      required TreeNode parent}) {
     if (initializer is SuperInitializer) {
       if (superInitializer != null) {
         _injectInvalidInitializer(messageMoreThanOneSuperInitializer,
-            initializer.fileOffset, "super".length, helper);
+            initializer.fileOffset, "super".length, helper, parent);
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
             messageRedirectingConstructorWithSuperInitializer,
             initializer.fileOffset,
             "super".length,
-            helper);
+            helper,
+            parent);
       } else {
-        inferenceResult?.applyResult(initializers, member);
+        inferenceResult?.applyResult(initializers, parent);
         superInitializer = initializer;
 
         LocatedMessage? message = helper.checkArgumentsForFunction(
@@ -230,9 +232,9 @@ abstract class AbstractSourceConstructorBuilder
                   isSuper: true,
                   message: message,
                   kind: UnresolvedKind.Constructor))
-            ..parent = member);
+            ..parent = parent);
         } else {
-          initializers.add(initializer..parent = member);
+          initializers.add(initializer..parent = parent);
         }
       }
     } else if (initializer is RedirectingInitializer) {
@@ -242,13 +244,15 @@ abstract class AbstractSourceConstructorBuilder
             messageRedirectingConstructorWithSuperInitializer,
             superInitializer!.fileOffset,
             "super".length,
-            helper);
+            helper,
+            parent);
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
             messageRedirectingConstructorWithMultipleRedirectInitializers,
             initializer.fileOffset,
             noLength,
-            helper);
+            helper,
+            parent);
       } else if (initializers.isNotEmpty) {
         // Error on all previous ones.
         for (int i = 0; i < initializers.length; i++) {
@@ -260,14 +264,14 @@ abstract class AbstractSourceConstructorBuilder
                   messageRedirectingConstructorWithAnotherInitializer,
                   initializer.fileOffset,
                   length));
-          error.parent = member;
+          error.parent = parent;
           initializers[i] = error;
         }
-        inferenceResult?.applyResult(initializers, member);
-        initializers.add(initializer..parent = member);
+        inferenceResult?.applyResult(initializers, parent);
+        initializers.add(initializer..parent = parent);
         redirectingInitializer = initializer;
       } else {
-        inferenceResult?.applyResult(initializers, member);
+        inferenceResult?.applyResult(initializers, parent);
         redirectingInitializer = initializer;
 
         LocatedMessage? message = helper.checkArgumentsForFunction(
@@ -284,9 +288,9 @@ abstract class AbstractSourceConstructorBuilder
                   isSuper: false,
                   message: message,
                   kind: UnresolvedKind.Constructor))
-            ..parent = member);
+            ..parent = parent);
         } else {
-          initializers.add(initializer..parent = member);
+          initializers.add(initializer..parent = parent);
         }
       }
     } else if (redirectingInitializer != null) {
@@ -296,13 +300,14 @@ abstract class AbstractSourceConstructorBuilder
           messageRedirectingConstructorWithAnotherInitializer,
           initializer.fileOffset,
           length,
-          helper);
+          helper,
+          parent);
     } else if (superInitializer != null) {
       _injectInvalidInitializer(messageSuperInitializerNotLast,
-          initializer.fileOffset, noLength, helper);
+          initializer.fileOffset, noLength, helper, parent);
     } else {
-      inferenceResult?.applyResult(initializers, member);
-      initializers.add(initializer..parent = member);
+      inferenceResult?.applyResult(initializers, parent);
+      initializers.add(initializer..parent = parent);
     }
   }
 
@@ -904,9 +909,6 @@ class DeclaredSourceConstructorBuilder
   Constructor get constructor =>
       isAugmenting ? origin.constructor : _constructor;
 
-  @override
-  Member get member => constructor;
-
   void _finishAugmentation() {
     finishConstructorAugmentation(origin.constructor, _constructor);
 
@@ -1012,7 +1014,7 @@ class DeclaredSourceConstructorBuilder
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    return new ConstructorBodyBuilderContext(this,
+    return new ConstructorBodyBuilderContext(this, constructor,
         inOutlineBuildingPhase: inOutlineBuildingPhase,
         inMetadata: inMetadata,
         inConstFields: inConstFields);
@@ -1212,9 +1214,6 @@ class SourceExtensionTypeConstructorBuilder
 
   SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
       parent as SourceExtensionTypeDeclarationBuilder;
-
-  @override
-  Member get member => _constructor;
 
   @override
   Member get readTarget =>
@@ -1438,7 +1437,7 @@ class SourceExtensionTypeConstructorBuilder
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    return new ExtensionTypeConstructorBodyBuilderContext(this,
+    return new ExtensionTypeConstructorBodyBuilderContext(this, _constructor,
         inOutlineBuildingPhase: inOutlineBuildingPhase,
         inMetadata: inMetadata,
         inConstFields: inConstFields);

@@ -516,20 +516,23 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   void becomeNative(SourceLoader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
-    Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
-    Expression annotation;
-    if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(
-          constructor.member as Constructor, arguments)
-        ..isConst = true;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      annotation =
-          new StaticInvocation(constructor.member as Procedure, arguments)
-            ..isConst = true;
+    for (Annotatable annotatable in annotatables) {
+      Arguments arguments =
+          new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
+      Expression annotation;
+      if (constructor.isConstructor) {
+        annotation = new ConstructorInvocation(
+            constructor.invokeTarget as Constructor, arguments)
+          ..isConst = true;
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        annotation = new StaticInvocation(
+            constructor.invokeTarget as Procedure, arguments)
+          ..isConst = true;
+      }
+
+      annotatable.addAnnotation(annotation);
     }
-    member.addAnnotation(annotation);
   }
 
   @override

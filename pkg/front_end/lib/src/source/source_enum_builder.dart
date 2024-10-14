@@ -562,7 +562,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
               objectClass.fileUri);
         } else {
           constructor.initializers.add(new SuperInitializer(
-              superConstructor.member as Constructor,
+              superConstructor.invokeTarget as Constructor,
               new Arguments.forwarded(
                   constructor.function, libraryBuilder.library))
             ..parent = constructor);
@@ -779,7 +779,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     if (toStringSuperTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      toStringBuilder.member.transformerFlags |= TransformerFlag.superCalls;
+      toStringBuilder.invokeTarget!.transformerFlags |=
+          TransformerFlag.superCalls;
       toStringBuilder.body = new ReturnStatement(new SuperMethodInvocation(
           toStringName, new Arguments([]), toStringSuperTarget));
     } else {
@@ -788,7 +789,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       MemberBuilder? nameFieldBuilder =
           enumClass.lookupLocalMember("_name") as MemberBuilder?;
       assert(nameFieldBuilder != null);
-      Field nameField = nameFieldBuilder!.member as Field;
+      Field nameField = nameFieldBuilder!.readTarget as Field;
 
       toStringBuilder.body = new ReturnStatement(new StringConcatenation([
         new StringLiteral("${cls.demangledName}."),

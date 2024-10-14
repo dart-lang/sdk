@@ -227,11 +227,13 @@ f() {
   }
 
   test_literal_int() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 f() {
   int i = 1;
 }
-''');
+''', [
+      lint(8, 3),
+    ]);
   }
 
   // `Null` is not obvious, the inferred type is `dynamic`.

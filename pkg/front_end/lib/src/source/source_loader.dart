@@ -1380,7 +1380,8 @@ severity: $severity
             libraryName: libraryBuilder.libraryName))
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
-        new ExpressionCompilerProcedureBodyBuildContext(dietListener, builder,
+        new ExpressionCompilerProcedureBodyBuildContext(
+            dietListener, builder, builder.invokeTarget!,
             isDeclarationInstanceMember: isClassInstanceMember,
             inOutlineBuildingPhase: false,
             inMetadata: false,
@@ -2998,7 +2999,7 @@ severity: $severity
               mainBuilder.fileUri);
         }
       } else {
-        Procedure procedure = mainBuilder.member as Procedure;
+        Procedure procedure = mainBuilder.invokeTarget as Procedure;
         if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(

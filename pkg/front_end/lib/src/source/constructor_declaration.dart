@@ -30,7 +30,8 @@ abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   bool get isEffectivelyRedirecting;
 
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult});
+      {required InitializerInferenceResult? inferenceResult,
+      required TreeNode parent});
 
   void prepareInitializers();
 

@@ -178,9 +178,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  Member get member => procedure;
-
-  @override
   SourceProcedureBuilder get origin => _origin ?? this;
 
   @override
@@ -249,10 +246,12 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     switch (kind) {
       case ProcedureKind.Setter:
         return procedure;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Method:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Getter:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Operator:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         return null;
     }
@@ -331,7 +330,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           break;
       }
     } else {
-      f(member: member, kind: BuiltMemberKind.Method);
+      f(member: _procedure, kind: BuiltMemberKind.Method);
     }
   }
 
@@ -680,7 +679,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
-    return new ProcedureBodyBuilderContext(this,
+    return new ProcedureBodyBuilderContext(this, procedure,
         inOutlineBuildingPhase: inOutlineBuildingPhase,
         inMetadata: inMetadata,
         inConstFields: inConstFields);
@@ -727,7 +726,7 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
     memberBuilder._ensureTypes(membersBuilder);
-    return memberBuilder.member;
+    return memberBuilder._procedure;
   }
 
   @override

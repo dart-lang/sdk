@@ -486,12 +486,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Expression annotation;
     if (constructor.isConstructor) {
       annotation = new ConstructorInvocation(
-          constructor.member as Constructor, arguments)
+          constructor.invokeTarget as Constructor, arguments)
         ..isConst = true;
     } else {
       // Coverage-ignore-block(suite): Not run.
       annotation =
-          new StaticInvocation(constructor.member as Procedure, arguments)
+          new StaticInvocation(constructor.invokeTarget as Procedure, arguments)
             ..isConst = true;
     }
     library.addAnnotation(annotation);
