@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -79,10 +79,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      var returnType = node.declaredElement?.returnType;
+      var returnType = node.declaredFragment?.element.returnType;
       if (returnType is InterfaceType &&
-          // ignore: cast_nullable_to_non_nullable
-          returnType.element == (parent as Declaration).declaredElement) {
+          returnType.element3 ==
+              // ignore: cast_nullable_to_non_nullable
+              (parent as FragmentDeclaration).declaredFragment?.element) {
       } else {
         return;
       }
