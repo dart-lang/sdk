@@ -18,7 +18,7 @@ class TestResultOutcome {
 
   TestResultOutcome({
     required this.configuration,
-    this.suiteName = 'tests/reload',
+    this.suiteName = 'hot_reload',
     required this.testName,
     this.expectedResult = 'Pass',
     this.testOutput = '',

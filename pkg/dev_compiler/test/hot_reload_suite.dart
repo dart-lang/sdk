@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:dev_compiler/dev_compiler.dart' as ddc_names
     show libraryUriToJsIdentifier;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:path/path.dart' as p;
 import 'package:reload_test/ddc_helpers.dart' as ddc_helpers;
 import 'package:reload_test/frontend_server_controller.dart';
 import 'package:reload_test/hot_reload_memory_filesystem.dart';
@@ -232,9 +233,10 @@ Future<void> main(List<String> args) async {
     // Report results for this test's sources' diff validations.
     void reportDiffOutcome(Uri fileUri, String testOutput, bool testPassed) {
       final filePath = fileUri.path;
+      final relativeFilePath = p.relative(filePath, from: allTestsUri.path);
       var outcome = TestResultOutcome(
         configuration: argResults['named-configuration'] as String,
-        testName: '$filePath-diff',
+        testName: '$relativeFilePath-diff',
         testOutput: testOutput,
       );
       outcome.elapsedTime = stopwatch.elapsed;
