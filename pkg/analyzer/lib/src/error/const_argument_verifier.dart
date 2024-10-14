@@ -6,9 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -17,10 +18,7 @@ import 'package:analyzer/src/error/codes.dart';
 class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
-  final ConstantEvaluator _constantEvaluator;
-
-  ConstArgumentsVerifier(this._errorReporter)
-      : _constantEvaluator = ConstantEvaluator();
+  ConstArgumentsVerifier(this._errorReporter);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -114,15 +112,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         } else {
           resolvedArgument = argument;
         }
-        if (resolvedArgument is Identifier) {
-          var staticElement = resolvedArgument.staticElement;
-          if (staticElement != null &&
-              staticElement.nonSynthetic is ConstVariableElement) {
-            return;
-          }
-        }
-        if (resolvedArgument.accept(_constantEvaluator) ==
-            ConstantEvaluator.NOT_A_CONSTANT) {
+        if (!_isConst(resolvedArgument)) {
           _errorReporter.atNode(
             argument,
             WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
@@ -131,5 +121,36 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         }
       }
     }
+  }
+
+  bool _isConst(Expression expression) {
+    if (expression.inConstantContext) {
+      return true;
+    } else if (expression is InstanceCreationExpression && expression.isConst) {
+      return true;
+    } else if (expression is Literal) {
+      return switch (expression) {
+        BooleanLiteral() => true,
+        DoubleLiteral() => true,
+        IntegerLiteral() => true,
+        NullLiteral() => true,
+        SimpleStringLiteral() => true,
+        AdjacentStrings() => true,
+        SymbolLiteral() => true,
+        RecordLiteral() => expression.isConst,
+        TypedLiteral() => expression.isConst,
+        // TODO(mosum): Expand the logic to check if the individual interpolation elements are const.
+        StringInterpolation() => false,
+      };
+    } else if (expression is Identifier) {
+      var staticElement = expression.staticElement;
+      if (staticElement != null) {
+        if ((staticElement is VariableElement && staticElement.isConst) ||
+            staticElement.nonSynthetic is ConstVariableElement) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
