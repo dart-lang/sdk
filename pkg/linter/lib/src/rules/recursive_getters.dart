@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 
@@ -31,11 +31,11 @@ class RecursiveGetters extends LintRule {
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final LintRule rule;
-  final ExecutableElement element;
+  final ExecutableElement2 element;
   _BodyVisitor(this.element, this.rule);
 
   bool isSelfReference(SimpleIdentifier node) {
-    if (node.staticElement != element) return false;
+    if (node.element != element) return false;
     var parent = node.parent;
     if (parent is PrefixedIdentifier) return false;
     if (parent is PropertyAccess && parent.target is! ThisExpression) {
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // getters have null arguments, methods have parameters, could be empty.
     if (node.functionExpression.parameters != null) return;
 
-    _verifyElement(node.functionExpression, node.declaredElement);
+    _verifyElement(node.functionExpression, node.declaredFragment?.element);
   }
 
   @override
@@ -84,10 +84,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     // getters have null arguments, methods have parameters, could be empty.
     if (node.parameters != null) return;
 
-    _verifyElement(node.body, node.declaredElement);
+    _verifyElement(node.body, node.declaredFragment?.element);
   }
 
-  void _verifyElement(AstNode node, ExecutableElement? element) {
+  void _verifyElement(AstNode node, ExecutableElement2? element) {
     if (element == null) return;
     node.accept(_BodyVisitor(element, rule));
   }
