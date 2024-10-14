@@ -38,7 +38,6 @@ linter:
     - no_adjacent_strings_in_list
     - noop_primitive_operations
     - only_throw_errors
-    - package_api_docs
     - parameter_assignments
     - prefer_asserts_in_initializer_lists
     - prefer_const_constructors_in_immutables
