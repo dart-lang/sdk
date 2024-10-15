@@ -1908,7 +1908,7 @@ library
       functions
         foo @68
           reference: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
     <testLibrary>::@fragment::package:test/a11.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
@@ -1916,7 +1916,7 @@ library
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
     <testLibrary>::@fragment::package:test/a12.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
@@ -1924,7 +1924,7 @@ library
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
     <testLibrary>::@fragment::package:test/a2.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
@@ -1932,7 +1932,7 @@ library
       functions
         foo @68
           reference: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
     <testLibrary>::@fragment::package:test/a21.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
@@ -1940,35 +1940,17 @@ library
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
     <testLibrary>::@fragment::package:test/a22.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
       functions
         foo @32
           reference: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a1.dart::@functionAugmentation::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a11.dart::@functionAugmentation::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a12.dart::@functionAugmentation::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a2.dart::@functionAugmentation::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a21.dart::@functionAugmentation::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a22.dart::@functionAugmentation::foo
       returnType: void
 ''');
   }
@@ -2112,13 +2094,10 @@ library
       functions
         foo @34
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo#element
+          element: <testLibraryFragment>::@function::foo#element
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
       returnType: void
   exportedReferences
     declared <testLibraryFragment>::@function::foo
@@ -2186,13 +2165,10 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@function::foo#element
         foo @48
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo#element
+          element: <testLibrary>::@fragment::package:test/a.dart::@function::foo#element
   functions
     foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@function::foo
-      returnType: void
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
       returnType: void
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo

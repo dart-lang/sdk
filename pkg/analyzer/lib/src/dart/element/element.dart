@@ -4780,8 +4780,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   TopLevelFunctionFragment? get nextFragment {
     if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return null;
+      return augmentation;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
@@ -4791,8 +4790,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   TopLevelFunctionFragment? get previousFragment {
     if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return null;
+      return augmentationTarget;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');

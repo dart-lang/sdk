@@ -37,7 +37,7 @@ void f() {
 SimpleIdentifier
   token: foo
   staticElement: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
-  element: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo#element
+  element: <testLibraryFragment>::@function::foo#element
   staticType: void Function()
 ''');
   }
