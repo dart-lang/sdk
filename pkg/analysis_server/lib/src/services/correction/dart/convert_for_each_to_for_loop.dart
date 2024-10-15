@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -34,7 +35,7 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
     if (statement is! ExpressionStatement) {
       return;
     }
-    var argument = invocation.argumentList.arguments[0];
+    var argument = invocation.argumentList.arguments.first;
     if (argument is! FunctionExpression) {
       return;
     }
@@ -42,7 +43,7 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
     if (parameters == null || parameters.length != 1) {
       return;
     }
-    var parameter = parameters[0];
+    var parameter = parameters.first;
     if (parameter is! NormalFormalParameter) {
       return;
     }
@@ -50,6 +51,10 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
     if (loopVariableName == null) {
       return;
     }
+    var codeStyleOptions = getCodeStyleOptions(unitResult.file);
+    var specifyTypes = codeStyleOptions.specifyTypes;
+    var preferFinal = codeStyleOptions.finalInForEach;
+    var type = parameter.declaredFragment?.element.type;
     var target = utils.getNodeText(invocation.target!);
     var body = argument.body;
     if (body.isAsynchronous || body.isGenerator) {
@@ -58,7 +63,19 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
     if (body is BlockFunctionBody) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.startStart(invocation, body), (builder) {
-          builder.write('for (var ');
+          builder.write('for (');
+          if (preferFinal) {
+            builder.write(Keyword.FINAL.lexeme);
+            if (specifyTypes) {
+              builder.write(' ');
+              builder.writeType(type);
+            }
+          } else if (specifyTypes) {
+            builder.writeType(type);
+          } else {
+            builder.write(Keyword.VAR.lexeme);
+          }
+          builder.write(' ');
           builder.write(loopVariableName);
           builder.write(' in ');
           builder.write(target);
@@ -76,7 +93,19 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.startStart(invocation, expression),
             (builder) {
-          builder.write('for (var ');
+          builder.write('for (');
+          if (preferFinal) {
+            builder.write(Keyword.FINAL.lexeme);
+            if (specifyTypes) {
+              builder.write(' ');
+              builder.writeType(type);
+            }
+          } else if (specifyTypes) {
+            builder.writeType(type);
+          } else {
+            builder.write(Keyword.VAR.lexeme);
+          }
+          builder.write(' ');
           builder.write(loopVariableName);
           builder.write(' in ');
           builder.write(target);
