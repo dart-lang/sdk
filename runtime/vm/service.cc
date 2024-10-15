@@ -4042,10 +4042,18 @@ static void AddBreakpointCommon(Thread* thread,
       Error::Handle(thread->isolate()->debugger()->SetBreakpointAtLineCol(
           script_uri, line, col, &bpt));
   if (!error.IsNull()) {
-    js->PrintError(kCannotAddBreakpoint,
-                   "%s: Cannot add breakpoint at line %s. Error occurred "
-                   "when resolving breakpoint location: %s.",
-                   js->method(), line_param, error.ToErrorCString());
+    if (col_param != nullptr) {
+      js->PrintError(
+          kCannotAddBreakpoint,
+          "%s: Cannot add breakpoint at %s:%s. Error occurred when resolving "
+          "breakpoint location: %s.",
+          js->method(), line_param, col_param, error.ToErrorCString());
+    } else {
+      js->PrintError(kCannotAddBreakpoint,
+                     "%s: Cannot add breakpoint at line %s. Error occurred "
+                     "when resolving breakpoint location: %s.",
+                     js->method(), line_param, error.ToErrorCString());
+    }
     return;
   }
   ASSERT(bpt != nullptr);

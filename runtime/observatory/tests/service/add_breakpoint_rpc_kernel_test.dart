@@ -98,7 +98,7 @@ var tests = <IsolateTest>[
       expect(e.code, equals(ServerRpcException.kCannotAddBreakpoint));
       expect(
         e.message,
-        'addBreakpoint: Cannot add breakpoint at line $LINE_A. Error occurred '
+        'addBreakpoint: Cannot add breakpoint at $LINE_A:37. Error occurred '
         'when resolving breakpoint location: No debuggable code where '
         'breakpoint was requested.',
       );
