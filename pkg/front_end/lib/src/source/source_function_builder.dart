@@ -148,17 +148,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   /// from the extension/extension type declaration.
   List<TypeParameter>? _thisTypeParameters;
 
-  SourceFunctionBuilderImpl(
-      this.metadata,
-      this.modifiers,
-      this.name,
-      this.typeVariables,
-      this.formals,
-      Builder parent,
-      Uri fileUri,
-      int charOffset,
-      this.nativeMethodName)
-      : super(parent, fileUri, charOffset) {
+  SourceFunctionBuilderImpl(this.metadata, this.modifiers, this.name,
+      this.typeVariables, this.formals, this.nativeMethodName) {
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (int i = 0; i < formals!.length; i++) {

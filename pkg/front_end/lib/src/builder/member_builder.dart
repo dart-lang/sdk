@@ -90,49 +90,12 @@ abstract class MemberBuilder implements Builder {
 
 abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {
   @override
-  String get name;
-
-  /// For top-level members, the parent is set correctly during
-  /// construction. However, for class members, the parent is initially the
-  /// library and updated later.
-  @override
-  Builder parent;
+  Uri get fileUri;
 
   @override
-  final int charOffset;
-
-  @override
-  final Uri fileUri;
-
-  MemberBuilderImpl(this.parent, this.fileUri, this.charOffset);
-
-  @override
-  DeclarationBuilder? get declarationBuilder =>
-      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
-
-  @override
-  ClassBuilder? get classBuilder =>
-      parent is ClassBuilder ? parent as ClassBuilder : null;
-
-  @override
-  LibraryBuilder get libraryBuilder {
-    if (parent is LibraryBuilder) {
-      LibraryBuilder library = parent as LibraryBuilder;
-      return library.partOfLibrary ?? library;
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (parent is ExtensionBuilder) {
-      ExtensionBuilder extension = parent as ExtensionBuilder;
-      return extension.libraryBuilder;
-    } else if (parent is ExtensionTypeDeclarationBuilder) {
-      ExtensionTypeDeclarationBuilder extensionTypeDeclaration =
-          parent as ExtensionTypeDeclarationBuilder;
-      return extensionTypeDeclaration.libraryBuilder;
-    } else {
-      ClassBuilder cls = parent as ClassBuilder;
-      return cls.libraryBuilder;
-    }
-  }
+  ClassBuilder? get classBuilder => declarationBuilder is ClassBuilder
+      ? declarationBuilder as ClassBuilder
+      : null;
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;

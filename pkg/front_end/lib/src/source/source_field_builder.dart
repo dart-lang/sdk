@@ -16,6 +16,7 @@ import '../base/constant_context.dart' show ConstantContext;
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart' show LookupScope;
+import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
@@ -81,6 +82,15 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   /// element.
   final bool isEnumElement;
 
+  @override
+  final DeclarationBuilder? declarationBuilder;
+
+  @override
+  final int charOffset;
+
+  @override
+  final Uri fileUri;
+
   SourceFieldBuilder(
       this.metadata,
       this.type,
@@ -88,9 +98,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.modifiers,
       this.isTopLevel,
       this.libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      Uri fileUri,
-      int charOffset,
+      this.declarationBuilder,
+      this.fileUri,
+      this.charOffset,
       int charEndOffset,
       NameScheme fieldNameScheme,
       {Reference? fieldReference,
@@ -106,8 +116,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.isSynthesized = false,
       this.isEnumElement = false})
       : _constInitializerToken = constInitializerToken,
-        _memberName = fieldNameScheme.getDeclaredName(name),
-        super(declarationBuilder ?? libraryBuilder, fileUri, charOffset) {
+        _memberName = fieldNameScheme.getDeclaredName(name) {
     type.registerInferredTypeListener(this);
 
     bool isInstanceMember = fieldNameScheme.isInstanceMember;
@@ -306,6 +315,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       }
     }
   }
+
+  @override
+  Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
   Name get memberName => _memberName.name;
