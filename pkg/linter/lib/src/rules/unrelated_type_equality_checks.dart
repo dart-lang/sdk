@@ -101,9 +101,9 @@ extension on DartType? {
     // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
     // See: https://github.com/dart-lang/linter/issues/3868
     if (self is! InterfaceType) return false;
-    var element = self.element;
+    var element = self.element3;
     if (element.name != 'Int32' && element.name != 'Int64') return false;
-    var uri = element.library.source.uri;
+    var uri = element.library2.firstFragment.source.uri;
     if (!uri.isScheme('package')) return false;
     return uri.pathSegments.firstOrNull == 'fixnum';
   }
