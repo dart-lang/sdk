@@ -30,7 +30,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../dill/dill_member_builder.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -80,12 +79,6 @@ abstract class AbstractSourceConstructorBuilder
     extends SourceFunctionBuilderImpl
     implements SourceConstructorBuilder, Inferable, ConstructorDeclaration {
   @override
-  final SourceLibraryBuilder libraryBuilder;
-
-  @override
-  final DeclarationBuilder declarationBuilder;
-
-  @override
   final OmittedTypeBuilder returnType;
 
   final int charOpenParenOffset;
@@ -101,15 +94,11 @@ abstract class AbstractSourceConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      this.libraryBuilder,
-      this.declarationBuilder,
-      Uri fileUri,
-      int charOffset,
       this.charOpenParenOffset,
       String? nativeMethodName,
       this.beginInitializers)
       : super(metadata, modifiers, name, typeVariables, formals,
-            declarationBuilder, fileUri, charOffset, nativeMethodName) {
+            nativeMethodName) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
@@ -409,6 +398,18 @@ class DeclaredSourceConstructorBuilder
         "${name.isEmpty ? '' : '.$name'}";
   }
 
+  @override
+  final int charOffset;
+
+  @override
+  final Uri fileUri;
+
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  @override
+  final DeclarationBuilder declarationBuilder;
+
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       Modifiers modifiers,
@@ -416,11 +417,11 @@ class DeclaredSourceConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       this.formals,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder declarationBuilder,
-      Uri fileUri,
+      this.libraryBuilder,
+      this.declarationBuilder,
+      this.fileUri,
       int startCharOffset,
-      int charOffset,
+      this.charOffset,
       int charOpenParenOffset,
       int charEndOffset,
       Reference? constructorReference,
@@ -433,20 +434,8 @@ class DeclaredSourceConstructorBuilder
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         _memberName = nameScheme.getDeclaredName(name),
-        super(
-            metadata,
-            modifiers,
-            returnType,
-            name,
-            typeVariables,
-            formals,
-            libraryBuilder,
-            declarationBuilder,
-            fileUri,
-            charOffset,
-            charOpenParenOffset,
-            nativeMethodName,
-            beginInitializers) {
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            charOpenParenOffset, nativeMethodName, beginInitializers) {
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
         fileUri: fileUri,
@@ -466,6 +455,9 @@ class DeclaredSourceConstructorBuilder
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
   }
+
+  @override
+  Builder get parent => declarationBuilder;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1034,9 +1026,18 @@ class DeclaredSourceConstructorBuilder
   }
 }
 
-class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
+class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
     with SourceMemberBuilderMixin
     implements SourceConstructorBuilder {
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  @override
+  final SourceClassBuilder classBuilder;
+
+  final Constructor _constructor;
+  final Procedure? _constructorTearOff;
+
   /// The constructor from which this synthesized constructor is defined.
   ///
   /// This defines the parameter structure and the default values of this
@@ -1049,7 +1050,7 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
   TypeDependency? _typeDependency;
 
-  SyntheticSourceConstructorBuilder(SourceClassBuilder parent,
+  SyntheticSourceConstructorBuilder(this.libraryBuilder, this.classBuilder,
       Constructor constructor, Procedure? constructorTearOff,
       {MemberBuilder? definingConstructor,
       DelayedDefaultValueCloner? delayedDefaultValueCloner,
@@ -1057,21 +1058,91 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       : _immediatelyDefiningConstructor = definingConstructor,
         _delayedDefaultValueCloner = delayedDefaultValueCloner,
         _typeDependency = typeDependency,
-        super(constructor, constructorTearOff, parent);
+        _constructor = constructor,
+        _constructorTearOff = constructorTearOff;
 
   @override
   // Coverage-ignore(suite): Not run.
-  SourceLibraryBuilder get libraryBuilder =>
-      super.libraryBuilder as SourceLibraryBuilder;
+  int get charOffset => _constructor.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
-  DeclarationBuilder get declarationBuilder => classBuilder!;
+  Uri get fileUri => _constructor.fileUri;
+
+  @override
+  Builder get parent => declarationBuilder;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Member> get exportedMembers => [_constructor];
+
+  @override
+  String get name => _constructor.name.text;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Name get memberName => _constructor.name;
+
+  @override
+  bool get isConstructor => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ProcedureKind? get kind => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAbstract => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isExternal => _constructor.isExternal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthetic => _constructor.isSynthetic;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAssignable => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Annotatable> get annotatables => [_constructor];
+
+  @override
+  FunctionNode get function => _constructor.function;
+
+  @override
+  Member get readTarget => _constructorTearOff ?? _constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Member? get writeTarget => null;
+
+  @override
+  Constructor get invokeTarget => _constructor;
+
+  @override
+  bool get isConst => _constructor.isConst;
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isRedirecting {
-    for (Initializer initializer in constructor.initializers) {
+    for (Initializer initializer in _constructor.initializers) {
       if (initializer is RedirectingInitializer) {
         return true;
       }
@@ -1140,6 +1211,12 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
 
 class SourceExtensionTypeConstructorBuilder
     extends AbstractSourceConstructorBuilder {
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  @override
+  final SourceExtensionTypeDeclarationBuilder declarationBuilder;
+
   late final Procedure _constructor;
 
   @override
@@ -1154,6 +1231,12 @@ class SourceExtensionTypeConstructorBuilder
 
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
 
+  @override
+  final int charOffset;
+
+  @override
+  final Uri fileUri;
+
   SourceExtensionTypeConstructorBuilder(
       List<MetadataBuilder>? metadata,
       Modifiers modifiers,
@@ -1161,11 +1244,11 @@ class SourceExtensionTypeConstructorBuilder
       String name,
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
-      SourceLibraryBuilder libraryBuilder,
-      SourceExtensionTypeDeclarationBuilder declarationBuilder,
-      Uri fileUri,
+      this.libraryBuilder,
+      this.declarationBuilder,
+      this.fileUri,
       int startCharOffset,
-      int charOffset,
+      this.charOffset,
       int charOpenParenOffset,
       int charEndOffset,
       Reference? constructorReference,
@@ -1175,20 +1258,8 @@ class SourceExtensionTypeConstructorBuilder
       required bool forAbstractClassOrEnumOrMixin,
       required Token? beginInitializers})
       : _memberName = nameScheme.getDeclaredName(name),
-        super(
-            metadata,
-            modifiers,
-            returnType,
-            name,
-            typeVariables,
-            formals,
-            libraryBuilder,
-            declarationBuilder,
-            fileUri,
-            charOffset,
-            charOpenParenOffset,
-            nativeMethodName,
-            beginInitializers) {
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            charOpenParenOffset, nativeMethodName, beginInitializers) {
     _constructor = new Procedure(
         dummyName, ProcedureKind.Method, new FunctionNode(null),
         fileUri: fileUri, reference: constructorReference)
@@ -1207,6 +1278,9 @@ class SourceExtensionTypeConstructorBuilder
         forceCreateLowering: true)
       ?..isExtensionTypeMember = true;
   }
+
+  @override
+  Builder get parent => declarationBuilder;
 
   @override
   // Coverage-ignore(suite): Not run.

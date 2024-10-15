@@ -1269,7 +1269,7 @@ class KernelTarget {
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
-            classBuilder, constructor, constructorTearOff,
+            libraryBuilder, classBuilder, constructor, constructorTearOff,
             // We pass on the original constructor and the cloned function nodes
             // to ensure that the default values are computed and cloned for the
             // outline. It is needed to make the default values a part of the
@@ -1351,7 +1351,7 @@ class KernelTarget {
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     return new SyntheticSourceConstructorBuilder(
-        classBuilder, constructor, constructorTearOff);
+        libraryBuilder, classBuilder, constructor, constructorTearOff);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {

@@ -35,6 +35,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   final SourceLibraryBuilder libraryBuilder;
 
+  @override
+  final DeclarationBuilder? declarationBuilder;
+
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
@@ -80,6 +83,12 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   final MemberName _memberName;
 
+  @override
+  final int charOffset;
+
+  @override
+  final Uri fileUri;
+
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       Modifiers modifiers,
@@ -89,10 +98,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       List<FormalParameterBuilder>? formals,
       this.kind,
       this.libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      Uri fileUri,
+      this.declarationBuilder,
+      this.fileUri,
       int startCharOffset,
-      int charOffset,
+      this.charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       Reference? procedureReference,
@@ -107,15 +116,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         _memberName = nameScheme.getDeclaredName(name),
-        super(
-            metadata,
-            modifiers,
-            name,
-            typeVariables,
-            formals,
-            declarationBuilder ?? libraryBuilder,
-            fileUri,
-            charOffset,
+        super(metadata, modifiers, name, typeVariables, formals,
             nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
@@ -145,6 +146,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           .attachMember(_extensionTearOff!);
     }
   }
+
+  @override
+  Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
   Name get memberName => _memberName.name;

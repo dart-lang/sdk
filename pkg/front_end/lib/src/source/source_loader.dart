@@ -1317,14 +1317,14 @@ severity: $severity
         // support members from source, so we provide an empty [DeclarationMap].
         new OffsetMap(libraryBuilder.fileUri));
 
-    Builder parent = libraryBuilder;
+    DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
       Builder? builder = dietListener.memberScope
           .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
-            parent = builder;
+            declarationBuilder = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1334,7 +1334,7 @@ severity: $severity
                   parent: TypeParameterScope.fromList(
                       dietListener.memberScope, builder.typeVariables));
           case ExtensionBuilder():
-            parent = builder;
+            declarationBuilder = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1364,7 +1364,7 @@ severity: $severity
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
-        null,
+        declarationBuilder,
         libraryBuilder.fileUri,
         /* start char offset = */ 0,
         /* char offset = */ 0,
@@ -1377,8 +1377,7 @@ severity: $severity
             containerName: null,
             containerType: ContainerType.Library,
             isInstanceMember: false,
-            libraryName: libraryBuilder.libraryName))
-      ..parent = parent;
+            libraryName: libraryBuilder.libraryName));
     BodyBuilder listener = dietListener.createListener(
         new ExpressionCompilerProcedureBodyBuildContext(
             dietListener, builder, builder.invokeTarget!,

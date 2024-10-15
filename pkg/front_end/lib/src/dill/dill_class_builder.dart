@@ -158,22 +158,23 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? get onTypes => null;
 
   void addField(Field field) {
-    DillFieldBuilder builder = new DillFieldBuilder(field, this);
+    DillFieldBuilder builder =
+        new DillFieldBuilder(field, libraryBuilder, this);
     String name = field.name.text;
     nameSpace.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
-    DillConstructorBuilder builder =
-        new DillConstructorBuilder(constructor, constructorTearOff, this);
+    DillConstructorBuilder builder = new DillConstructorBuilder(
+        constructor, constructorTearOff, libraryBuilder, this);
     String name = constructor.name.text;
     nameSpace.addConstructor(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    nameSpace.addConstructor(
-        name, new DillFactoryBuilder(factory, factoryTearOff, this));
+    nameSpace.addConstructor(name,
+        new DillFactoryBuilder(factory, factoryTearOff, libraryBuilder, this));
   }
 
   void addProcedure(Procedure procedure) {
@@ -183,19 +184,23 @@ class DillClassBuilder extends ClassBuilderImpl
         // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        nameSpace.addLocalMember(name, new DillSetterBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillSetterBuilder(procedure, libraryBuilder, this),
             setter: true);
         break;
       case ProcedureKind.Getter:
-        nameSpace.addLocalMember(name, new DillGetterBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillGetterBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
       case ProcedureKind.Operator:
-        nameSpace.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillOperatorBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
       case ProcedureKind.Method:
-        nameSpace.addLocalMember(name, new DillMethodBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillMethodBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
     }

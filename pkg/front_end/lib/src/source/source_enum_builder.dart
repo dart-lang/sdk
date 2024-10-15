@@ -331,12 +331,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
       customValuesDeclaration.next = valuesBuilder;
       nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
-      valuesBuilder.parent = this;
     } else {
       nameSpace.addLocalMember("values", valuesBuilder, setter: false);
       nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
-      valuesBuilder.parent = this;
     }
 
     // The default constructor is added if no generative or unnamed factory
@@ -388,7 +386,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
           synthesizedDefaultConstructorBuilder!.name,
           synthesizedDefaultConstructorBuilder!,
           synthesizedDefaultConstructorBuilder!.fileUri);
-      synthesizedDefaultConstructorBuilder!.parent = this;
     }
 
     ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
@@ -501,7 +498,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             setter: false);
         nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
             fieldBuilder.name, fieldBuilder, fieldBuilder.fileUri);
-        fieldBuilder.parent = this;
         elementBuilders.add(fieldBuilder);
       }
     }
