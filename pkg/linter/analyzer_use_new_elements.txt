@@ -25,6 +25,7 @@ lib/src/rules/avoid_function_literals_in_foreach_calls.dart
 lib/src/rules/avoid_implementing_value_types.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
+lib/src/rules/avoid_null_checks_in_equality_operators.dart
 lib/src/rules/avoid_print.dart
 lib/src/rules/avoid_private_typedef_functions.dart
 lib/src/rules/avoid_relative_lib_imports.dart
@@ -105,6 +106,7 @@ lib/src/rules/prefer_conditional_assignment.dart
 lib/src/rules/prefer_const_constructors.dart
 lib/src/rules/prefer_const_declarations.dart
 lib/src/rules/prefer_const_literals_to_create_immutables.dart
+lib/src/rules/prefer_constructors_over_static_methods.dart
 lib/src/rules/prefer_contains.dart
 lib/src/rules/prefer_double_quotes.dart
 lib/src/rules/prefer_equal_for_default_values.dart
@@ -132,6 +134,7 @@ lib/src/rules/pub/depend_on_referenced_packages.dart
 lib/src/rules/pub/package_names.dart
 lib/src/rules/pub/secure_pubspec_urls.dart
 lib/src/rules/pub/sort_pub_dependencies.dart
+lib/src/rules/recursive_getters.dart
 lib/src/rules/require_trailing_commas.dart
 lib/src/rules/sized_box_for_whitespace.dart
 lib/src/rules/sized_box_shrink_expand.dart
@@ -227,7 +230,6 @@ test/rules/avoid_implementing_value_types_test.dart
 test/rules/avoid_init_to_null_test.dart
 test/rules/avoid_js_rounded_ints_test.dart
 test/rules/avoid_multiple_declarations_per_line_test.dart
-test/rules/avoid_null_checks_in_equality_operators_test.dart
 test/rules/avoid_positional_boolean_parameters_test.dart
 test/rules/avoid_print_test.dart
 test/rules/avoid_private_typedef_functions_test.dart
@@ -460,6 +462,7 @@ tool/checks/check_messages_yaml.dart
 tool/checks/driver.dart
 tool/checks/rules/no_solo_tests.dart
 tool/checks/rules/no_trailing_spaces.dart
+tool/checks/rules/visit_registered_nodes.dart
 tool/generate_lints.dart
 tool/labeler/issue_config.dart
 tool/labeler/pr_config.dart
