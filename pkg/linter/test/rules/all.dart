@@ -43,6 +43,8 @@ import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
 import 'avoid_js_rounded_ints_test.dart' as avoid_js_rounded_ints;
 import 'avoid_multiple_declarations_per_line_test.dart'
     as avoid_multiple_declarations_per_line;
+import 'avoid_null_checks_in_equality_operators_test.dart'
+    as avoid_null_checks_in_equality_operators;
 import 'avoid_positional_boolean_parameters_test.dart'
     as avoid_positional_boolean_parameters;
 import 'avoid_print_test.dart' as avoid_print;
@@ -344,6 +346,7 @@ void main() {
   avoid_init_to_null.main();
   avoid_js_rounded_ints.main();
   avoid_multiple_declarations_per_line.main();
+  avoid_null_checks_in_equality_operators.main();
   avoid_positional_boolean_parameters.main();
   avoid_print.main();
   avoid_private_typedef_functions.main();

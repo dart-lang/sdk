@@ -1923,6 +1923,8 @@ LintCode.avoid_js_rounded_ints:
   status: noFix
 LintCode.avoid_multiple_declarations_per_line:
   status: hasFix
+LintCode.avoid_null_checks_in_equality_operators:
+  status: hasFix
 LintCode.avoid_positional_boolean_parameters:
   status: noFix
   notes: |-

@@ -12,10 +12,10 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveComparisonTest);
-    defineReflectiveTests(RemoveNullCheckComparisonBulkTest);
-    defineReflectiveTests(RemoveNullCheckComparisonTest);
-    defineReflectiveTests(RemoveTypeCheckBulkTest);
     defineReflectiveTests(RemoveTypeCheckTest);
+    defineReflectiveTests(RemoveTypeCheckBulkTest);
+    defineReflectiveTests(RemoveNullCheckComparisonTest);
+    defineReflectiveTests(RemoveNullCheckComparisonBulkTest);
   });
 }
 
@@ -610,7 +610,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object other) =>
+  operator ==(Object? other) =>
           other != null &&
           other is Person &&
           name == other.name;
@@ -620,7 +620,7 @@ class Person2 {
   final String name = '';
 
   @override
-  operator ==(Object other) =>
+  operator ==(Object? other) =>
           other != null &&
           other is Person &&
           name == other.name;
@@ -631,7 +631,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(Object other) =>
+  operator ==(Object? other) =>
           other is Person &&
           name == other.name;
 }
@@ -640,7 +640,7 @@ class Person2 {
   final String name = '';
 
   @override
-  operator ==(Object other) =>
+  operator ==(Object? other) =>
           other is Person &&
           name == other.name;
 }
