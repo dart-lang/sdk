@@ -4774,14 +4774,18 @@ class FunctionElementImpl extends ExecutableElementImpl
     return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
 
+  /// Whether this function element represents a top-level function, and is
+  /// therefore safe to treat as a fragment.
+  bool get isTopLevelFunction =>
+      enclosingElement3 is CompilationUnitElementImpl;
+
   @override
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
   TopLevelFunctionFragment? get nextFragment {
     if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return null;
+      return augmentation;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
@@ -4791,8 +4795,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   TopLevelFunctionFragment? get previousFragment {
     if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return null;
+      return augmentationTarget;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');

@@ -13,6 +13,10 @@ abstract class CodeStyleOptions {
   /// commas should be inserted in function calls and declarations.
   bool get addTrailingCommas;
 
+  /// Return `true` if local variables should be `final` inside 'for' in
+  /// iterable.
+  bool get finalInForEach;
+
   /// Return `true` if local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 
