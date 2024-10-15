@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -129,10 +129,10 @@ class Validator extends SimpleAstVisitor<void> {
     }
 
     // Check implicit type.
-    var element = node.declaredElement;
-    if (element is FieldFormalParameterElement) {
+    var element = node.declaredFragment?.element;
+    if (element is FieldFormalParameterElement2) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element.name)) {
+      if (type is InterfaceType && isPrivateName(type.element3.name)) {
         rule.reportLintForToken(node.name);
       }
     }
@@ -211,7 +211,7 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element;
+    var element = node.element2;
     if (element != null && isPrivate(element)) {
       rule.reportLintForToken(node.name2);
     }
@@ -241,10 +241,10 @@ class Validator extends SimpleAstVisitor<void> {
     }
 
     // Check implicit type.
-    var element = node.declaredElement;
-    if (element is SuperFormalParameterElement) {
+    var element = node.declaredFragment?.element;
+    if (element is SuperFormalParameterElement2) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element.name)) {
+      if (type is InterfaceType && isPrivateName(type.element3.name)) {
         rule.reportLintForToken(node.name);
       }
     }
@@ -275,7 +275,7 @@ class Validator extends SimpleAstVisitor<void> {
 
   /// Return `true` if the given [element] is private or is defined in a private
   /// library.
-  static bool isPrivate(Element element) => isPrivateName(element.name);
+  static bool isPrivate(Element2 element) => isPrivateName(element.name);
 
   static bool isPrivateName(String? name) =>
       name != null && Identifier.isPrivateName(name);
@@ -288,7 +288,7 @@ class Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element != null && !Validator.isPrivate(element)) {
       var validator = Validator(rule);
       node.declarations.accept(validator);
