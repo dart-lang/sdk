@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
-    var type = node.declaredElement?.thisType;
+    var type = node.declaredFragment?.element.thisType;
     if (!type.implementsInterface('Diagnosticable', '')) return;
 
     var properties = <Token>[];
