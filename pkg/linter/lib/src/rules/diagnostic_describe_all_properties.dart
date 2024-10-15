@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -27,7 +27,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context.inheritanceManager);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -60,31 +60,29 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.inheritanceManager);
 
   void removeReferences(MethodDeclaration? method, List<Token> properties) {
     method?.body.accept(_IdentifierVisitor(properties));
   }
 
-  bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
+  bool skipForDiagnostic({Element2? element, DartType? type, Token? name}) =>
       name.isPrivate || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
     var type = node.declaredElement?.thisType;
-    if (!type.implementsInterface('Diagnosticable', '')) {
-      return;
-    }
+    if (!type.implementsInterface('Diagnosticable', '')) return;
 
     var properties = <Token>[];
     for (var member in node.members) {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
             !skipForDiagnostic(
-              element: member.declaredElement,
+              element: member.declaredFragment?.element,
               name: member.name,
               type: member.returnType?.type,
             )) {
@@ -92,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       } else if (member is FieldDeclaration) {
         for (var v in member.fields.variables) {
-          var declaredElement = v.declaredElement;
+          var declaredElement = v.declaredFragment?.element;
           if (declaredElement != null &&
               !declaredElement.isStatic &&
               !skipForDiagnostic(
@@ -106,9 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    if (properties.isEmpty) {
-      return;
-    }
+    if (properties.isEmpty) return;
 
     var debugFillProperties = node.members.getMethod('debugFillProperties');
     var debugDescribeChildren = node.members.getMethod('debugDescribeChildren');
@@ -123,23 +119,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     properties.forEach(rule.reportLintForToken);
   }
 
-  bool _isOverridingMember(Element? member) {
-    if (member == null) {
-      return false;
-    }
+  bool _isOverridingMember(Element2? member) {
+    if (member == null) return false;
 
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
-    if (classElement == null) {
-      return false;
-    }
+    var classElement = member.thisOrAncestorOfType2<InterfaceElement2>();
+    if (classElement == null) return false;
+
     var name = member.name;
-    if (name == null) {
-      return false;
-    }
+    if (name == null) return false;
 
-    var libraryUri = classElement.library.source.uri;
-    return context.inheritanceManager
-            .getInherited(classElement.thisType, Name(libraryUri, name)) !=
+    return inheritanceManager.getInherited4(classElement, Name(null, name)) !=
         null;
   }
 }
