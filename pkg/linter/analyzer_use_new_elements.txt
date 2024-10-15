@@ -86,6 +86,7 @@ lib/src/rules/no_duplicate_case_values.dart
 lib/src/rules/no_leading_underscores_for_library_prefixes.dart
 lib/src/rules/no_leading_underscores_for_local_identifiers.dart
 lib/src/rules/no_literal_bool_comparisons.dart
+lib/src/rules/no_logic_in_create_state.dart
 lib/src/rules/no_runtimeType_toString.dart
 lib/src/rules/no_self_assignments.dart
 lib/src/rules/no_wildcard_variable_uses.dart
@@ -169,11 +170,13 @@ lib/src/rules/unnecessary_statements.dart
 lib/src/rules/unnecessary_string_escapes.dart
 lib/src/rules/unnecessary_string_interpolations.dart
 lib/src/rules/unnecessary_to_list_in_spreads.dart
+lib/src/rules/unrelated_type_equality_checks.dart
 lib/src/rules/use_colored_box.dart
 lib/src/rules/use_decorated_box.dart
 lib/src/rules/use_function_type_syntax_for_parameters.dart
 lib/src/rules/use_if_null_to_convert_nulls_to_bools.dart
 lib/src/rules/use_is_even_rather_than_modulo.dart
+lib/src/rules/use_named_constants.dart
 lib/src/rules/use_raw_strings.dart
 lib/src/rules/use_string_in_part_of_directives.dart
 lib/src/rules/use_test_throws_matchers.dart
