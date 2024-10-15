@@ -1366,7 +1366,7 @@ library
           reference: <testLibraryFragment>::@class::main
           element: <testLibraryFragment>::@class::main#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::main::@constructor::new
               element: <testLibraryFragment>::@class::main::@constructor::new#element
   classes
@@ -1433,7 +1433,7 @@ library
           reference: <testLibraryFragment>::@class::main
           element: <testLibraryFragment>::@class::main#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::main::@constructor::new
               element: <testLibraryFragment>::@class::main::@constructor::new#element
               constantInitializers
@@ -1449,14 +1449,14 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
         class D @40
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
   classes
@@ -2010,7 +2010,7 @@ library
           reference: <testLibraryFragment>::@class::foo
           element: <testLibraryFragment>::@class::foo#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::foo::@constructor::new
               element: <testLibraryFragment>::@class::foo::@constructor::new#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3072,7 +3072,7 @@ library
           reference: <testLibraryFragment>::@class::foo
           element: <testLibraryFragment>::@class::foo#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::foo::@constructor::new
               element: <testLibraryFragment>::@class::foo::@constructor::new#element
     <testLibrary>::@fragment::package:test/a.dart

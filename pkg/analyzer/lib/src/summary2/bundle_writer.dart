@@ -200,6 +200,9 @@ class BundleWriter {
   void _writeConstructorElement(ConstructorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _sink.writeOptionalObject(element.name2, (name) {
+      _sink._writeStringReference(name.name);
+    });
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 

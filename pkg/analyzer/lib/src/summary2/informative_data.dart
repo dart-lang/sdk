@@ -311,6 +311,12 @@ class InformativeDataApplier {
         element.periodOffset = info.periodOffset;
         element.nameOffset = info.nameOffset;
         element.nameEnd = info.nameEnd;
+        if (element.name2 case var name?) {
+          if (info.nameOffsets case var nameOffsets?) {
+            name.periodOffset = nameOffsets.periodOffset;
+            name.nameOffset = nameOffsets.nameOffset;
+          }
+        }
         element.documentationComment = info.documentationComment;
 
         _applyToFormalParameters(
@@ -462,6 +468,12 @@ class InformativeDataApplier {
       primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
       primaryConstructor.nameOffset = infoRep.constructorNameOffset;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
+      if (primaryConstructor.name2 case var name?) {
+        if (infoRep.constructorNameOffsets case var nameOffsets?) {
+          name.periodOffset = nameOffsets.periodOffset;
+          name.nameOffset = nameOffsets.nameOffset;
+        }
+      }
 
       var primaryConstructorParameter = primaryConstructor
           .parameters_unresolved.first as ParameterElementImpl;
@@ -957,6 +969,7 @@ class _InfoConstructorDeclaration {
   final int? periodOffset;
   final int nameOffset;
   final int nameEnd;
+  final _InfoConstructorNameOffsets? nameOffsets;
   final String? documentationComment;
   final List<_InfoFormalParameter> parameters;
   final Uint32List constantOffsets;
@@ -968,6 +981,7 @@ class _InfoConstructorDeclaration {
       periodOffset: reader.readOptionalUInt30(),
       nameOffset: reader.readUInt30(),
       nameEnd: reader.readUInt30(),
+      nameOffsets: _InfoConstructorNameOffsets.read(reader),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       parameters: reader.readTypedList(
         () => _InfoFormalParameter(reader),
@@ -982,10 +996,32 @@ class _InfoConstructorDeclaration {
     required this.periodOffset,
     required this.nameOffset,
     required this.nameEnd,
+    required this.nameOffsets,
     required this.documentationComment,
     required this.parameters,
     required this.constantOffsets,
   });
+}
+
+class _InfoConstructorNameOffsets {
+  final int periodOffset;
+  final int nameOffset;
+
+  _InfoConstructorNameOffsets._({
+    required this.periodOffset,
+    required this.nameOffset,
+  });
+
+  static _InfoConstructorNameOffsets? read(SummaryDataReader reader) {
+    if (reader.readBool()) {
+      return _InfoConstructorNameOffsets._(
+        periodOffset: reader.readUInt30(),
+        nameOffset: reader.readUInt30(),
+      );
+    } else {
+      return null;
+    }
+  }
 }
 
 class _InfoExport {
@@ -1067,6 +1103,7 @@ class _InfoExtensionTypeRepresentation {
   final int? constructorPeriodOffset;
   final int constructorNameOffset;
   final int? constructorNameEnd;
+  final _InfoConstructorNameOffsets? constructorNameOffsets;
   final int fieldCodeOffset;
   final int fieldCodeLength;
   final int fieldNameOffset;
@@ -1079,6 +1116,7 @@ class _InfoExtensionTypeRepresentation {
       constructorPeriodOffset: reader.readOptionalUInt30(),
       constructorNameOffset: reader.readUInt30(),
       constructorNameEnd: reader.readOptionalUInt30(),
+      constructorNameOffsets: _InfoConstructorNameOffsets.read(reader),
       fieldCodeOffset: reader.readUInt30(),
       fieldCodeLength: reader.readUInt30(),
       fieldNameOffset: reader.readUInt30(),
@@ -1092,6 +1130,7 @@ class _InfoExtensionTypeRepresentation {
     required this.constructorPeriodOffset,
     required this.constructorNameOffset,
     required this.constructorNameEnd,
+    required this.constructorNameOffsets,
     required this.fieldCodeOffset,
     required this.fieldCodeLength,
     required this.fieldNameOffset,
@@ -1588,6 +1627,15 @@ class _InformativeDataWriter {
       var nameNode = node.name ?? node.returnType;
       sink.writeUInt30(nameNode.offset);
       sink.writeUInt30(nameNode.end);
+
+      if ((node.period, node.name) case (var period?, var name?)) {
+        sink.writeBool(true);
+        sink.writeUInt30(period.offset);
+        sink.writeUInt30(name.offset);
+      } else {
+        sink.writeBool(false);
+      }
+
       _writeDocumentationComment(node);
       _writeFormalParameters(node.parameters);
       _writeOffsets(
@@ -1825,7 +1873,9 @@ class _InformativeDataWriter {
   }
 
   void _writeRepresentation(
-      ExtensionTypeDeclaration declaration, RepresentationDeclaration node) {
+    ExtensionTypeDeclaration declaration,
+    RepresentationDeclaration node,
+  ) {
     // Constructor code range.
     sink.writeUInt30(node.offset);
     sink.writeUInt30(node.length);
@@ -1839,6 +1889,13 @@ class _InformativeDataWriter {
       sink.writeOptionalUInt30(null);
       sink.writeUInt30(declaration.name.offset);
       sink.writeOptionalUInt30(null);
+    }
+    if (constructorName != null) {
+      sink.writeBool(true);
+      sink.writeUInt30(constructorName.period.offset);
+      sink.writeUInt30(constructorName.name.offset);
+    } else {
+      sink.writeBool(false);
     }
 
     var fieldBeginToken = node.fieldMetadata.beginToken ?? node.fieldType;
