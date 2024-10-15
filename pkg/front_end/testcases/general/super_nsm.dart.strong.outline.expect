@@ -10,7 +10,7 @@ abstract class I extends core::Object {
 class C extends core::Object implements self::I {
   synthetic constructor •() → self::C
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
   no-such-method-forwarder method interfaceMethod() → dynamic
     return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
@@ -18,7 +18,7 @@ class C extends core::Object implements self::I {
 class D extends self::C {
   synthetic constructor •() → self::D
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc1#formal) → dynamic
     ;
   method dMethod() → dynamic
     ;

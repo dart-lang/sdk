@@ -40,7 +40,7 @@ static method method2((self::A, self::A) r) → dynamic {
       b2 = #t2;
     }
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
   }
   return b1;
 }
@@ -95,7 +95,7 @@ static method throws(() → void f) → dynamic {
   try {
     f(){() → void};
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
     return;
   }
   throw "Missing throw";
@@ -104,6 +104,6 @@ static method allowThrow(() → void f) → dynamic {
   try {
     f(){() → void};
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
   }
 }

@@ -13,7 +13,7 @@ class X extends core::Object {
 class Y extends core::Object implements self::X {
   synthetic constructor •() → self::Y
     ;
-  method noSuchMethod(core::Invocation _) → void
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → void
     ;
   no-such-method-forwarder method _foo() → void
     return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#_foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → void};

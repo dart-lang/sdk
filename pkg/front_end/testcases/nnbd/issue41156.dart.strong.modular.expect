@@ -75,7 +75,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       throw v;
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc0#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x2 = (int v) /* error */ {
@@ -85,7 +85,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       return throw v;
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc1#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x3 = (int v) /* error */ {
@@ -95,7 +95,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       self::throwing();
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc2#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x5 = (int v) /* error */ {
@@ -105,7 +105,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       return self::throwing();
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc3#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x6 = (int v) /* error */ {
@@ -115,7 +115,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       throw v;
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc4#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y2 = (int v) async /* error */ {
@@ -125,7 +125,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       return throw v;
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc5#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y3 = (int v) async /* error */ {
@@ -135,7 +135,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       self::throwing();
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc6#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y5 = (int v) async /* error */ {
@@ -145,7 +145,7 @@ static method errors() → void async /* emittedValueType= void */ {
     try {
       return self::throwing();
     }
-    on core::Object catch(final core::Object _) {
+    on core::Object catch(final core::Object _#wc7#formal) {
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y6 = (int v) async /* error */ {

@@ -128,9 +128,6 @@ features:
   record-use:
     help: "Output arguments used by static functions."
 
-  wildcard-variables:
-    help: "Local declarations and parameters named `_` are non-binding."
-
   null-aware-elements:
     help: "Null-aware elements and map entries in collections."
 
@@ -163,6 +160,16 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  wildcard-variables:
+    enabledIn: '3.7.0'
+    validation: |
+      main() {
+        int _ = 1;
+        var _ = 2;
+        print('feature enabled');
+      }
+    help: "Local declarations and parameters named `_` are non-binding."
 
   digit-separators:
     enabledIn: '3.6.0'

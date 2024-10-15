@@ -21,34 +21,34 @@ dynamic nonNullable() {
   bool? bq = maybeNullable(true); // Prevent promotion.
   bool b = true;
 
-  dynamic _;
+  dynamic x;
 
-  _ = bq && b;
+  x = bq && b;
   //  ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = b && bq;
+  x = b && bq;
   //       ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = bq || b;
+  x = bq || b;
   //  ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = b || bq;
+  x = b || bq;
   //       ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = !bq;
+  x = !bq;
   //   ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = bq ? "a" : "b";
+  x = bq ? "a" : "b";
   //  ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
@@ -85,12 +85,12 @@ dynamic nonNullable() {
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = [if (bq) 1];
+  x = [if (bq) 1];
   //       ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = [for (; bq;) 1];
+  x = [for (; bq;) 1];
   //         ^^
   // [analyzer] unspecified
   //          ^
@@ -102,7 +102,7 @@ dynamic nonNullable() {
   // [analyzer] unspecified
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
 
-  _ = [...iq];
+  x = [...iq];
   //      ^
   // [cfe] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   //       ^^
@@ -124,7 +124,7 @@ dynamic nonNullable() {
   foo().toList();
   C.factory();
 
-  return _;
+  return x;
 }
 
 dynamic potentiallyNonNullable<BQ extends bool?>() {
@@ -134,34 +134,34 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   BQ bq = maybeNotNullable<BQ>(true);
   bool b = true;
 
-  dynamic _;
+  dynamic x;
 
-  _ = bq && b;
+  x = bq && b;
   //  ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = b && bq;
+  x = b && bq;
   //       ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = bq || b;
+  x = bq || b;
   //  ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = b || bq;
+  x = b || bq;
   //       ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = !bq;
+  x = !bq;
   //   ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = bq ? "a" : "b";
+  x = bq ? "a" : "b";
   //  ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
@@ -198,12 +198,12 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = [if (bq) 1];
+  x = [if (bq) 1];
   //       ^^
   // [analyzer] unspecified
   // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
-  _ = [for (; bq;) 1];
+  x = [for (; bq;) 1];
   //         ^^
   // [analyzer] unspecified
   //          ^
@@ -215,7 +215,7 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   // [analyzer] unspecified
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
 
-  _ = [...iq];
+  x = [...iq];
   //      ^^
   // [analyzer] unspecified
   // [cfe] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
@@ -237,7 +237,7 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
 
   C.factory();
 
-  return _;
+  return x;
 }
 
 T? maybeNullable<T>(Object value) =>
@@ -262,38 +262,38 @@ dynamic nullable() {
   // This is generally null-aware operations.
   int nn = 0;
 
-  dynamic _;
+  dynamic x;
 
-  _ = nn ?? 1;
+  x = nn ?? 1;
   //  ^^
   // [analyzer] unspecified
 
-  _ = nn ??= 1;
+  x = nn ??= 1;
   //  ^^
   // [analyzer] unspecified
 
-  _ = nn?.toRadixString(16);
+  x = nn?.toRadixString(16);
   //  ^^
   // [analyzer] unspecified
 
-  _ = nn?..toRadixString(16);
+  x = nn?..toRadixString(16);
   //  ^^
   // [analyzer] unspecified
 
-  _ = nn!;
+  x = nn!;
   //  ^^
   // [analyzer] unspecified
 
   List<int> nni = [1];
-  _ = [...?nni];
+  x = [...?nni];
   //       ^^^
   // [analyzer] unspecified
 
-  _ = nni?[0];
+  x = nni?[0];
   //  ^^^
   // [analyzer] unspecified
 
-  return _;
+  return x;
 }
 
 void potentiallyNullable<NN extends int?, NNI extends List<int>?>() {

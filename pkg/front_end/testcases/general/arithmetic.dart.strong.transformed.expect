@@ -7,7 +7,7 @@ static method foo(core::int x, core::int y) → core::int {
   return z.{core::int::<<}(4){(core::int) → core::int};
 }
 static method loop(core::List<dynamic> xs) → void {
-  core::int _ = xs.{core::List::length}{core::int};
+  xs.{core::List::length}{core::int};
   for (core::int i = 0; i.{core::num::<}(xs.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
   }
 }

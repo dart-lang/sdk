@@ -6547,6 +6547,7 @@ LintCode:
       parameter consists of two underscores:
 
       ```dart
+      // @dart = 3.6
       void f(int __) {
         print([!__!]);
       }
@@ -6556,6 +6557,7 @@ LintCode:
       local variable consists of a single underscore:
 
       ```dart
+      // @dart = 3.6
       void f() {
         int _ = 0;
         print([!_!]);

@@ -227,28 +227,28 @@ class Class extends core::Object {
     return self::Class::nativeFact();
   get instanceGetter() → dynamic
     return null;
-  set instanceSetter(dynamic _) → void {}
+  set instanceSetter(wildcard dynamic _#wc3#formal) → void {}
   method instanceMethod() → dynamic {}
   static get staticGetter() → dynamic
     return null;
-  static set staticSetter(dynamic _) → void {}
+  static set staticSetter(wildcard dynamic _#wc4#formal) → void {}
   static method staticMethod() → dynamic {}
   external get externalInstanceGetter() → dynamic;
-  external set externalInstanceSetter(dynamic _) → void;
+  external set externalInstanceSetter(wildcard dynamic _#wc5#formal) → void;
   external method externalInstanceMethod() → dynamic;
   external static get externalStaticGetter() → dynamic;
-  external static set externalStaticSetter(dynamic _) → void;
+  external static set externalStaticSetter(wildcard dynamic _#wc6#formal) → void;
   external static method externalStaticMethod() → dynamic;
   @#C2
   external get nativeInstanceGetter() → dynamic;
   @#C2
-  external set nativeInstanceSetter(dynamic _) → void;
+  external set nativeInstanceSetter(wildcard dynamic _#wc7#formal) → void;
   @#C2
   external method nativeInstanceMethod() → dynamic;
   @#C2
   external static get nativeStaticGetter() → dynamic;
   @#C2
-  external static set nativeStaticSetter(dynamic _) → void;
+  external static set nativeStaticSetter(wildcard dynamic _#wc8#formal) → void;
   @#C2
   external static method nativeStaticMethod() → dynamic;
 }
@@ -282,43 +282,43 @@ class NativeClass extends core::Object {
     return self::NativeClass::nativeFact();
   get instanceGetter() → dynamic
     return null;
-  set instanceSetter(dynamic _) → void {}
+  set instanceSetter(wildcard dynamic _#wc9#formal) → void {}
   method instanceMethod() → dynamic {}
   static get staticGetter() → dynamic
     return null;
-  static set staticSetter(dynamic _) → void {}
+  static set staticSetter(wildcard dynamic _#wc10#formal) → void {}
   static method staticMethod() → dynamic {}
   external get externalInstanceGetter() → dynamic;
-  external set externalInstanceSetter(dynamic _) → void;
+  external set externalInstanceSetter(wildcard dynamic _#wc11#formal) → void;
   external method externalInstanceMethod() → dynamic;
   external static get externalStaticGetter() → dynamic;
-  external static set externalStaticSetter(dynamic _) → void;
+  external static set externalStaticSetter(wildcard dynamic _#wc12#formal) → void;
   external static method externalStaticMethod() → dynamic;
   @#C2
   external get nativeInstanceGetter() → dynamic;
   @#C2
-  external set nativeInstanceSetter(dynamic _) → void;
+  external set nativeInstanceSetter(wildcard dynamic _#wc13#formal) → void;
   @#C2
   external method nativeInstanceMethod() → dynamic;
   @#C2
   external static get nativeStaticGetter() → dynamic;
   @#C2
-  external static set nativeStaticSetter(dynamic _) → void;
+  external static set nativeStaticSetter(wildcard dynamic _#wc14#formal) → void;
   @#C2
   external static method nativeStaticMethod() → dynamic;
 }
 static field dynamic topLevelField;
 static get topLevelGetter() → dynamic
   return null;
-static set topLevelSetter(dynamic _) → void {}
+static set topLevelSetter(wildcard dynamic _#wc0#formal) → void {}
 static method topLevelFunction() → dynamic {}
 external static get externalTopLevelGetter() → dynamic;
-external static set externalTopLevelSetter(dynamic _) → void;
+external static set externalTopLevelSetter(wildcard dynamic _#wc1#formal) → void;
 external static method externalTopLevelFunction() → dynamic;
 @#C2
 external static get nativeTopLevelGetter() → dynamic;
 @#C2
-external static set nativeTopLevelSetter(dynamic _) → void;
+external static set nativeTopLevelSetter(wildcard dynamic _#wc2#formal) → void;
 @#C2
 external static method nativeTopLevelFunction() → dynamic;
 static method main() → dynamic {

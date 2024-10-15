@@ -28,7 +28,7 @@ To delegate a constructor to a super constructor, put the super call as an initi
          ^^^^^"));
   }
 }
-static method use(dynamic _) → dynamic
+static method use(wildcard dynamic _#wc0#formal) → dynamic
   return null;
 static method main() → dynamic {
   new self::C::•().{self::C::test}(){() → dynamic};

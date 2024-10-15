@@ -418,6 +418,7 @@ analysisOptions
       triple-shift
       unnamed-libraries
       variance
+      wildcard-variables
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -493,6 +494,7 @@ analysisOptions
       triple-shift
       unnamed-libraries
       variance
+      wildcard-variables
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test

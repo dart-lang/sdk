@@ -170,7 +170,7 @@ class Foo extends core::Object {
   static method staticFunction() → dynamic {}
   static get staticGetter() → dynamic
     return null;
-  static set staticSetter(dynamic _) → void {}
+  static set staticSetter(wildcard dynamic _#wc0#formal) → void {}
 }
 static method use(dynamic x) → dynamic {
   if(x =={core::Object::==}{(core::Object) → core::bool} new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int})

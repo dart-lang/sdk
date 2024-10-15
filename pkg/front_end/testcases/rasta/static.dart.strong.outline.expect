@@ -11,7 +11,7 @@ class Foo extends core::Object {
     ;
   static get staticGetter() → dynamic
     ;
-  static set staticSetter(dynamic _) → void
+  static set staticSetter(wildcard dynamic _#wc0#formal) → void
     ;
 }
 static method use(dynamic x) → dynamic
