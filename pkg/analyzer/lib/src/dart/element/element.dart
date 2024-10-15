@@ -4774,6 +4774,11 @@ class FunctionElementImpl extends ExecutableElementImpl
     return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
 
+  /// Whether this function element represents a top-level function, and is
+  /// therefore safe to treat as a fragment.
+  bool get isTopLevelFunction =>
+      enclosingElement3 is CompilationUnitElementImpl;
+
   @override
   ElementKind get kind => ElementKind.FUNCTION;
 

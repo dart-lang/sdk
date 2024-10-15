@@ -5,10 +5,10 @@
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A computer for [CompilationUnit] outline.
@@ -106,7 +106,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node),
+            isDeprecated: _hasDeprecated(node.metadata),
             isAbstract: node.abstractKeyword != null),
         location: _getLocationToken(nameToken),
         typeParameters: _getTypeParametersStr(node.typeParameters));
@@ -121,7 +121,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node),
+            isDeprecated: _hasDeprecated(node.metadata),
             isAbstract: node.abstractKeyword != null),
         location: _getLocationToken(nameToken),
         typeParameters: _getTypeParametersStr(node.typeParameters));
@@ -148,7 +148,8 @@ class DartUnitOutlineComputer {
         ElementKind.CONSTRUCTOR,
         name,
         Element.makeFlags(
-            isPrivate: isPrivate, isDeprecated: _isDeprecated(constructor)),
+            isPrivate: isPrivate,
+            isDeprecated: _hasDeprecated(constructor.metadata)),
         location: _getLocationOffsetLength(offset, length),
         parameters: parametersStr);
     var contents = _addFunctionBodyOutlines(constructor.body);
@@ -163,7 +164,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
+            isDeprecated: _hasDeprecated(node.metadata)),
         location: _getLocationToken(nameToken));
     return _nodeOutline(node, element);
   }
@@ -176,7 +177,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
+            isDeprecated: _hasDeprecated(node.metadata)),
         location: _getLocationToken(nameToken));
     return _nodeOutline(node, element, children);
   }
@@ -198,7 +199,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
+            isDeprecated: _hasDeprecated(node.metadata)),
         location: location,
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, extensionContents);
@@ -213,7 +214,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
+            isDeprecated: _hasDeprecated(node.metadata)),
         location: _getLocationToken(nameToken),
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, extensionContents);
@@ -240,7 +241,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(function),
+            isDeprecated: _hasDeprecated(function.metadata),
             isStatic: isStatic),
         location: _getLocationToken(nameToken),
         parameters: parametersStr,
@@ -263,7 +264,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
+            isDeprecated: _hasDeprecated(node.metadata)),
         location: _getLocationToken(nameToken),
         parameters: parametersStr,
         returnType: returnTypeStr,
@@ -286,7 +287,7 @@ class DartUnitOutlineComputer {
       name,
       Element.makeFlags(
         isPrivate: Identifier.isPrivateName(name),
-        isDeprecated: _isDeprecated(node),
+        isDeprecated: _hasDeprecated(node.metadata),
       ),
       aliasedType: _safeToSource(aliasedType),
       location: _getLocationToken(nameToken),
@@ -322,7 +323,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(method),
+            isDeprecated: _hasDeprecated(method.metadata),
             isAbstract: method.isAbstract,
             isStatic: method.isStatic),
         location: _getLocationToken(nameToken),
@@ -342,7 +343,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
+            isDeprecated: _hasDeprecated(node.metadata)),
         location: _getLocationToken(nameToken),
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, mixinContents);
@@ -365,7 +366,7 @@ class DartUnitOutlineComputer {
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(variable),
+            isDeprecated: _hasDeprecated(variable.metadata),
             isStatic: isStatic,
             isConst: variable.isConst,
             isFinal: variable.isFinal),
@@ -436,10 +437,14 @@ class DartUnitOutlineComputer {
     return parameters.toSource();
   }
 
-  /// Returns `true` if the given [element] is not `null` and deprecated.
-  static bool _isDeprecated(Declaration declaration) {
-    var element = declaration.declaredElement;
-    return element != null && element.hasDeprecated;
+  /// Whether the list of [annotations] includes a `deprecated` annotation.
+  static bool _hasDeprecated(List<Annotation> annotations) {
+    for (var annotation in annotations) {
+      if (annotation.elementAnnotation?.isDeprecated ?? false) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static String _safeToSource(AstNode? node) =>
@@ -455,22 +460,22 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.
-  bool isGroup(engine.ExecutableElement? element) {
+  bool isGroup(engine.ExecutableElement2? element) {
     if (element != null && element.hasIsTestGroup) {
       return true;
     }
-    return element is engine.FunctionElement &&
+    return element is engine.TopLevelFunctionElement &&
         element.name == 'group' &&
         _isInsideTestPackage(element);
   }
 
   /// Return `true` if the given [element] is the method 'test' defined in the
   /// test package.
-  bool isTest(engine.ExecutableElement? element) {
+  bool isTest(engine.ExecutableElement2? element) {
     if (element != null && element.hasIsTest) {
       return true;
     }
-    return element is engine.FunctionElement &&
+    return element is engine.TopLevelFunctionElement &&
         element.name == 'test' &&
         _isInsideTestPackage(element);
   }
@@ -505,8 +510,8 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var nameNode = node.methodName;
 
-    var nameElement = nameNode.staticElement;
-    if (nameElement is! engine.ExecutableElement) {
+    var nameElement = nameNode.element;
+    if (nameElement is! engine.ExecutableElement2) {
       return;
     }
 
@@ -549,9 +554,8 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is a top-level member of the test
   /// package.
-  bool _isInsideTestPackage(engine.FunctionElement element) {
-    var parent = element.enclosingElement3;
-    return parent is engine.CompilationUnitElement &&
-        parent.source.fullName.endsWith('test.dart');
+  bool _isInsideTestPackage(engine.TopLevelFunctionElement element) {
+    var parent = element.library2!;
+    return parent.firstFragment.source.fullName.endsWith('test.dart');
   }
 }
