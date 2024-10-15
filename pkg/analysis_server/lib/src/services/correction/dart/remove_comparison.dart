@@ -12,7 +12,6 @@ import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/lint_codes.dart';
 
 class RemoveComparison extends ResolvedCorrectionProducer {
   @override
@@ -51,8 +50,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE ||
-        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE ||
-        errorCode == LinterLintCode.avoid_null_checks_in_equality_operators;
+        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE;
   }
 
   @override

@@ -31,6 +31,7 @@ lib/src/rules/avoid_relative_lib_imports.dart
 lib/src/rules/avoid_return_types_on_setters.dart
 lib/src/rules/avoid_returning_null.dart
 lib/src/rules/avoid_returning_null_for_future.dart
+lib/src/rules/avoid_returning_this.dart
 lib/src/rules/avoid_shadowing_type_parameters.dart
 lib/src/rules/avoid_single_cascade_in_expression_statements.dart
 lib/src/rules/avoid_slow_async_io.dart
@@ -346,6 +347,8 @@ test/rules/prefer_inlined_adds_test.dart
 test/rules/prefer_int_literals_test.dart
 test/rules/prefer_interpolation_to_compose_strings_test.dart
 test/rules/prefer_is_empty_test.dart
+test/rules/prefer_is_not_empty_test.dart
+test/rules/prefer_is_not_operator_test.dart
 test/rules/prefer_iterable_whereType_test.dart
 test/rules/prefer_mixin_test.dart
 test/rules/prefer_null_aware_method_calls_test.dart
@@ -442,9 +445,6 @@ test/verify_reflective_test_suites_test.dart
 test_data/rules/no_default_cases.dart
 test_data/rules/overridden_fields.dart
 test_data/rules/prefer_const_declarations.dart
-test_data/rules/prefer_final_fields.dart
-test_data/rules/prefer_is_not_empty.dart
-test_data/rules/prefer_is_not_operator.dart
 test_data/rules/prefer_void_to_null.dart
 test_data/rules/require_trailing_commas.dart
 test_data/rules/type_init_formals.dart
