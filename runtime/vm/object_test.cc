@@ -5634,7 +5634,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 
 void SetBreakpoint(Dart_NativeArguments args) {
   // Refers to the DeoptimizeFramesWhenSettingBreakpoint function below.
-  const int kBreakpointLine = 8;
+  const int kBreakpointLine = 9;
 
   // This will force deoptimization of functions on stack.
   // Function on stack has to be optimized, since we want to trigger debuggers

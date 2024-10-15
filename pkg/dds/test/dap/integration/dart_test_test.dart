@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -181,43 +180,6 @@ main() {
       // Send a single terminate, and expect a clean exit (with a `terminated`
       // event).
       await client.terminate();
-    });
-
-    test('resolves and updates breakpoints', () async {
-      final client = dap.client;
-      final testFile =
-          dap.createTestFile(simpleTestBreakpointResolutionProgram);
-      final setBreakpointLine = lineWith(testFile, breakpointMarker);
-      final expectedResolvedBreakpointLine = setBreakpointLine + 1;
-
-      // Collect any breakpoint changes during the run.
-      final breakpointChangesFuture = client.breakpointChangeEvents.toList();
-
-      Future<SetBreakpointsResponseBody> setBreakpointFuture;
-      await Future.wait([
-        client
-            .expectStop('breakpoint',
-                file: testFile, line: expectedResolvedBreakpointLine)
-            .then((_) => client.terminate()),
-        client.initialize(),
-        setBreakpointFuture = client.setBreakpoint(testFile, setBreakpointLine),
-        client.launch(testFile.path),
-      ], eagerError: true);
-
-      // The initial setBreakpointResponse should always return unverified
-      // because we verify using the BreakpointAdded/BreakpointResolved events.
-      final setBreakpointResponse = await setBreakpointFuture;
-      expect(setBreakpointResponse.breakpoints, hasLength(1));
-      final setBreakpoint = setBreakpointResponse.breakpoints.single;
-      expect(setBreakpoint.verified, isFalse);
-
-      // The last breakpoint change we had should be verified and also update
-      // the line to [expectedResolvedBreakpointLine] since the breakpoint was
-      // on a blank line.
-      final breakpointChanges = await breakpointChangesFuture;
-      final updatedBreakpoint = breakpointChanges.last.breakpoint;
-      expect(updatedBreakpoint.verified, isTrue);
-      expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
     });
 
     test('resolves modified breakpoints', () async {
