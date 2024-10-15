@@ -25,7 +25,6 @@ lib/src/rules/avoid_function_literals_in_foreach_calls.dart
 lib/src/rules/avoid_implementing_value_types.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
-lib/src/rules/avoid_null_checks_in_equality_operators.dart
 lib/src/rules/avoid_print.dart
 lib/src/rules/avoid_private_typedef_functions.dart
 lib/src/rules/avoid_relative_lib_imports.dart
@@ -233,6 +232,7 @@ test/rules/avoid_implementing_value_types_test.dart
 test/rules/avoid_init_to_null_test.dart
 test/rules/avoid_js_rounded_ints_test.dart
 test/rules/avoid_multiple_declarations_per_line_test.dart
+test/rules/avoid_null_checks_in_equality_operators_test.dart
 test/rules/avoid_positional_boolean_parameters_test.dart
 test/rules/avoid_print_test.dart
 test/rules/avoid_private_typedef_functions_test.dart
