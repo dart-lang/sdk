@@ -348,6 +348,19 @@ class ContextLocatorImpl implements ContextLocator {
       );
       var root = ContextRootImpl(resourceProvider, folder, workspace);
       root.packagesFile = rootPackagesFile;
+      // Check for analysis options file in the parent directories, from
+      // root folder to the containing root folder. Pick the one closest
+      // to the root.
+      if (localOptionsFile == null) {
+        var parentFolder = root.root.parent;
+        while (parentFolder != containingRoot.root) {
+          localOptionsFile = parentFolder.existingAnalysisOptionsYamlFile;
+          if (localOptionsFile != null) {
+            break;
+          }
+          parentFolder = parentFolder.parent;
+        }
+      }
       root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
       root.included.add(folder);
       containingRoot.excluded.add(folder);
