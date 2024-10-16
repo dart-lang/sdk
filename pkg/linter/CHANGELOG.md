@@ -8,6 +8,8 @@
 - new _(experimental)_ lint: `omit_obvious_local_variable_types`
 - new _(experimental)_ lint: `specify_nonobvious_local_variable_types`
 - new _(experimental)_ lint: `avoid_futureor_void`
+- update `avoid_dynamic_calls` to allow method invocations on a cast to
+  dynamic.
 
 # 3.5.0
 

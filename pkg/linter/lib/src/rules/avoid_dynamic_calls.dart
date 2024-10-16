@@ -115,6 +115,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
+    if (_isExplicitCast(node.realTarget)) return;
     var receiverWasDynamic = _reportIfDynamic(node.realTarget);
     if (!receiverWasDynamic) {
       var target = node.realTarget;
@@ -167,7 +168,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _reportIfDynamic(Expression? node) {
     if (node == null || node.staticType is! DynamicType) return false;
-    if (node.unParenthesized is AsExpression) return false;
+    if (_isExplicitCast(node)) return false;
 
     rule.reportLint(node);
     return true;
@@ -176,7 +177,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _reportIfDynamicOrFunction(Expression node, {DartType? staticType}) {
     staticType ??= node.staticType;
     if (staticType == null) return;
-    if (node.unParenthesized is AsExpression) return;
+    if (_isExplicitCast(node)) return;
     if (staticType is DynamicType || staticType.isDartCoreFunction) {
       rule.reportLint(node);
     }
@@ -195,4 +196,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
+
+  /// Whether an expression matches a pattern to allow a dynamic call.
+  ///
+  /// This should only be used to check expressions which have a static type of
+  /// `dynamic` or `Function`.
+  ///
+  /// Expressions with a static type of `dynamic` can be used only if they are
+  /// expliticly a parenthesized cast (which must be to `dynamic` or `Function`
+  /// to be relevant).
+  static bool _isExplicitCast(Expression? node) =>
+      node?.unParenthesized is AsExpression;
 }
