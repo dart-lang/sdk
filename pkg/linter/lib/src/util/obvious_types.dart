@@ -127,9 +127,9 @@ extension ExpressionExtensions on Expression {
         return true;
       case Literal():
         // An atomic literal: `Literal` and not `TypedLiteral`.
-        if (self is IntegerLiteral) {
-          // An integer literal with type `double` is clearly not trivial,
-          // but even an `int` integer literal may be considered ambiguous.
+        if (self is IntegerLiteral &&
+            (self.staticType?.isDartCoreDouble ?? true)) {
+          // An integer literal with static type `double` is not trivial.
           return false;
         }
         return true;

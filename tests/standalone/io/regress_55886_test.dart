@@ -10,7 +10,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 Future<void> pipeStream(Stream<List<int>> from, IOSink to) async {

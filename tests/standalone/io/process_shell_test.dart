@@ -8,7 +8,7 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 import "package:path/path.dart";
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 void testRunShell() {
   test(args) {

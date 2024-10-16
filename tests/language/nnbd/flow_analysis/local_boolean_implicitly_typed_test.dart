@@ -4,7 +4,7 @@
 
 // @dart=2.13
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // This test checks whether a local boolean variable can be used to perform type
 // promotion, if that variable is implicitly typed.

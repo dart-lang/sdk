@@ -19,5 +19,4 @@ List<String> experimentsForTests = [
   Feature.enhanced_parts.enableString,
   Feature.macros.enableString,
   Feature.null_aware_elements.enableString,
-  Feature.wildcard_variables.enableString,
 ];

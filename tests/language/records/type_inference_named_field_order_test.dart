@@ -9,7 +9,7 @@
 ///
 /// See https://github.com/dart-lang/sdk/issues/55914
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 ({Object a, Object b, Object c}) testSortedNamedFields(Object o1, Object o2) {
   // Check that `a` is type inferred before `b` by promoting `o1` in `a` and

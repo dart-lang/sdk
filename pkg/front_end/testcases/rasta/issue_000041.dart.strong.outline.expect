@@ -8,7 +8,7 @@ class C extends core::Object {
   method test() → dynamic
     ;
 }
-static method use(dynamic _) → dynamic
+static method use(wildcard dynamic _#wc0#formal) → dynamic
   ;
 static method main() → dynamic
   ;

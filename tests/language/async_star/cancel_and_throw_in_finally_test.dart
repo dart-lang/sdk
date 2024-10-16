@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 // When an exception is thrown in the finally block cleaning up after a cancel,
 // the future returned from cancel should complete with an error.
@@ -20,7 +20,7 @@ foo() async* {
   }
 }
 
-test() async {
+Future test() async {
   var completer = new Completer();
   var s;
   s = foo().listen((e) async {

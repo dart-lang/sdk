@@ -49,18 +49,33 @@ ${argParser.usage}
     return;
   }
 
-  // This URI is provided by the VM service directly so don't bother doing a
-  // lookup.
+  // Check if the remote VM Service address can be resolved to an IPv4 address.
   final remoteVmServiceUri = Uri.parse(
     argResults[DartDevelopmentServiceOptions.vmServiceUriOption],
   );
+  bool doesVmServiceAddressResolveToIpv4Address = false;
+  try {
+    final addresses = await InternetAddress.lookup(remoteVmServiceUri.host);
+    for (final address in addresses) {
+      if (address.type == InternetAddressType.IPv4) {
+        doesVmServiceAddressResolveToIpv4Address = true;
+      }
+    }
+  } on SocketException catch (e, st) {
+    writeErrorResponse(
+      'Invalid --${DartDevelopmentServiceOptions.vmServiceUriOption} argument: '
+      '$remoteVmServiceUri',
+      st,
+    );
+    return;
+  }
 
   // Ensure that the bind address, which is potentially provided by the user,
   // can be resolved at all, and check whether it can be resolved to an IPv4
   // address.
-  bool doesBindAddressResolveToIpv4Address = false;
   final bindAddress =
       argResults[DartDevelopmentServiceOptions.bindAddressOption];
+  bool doesBindAddressResolveToIpv4Address = false;
   try {
     final addresses = await InternetAddress.lookup(bindAddress);
     for (final address in addresses) {
@@ -115,9 +130,10 @@ ${argParser.usage}
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
-      // Only use IPv6 to serve DDS if the bind address cannot be resolved to an
-      // IPv4 address.
-      ipv6: !doesBindAddressResolveToIpv4Address,
+      // Only use IPv6 to serve DDS if either the remote VM Service address or
+      // the bind address cannot be resolved to an IPv4 address.
+      ipv6: !doesVmServiceAddressResolveToIpv4Address ||
+          !doesBindAddressResolveToIpv4Address,
       devToolsConfiguration: serveDevTools && devToolsBuildDirectory != null
           ? DevToolsConfiguration(
               enable: serveDevTools,

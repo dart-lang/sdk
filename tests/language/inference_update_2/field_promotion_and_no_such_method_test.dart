@@ -5,7 +5,7 @@
 // Tests that field promotion is prevented if there is a synthetic instance
 // getter of the same name in the library that's a noSuchMethod forwarder.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 import 'field_promotion_and_no_such_method_lib.dart' as otherLib;
 

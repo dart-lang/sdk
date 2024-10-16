@@ -11,7 +11,7 @@
 
 import "dart:io";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 // Helper method to be able to run the test from the runtime

@@ -1682,7 +1682,7 @@ class Harness {
 
   late final Map<String, _PropertyElement?> _members = {
     for (var entry in _coreMemberTypes.entries)
-      entry.key: _PropertyElement(entry.value,
+      entry.key: _PropertyElement(entry.value, entry.key.split('.').last,
           isPromotable: false, whyNotPromotable: null)
   };
 
@@ -1769,7 +1769,7 @@ class Harness {
       _members[query] = null;
       return;
     }
-    _members[query] = _PropertyElement(Type(type),
+    _members[query] = _PropertyElement(Type(type), memberName,
         isPromotable: promotable, whyNotPromotable: whyNotPromotable);
   }
 
@@ -6209,6 +6209,12 @@ class _PropertyElement {
   /// The type of the property.
   final Type _type;
 
+  /// The name of the property (used by toString)
+  final String _name;
+
+  @override
+  String toString() => '$_type.$_name';
+
   /// Whether the property is promotable.
   final bool isPromotable;
 
@@ -6223,7 +6229,7 @@ class _PropertyElement {
   /// to the test.
   final PropertyNonPromotabilityReason? whyNotPromotable;
 
-  _PropertyElement(this._type,
+  _PropertyElement(this._type, this._name,
       {required this.isPromotable, required this.whyNotPromotable}) {
     if (isPromotable) {
       assert(whyNotPromotable == null);

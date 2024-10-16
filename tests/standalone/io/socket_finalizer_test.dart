@@ -11,7 +11,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:_internal'; // ignore: import_internal_library, unused_import
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 ConnectorIsolate(Object portObj) async {

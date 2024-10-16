@@ -8,7 +8,7 @@ library js_typed_interop_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 _injectJs() {
   document.body!.append(new ScriptElement()

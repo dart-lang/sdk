@@ -7,7 +7,7 @@ library wheel_event_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 Future testWheelEvent() async {
   final done = new Completer();

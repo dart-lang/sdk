@@ -1,0 +1,11 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/general/too_high_version/too_high/lib/too_high_lib.dart:1:1: Error: The language version 100.200 specified for the package 'too_high' is too high. The highest supported language version is 3.7.
+// // Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// ^
+//
+library;
+import self as self;
+
+import "package:too_high/too_high_lib.dart";

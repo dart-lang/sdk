@@ -45,7 +45,7 @@ enum FrontendServerState {
   finished,
 }
 
-/// Controls and synchronizes the Frontend Server during hot reloaad tests.
+/// Controls and synchronizes the Frontend Server during hot reload tests.
 ///
 /// The Frontend Server accepts the following instructions:
 ///

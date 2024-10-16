@@ -17,7 +17,7 @@ class Y extends core::Object implements self::X {
   synthetic constructor •() → self::Y
     : super core::Object::•()
     ;
-  method noSuchMethod(core::Invocation _) → void {
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → void {
     core::print("Hello from noSuchMethod");
   }
   no-such-method-forwarder method _foo() → void

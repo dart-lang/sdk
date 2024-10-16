@@ -5,7 +5,7 @@
 library future_timeout_test;
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 main() {
@@ -178,7 +178,9 @@ main() {
       callbackCalled = true;
       Expect.isTrue(Zone.current == forked);
       return 42;
-    };
+    }
+
+    ;
     forked = Zone.current.fork(specification: new ZoneSpecification(
         registerCallback:
             <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {

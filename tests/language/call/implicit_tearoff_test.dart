@@ -11,7 +11,7 @@
 // match the specification, or vice versa, this regression test is intended to
 // protect against inadvertent implementation changes.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class B {}
 

@@ -7,7 +7,7 @@
 // verifies that the data structures necessary to support field promotion have
 // been initialized in time.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final int? _promotable;

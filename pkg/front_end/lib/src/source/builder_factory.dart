@@ -371,7 +371,7 @@ abstract class BuilderFactory {
       DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
-  void addProcedure(
+  void addMethod(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
       Modifiers modifiers,
@@ -381,6 +381,44 @@ abstract class BuilderFactory {
       List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       ProcedureKind kind,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      AsyncMarker asyncModifier,
+      {required bool isInstanceMember,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember});
+
+  void addGetter(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      Modifiers modifiers,
+      TypeBuilder? returnType,
+      Identifier identifier,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      AsyncMarker asyncModifier,
+      {required bool isInstanceMember,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember});
+
+  void addSetter(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      Modifiers modifiers,
+      TypeBuilder? returnType,
+      Identifier identifier,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
       int startCharOffset,
       int charOffset,
       int charOpenParenOffset,

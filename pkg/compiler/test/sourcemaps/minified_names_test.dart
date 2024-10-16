@@ -7,7 +7,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:dart2js_tools/src/dart2js_mapping.dart';
 

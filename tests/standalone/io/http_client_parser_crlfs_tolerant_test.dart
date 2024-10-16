@@ -4,8 +4,8 @@
 //
 // Tests that CR*LF sequence works as well as CRLF in http client parser.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 import "dart:async";
 import "dart:convert";

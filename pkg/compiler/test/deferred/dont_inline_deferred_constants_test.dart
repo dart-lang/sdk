@@ -5,7 +5,7 @@
 // Test that the additional runtime type support is output to the right
 // Files when using deferred loading.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'constant_emission_test_helper.dart';
 
 void main() {

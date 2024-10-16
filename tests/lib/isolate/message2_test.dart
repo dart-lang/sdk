@@ -11,7 +11,7 @@
 library Message2Test;
 
 import 'dart:isolate';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 // ---------------------------------------------------------------------------

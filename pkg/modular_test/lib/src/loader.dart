@@ -256,12 +256,10 @@ dependencies:
   expect: [meta, smith]
   smith: []
   meta: []
-  async_helper: []
   collection: []
 packages:
   expect: pkg/expect/lib
   smith: pkg/smith/lib
-  async_helper: pkg/async_helper/lib
   meta: pkg/meta/lib
   collection: third_party/pkg/collection/lib
 ''';

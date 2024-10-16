@@ -8,7 +8,7 @@
 // no danger of the representation variable aliasing to some other declaration,
 // as there is for ordinary fields).
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C1 {
   int? _f = 0;

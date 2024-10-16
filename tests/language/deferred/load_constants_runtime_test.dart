@@ -8,8 +8,8 @@
 
 library deferred_load_constants;
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import "load_constants.dart" deferred as foo;
 import "load_constants.dart";
 
@@ -27,11 +27,6 @@ main() {
     Expect.identical(toplevel, foo.toplevel);
     Expect.identical(C.staticfun, foo.C.staticfun);
     // Access through deferred prefix is not a constant expression.
-
-
-
-
-
 
     asyncEnd();
   });

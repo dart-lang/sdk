@@ -9,7 +9,7 @@ import "dart:async";
 import "dart:io";
 // ignore: IMPORT_INTERNAL_LIBRARY
 import "dart:_http" show TestingClass$_HttpHeaders, TestingClass$_HttpParser;
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 typedef _HttpParser = TestingClass$_HttpParser;

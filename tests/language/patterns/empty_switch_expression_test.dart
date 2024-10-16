@@ -8,17 +8,17 @@
 /// Note that the runtime behavior only matters in mixed-mode programs, since in
 /// fully sound programs an empty switch expression will be unreachable.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // Note: no subtypes.
 sealed class A {}
 
 Never emptySwitchOnSealedClass(A a) =>
-    (switch (a) {  })..expectStaticType<Never>();
+    (switch (a) {})..expectStaticType<Never>();
 
 void unreachableAfterEmptySwitch(A a, int? i) {
   if (i == null) {
-    (switch (a) {  });
+    (switch (a) {});
     // Flow analysis should understand that since `switch (a) {}` has type
     // `Never`, the rest of this block is unreachable.
   }

@@ -5,9 +5,13 @@ expect
   is shared?  yes
   is sdk?  no
   dependencies: meta, smith, sdk
+  lib/async_helper.dart
   lib/config.dart
   lib/expect.dart
+  lib/legacy/async_minitest.dart
+  lib/legacy/minitest.dart
   lib/minitest.dart
+  lib/static_type_helper.dart
   lib/variations.dart
 
 js

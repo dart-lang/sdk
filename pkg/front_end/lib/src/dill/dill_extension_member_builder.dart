@@ -4,14 +4,14 @@
 
 import 'package:kernel/ast.dart';
 
-import '../builder/builder.dart';
+import 'dill_extension_builder.dart';
 import 'dill_member_builder.dart';
 
 abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   final ExtensionMemberDescriptor _descriptor;
 
-  DillExtensionMemberBuilder(Member member, this._descriptor, Builder parent)
-      : super(member, parent);
+  DillExtensionMemberBuilder(this._descriptor, super.libraryBuilder,
+      DillExtensionBuilder super.declarationBuilder);
 
   @override
   bool get isStatic => _descriptor.isStatic;
@@ -44,9 +44,8 @@ abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
 class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
   final Field field;
 
-  DillExtensionFieldBuilder(
-      this.field, ExtensionMemberDescriptor descriptor, Builder parent)
-      : super(field, descriptor, parent);
+  DillExtensionFieldBuilder(this.field, super.descriptor, super.libraryBuilder,
+      super.declarationBuilder);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -59,7 +58,6 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
   Member? get writeTarget => isAssignable ? field : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => field;
 
   @override
@@ -72,10 +70,9 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
 class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
   final Procedure procedure;
 
-  DillExtensionSetterBuilder(
-      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == ExtensionMemberKind.Setter),
-        super(procedure, descriptor, parent);
+  DillExtensionSetterBuilder(this.procedure, super.descriptor,
+      super.libraryBuilder, super.declarationBuilder)
+      : assert(descriptor.kind == ExtensionMemberKind.Setter);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -95,10 +92,9 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
 class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
   final Procedure procedure;
 
-  DillExtensionGetterBuilder(
-      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == ExtensionMemberKind.Getter),
-        super(procedure, descriptor, parent);
+  DillExtensionGetterBuilder(this.procedure, super.descriptor,
+      super.libraryBuilder, super.declarationBuilder)
+      : assert(descriptor.kind == ExtensionMemberKind.Getter);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -118,12 +114,12 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
 class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
   final Procedure procedure;
 
-  DillExtensionOperatorBuilder(
-      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == ExtensionMemberKind.Operator),
-        super(procedure, descriptor, parent);
+  DillExtensionOperatorBuilder(this.procedure, super.descriptor,
+      super.libraryBuilder, super.declarationBuilder)
+      : assert(descriptor.kind == ExtensionMemberKind.Operator);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member get member => procedure;
 
   @override
@@ -140,11 +136,10 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
 class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
   final Procedure procedure;
 
-  DillExtensionStaticMethodBuilder(
-      this.procedure, ExtensionMemberDescriptor descriptor, Builder parent)
+  DillExtensionStaticMethodBuilder(this.procedure, super.descriptor,
+      super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionMemberKind.Method),
-        assert(descriptor.isStatic),
-        super(procedure, descriptor, parent);
+        assert(descriptor.isStatic);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -158,7 +153,6 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
   Member? get writeTarget => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get invokeTarget => procedure;
 }
 
@@ -167,14 +161,10 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
 
   final Procedure _extensionTearOff;
 
-  DillExtensionInstanceMethodBuilder(
-      this.procedure,
-      ExtensionMemberDescriptor descriptor,
-      Builder parent,
-      this._extensionTearOff)
+  DillExtensionInstanceMethodBuilder(this.procedure, super.descriptor,
+      super.libraryBuilder, super.declarationBuilder, this._extensionTearOff)
       : assert(descriptor.kind == ExtensionMemberKind.Method),
-        assert(!descriptor.isStatic),
-        super(procedure, descriptor, parent);
+        assert(!descriptor.isStatic);
 
   @override
   // Coverage-ignore(suite): Not run.

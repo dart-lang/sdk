@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/common/names.dart';
@@ -12,6 +11,7 @@ import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:compiler/src/util/memory_compiler.dart';

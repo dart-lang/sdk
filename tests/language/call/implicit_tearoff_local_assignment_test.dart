@@ -14,7 +14,7 @@
 
 import "package:expect/expect.dart";
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class B {
   Object call() => 'B.call called';

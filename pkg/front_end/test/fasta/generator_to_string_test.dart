@@ -216,7 +216,7 @@ Future<void> main() async {
         "StaticAccessGenerator(offset: 4, targetName: foo,"
         " readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
-        new StaticAccessGenerator(helper, token, 'foo', getter, setter));
+        new StaticAccessGenerator(helper, token, 'foo', getter, null, setter));
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",

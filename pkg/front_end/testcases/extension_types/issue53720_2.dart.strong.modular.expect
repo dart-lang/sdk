@@ -41,13 +41,13 @@ static extension-type-member method E1|constructor#(core::int i) → self::E1% /
 }
 static extension-type-member method E1|constructor#_#new#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#(i);
-static extension-type-member method E1|set#m1(lowered final self::E1% /* erasure=core::int, declared=! */ #this, dynamic _) → void {}
+static extension-type-member method E1|set#m1(lowered final self::E1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc0#formal) → void {}
 static extension-type-member method E1|m2(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → void {}
 static extension-type-member method E1|get#m2(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::E1|m2(#this);
 static extension-type-member method E1|get#m3(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → dynamic
   return 1;
-static extension-type-member method E1|set#m4(lowered final self::E1% /* erasure=core::int, declared=! */ #this, dynamic _) → void {}
+static extension-type-member method E1|set#m4(lowered final self::E1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc1#formal) → void {}
 static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */ {
   lowered final self::E2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
@@ -57,8 +57,8 @@ static extension-type-member method E2|constructor#_#new#tearOff(core::int i) �
 static extension-type-member method E2|m1(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → void {}
 static extension-type-member method E2|get#m1(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::E2|m1(#this);
-static extension-type-member method E2|set#m2(lowered final self::E2% /* erasure=core::int, declared=! */ #this, dynamic _) → void {}
-static extension-type-member method E2|set#m3(lowered final self::E2% /* erasure=core::int, declared=! */ #this, dynamic _) → void {}
+static extension-type-member method E2|set#m2(lowered final self::E2% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc2#formal) → void {}
+static extension-type-member method E2|set#m3(lowered final self::E2% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc3#formal) → void {}
 static extension-type-member method E2|get#m4(lowered final self::E2% /* erasure=core::int, declared=! */ #this) → dynamic
   return 1;
 static method test() → void {

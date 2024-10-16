@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';

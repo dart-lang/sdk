@@ -10,12 +10,11 @@ library package_isolate_test;
 
 import 'dart:io';
 import 'dart:isolate';
+import 'package:expect/async_helper.dart';
+import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 import 'pkgs/shared/shared.dart' as shared;
-
-import '../../../pkg/async_helper/lib/async_helper.dart';
-import '../../../pkg/expect/lib/expect.dart';
 
 ReceivePort expectResponse() {
   asyncStart();

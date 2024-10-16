@@ -4,7 +4,7 @@
 
 // Test for dart2js initialization of dispatchPropertyName.
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'js_dispatch_property_test_lib.dart';
 

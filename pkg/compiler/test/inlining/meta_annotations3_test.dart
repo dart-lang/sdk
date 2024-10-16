@@ -4,8 +4,8 @@
 
 // Functional test of 'tryInline' annotation from package:meta/dart2js.dart.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/util/memory_compiler.dart';
 

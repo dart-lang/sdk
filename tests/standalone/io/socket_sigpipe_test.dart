@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import 'package:ffi/ffi.dart';
 import 'package:path/path.dart' as p;

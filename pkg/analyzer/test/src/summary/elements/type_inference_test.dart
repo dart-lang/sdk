@@ -189,7 +189,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::f#element
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -328,7 +328,7 @@ library
             V @45
               element: <not-implemented>
           constructors
-            const new @58
+            const <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               formalParameters
@@ -343,7 +343,7 @@ library
             U @81
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
       typeAliases
@@ -512,7 +512,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            const new @50
+            const <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               formalParameters
@@ -525,7 +525,7 @@ library
             T @68
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
       typeAliases
@@ -665,14 +665,14 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @18
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -683,7 +683,7 @@ library
             T @42
               element: <not-implemented>
           constructors
-            new @59
+            <null-name>
               reference: <testLibraryFragment>::@class::S::@constructor::new
               element: <testLibraryFragment>::@class::S::@constructor::new#element
               formalParameters
@@ -885,7 +885,7 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::b
               setter2: <testLibraryFragment>::@class::A::@setter::b
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -909,7 +909,7 @@ library
               getter2: <testLibraryFragment>::@class::B::@getter::c
               setter2: <testLibraryFragment>::@class::B::@setter::c
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
           getters
@@ -927,14 +927,14 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
         class D @92
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
@@ -1300,7 +1300,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::p
               setter2: <testLibraryFragment>::@class::C::@setter::p
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -1506,7 +1506,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
-            new @29
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -1592,7 +1592,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -1672,7 +1672,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -1765,7 +1765,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::x#element
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           setters
@@ -1956,7 +1956,7 @@ library
             P @8
               element: <not-implemented>
           constructors
-            factory new @35
+            factory <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               formalParameters
@@ -2085,7 +2085,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::bar#element
               getter2: <testLibraryFragment>::@class::A::@getter::bar
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -2752,7 +2752,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
@@ -2776,7 +2776,7 @@ library
               element: <testLibraryFragment>::@class::D::@field::v#element
               getter2: <testLibraryFragment>::@class::D::@getter::v
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
           getters
@@ -3243,7 +3243,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: ConstructorMember
@@ -3274,7 +3274,7 @@ library
               element: <testLibraryFragment>::@class::D::@field::v#element
               getter2: <testLibraryFragment>::@class::D::@getter::v
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
           getters
@@ -3524,7 +3524,7 @@ library
             U @11
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: ConstructorMember
@@ -3548,7 +3548,7 @@ library
             W @78
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
           methods
@@ -3663,7 +3663,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: package:test/a.dart::<fragment>::@class::D::@constructor::new
@@ -3756,7 +3756,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
@@ -3773,7 +3773,7 @@ library
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
           methods
@@ -4101,7 +4101,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::f#element
               setter2: <testLibraryFragment>::@class::C::@setter::f
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
@@ -4121,7 +4121,7 @@ library
               element: <testLibraryFragment>::@class::D::@field::f#element
               setter2: <testLibraryFragment>::@class::D::@setter::f
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
           setters
@@ -4229,7 +4229,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
@@ -4338,7 +4338,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            new @12
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
             named @21
@@ -4776,7 +4776,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -4787,7 +4787,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
           methods
@@ -4798,7 +4798,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
         class D @121
@@ -4811,7 +4811,7 @@ library
               getter2: <testLibraryFragment>::@class::D::@getter::f
               setter2: <testLibraryFragment>::@class::D::@setter::f
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
@@ -4956,7 +4956,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -4973,7 +4973,7 @@ library
               getter2: <testLibraryFragment>::@class::B::@getter::a
               setter2: <testLibraryFragment>::@class::B::@setter::a
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
           getters
@@ -5545,7 +5545,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::y#element
               getter2: <testLibraryFragment>::@class::A::@getter::y
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -5658,7 +5658,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::c#element
               getter2: <testLibraryFragment>::@class::A::@getter::c
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -5796,7 +5796,7 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::value
               setter2: <testLibraryFragment>::@class::A::@setter::value
           constructors
-            new @27
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               formalParameters
@@ -5823,7 +5823,7 @@ library
               getter2: <testLibraryFragment>::@class::B::@getter::a
               setter2: <testLibraryFragment>::@class::B::@setter::a
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
           getters
@@ -6025,7 +6025,7 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::value
               setter2: <testLibraryFragment>::@class::A::@setter::value
           constructors
-            new @27
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               formalParameters
@@ -6049,7 +6049,7 @@ library
             T @53
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               formalParameters
@@ -6082,7 +6082,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::a
               setter2: <testLibraryFragment>::@class::C::@setter::a
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -6233,7 +6233,7 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::f
               setter2: <testLibraryFragment>::@class::A::@setter::f
           constructors
-            new @28
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               formalParameters
@@ -6340,7 +6340,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            new @12
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               formalParameters
@@ -7211,14 +7211,14 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @18
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -7234,7 +7234,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::f#element
               getter2: <testLibraryFragment>::@class::C::@getter::f
           constructors
-            const new @78
+            const <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               formalParameters
@@ -7363,7 +7363,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension  @-1
+        extension <null-name>
           reference: <testLibraryFragment>::@extension::0
           element: <testLibraryFragment>::@extension::0#element
           fields
@@ -7513,7 +7513,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       typeAliases
@@ -7765,7 +7765,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -7989,7 +7989,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::t
               setter2: <testLibraryFragment>::@class::C::@setter::t
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -8090,7 +8090,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::t
               setter2: <testLibraryFragment>::@class::C::@setter::t
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -8273,7 +8273,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       enums
@@ -8290,7 +8290,7 @@ library
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const <null-name>
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
@@ -8625,7 +8625,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
           element: <testLibrary>::@fragment::package:test/a.dart::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new#element
       enums
@@ -8642,7 +8642,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
           getters
@@ -8883,7 +8883,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       enums
@@ -8900,7 +8900,7 @@ library
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const <null-name>
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
@@ -9202,7 +9202,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
           element: <testLibrary>::@fragment::package:test/a.dart::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new#element
       enums
@@ -9219,7 +9219,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
           getters
@@ -9511,7 +9511,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::C
           element: <testLibrary>::@fragment::package:test/a.dart::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new#element
       enums
@@ -9528,7 +9528,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
           getters
@@ -9707,7 +9707,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       topLevelVariables
@@ -9806,7 +9806,7 @@ library
             U @11
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       topLevelVariables
@@ -9908,7 +9908,7 @@ library
             U @11
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       topLevelVariables
@@ -10054,7 +10054,7 @@ library
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const <null-name>
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters

@@ -8,7 +8,7 @@
 // implementation is in external code. As such, it shouldn't be promotable,
 // because it's not guaranteed to yield the same value each time it's invoked.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   external final int? _field;

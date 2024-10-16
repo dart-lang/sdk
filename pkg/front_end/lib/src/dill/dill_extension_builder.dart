@@ -16,7 +16,7 @@ import 'dill_library_builder.dart';
 class DillExtensionBuilder extends ExtensionBuilderImpl
     with DillDeclarationBuilderMixin {
   @override
-  final DillLibraryBuilder parent;
+  final DillLibraryBuilder libraryBuilder;
 
   @override
   final Extension extension;
@@ -30,7 +30,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   List<NominalVariableBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
-  DillExtensionBuilder(this.extension, this.parent)
+  DillExtensionBuilder(this.extension, this.libraryBuilder)
       : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
@@ -46,7 +46,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, this),
+                    procedure, descriptor, libraryBuilder, this),
                 setter: false);
           } else {
             Procedure procedure = descriptor.memberReference.asProcedure;
@@ -55,37 +55,48 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionInstanceMethodBuilder(
-                    procedure, descriptor, this, tearOff!),
+                    procedure, descriptor, libraryBuilder, this, tearOff!),
                 setter: false);
           }
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionGetterBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionGetterBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionMemberKind.Field:
           Field field = descriptor.memberReference.asField;
           nameSpace.addLocalMember(
-              name.text, new DillExtensionFieldBuilder(field, descriptor, this),
+              name.text,
+              new DillExtensionFieldBuilder(
+                  field, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionMemberKind.Setter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionSetterBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionSetterBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: true);
           break;
         case ExtensionMemberKind.Operator:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionOperatorBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionOperatorBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: false);
           break;
       }
     }
   }
+
+  @override
+  DillLibraryBuilder get parent => libraryBuilder;
 
   @override
   Reference get reference => extension.reference;

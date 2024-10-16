@@ -4,7 +4,7 @@
 
 // Test that using `createStaticInteropMock` with pkg:mockito works as expected.
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:mockito/mockito.dart';

@@ -24,20 +24,20 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C10: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
 }
 static method test(asy::Future<dynamic> f) → void {
-  asy::Future<core::int> t1 = f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> async /* emittedValueType= core::int */ => await new self::MyFuture::value<core::int>(3)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t2 = f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  asy::Future<core::int> t1 = f.{asy::Future::then}<core::int>((dynamic _#wc0#formal) → asy::Future<core::int> async /* emittedValueType= core::int */ => await new self::MyFuture::value<core::int>(3)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
+  asy::Future<core::int> t2 = f.{asy::Future::then}<core::int>((dynamic _#wc1#formal) → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return await new self::MyFuture::value<core::int>(3);
   }){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t3 = f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> async /* emittedValueType= core::int */ => 3){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t4 = f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  asy::Future<core::int> t3 = f.{asy::Future::then}<core::int>((dynamic _#wc2#formal) → asy::Future<core::int> async /* emittedValueType= core::int */ => 3){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
+  asy::Future<core::int> t4 = f.{asy::Future::then}<core::int>((dynamic _#wc3#formal) → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return 3;
   }){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t5 = f.{asy::Future::then}<core::int>((dynamic _) → self::MyFuture<core::int> => new self::MyFuture::value<core::int>(3)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t6 = f.{asy::Future::then}<core::int>((dynamic _) → self::MyFuture<core::int> {
+  asy::Future<core::int> t5 = f.{asy::Future::then}<core::int>((dynamic _#wc4#formal) → self::MyFuture<core::int> => new self::MyFuture::value<core::int>(3)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
+  asy::Future<core::int> t6 = f.{asy::Future::then}<core::int>((dynamic _#wc5#formal) → self::MyFuture<core::int> {
     return new self::MyFuture::value<core::int>(3);
   }){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t7 = f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> async /* emittedValueType= core::int */ => new self::MyFuture::value<core::int>(3)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t8 = f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  asy::Future<core::int> t7 = f.{asy::Future::then}<core::int>((dynamic _#wc6#formal) → asy::Future<core::int> async /* emittedValueType= core::int */ => new self::MyFuture::value<core::int>(3)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
+  asy::Future<core::int> t8 = f.{asy::Future::then}<core::int>((dynamic _#wc7#formal) → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return new self::MyFuture::value<core::int>(3);
   }){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
 }

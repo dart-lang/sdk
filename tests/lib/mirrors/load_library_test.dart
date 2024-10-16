@@ -5,8 +5,8 @@
 library load_library;
 
 import 'dart:mirrors';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 import 'other_library.dart' deferred as other;
 

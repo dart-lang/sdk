@@ -5,7 +5,7 @@
 // Test that loading of a library (with top-level functions only) can
 // be deferred.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'deferred_function_library.dart' deferred as lib;

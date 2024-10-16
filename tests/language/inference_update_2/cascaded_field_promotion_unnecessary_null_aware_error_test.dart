@@ -8,7 +8,7 @@
 // Since the cascades are unnecessarily null-aware, the analyzer produces
 // warnings for it, so this test has to have "error" expectations.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final Object? _field;

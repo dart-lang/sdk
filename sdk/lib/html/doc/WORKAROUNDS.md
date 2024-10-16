@@ -32,7 +32,7 @@ library workarounds;
 
 import 'dart:html';
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart';
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
@@ -62,7 +62,7 @@ Alternatively, you can directly use the `js_util` library, using the methods
 import 'dart:html';
 import 'dart:js_util' as js_util;
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/async_minitest.dart';
 import 'package:expect/expect.dart';
 
 void main() async {

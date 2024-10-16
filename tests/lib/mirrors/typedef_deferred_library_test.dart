@@ -7,7 +7,7 @@ library foo;
 import 'dart:mirrors';
 import 'typedef_library.dart' deferred as def;
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 main() {

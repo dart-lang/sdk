@@ -74,7 +74,7 @@ Future<void> runMe(List<String> arguments, CreateContext f,
 /// For example, to run the suite `my_suite` from `test.dart`, create a file
 /// with this content:
 ///
-///     import 'package:async_helper/async_helper.dart' show asyncTest;
+///     import 'package:expect/async_helper.dart' show asyncTest;
 ///
 ///     import 'package:testing/testing.dart' show run;
 ///

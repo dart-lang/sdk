@@ -369,6 +369,9 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   InstanceFragment? get enclosingFragment;
 
+  @override
+  ConstructorFragmentName? get name2;
+
   /// The offset of the end of the name in this fragment.
   ///
   /// Returns `null` if the fragment has no name.
@@ -384,6 +387,12 @@ abstract class ConstructorFragment implements ExecutableFragment {
 
   @override
   ConstructorFragment? get previousFragment;
+}
+
+/// The name of a [ConstructorFragment].
+abstract class ConstructorFragmentName extends FragmentName {
+  /// The offset of the `.` before the name.
+  int? get periodOffset;
 }
 
 /// The base class for all of the elements in the element model.
@@ -497,6 +506,12 @@ abstract class Element2 {
   /// The analysis session in which this element is defined.
   AnalysisSession? get session;
 
+  /// Uses the given [visitor] to visit this element.
+  ///
+  /// Returns the value returned by the visitor as a result of visiting this
+  /// element.
+  T? accept2<T>(ElementVisitor2<T> visitor);
+
   /// The presentation of this element as it should appear when presented to
   /// users.
   ///
@@ -535,6 +550,71 @@ abstract class Element2 {
   ///
   /// Returns `null` if there is no such element.
   E? thisOrAncestorOfType2<E extends Element2>();
+
+  /// Uses the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
+  void visitChildren2<T>(ElementVisitor2<T> visitor);
+}
+
+/// An object that can be used to visit an element structure.
+///
+/// Clients may not extend, implement or mix-in this class. There are classes
+/// that implement this interface that provide useful default behaviors in
+/// `package:analyzer/dart/element/visitor.dart`. A couple of the most useful
+/// include
+/// * SimpleElementVisitor which implements every visit method by doing nothing,
+/// * RecursiveElementVisitor which will cause every node in a structure to be
+///   visited, and
+/// * ThrowingElementVisitor which implements every visit method by throwing an
+///   exception.
+abstract class ElementVisitor2<R> {
+  R? visitClassElement(ClassElement2 element);
+
+  R? visitConstructorElement(ConstructorElement2 element);
+
+  R? visitEnumElement(EnumElement2 element);
+
+  R? visitExtensionElement(ExtensionElement2 element);
+
+  R? visitExtensionTypeElement(ExtensionTypeElement2 element);
+
+  R? visitFieldElement(FieldElement2 element);
+
+  R? visitFieldFormalParameterElement(FieldFormalParameterElement2 element);
+
+  R? visitFormalParameterElement(FormalParameterElement element);
+
+  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement2 element);
+
+  R? visitGetterElement(GetterElement element);
+
+  R? visitLabelElement(LabelElement2 element);
+
+  R? visitLibraryElement(LibraryElement2 element);
+
+  R? visitLocalFunctionElement(LocalFunctionElement element);
+
+  R? visitLocalVariableElement(LocalVariableElement2 element);
+
+  R? visitMethodElement(MethodElement2 element);
+
+  R? visitMixinElement(MixinElement2 element);
+
+  R? visitMultiplyDefinedElement(MultiplyDefinedElement2 element);
+
+  R? visitPrefixElement(PrefixElement2 element);
+
+  R? visitSetterElement(SetterElement element);
+
+  R? visitSuperFormalParameterElement(SuperFormalParameterElement2 element);
+
+  R? visitTopLevelFunctionElement(TopLevelFunctionElement element);
+
+  R? visitTopLevelVariableElement(TopLevelVariableElement2 element);
+
+  R? visitTypeAliasElement(TypeAliasElement2 element);
+
+  R? visitTypeParameterElement(TypeParameterElement2 element);
 }
 
 /// An element that represents an enum.
@@ -878,6 +958,18 @@ abstract class Fragment {
   /// Returns `null` if this fragment doesn't have a name.
   String? get name;
 
+  /// The name of this fragment.
+  ///
+  /// Returns `null` if the fragment does not have a name, e.g. an unnamed
+  /// [ExtensionFragment].
+  ///
+  /// Returns `null` if the fragment is an unnamed [ConstructorFragment],
+  /// even if its [ConstructorElement2] has the name `new`.
+  ///
+  /// Returns `null` if the fragment declaration node does not have the name
+  /// specified, and the parser inserted a synthetic identifier.
+  FragmentName? get name2;
+
   /// The offset of the name in this fragment.
   ///
   /// Returns `null` if the fragment has no name.
@@ -902,6 +994,32 @@ abstract class FragmentedElement {
   /// The other fragments in the chain can be accessed using
   /// [Fragment.nextFragment].
   Fragment? get firstFragment;
+}
+
+/// The name of a [Fragment].
+abstract class FragmentName {
+  /// The name of the fragment.
+  ///
+  /// Never empty.
+  ///
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the whole [FragmentName] is `null`.
+  ///
+  /// Similarly, an unnamed [ConstructorFragment] does not have a name, even
+  /// if the [ConstructorElement2] has the name `new`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the whole [FragmentName]
+  /// is `null`.
+  ///
+  /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  String get name;
+
+  /// The offset of the end of the name.
+  int? get nameEnd;
+
+  /// The offset of the name in the file.
+  int get nameOffset;
 }
 
 /// An element that has a [FunctionType] as its [type].

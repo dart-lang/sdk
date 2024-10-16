@@ -5,7 +5,7 @@
 // Disable `inference-update-2` (field promotion) feature.
 // @dart=3.0
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // Verify that neither an `== null` nor an `is` test promotes the type of a
 // property access on `this` when the field-promotion feature is not enabled.

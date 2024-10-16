@@ -154,8 +154,8 @@ class D extends C {
 main() {
   // Make sure the "none" test fails if "??=" is not implemented.  This makes
   // status files easier to maintain.
-  var _;
-  _ ??= null;
+  var noneTest;
+  noneTest ??= null;
 
   new C('c').instanceTest();
   new D('d').derivedInstanceTest();

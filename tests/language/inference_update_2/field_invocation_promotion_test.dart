@@ -10,7 +10,7 @@
 // invocation of a field get.  We need to make sure the re-interpretation logic
 // properly accounts for the promotion.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final void Function()? _nullablePrivateFunction;

@@ -7,7 +7,7 @@
 // using if-null assignments whose target is an ordinary index expression that
 // refers to operators defined in an extension.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// Ensures a context type of `Iterable<T>` for the operand, or `Iterable<_>` if
 /// no type argument is supplied.

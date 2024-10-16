@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Returns direct children of [parent].
@@ -14,6 +15,18 @@ List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (Element element) {
     if (name == null || _getBaseName(element) == name) {
+      children.add(element);
+    }
+    return false;
+  });
+  return children;
+}
+
+/// Returns direct children of [parent].
+List<Element2> getChildren2(Element2 parent, [String? name]) {
+  var children = <Element2>[];
+  visitChildren2(parent, (element) {
+    if (name == null || _getBaseName2(element) == name) {
       children.add(element);
     }
     return false;
@@ -48,6 +61,33 @@ List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
   return members;
 }
 
+/// Returns direct non-synthetic children of the given [InterfaceElement2].
+///
+/// Includes: fields, accessors and methods.
+/// Excludes: constructors and synthetic elements.
+List<Element2> getClassMembers2(InterfaceElement2 clazz, [String? name]) {
+  var members = <Element2>[];
+  visitChildren2(clazz, (Element2 element) {
+    if (element.isSynthetic) {
+      return false;
+    }
+    if (element is ConstructorElement2) {
+      return false;
+    }
+    if (name != null && element.displayName != name) {
+      return false;
+    }
+    if (element is ExecutableElement2) {
+      members.add(element);
+    }
+    if (element is FieldElement2) {
+      members.add(element);
+    }
+    return false;
+  });
+  return members;
+}
+
 /// Returns a [Set] with direct subclasses of [seed].
 ///
 /// The given [searchEngineCache] will be used or filled out as needed
@@ -73,6 +113,29 @@ List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
       members.add(element);
     }
     if (element is FieldElement) {
+      members.add(element);
+    }
+    return false;
+  });
+  return members;
+}
+
+/// Return the non-synthetic children of the given [extension]. This includes
+/// fields, accessors and methods, but excludes synthetic elements.
+List<Element2> getExtensionMembers2(ExtensionElement2 extension,
+    [String? name]) {
+  var members = <Element2>[];
+  visitChildren2(extension, (element) {
+    if (element.isSynthetic) {
+      return false;
+    }
+    if (name != null && element.displayName != name) {
+      return false;
+    }
+    if (element is ExecutableElement2) {
+      members.add(element);
+    }
+    if (element is FieldElement2) {
       members.add(element);
     }
     return false;
@@ -224,6 +287,24 @@ List<Element> getMembers(InterfaceElement clazz) {
   return members;
 }
 
+/// Returns non-synthetic members of the given [InterfaceElement2] and its super
+/// classes.
+///
+/// Includes: fields, accessors and methods.
+///
+/// Excludes: constructors and synthetic elements.
+List<Element2> getMembers2(InterfaceElement2 clazz) {
+  var classElements = [
+    ...clazz.allSupertypes.map((e) => e.element3),
+    clazz,
+  ];
+  var members = <Element2>[];
+  for (var superClass in classElements) {
+    members.addAll(getClassMembers2(superClass));
+  }
+  return members;
+}
+
 /// If the given [element] is a synthetic [PropertyAccessorElement] returns
 /// its variable, otherwise returns [element].
 Element getSyntheticAccessorVariable(Element element) {
@@ -237,6 +318,14 @@ Element getSyntheticAccessorVariable(Element element) {
 
 String? _getBaseName(Element element) {
   if (element is PropertyAccessorElement && element.isSetter) {
+    var name = element.name;
+    return name.substring(0, name.length - 1);
+  }
+  return element.name;
+}
+
+String? _getBaseName2(Element2 element) {
+  if (element is SetterElement) {
     var name = element.name;
     return name.substring(0, name.length - 1);
   }

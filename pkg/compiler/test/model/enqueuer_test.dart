@@ -5,7 +5,6 @@
 // Test that the enqueuers are not dependent upon in which order impacts are
 // applied.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -20,6 +19,7 @@ import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 

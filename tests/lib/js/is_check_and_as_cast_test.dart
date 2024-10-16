@@ -10,7 +10,7 @@ library is_check_and_as_cast_test;
 
 import 'package:js/js.dart';
 import 'package:expect/expect.dart' show hasUnsoundNullSafety;
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 @JS()
 external void eval(String code);

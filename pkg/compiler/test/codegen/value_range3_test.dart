@@ -4,7 +4,7 @@
 
 // Test that global analysis in dart2js propagates positive integers.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 

@@ -17,8 +17,8 @@ void main(List<String> args) {
   group('sourcePathToUri', () {
     test('various URL schemes', () {
       expect(sourcePathToUri('dart:io').toString(), 'dart:io');
-      expect(sourcePathToUri('package:expect/minitest.dart').toString(),
-          'package:expect/minitest.dart');
+      expect(sourcePathToUri('package:expect/expect.dart').toString(),
+          'package:expect/expect.dart');
       expect(sourcePathToUri('foobar:whatnot').toString(), 'foobar:whatnot');
     });
 
@@ -55,8 +55,8 @@ void main(List<String> args) {
   group('sourcePathToRelativeUri', () {
     test('various URL schemes', () {
       expect(sourcePathToRelativeUri('dart:io').toString(), 'dart:io');
-      expect(sourcePathToRelativeUri('package:expect/minitest.dart').toString(),
-          'package:expect/minitest.dart');
+      expect(sourcePathToRelativeUri('package:expect/expect.dart').toString(),
+          'package:expect/expect.dart');
       expect(sourcePathToRelativeUri('foobar:whatnot').toString(),
           'foobar:whatnot');
     });

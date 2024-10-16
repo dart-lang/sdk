@@ -15,7 +15,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 6)),
 
   classModifiers(
       name: 'class-modifiers',
@@ -71,7 +71,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 6)),
 
   extensionMethods(
       name: 'extension-methods',
@@ -257,10 +257,10 @@ enum ExperimentalFlag {
 
   wildcardVariables(
       name: 'wildcard-variables',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 7),
+      experimentReleasedVersion: const Version(3, 7)),
   ;
 
   final String name;

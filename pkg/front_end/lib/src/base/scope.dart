@@ -642,10 +642,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => throw new UnsupportedError('$runtimeType.member');
-
-  @override
-  // Coverage-ignore(suite): Not run.
   Name get memberName => throw new UnsupportedError('$runtimeType.memberName');
 
   @override

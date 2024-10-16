@@ -8,8 +8,8 @@ import 'package:compiler/compiler_api.dart' as api;
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:nativewrappers';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 class Foo {

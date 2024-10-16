@@ -7,7 +7,7 @@
 // range of the sdk. The library stays on the .dart_tool/package_config.json
 // specified one (%VERSION_MARKER1%) and an error is issued.
 
-/*error: errors=LanguageVersionTooHigh*/
+/*error: errors=LanguageVersionTooHighExplicit*/
 // @dart = %TOO_HIGH_VERSION_MARKER%
 
 /*library: languageVersion=%VERSION_MARKER1%*/

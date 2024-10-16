@@ -1687,14 +1687,6 @@ class OutlineBuilder extends StackListenerImpl {
         isConst: constKeyword != null);
   }
 
-  ProcedureKind computeProcedureKind(Token? token) {
-    if (token == null) return ProcedureKind.Method;
-    if (token.isA2(Keyword.GET)) return ProcedureKind.Getter;
-    if (token.isA2(Keyword.SET)) return ProcedureKind.Setter;
-    return unhandled(
-        token.lexeme, "computeProcedureKind", token.charOffset, uri);
-  }
-
   @override
   void beginTopLevelMethod(
       Token lastConsumed, Token? augmentToken, Token? externalToken) {
@@ -1755,25 +1747,71 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.endTopLevelMethod();
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-      _builderFactory.addProcedure(
-          _offsetMap,
-          metadata,
-          modifiers,
-          returnType,
-          identifier,
-          identifier.name,
-          typeVariables,
-          formals,
-          computeProcedureKind(getOrSet),
-          startCharOffset,
-          identifier.nameOffset,
-          formalsOffset,
-          endToken.charOffset,
-          nativeMethodName,
-          asyncModifier,
-          isInstanceMember: false,
-          isExtensionMember: false,
-          isExtensionTypeMember: false);
+      ProcedureKind kind = computeProcedureKind(getOrSet);
+      switch (kind) {
+        case ProcedureKind.Method:
+        case ProcedureKind.Operator:
+          _builderFactory.addMethod(
+              _offsetMap,
+              metadata,
+              modifiers,
+              returnType,
+              identifier,
+              identifier.name,
+              typeVariables,
+              formals,
+              kind,
+              startCharOffset,
+              identifier.nameOffset,
+              formalsOffset,
+              endToken.charOffset,
+              nativeMethodName,
+              asyncModifier,
+              isInstanceMember: false,
+              isExtensionMember: false,
+              isExtensionTypeMember: false);
+        case ProcedureKind.Getter:
+          _builderFactory.addGetter(
+              _offsetMap,
+              metadata,
+              modifiers,
+              returnType,
+              identifier,
+              identifier.name,
+              typeVariables,
+              formals,
+              startCharOffset,
+              identifier.nameOffset,
+              formalsOffset,
+              endToken.charOffset,
+              nativeMethodName,
+              asyncModifier,
+              isInstanceMember: false,
+              isExtensionMember: false,
+              isExtensionTypeMember: false);
+        case ProcedureKind.Setter:
+          _builderFactory.addSetter(
+              _offsetMap,
+              metadata,
+              modifiers,
+              returnType,
+              identifier,
+              identifier.name,
+              typeVariables,
+              formals,
+              startCharOffset,
+              identifier.nameOffset,
+              formalsOffset,
+              endToken.charOffset,
+              nativeMethodName,
+              asyncModifier,
+              isInstanceMember: false,
+              isExtensionMember: false,
+              isExtensionTypeMember: false);
+        // Coverage-ignore(suite): Not run.
+        case ProcedureKind.Factory:
+          throw new UnsupportedError("Unexpected procedure kind: $kind");
+      }
       nativeMethodName = null;
     } else {
       _builderFactory.endTopLevelMethodForParserRecovery(typeVariables);

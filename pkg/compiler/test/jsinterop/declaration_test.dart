@@ -4,8 +4,8 @@
 
 library jsinterop.abstract_test;
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';

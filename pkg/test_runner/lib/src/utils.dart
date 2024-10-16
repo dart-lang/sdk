@@ -20,7 +20,6 @@ final maxStdioDelayPassedMessage =
 
 /// The names of the packages that are available for use in tests.
 const testPackages = [
-  "async_helper",
   "expect",
   "js",
   "meta",

@@ -45,14 +45,14 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
       return;
     }
     // should be "isEmpty"
-    var propertyElement = isEmptyIdentifier.staticElement;
+    var propertyElement = isEmptyIdentifier.element;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
     // should have "isNotEmpty"
-    var propertyTarget = propertyElement.enclosingElement3;
+    var propertyTarget = propertyElement.enclosingElement2;
     if (propertyTarget == null ||
-        getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
+        getChildren2(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
     }
     // should be in PrefixExpression

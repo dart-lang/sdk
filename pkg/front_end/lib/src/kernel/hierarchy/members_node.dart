@@ -217,7 +217,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             declaredMember.formals != null &&
                 declaredMember.formals!.any(
                     (parameter) => parameter.type is InferableTypeBuilder))) {
-      Procedure declaredProcedure = declaredMember.member as Procedure;
+      Procedure declaredProcedure = declaredMember.invokeTarget as Procedure;
       FunctionNode declaredFunction = declaredProcedure.function;
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;

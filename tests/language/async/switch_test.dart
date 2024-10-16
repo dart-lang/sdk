@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 foo1(int a) async {
   int k = 0;
@@ -66,7 +66,7 @@ foo4(value) async {
 
 Future<int> futureOf(int a) async => await a;
 
-test() async {
+Future test() async {
   Expect.equals(1, await foo1(1));
   Expect.equals(4, await foo1(2));
   Expect.equals(2, await foo1(3)); //# withDefault: ok

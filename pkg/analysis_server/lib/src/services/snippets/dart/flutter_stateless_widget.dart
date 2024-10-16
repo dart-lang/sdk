@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Produces a [Snippet] that creates a Flutter StatelessWidget.
@@ -13,11 +13,13 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
   static const prefix = 'stless';
   static const label = 'Flutter Stateless Widget';
 
-  late ClassElement? classStatelessWidget;
+  late ClassElement2? classStatelessWidget;
+
   @override
-  late ClassElement? classBuildContext;
+  late ClassElement2? classBuildContext;
+
   @override
-  late ClassElement? classKey;
+  late ClassElement2? classKey;
 
   FlutterStatelessWidget(super.request, {required super.elementImportCache});
 

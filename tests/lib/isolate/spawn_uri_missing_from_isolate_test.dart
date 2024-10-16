@@ -14,7 +14,7 @@ import 'dart:isolate';
 
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 import 'spawn_uri_missing_test.dart';
 

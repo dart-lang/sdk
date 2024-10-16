@@ -4,9 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
@@ -27,33 +25,30 @@ class ErrorConfig {
   /// will create a processor config that turns `missing_return` warnings into
   /// errors.
   ErrorConfig(YamlNode? codeMap) {
-    _processMap(codeMap);
-  }
-
-  void _process(String? code, Object action) {
-    code = toUpperCase(code);
-    var actionStr = toLowerCase(action);
-    if (AnalyzerOptions.ignoreSynonyms.contains(actionStr)) {
-      processors.add(ErrorProcessor.ignore(code!));
-    } else {
-      var severity = _toSeverity(actionStr);
-      if (severity != null) {
-        processors.add(ErrorProcessor(code!, severity));
-      }
+    if (codeMap is YamlMap) {
+      _processMap(codeMap);
     }
   }
 
-  void _processMap(YamlNode? codes) {
-    if (codes is YamlMap) {
-      codes.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          _process(k.value as String?, v.valueOrThrow);
+  void _processMap(YamlMap codes) {
+    codes.nodes.forEach((k, v) {
+      if (k is YamlScalar && v is YamlScalar) {
+        var code = k.value;
+        if (code is! String) return;
+
+        code = code.toUpperCase();
+        var action = v.value.toString().toLowerCase();
+        if (AnalyzerOptions.ignoreSynonyms.contains(action)) {
+          processors.add(ErrorProcessor.ignore(code));
+        } else {
+          var severity = severityMap[action];
+          if (severity != null) {
+            processors.add(ErrorProcessor(code, severity));
+          }
         }
-      });
-    }
+      }
+    });
   }
-
-  ErrorSeverity? _toSeverity(String? severity) => severityMap[severity];
 }
 
 /// Process errors by filtering or changing associated [ErrorSeverity].

@@ -8,7 +8,7 @@
 
 // @dart=2.17
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 testLaterUnnamedParameter(void Function<T>(T, void Function(T)) f) {
   f(0, (x) {

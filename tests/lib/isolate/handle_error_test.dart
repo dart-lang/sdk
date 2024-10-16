@@ -6,7 +6,7 @@ library handle_error_test;
 
 import "dart:isolate";
 import "dart:async";
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 isomain1(replyPort) {

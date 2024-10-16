@@ -12,7 +12,7 @@
 
 import 'dart:io';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;

@@ -6,8 +6,8 @@
 // VMOptions=--stress_write_barrier_elimination
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 @pragma('dart2js:noInline')
 @pragma('dart2js:assumeDynamic')
@@ -82,7 +82,7 @@ test2() async {
   });
 }
 
-test() async {
+Future test() async {
   await test1();
   await test2();
 }

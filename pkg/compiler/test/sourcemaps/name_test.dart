@@ -4,8 +4,8 @@
 
 library source_map_name_test;
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/names.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart' show JElementEnvironment;

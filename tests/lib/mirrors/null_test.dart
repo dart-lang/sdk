@@ -6,6 +6,7 @@
 
 import "dart:mirrors";
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 void main() {
   for (int i = 0; i < 100; i++) {
@@ -18,7 +19,7 @@ void test() {
 
   InstanceMirror im1 = reflect(null);
   Expect.equals(cm, im1.type);
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => im1.invoke(const Symbol("=="), [null]),
         'null not assignable to Object');
   } else {
@@ -29,7 +30,7 @@ void test() {
   var obj = confuse(null); // Null value that isn't known at compile-time.
   InstanceMirror im2 = reflect(obj);
   Expect.equals(cm, im2.type);
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => im2.invoke(const Symbol("=="), [null]),
         'null not assignable to Object');
   } else {
@@ -41,7 +42,7 @@ void test() {
   Expect.isTrue(nullMirror.getField(#hashCode).reflectee is int);
   Expect.equals(null.hashCode, nullMirror.getField(#hashCode).reflectee);
   Expect.equals('Null', nullMirror.getField(#runtimeType).reflectee.toString());
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(
         () => nullMirror.invoke(#==, [null]), 'null not assignable to Object');
   } else {

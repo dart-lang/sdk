@@ -177,7 +177,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.augmentations,
     isExpired: IsExpired.augmentations,
     documentation: 'Augmentations - enhancing declarations from outside',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
   );
 
@@ -259,7 +259,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.enhanced_parts,
     isExpired: IsExpired.enhanced_parts,
     documentation: 'Generalize parts to be nested and have exports/imports.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.6.0'),
     releaseVersion: null,
   );
 
@@ -536,7 +536,7 @@ class ExperimentalFeatures {
     documentation:
         'Local declarations and parameters named `_` are non-binding.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.7.0'),
   );
 }
 
@@ -649,7 +649,7 @@ class IsEnabledByDefault {
   static const bool variance = false;
 
   /// Default state of the experiment "wildcard-variables"
-  static const bool wildcard_variables = false;
+  static const bool wildcard_variables = true;
 }
 
 /// Constant bools indicating whether each experimental flag is currently

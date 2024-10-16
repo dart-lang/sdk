@@ -18,7 +18,7 @@ class DillExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
     with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
   @override
-  final DillLibraryBuilder parent;
+  final DillLibraryBuilder libraryBuilder;
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
@@ -35,7 +35,7 @@ class DillExtensionTypeDeclarationBuilder
   TypeBuilder? _declaredRepresentationTypeBuilder;
 
   DillExtensionTypeDeclarationBuilder(
-      this._extensionTypeDeclaration, this.parent)
+      this._extensionTypeDeclaration, this.libraryBuilder)
       : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.declaration,
         "extension type ${_extensionTypeDeclaration.name}",
@@ -52,20 +52,23 @@ class DillExtensionTypeDeclarationBuilder
               "$procedure (${procedure.kind}).");
         case ProcedureKind.Setter:
           // Coverage-ignore(suite): Not run.
-          nameSpace.addLocalMember(name, new DillSetterBuilder(procedure, this),
+          nameSpace.addLocalMember(
+              name, new DillSetterBuilder(procedure, libraryBuilder, this),
               setter: true);
           break;
         case ProcedureKind.Getter:
-          nameSpace.addLocalMember(name, new DillGetterBuilder(procedure, this),
+          nameSpace.addLocalMember(
+              name, new DillGetterBuilder(procedure, libraryBuilder, this),
               setter: false);
           break;
         case ProcedureKind.Operator:
           nameSpace.addLocalMember(
-              name, new DillOperatorBuilder(procedure, this),
+              name, new DillOperatorBuilder(procedure, libraryBuilder, this),
               setter: false);
           break;
         case ProcedureKind.Method:
-          nameSpace.addLocalMember(name, new DillMethodBuilder(procedure, this),
+          nameSpace.addLocalMember(
+              name, new DillMethodBuilder(procedure, libraryBuilder, this),
               setter: false);
           break;
       }
@@ -80,7 +83,7 @@ class DillExtensionTypeDeclarationBuilder
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionTypeStaticMethodBuilder(
-                    procedure, descriptor, this),
+                    procedure, descriptor, libraryBuilder, this),
                 setter: false);
           } else {
             Procedure procedure = descriptor.memberReference.asProcedure;
@@ -89,32 +92,40 @@ class DillExtensionTypeDeclarationBuilder
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionTypeInstanceMethodBuilder(
-                    procedure, descriptor, this, tearOff!),
+                    procedure, descriptor, libraryBuilder, this, tearOff!),
                 setter: false);
           }
           break;
         case ExtensionTypeMemberKind.Getter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionTypeGetterBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionTypeGetterBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Field:
           Field field = descriptor.memberReference.asField;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionTypeFieldBuilder(field, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionTypeFieldBuilder(
+                  field, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Setter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionTypeSetterBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionTypeSetterBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: true);
           break;
         case ExtensionTypeMemberKind.Operator:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionTypeOperatorBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionTypeOperatorBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Constructor:
@@ -123,7 +134,7 @@ class DillExtensionTypeDeclarationBuilder
           nameSpace.addConstructor(
               name.text,
               new DillExtensionTypeConstructorBuilder(
-                  procedure, tearOff, descriptor, this));
+                  procedure, tearOff, descriptor, libraryBuilder, this));
           break;
         case ExtensionTypeMemberKind.Factory:
         case ExtensionTypeMemberKind.RedirectingFactory:
@@ -132,7 +143,7 @@ class DillExtensionTypeDeclarationBuilder
           nameSpace.addConstructor(
               name.text,
               new DillExtensionTypeFactoryBuilder(
-                  procedure, tearOff, descriptor, this));
+                  procedure, tearOff, descriptor, libraryBuilder, this));
           break;
       }
     }
@@ -150,7 +161,7 @@ class DillExtensionTypeDeclarationBuilder
   Uri get fileUri => _extensionTypeDeclaration.fileUri;
 
   @override
-  DillLibraryBuilder get libraryBuilder => parent;
+  DillLibraryBuilder get parent => libraryBuilder;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 // Regression test for https://github.com/dart-lang/sdk/issues/45767.
 
@@ -29,13 +30,13 @@ class G<T> extends F<G<FutureOr<Null>?>> {}
 
 void main() {
   Expect.isTrue(A<bool>() is I<A<Object?>>);
-  Expect.equals(!hasSoundNullSafety, A<bool>() is I<A<Object>>);
+  Expect.equals(!!unsoundNullSafety, A<bool>() is I<A<Object>>);
   Expect.isTrue(B<bool>() is I<B<bool?>>);
-  Expect.equals(!hasSoundNullSafety, B<bool>() is I<B<bool>>);
+  Expect.equals(!!unsoundNullSafety, B<bool>() is I<B<bool>>);
   Expect.isTrue(C<bool>() is I<C<FutureOr<int>?>>);
-  Expect.equals(!hasSoundNullSafety, C<bool>() is I<C<FutureOr<int>>>);
+  Expect.equals(!!unsoundNullSafety, C<bool>() is I<C<FutureOr<int>>>);
   Expect.isTrue(D<bool>() is I<D<FutureOr<D?>>>);
-  Expect.equals(!hasSoundNullSafety, D<bool>() is I<D<FutureOr<D>>>);
+  Expect.equals(!!unsoundNullSafety, D<bool>() is I<D<FutureOr<D>>>);
   Expect.isTrue(G<bool>() is I<G<Future<Null>?>>);
-  Expect.equals(!hasSoundNullSafety, G<bool>() is I<G<Future<Null>>>);
+  Expect.equals(!!unsoundNullSafety, G<bool>() is I<G<Future<Null>>>);
 }

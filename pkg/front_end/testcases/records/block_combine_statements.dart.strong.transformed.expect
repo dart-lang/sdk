@@ -7,7 +7,7 @@ static method main() → void {
   {
     synthesized core::Iterator<(core::Iterable<core::int>, core::Iterable<core::int>)> :sync-for-iterator = self::split<core::int>(core::_GrowableList::_literal3<core::int>(1, 2, 3)).{core::Iterable::iterator}{core::Iterator<(core::Iterable<core::int>, core::Iterable<core::int>)>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      (core::Iterable<core::int>, core::Iterable<core::int>) _ = :sync-for-iterator.{core::Iterator::current}{(core::Iterable<core::int>, core::Iterable<core::int>)};
+      wildcard(core::Iterable<core::int>, core::Iterable<core::int>) _#wc0#var = :sync-for-iterator.{core::Iterator::current}{(core::Iterable<core::int>, core::Iterable<core::int>)};
       {}
     }
   }

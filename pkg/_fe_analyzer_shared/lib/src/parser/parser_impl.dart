@@ -6963,7 +6963,14 @@ class Parser {
       LiteralEntryInfo? info = computeLiteralEntry(token);
       while (info != null) {
         if (info.hasEntry) {
-          token = parseExpression(token);
+          if (token.next!.isA(TokenType.QUESTION)) {
+            Token nullAwareToken = token.next!;
+            token = token.next!;
+            token = parseExpression(token);
+            listener.handleNullAwareElement(nullAwareToken);
+          } else {
+            token = parseExpression(token);
+          }
         } else {
           token = info.parse(token, this);
         }
@@ -7054,7 +7061,19 @@ class Parser {
       } else {
         while (info != null) {
           if (info.hasEntry) {
-            token = parseExpression(token);
+            Token? nullAwareKeyToken;
+            if (token.next!.isA(TokenType.QUESTION)) {
+              // Null-aware key, for example:
+              //   <double, Symbol>{ if (b) ?x: y }
+              //   <double, Symbol>{ if (b) ?x: ?y }
+              nullAwareKeyToken = token.next!;
+
+              // Parse the expression after '?'.
+              token = nullAwareKeyToken;
+              token = parseExpression(token);
+            } else {
+              token = parseExpression(token);
+            }
             if (token.next!.isA(TokenType.COLON)) {
               Token colon = token.next!;
               Token next = colon.next!;
@@ -7062,13 +7081,23 @@ class Parser {
                 token = parseExpression(next);
                 // Null-aware value. For example:
                 //   <double, Symbol>{ if (b) x: ?y }
-                listener.handleLiteralMapEntry(colon, token,
-                    nullAwareKeyToken: null, nullAwareValueToken: next);
+                //   <double, Symbol>{ if (b) ?x: ?y }
+                listener.handleLiteralMapEntry(colon, token.next!,
+                    nullAwareKeyToken: nullAwareKeyToken,
+                    nullAwareValueToken: next);
               } else {
-                // Non null-aware entry. For example:
+                // Non null-aware value. For example:
                 //   <String, int>{ if (b) x : y }
+                //   <String, int>{ if (b) ?x : y }
                 token = parseExpression(colon);
-                listener.handleLiteralMapEntry(colon, token.next!);
+                listener.handleLiteralMapEntry(colon, token.next!,
+                    nullAwareKeyToken: nullAwareKeyToken);
+              }
+            } else {
+              if (nullAwareKeyToken != null) {
+                // Null-aware element. For example:
+                //   <String>{ if (b) ?x }
+                listener.handleNullAwareElement(nullAwareKeyToken);
               }
             }
           } else {

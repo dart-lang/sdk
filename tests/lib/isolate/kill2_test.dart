@@ -4,8 +4,8 @@
 
 import "dart:isolate";
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 isomain1(replyPort) {
   RawReceivePort port = new RawReceivePort();

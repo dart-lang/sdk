@@ -12,6 +12,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type_system.dart'
     show TypeSystemImpl, ExtensionTypeErasure;
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 import '../analyzer.dart';
 
@@ -31,33 +33,27 @@ const Set<String> _sdkWebLibraries = {
   'dart:web_gl',
 };
 
-/// Given a [type] erased by [EraseNonJSInteropTypes], determine if it is a type
-/// that is a `dart:js_interop` type or is bound to one.
-bool _isDartJsInteropType(DartType type) {
-  if (type is TypeParameterType) return _isDartJsInteropType(type.bound);
+/// Given a [type], determine if it is a JS interop type that corresponds to
+/// [kind].
+bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
+  if (type is TypeParameterType) return _isJsInteropType(type.bound, kind);
   if (type is InterfaceType) {
     var element = type.element;
+    var dartJsInteropTypeKind = kind == _InteropTypeKind.dartJsInteropType ||
+        kind == _InteropTypeKind.any;
+    var userJsInteropTypeKind = kind == _InteropTypeKind.userJsInteropType ||
+        kind == _InteropTypeKind.any;
     if (element is ExtensionTypeElement) {
-      return element.isFromLibrary(_dartJsInteropUri);
-    }
-  }
-  return false;
-}
-
-/// Whether [type] is a user JS interop type using `dart:js_interop` or is bound
-/// to one.
-///
-/// An interop type is a user interop type if it's an extension type on another
-/// interop type or a `dart:js_interop` `@staticInterop` type.
-bool _isUserJsInteropType(DartType type) {
-  if (type is TypeParameterType) return _isUserJsInteropType(type.bound);
-  if (type is InterfaceType) {
-    var element = type.element;
-    if (element is ExtensionTypeElement) {
-      var representationType = element.representation.type;
-      return _isDartJsInteropType(representationType) ||
-          _isUserJsInteropType(representationType);
-    } else if (_jsTypeForStaticInterop(type) != null) {
+      if (dartJsInteropTypeKind && element.isFromLibrary(_dartJsInteropUri)) {
+        return true;
+      } else if (userJsInteropTypeKind) {
+        var representationType = element.representation.type;
+        return _isJsInteropType(
+                representationType, _InteropTypeKind.dartJsInteropType) ||
+            _isJsInteropType(
+                representationType, _InteropTypeKind.userJsInteropType);
+      }
+    } else if (userJsInteropTypeKind && _jsTypeForStaticInterop(type) != null) {
       return true;
     }
   }
@@ -144,8 +140,8 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
   @override
   DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (_keepUserInteropTypes
-        ? _isUserJsInteropType(type)
-        : _isDartJsInteropType(type)) {
+        ? _isJsInteropType(type, _InteropTypeKind.userJsInteropType)
+        : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
       // Nullability and generics on interop types are ignored for this lint. In
       // order to just compare the interfaces themselves, we use `thisType`.
       return type.element.thisType;
@@ -167,6 +163,33 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
       newNullability: NullabilitySuffix.none,
       newPromotedBound: newBound,
     );
+  }
+}
+
+/// Determines whether a given [DartType] is or contains a type that is a JS
+/// interop type.
+class InteropTypeChecker extends RecursiveTypeVisitor {
+  bool _hasInteropType = false;
+  final _visitedTypes = <DartType>{};
+
+  bool hasInteropType(DartType type) {
+    _hasInteropType = false;
+    _visitedTypes.clear();
+    type.accept(this);
+    return _hasInteropType;
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType type) {
+    _hasInteropType |= _isJsInteropType(type, _InteropTypeKind.any);
+    return super.visitInterfaceType(type);
+  }
+
+  @override
+  bool visitTypeParameterType(TypeParameterType type) {
+    // Visiting the bound may result in a cycle e.g. `class C<T extends C<T>>`.
+    if (_visitedTypes.add(type)) return type.bound.accept(this);
+    return super.visitTypeParameterType(type);
   }
 }
 
@@ -200,14 +223,29 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
   }
 }
 
+/// The kind of JS interop type to check for.
+///
+/// [dartJsInteropType] corresponds to either an extension type from
+/// `dart:js_interop` or a type parameter that is bound to one.
+/// [userJsInteropType] corresponds to either an extension type whose
+/// representation type is a JS interop type, an `@staticInterop` type, or a
+/// type parameter that is bound to either.
+/// [any] corresponds to either a [dartJsInteropType] or [userJsInteropType].
+enum _InteropTypeKind {
+  dartJsInteropType,
+  userJsInteropType,
+  any,
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystemImpl typeSystem;
-  final EraseNonJSInteropTypes _eraseNonJsInteropTypes;
+  final EraseNonJSInteropTypes eraseNonJsInteropTypes =
+      EraseNonJSInteropTypes();
+  final InteropTypeChecker interopTypeChecker = InteropTypeChecker();
 
   _Visitor(this.rule, TypeSystem typeSystem)
-      : typeSystem = typeSystem as TypeSystemImpl,
-        _eraseNonJsInteropTypes = EraseNonJSInteropTypes();
+      : typeSystem = typeSystem as TypeSystemImpl;
 
   /// Determines if a type test from [leftType] to [rightType] is a valid test
   /// for JS interop, and if not, returns the [LintCode] associated with the
@@ -252,11 +290,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     LintCode? lintCode;
     (DartType, DartType) eraseTypes(DartType left, DartType right) {
       var erasedLeft =
-          typeSystem.promoteToNonNull(_eraseNonJsInteropTypes.perform(left));
+          typeSystem.promoteToNonNull(eraseNonJsInteropTypes.perform(left));
       var erasedRight =
-          typeSystem.promoteToNonNull(_eraseNonJsInteropTypes.perform(right));
-      var leftIsInteropType = _isDartJsInteropType(erasedLeft);
-      var rightIsInteropType = _isDartJsInteropType(erasedRight);
+          typeSystem.promoteToNonNull(eraseNonJsInteropTypes.perform(right));
+      var leftIsInteropType =
+          _isJsInteropType(erasedLeft, _InteropTypeKind.dartJsInteropType);
+      var rightIsInteropType =
+          _isJsInteropType(erasedRight, _InteropTypeKind.dartJsInteropType);
       // If there's already an invalid check in this `canBeSubtypeOf` check, we
       // are already going to lint, so only continue checking if we haven't
       // found an issue.
@@ -288,11 +328,11 @@ class _Visitor extends SimpleAstVisitor<void> {
               // Only report if the right type is a user JS interop type.
               // Checks like `window is JSAny` are not confusing and not worth
               // linting.
-              if (_isUserJsInteropType(right) &&
+              if (_isJsInteropType(right, _InteropTypeKind.userJsInteropType) &&
                   !typeSystem.isSubtypeOf(
-                      _eraseNonJsInteropTypes.perform(left,
+                      eraseNonJsInteropTypes.perform(left,
                           keepUserInteropTypes: true),
-                      _eraseNonJsInteropTypes.perform(right,
+                      eraseNonJsInteropTypes.perform(right,
                           keepUserInteropTypes: true))) {
                 lintCode = LinterLintCode
                     .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js;
@@ -325,6 +365,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return (erasedLeft, erasedRight);
     }
 
+    // If there are no relevant interop types, exit early.
+    if (!interopTypeChecker.hasInteropType(leftType) &&
+        !interopTypeChecker.hasInteropType(rightType)) {
+      return lintCode;
+    }
     // Called here for the side effects of `eraseTypes`.
     typeSystem.canBeSubtypeOf(leftType, rightType, eraseTypes: eraseTypes);
     return lintCode;

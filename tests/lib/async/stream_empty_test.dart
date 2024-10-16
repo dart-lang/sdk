@@ -5,7 +5,7 @@
 // Test empty stream.
 import "package:expect/expect.dart";
 import "dart:async";
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 main() async {
   await asyncTest(() async {

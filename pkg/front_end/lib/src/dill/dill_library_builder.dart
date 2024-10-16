@@ -471,7 +471,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           (declaration is ClassBuilder && node == declaration.cls) ||
               (declaration is TypeAliasBuilder &&
                   reference == declaration.reference) ||
-              (declaration is MemberBuilder && node == declaration.member) ||
+              (declaration is MemberBuilder &&
+                  (node == declaration.readTarget ||
+                      node == declaration.invokeTarget ||
+                      node == declaration.writeTarget)) ||
               (declaration is ExtensionBuilder &&
                   reference == declaration.reference) ||
               (declaration is ExtensionTypeDeclarationBuilder &&

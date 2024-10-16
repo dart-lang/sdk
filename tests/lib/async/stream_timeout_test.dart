@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 main() {
   const ms5 = const Duration(milliseconds: 5);
@@ -68,7 +68,9 @@ main() {
       expect(ctr, 2);
       expect(e, new isInstanceOf<TimeoutException>());
     }));
-    c..add(42)..add(42); // No close, timeout after two events.
+    c
+      ..add(42)
+      ..add(42); // No close, timeout after two events.
   });
 
   test("broadcast stream timeout", () {

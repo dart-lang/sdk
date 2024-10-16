@@ -4,8 +4,8 @@
 
 import "dart:async";
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 class Tracer {
   final String expected;
@@ -162,7 +162,7 @@ runTest(String expectedTrace, Future test(Tracer tracer)) async {
   tracer.done();
 }
 
-runTests() async {
+Future runTests() async {
   await runTest("abcef", test1);
   await runTest("abcef", test1star);
   await runTest("abce", test2);

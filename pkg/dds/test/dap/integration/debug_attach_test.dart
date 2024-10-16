@@ -128,10 +128,7 @@ main() {
 
       expect(
         outputEvents.map((e) => e.output).join(),
-        allOf(
-          contains('Failed to start DDS for ws://bogus.local/'),
-          contains('Failed host lookup'),
-        ),
+        contains('Invalid --vm-service-uri argument: http://bogus.local'),
       );
     });
 

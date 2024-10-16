@@ -46,7 +46,7 @@ static method bar3(core::int? x, core::List<core::String> y) → dynamic
     {
       synthesized core::Iterator<core::String> :sync-for-iterator = y.{core::Iterable::iterator}{core::Iterator<core::String>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::String _ = :sync-for-iterator.{core::Iterator::current}{core::String};
+        wildcard core::String _#wc0#var = :sync-for-iterator.{core::Iterator::current}{core::String};
         {
           final core::int? #t12 = x;
           if(!(#t12 == null))
@@ -97,7 +97,7 @@ static method bar8(core::bool? x, core::Symbol? y, core::List<core::num> z) → 
     {
       synthesized core::Iterator<core::num> :sync-for-iterator = z.{core::Iterable::iterator}{core::Iterator<core::num>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::num _ = :sync-for-iterator.{core::Iterator::current}{core::num};
+        wildcard core::num _#wc0#var = :sync-for-iterator.{core::Iterator::current}{core::num};
         {
           final core::bool? #t24 = x;
           if(!(#t24 == null)) {

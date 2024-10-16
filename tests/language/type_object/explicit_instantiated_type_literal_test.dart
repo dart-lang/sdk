@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 import "explicit_instantiated_type_literal_test.dart" as prefix;
 

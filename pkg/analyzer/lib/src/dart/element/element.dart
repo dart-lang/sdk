@@ -299,6 +299,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
+
+  @override
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
@@ -822,6 +827,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       ];
 
   @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
+
+  @override
   List<Fragment> get children3 => children.cast<Fragment>();
 
   @override
@@ -1030,6 +1040,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<MixinFragment> get mixins2 => mixins.cast<MixinFragment>();
+
+  @override
+  FragmentName? get name2 => null;
 
   @override
   LibraryFragment? get nextFragment {
@@ -1322,6 +1335,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   int? nameEnd;
 
+  @override
+  ConstructorFragmentNameImpl? name2;
+
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
   /// is a part of a cycle.
@@ -1343,6 +1359,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
     } else {
       return this;
     }
+  }
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
   }
 
   /// Return the constant initializers for this element, which will be empty if
@@ -1584,6 +1605,18 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ConstructorElement2? get superConstructor2 =>
       (firstFragment.superConstructor?.declaration as ConstructorElementImpl?)
           ?.element;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitConstructorElement(this);
+  }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
 }
 
 /// Common implementation for methods defined in [ConstructorElement].
@@ -1608,6 +1641,18 @@ mixin ConstructorElementMixin implements ConstructorElement {
   bool get isGenerative {
     return !isFactory;
   }
+}
+
+class ConstructorFragmentNameImpl extends FragmentNameImpl
+    implements ConstructorFragmentName {
+  @override
+  int periodOffset;
+
+  ConstructorFragmentNameImpl({
+    required super.name,
+    required super.nameOffset,
+    required this.periodOffset,
+  });
 }
 
 /// A [TopLevelVariableElement] for a top-level 'const' variable that has an
@@ -1884,6 +1929,9 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   DynamicElementImpl() : super(Keyword.DYNAMIC.lexeme, -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
+
+  @override
+  List<Element2> get children2 => const [];
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
@@ -2357,9 +2405,6 @@ abstract class ElementImpl implements Element, Element2 {
 
   @override
   List<Element> get children => const [];
-
-  @override
-  List<Element2> get children2 => children.cast<Element2>();
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -2883,6 +2928,12 @@ abstract class ElementImpl implements Element, Element2 {
         other.location == location;
   }
 
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    // TODO(scheglov): remove when separate elements and fragments
+    throw UnimplementedError();
+  }
+
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeAbstractElement(this);
@@ -3064,6 +3115,15 @@ abstract class ElementImpl implements Element, Element2 {
   void visitChildren(ElementVisitor visitor) {
     for (Element child in children) {
       child.accept(visitor);
+    }
+  }
+
+  /// Use the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
     }
   }
 
@@ -3348,6 +3408,11 @@ class EnumElementImpl extends InterfaceElementImpl
     return null;
   }
 
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
+
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
@@ -3516,6 +3581,21 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
+
+  @override
   List<ParameterElement> get parameters {
     linkedData?.read(this);
     return _parameters;
@@ -3629,6 +3709,11 @@ class ExtensionElementImpl extends InstanceElementImpl
         ...methods,
         ...typeParameters,
       ];
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
 
   @override
   String get displayName => name ?? '';
@@ -3751,6 +3836,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
+
+  @override
   ExtensionTypeElement2 get element => super.element as ExtensionTypeElement2;
 
   @override
@@ -3805,6 +3895,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
   FieldElementImpl(super.name, super.offset);
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
 
   @override
   FieldElement get declaration => this;
@@ -3966,6 +4061,11 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   DartType get type => firstFragment.type;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitFieldElement(this);
+  }
 
   @override
   DartObject? computeConstantValue() => firstFragment.computeConstantValue();
@@ -4138,6 +4238,11 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   List<TypeParameterElement2> get typeParameters2 => const [];
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitFormalParameterElement(this);
+  }
+
+  @override
   void appendToWithoutDelimiters2(StringBuffer buffer) {
     // TODO(augmentations): Implement the merge of formal parameters.
     firstFragment.appendToWithoutDelimiters(buffer);
@@ -4146,6 +4251,13 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   DartObject? computeConstantValue() => firstFragment.computeConstantValue();
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
   // firstFragment.typeParameters
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
@@ -4625,6 +4737,22 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
+class FragmentNameImpl implements FragmentName {
+  @override
+  final String name;
+
+  @override
+  int nameOffset;
+
+  FragmentNameImpl({
+    required this.name,
+    required this.nameOffset,
+  });
+
+  @override
+  int? get nameEnd => nameOffset + name.length;
+}
+
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
     with AugmentableElement<FunctionElementImpl>
@@ -4644,6 +4772,14 @@ class FunctionElementImpl extends ExecutableElementImpl
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
+
+  @override
+  List<Element2> get children2 {
+    if (enclosingElement3 is LibraryFragment) {
+      return element.children2;
+    }
+    throw StateError('Not an Element2');
+  }
 
   @override
   ExecutableElement get declaration => this;
@@ -4687,14 +4823,18 @@ class FunctionElementImpl extends ExecutableElementImpl
     return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
 
+  /// Whether this function element represents a top-level function, and is
+  /// therefore safe to treat as a fragment.
+  bool get isTopLevelFunction =>
+      enclosingElement3 is CompilationUnitElementImpl;
+
   @override
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
   TopLevelFunctionFragment? get nextFragment {
     if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return null;
+      return augmentation;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
@@ -4704,8 +4844,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   TopLevelFunctionFragment? get previousFragment {
     if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return null;
+      return augmentationTarget;
     } else {
       // Local functions cannot be augmented.
       throw UnsupportedError('This is not a fragment');
@@ -4732,7 +4871,14 @@ abstract class FunctionTypedElementImpl
 }
 
 abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
-    implements FunctionTypedElement2 {}
+    implements FunctionTypedElement2 {
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
+}
 
 /// The element used for a generic function type.
 ///
@@ -4765,6 +4911,12 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
       ];
 
   @override
+  List<Element2> get children2 {
+    // TODO(scheglov): implement
+    throw UnimplementedError();
+  }
+
+  @override
   GenericFunctionTypeElement2 get element =>
       throw UnsupportedError('This is not a fragment');
 
@@ -4780,6 +4932,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   @override
   ElementLinkedData<ElementImpl>? get linkedData => null;
+
+  @override
+  FragmentName? get name2 => null;
 
   @override
   GenericFunctionTypeFragment? get nextFragment =>
@@ -4886,6 +5041,11 @@ class GetterElementImpl extends ExecutableElementImpl2
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitGetterElement(this);
+  }
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -5033,6 +5193,26 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If unnamed extension.
+    if (name == null) {
+      return null;
+    }
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
 
   @override
   InstanceFragment? get nextFragment => augmentation as InstanceFragment?;
@@ -5596,6 +5776,9 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   LabelElementImpl(String super.name, super.nameOffset, this._onSwitchMember);
 
   @override
+  List<Element2> get children2 => const [];
+
+  @override
   String get displayName => name;
 
   @Deprecated('Use enclosingElement3 instead')
@@ -5651,6 +5834,14 @@ class LabelElementImpl2 extends ElementImpl2
 
   @override
   int get nameOffset => _wrappedElement.nameOffset;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitLabelElement(this);
+  }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }
 
 /// A concrete implementation of a [LibraryElement] or [LibraryElement2].
@@ -5742,6 +5933,20 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         ...parts,
         ..._partUnits,
       ];
+
+  @override
+  List<Element2> get children2 {
+    return [
+      ...classes,
+      ...extensions,
+      ...extensionTypes,
+      ...functions,
+      ...mixins,
+      ...typeAliases,
+      ...getters,
+      ...topLevelVariables,
+    ];
+  }
 
   @override
   List<ClassElement2> get classes {
@@ -6117,6 +6322,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitLibraryElement(this);
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitLibraryElement(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeLibraryElement(this);
   }
@@ -6227,6 +6437,11 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   }) : super(null, exportKeywordOffset);
 
   @override
+  List<Element2> get children2 {
+    throw StateError('Not an Element2');
+  }
+
+  @override
   LibraryElementImpl? get exportedLibrary {
     var uri = this.uri;
     if (uri is DirectiveUriWithLibraryImpl) {
@@ -6289,6 +6504,11 @@ class LibraryImportElementImpl extends _ExistingElementImpl
     required this.prefix2,
     required this.uri,
   }) : super(null, importKeywordOffset);
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('Not an Element2');
+  }
 
   @override
   CompilationUnitElementImpl get enclosingElement3 {
@@ -6563,6 +6783,11 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
       _wrappedElement.typeParameters
           .map((fragment) => (fragment as TypeParameterFragment).element)
           .toList();
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitLocalFunctionElement(this);
+  }
 }
 
 /// A concrete implementation of a [LocalVariableElement].
@@ -6576,6 +6801,9 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   LocalVariableElementImpl(super.name, super.offset);
+
+  @override
+  List<Element2> get children2 => const [];
 
   LocalVariableElementImpl2 get element2 => _element2;
 
@@ -6644,6 +6872,11 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
 
   LocalVariableElementImpl get wrappedElement {
     return _wrappedElement;
+  }
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitLocalVariableElement(this);
   }
 
   @override
@@ -6730,6 +6963,11 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
   bool get isValidMixin => declaration.isValidMixin;
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitClassElement(this);
+  }
+
+  @override
   bool isExtendableIn2(LibraryElement2 library) =>
       declaration.isExtendableIn(library as LibraryElement);
 
@@ -6757,6 +6995,11 @@ mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
 
   @override
   EnumFragment get firstFragment => declaration;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitEnumElement(this);
+  }
 }
 
 mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
@@ -6772,6 +7015,11 @@ mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
 
   @override
   DartType get thisType => extendedType;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitExtensionElement(this);
+  }
 }
 
 mixin MaybeAugmentedExtensionTypeElementMixin
@@ -6798,6 +7046,11 @@ mixin MaybeAugmentedExtensionTypeElementMixin
 
   @override
   FieldElement2 get representation2 => representation as FieldElement2;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitExtensionTypeElement(this);
+  }
 }
 
 mixin MaybeAugmentedInstanceElementMixin
@@ -6812,7 +7065,14 @@ mixin MaybeAugmentedInstanceElementMixin
   Element2? get baseElement => declaration.baseElement;
 
   @override
-  List<Element2> get children2 => declaration.children2;
+  List<Element2> get children2 {
+    return [
+      ...fields2,
+      ...getters2,
+      ...setters2,
+      ...methods2,
+    ];
+  }
 
   @override
   InstanceElementImpl get declaration;
@@ -7075,6 +7335,13 @@ mixin MaybeAugmentedInstanceElementMixin
   E? thisOrAncestorOfType2<E extends Element2>() =>
       declaration.thisOrAncestorOfType2<E>();
 
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
+
   /// Return an iterable containing all of the implementations of a getter with
   /// the given [name] that are defined in this class and any superclass of this
   /// class (but not in interfaces).
@@ -7182,6 +7449,14 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
   List<InterfaceType> get allSupertypes => declaration.allSupertypes;
 
   @override
+  List<Element2> get children2 {
+    return [
+      ...super.children2,
+      ...constructors2,
+    ];
+  }
+
+  @override
   List<ConstructorElement2> get constructors2 => constructors
       .map((constructor) =>
           (constructor.declaration as ConstructorElementImpl).element)
@@ -7255,6 +7530,11 @@ mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
   bool get isBase => declaration.isBase;
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitMixinElement(this);
+  }
+
+  @override
   bool isImplementableIn2(LibraryElement2 library) =>
       declaration.isImplementableIn(library as LibraryElement);
 }
@@ -7278,6 +7558,11 @@ class MethodElementImpl extends ExecutableElementImpl
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(super.name, super.offset);
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
 
   @override
   MethodElement get declaration => this;
@@ -7395,6 +7680,11 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   String get name => firstFragment.name;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitMethodElement(this);
+  }
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
@@ -7434,6 +7724,11 @@ class MixinElementImpl extends ClassOrMixinElementImpl
       }
     }
     return null;
+  }
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
   }
 
   @override
@@ -7811,6 +8106,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
       visitor.visitMultiplyDefinedElement(this);
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    // TODO(scheglov): remove when separate elements and fragments
+    throw UnimplementedError();
+  }
+
+  @override
   String displayString2({
     bool multiline = false,
     bool preferTypeAlias = false,
@@ -7918,6 +8219,11 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
       child.accept(visitor);
     }
   }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    // TODO(scheglov): remove when separate elements and fragments
+  }
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
@@ -7932,6 +8238,9 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   NeverElementImpl._() : super('Never', -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
+
+  @override
+  List<Element2> get children2 => const [];
 
   @override
   ElementKind get kind => ElementKind.NEVER;
@@ -8196,6 +8505,9 @@ class ParameterElementImpl extends VariableElementImpl
   List<Element> get children => parameters;
 
   @override
+  List<Element2> get children2 => const [];
+
+  @override
   List<Fragment> get children3 => const [];
 
   @override
@@ -8261,6 +8573,19 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   LibraryFragment get libraryFragment =>
       thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -8441,6 +8766,11 @@ class PartElementImpl extends _ExistingElementImpl
   }) : super(null, -1);
 
   @override
+  List<Element2> get children2 {
+    throw StateError('Not an Element2');
+  }
+
+  @override
   CompilationUnitElementImpl get enclosingUnit {
     var enclosingLibrary = enclosingElement3 as LibraryElementImpl;
     return enclosingLibrary._definingCompilationUnit;
@@ -8509,6 +8839,9 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
   PrefixElementImpl(String super.name, super.nameOffset, {super.reference});
+
+  @override
+  List<Element2> get children2 => const [];
 
   @override
   String get displayName => name;
@@ -8622,6 +8955,11 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   // TODO(scheglov): implement scope
   Scope get scope => throw UnimplementedError();
 
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitPrefixElement(this);
+  }
+
   void addFragment(PrefixFragmentImpl fragment) {
     lastFragment.nextFragment = fragment;
     fragment.previousFragment = lastFragment;
@@ -8640,6 +8978,9 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
     builder.writePrefixElement2(this);
     return builder.toString();
   }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }
 
 class PrefixFragmentImpl implements PrefixFragment {
@@ -8676,6 +9017,14 @@ class PrefixFragmentImpl implements PrefixFragment {
 
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingFragment;
+
+  @override
+  FragmentName? get name2 {
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
 }
 
 abstract class PromotableElementImpl2 extends VariableElementImpl2
@@ -8716,6 +9065,11 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       }
     }
     return null;
+  }
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
   }
 
   @override
@@ -9070,6 +9424,21 @@ abstract class PropertyInducingElementImpl
       thisOrAncestorOfType<CompilationUnitElement>() as LibraryFragment;
 
   @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
+
+  @override
   PropertyInducingFragment? get nextFragment =>
       augmentation as PropertyInducingFragment?;
 
@@ -9232,6 +9601,11 @@ class SetterElementImpl extends ExecutableElementImpl2
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitSetterElement(this);
+  }
 }
 
 /// A concrete implementation of a [ShowElementCombinator].
@@ -9370,6 +9744,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
 
   @override
   String? get name => firstFragment.name;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitTopLevelFunctionElement(this);
+  }
 }
 
 /// A concrete implementation of a [TopLevelVariableElement].
@@ -9382,6 +9761,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
   TopLevelVariableElementImpl(super.name, super.offset);
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
 
   @override
   TopLevelVariableElement get declaration => this;
@@ -9494,6 +9878,11 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   DartType get type => firstFragment.type;
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitTopLevelVariableElement(this);
+  }
+
+  @override
   DartObject? computeConstantValue() => firstFragment.computeConstantValue();
 }
 
@@ -9547,6 +9936,11 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   /// The aliased type, might be `null` if not yet linked.
   DartType? get aliasedTypeRaw => _aliasedType;
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
+  }
 
   @override
   String get displayName => name;
@@ -9639,6 +10033,21 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   String get name {
     return super.name!;
+  }
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
   }
 
   @override
@@ -9805,11 +10214,23 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
           .toList();
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitTypeAliasElement(this);
+  }
+
+  @override
   DartType instantiate(
           {required List<DartType> typeArguments,
           required NullabilitySuffix nullabilitySuffix}) =>
       firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
 }
 
 abstract class TypeDefiningElementImpl2 extends ElementImpl2
@@ -9856,6 +10277,11 @@ class TypeParameterElementImpl extends ElementImpl
         element.bound = bound;
       }
     }
+  }
+
+  @override
+  List<Element2> get children2 {
+    throw StateError('This is a fragment');
   }
 
   @override
@@ -9908,6 +10334,21 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     return super.name!;
+  }
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
   }
 
   @override
@@ -10068,12 +10509,24 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   LibraryElement2 get library2 => super.library2!;
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitTypeParameterElement(this);
+  }
+
+  @override
   TypeParameterType instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return firstFragmentOrSynthetic.instantiate(
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
   }
 }
 
@@ -10282,7 +10735,14 @@ abstract class VariableElementImpl extends ElementImpl
 }
 
 abstract class VariableElementImpl2 extends ElementImpl2
-    implements VariableElement2 {}
+    implements VariableElement2 {
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
+}
 
 mixin WrappedElementMixin implements ElementImpl2 {
   @override

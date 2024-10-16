@@ -5,8 +5,8 @@
 // This is a regression test for issue 22853.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 main() {
   var list = [];

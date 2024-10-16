@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 /// This test verifies that an await for loop sends the correct
 /// signals to the stream it iterates over:

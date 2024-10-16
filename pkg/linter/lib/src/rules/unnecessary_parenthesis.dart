@@ -70,6 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         parent.declaredElement2?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
+
     // `g((3)); => g((int,) i) { }` is OK.
     if (parent is ArgumentList) {
       var element = node.correspondingParameter;
@@ -77,6 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
+
     // `g(i: (3)); => g({required (int,) i}) { }` is OK.
     if (parent is NamedExpression &&
         parent.correspondingParameter?.type is RecordType) {
@@ -158,16 +160,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    // https://github.com/dart-lang/linter/issues/2944
-    if (expression is FunctionExpression) {
-      if (parent is MethodInvocation ||
-          parent is PropertyAccess ||
-          parent is BinaryExpression ||
-          parent is IndexExpression) {
-        return;
-      }
-    }
-
     if (expression is ConstructorReference) {
       if (parent is! FunctionExpressionInvocation ||
           parent.typeArguments == null) {
@@ -230,6 +222,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // An expression with internal whitespace can be made more readable when
       // wrapped in parentheses in many cases. But when the parentheses are
       // inside one of the following nodes, the readability is not affected.
+      // See https://github.com/dart-lang/linter/issues/2944.
       if (parent is! AssignmentExpression &&
           parent is! ConstructorFieldInitializer &&
           parent is! ExpressionFunctionBody &&
@@ -327,7 +320,9 @@ extension on Expression? {
         self is AssignmentExpression ||
         self is AwaitExpression ||
         self is BinaryExpression ||
+        self is FunctionExpression ||
         self is IsExpression ||
+        self is SwitchExpression ||
         // As in, `!(new Foo())`.
         (self is InstanceCreationExpression && self.keyword != null) ||
         // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-`

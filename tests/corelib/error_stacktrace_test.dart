@@ -8,8 +8,8 @@
 // and that it doesn't change if thrown again.
 // (Derived from `runtime/tests/vm/dart/error_stacktrace_test.dart`.)
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 void main() async {
   testSync();

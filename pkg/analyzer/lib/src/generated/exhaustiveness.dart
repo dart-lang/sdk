@@ -15,6 +15,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -459,6 +460,14 @@ class MissingPatternEnumValuePart extends MissingPatternPart {
     required this.enumElement,
     required this.value,
   });
+
+  EnumElement2 get enumElement2 {
+    return (enumElement as EnumElementImpl).element;
+  }
+
+  FieldElement2 get value2 {
+    return (value as FieldElementImpl).element;
+  }
 
   @override
   String toString() => value.name;

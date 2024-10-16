@@ -33,14 +33,14 @@ class FlutterWrapStreamBuilder extends ResolvedCorrectionProducer {
     var widgetSrc = utils.getNodeText(widgetExpr);
 
     var streamBuilderElement =
-        await sessionHelper.getFlutterClass('StreamBuilder');
+        await sessionHelper.getFlutterClass2('StreamBuilder');
     if (streamBuilderElement == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
-        builder.writeReference(streamBuilderElement);
+        builder.writeReference2(streamBuilderElement);
 
         builder.write('<');
         builder.addSimpleLinkedEdit('type', 'Object');

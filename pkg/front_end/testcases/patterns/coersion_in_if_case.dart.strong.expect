@@ -27,7 +27,7 @@ static method expectThrows<Exception extends core::Object? = dynamic>(() → voi
     f(){() → void};
     message = "Expected the function to throw an exception, but it didn't.";
   }
-  on self::expectThrows::Exception% catch(final self::expectThrows::Exception% _) {
+  on self::expectThrows::Exception% catch(final self::expectThrows::Exception% _#wc0#formal) {
   }
   on dynamic catch(final dynamic e) {
     message = "Expected the function to throw an exception of type '${self::expectThrows::Exception%}', but got '${e.{core::Object::runtimeType}{<object>}.{core::Type}}'.";

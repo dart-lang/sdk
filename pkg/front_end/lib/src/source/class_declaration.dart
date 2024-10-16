@@ -148,9 +148,9 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
           Builder? targetBuilder = redirectionTarget.target;
           Member? targetNode;
           if (targetBuilder is FunctionBuilder) {
-            targetNode = targetBuilder.member;
+            targetNode = targetBuilder.invokeTarget!;
           } else if (targetBuilder is DillMemberBuilder) {
-            targetNode = targetBuilder.member;
+            targetNode = targetBuilder.invokeTarget!;
           } else if (targetBuilder is AmbiguousBuilder) {
             libraryBuilder.addProblemForRedirectingFactory(
                 declaration,

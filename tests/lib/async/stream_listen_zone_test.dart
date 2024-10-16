@@ -5,15 +5,15 @@
 library stream_listen_zeno_test;
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 main() {
   asyncStart();
   var controller;
   for (bool overrideDone in [false, true]) {
     for (bool sync in [false, true]) {
-      var mode = "${sync ? "-sync" : ""}${overrideDone ? "-od": ""}";
+      var mode = "${sync ? "-sync" : ""}${overrideDone ? "-od" : ""}";
       controller = new StreamController(sync: sync);
       testStream("SC$mode", controller, controller.stream, overrideDone);
       controller = new StreamController.broadcast(sync: sync);

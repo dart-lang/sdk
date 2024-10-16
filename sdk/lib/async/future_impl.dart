@@ -327,6 +327,9 @@ class _Future<T> implements Future<T> {
   // This constructor is used by async/await.
   _Future() : _zone = Zone._current;
 
+  // Empty `_Future` in a given zone.
+  _Future.zone(this._zone);
+
   // Constructor used by [Future.value].
   _Future.immediate(FutureOr<T> result) : _zone = Zone._current {
     _asyncComplete(result);
@@ -397,11 +400,18 @@ class _Future<T> implements Future<T> {
   }
 
   void _ignore() {
-    _Future<Object?> source = this;
-    while (source._isChained) {
-      source = source._chainSource;
+    _state |= _stateIgnoreError;
+    if (_isChained) {
+      // Mark chain source. If it has no listeners at all, then neither
+      // does this future. (But this may suppress errors on other futures
+      // with the same chain source and no listeners, which haven't been
+      // ignored.)
+      _Future<Object?> source = this;
+      do {
+        source = source._chainSource;
+      } while (source._isChained);
+      source._state |= _stateIgnoreError;
     }
-    source._state |= _stateIgnoreError;
   }
 
   Future<T> catchError(Function onError, {bool test(Object error)?}) {
@@ -573,7 +583,7 @@ class _Future<T> implements Future<T> {
   /// Completes this future with the result of [source].
   ///
   /// The [source] future should not be a [_Future], use
-  /// [_chainCoreFutureSync] for those.
+  /// [_chainCoreFuture] for those.
   ///
   /// Since [source] is an unknown [Future], it's interacted with
   /// through [Future.then], which is required to be asynchronous.
@@ -613,7 +623,7 @@ class _Future<T> implements Future<T> {
   /// propagated to the target future's listeners.
   /// If the source future is not completed, the target future is made
   /// to listen for its completion.
-  static void _chainCoreFutureSync(_Future source, _Future target) {
+  static void _chainCoreFuture(_Future source, _Future target, bool sync) {
     assert(target._mayAddListener); // Not completed, not already chained.
     while (source._isChained) {
       source = source._chainSource;
@@ -625,56 +635,32 @@ class _Future<T> implements Future<T> {
           StackTrace.current);
       return;
     }
-    source._state |= target._state & _stateIgnoreError;
-    if (source._isComplete) {
+    var ignoreError = target._state & _stateIgnoreError;
+    source._state |= ignoreError;
+    if (!source._isComplete) {
+      // Chain immediately if the source is not complete.
+      // This won't call any listeners, whether completing sync or async.
+      _FutureListener? listeners = target._resultOrListeners;
+      target._setChained(source);
+      source._prependListeners(listeners);
+      return;
+    }
+
+    if (sync ||
+        (target._resultOrListeners == null &&
+            (!source._hasError || ignoreError != 0))) {
+      // Complete synchronously when allowed.
+      // If no-one is listening this won't call any listeners synchronously.
+      // Do delay un-ignored errors to give time to add listeners.
       _FutureListener? listeners = target._removeListeners();
       target._cloneResult(source);
       _propagateToListeners(target, listeners);
-    } else {
-      _FutureListener? listeners = target._resultOrListeners;
-      target._setChained(source);
-      source._prependListeners(listeners);
-    }
-  }
-
-  /// Asynchronously completes a [target] future with a [source] future.
-  ///
-  /// If the [source] future is already completed, its result is
-  /// asynchronously propagated to the [target] future's listeners.
-  /// If the [source] future is not completed, the [target] future is made
-  /// to listen for its completion.
-  static void _chainCoreFutureAsync(_Future source, _Future target) {
-    assert(target._mayAddListener); // Not completed, not already chained.
-    while (source._isChained) {
-      source = source._chainSource;
-    }
-    if (identical(source, target)) {
-      target._asyncCompleteError(
-          ArgumentError.value(
-              source, null, "Cannot complete a future with itself"),
-          StackTrace.current);
       return;
     }
-    if (!source._isComplete) {
-      // Chain immediately if the source is not complete.
-      // This won't call any listeners.
-      _FutureListener? listeners = target._resultOrListeners;
-      target._setChained(source);
-      source._prependListeners(listeners);
-      return;
-    }
-
-    // Complete a value synchronously, if no-one is listening.
-    // This won't call any listeners.
-    if (!source._hasError && target._resultOrListeners == null) {
-      target._cloneResult(source);
-      return;
-    }
-
     // Otherwise delay the chaining to avoid any synchronous callbacks.
     target._setPendingComplete();
     target._zone.scheduleMicrotask(() {
-      _chainCoreFutureSync(source, target);
+      _chainCoreFuture(source, target, _allowCompleteSync);
     });
   }
 
@@ -688,7 +674,7 @@ class _Future<T> implements Future<T> {
     assert(!_isComplete);
     if (value is Future<T>) {
       if (value is _Future<T>) {
-        _chainCoreFutureSync(value, this);
+        _chainCoreFuture(value, this, _allowCompleteSync);
       } else {
         _chainForeignFuture(value);
       }
@@ -704,6 +690,16 @@ class _Future<T> implements Future<T> {
 
     _FutureListener? listeners = _removeListeners();
     _setValue(value);
+    _propagateToListeners(this, listeners);
+  }
+
+  void _completeWithResultOf(_Future<Object?> source) {
+    assert(source._isComplete);
+    if (source._hasError && !_zone.inSameErrorZone(source._zone)) {
+      return;
+    }
+    _FutureListener? listeners = _removeListeners();
+    _cloneResult(source);
     _propagateToListeners(this, listeners);
   }
 
@@ -786,7 +782,7 @@ class _Future<T> implements Future<T> {
     assert(_mayComplete);
     if (value is _Future<T>) {
       // Chain ensuring that we don't complete synchronously.
-      _chainCoreFutureAsync(value, this);
+      _chainCoreFuture(value, this, _requireCompleteAsync);
       return;
     }
     // Just listen on the foreign future. This guarantees an async delay.
@@ -892,7 +888,13 @@ class _Future<T> implements Future<T> {
             // before knowing if it's an error or we should use the result
             // of source.
             var originalSource = source;
-            listenerValueOrError = completeResult.then((_) => originalSource);
+            var joinedResult = source._newFutureWithSameType();
+            completeResult.then<void>((_) {
+              joinedResult._completeWithResultOf(originalSource);
+            }, onError: (Object e, StackTrace s) {
+              joinedResult._completeError(e, s);
+            });
+            listenerValueOrError = joinedResult;
             listenerHasError = false;
           }
         }
@@ -954,7 +956,7 @@ class _Future<T> implements Future<T> {
               source = chainSource;
               continue;
             } else {
-              _chainCoreFutureSync(chainSource, result);
+              _chainCoreFuture(chainSource, result, _allowCompleteSync);
             }
           } else {
             result._chainForeignFuture(chainSource);
@@ -975,6 +977,12 @@ class _Future<T> implements Future<T> {
       source = result;
     }
   }
+
+  /// New uncompleted future with same type.
+  ///
+  /// In same zone or other [zone] if specified.
+  _Future<T> _newFutureWithSameType([_Zone? zone]) =>
+      _Future<T>.zone(zone ?? _zone);
 
   @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
@@ -1041,3 +1049,7 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
       "Error handler must accept one Object or one Object and a StackTrace"
           " as arguments, and return a value of the returned future's type");
 }
+
+// Names for positional arguments to _chainCoreFuture.
+const _allowCompleteSync = true;
+const _requireCompleteAsync = false;

@@ -3,7 +3,7 @@ library from "package:bar/bar.dart" as bar {
 //
 // Problems in library:
 //
-// org-dartlang-test:///bar/lib/bar.dart:1:1: Error: The specified language version is too low. The lowest supported language version is 2.12.
+// org-dartlang-test:///bar/lib/bar.dart:1:1: Error: The language version 2.8 specified for the package 'bar' is too low. The lowest supported language version is 2.12.
 // // This file is in weak mode.
 // ^
 //

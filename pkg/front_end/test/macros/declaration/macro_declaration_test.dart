@@ -188,7 +188,9 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
     if (memberApplications != null) {
       for (MapEntry<MemberBuilder, ApplicationData> entry
           in memberApplications.entries) {
-        if (entry.key.member == member) {
+        if (entry.key.readTarget == member ||
+            entry.key.invokeTarget == member ||
+            entry.key.writeTarget == member) {
           return entry.value.macroApplications;
         }
       }

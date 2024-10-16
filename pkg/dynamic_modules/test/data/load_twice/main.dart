@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../common/testing.dart' as helper;
-import 'package:async_helper/async_helper.dart' show asyncExpectThrows;
+import 'package:expect/async_helper.dart' show asyncExpectThrows;
 
 /// For the same reasons as the `duplicate_library` test, it is an error to load
 /// the same module twice.

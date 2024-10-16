@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 main() {
   const trueInNoSoundMode = <Null>[] is List<int>;
@@ -13,7 +14,7 @@ main() {
   // allow null when running with sound null safety.
   var emptyUri = Uri(pathSegments: []);
   dynamic stringList = emptyUri.pathSegments.toList();
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() {
       stringList.add(null);
     });

@@ -264,17 +264,6 @@ class _Element2Writer extends _AbstractElementWriter {
     return name;
   }
 
-  String _fragmentName(Fragment f) {
-    var name = f.name ?? '<null>';
-    if (f is PropertyAccessorElementImpl && f.isSetter) {
-      expect(name, endsWith('='));
-    }
-    if (name.isEmpty && f is ConstructorFragment) {
-      return 'new';
-    }
-    return name;
-  }
-
   void _writeConstructorElement(ConstructorElement2 e) {
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
@@ -363,11 +352,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
-      var periodOffset = f.periodOffset;
-      var nameEnd = f.nameEnd;
-      if (periodOffset != null && nameEnd != null) {
-        _sink.writelnWithIndent('periodOffset: $periodOffset');
-        _sink.writelnWithIndent('nameEnd: $nameEnd');
+      if (f.name2 case var name?) {
+        _sink.writelnWithIndent('periodOffset: ${name.periodOffset}');
+        _sink.writelnWithIndent('nameEnd: ${name.nameEnd}');
       }
 
       _writeFragmentList(
@@ -780,12 +767,12 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFragmentName(Fragment f) {
-    var name = _fragmentName(f);
-    _sink.write(name);
-    var offset = f.nameOffset;
-    if (offset != null) {
-      _sink.write(name.isNotEmpty ? ' @' : '@');
-      _sink.write(offset);
+    if (f.name2 case var name?) {
+      _sink.write(name.name);
+      _sink.write(' @');
+      _sink.write(name.nameOffset);
+    } else {
+      _sink.write('<null-name>');
     }
   }
 
@@ -1105,14 +1092,12 @@ class _Element2Writer extends _AbstractElementWriter {
           // _writeNotSimplyBounded(f);
           _sink.write('mixin ');
       }
-      var name = f.element.name;
-      if (name != null) {
-        _sink.write(name);
-      }
-      var offset = f.nameOffset;
-      if (offset != null) {
+      if (f.name2 case var name?) {
+        _sink.write(name.name);
         _sink.write(' @');
-        _sink.write(offset);
+        _sink.write(name.nameOffset);
+      } else {
+        _sink.write('<null-name>');
       }
     });
     _sink.withIndent(() {

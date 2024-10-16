@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test how await for interacts with inference.
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
 
 import 'utils.dart';
@@ -72,29 +72,38 @@ Future<void> testLoopVariableInference() async {
       [await for (var i in stream()) i.toRadixString(10)]);
 
   // Loop variable type is pushed into stream.
-  Expect.listEquals(<int>[1], [await for (int i in expectIntStream([1])) i]);
+  Expect.listEquals(<int>[
+    1
+  ], [
+    await for (int i in expectIntStream([1])) i
+  ]);
 }
 
 Future<void> testTopDownInference() async {
   // Lists.
 
   // The context element type is pushed into the body.
-  Expect.listEquals(<int>[1],
-      <int>[await for (var i in stream()) expectInt(1)]);
+  Expect.listEquals(
+      <int>[1], <int>[await for (var i in stream()) expectInt(1)]);
 
   // Bottom up-inference from elements is not pushed back down into the body.
-  Expect.listEquals(<int>[1, 2],
-      [1, await for (var i in stream()) expectDynamic(2)]);
+  Expect.listEquals(
+      <int>[1, 2], [1, await for (var i in stream()) expectDynamic(2)]);
 
   // Maps.
 
   // The context element type is pushed into the body.
-  Expect.mapEquals(<int, String>{1: "s"}, <int, String>{
+  Expect.mapEquals(<int, String>{
+    1: "s"
+  }, <int, String>{
     await for (var i in stream()) expectInt(1): expectString("s")
   });
 
   // Bottom up-inference from elements is not pushed back down into the body.
-  Expect.mapEquals(<int, String>{1: "s", 2: "t"}, {
+  Expect.mapEquals(<int, String>{
+    1: "s",
+    2: "t"
+  }, {
     1: "s",
     await for (var i in stream()) expectDynamic(2): expectDynamic("t")
   });
@@ -105,6 +114,6 @@ Future<void> testTopDownInference() async {
   Expect.setEquals(<int>{1}, <int>{await for (var i in stream()) expectInt(1)});
 
   // Bottom up-inference from elements is not pushed back down into the body.
-  Expect.setEquals(<int>{1, 2},
-      {1, await for (var i in stream()) expectDynamic(2)});
+  Expect.setEquals(
+      <int>{1, 2}, {1, await for (var i in stream()) expectDynamic(2)});
 }

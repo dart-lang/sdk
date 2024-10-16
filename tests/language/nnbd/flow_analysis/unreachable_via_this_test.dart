@@ -7,7 +7,7 @@
 /// some such code as unreachable, but we have decided not to do so at this
 /// time).
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   void equalitySimple(int? x, int? y) {

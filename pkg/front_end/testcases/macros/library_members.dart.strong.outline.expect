@@ -93,9 +93,9 @@ class existingMethod2 extends core::Object {
 static method existingMethod() → void
   ;
 external static method augmentedMethod() → void;
-static set existingSetter(dynamic _) → void
+static set existingSetter(wildcard dynamic _#wc0#formal) → void
   ;
-external static set augmentedSetter(dynamic _) → void;
+external static set augmentedSetter(wildcard dynamic _#wc1#formal) → void;
 static method ExistingClass2() → void
   ;
 static method test() → dynamic
@@ -110,11 +110,11 @@ static method /* from org-dartlang-testcase:///library_members_lib.dart */ injec
   ;
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ orphanedMethod() → void
   ;
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ existingSetter#1(dynamic _) → void
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ existingSetter#1(wildcard dynamic _#wc1#formal) → void
   ;
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ injectedSetter(dynamic _) → void
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ injectedSetter(wildcard dynamic _#wc2#formal) → void
   ;
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ orphanedSetter(dynamic _) → void
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ orphanedSetter(wildcard dynamic _#wc3#formal) → void
   ;
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ augmentTest() → void
   ;

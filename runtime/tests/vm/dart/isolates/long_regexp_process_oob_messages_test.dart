@@ -4,7 +4,7 @@
 
 import 'dart:isolate';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 worker(SendPort sendPort) {
   final re = RegExp(r'(x+)*y');

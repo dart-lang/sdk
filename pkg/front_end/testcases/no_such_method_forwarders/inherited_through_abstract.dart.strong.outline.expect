@@ -19,7 +19,7 @@ import "dart:core" as core;
 class Super extends core::Object {
   synthetic constructor •() → self::Super
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
   no-such-method-forwarder method method1() → dynamic
     return this.{self::Super::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;

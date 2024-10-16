@@ -182,7 +182,7 @@ linter:
     - ^
     - annotate_overrides
 ''');
-    assertSuggestion('avoid_as');
+    assertSuggestion('always_declare_return_types');
     assertNoSuggestion('annotate_overrides');
   }
 
@@ -193,7 +193,7 @@ linter:
     - annotate_overrides
     - ^
 ''');
-    assertSuggestion('avoid_as');
+    assertSuggestion('always_declare_return_types');
     assertNoSuggestion('annotate_overrides');
   }
 
@@ -205,7 +205,7 @@ linter:
     - ^
     - avoid_empty_else
 ''');
-    assertSuggestion('avoid_as');
+    assertSuggestion('always_declare_return_types');
     assertNoSuggestion('annotate_overrides');
     assertNoSuggestion('avoid_empty_else');
   }
@@ -236,6 +236,18 @@ linter:
     - ann^
 ''');
     assertSuggestion('annotate_overrides');
+  }
+
+  void test_linter_rules_removed() {
+    registerRule(_RemovedLint());
+
+    getCompletions('''
+linter:
+  rules:
+    ^
+''');
+
+    assertNoSuggestion('removed_lint');
   }
 
   @failingTest
@@ -278,4 +290,18 @@ class InternalRule extends LintRule {
 
   @override
   LintCode get lintCode => code;
+}
+
+class _RemovedLint extends LintRule {
+  static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
+
+  _RemovedLint()
+      : super(
+          name: 'removed_lint',
+          state: State.removed(),
+          description: '',
+        );
+
+  @override
+  LintCode get lintCode => _code;
 }

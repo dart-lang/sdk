@@ -39,7 +39,7 @@ static final field core::bool assertStatementsEnabled = (() → core::bool {
     assert(false);
     return false;
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
     return true;
   }
 })(){() → core::bool};

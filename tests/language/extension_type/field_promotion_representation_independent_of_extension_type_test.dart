@@ -8,7 +8,7 @@
 // and `is` tests applied to `e` should not affect the type of `e._f`.
 //
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension type E(Object Function() _f) {
   testImplicitThisAccess() {

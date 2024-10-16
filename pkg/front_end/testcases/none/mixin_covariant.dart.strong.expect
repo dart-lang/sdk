@@ -69,7 +69,7 @@ static method throws(() → void f) → void {
   try {
     f(){() → void};
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
     return;
   }
   throw "Expected exception";

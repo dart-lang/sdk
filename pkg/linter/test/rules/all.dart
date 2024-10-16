@@ -210,6 +210,8 @@ import 'prefer_int_literals_test.dart' as prefer_int_literals;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
 import 'prefer_is_empty_test.dart' as prefer_is_empty;
+import 'prefer_is_not_empty_test.dart' as prefer_is_not_empty;
+import 'prefer_is_not_operator_test.dart' as prefer_is_not_operator;
 import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_null_aware_method_calls_test.dart'
@@ -464,6 +466,8 @@ void main() {
   prefer_int_literals.main();
   prefer_interpolation_to_compose_strings.main();
   prefer_is_empty.main();
+  prefer_is_not_empty.main();
+  prefer_is_not_operator.main();
   prefer_iterable_whereType.main();
   prefer_mixin.main();
   prefer_null_aware_method_calls.main();

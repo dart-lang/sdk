@@ -292,23 +292,16 @@ class _Added {
         }
         SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
             new SourceExtensionTypeDeclarationBuilder(
-                metadata: fragment.metadata,
-                modifiers: fragment.modifiers,
                 name: fragment.name,
-                typeParameters: fragment.typeParameters,
-                interfaceBuilders: fragment.interfaces,
-                typeParameterScope: fragment.typeParameterScope,
-                nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
                 enclosingLibraryBuilder: enclosingLibraryBuilder,
                 constructorReferences: fragment.constructorReferences,
                 fileUri: fragment.fileUri,
                 startOffset: fragment.startOffset,
                 nameOffset: fragment.nameOffset,
                 endOffset: fragment.endOffset,
+                fragment: fragment,
                 indexedContainer: indexedContainer,
                 representationFieldFragment: representationFieldFragment);
-        fragment.builder = extensionTypeDeclarationBuilder;
-        fragment.bodyScope.declarationBuilder = extensionTypeDeclarationBuilder;
         builders.add(new _AddBuilder(
             fragment.name,
             extensionTypeDeclarationBuilder,
@@ -442,9 +435,130 @@ class _Added {
           loader.buildersCreatedWithReferences[fieldSetterReference] =
               fieldBuilder;
         }
+      case GetterFragment():
+        String name = fragment.name;
+
+        final bool isInstanceMember = containerType != ContainerType.Library &&
+            !fragment.modifiers.isStatic;
+
+        NameScheme nameScheme = new NameScheme(
+            containerName: containerName,
+            containerType: containerType,
+            isInstanceMember: isInstanceMember,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? procedureReference;
+        indexedContainer ??= indexedLibrary;
+
+        bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
+            fragment.modifiers.isAugment;
+
+        ProcedureKind kind = ProcedureKind.Getter;
+        if (indexedContainer != null && !isAugmentation) {
+          Name nameToLookup =
+              nameScheme.getProcedureMemberName(kind, name).name;
+          procedureReference =
+              indexedContainer.lookupGetterReference(nameToLookup);
+        }
+
+        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+            fragment.metadata,
+            fragment.modifiers,
+            fragment.returnType,
+            name,
+            fragment.typeParameters,
+            fragment.formals,
+            kind,
+            enclosingLibraryBuilder,
+            declarationBuilder,
+            fragment.fileUri,
+            fragment.startCharOffset,
+            fragment.charOffset,
+            fragment.charOpenParenOffset,
+            fragment.charEndOffset,
+            procedureReference,
+            /* tearOffReference = */ null,
+            fragment.asyncModifier,
+            nameScheme,
+            nativeMethodName: fragment.nativeMethodName);
+        fragment.builder = procedureBuilder;
+        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            fragment.fileUri, fragment.charOffset));
+        if (procedureReference != null) {
+          loader.buildersCreatedWithReferences[procedureReference] =
+              procedureBuilder;
+        }
+      case SetterFragment():
+        String name = fragment.name;
+
+        final bool isInstanceMember = containerType != ContainerType.Library &&
+            !fragment.modifiers.isStatic;
+        final bool isExtensionMember = containerType == ContainerType.Extension;
+        final bool isExtensionTypeMember =
+            containerType == ContainerType.ExtensionType;
+
+        NameScheme nameScheme = new NameScheme(
+            containerName: containerName,
+            containerType: containerType,
+            isInstanceMember: isInstanceMember,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? procedureReference;
+        indexedContainer ??= indexedLibrary;
+
+        bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
+            fragment.modifiers.isAugment;
+
+        ProcedureKind kind = ProcedureKind.Setter;
+        if (indexedContainer != null && !isAugmentation) {
+          Name nameToLookup =
+              nameScheme.getProcedureMemberName(kind, name).name;
+          if ((isExtensionMember || isExtensionTypeMember) &&
+              isInstanceMember) {
+            // Extension (type) instance setters are encoded as methods.
+            procedureReference =
+                indexedContainer.lookupGetterReference(nameToLookup);
+          } else {
+            procedureReference =
+                indexedContainer.lookupSetterReference(nameToLookup);
+          }
+        }
+
+        SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+            fragment.metadata,
+            fragment.modifiers,
+            fragment.returnType,
+            name,
+            fragment.typeParameters,
+            fragment.formals,
+            kind,
+            enclosingLibraryBuilder,
+            declarationBuilder,
+            fragment.fileUri,
+            fragment.startCharOffset,
+            fragment.charOffset,
+            fragment.charOpenParenOffset,
+            fragment.charEndOffset,
+            procedureReference,
+            /* tearOffReference = */ null,
+            fragment.asyncModifier,
+            nameScheme,
+            nativeMethodName: fragment.nativeMethodName);
+        fragment.builder = procedureBuilder;
+        builders.add(new _AddBuilder(fragment.name, procedureBuilder,
+            fragment.fileUri, fragment.charOffset));
+        if (procedureReference != null) {
+          loader.buildersCreatedWithReferences[procedureReference] =
+              procedureBuilder;
+        }
       case MethodFragment():
         String name = fragment.name;
         ProcedureKind kind = fragment.kind;
+        assert(kind == ProcedureKind.Method || kind == ProcedureKind.Operator);
 
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
@@ -469,26 +583,13 @@ class _Added {
         if (indexedContainer != null && !isAugmentation) {
           Name nameToLookup =
               nameScheme.getProcedureMemberName(kind, name).name;
-          if (kind == ProcedureKind.Setter) {
-            if ((isExtensionMember || isExtensionTypeMember) &&
-                isInstanceMember) {
-              // Extension (type) instance setters are encoded as methods.
-              procedureReference =
-                  indexedContainer.lookupGetterReference(nameToLookup);
-            } else {
-              procedureReference =
-                  indexedContainer.lookupSetterReference(nameToLookup);
-            }
-          } else {
-            procedureReference =
-                indexedContainer.lookupGetterReference(nameToLookup);
-            if ((isExtensionMember || isExtensionTypeMember) &&
-                kind == ProcedureKind.Method) {
-              tearOffReference = indexedContainer.lookupGetterReference(
-                  nameScheme
-                      .getProcedureMemberName(ProcedureKind.Getter, name)
-                      .name);
-            }
+          procedureReference =
+              indexedContainer.lookupGetterReference(nameToLookup);
+          if ((isExtensionMember || isExtensionTypeMember) &&
+              kind == ProcedureKind.Method) {
+            tearOffReference = indexedContainer.lookupGetterReference(nameScheme
+                .getProcedureMemberName(ProcedureKind.Getter, name)
+                .name);
           }
         }
 

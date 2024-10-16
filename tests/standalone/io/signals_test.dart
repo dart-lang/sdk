@@ -8,8 +8,8 @@
 import "dart:io";
 import "dart:convert";
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 void testSignals(int usr1Expect, int usr2Expect,
     [int? usr1Send, int? usr2Send, bool shouldFail = false]) {

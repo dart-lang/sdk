@@ -10,7 +10,7 @@ static method main() → void {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::List<core::String> test = :sync-for-iterator.{core::Iterator::current}{core::List<core::String>};
       {
-        final void _ = block {
+        {
           void #t1;
           final synthesized core::List<core::String> #0#0 = test;
           synthesized core::int #0#1;
@@ -48,7 +48,7 @@ static method main() → void {
               }
             }
           }
-        } =>#t1;
+        }
       }
     }
   }

@@ -8,7 +8,7 @@ library IsolateImportNegativeTest;
 /* //# 01: compile-time error
 import 'dart:isolate';
 */ //# 01: continued
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 void entry(msg) {}
 

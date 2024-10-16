@@ -136,8 +136,6 @@ create_timestamp_file("ddc_sdk_patch_stamp") {
 # we can stop referring to this list of packages explicitly in the test_runner.
 group("ddc_stable_test_pkg") {
   deps = [
-    ":async_helper_stable_js",
-    ":async_helper_stable_unsound_js",
     ":ddc_test_pkg_outline",
     ":expect_stable_js",
     ":expect_stable_unsound_js",
@@ -151,10 +149,6 @@ group("ddc_stable_test_pkg") {
 # Compiles to JavaScript using DDC (canary) all packages imported in tests.
 group("ddc_canary_test_pkg") {
   deps = [
-    ":async_helper_canary_ddc_js",
-    ":async_helper_canary_js",
-    ":async_helper_canary_unsound_ddc_js",
-    ":async_helper_canary_unsound_js",
     ":ddc_test_pkg_outline",
     ":expect_canary_ddc_js",
     ":expect_canary_js",
@@ -173,8 +167,6 @@ group("ddc_canary_test_pkg") {
 
 group("ddc_test_pkg_outline") {
   deps = [
-    ":async_helper_outline",
-    ":async_helper_outline_unsound",
     ":expect_outline",
     ":expect_outline_unsound",
     ":js_outline",
@@ -352,78 +344,21 @@ template("package_kernel_outline") {
   }
 }
 
-package_kernel_outline("async_helper_outline") {
-  package = "async_helper"
-  sound_null_safety = true
-}
-package_kernel_outline("async_helper_outline_unsound") {
-  package = "async_helper"
-  sound_null_safety = false
-}
-
-ddc_compile("async_helper_stable_js") {
-  package = "async_helper"
-  canary = false
-  modules = [
-    "amd",
-    "ddc",
-  ]
-  sound_null_safety = true
-}
-
-ddc_compile("async_helper_canary_js") {
-  package = "async_helper"
-  canary = true
-  modules = [ "amd" ]
-  sound_null_safety = true
-}
-
-ddc_compile("async_helper_canary_ddc_js") {
-  package = "async_helper"
-  canary = true
-  modules = [ "ddc" ]
-  sound_null_safety = true
-}
-
-ddc_compile("async_helper_stable_unsound_js") {
-  package = "async_helper"
-  canary = false
-  modules = [
-    "amd",
-    "ddc",
-  ]
-  sound_null_safety = false
-}
-
-ddc_compile("async_helper_canary_unsound_js") {
-  package = "async_helper"
-  canary = true
-  modules = [ "amd" ]
-  sound_null_safety = false
-}
-
-ddc_compile("async_helper_canary_unsound_ddc_js") {
-  package = "async_helper"
-  canary = true
-  modules = [ "ddc" ]
-  sound_null_safety = false
-}
-
 package_kernel_outline("expect_outline") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   sound_null_safety = true
 }
 
 package_kernel_outline("expect_outline_unsound") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   sound_null_safety = false
 }
 
 ddc_compile("expect_stable_js") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   canary = false
   modules = [
     "amd",
@@ -434,7 +369,7 @@ ddc_compile("expect_stable_js") {
 
 ddc_compile("expect_canary_js") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   canary = true
   modules = [ "amd" ]
   sound_null_safety = true
@@ -442,7 +377,7 @@ ddc_compile("expect_canary_js") {
 
 ddc_compile("expect_canary_ddc_js") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   canary = true
   modules = [ "ddc" ]
   sound_null_safety = true
@@ -450,7 +385,7 @@ ddc_compile("expect_canary_ddc_js") {
 
 ddc_compile("expect_stable_unsound_js") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   canary = false
   modules = [
     "amd",
@@ -461,7 +396,7 @@ ddc_compile("expect_stable_unsound_js") {
 
 ddc_compile("expect_canary_unsound_js") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   canary = true
   modules = [ "amd" ]
   sound_null_safety = false
@@ -469,7 +404,7 @@ ddc_compile("expect_canary_unsound_js") {
 
 ddc_compile("expect_canary_unsound_ddc_js") {
   package = "expect"
-  extra_libraries = [ "minitest" ]
+  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
   canary = true
   modules = [ "ddc" ]
   sound_null_safety = false

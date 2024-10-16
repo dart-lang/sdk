@@ -328,6 +328,16 @@ Template compileTemplate(String name, int? index, String? problemMessage,
         arguments.add("'$name': count2");
         break;
 
+      case "count3":
+        parameters.add("int count3");
+        arguments.add("'$name': count3");
+        break;
+
+      case "count4":
+        parameters.add("int count4");
+        arguments.add("'$name': count4");
+        break;
+
       case "constant":
         parameters.add("Constant _constant");
         ensureLabeler();

@@ -6,7 +6,7 @@
 // any of the cases for function types being subtypes of each other.
 
 import 'dart:async';
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 bool condition = true;
 

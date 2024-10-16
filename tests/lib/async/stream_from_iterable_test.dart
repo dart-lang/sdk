@@ -6,9 +6,9 @@
 
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 import 'event_helper.dart';
 

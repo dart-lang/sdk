@@ -5,11 +5,11 @@ import "dart:async" as asy;
 
 static method main() → dynamic async /* emittedValueType= dynamic */ {
   core::bool b = (() → core::bool => true)(){() → core::bool};
-  (dynamic _) → core::int? {
+  (dynamic _#wc0#formal) → core::int? {
     if(b)
       return 42;
   };
-  (dynamic _) → asy::Future<core::int?> async /* emittedValueType= core::int? */ {
+  (dynamic _#wc1#formal) → asy::Future<core::int?> async /* emittedValueType= core::int? */ {
     if(b)
       return 42;
   };

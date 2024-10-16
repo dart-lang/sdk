@@ -54,7 +54,7 @@ void clientListen(RawSocketEvent event) {
   }
 }
 
-test() async {
+Future test() async {
   server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen(serverListen);
   client = await RawSocket.connect(InternetAddress.loopbackIPv4, server.port);

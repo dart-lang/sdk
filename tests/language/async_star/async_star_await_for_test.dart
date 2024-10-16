@@ -13,8 +13,8 @@
 // or while paused at a `yield`, must exit at that `yield`.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 Stream<int> stream(List<String> log) async* {
   log.add("^");

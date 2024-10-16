@@ -39,6 +39,7 @@ lib/src/computer/computer_closing_labels.dart
 lib/src/computer/computer_color.dart
 lib/src/computer/computer_folding.dart
 lib/src/computer/computer_highlights.dart
+lib/src/computer/computer_outline.dart
 lib/src/computer/computer_selection_ranges.dart
 lib/src/context_manager.dart
 lib/src/domain_analysis_flags.dart
@@ -234,6 +235,7 @@ lib/src/services/correction/dart/add_missing_enum_like_case_clauses.dart
 lib/src/services/correction/dart/add_missing_parameter.dart
 lib/src/services/correction/dart/add_missing_parameter_named.dart
 lib/src/services/correction/dart/add_missing_required_argument.dart
+lib/src/services/correction/dart/add_missing_switch_cases.dart
 lib/src/services/correction/dart/add_ne_null.dart
 lib/src/services/correction/dart/add_null_check.dart
 lib/src/services/correction/dart/add_override.dart
@@ -249,7 +251,9 @@ lib/src/services/correction/dart/add_trailing_comma.dart
 lib/src/services/correction/dart/add_type_annotation.dart
 lib/src/services/correction/dart/assign_to_local_variable.dart
 lib/src/services/correction/dart/change_argument_name.dart
+lib/src/services/correction/dart/change_to.dart
 lib/src/services/correction/dart/change_to_nearest_precise_value.dart
+lib/src/services/correction/dart/change_to_static_access.dart
 lib/src/services/correction/dart/change_type_annotation.dart
 lib/src/services/correction/dart/convert_add_all_to_spread.dart
 lib/src/services/correction/dart/convert_class_to_enum.dart
@@ -266,6 +270,7 @@ lib/src/services/correction/dart/convert_into_final_field.dart
 lib/src/services/correction/dart/convert_into_for_index.dart
 lib/src/services/correction/dart/convert_into_getter.dart
 lib/src/services/correction/dart/convert_into_is_not.dart
+lib/src/services/correction/dart/convert_into_is_not_empty.dart
 lib/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart
 lib/src/services/correction/dart/convert_part_of_to_uri.dart
 lib/src/services/correction/dart/convert_quotes.dart
@@ -318,12 +323,16 @@ lib/src/services/correction/dart/extend_class_for_mixin.dart
 lib/src/services/correction/dart/extract_local_variable.dart
 lib/src/services/correction/dart/flutter_convert_to_children.dart
 lib/src/services/correction/dart/flutter_convert_to_stateful_widget.dart
+lib/src/services/correction/dart/flutter_convert_to_stateless_widget.dart
 lib/src/services/correction/dart/flutter_move_down.dart
 lib/src/services/correction/dart/flutter_move_up.dart
 lib/src/services/correction/dart/flutter_remove_widget.dart
 lib/src/services/correction/dart/flutter_swap_with_child.dart
 lib/src/services/correction/dart/flutter_swap_with_parent.dart
+lib/src/services/correction/dart/flutter_wrap.dart
+lib/src/services/correction/dart/flutter_wrap_builder.dart
 lib/src/services/correction/dart/flutter_wrap_generic.dart
+lib/src/services/correction/dart/flutter_wrap_stream_builder.dart
 lib/src/services/correction/dart/ignore_diagnostic.dart
 lib/src/services/correction/dart/import_add_show.dart
 lib/src/services/correction/dart/inline_invocation.dart
@@ -409,6 +418,7 @@ lib/src/services/correction/dart/remove_unnecessary_raw_string.dart
 lib/src/services/correction/dart/remove_unnecessary_string_escape.dart
 lib/src/services/correction/dart/remove_unnecessary_string_interpolation.dart
 lib/src/services/correction/dart/remove_unnecessary_wildcard_pattern.dart
+lib/src/services/correction/dart/remove_unused.dart
 lib/src/services/correction/dart/remove_unused_catch_clause.dart
 lib/src/services/correction/dart/remove_unused_catch_stack.dart
 lib/src/services/correction/dart/remove_unused_import.dart
@@ -417,6 +427,7 @@ lib/src/services/correction/dart/remove_unused_local_variable.dart
 lib/src/services/correction/dart/remove_unused_parameter.dart
 lib/src/services/correction/dart/remove_var.dart
 lib/src/services/correction/dart/remove_var_keyword.dart
+lib/src/services/correction/dart/rename_method_parameter.dart
 lib/src/services/correction/dart/rename_to_camel_case.dart
 lib/src/services/correction/dart/replace_boolean_with_bool.dart
 lib/src/services/correction/dart/replace_cascade_with_dot.dart
@@ -523,6 +534,9 @@ lib/src/services/refactoring/legacy/naming_conventions.dart
 lib/src/services/refactoring/move_selected_formal_parameters_left.dart
 lib/src/services/snippets/dart/class_declaration.dart
 lib/src/services/snippets/dart/do_statement.dart
+lib/src/services/snippets/dart/flutter_stateful_widget.dart
+lib/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart
+lib/src/services/snippets/dart/flutter_stateless_widget.dart
 lib/src/services/snippets/dart/for_in_statement.dart
 lib/src/services/snippets/dart/for_statement.dart
 lib/src/services/snippets/dart/function_declaration.dart
@@ -538,6 +552,8 @@ lib/src/services/snippets/dart/while_statement.dart
 lib/src/services/snippets/dart_snippet_request.dart
 lib/src/services/snippets/snippet.dart
 lib/src/services/snippets/snippet_context.dart
+lib/src/services/snippets/snippet_manager.dart
+lib/src/services/snippets/snippet_producer.dart
 lib/src/services/user_prompts/dart_fix_prompt_manager.dart
 lib/src/services/user_prompts/survey_manager.dart
 lib/src/services/user_prompts/user_prompts.dart
@@ -952,6 +968,7 @@ test/services/snippets/dart/test_definition_test.dart
 test/services/snippets/dart/test_group_definition_test.dart
 test/services/snippets/dart/try_catch_statement_test.dart
 test/services/snippets/dart/while_statement_test.dart
+test/services/snippets/snippet_manager_test.dart
 test/services/snippets/snippet_request_test.dart
 test/services/snippets/test_all.dart
 test/services/test_all.dart

@@ -24,7 +24,7 @@ const NullAwareEntry nullAwareEntry = const NullAwareEntry();
 class ForCondition extends LiteralEntryInfo {
   bool _inStyle = false;
 
-  ForCondition() : super(false, 0);
+  ForCondition() : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -125,7 +125,7 @@ class ForInSpread extends SpreadOperator {
 /// A step for parsing a literal list, set, or map entry
 /// as the "for" control flow's expression.
 class ForEntry extends LiteralEntryInfo {
-  const ForEntry() : super(true, 0);
+  const ForEntry() : super(hasEntry: true, ifConditionDelta: 0);
 
   @override
   LiteralEntryInfo computeNext(Token token) {
@@ -136,7 +136,7 @@ class ForEntry extends LiteralEntryInfo {
 /// A step for parsing a literal list, set, or map entry
 /// as the "for-in" control flow's expression.
 class ForInEntry extends LiteralEntryInfo {
-  const ForInEntry() : super(true, 0);
+  const ForInEntry() : super(hasEntry: true, ifConditionDelta: 0);
 
   @override
   LiteralEntryInfo computeNext(Token token) {
@@ -145,7 +145,7 @@ class ForInEntry extends LiteralEntryInfo {
 }
 
 class ForComplete extends LiteralEntryInfo {
-  const ForComplete() : super(false, 0);
+  const ForComplete() : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -155,7 +155,7 @@ class ForComplete extends LiteralEntryInfo {
 }
 
 class ForInComplete extends LiteralEntryInfo {
-  const ForInComplete() : super(false, 0);
+  const ForInComplete() : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -166,7 +166,7 @@ class ForInComplete extends LiteralEntryInfo {
 
 /// The first step when processing an `if` control flow collection entry.
 class IfCondition extends LiteralEntryInfo {
-  const IfCondition() : super(false, 1);
+  const IfCondition() : super(hasEntry: false, ifConditionDelta: 1);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -209,14 +209,14 @@ class IfSpread extends SpreadOperator {
 /// A step for parsing a literal list, set, or map entry
 /// as the `if` control flow's then-expression.
 class IfEntry extends LiteralEntryInfo {
-  const IfEntry() : super(true, 0);
+  const IfEntry() : super(hasEntry: true, ifConditionDelta: 0);
 
   @override
   LiteralEntryInfo computeNext(Token token) => const IfComplete();
 }
 
 class IfComplete extends LiteralEntryInfo {
-  const IfComplete() : super(false, 0);
+  const IfComplete() : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -234,7 +234,7 @@ class IfComplete extends LiteralEntryInfo {
 
 /// A step for parsing the `else` portion of an `if` control flow.
 class IfElse extends LiteralEntryInfo {
-  const IfElse() : super(false, -1);
+  const IfElse() : super(hasEntry: false, ifConditionDelta: -1);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -273,7 +273,7 @@ class ElseSpread extends SpreadOperator {
 }
 
 class ElseEntry extends LiteralEntryInfo {
-  const ElseEntry() : super(true, 0);
+  const ElseEntry() : super(hasEntry: true, ifConditionDelta: 0);
 
   @override
   LiteralEntryInfo computeNext(Token token) {
@@ -282,7 +282,7 @@ class ElseEntry extends LiteralEntryInfo {
 }
 
 class IfElseComplete extends LiteralEntryInfo {
-  const IfElseComplete() : super(false, 0);
+  const IfElseComplete() : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -293,7 +293,7 @@ class IfElseComplete extends LiteralEntryInfo {
 
 /// The first step when processing a spread entry.
 class SpreadOperator extends LiteralEntryInfo {
-  const SpreadOperator() : super(false, 0);
+  const SpreadOperator() : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   Token parse(Token token, Parser parser) {
@@ -310,7 +310,8 @@ class Nested extends LiteralEntryInfo {
   LiteralEntryInfo? nestedStep;
   final LiteralEntryInfo lastStep;
 
-  Nested(this.nestedStep, this.lastStep) : super(false, 0);
+  Nested(this.nestedStep, this.lastStep)
+      : super(hasEntry: false, ifConditionDelta: 0);
 
   @override
   bool get hasEntry => nestedStep!.hasEntry;
@@ -326,28 +327,5 @@ class Nested extends LiteralEntryInfo {
 }
 
 class NullAwareEntry extends LiteralEntryInfo {
-  const NullAwareEntry() : super(false, 0);
-
-  @override
-  Token parse(Token token, Parser parser) {
-    final Token entryNullAwareToken = token.next!;
-    assert(entryNullAwareToken.isA(TokenType.QUESTION));
-    token = parser.parseExpression(entryNullAwareToken);
-    if (token.next!.isA(TokenType.COLON)) {
-      Token colon = token.next!;
-      Token next = colon.next!;
-      if (next.isA(TokenType.QUESTION)) {
-        token = parser.parseExpression(next);
-        parser.listener.handleLiteralMapEntry(colon, token,
-            nullAwareKeyToken: entryNullAwareToken, nullAwareValueToken: next);
-      } else {
-        token = parser.parseExpression(colon);
-        parser.listener.handleLiteralMapEntry(colon, token,
-            nullAwareKeyToken: entryNullAwareToken, nullAwareValueToken: null);
-      }
-    } else {
-      parser.listener.handleNullAwareElement(entryNullAwareToken);
-    }
-    return token;
-  }
+  const NullAwareEntry() : super(hasEntry: true, ifConditionDelta: 0);
 }

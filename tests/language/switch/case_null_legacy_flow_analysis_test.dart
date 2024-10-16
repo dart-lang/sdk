@@ -7,7 +7,7 @@
 
 // @dart=2.19
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // Checks that even if the type of the scrutinee is `Null`, and one of the cases
 // matches `null`, the other `default` case is still considered reachable.

@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
+import 'package:expect/async_helper.dart' show asyncEnd, asyncStart;
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;

@@ -14,10 +14,10 @@ import "dart:core" as core;
 
 typedef A<invariant X extends core::Object? = dynamic> = self::B<X%, (X%) → dynamic>;
 class B<T extends core::Object? = dynamic, Invariance extends (self::B::T%) → dynamic = (Never) → dynamic> extends core::Object {
-  constructor •(dynamic _) → self::B<self::B::T%, self::B::Invariance>
+  constructor •(wildcard dynamic _#wc0#formal) → self::B<self::B::T%, self::B::Invariance>
     ;
 }
 static method test() → dynamic
   ;
-static method _#A#new#tearOff<invariant X extends core::Object? = dynamic>(dynamic _) → self::B<self::_#A#new#tearOff::X%, (self::_#A#new#tearOff::X%) → dynamic>
-  return new self::B::•<self::_#A#new#tearOff::X%, (self::_#A#new#tearOff::X%) → dynamic>(_);
+static method _#A#new#tearOff<invariant X extends core::Object? = dynamic>(dynamic _#wc0#formal) → self::B<self::_#A#new#tearOff::X%, (self::_#A#new#tearOff::X%) → dynamic>
+  return new self::B::•<self::_#A#new#tearOff::X%, (self::_#A#new#tearOff::X%) → dynamic>(_#wc0#formal);

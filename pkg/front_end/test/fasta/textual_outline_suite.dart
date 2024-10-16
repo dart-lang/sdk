@@ -158,7 +158,13 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
               experimentFlags.add(entry.key.name);
             }
           }
-          result = new DartFormatter(experimentFlags: experimentFlags)
+
+          // Default to the latest language version. If the test should be at
+          // an older language version, it will contain a `// @dart=x.y`
+          // comment, which takes precedence over this argument.
+          result = new DartFormatter(
+                  languageVersion: DartFormatter.latestLanguageVersion,
+                  experimentFlags: experimentFlags)
               .format(result);
         } catch (e, st) {
           formatterException = e;

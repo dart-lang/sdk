@@ -9,8 +9,7 @@ import 'test_helper.dart';
 
 import 'dart:async';
 
-const int LINE_A = 23;
-const int LINE_B = 25;
+const int LINE_A = 22;
 
 int value = 0;
 
@@ -21,8 +20,6 @@ int incValue(int amount) {
 
 Future testMain() async {
   incValue(incValue(1)); // line A.
-
-  incValue(incValue(1)); // line B.
 }
 
 var tests = <IsolateTest>[
@@ -66,8 +63,8 @@ var tests = <IsolateTest>[
   // Test resolution of column breakpoints.
   (Isolate isolate) async {
     var script = isolate.rootLibrary.scripts[0];
-    // Try all columns, including some columns that are too big.
-    for (int col = 1; col <= 50; col++) {
+    // Try all valid column arguments.
+    for (int col = 1; col <= 36; col++) {
       var bpt = await isolate.addBreakpoint(script, LINE_A, col);
       expect(bpt.resolved, isTrue);
       int resolvedLine = await bpt.location!.getLine() as int;
@@ -76,27 +73,36 @@ var tests = <IsolateTest>[
       if (col < 12) {
         expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(3));
-      } else if (col <= 36) {
-        expect(resolvedLine, equals(LINE_A));
-        expect(resolvedCol, equals(12));
       } else {
-        expect(resolvedLine, equals(LINE_B));
+        expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(12));
       }
       expect((await isolate.removeBreakpoint(bpt)).type, equals('Success'));
     }
 
-    // Make sure that a zero column is an error.
-    var caughtException = false;
+    // Ensure that an error is thrown when 0 is passed as the column argument.
     try {
-      await isolate.addBreakpoint(script, 20, 0);
-      expect(false, isTrue, reason: 'Unreachable');
+      await isolate.addBreakpoint(script, LINE_A, 0);
+      fail('Expected to catch a ServerRpcException');
     } on ServerRpcException catch (e) {
-      caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.message, "addBreakpoint: invalid 'column' parameter: 0");
     }
-    expect(caughtException, isTrue);
+
+    // Ensure that an error is thrown when a number greater than the number of
+    // columns on the specified line is passed as the column argument.
+    try {
+      await isolate.addBreakpoint(script, LINE_A, 37);
+      fail('Expected to catch a ServerRpcException');
+    } on ServerRpcException catch (e) {
+      expect(e.code, equals(ServerRpcException.kCannotAddBreakpoint));
+      expect(
+        e.message,
+        'addBreakpoint: Cannot add breakpoint at $LINE_A:37. Error occurred '
+        'when resolving breakpoint location: No debuggable code where '
+        'breakpoint was requested.',
+      );
+    }
   },
 ];
 

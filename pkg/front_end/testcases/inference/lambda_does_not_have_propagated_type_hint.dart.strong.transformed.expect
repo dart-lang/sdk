@@ -13,7 +13,7 @@ static method bar() → void {
   try {
     list = core::_GrowableList::•<core::String>(0);
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
     return;
   }
   list{dynamic}.map((dynamic value) → core::String => "${value}");

@@ -13,8 +13,8 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:expect/config.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 import 'package:path/path.dart' as path;

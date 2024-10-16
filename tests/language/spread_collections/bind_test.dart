@@ -5,7 +5,7 @@
 /// Check that spread collections can be used in combination with async/await features.
 /// This is a regression test for http://dartbug.com/38896
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
 
 Future<void> asyncTest1(Future<void> f()) {

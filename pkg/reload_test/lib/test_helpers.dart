@@ -18,7 +18,7 @@ class TestResultOutcome {
 
   TestResultOutcome({
     required this.configuration,
-    this.suiteName = 'tests/reload',
+    this.suiteName = 'hot_reload',
     required this.testName,
     this.expectedResult = 'Pass',
     this.testOutput = '',
@@ -68,11 +68,11 @@ enum RuntimePlatforms {
 /// }
 class ReloadTestConfiguration {
   final Map<String, dynamic> _values;
-  final Set<RuntimePlatforms> excludedPlaforms;
+  final Set<RuntimePlatforms> excludedPlatforms;
   final String? expectedError;
 
   ReloadTestConfiguration._(
-      this._values, this.excludedPlaforms, this.expectedError);
+      this._values, this.excludedPlatforms, this.expectedError);
 
   factory ReloadTestConfiguration() => ReloadTestConfiguration._(
       const <String, dynamic>{}, <RuntimePlatforms>{}, null);
@@ -80,16 +80,16 @@ class ReloadTestConfiguration {
   factory ReloadTestConfiguration.fromJsonFile(Uri file) {
     final Map<String, dynamic> jsonData =
         jsonDecode(File.fromUri(file).readAsStringSync());
-    final excludedPlaforms = <RuntimePlatforms>{};
+    final excludedPlatforms = <RuntimePlatforms>{};
     var rawExcludedPlatforms = jsonData['exclude'];
     if (rawExcludedPlatforms != null) {
       for (final String platform in rawExcludedPlatforms) {
         final runtimePlatform = RuntimePlatforms.values.byName(platform);
-        excludedPlaforms.add(runtimePlatform);
+        excludedPlatforms.add(runtimePlatform);
       }
     }
     return ReloadTestConfiguration._(
-        jsonData, excludedPlaforms, jsonData['expectedError']);
+        jsonData, excludedPlatforms, jsonData['expectedError']);
   }
 
   String toJson() {

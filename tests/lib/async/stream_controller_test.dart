@@ -5,8 +5,8 @@
 // Test the basic StreamController and StreamController.singleSubscription.
 library stream_controller_test;
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import 'dart:async';
 import 'event_helper.dart';
 
@@ -655,7 +655,11 @@ void testCloseFuture2() {
 void testCloseFuture3() {
   asyncStart();
   var c = new StreamController.broadcast();
-  c..add(1)..add(2)..add(3)..add(4);
+  c
+    ..add(1)
+    ..add(2)
+    ..add(3)
+    ..add(4);
   c.stream.listen(null).cancel();
   var f = c.close();
   Expect.isTrue(c.isClosed);

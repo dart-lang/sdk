@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 // Test that local variable reads and writes are sequenced correctly with
 // respect to reads and writes in an awaited Future.  See issue 26175.

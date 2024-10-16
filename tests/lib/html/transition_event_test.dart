@@ -7,8 +7,8 @@ library transition_event_test;
 import 'dart:html';
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/async_helper.dart';
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 Future testTransitionEnd() async {
   var element = new DivElement();

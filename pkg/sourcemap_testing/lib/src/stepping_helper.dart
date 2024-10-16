@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:dart2js_tools/src/util.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
 

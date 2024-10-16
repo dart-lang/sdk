@@ -4,7 +4,7 @@
 
 // Test the new context type rules for number operators,
 // as modified by Null Safety
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 // The context rules for `e` of the form:
 // For e1 + e2, e1 - e2, e1 * e2, e1 % e2 or e1.remainder(e2),,

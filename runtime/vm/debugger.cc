@@ -1951,9 +1951,7 @@ void Debugger::PauseException(const Instance& exc) {
 
 // Helper that refines the resolved token pos.
 //
-// If |requested_column| is specified, then |exact_token_pos| must be the exact
-// position where the user requested a column breakpoint to be set. If
-// |requested_column| is |-1|, |exact_token_pos| must be
+// If |requested_column| is |-1|, then |exact_token_pos| must be
 // |TokenPosition::kNoSource|.
 static void RefineBreakpointPos(const Script& script,
                                 TokenPosition pos,
@@ -1967,7 +1965,7 @@ static void RefineBreakpointPos(const Script& script,
                                 intptr_t* best_line) {
   ASSERT(
       (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
-      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
+      requested_column > -1);
 
   intptr_t token_start_column = -1;
   intptr_t token_line = -1;
@@ -2008,9 +2006,7 @@ static void RefineBreakpointPos(const Script& script,
 // represents one line of the program text, but can represent a larger
 // range on recursive calls.
 //
-// If |requested_column| is specified, then |exact_token_pos| must be the exact
-// position where the user requested a column breakpoint to be set. If
-// |requested_column| is |-1|, |exact_token_pos| must be
+// If |requested_column| is |-1|, then |exact_token_pos| must be
 // |TokenPosition::kNoSource|.
 //
 // The best fit is found in two passes.
@@ -2070,7 +2066,7 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
   ASSERT(!func.HasOptimizedCode());
   ASSERT(
       (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
-      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
+      requested_column > -1);
 
   requested_token_pos =
       TokenPosition::Max(requested_token_pos, func.token_pos());
@@ -2161,14 +2157,6 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
     return best_fit_pos;
   }
 
-  // We didn't find a safe point in the given token range. Try and
-  // find a safe point in the remaining source code of the function.
-  // Since we have moved to the next line of the function, we no
-  // longer are requesting a specific column number.
-  if (last_token_pos < func.end_token_pos()) {
-    return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos(),
-                                -1 /* no column */, TokenPosition::kNoSource);
-  }
   return TokenPosition::kNoSource;
 }
 
@@ -2562,9 +2550,7 @@ bool Debugger::FindBestFit(const Script& script,
   return false;
 }
 
-// If |requested_column| is specified, then |exact_token_pos| must be the exact
-// position where the user requested a column breakpoint to be set. If
-// |requested_column| is |-1|, |exact_token_pos| must be
+// If |requested_column| is |-1|, then |exact_token_pos| must be
 // |TokenPosition::kNoSource|.
 BreakpointLocation* Debugger::SetCodeBreakpoints(
     const GrowableHandlePtrArray<const Script>& scripts,
@@ -2576,7 +2562,7 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     const GrowableObjectArray& functions) {
   ASSERT(
       (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
-      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
+      requested_column > -1);
 
   Function& function = Function::Handle();
   function ^= functions.At(0);
@@ -3809,15 +3795,16 @@ void Debugger::NotifyIsolateCreated() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-// On single line of code with given column number,
-// Calculate exact tokenPosition
+// |reference_pos_on_line| may specify the position of any column on a
+// particular line. This function will return the position of column
+// [column_number] on that same line.
 static TokenPosition FindExactTokenPosition(const Script& script,
-                                            TokenPosition start_of_line,
+                                            TokenPosition reference_pos_on_line,
                                             intptr_t column_number) {
   intptr_t line;
   intptr_t col;
-  if (script.GetTokenLocation(start_of_line, &line, &col)) {
-    return TokenPosition::Deserialize(start_of_line.Pos() +
+  if (script.GetTokenLocation(reference_pos_on_line, &line, &col)) {
+    return TokenPosition::Deserialize(reference_pos_on_line.Pos() +
                                       (column_number - col));
   }
   return TokenPosition::kNoSource;

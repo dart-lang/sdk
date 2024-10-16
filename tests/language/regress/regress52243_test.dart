@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 /// Regression test for the issue discovered by
 /// https://github.com/dart-lang/sdk/issues/52243.
@@ -33,7 +34,7 @@ bool isWithNullableBoolBound<T extends bool?>(x) => x is T;
 T asWithNullableBoolBound<T extends bool?>(x) => x as T;
 
 expectTypeErrorWhenSoundOrValue<T>(T Function(T) computation, T value) {
-  hasSoundNullSafety
+  !unsoundNullSafety
       ? Expect.throws<TypeError>(() => computation(value))
       : Expect.equals(value, computation(value));
 }

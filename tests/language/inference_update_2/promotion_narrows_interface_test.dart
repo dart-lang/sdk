@@ -5,7 +5,7 @@
 // Tests that promotion of a field narrows the types of methods, getters,
 // and operators that are also exposed from the unpromoted type.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class A {
   Object get getter => 0;

@@ -4,7 +4,7 @@
 
 // Tests basic field promotion functionality when the feature is enabled.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 abstract class C {
   final int? _privateFinalField;

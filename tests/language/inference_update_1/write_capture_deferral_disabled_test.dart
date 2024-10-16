@@ -8,7 +8,7 @@
 
 // @dart=2.17
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 withUnnamedArguments(
     int? i, void Function(Object?, void Function(), Object?) f) {

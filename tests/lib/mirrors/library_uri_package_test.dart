@@ -8,7 +8,7 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);

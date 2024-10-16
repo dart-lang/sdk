@@ -6,7 +6,7 @@
 // optimization is done by the simplifier, so inlining does not need to be
 // enabled.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
 

@@ -10,7 +10,7 @@
 /// `Object?`, this test verifies that the static type is really `Object?` (and
 /// not `dynamic`) by attempting to dynamically invoke it.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// When invoked without explicit type parameters, causes its argument to be
 /// analyzed with a context of `(_,)`.

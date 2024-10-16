@@ -12,7 +12,7 @@ import 'dart:io';
 import 'fuzz_support.dart';
 import 'file_write_only_test.dart' show withTempDir, withTempDirSync;
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 fuzzSyncMethods() {
   withTempDirSync('dart_file_fuzz', (temp) {

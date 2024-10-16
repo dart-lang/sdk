@@ -6,13 +6,13 @@
 
 import 'dart:async';
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 g() async => 21;
 f() async => 42;
 
-test() async {
+Future test() async {
   assert(await g() == await f());
 }
 

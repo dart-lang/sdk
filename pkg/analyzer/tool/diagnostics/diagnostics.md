@@ -430,6 +430,9 @@ export 'b.dart' hide C;
 
 ### ambiguous_extension_member_access
 
+_A member named '{0}' is defined in '{1}' and '{2}', and neither is more
+specific._
+
 _A member named '{0}' is defined in {1}, and none are more specific._
 
 #### Description
@@ -26401,6 +26404,7 @@ The following code produces this diagnostic because the name of the
 parameter consists of two underscores:
 
 ```dart
+// @dart = 3.6
 void f(int __) {
   print([!__!]);
 }
@@ -26410,6 +26414,7 @@ The following code produces this diagnostic because the name of the
 local variable consists of a single underscore:
 
 ```dart
+// @dart = 3.6
 void f() {
   int _ = 0;
   print([!_!]);

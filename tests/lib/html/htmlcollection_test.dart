@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 bool isChecked(Element e) => (e as CheckboxInputElement).checked!;
 bool isUnchecked(Element e) => !(e as CheckboxInputElement).checked!;

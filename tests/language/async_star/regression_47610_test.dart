@@ -7,8 +7,8 @@
 // breaking from 'await for'.
 
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 Stream<int> foo() async* {
   for (int i = 0; i < 2; ++i) {
@@ -20,7 +20,7 @@ Stream<int> foo() async* {
   }
 }
 
-void test() async {
+Future test() async {
   await for (var x in foo()) {
     Expect.equals(0, x);
     break;

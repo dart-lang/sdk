@@ -25,7 +25,7 @@ static method main() → void {
       b = #t2;
     }
   }
-  on core::Object catch(final core::Object _) {
+  on core::Object catch(final core::Object _#wc0#formal) {
   }
   self::expect(1.{core::int::unary-}(){() → core::int}, f);
 }

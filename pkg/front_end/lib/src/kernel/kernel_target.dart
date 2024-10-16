@@ -1103,7 +1103,7 @@ class KernelTarget {
         while (iterator.moveNext()) {
           String name = iterator.name;
           MemberBuilder memberBuilder = iterator.current;
-          if (memberBuilder.member is Constructor) {
+          if (memberBuilder.invokeTarget is Constructor) {
             substitutionMap ??=
                 builder.getSubstitutionMap(superclassBuilder.cls);
             Reference? constructorReference;
@@ -1125,7 +1125,7 @@ class KernelTarget {
                   //
                   // Here `super._()` in `Subclass` targets the forwarding stub
                   // added to `Class` whose name is `_` private to `lib1`.
-                  .lookupConstructorReference(memberBuilder.member.name);
+                  .lookupConstructorReference(memberBuilder.invokeTarget!.name);
               tearOffReference = indexedClass.lookupGetterReference(
                   new Name(constructorTearOffName(name), indexedClass.library));
             }
@@ -1189,7 +1189,7 @@ class KernelTarget {
     SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class cls = classBuilder.cls;
     Constructor superConstructor =
-        superConstructorBuilder.member as Constructor;
+        superConstructorBuilder.invokeTarget as Constructor;
     bool isConst = superConstructor.isConst;
     if (isConst && mixin.fields.isNotEmpty) {
       for (Field field in mixin.fields) {
@@ -1269,7 +1269,7 @@ class KernelTarget {
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
-            classBuilder, constructor, constructorTearOff,
+            libraryBuilder, classBuilder, constructor, constructorTearOff,
             // We pass on the original constructor and the cloned function nodes
             // to ensure that the default values are computed and cloned for the
             // outline. It is needed to make the default values a part of the
@@ -1351,7 +1351,7 @@ class KernelTarget {
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     return new SyntheticSourceConstructorBuilder(
-        classBuilder, constructor, constructorTearOff);
+        libraryBuilder, classBuilder, constructor, constructorTearOff);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
@@ -1798,7 +1798,10 @@ class KernelTarget {
     List<LocatedMessage> errors = verifyComponent(
         context, VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
-    assert(allowVerificationErrorForTesting || errors.isEmpty,
+    assert(
+        allowVerificationErrorForTesting ||
+            // Coverage-ignore(suite): Not run.
+            errors.isEmpty,
         "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),

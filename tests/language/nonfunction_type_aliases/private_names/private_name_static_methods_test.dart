@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Test that private names exported via public typedefs work correctly for
 // accessing static methods.
 
 import "package:expect/expect.dart";
 
-import "../../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 import "private_name_library.dart";
 
 /// Test that each public typedef can be used to access static methods.

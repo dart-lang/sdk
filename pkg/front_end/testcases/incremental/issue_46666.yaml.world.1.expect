@@ -135,7 +135,7 @@ library from "org-dartlang-test:///b.dart" as b {
     dart.core::print(b::StructB::#sizeOf);
   }
   static method main() → void {
-    dart.async::Timer::periodic(#C30, (dart.async::Timer _) → void => b::periodic());
+    dart.async::Timer::periodic(#C30, (dart.async::Timer _#wc0#formal) → void => b::periodic());
   }
 }
 constants  {

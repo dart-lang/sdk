@@ -708,10 +708,14 @@ LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
-LanguageVersionTooHigh/analyzerCode: Fail
-LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
-LanguageVersionTooLow/analyzerCode: Fail
-LanguageVersionTooLow/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooHighExplicit/analyzerCode: Fail
+LanguageVersionTooHighExplicit/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooHighPackage/analyzerCode: Fail
+LanguageVersionTooHighPackage/example: Fail
+LanguageVersionTooLowExplicit/analyzerCode: Fail
+LanguageVersionTooLowExplicit/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LanguageVersionTooLowPackage/analyzerCode: Fail
+LanguageVersionTooLowPackage/example: Fail
 LateDefinitelyAssignedError/analyzerCode: Fail
 LateDefinitelyUnassignedError/analyzerCode: Fail
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.

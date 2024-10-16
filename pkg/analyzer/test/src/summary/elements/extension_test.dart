@@ -469,7 +469,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           constructors
-            synthetic new @-1
+            synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
       extensions
@@ -640,6 +640,38 @@ library
           formalParameters
             requiredPositional value
               type: int
+''');
+  }
+
+  test_unnamed() async {
+    var library = await buildLibrary('''
+extension on int {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      extensions
+        <null> @-1
+          reference: <testLibraryFragment>::@extension::0
+          enclosingElement3: <testLibraryFragment>
+          extendedType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension <null-name>
+          reference: <testLibraryFragment>::@extension::0
+          element: <testLibraryFragment>::@extension::0#element
+  extensions
+    extension <null>
+      firstFragment: <testLibraryFragment>::@extension::0
 ''');
   }
 }

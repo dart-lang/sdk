@@ -4,7 +4,7 @@
 
 // Tests that field promotion works with null-aware cascades.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final Object? _field;

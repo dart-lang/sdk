@@ -5369,15 +5369,21 @@ ExtensionTypeCombinedMemberSignatureFailed:
       }
       extension type C(I3 i) implements I2, I1 {}
 
-LanguageVersionTooHigh:
-  problemMessage: "The specified language version is too high. The highest supported language version is #count.#count2."
+LanguageVersionTooHighExplicit:
+  problemMessage: "The specified language version #count.#count2 is too high. The highest supported language version is #count3.#count4."
   script: >
     // @dart = 100.200
 
-LanguageVersionTooLow:
-  problemMessage: "The specified language version is too low. The lowest supported language version is #count.#count2."
+LanguageVersionTooHighPackage:
+  problemMessage: "The language version #count.#count2 specified for the package '#name' is too high. The highest supported language version is #count3.#count4."
+
+LanguageVersionTooLowExplicit:
+  problemMessage: "The specified language version #count.#count2 is too low. The lowest supported language version is #count3.#count4."
   script: >
     // @dart = 2.9
+
+LanguageVersionTooLowPackage:
+  problemMessage: "The language version #count.#count2 specified for the package '#name' is too low. The lowest supported language version is #count3.#count4."
 
 LanguageVersionInvalidInDotPackages:
   problemMessage: "The language version is not specified correctly in the packages file."

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 // Two loop variables
 test1() async {
@@ -103,7 +103,7 @@ test4() async {
   Expect.equals(5, r);
 }
 
-test() async {
+Future test() async {
   await test1();
   await test2();
   await test3();

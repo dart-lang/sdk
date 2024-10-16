@@ -1,4 +1,4 @@
-## 6.11.0-dev
+## 6.11.0
 * Un-deprecated `LibraryElement.exportedLibraries`.
 * Un-deprecated `LibraryElement.importedLibraries`.
 

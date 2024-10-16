@@ -317,13 +317,13 @@ class A extends core::Object {
     ;
   get e() → dynamic
     return null;
-  set g(dynamic _) → void {}
+  set g(wildcard dynamic _#wc0#formal) → void {}
   get h() → dynamic
     return null;
-  set h(dynamic _) → void {}
+  set h(wildcard dynamic _#wc1#formal) → void {}
   get i() → dynamic
     return null;
-  operator [](dynamic _) → dynamic
+  operator [](wildcard dynamic _#wc2#formal) → dynamic
     return null;
   operator []=(dynamic a, dynamic b) → void {}
   operator ~() → dynamic
@@ -334,7 +334,7 @@ class A extends core::Object {
     return true;
   method m() → void {}
   method n() → void {}
-  set n(dynamic _) → void {}
+  set n(wildcard dynamic _#wc3#formal) → void {}
 }
 class B extends self::A {
   final field dynamic d = null;

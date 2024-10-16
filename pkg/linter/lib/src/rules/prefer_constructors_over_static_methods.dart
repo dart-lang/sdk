@@ -80,10 +80,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on AstNode? {
   InterfaceType? typeToCheckOrNull() => switch (this) {
-        ExtensionTypeDeclaration e =>
-          e.typeParameters == null ? e.declaredElement?.thisType : null,
-        ClassDeclaration c =>
-          c.typeParameters == null ? c.declaredElement?.thisType : null,
+        ExtensionTypeDeclaration e => e.typeParameters == null
+            ? e.declaredFragment?.element.thisType
+            : null,
+        ClassDeclaration c => c.typeParameters == null
+            ? c.declaredFragment?.element.thisType
+            : null,
         _ => null
       };
 }

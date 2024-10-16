@@ -7,12 +7,12 @@ import 'dart:convert' as json;
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
 import 'package:kernel/ast.dart' as ir;

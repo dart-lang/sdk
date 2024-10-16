@@ -14,7 +14,7 @@
 // to a nullable variable in all cases (this promotes the variable to
 // non-nullable), and seeing whether the promotion lasts after the switch.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 void testTwoCasesSecondExhaustive(Object x) {
   // Trivially exhaustive because the second case fully covers the matched type

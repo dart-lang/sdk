@@ -7,8 +7,8 @@ import 'dart:async';
 // Checks that an `Error` object that is "thrown" through async functionality
 // gets a stack trace set.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 
 main() async {
   asyncStart();

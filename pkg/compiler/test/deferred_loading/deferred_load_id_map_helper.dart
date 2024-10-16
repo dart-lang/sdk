@@ -5,11 +5,11 @@
 import 'dart:io' hide Link;
 import 'dart:typed_data';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 const resultFilename = 'deferred.data';

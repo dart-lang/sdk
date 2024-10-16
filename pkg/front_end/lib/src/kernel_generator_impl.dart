@@ -72,7 +72,8 @@ Future<InternalCompilerResult> generateKernelInternal(
     bool retainDataForTesting = false,
     Benchmarker? benchmarker,
     Instrumentation? instrumentation,
-    List<Component>? additionalDillsForTesting}) async {
+    List<Component>? additionalDillsForTesting,
+    bool allowVerificationErrorForTesting = false}) async {
   ProcessedOptions options = compilerContext.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
@@ -149,7 +150,8 @@ Future<InternalCompilerResult> generateKernelInternal(
           buildComponent: buildComponent,
           includeOffsets: includeOffsets,
           includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
-          retainDataForTesting: retainDataForTesting);
+          retainDataForTesting: retainDataForTesting,
+          allowVerificationErrorForTesting: allowVerificationErrorForTesting);
     }
   },
       // Coverage-ignore(suite): Not run.
@@ -170,7 +172,8 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     required bool buildComponent,
     required bool includeOffsets,
     required bool includeHierarchyAndCoreTypes,
-    required bool retainDataForTesting}) async {
+    required bool retainDataForTesting,
+    required bool allowVerificationErrorForTesting}) async {
   BuildResult buildResult =
       await kernelTarget.buildOutlines(nameRoot: nameRoot);
   Component summaryComponent = buildResult.component!;
@@ -240,7 +243,8 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
   if (buildComponent) {
     buildResult = await kernelTarget.buildComponent(
         macroApplications: buildResult.macroApplications,
-        verify: options.verify);
+        verify: options.verify,
+        allowVerificationErrorForTesting: allowVerificationErrorForTesting);
     component = buildResult.component;
     if (options.debugDump) {
       // Coverage-ignore-block(suite): Not run.

@@ -21,6 +21,18 @@ class ConstAnnotationTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_adjacentLiteral_succeeds() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final c = C('H' 'ello');
+
+class C {
+  C(@mustBeConst String s);
+}
+''');
+  }
+
   test_binaryOperator_fails() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart' show mustBeConst;
@@ -51,6 +63,22 @@ class A {
   const A();
 
   bool operator <(@mustBeConst A other) => false;
+}
+''');
+  }
+
+  test_constExpression_succeeds() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+void f() {
+  g(const C());
+}
+
+void g(@mustBeConst C c) {}
+
+class C {
+  const C();
 }
 ''');
   }
@@ -161,6 +189,22 @@ class A {
 }
 ''', [
       error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 3),
+    ]);
+  }
+
+  test_interpolationLiteral_fails() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+const a = 'ello';
+
+final c = C('H$a');
+
+class C {
+  C(@mustBeConst String s);
+}
+''', [
+      error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 82, 5),
     ]);
   }
 

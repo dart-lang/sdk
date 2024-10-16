@@ -70,7 +70,7 @@ class F<invariant T extends core::Object? = dynamic> extends self::E<self::F::T%
 class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T%> {
   synthetic constructor •() → self::NoSuchMethod<self::NoSuchMethod::T%>
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
   no-such-method-forwarder get x() → self::NoSuchMethod::T?
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#x, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T?;

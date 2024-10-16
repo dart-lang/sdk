@@ -550,14 +550,20 @@ class SourceLoader extends Loader {
           if (version > target.currentSdkVersion) {
             // Coverage-ignore-block(suite): Not run.
             packageLanguageVersionProblem =
-                templateLanguageVersionTooHigh.withArguments(
+                templateLanguageVersionTooHighPackage.withArguments(
+                    version.major,
+                    version.minor,
+                    packageForLanguageVersion.name,
                     target.currentSdkVersion.major,
                     target.currentSdkVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
                 fileUri, 0, noLength, target.currentSdkVersion, false);
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem =
-                templateLanguageVersionTooLow.withArguments(
+                templateLanguageVersionTooLowPackage.withArguments(
+                    version.major,
+                    version.minor,
+                    packageForLanguageVersion.name,
                     target.leastSupportedVersion.major,
                     target.leastSupportedVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
@@ -1317,14 +1323,14 @@ severity: $severity
         // support members from source, so we provide an empty [DeclarationMap].
         new OffsetMap(libraryBuilder.fileUri));
 
-    Builder parent = libraryBuilder;
+    DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
       Builder? builder = dietListener.memberScope
           .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
-            parent = builder;
+            declarationBuilder = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1334,7 +1340,7 @@ severity: $severity
                   parent: TypeParameterScope.fromList(
                       dietListener.memberScope, builder.typeVariables));
           case ExtensionBuilder():
-            parent = builder;
+            declarationBuilder = builder;
             dietListener
               ..currentDeclaration = builder
               ..memberScope = new NameSpaceLookupScope(
@@ -1364,7 +1370,7 @@ severity: $severity
         /* formals = */ null,
         ProcedureKind.Method,
         libraryBuilder,
-        null,
+        declarationBuilder,
         libraryBuilder.fileUri,
         /* start char offset = */ 0,
         /* char offset = */ 0,
@@ -1377,10 +1383,10 @@ severity: $severity
             containerName: null,
             containerType: ContainerType.Library,
             isInstanceMember: false,
-            libraryName: libraryBuilder.libraryName))
-      ..parent = parent;
+            libraryName: libraryBuilder.libraryName));
     BodyBuilder listener = dietListener.createListener(
-        new ExpressionCompilerProcedureBodyBuildContext(dietListener, builder,
+        new ExpressionCompilerProcedureBodyBuildContext(
+            dietListener, builder, builder.invokeTarget!,
             isDeclarationInstanceMember: isClassInstanceMember,
             inOutlineBuildingPhase: false,
             inMetadata: false,
@@ -2998,7 +3004,7 @@ severity: $severity
               mainBuilder.fileUri);
         }
       } else {
-        Procedure procedure = mainBuilder.member as Procedure;
+        Procedure procedure = mainBuilder.invokeTarget as Procedure;
         if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(

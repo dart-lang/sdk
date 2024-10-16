@@ -9,7 +9,7 @@
 // name of the derived tearoff closure.
 import "deferred_tearoff_load_library_lib.dart" deferred as lib;
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 
 @pragma('dart2js:noInline')
 get tearoff => lib.loadLibrary;

@@ -215,6 +215,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.metadata = _buildAnnotations(node.metadata);
     element.nameEnd = nameNode.end;
     element.periodOffset = node.period?.offset;
+    if ((node.period, node.name) case (var period?, var name?)) {
+      element.name2 = ConstructorFragmentNameImpl(
+        name: name.lexeme,
+        nameOffset: name.offset,
+        periodOffset: period.offset,
+      );
+    }
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
@@ -1505,6 +1512,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..nameEnd = nameEnd
         ..parameters = [formalParameterElement]
         ..periodOffset = periodOffset;
+      if (representation.constructorName case var constructorName?) {
+        constructorElement.name2 = ConstructorFragmentNameImpl(
+          name: constructorName.name.lexeme,
+          nameOffset: constructorName.name.offset,
+          periodOffset: constructorName.period.offset,
+        );
+      }
       _setCodeRange(constructorElement, representation);
 
       representation.constructorElement = constructorElement;

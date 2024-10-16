@@ -7,7 +7,7 @@ library RequestAnimationFrameTest;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 Future testOneShot() async {

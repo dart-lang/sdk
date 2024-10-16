@@ -4,7 +4,7 @@
 
 // Tests horizontal inference for a variety of types of invocations.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 testFunctionExpressionInvocation() {
   (<T>(T t, void Function(T) f) => t)(0, (x) {

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -21,27 +21,27 @@ import 'package:meta/meta.dart';
 abstract class DartSnippetProducer extends SnippetProducer {
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
-  final LibraryElement libraryElement;
+  final LibraryElement2 libraryElement;
   final bool useSuperParams;
 
   /// Elements that need to be imported for generated code to be valid.
   ///
   /// Calling [addImports] will add any required imports to the supplied
   /// builder.
-  final Set<Element> requiredElementImports = {};
+  final Set<Element2> requiredElementImports = {};
 
   /// A cache of mappings from Elements to their public Library Elements.
   ///
   /// Callers can share this cache across multiple snippet producers to avoid
   /// repeated searches where they may add imports for the same elements.
-  final Map<Element, LibraryElement?> _elementImportCache;
+  final Map<Element2, LibraryElement2?> _elementImportCache;
 
   DartSnippetProducer(super.request,
-      {required Map<Element, LibraryElement?> elementImportCache})
+      {required Map<Element2, LibraryElement2?> elementImportCache})
       : sessionHelper = AnalysisSessionHelper(request.analysisSession),
         utils = CorrectionUtils(request.unit),
-        libraryElement = request.unit.libraryElement,
-        useSuperParams = request.unit.libraryElement.featureSet
+        libraryElement = request.unit.libraryElement2,
+        useSuperParams = request.unit.libraryElement2.featureSet
             .isEnabled(Feature.super_parameters),
         _elementImportCache = elementImportCache;
 
@@ -56,26 +56,26 @@ abstract class DartSnippetProducer extends SnippetProducer {
   Future<void> addImports(DartFileEditBuilder builder) async {
     var dartBuilder = builder as DartFileEditBuilderImpl;
     await Future.wait(requiredElementImports.map((element) => dartBuilder
-        .importElementLibrary(element, resultCache: _elementImportCache)));
+        .importElementLibrary2(element, resultCache: _elementImportCache)));
   }
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {
-  late ClassElement? classWidget;
-  late ClassElement? classPlaceholder;
+  late ClassElement2? classWidget;
+  late ClassElement2? classPlaceholder;
 
   FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
-  Future<ClassElement?> getClass(String name) async {
-    var class_ = await sessionHelper.getFlutterClass(name);
+  Future<ClassElement2?> getClass(String name) async {
+    var class_ = await sessionHelper.getFlutterClass2(name);
     if (class_ != null) {
       requiredElementImports.add(class_);
     }
     return class_;
   }
 
-  Future<MixinElement?> getMixin(String name) async {
-    var mixin = await sessionHelper.getMixin(widgetsUri, name);
+  Future<MixinElement2?> getMixin(String name) async {
+    var mixin = await sessionHelper.getMixin2(widgetsUri, name);
     if (mixin != null) {
       requiredElementImports.add(mixin);
     }
@@ -83,7 +83,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   }
 
   DartType getType(
-    InterfaceElement classElement, [
+    InterfaceElement2 classElement, [
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none,
   ]) =>
       classElement.instantiate(
@@ -109,8 +109,8 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
 /// A mixin that provides some common methods for producers that build snippets
 /// for Flutter widget classes.
 mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
-  ClassElement? get classBuildContext;
-  ClassElement? get classKey;
+  ClassElement2? get classBuildContext;
+  ClassElement2? get classKey;
   String get widgetClassName => 'MyWidget';
 
   void writeBuildMethod(DartEditBuilder builder) {

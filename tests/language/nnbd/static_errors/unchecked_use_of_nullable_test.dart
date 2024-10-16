@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 // Test that it is an error to use nullable types in unsound ways.
 void main() async {
@@ -51,8 +51,8 @@ void main() async {
   cond != null; //# 33: ok
   x?.isEven; //# 34: ok
   x?.round(); //# 35: ok
-  for(var i in list) {}; //# 36: compile-time error
-  await for(var i in stream) {}; //# 37: compile-time error
+  for (var i in list) {}; //# 36: compile-time error
+  await for (var i in stream) {}; //# 37: compile-time error
   assert(cond); //# 38: compile-time error
   [...list]; //# 39: compile-time error
   [...?list]; //# 40: ok

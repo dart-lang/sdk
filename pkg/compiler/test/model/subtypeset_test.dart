@@ -6,8 +6,8 @@
 
 library subtypeset_test;
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/universe/class_set.dart';

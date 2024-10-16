@@ -7,8 +7,8 @@
 // unused. This resulted in `null` being added to a list that wouldn't otherwise
 // need to support null.
 
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 const String TEST = r"""

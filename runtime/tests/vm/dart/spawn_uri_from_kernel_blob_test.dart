@@ -10,6 +10,7 @@ import 'dart:io' show Platform;
 import 'dart:isolate' show Isolate, ReceivePort;
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" show unsoundNullSafety;
 import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerOptions, DiagnosticMessage, kernelForProgram, NnbdMode;
 import 'package:kernel/kernel.dart';
@@ -25,7 +26,7 @@ main() async {
     ..target = VmTarget(TargetFlags())
     ..additionalDills = <Uri>[Uri.file(platformDill)]
     ..environmentDefines = {}
-    ..nnbdMode = hasSoundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = unsoundNullSafety ? NnbdMode.Weak : NnbdMode.Strong
     ..onDiagnostic = (DiagnosticMessage message) {
       Expect.fail(
           "Compilation error: ${message.plainTextFormatted.join('\n')}");

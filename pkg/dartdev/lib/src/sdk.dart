@@ -71,10 +71,6 @@ class Sdk {
         'dart2js.dart.snapshot',
       );
 
-  String get dart2jsAotSnapshot => _snapshotPathFor(
-        'dart2js_aot.dart.snapshot',
-      );
-
   String get dart2wasmSnapshot => _snapshotPathFor(
         'dart2wasm_product.snapshot',
       );

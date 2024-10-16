@@ -6,7 +6,7 @@
 // context for the RHS is taken from the static type of the LHS (see
 // https://github.com/dart-lang/language/issues/3650).
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 main() async {
   dynamic x =

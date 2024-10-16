@@ -32,12 +32,12 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C10: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
 }
 static method test() → void {
-  self::MyFuture<core::double> f = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3){((dynamic) → FutureOr<core::double>, {onError: core::Function?}) → self::MyFuture<core::double>};
+  self::MyFuture<core::double> f = self::foo().{self::MyFuture::then}<core::double>((dynamic _#wc0#formal) → core::double => 2.3){((dynamic) → FutureOr<core::double>, {onError: core::Function?}) → self::MyFuture<core::double>};
   self::MyFuture<core::int> f2 = invalid-expression "pkg/front_end/testcases/inference/future_then_upwards_2.dart:21:51: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'MyFuture<int>'.
  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards_2.dart'.
   MyFuture<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
                                                   ^" in f as{TypeError} self::MyFuture<core::int>;
-  self::MyFuture<core::num> f3 = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3){((dynamic) → FutureOr<core::double>, {onError: core::Function?}) → self::MyFuture<core::double>} as self::MyFuture<core::double>;
+  self::MyFuture<core::num> f3 = self::foo().{self::MyFuture::then}<core::double>((dynamic _#wc1#formal) → core::double => 2.3){((dynamic) → FutureOr<core::double>, {onError: core::Function?}) → self::MyFuture<core::double>} as self::MyFuture<core::double>;
 }
 static method foo() → self::MyFuture<dynamic>
   return new self::MyFuture::value<core::int>(1);

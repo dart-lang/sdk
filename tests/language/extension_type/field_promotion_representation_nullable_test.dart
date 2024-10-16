@@ -9,7 +9,7 @@
 // is nullable, since those are handled differently by the front end than
 // extension types whose representation type is non-nullable.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension type E(Object Function()? _f) {
   testImplicitThisAccess() {
