@@ -351,7 +351,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // If trying to set a language version that is higher than the current sdk
       // version it's an error.
       addPostponedProblem(
-          templateLanguageVersionTooHigh.withArguments(
+          templateLanguageVersionTooHighExplicit.withArguments(
+              version.major,
+              version.minor,
               loader.target.currentSdkVersion.major,
               loader.target.currentSdkVersion.minor),
           offset,
@@ -363,7 +365,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           fileUri, offset, length, packageLanguageVersion.version, true);
     } else if (version < loader.target.leastSupportedVersion) {
       addPostponedProblem(
-          templateLanguageVersionTooLow.withArguments(
+          templateLanguageVersionTooLowExplicit.withArguments(
+              version.major,
+              version.minor,
               loader.target.leastSupportedVersion.major,
               loader.target.leastSupportedVersion.minor),
           offset,
