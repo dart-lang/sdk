@@ -117,10 +117,6 @@ def _CheckDartFormat(input_api, output_api):
         print('WARNING: dart not found: %s' % (dart))
         return []
 
-    dartFixes = [
-        '--fix-named-default-separator',
-    ]
-
     def HasFormatErrors(filename: str = None,
                         filenames: list = None,
                         contents: str = None):
@@ -141,7 +137,6 @@ def _CheckDartFormat(input_api, output_api):
         args = [
             dart,
             'format',
-        ] + dartFixes + [
             '--set-exit-if-changed',
             '--output=none',
             '--summary=none',
@@ -188,8 +183,7 @@ def _CheckDartFormat(input_api, output_api):
             output_api.PresubmitError(
                 'File output does not match dart format.\n'
                 'Fix these issues with:\n'
-                '%s format %s%s%s' % (dart, ' '.join(dartFixes), lineSep,
-                                      lineSep.join(unformatted_files)))
+                '%s format %s' % (dart, lineSep.join(unformatted_files)))
         ]
 
     return []
