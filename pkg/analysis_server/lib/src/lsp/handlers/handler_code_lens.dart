@@ -8,7 +8,6 @@ import 'package:analysis_server/src/lsp/handlers/code_lens/abstract_code_lens_pr
 import 'package:analysis_server/src/lsp/handlers/code_lens/augmentations.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
-import 'package:analyzer/source/line_info.dart';
 
 class CodeLensHandler
     extends SharedMessageHandler<CodeLensParams, List<CodeLens>> {
@@ -40,12 +39,10 @@ class CodeLensHandler
     }
 
     // Ask all providers to compute their CodeLenses.
-    var lineInfoCache = <String, LineInfo?>{};
     var providerResults = await Future.wait(
       codeLensProviders
           .where((provider) => provider.isAvailable(clientCapabilities, params))
-          .map((provider) =>
-              provider.handle(params, message, token, lineInfoCache)),
+          .map((provider) => provider.handle(params, message, token)),
     );
 
     // Merge the results, but if any errors, propogate the first error.

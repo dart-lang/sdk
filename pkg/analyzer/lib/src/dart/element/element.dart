@@ -2856,6 +2856,9 @@ abstract class ElementImpl implements Element, Element2 {
     _metadata = metadata;
   }
 
+  Metadata get metadata2 =>
+      MetadataImpl(_getMetadataFlags(), metadata, () => sinceSdkVersion);
+
   @override
   String? get name => _name;
 
@@ -4295,7 +4298,7 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
   }
 
   bool get hasDeprecated {
-    // TODO(augmentations): Consider optimizing this similar `ElementImpl`.
+    // TODO(augmentations): Consider optimizing this similar to `ElementImpl`.
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
@@ -4585,10 +4588,13 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
   List<ElementAnnotation> get metadata {
     var result = <ElementAnnotation>[];
     for (var fragment in _fragments) {
-      result.addAll(fragment.metadataOrEmpty);
+      result.addAll(fragment.metadataOrEmpty.annotations);
     }
     return result;
   }
+
+  Metadata get metadata2 => MetadataImpl(
+      -1, metadata.cast<ElementAnnotationImpl>(), () => sinceSdkVersion);
 
   Version? get sinceSdkVersion {
     var annotations = metadata.cast<ElementAnnotationImpl>();
@@ -6764,7 +6770,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   bool get isStatic => _wrappedElement.isStatic;
 
   @override
-  List<ElementAnnotation> get metadata => _wrappedElement.metadata;
+  Metadata get metadata2 => _wrappedElement.metadata2;
 
   @override
   int get nameOffset => _wrappedElement.nameOffset;
@@ -7212,6 +7218,9 @@ mixin MaybeAugmentedInstanceElementMixin
   List<ElementAnnotation> get metadata => declaration.metadata;
 
   @override
+  Metadata get metadata2 => declaration.metadata2;
+
+  @override
   List<MethodElement> get methods;
 
   @override
@@ -7537,6 +7546,366 @@ mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
   @override
   bool isImplementableIn2(LibraryElement2 library) =>
       declaration.isImplementableIn(library as LibraryElement);
+}
+
+final class MetadataImpl implements Metadata {
+  final int _metadataFlags;
+
+  @override
+  final List<ElementAnnotationImpl> annotations;
+
+  final Version? Function() _sinceSdkVersionComputer;
+
+  MetadataImpl(
+      this._metadataFlags, this.annotations, this._sinceSdkVersionComputer);
+
+  @override
+  bool get hasAlwaysThrows {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isAlwaysThrows) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasDeprecated {
+    if (_metadataFlags < 0) {
+      // TODO(augmentations): Consider optimizing this similar to `ElementImpl`.
+      var annotations = this.annotations;
+      for (var i = 0; i < annotations.length; i++) {
+        var annotation = annotations[i];
+        if (annotation.isDeprecated) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return (_metadataFlags & ElementImpl._metadataFlag_hasDeprecated) != 0;
+  }
+
+  @override
+  bool get hasDoNotStore {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isDoNotStore) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasDoNotSubmit {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isDoNotSubmit) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasFactory {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isFactory) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasImmutable {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isImmutable) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasInternal {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isInternal) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasIsTest {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isIsTest) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasIsTestGroup {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isIsTestGroup) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasJS {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isJS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasLiteral {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasMustBeConst {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isMustBeConst) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasMustBeOverridden {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isMustBeOverridden) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasMustCallSuper {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isMustCallSuper) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasNonVirtual {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isNonVirtual) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasOptionalTypeArgs {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isOptionalTypeArgs) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasOverride {
+    if (_metadataFlags < 0) {
+      // TODO(augmentations): Consider optimizing this similar to `ElementImpl`.
+      var annotations = this.annotations;
+      for (var i = 0; i < annotations.length; i++) {
+        var annotation = annotations[i];
+        if (annotation.isOverride) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return (_metadataFlags & ElementImpl._metadataFlag_hasOverride) != 0;
+  }
+
+  /// Return `true` if this element has an annotation of the form
+  /// `@pragma("vm:entry-point")`.
+  bool get hasPragmaVmEntryPoint {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isPragmaVmEntryPoint) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasProtected {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isProtected) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasRedeclare {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isRedeclare) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasReopen {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isReopen) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasRequired {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isRequired) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasSealed {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isSealed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasUseResult {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isUseResult) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleForOverriding {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isVisibleForOverriding) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleForTemplate {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isVisibleForTemplate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleForTesting {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isVisibleForTesting) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasVisibleOutsideTemplate {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isVisibleOutsideTemplate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Version? get sinceSdkVersion => _sinceSdkVersionComputer();
 }
 
 /// A concrete implementation of a [MethodElement].
@@ -10816,16 +11185,16 @@ extension on Fragment {
     };
   }
 
-  List<ElementAnnotation> get metadataOrEmpty {
+  Metadata get metadataOrEmpty {
     // TODO(brianwilkerson): I think that all fragments are annotatable. If
     //  that's true then this getter isn't necessary and should be removed.
     return switch (this) {
-      LibraryFragment(:var metadata) => metadata,
-      PropertyInducingFragment(:var metadata) => metadata,
-      TypeDefiningFragment(:var metadata) => metadata,
-      TypeParameterizedFragment(:var metadata) => metadata,
-      FormalParameterFragment(:var metadata) => metadata,
-      _ => const [],
+      LibraryFragment(:var metadata2) => metadata2,
+      PropertyInducingFragment(:var metadata2) => metadata2,
+      TypeDefiningFragment(:var metadata2) => metadata2,
+      TypeParameterizedFragment(:var metadata2) => metadata2,
+      FormalParameterFragment(:var metadata2) => metadata2,
+      _ => MetadataImpl(-1, const [], () => null),
     };
   }
 }

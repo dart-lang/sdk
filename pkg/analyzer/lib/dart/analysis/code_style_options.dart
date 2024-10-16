@@ -9,43 +9,39 @@ import 'package:analyzer/dart/ast/ast.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CodeStyleOptions {
-  /// Return `true` if the `require_trailing_commas` is enabled and trailing
-  /// commas should be inserted in function calls and declarations.
+  /// Whether the `require_trailing_commas` is enabled and trailing commas
+  /// should be inserted in function calls and declarations.
   bool get addTrailingCommas;
 
-  /// Return `true` if local variables should be `final` inside 'for' in
-  /// iterable.
+  /// Whether local variables should be `final` inside a for-loop.
   bool get finalInForEach;
 
-  /// Return `true` if local variables should be `final` whenever possible.
+  /// Whether local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 
-  /// Return `true` if `prefer_int_literals` is enabled.
+  /// Whether `prefer_int_literals` is enabled.
   bool get preferIntLiterals;
 
-  /// Return the preferred quote based on the enabled lints, otherwise a single
-  /// quote.
+  /// The preferred quote based on the enabled lints, otherwise a single quote.
   String get preferredQuoteForStrings;
 
-  /// Return `true` if constructors should be sorted first, before other
-  /// class members.
+  /// Whether constructors should be sorted first, before other class members.
   bool get sortConstructorsFirst;
 
-  /// Return `true` if types should be specified whenever possible.
+  /// Whether types should be specified whenever possible.
   bool get specifyTypes;
 
-  /// Return `true` if the formatter should be used on code changes in this
-  /// context.
+  /// Whether the formatter should be used on code changes in this context.
   bool get useFormatter;
 
-  /// Return `true` if URIs should be always added with a package scheme.
+  /// Whether URIs should be always added with a package scheme.
   bool get usePackageUris;
 
-  /// Return `true` if URIs should be "relative", meaning without a scheme,
-  /// whenever possible.
+  /// Whether URIs should be "relative", meaning without a scheme, whenever
+  /// possible.
   bool get useRelativeUris;
 
-  /// Returns the preferred quote based on the enabled lints, otherwise based
-  /// on the most common quote, otherwise a single quote.
+  /// The preferred quote character, based on the enabled lints, otherwise
+  /// based on the most common quote, otherwise a single quote.
   String preferredQuoteForUris(Iterable<NamespaceDirective> directives);
 }

@@ -112,6 +112,8 @@ lib/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart
 lib/src/lsp/handlers/code_actions/analysis_options.dart
 lib/src/lsp/handlers/code_actions/plugins.dart
 lib/src/lsp/handlers/code_actions/pubspec.dart
+lib/src/lsp/handlers/code_lens/abstract_code_lens_provider.dart
+lib/src/lsp/handlers/code_lens/augmentations.dart
 lib/src/lsp/handlers/commands/fix_all.dart
 lib/src/lsp/handlers/commands/fix_all_in_workspace.dart
 lib/src/lsp/handlers/commands/log_action.dart

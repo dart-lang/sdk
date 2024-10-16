@@ -250,29 +250,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     codeStyleOptions = CodeStyleOptionsImpl(this, useFormatter: false);
   }
 
-  /// Initialize a newly created set of analysis options to have the same values
-  /// as those in the given set of analysis [options].
-  AnalysisOptionsImpl.from(AnalysisOptions options) {
-    codeStyleOptions = options.codeStyleOptions;
-    formatterOptions = options.formatterOptions;
-    contextFeatures = options.contextFeatures;
-    enabledLegacyPluginNames = options.enabledLegacyPluginNames;
-    errorProcessors = options.errorProcessors;
-    excludePatterns = options.excludePatterns;
-    lint = options.lint;
-    warning = options.warning;
-    lintRules = options.lintRules;
-    if (options is AnalysisOptionsImpl) {
-      file = options.file;
-      enableTiming = options.enableTiming;
-      propagateLinterExceptions = options.propagateLinterExceptions;
-      strictInference = options.strictInference;
-      strictRawTypes = options.strictRawTypes;
-    }
-    // ignore: deprecated_member_use_from_same_package
-    sdkVersionConstraint = options.sdkVersionConstraint;
-  }
-
   @override
   FeatureSet get contextFeatures => _contextFeatures;
 
@@ -284,9 +261,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   @Deprecated("Use 'enabledLegacyPluginNames' instead")
   List<String> get enabledPluginNames => enabledLegacyPluginNames;
-
-  /// The set of enabled experiments.
-  ExperimentStatus get experimentStatus => _contextFeatures;
 
   @override
   bool get hint => warning;
@@ -359,9 +333,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     return _signatureForElements!;
   }
 
-  /// Return the opaque signature of the options that affect unlinked data.
-  ///
-  /// The length of the list is guaranteed to equal [unlinkedSignatureLength].
+  /// The opaque signature of the options that affect unlinked data.
   Uint32List get unlinkedSignature {
     if (_unlinkedSignature == null) {
       ApiSignature buffer = ApiSignature();

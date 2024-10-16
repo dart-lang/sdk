@@ -1,12 +1,12 @@
-// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 const String widgetsUri = 'package:flutter/widgets.dart';
@@ -400,7 +400,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
     if (element._isExactly('Icon', _uriWidgetsIcon)) {
       if (arguments.isNotEmpty) {
         var text = arguments[0].toString();
-        var arg = shorten(text, 32);
+        var arg = text.elideTo(32);
         return 'Icon($arg)';
       } else {
         return 'Icon';
@@ -409,7 +409,7 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
     if (element._isExactly('Text', _uriWidgetsText)) {
       if (arguments.isNotEmpty) {
         var text = arguments[0].toString();
-        var arg = shorten(text, 32);
+        var arg = text.elideTo(32);
         return 'Text($arg)';
       } else {
         return 'Text';
