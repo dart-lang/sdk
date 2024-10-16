@@ -180,7 +180,7 @@ abstract class Annotatable {
   ///
   /// The list will be empty if the receiver does not have any metadata or if
   /// the library containing this element has not yet been fully resolved.
-  List<ElementAnnotation> get metadata;
+  Metadata get metadata2;
 
   /// The version where this SDK API was added.
   ///
@@ -1629,6 +1629,120 @@ abstract class LocalVariableElement2 implements PromotableElement2 {
 
   /// The offset of the name in this element.
   int get nameOffset;
+}
+
+/// The metadata (annotations) associated with an element or fragment.
+abstract class Metadata {
+  /// The annotations associated with the associated element or fragment.
+  ///
+  /// If the metadata is associated with an element that has fragments, the list
+  /// will include all of the annotations from all of the fragments.
+  ///
+  /// The list will be empty if the associated element or fragment does not have
+  /// any annotations or if the library containing the holder has not yet been
+  /// fully resolved.
+  List<ElementAnnotation> get annotations;
+
+  /// Whether the receiver has an annotation of the form `@alwaysThrows`.
+  bool get hasAlwaysThrows;
+
+  /// Whether the receiver has an annotation of the form `@deprecated`
+  /// or `@Deprecated('..')`.
+  bool get hasDeprecated;
+
+  /// Whether the receiver has an annotation of the form `@doNotStore`.
+  bool get hasDoNotStore;
+
+  /// Whether the receiver has an annotation of the form `@doNotSubmit`.
+  bool get hasDoNotSubmit;
+
+  /// Whether the receiver has an annotation of the form `@factory`.
+  bool get hasFactory;
+
+  /// Whether the receiver has an annotation of the form `@immutable`.
+  bool get hasImmutable;
+
+  /// Whether the receiver has an annotation of the form `@internal`.
+  bool get hasInternal;
+
+  /// Whether the receiver has an annotation of the form `@isTest`.
+  bool get hasIsTest;
+
+  /// Whether the receiver has an annotation of the form `@isTestGroup`.
+  bool get hasIsTestGroup;
+
+  /// Whether the receiver has an annotation of the form `@JS(..)`.
+  bool get hasJS;
+
+  /// Whether the receiver has an annotation of the form `@literal`.
+  bool get hasLiteral;
+
+  /// Whether the receiver has an annotation of the form `@mustBeConst`.
+  bool get hasMustBeConst;
+
+  /// Whether the receiver has an annotation of the form `@mustBeOverridden`.
+  bool get hasMustBeOverridden;
+
+  /// Whether the receiver has an annotation of the form `@mustCallSuper`.
+  bool get hasMustCallSuper;
+
+  /// Whether the receiver has an annotation of the form `@nonVirtual`.
+  bool get hasNonVirtual;
+
+  /// Whether the receiver has an annotation of the form `@optionalTypeArgs`.
+  bool get hasOptionalTypeArgs;
+
+  /// Whether the receiver has an annotation of the form `@override`.
+  bool get hasOverride;
+
+  /// Whether the receiver has an annotation of the form `@protected`.
+  bool get hasProtected;
+
+  /// Whether the receiver has an annotation of the form `@redeclare`.
+  bool get hasRedeclare;
+
+  /// Whether the receiver has an annotation of the form `@reopen`.
+  bool get hasReopen;
+
+  /// Whether the receiver has an annotation of the form `@required`.
+  bool get hasRequired;
+
+  /// Whether the receiver has an annotation of the form `@sealed`.
+  bool get hasSealed;
+
+  /// Whether the receiver has an annotation of the form `@useResult`
+  /// or `@UseResult('..')`.
+  bool get hasUseResult;
+
+  /// Whether the receiver has an annotation of the form `@visibleForOverriding`.
+  bool get hasVisibleForOverriding;
+
+  /// Whether the receiver has an annotation of the form `@visibleForTemplate`.
+  bool get hasVisibleForTemplate;
+
+  /// Whether the receiver has an annotation of the form `@visibleForTesting`.
+  bool get hasVisibleForTesting;
+
+  /// Whether the receiver has an annotation of the form
+  /// `@visibleOutsideTemplate`.
+  bool get hasVisibleOutsideTemplate;
+
+  /// The version where the associated SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in the SDK, or doesn't have
+  /// a `@Since()` annotation applied to it.
+  Version? get sinceSdkVersion;
 }
 
 /// A method.

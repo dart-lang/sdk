@@ -907,6 +907,8 @@ abstract class Member implements Element {
   @override
   List<ElementAnnotation> get metadata => _declaration.metadata;
 
+  Metadata get metadata2 => (_declaration as ElementImpl).metadata2;
+
   @override
   String? get name => _declaration.name;
 
