@@ -680,6 +680,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
+    var fragmentName = _buildFragmentName(nameToken);
 
     ParameterElementImpl element;
     var parent = node.parent;
@@ -701,6 +702,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
+
+    element.name2 = fragmentName;
     element.hasImplicitType = node.type == null && node.parameters == null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -852,6 +855,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
+    var fragmentName = _buildFragmentName(nameToken);
 
     ParameterElementImpl element;
     var parent = node.parent;
@@ -870,6 +874,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
       _linker.elementNodes[element] = node;
     }
+    element.name2 = fragmentName;
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
@@ -1165,6 +1170,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken?.lexeme ?? '';
     var nameOffset = nameToken?.offset ?? -1;
+    var fragmentName = _buildFragmentName(nameToken);
 
     ParameterElementImpl element;
     var parent = node.parent;
@@ -1188,6 +1194,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addParameter(null, element);
     }
 
+    element.name2 = fragmentName;
     element.hasImplicitType = node.type == null;
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
@@ -1206,6 +1213,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
+    var fragmentName = _buildFragmentName(nameToken);
 
     SuperFormalParameterElementImpl element;
     var parent = node.parent;
@@ -1227,6 +1235,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
+    element.name2 = fragmentName;
     element.hasImplicitType = node.type == null && node.parameters == null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -1516,6 +1525,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     )
       ..field = fieldElement
       ..hasImplicitType = true;
+    formalParameterElement.name2 = _buildFragmentName(fieldNameToken);
     formalParameterElement.setCodeRange(
       fieldCodeRangeOffset,
       fieldCodeRangeLength,

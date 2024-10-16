@@ -8630,6 +8630,9 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
 class ParameterElementImpl extends VariableElementImpl
     with ParameterElementMixin
     implements ParameterElement, FormalParameterFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
@@ -8747,19 +8750,6 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   LibraryFragment get libraryFragment =>
       thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
 
   @override
   // TODO(augmentations): Support chaining between the fragments.

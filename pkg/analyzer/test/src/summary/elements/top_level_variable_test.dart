@@ -903,7 +903,7 @@ library
           reference: <testLibraryFragment>::@setter::i
           element: <testLibraryFragment>::@setter::i#element
           formalParameters
-            _i @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::i::@parameter::_i#element
   topLevelVariables
     i
@@ -1141,7 +1141,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
@@ -1245,7 +1245,7 @@ library
           reference: <testLibraryFragment>::@setter::foo::@def::0
           element: <testLibraryFragment>::@setter::foo::@def::0#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::foo::@def::0::@parameter::_foo#element
         set foo @17
           reference: <testLibraryFragment>::@setter::foo::@def::1
@@ -1407,7 +1407,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
@@ -1581,7 +1581,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
@@ -2032,7 +2032,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
@@ -2100,7 +2100,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            _v @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
@@ -2360,7 +2360,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   classes
     class A
@@ -2440,7 +2440,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            _v @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
@@ -2508,7 +2508,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     late x
@@ -2575,7 +2575,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     late final x
@@ -3098,7 +3098,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            _v @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
@@ -3169,7 +3169,7 @@ library
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
-            _a @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::a::@parameter::_a#element
   topLevelVariables
     a
@@ -3239,7 +3239,7 @@ library
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
-            _a @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::a::@parameter::_a#element
   topLevelVariables
     a
@@ -3426,13 +3426,13 @@ library
           reference: <testLibraryFragment>::@setter::i
           element: <testLibraryFragment>::@setter::i#element
           formalParameters
-            _i @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::i::@parameter::_i#element
         set <null-name>
           reference: <testLibraryFragment>::@setter::j
           element: <testLibraryFragment>::@setter::j#element
           formalParameters
-            _j @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::j::@parameter::_j#element
   topLevelVariables
     i
@@ -3593,7 +3593,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::A
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::A#element
           formalParameters
-            _A @-1
+            <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::A::@parameter::_A#element
   classes
     class A
@@ -3721,7 +3721,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
@@ -3861,7 +3861,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     synthetic foo
@@ -4009,7 +4009,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     synthetic foo
@@ -4155,7 +4155,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4176,7 +4176,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo

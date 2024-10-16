@@ -866,10 +866,6 @@ abstract class Fragment {
   /// Returns `null` if the fragment is an unnamed [ConstructorFragment],
   /// even if its [ConstructorElement2] has the name `new`.
   ///
-  /// Returns `null` if the fragment is a synthetic [GetterFragment],
-  /// even if its [GetterElement] has the name `new`.
-  // TODO(scheglov): we should not create such fragments at all.
-  ///
   /// Returns `null` if the fragment declaration node does not have the name
   /// specified, and the parser inserted a synthetic identifier.
   FragmentName? get name2;

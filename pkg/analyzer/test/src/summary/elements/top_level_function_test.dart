@@ -1705,7 +1705,7 @@ library
           reference: <testLibraryFragment>::@setter::main
           element: <testLibraryFragment>::@setter::main#element
           formalParameters
-            _main @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::main::@parameter::_main#element
   topLevelVariables
     main
@@ -2427,7 +2427,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -2973,7 +2973,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3486,7 +3486,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            _foo @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
