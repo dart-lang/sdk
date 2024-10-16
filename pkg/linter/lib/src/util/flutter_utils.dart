@@ -45,6 +45,9 @@ bool isState(InterfaceElement element) => _flutter.isState(element);
 bool isStatefulWidget(ClassElement? element) =>
     element != null && _flutter.isStatefulWidget(element);
 
+bool isStatefulWidget2(ClassElement2? element) =>
+    element != null && _flutter.isStatefulWidget2(element);
+
 bool isWidgetProperty(DartType? type) {
   if (isWidgetType(type)) {
     return true;
@@ -114,6 +117,11 @@ class _Flutter {
   bool isExactly(InterfaceElement element, String type, Uri uri) =>
       element.name == type && element.source.uri == uri;
 
+  /// Whether [element] is exactly the element named [type], from Flutter.
+  bool isExactly2(InterfaceElement2 element, String type, Uri uri) =>
+      element.name == type &&
+      element.firstFragment.libraryFragment.source.uri == uri;
+
   bool isExactWidget(ClassElement element) =>
       isExactly(element, _nameWidget, _uriFramework);
 
@@ -142,6 +150,11 @@ class _Flutter {
 
   bool isStatefulWidget(ClassElement element) =>
       isExactly(element, _nameStatefulWidget, _uriFramework) ||
+      element.allSupertypes.any((type) =>
+          isExactly(type.element, _nameStatefulWidget, _uriFramework));
+
+  bool isStatefulWidget2(ClassElement2 element) =>
+      isExactly2(element, _nameStatefulWidget, _uriFramework) ||
       element.allSupertypes.any((type) =>
           isExactly(type.element, _nameStatefulWidget, _uriFramework));
 

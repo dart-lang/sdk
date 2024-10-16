@@ -26404,6 +26404,7 @@ The following code produces this diagnostic because the name of the
 parameter consists of two underscores:
 
 ```dart
+// @dart = 3.6
 void f(int __) {
   print([!__!]);
 }
@@ -26413,6 +26414,7 @@ The following code produces this diagnostic because the name of the
 local variable consists of a single underscore:
 
 ```dart
+// @dart = 3.6
 void f() {
   int _ = 0;
   print([!_!]);

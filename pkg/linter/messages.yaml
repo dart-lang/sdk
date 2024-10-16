@@ -1455,7 +1455,6 @@ LintCode:
     addedIn: "2.0"
     categories: [style]
     hasPublishedDocs: false
-    removedIn: "3.7"
     deprecatedDetails: |-
       **DON'T** check for `null` in custom `==` operators.
 
@@ -1483,8 +1482,6 @@ LintCode:
         operator ==(Object? other) => other is Person && name == other.name;
       }
       ```
-
-      This rule has been removed.
   avoid_positional_boolean_parameters:
     problemMessage: "'bool' parameters should be named parameters."
     correctionMessage: "Try converting the parameter to a named parameter."
@@ -6547,6 +6544,7 @@ LintCode:
       parameter consists of two underscores:
 
       ```dart
+      // @dart = 3.6
       void f(int __) {
         print([!__!]);
       }
@@ -6556,6 +6554,7 @@ LintCode:
       local variable consists of a single underscore:
 
       ```dart
+      // @dart = 3.6
       void f() {
         int _ = 0;
         print([!_!]);

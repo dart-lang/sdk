@@ -33,7 +33,7 @@ class IndexTester extends core::Object {
   synthetic constructor •() → self::IndexTester
     : super core::Object::•()
     ;
-  operator [](dynamic _) → dynamic
+  operator [](wildcard dynamic _#wc0#formal) → dynamic
     return null;
   operator []=(dynamic _a, dynamic _b) → void {}
 }

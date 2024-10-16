@@ -32,7 +32,7 @@ class Super extends core::Object {
 mixin class Mixin extends core::Object {
   synthetic constructor •() → self::Mixin
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
   no-such-method-forwarder method method1(core::int i) → void
     return this.{self::Mixin::noSuchMethod}(new core::_InvocationMirror::_withType(#method1, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
@@ -45,8 +45,8 @@ class Class = self::Super with self::Mixin implements self::Interface {
   synthetic constructor •() → self::Class
     : super self::Super::•()
     ;
-  mixin-super-stub method noSuchMethod(core::Invocation _) → dynamic
-    return super.{self::Mixin::noSuchMethod}(_);
+  mixin-super-stub method noSuchMethod(core::Invocation _#wc0#formal) → dynamic
+    return super.{self::Mixin::noSuchMethod}(_#wc0#formal);
   forwarding-stub method method2(covariant-by-declaration core::int i) → void
     return super.{self::Super::method2}(i);
   abstract mixin-stub method method3(core::num n) → void; -> self::Mixin::method3

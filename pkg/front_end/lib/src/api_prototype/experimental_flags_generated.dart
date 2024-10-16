@@ -341,11 +341,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag wildcardVariables = const ExperimentalFlag(
       name: 'wildcard-variables',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 7),
+      experimentEnabledVersion: const Version(3, 7),
+      experimentReleasedVersion: const Version(3, 7));
 }
 
 /// Interface for accessing the global state of experimental features.

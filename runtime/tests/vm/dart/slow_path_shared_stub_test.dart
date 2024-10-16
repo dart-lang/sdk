@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'dart:math';
 
 class C {
-  C? talk(C? _) => _;
+  C? talk(C? c) => c;
 }
 
 int getPositiveNum() {

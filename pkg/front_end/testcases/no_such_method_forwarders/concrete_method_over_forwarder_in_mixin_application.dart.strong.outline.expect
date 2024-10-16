@@ -16,7 +16,7 @@ class A extends core::Object {
 mixin class B extends core::Object implements self::I {
   synthetic constructor •() → self::B
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
   no-such-method-forwarder method foo() → dynamic
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
@@ -25,8 +25,8 @@ abstract class _C&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&B
     : super self::A::•()
     ;
-  mixin-super-stub method noSuchMethod(core::Invocation _) → dynamic
-    return super.{self::B::noSuchMethod}(_);
+  mixin-super-stub method noSuchMethod(core::Invocation _#wc0#formal) → dynamic
+    return super.{self::B::noSuchMethod}(_#wc0#formal);
 }
 class C extends self::_C&A&B {
   synthetic constructor •() → self::C

@@ -162,10 +162,10 @@ static method existingMethod() → void {
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ augmentedMethod() → void {
   core::print("augmentedMethod");
 }
-static set existingSetter(dynamic _) → void {
+static set existingSetter(wildcard dynamic _#wc0#formal) → void {
   core::print("existingSetter-origin");
 }
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ augmentedSetter(dynamic _) → void {
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ augmentedSetter(wildcard dynamic _#wc0#formal) → void {
   core::print("augmentedSetter");
 }
 static method ExistingClass2() → void {}
@@ -206,13 +206,13 @@ static method /* from org-dartlang-testcase:///library_members_lib.dart */ injec
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ orphanedMethod() → void {
   core::print("orphanedMethod");
 }
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ existingSetter#1(dynamic _) → void {
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ existingSetter#1(wildcard dynamic _#wc1#formal) → void {
   core::print("existingSetter-duplicate");
 }
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ injectedSetter(dynamic _) → void {
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ injectedSetter(wildcard dynamic _#wc2#formal) → void {
   core::print("injectedSetter");
 }
-static set /* from org-dartlang-testcase:///library_members_lib.dart */ orphanedSetter(dynamic _) → void {
+static set /* from org-dartlang-testcase:///library_members_lib.dart */ orphanedSetter(wildcard dynamic _#wc3#formal) → void {
   core::print("orphanedSetter");
 }
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ augmentTest() → void {

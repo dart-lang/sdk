@@ -1,5 +1,36 @@
 ## 3.7.0
 
+### Language
+
+Dart 3.7 adds [wildcard variables] to the language. To use them, set your
+package's [SDK constraint][language version] lower bound to 3.7 or greater
+(`sdk: '^3.7.0'`).
+
+#### Wildcard Variables
+
+[wildcard variables]: https://github.com/dart-lang/language/issues/3712
+
+Local variables and parameters named `_` are now non-binding and they can
+be declared multiple times without collisions. You will no longer be able to use
+these variables nor access their values. All wildcard variable declaration types
+that have this behavior are described in the
+[wildcard variables specification](https://github.com/dart-lang/language/blob/main/accepted/future-releases/wildcard-variables/feature-specification.md).
+
+Top-level variables, top-level function names, type names, member names, etc.
+are unchanged. They can be named `_` and used as they are today.
+
+These are a few examples of where wildcard variables can be used:
+```dart
+Foo(_, this._, super._, void _()) {}
+
+main() {
+  var _ = 1;
+  int _ = 2;
+
+  list.where((_) => true);
+}
+```
+
 ###### Dart to Javascript Compiler (dart2js)
 
 - The dart2js compiler which is invoked when the command

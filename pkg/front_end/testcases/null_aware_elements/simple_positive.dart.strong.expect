@@ -43,7 +43,7 @@ static method bar2(core::int? x, core::bool b) → dynamic
 static method bar3(core::int? x, core::List<core::String> y) → dynamic
   return block {
     final core::Set<core::int> #t11 = col::LinkedHashSet::•<core::int>();
-    for (core::String _ in y) {
+    for (wildcard core::String _#wc0#var in y) {
       final core::int? #t12 = x;
       if(!(#t12 == null))
         #t11.{core::Set::add}{Invariant}(#t12{core::int}){(core::int) → core::bool};
@@ -88,7 +88,7 @@ static method bar7(core::int? x, core::double? y, core::bool b) → dynamic
 static method bar8(core::bool? x, core::Symbol? y, core::List<core::num> z) → dynamic
   return block {
     final core::Map<core::bool, core::Symbol> #t23 = <core::bool, core::Symbol>{};
-    for (core::num _ in z) {
+    for (wildcard core::num _#wc0#var in z) {
       final core::bool? #t24 = x;
       if(!(#t24 == null)) {
         final core::Symbol? #t25 = y;

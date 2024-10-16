@@ -65,15 +65,16 @@ DartType? getExpectedType(PostfixExpression node) {
   }
   // in variable declaration
   if (parent is VariableDeclaration) {
-    return parent.declaredElement?.type;
+    var element = parent.declaredFragment?.element ?? parent.declaredElement2;
+    return element?.type;
   }
   // as right member of binary operator
   if (parent is BinaryExpression && parent.rightOperand == realNode) {
-    var parentElement = parent.staticElement;
+    var parentElement = parent.element;
     if (parentElement == null) {
       return null;
     }
-    return parentElement.parameters.first.type;
+    return parentElement.formalParameters.first.type;
   }
   // as member of list
   if (parent is ListLiteral) {
@@ -107,7 +108,7 @@ DartType? getExpectedType(PostfixExpression node) {
   if (parent is ArgumentList && realNode is Expression) {
     var grandParent = parent.parent;
     if (grandParent is InstanceCreationExpression) {
-      var constructor = grandParent.constructorName.staticElement;
+      var constructor = grandParent.constructorName.element;
       if (constructor != null) {
         if (constructor.returnType.isDartAsyncFuture &&
             constructor.name == 'value') {
@@ -126,7 +127,7 @@ DartType? getExpectedType(PostfixExpression node) {
         }
       }
     }
-    return realNode.staticParameterElement?.type;
+    return realNode.correspondingParameter?.type;
   }
   return null;
 }

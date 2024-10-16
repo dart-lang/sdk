@@ -85,6 +85,7 @@ lib/src/rules/no_duplicate_case_values.dart
 lib/src/rules/no_leading_underscores_for_library_prefixes.dart
 lib/src/rules/no_leading_underscores_for_local_identifiers.dart
 lib/src/rules/no_literal_bool_comparisons.dart
+lib/src/rules/no_logic_in_create_state.dart
 lib/src/rules/no_runtimeType_toString.dart
 lib/src/rules/no_self_assignments.dart
 lib/src/rules/no_wildcard_variable_uses.dart
@@ -105,6 +106,7 @@ lib/src/rules/prefer_conditional_assignment.dart
 lib/src/rules/prefer_const_constructors.dart
 lib/src/rules/prefer_const_declarations.dart
 lib/src/rules/prefer_const_literals_to_create_immutables.dart
+lib/src/rules/prefer_constructors_over_static_methods.dart
 lib/src/rules/prefer_contains.dart
 lib/src/rules/prefer_double_quotes.dart
 lib/src/rules/prefer_equal_for_default_values.dart
@@ -132,6 +134,7 @@ lib/src/rules/pub/depend_on_referenced_packages.dart
 lib/src/rules/pub/package_names.dart
 lib/src/rules/pub/secure_pubspec_urls.dart
 lib/src/rules/pub/sort_pub_dependencies.dart
+lib/src/rules/recursive_getters.dart
 lib/src/rules/require_trailing_commas.dart
 lib/src/rules/sized_box_for_whitespace.dart
 lib/src/rules/sized_box_shrink_expand.dart
@@ -166,11 +169,13 @@ lib/src/rules/unnecessary_statements.dart
 lib/src/rules/unnecessary_string_escapes.dart
 lib/src/rules/unnecessary_string_interpolations.dart
 lib/src/rules/unnecessary_to_list_in_spreads.dart
+lib/src/rules/unrelated_type_equality_checks.dart
 lib/src/rules/use_colored_box.dart
 lib/src/rules/use_decorated_box.dart
 lib/src/rules/use_function_type_syntax_for_parameters.dart
 lib/src/rules/use_if_null_to_convert_nulls_to_bools.dart
 lib/src/rules/use_is_even_rather_than_modulo.dart
+lib/src/rules/use_named_constants.dart
 lib/src/rules/use_raw_strings.dart
 lib/src/rules/use_string_in_part_of_directives.dart
 lib/src/rules/use_test_throws_matchers.dart
@@ -460,6 +465,7 @@ tool/checks/check_messages_yaml.dart
 tool/checks/driver.dart
 tool/checks/rules/no_solo_tests.dart
 tool/checks/rules/no_trailing_spaces.dart
+tool/checks/rules/visit_registered_nodes.dart
 tool/generate_lints.dart
 tool/labeler/issue_config.dart
 tool/labeler/pr_config.dart

@@ -10,7 +10,7 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
     : self::Foo::quux = quux, self::Foo::t = t, super core::Object::•()
     ;
   method call() → asy::Future<self::Foo::T%>
-    return this.{self::Foo::quux}{() → asy::Future<dynamic>}(){() → asy::Future<dynamic>}.{asy::Future::then}<self::Foo::T%>((dynamic _) → self::Foo::T% => this.{self::Foo::t}{self::Foo::T%}){((dynamic) → FutureOr<self::Foo::T%>, {onError: core::Function?}) → asy::Future<self::Foo::T%>};
+    return this.{self::Foo::quux}{() → asy::Future<dynamic>}(){() → asy::Future<dynamic>}.{asy::Future::then}<self::Foo::T%>((dynamic _#wc0#formal) → self::Foo::T% => this.{self::Foo::t}{self::Foo::T%}){((dynamic) → FutureOr<self::Foo::T%>, {onError: core::Function?}) → asy::Future<self::Foo::T%>};
 }
 class Bar extends core::Object {
   field self::Foo<self::Baz> qux = throw "";

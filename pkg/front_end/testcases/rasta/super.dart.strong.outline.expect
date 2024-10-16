@@ -22,15 +22,15 @@ class A extends core::Object {
     ;
   get e() → dynamic
     ;
-  set g(dynamic _) → void
+  set g(wildcard dynamic _#wc0#formal) → void
     ;
   get h() → dynamic
     ;
-  set h(dynamic _) → void
+  set h(wildcard dynamic _#wc1#formal) → void
     ;
   get i() → dynamic
     ;
-  operator [](dynamic _) → dynamic
+  operator [](wildcard dynamic _#wc2#formal) → dynamic
     ;
   operator []=(dynamic a, dynamic b) → void
     ;
@@ -44,7 +44,7 @@ class A extends core::Object {
     ;
   method n() → void
     ;
-  set n(dynamic _) → void
+  set n(wildcard dynamic _#wc3#formal) → void
     ;
 }
 class B extends self::A {

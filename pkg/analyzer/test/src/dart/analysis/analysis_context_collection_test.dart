@@ -297,12 +297,15 @@ name: test
     );
 
     newFile('$testPackageLibPath/a.dart', '');
-    newFile('$testPackageLibPath/b.g.dart', '');
-    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+    newAnalysisOptionsYamlFile(testPackageLibPath, r'''
 analyzer:
   exclude:
     - "**/*.g.dart"
 ''');
+
+    var nestedNoYamlPath = '$testPackageLibPath/nestedNoYaml';
+    newFile('$nestedNoYamlPath/a.dart', '');
+    newFile('$nestedNoYamlPath/b.g.dart', '');
 
     var nestedPath = '$testPackageLibPath/nested';
     newFile('$nestedPath/lib/c.dart', '');
@@ -320,24 +323,28 @@ name: nested
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
-    optionsFile: /home/test/analysis_options.yaml
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
         uri: package:test/a.dart
         analysisOptions_0
         workspacePackage_0_0
+      /home/test/lib/nestedNoYaml/a.dart
+        uri: package:test/nestedNoYaml/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
   /home/test/lib/nested
     packagesFile: /home/test/lib/nested/.dart_tool/package_config.json
-    optionsFile: /home/test/analysis_options.yaml
+    optionsFile: /home/test/lib/analysis_options.yaml
     workspace: workspace_1
     analyzedFiles
       /home/test/lib/nested/lib/c.dart
         uri: package:nested/c.dart
-        analysisOptions_0
+        analysisOptions_1
         workspacePackage_1_0
 analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_0: /home/test/lib/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -418,6 +425,7 @@ analysisOptions
       triple-shift
       unnamed-libraries
       variance
+      wildcard-variables
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -493,6 +501,7 @@ analysisOptions
       triple-shift
       unnamed-libraries
       variance
+      wildcard-variables
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
