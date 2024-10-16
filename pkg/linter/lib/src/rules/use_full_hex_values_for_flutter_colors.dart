@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement;
+    var element = node.constructorName.element;
     if (element != null &&
         element.isSameAs(
             uri: 'dart.ui', className: 'Color', constructorName: '')) {

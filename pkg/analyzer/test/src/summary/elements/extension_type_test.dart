@@ -73,7 +73,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            const new @21
+            const <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -267,7 +267,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @15
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -375,7 +375,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @15
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -495,7 +495,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @15
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -614,7 +614,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @15
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               codeOffset: 16
@@ -703,7 +703,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @24
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -1083,7 +1083,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @32
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -2044,7 +2044,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @37
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -2318,7 +2318,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
           constructors
-            new @15
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               codeOffset: 16
@@ -3248,7 +3248,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @15
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -3392,7 +3392,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -3561,7 +3561,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
           constructors
-            augment new @59
+            augment <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new#element
               formalParameters
@@ -3705,7 +3705,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -3858,7 +3858,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -4029,7 +4029,7 @@ library
           element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           constructors
-            new @58
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new#element
   extensionTypes
@@ -4188,7 +4188,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -4418,7 +4418,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @45
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -4664,7 +4664,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @45
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -4913,7 +4913,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @45
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -5132,7 +5132,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -5321,7 +5321,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -5525,7 +5525,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -5742,7 +5742,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -5944,7 +5944,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -6144,7 +6144,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -6374,7 +6374,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @45
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -6596,7 +6596,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo2#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo2
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -6808,7 +6808,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           constructors
-            new @45
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -7252,7 +7252,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -7271,7 +7271,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
-            new @72
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               formalParameters
@@ -7300,7 +7300,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
-            new @101
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               formalParameters
@@ -7327,7 +7327,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
           constructors
-            new @83
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new#element
               formalParameters
@@ -7561,7 +7561,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -7580,7 +7580,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
-            new @75
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               formalParameters
@@ -7613,7 +7613,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
-            new @94
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               formalParameters
@@ -7835,7 +7835,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -7854,7 +7854,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           constructors
-            new @75
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
               formalParameters
@@ -7889,7 +7889,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           constructors
-            new @98
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
               formalParameters
@@ -8058,7 +8058,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -8217,7 +8217,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -8403,7 +8403,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -8582,7 +8582,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -8751,7 +8751,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -8920,7 +8920,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -9112,7 +9112,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo1
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -9324,7 +9324,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters
@@ -9542,7 +9542,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo2#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo2
           constructors
-            new @30
+            <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               formalParameters

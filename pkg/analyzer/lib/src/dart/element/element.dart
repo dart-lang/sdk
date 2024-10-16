@@ -1042,6 +1042,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<MixinFragment> get mixins2 => mixins.cast<MixinFragment>();
 
   @override
+  FragmentName? get name2 => null;
+
+  @override
   LibraryFragment? get nextFragment {
     var units = library.units;
     var index = units.indexOf(this);
@@ -1331,6 +1334,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int? nameEnd;
+
+  @override
+  ConstructorFragmentNameImpl? name2;
 
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
@@ -1635,6 +1641,18 @@ mixin ConstructorElementMixin implements ConstructorElement {
   bool get isGenerative {
     return !isFactory;
   }
+}
+
+class ConstructorFragmentNameImpl extends FragmentNameImpl
+    implements ConstructorFragmentName {
+  @override
+  int periodOffset;
+
+  ConstructorFragmentNameImpl({
+    required super.name,
+    required super.nameOffset,
+    required this.periodOffset,
+  });
 }
 
 /// A [TopLevelVariableElement] for a top-level 'const' variable that has an
@@ -3563,6 +3581,21 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
+
+  @override
   List<ParameterElement> get parameters {
     linkedData?.read(this);
     return _parameters;
@@ -4704,6 +4737,22 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
+class FragmentNameImpl implements FragmentName {
+  @override
+  final String name;
+
+  @override
+  int nameOffset;
+
+  FragmentNameImpl({
+    required this.name,
+    required this.nameOffset,
+  });
+
+  @override
+  int? get nameEnd => nameOffset + name.length;
+}
+
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
     with AugmentableElement<FunctionElementImpl>
@@ -4883,6 +4932,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   @override
   ElementLinkedData<ElementImpl>? get linkedData => null;
+
+  @override
+  FragmentName? get name2 => null;
 
   @override
   GenericFunctionTypeFragment? get nextFragment =>
@@ -5141,6 +5193,26 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If unnamed extension.
+    if (name == null) {
+      return null;
+    }
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
 
   @override
   InstanceFragment? get nextFragment => augmentation as InstanceFragment?;
@@ -8503,6 +8575,19 @@ class ParameterElementImpl extends VariableElementImpl
       thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
 
   @override
+  FragmentName? get name2 {
+    var name = this.name;
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
+
+  @override
   // TODO(augmentations): Support chaining between the fragments.
   FormalParameterFragment? get nextFragment => null;
 
@@ -8932,6 +9017,14 @@ class PrefixFragmentImpl implements PrefixFragment {
 
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingFragment;
+
+  @override
+  FragmentName? get name2 {
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
 }
 
 abstract class PromotableElementImpl2 extends VariableElementImpl2
@@ -9329,6 +9422,21 @@ abstract class PropertyInducingElementImpl
   @override
   LibraryFragment get libraryFragment =>
       thisOrAncestorOfType<CompilationUnitElement>() as LibraryFragment;
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
 
   @override
   PropertyInducingFragment? get nextFragment =>
@@ -9928,6 +10036,21 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
+  }
+
+  @override
   // TODO(augmentations): Support the fragment chain.
   TypeAliasFragment? get nextFragment => null;
 
@@ -10211,6 +10334,21 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     return super.name!;
+  }
+
+  @override
+  FragmentName? get name2 {
+    var name = this.name;
+
+    // If synthetic name.
+    if (name.isEmpty) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: name,
+      nameOffset: nameOffset,
+    );
   }
 
   @override

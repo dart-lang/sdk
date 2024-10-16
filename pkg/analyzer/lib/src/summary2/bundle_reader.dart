@@ -840,6 +840,13 @@ class LibraryReader {
       var reference = _readReference();
       var name = reference.elementName.ifEqualThen('new', '');
       var element = ConstructorElementImpl(name, -1);
+      element.name2 = _reader.readOptionalObject((reader) {
+        return ConstructorFragmentNameImpl(
+          name: _reader.readStringReference(),
+          nameOffset: -1,
+          periodOffset: -1,
+        );
+      });
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
         libraryReader: this,

@@ -277,6 +277,19 @@ extension ConstructorElementExtension on ConstructorElement {
       name == constructorName;
 }
 
+extension ConstructorElementExtension2 on ConstructorElement2 {
+  /// Returns whether `this` is the same element as the [className] constructor
+  /// named [constructorName] declared in [uri].
+  bool isSameAs({
+    required String uri,
+    required String className,
+    required String constructorName,
+  }) =>
+      library2?.name == uri &&
+      enclosingElement2.name == className &&
+      name == constructorName;
+}
+
 extension DartTypeExtension on DartType? {
   bool extendsClass(String? className, String library) {
     var self = this;

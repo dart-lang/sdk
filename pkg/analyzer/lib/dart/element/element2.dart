@@ -369,6 +369,9 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   InstanceFragment? get enclosingFragment;
 
+  @override
+  ConstructorFragmentName? get name2;
+
   /// The offset of the end of the name in this fragment.
   ///
   /// Returns `null` if the fragment has no name.
@@ -384,6 +387,12 @@ abstract class ConstructorFragment implements ExecutableFragment {
 
   @override
   ConstructorFragment? get previousFragment;
+}
+
+/// The name of a [ConstructorFragment].
+abstract class ConstructorFragmentName extends FragmentName {
+  /// The offset of the `.` before the name.
+  int? get periodOffset;
 }
 
 /// The base class for all of the elements in the element model.
@@ -949,6 +958,18 @@ abstract class Fragment {
   /// Returns `null` if this fragment doesn't have a name.
   String? get name;
 
+  /// The name of this fragment.
+  ///
+  /// Returns `null` if the fragment does not have a name, e.g. an unnamed
+  /// [ExtensionFragment].
+  ///
+  /// Returns `null` if the fragment is an unnamed [ConstructorFragment],
+  /// even if its [ConstructorElement2] has the name `new`.
+  ///
+  /// Returns `null` if the fragment declaration node does not have the name
+  /// specified, and the parser inserted a synthetic identifier.
+  FragmentName? get name2;
+
   /// The offset of the name in this fragment.
   ///
   /// Returns `null` if the fragment has no name.
@@ -973,6 +994,32 @@ abstract class FragmentedElement {
   /// The other fragments in the chain can be accessed using
   /// [Fragment.nextFragment].
   Fragment? get firstFragment;
+}
+
+/// The name of a [Fragment].
+abstract class FragmentName {
+  /// The name of the fragment.
+  ///
+  /// Never empty.
+  ///
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the whole [FragmentName] is `null`.
+  ///
+  /// Similarly, an unnamed [ConstructorFragment] does not have a name, even
+  /// if the [ConstructorElement2] has the name `new`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the whole [FragmentName]
+  /// is `null`.
+  ///
+  /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  String get name;
+
+  /// The offset of the end of the name.
+  int? get nameEnd;
+
+  /// The offset of the name in the file.
+  int get nameOffset;
 }
 
 /// An element that has a [FunctionType] as its [type].
