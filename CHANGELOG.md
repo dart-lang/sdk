@@ -1,3 +1,9 @@
+## 3.5.4 - 2024-10-17
+
+- Fixes record runtime type's hash code in dart2wasm (issue [#56817]).
+
+[#56817]: https://github.com/dart-lang/sdk/issues/56817
+
 ## 3.5.3 - 2024-09-11
 
 - Fixes an issue with the DevTools Memory tool causing OOMs. and an
@@ -7,10 +13,8 @@ IntelliJ and Android Studio (issue[#56607][]).
 DevTools is opened instead of only the first time (issue[#56607][]).
 - Fixes an issue resulting in a missing tab bar when DevTools is
 embedded in IntelliJ and Android Studio (issue[#56607][]).
-- Fixes record runtime type's hash code in dart2wasm (Flutter issue [#155510]).
 
 [#56607]: https://github.com/dart-lang/sdk/issues/56607
-[#155510]: https://github.com/flutter/flutter/issues/155510
 
 ## 3.5.2 - 2024-08-28
 
