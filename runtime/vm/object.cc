@@ -25248,6 +25248,7 @@ ArrayPtr Array::NewUninitialized(intptr_t class_id,
   if (UseCardMarkingForAllocation(len)) {
     ASSERT(raw->IsOldObject());
     raw->untag()->SetCardRememberedBitUnsynchronized();
+    Page::Of(raw)->AllocateCardTable();
   }
   return raw;
 }
