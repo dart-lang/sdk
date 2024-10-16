@@ -9,4 +9,3 @@ final String integrationTestDir =
 final String ruleTestDataDir =
     pathRelativeToPackageRoot(['test_data', 'rules']);
 final String ruleTestDir = pathRelativeToPackageRoot(['test', 'rules']);
-final String testConfigDir = pathRelativeToPackageRoot(['test', 'configs']);

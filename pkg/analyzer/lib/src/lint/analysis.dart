@@ -10,14 +10,10 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
-
-AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
 
 Source createSource(Uri uri) {
   var filePath = uri.toFilePath();
@@ -35,11 +31,6 @@ void _updateAnalyzerOptions(
   AnalysisOptionsImpl analysisOptions,
   LinterOptions options,
 ) {
-  if (options.analysisOptions != null) {
-    var map = _optionsProvider.getOptionsFromString(options.analysisOptions);
-    analysisOptions.applyOptions(map);
-  }
-
   analysisOptions.lint = options.enableLints;
   analysisOptions.warning = false;
   analysisOptions.enableTiming = options.enableTiming;
