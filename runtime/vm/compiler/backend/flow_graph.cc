@@ -620,11 +620,15 @@ bool FlowGraph::ShouldOmitCheckBoundsIn(const Function& caller) {
 static Definition* CreateCheckBound(Zone* zone,
                                     Definition* length,
                                     Definition* index,
-                                    intptr_t deopt_id) {
+                                    intptr_t deopt_id,
+                                    bool omit_check) {
   Value* val1 = new (zone) Value(length);
   Value* val2 = new (zone) Value(index);
   if (CompilerState::Current().is_aot()) {
-    return new (zone) GenericCheckBoundInstr(val1, val2, deopt_id);
+    return new (zone) GenericCheckBoundInstr(
+        val1, val2, deopt_id,
+        omit_check ? GenericCheckBoundInstr::Mode::kPhantom
+                   : GenericCheckBoundInstr::Mode::kReal);
   }
   return new (zone) CheckArrayBoundInstr(val1, val2, deopt_id);
 }
@@ -634,10 +638,9 @@ Instruction* FlowGraph::AppendCheckBound(Instruction* cursor,
                                          Definition** index,
                                          intptr_t deopt_id,
                                          Environment* env) {
-  if (!ShouldOmitCheckBoundsIn(env->function())) {
-    *index = CreateCheckBound(zone(), length, *index, deopt_id);
-    cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
-  }
+  *index = CreateCheckBound(zone(), length, *index, deopt_id,
+                            ShouldOmitCheckBoundsIn(env->function()));
+  cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
   return cursor;
 }
 

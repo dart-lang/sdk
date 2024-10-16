@@ -10871,16 +10871,32 @@ class CheckArrayBoundInstr : public CheckBoundBaseInstr {
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
 class GenericCheckBoundInstr : public CheckBoundBaseInstr {
  public:
+  enum Mode {
+    kReal,
+
+    // Phantom checks serve as dependencies inhibiting illegal code motion but
+    // are removed before code generation. Phantom checks are inserted due to
+    // unsafe annotations. An early-phaee path-sensitive bounds check removal
+    // optimization can be implemented by replacing a real check with a phantom
+    // check.
+    kPhantom
+  };
+
   // We prefer to have unboxed inputs on 64-bit where values can fit into a
   // register.
   static bool UseUnboxedRepresentation() {
     return compiler::target::kWordSize == 8;
   }
 
-  GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : CheckBoundBaseInstr(length, index, deopt_id) {}
+  GenericCheckBoundInstr(Value* length,
+                         Value* index,
+                         intptr_t deopt_id,
+                         Mode mode = Mode::kReal)
+      : CheckBoundBaseInstr(length, index, deopt_id), mode_(mode) {}
 
-  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsGenericCheckBound()->mode_ == mode_;
+  }
 
   DECLARE_INSTRUCTION(GenericCheckBound)
 
@@ -10902,6 +10918,8 @@ class GenericCheckBoundInstr : public CheckBoundBaseInstr {
     return UseUnboxedRepresentation() ? kUnboxedInt64 : kTagged;
   }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -10915,7 +10933,16 @@ class GenericCheckBoundInstr : public CheckBoundBaseInstr {
     return SlowPathSharingSupported(is_optimizing);
   }
 
-  DECLARE_EMPTY_SERIALIZATION(GenericCheckBoundInstr, CheckBoundBaseInstr)
+  bool IsPhantom() const { return mode_ == Mode::kPhantom; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F) F(const Mode, mode_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(GenericCheckBoundInstr,
+                                          CheckBoundBaseInstr,
+                                          FIELD_LIST)
+#undef FIELD_LIST
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);

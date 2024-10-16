@@ -702,6 +702,14 @@ static bool IsSmallLeafOrReduction(int inlining_depth,
         }
         continue;
       }
+      if (auto check = current->AsGenericCheckBound()) {
+        if (check->IsPhantom()) {
+          // Discount the check since it is guaranteed to be removed.
+          instruction_count -= 1;
+          // TODO(dartbug.com/56902): The bound (length input) might also become
+          // dead. Discount these instructions too.
+        }
+      }
     }
   }
   if (call_count > 0) {

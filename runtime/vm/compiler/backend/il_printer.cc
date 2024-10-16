@@ -1606,6 +1606,13 @@ void MoveArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
+void GenericCheckBoundInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
+  if (IsPhantom()) {
+    f->AddString(", phantom");
+  }
+}
+
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {
   if (HasParallelMove()) {
     parallel_move()->PrintTo(f);
