@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
@@ -88,48 +87,41 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot) ||
-        !Sdk.checkArtifactExists(sdk.librariesJson)) {
-      return 255;
+    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+      return genericErrorExitCode;
     }
-
     final args = argResults!;
-
-    // Build arguments.
-    final buildArgs = <String>[
+    var snapshot = sdk.dart2jsAotSnapshot;
+    var runtime = sdk.dartAotRuntime;
+    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
+      // AOT snapshots cannot be generated on IA32, so we need this fallback
+      // branch until support for IA32 is dropped (https://dartbug.com/49969).
+      snapshot = sdk.dart2jsSnapshot;
+      runtime = sdk.dart;
+      if (!Sdk.checkArtifactExists(snapshot)) {
+        return genericErrorExitCode;
+      }
+    }
+    final dart2jsCommand = [
+      runtime,
+      snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
       // Add the remaining arguments.
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
-
-    var retval = 0;
-    final result = Completer<int>();
-    final exitPort = ReceivePort()
-      ..listen((msg) {
-        result.complete(0);
-      });
-    final errorPort = ReceivePort()
-      ..listen((error) {
-        log.stderr(error.toString());
-        result.complete(255);
-      });
     try {
-      await Isolate.spawnUri(Uri.file(sdk.dart2jsSnapshot), buildArgs, null,
-          onExit: exitPort.sendPort, onError: errorPort.sendPort);
-      retval = await result.future;
+      final exitCode = await runProcessInheritStdio(dart2jsCommand);
+      return exitCode;
     } catch (e, st) {
       log.stderr('Error: JS compilation failed');
       log.stderr(e.toString());
       if (verbose) {
         log.stderr(st.toString());
       }
-      retval = compileErrorExitCode;
+      return compileErrorExitCode;
     }
-    errorPort.close();
-    exitPort.close();
-    return retval;
   }
 }
 
