@@ -10,6 +10,7 @@
 # automatic tools might move it to the top of the file.
 
 JS
+RecordUse
 abispecificinteger
 abispecificintegermapping
 adjusting
@@ -35,6 +36,7 @@ conformance
 constructor(s)
 core
 count.#count
+count3.#count
 createstaticinteropmock
 d
 dart.dev
@@ -120,7 +122,6 @@ preexisting
 pubspec.yaml
 r
 re
-RecordUse
 refutable
 resource
 sdksummary

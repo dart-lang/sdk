@@ -550,14 +550,20 @@ class SourceLoader extends Loader {
           if (version > target.currentSdkVersion) {
             // Coverage-ignore-block(suite): Not run.
             packageLanguageVersionProblem =
-                templateLanguageVersionTooHigh.withArguments(
+                templateLanguageVersionTooHighPackage.withArguments(
+                    version.major,
+                    version.minor,
+                    packageForLanguageVersion.name,
                     target.currentSdkVersion.major,
                     target.currentSdkVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
                 fileUri, 0, noLength, target.currentSdkVersion, false);
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem =
-                templateLanguageVersionTooLow.withArguments(
+                templateLanguageVersionTooLowPackage.withArguments(
+                    version.major,
+                    version.minor,
+                    packageForLanguageVersion.name,
                     target.leastSupportedVersion.major,
                     target.leastSupportedVersion.minor);
             packageLanguageVersion = new InvalidLanguageVersion(
