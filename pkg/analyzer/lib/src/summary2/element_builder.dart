@@ -30,7 +30,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
-  var _nextUnnamedExtensionId = 0;
+  var _nextUnnamedId = 0;
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
@@ -95,8 +95,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = ClassElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.isAbstract = node.abstractKeyword != null;
     element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
@@ -116,7 +118,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addClass(name, element);
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var reference = _enclosingContext.addClass(refName, element);
     if (!element.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }
@@ -156,8 +159,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = ClassElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.isAbstract = node.abstractKeyword != null;
     element.isBase = node.baseKeyword != null;
     element.isFinal = node.finalKeyword != null;
@@ -247,11 +252,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.lexeme;
-    var nameOffset = nameNode.offset;
+    var nameToken = node.name;
+    var name = nameToken.lexeme;
+    var nameOffset = nameToken.offset;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = EnumElementImpl(name, nameOffset);
+    element.name2 = fragmentName;
     element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -260,7 +267,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addEnum(name, element);
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var reference = _enclosingContext.addEnum(refName, element);
     if (!element.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }
@@ -476,8 +484,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken?.lexeme;
     var nameOffset = nameToken?.offset ?? -1;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = ExtensionElementImpl(name, nameOffset);
+    element.name2 = fragmentName;
     element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -486,7 +496,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var refName = name ?? '${_nextUnnamedExtensionId++}';
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
     var reference = _enclosingContext.addExtension(refName, element);
 
     if (name != null) {
@@ -547,8 +557,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = ExtensionTypeElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -557,7 +569,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addExtensionType(name, element);
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var reference = _enclosingContext.addExtensionType(refName, element);
     if (!element.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }
@@ -1038,8 +1051,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = MixinElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
@@ -1049,7 +1064,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addMixin(name, element);
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var reference = _enclosingContext.addMixin(refName, element);
     if (!element.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }
@@ -1358,6 +1374,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element.typeParameters = holder.typeParameters;
       }
     });
+  }
+
+  FragmentNameImpl? _buildFragmentName(Token? nameToken) {
+    if (nameToken == null || nameToken.isSynthetic) {
+      return null;
+    }
+
+    return FragmentNameImpl(
+      name: nameToken.lexeme,
+      nameOffset: nameToken.offset,
+    );
   }
 
   void _buildMixin(MixinDeclaration node) {

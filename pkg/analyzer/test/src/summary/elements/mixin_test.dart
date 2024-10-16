@@ -1963,6 +1963,41 @@ library
 ''');
   }
 
+  test_mixin_missingName() async {
+    var library = await buildLibrary(r'''
+mixin {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      mixins
+        mixin @6
+          reference: <testLibraryFragment>::@mixin::0
+          enclosingElement3: <testLibraryFragment>
+          superclassConstraints
+            Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        mixin <null-name>
+          reference: <testLibraryFragment>::@mixin::0
+          element: <testLibraryFragment>::@mixin::0#element
+  mixins
+    mixin 
+      firstFragment: <testLibraryFragment>::@mixin::0
+      superclassConstraints
+        Object
+''');
+  }
+
   test_mixin_setter_invokesSuperSelf_getter() async {
     var library = await buildLibrary(r'''
 mixin M on A {

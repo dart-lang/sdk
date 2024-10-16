@@ -2256,6 +2256,70 @@ library
 ''');
   }
 
+  test_missingName() async {
+    var library = await buildLibrary(r'''
+extension type (int it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      extensionTypes
+        @15
+          reference: <testLibraryFragment>::@extensionType::0
+          enclosingElement3: <testLibraryFragment>
+          representation: <testLibraryFragment>::@extensionType::0::@field::it
+          primaryConstructor: <testLibraryFragment>::@extensionType::0::@constructor::new
+          typeErasure: int
+          fields
+            final it @20
+              reference: <testLibraryFragment>::@extensionType::0::@field::it
+              enclosingElement3: <testLibraryFragment>::@extensionType::0
+              type: int
+          accessors
+            synthetic get it @-1
+              reference: <testLibraryFragment>::@extensionType::0::@getter::it
+              enclosingElement3: <testLibraryFragment>::@extensionType::0
+              returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        extension type <null-name>
+          reference: <testLibraryFragment>::@extensionType::0
+          element: <testLibraryFragment>::@extensionType::0#element
+          fields
+            it @20
+              reference: <testLibraryFragment>::@extensionType::0::@field::it
+              element: <testLibraryFragment>::@extensionType::0::@field::it#element
+              getter2: <testLibraryFragment>::@extensionType::0::@getter::it
+          getters
+            get it @-1
+              reference: <testLibraryFragment>::@extensionType::0::@getter::it
+              element: <testLibraryFragment>::@extensionType::0::@getter::it#element
+  extensionTypes
+    extension type 
+      firstFragment: <testLibraryFragment>::@extensionType::0
+      typeErasure: int
+      fields
+        final it
+          firstFragment: <testLibraryFragment>::@extensionType::0::@field::it
+          type: int
+          getter: <testLibraryFragment>::@extensionType::0::@getter::it#element
+      getters
+        synthetic get it
+          firstFragment: <testLibraryFragment>::@extensionType::0::@getter::it
+''');
+  }
+
   test_noField() async {
     var library = await buildLibrary(r'''
 extension type A() {}

@@ -18707,6 +18707,48 @@ library
 ''');
   }
 
+  test_class_missingName() async {
+    var library = await buildLibrary(r'''
+class {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class @6
+          reference: <testLibraryFragment>::@class::0
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::0::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::0
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class <null-name>
+          reference: <testLibraryFragment>::@class::0
+          element: <testLibraryFragment>::@class::0#element
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::0::@constructor::new
+              element: <testLibraryFragment>::@class::0::@constructor::new#element
+  classes
+    class 
+      firstFragment: <testLibraryFragment>::@class::0
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::0::@constructor::new
+''');
+  }
+
   test_class_mixin_class() async {
     var library = await buildLibrary('mixin class C {}');
     checkElementText(library, r'''

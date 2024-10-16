@@ -4073,6 +4073,124 @@ library
 ''');
   }
 
+  test_enum_missingName() async {
+    var library = await buildLibrary(r'''
+enum {v}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      enums
+        enum @5
+          reference: <testLibraryFragment>::@enum::0
+          enclosingElement3: <testLibraryFragment>
+          supertype: Enum
+          fields
+            static const enumConstant v @6
+              reference: <testLibraryFragment>::@enum::0::@field::v
+              enclosingElement3: <testLibraryFragment>::@enum::0
+              type: 
+              shouldUseTypeForInitializerInference: false
+              constantInitializer
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: <empty> @-1 <synthetic>
+                      element: <testLibraryFragment>::@enum::0
+                      element2: <testLibraryFragment>::@enum::0#element
+                      type: 
+                    staticElement: <testLibraryFragment>::@enum::0::@constructor::new
+                    element: <testLibraryFragment>::@enum::0::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: 
+            synthetic static const values @-1
+              reference: <testLibraryFragment>::@enum::0::@field::values
+              enclosingElement3: <testLibraryFragment>::@enum::0
+              type: List<>
+              constantInitializer
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibraryFragment>::@enum::0::@getter::v
+                      element: <testLibraryFragment>::@enum::0::@getter::v#element
+                      staticType: 
+                  rightBracket: ] @0
+                  staticType: List<>
+          constructors
+            synthetic const @-1
+              reference: <testLibraryFragment>::@enum::0::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@enum::0
+          accessors
+            synthetic static get v @-1
+              reference: <testLibraryFragment>::@enum::0::@getter::v
+              enclosingElement3: <testLibraryFragment>::@enum::0
+              returnType: 
+            synthetic static get values @-1
+              reference: <testLibraryFragment>::@enum::0::@getter::values
+              enclosingElement3: <testLibraryFragment>::@enum::0
+              returnType: List<>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        enum <null-name>
+          reference: <testLibraryFragment>::@enum::0
+          element: <testLibraryFragment>::@enum::0#element
+          fields
+            enumConstant v @6
+              reference: <testLibraryFragment>::@enum::0::@field::v
+              element: <testLibraryFragment>::@enum::0::@field::v#element
+              getter2: <testLibraryFragment>::@enum::0::@getter::v
+            values @-1
+              reference: <testLibraryFragment>::@enum::0::@field::values
+              element: <testLibraryFragment>::@enum::0::@field::values#element
+              getter2: <testLibraryFragment>::@enum::0::@getter::values
+          constructors
+            synthetic const <null-name>
+              reference: <testLibraryFragment>::@enum::0::@constructor::new
+              element: <testLibraryFragment>::@enum::0::@constructor::new#element
+          getters
+            get v @-1
+              reference: <testLibraryFragment>::@enum::0::@getter::v
+              element: <testLibraryFragment>::@enum::0::@getter::v#element
+            get values @-1
+              reference: <testLibraryFragment>::@enum::0::@getter::values
+              element: <testLibraryFragment>::@enum::0::@getter::values#element
+  enums
+    enum 
+      firstFragment: <testLibraryFragment>::@enum::0
+      supertype: Enum
+      fields
+        static const v
+          firstFragment: <testLibraryFragment>::@enum::0::@field::v
+          type: 
+          getter: <testLibraryFragment>::@enum::0::@getter::v#element
+        synthetic static const values
+          firstFragment: <testLibraryFragment>::@enum::0::@field::values
+          type: List<>
+          getter: <testLibraryFragment>::@enum::0::@getter::values#element
+      constructors
+        synthetic const new
+          firstFragment: <testLibraryFragment>::@enum::0::@constructor::new
+      getters
+        synthetic static get v
+          firstFragment: <testLibraryFragment>::@enum::0::@getter::v
+        synthetic static get values
+          firstFragment: <testLibraryFragment>::@enum::0::@getter::values
+''');
+  }
+
   test_enum_mixins() async {
     var library = await buildLibrary(r'''
 mixin M {}

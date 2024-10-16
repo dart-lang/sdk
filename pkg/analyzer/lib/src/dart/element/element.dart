@@ -5095,6 +5095,9 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   @override
   ElementLinkedData? linkedData;
 
+  @override
+  FragmentNameImpl? name2;
+
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
 
   List<PropertyAccessorElementImpl> _accessors =
@@ -5199,26 +5202,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If unnamed extension.
-    if (name == null) {
-      return null;
-    }
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
 
   @override
   InstanceFragment? get nextFragment => augmentation as InstanceFragment?;
