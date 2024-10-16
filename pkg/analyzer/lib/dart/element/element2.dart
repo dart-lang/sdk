@@ -75,7 +75,8 @@ export 'package:analyzer/dart/element/element.dart'
         DirectiveUriWithSource,
         DirectiveUriWithUnit,
         ElementAnnotation,
-        ElementKind;
+        ElementKind,
+        ElementLocation;
 
 /// An element or fragment that can have either annotations (metadata), a
 /// documentation comment, or both associated with it.

@@ -132,6 +132,7 @@ lib/src/lsp/handlers/handler_cancel_request.dart
 lib/src/lsp/handlers/handler_change_workspace_folders.dart
 lib/src/lsp/handlers/handler_code_actions.dart
 lib/src/lsp/handlers/handler_code_lens.dart
+lib/src/lsp/handlers/handler_completion.dart
 lib/src/lsp/handlers/handler_dart_text_document_content_provider.dart
 lib/src/lsp/handlers/handler_document_color.dart
 lib/src/lsp/handlers/handler_document_highlights.dart
@@ -154,6 +155,7 @@ lib/src/lsp/handlers/handler_shutdown.dart
 lib/src/lsp/handlers/handler_signature_help.dart
 lib/src/lsp/handlers/handler_states.dart
 lib/src/lsp/handlers/handler_text_document_changes.dart
+lib/src/lsp/handlers/handler_type_hierarchy.dart
 lib/src/lsp/handlers/handler_will_rename_files.dart
 lib/src/lsp/handlers/handler_workspace_configuration.dart
 lib/src/lsp/handlers/handler_workspace_symbols.dart
@@ -202,6 +204,7 @@ lib/src/server/sdk_configuration.dart
 lib/src/server/stdio_server.dart
 lib/src/services/completion/completion_performance.dart
 lib/src/services/completion/completion_state.dart
+lib/src/services/completion/dart/dart_completion_suggestion.dart
 lib/src/services/completion/dart/fuzzy_filter_sort.dart
 lib/src/services/completion/dart/keyword_helper.dart
 lib/src/services/completion/dart/label_helper.dart
@@ -296,7 +299,9 @@ lib/src/services/correction/dart/convert_to_normal_parameter.dart
 lib/src/services/correction/dart/convert_to_null_aware.dart
 lib/src/services/correction/dart/convert_to_null_aware_spread.dart
 lib/src/services/correction/dart/convert_to_on_type.dart
+lib/src/services/correction/dart/convert_to_package_import.dart
 lib/src/services/correction/dart/convert_to_raw_string.dart
+lib/src/services/correction/dart/convert_to_relative_import.dart
 lib/src/services/correction/dart/convert_to_set_literal.dart
 lib/src/services/correction/dart/convert_to_super_parameters.dart
 lib/src/services/correction/dart/convert_to_switch_expression.dart
@@ -968,6 +973,7 @@ test/services/snippets/dart/switch_statement_test.dart
 test/services/snippets/dart/test_all.dart
 test/services/snippets/dart/test_definition_test.dart
 test/services/snippets/dart/test_group_definition_test.dart
+test/services/snippets/dart/test_support.dart
 test/services/snippets/dart/try_catch_statement_test.dart
 test/services/snippets/dart/while_statement_test.dart
 test/services/snippets/snippet_manager_test.dart
@@ -999,6 +1005,7 @@ test/src/computer/imported_elements_computer_test.dart
 test/src/computer/outline_computer_test.dart
 test/src/computer/selection_range_computer_test.dart
 test/src/computer/test_all.dart
+test/src/computer/type_hierarchy_computer_test.dart
 test/src/domains/execution/completion_test.dart
 test/src/domains/execution/test_all.dart
 test/src/domains/flutter/base.dart
@@ -1420,6 +1427,7 @@ test/src/services/correction/fix/surround_with_parentheses_test.dart
 test/src/services/correction/fix/test_all.dart
 test/src/services/correction/fix/update_sdk_constraints_test.dart
 test/src/services/correction/fix/use_curly_braces_test.dart
+test/src/services/correction/fix/use_different_division_operator_test.dart
 test/src/services/correction/fix/use_effective_integer_division_test.dart
 test/src/services/correction/fix/use_eq_eq_null_test.dart
 test/src/services/correction/fix/use_is_not_empty_test.dart
