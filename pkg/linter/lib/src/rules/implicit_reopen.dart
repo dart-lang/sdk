@@ -38,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkElement(InterfaceElement2? element, NamedCompilationUnitMember node,
       {required String type}) {
     if (element is! ClassElement2) return;
-    if (element.hasReopen) return;
+    if (element.metadata2.hasReopen) return;
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 

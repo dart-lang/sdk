@@ -253,7 +253,7 @@ extension ClassElementExtension2 on ClassElement2 {
       this,
     ];
 
-    return inheritedAndSelfElements.any((e) => e.hasImmutable);
+    return inheritedAndSelfElements.any((e) => e.metadata2.hasImmutable);
 
     // TODO(pq): update when implemented or replace w/ a better has{*} call
     // https://github.com/dart-lang/linter/issues/4939
