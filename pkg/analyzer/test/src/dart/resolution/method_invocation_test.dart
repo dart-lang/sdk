@@ -9,10 +9,12 @@ import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -8054,6 +8056,67 @@ MethodInvocation
   staticType: num
   typeArgumentTypes
     num
+''');
+  }
+
+  test_rewrite_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A(this.content);
+  final String Function() content;
+}
+
+class B {
+  const B(this.a);
+  final A a;
+}
+
+void main() {
+  (null as B?)?.a.content();
+}
+''');
+    var node = findNode.functionExpressionInvocation('content()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PropertyAccess
+      target: ParenthesizedExpression
+        leftParenthesis: (
+        expression: AsExpression
+          expression: NullLiteral
+            literal: null
+            staticType: Null
+          asOperator: as
+          type: NamedType
+            name: B
+            question: ?
+            element: <testLibraryFragment>::@class::B
+            element2: <testLibraryFragment>::@class::B#element
+            type: B?
+          staticType: B?
+        rightParenthesis: )
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        staticElement: <testLibraryFragment>::@class::B::@getter::a
+        element: <testLibraryFragment>::@class::B::@getter::a#element
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: content
+      staticElement: <testLibraryFragment>::@class::A::@getter::content
+      element: <testLibraryFragment>::@class::A::@getter::content#element
+      staticType: String Function()
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: String Function()
+  staticType: String?
 ''');
   }
 

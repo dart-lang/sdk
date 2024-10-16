@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -2449,6 +2451,46 @@ PropertyAccess
     element: dart:core::<fragment>::@class::int::@getter::isEven#element
     staticType: bool
   staticType: bool
+''');
+  }
+
+  test_rewrite_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  T Function<T>(T) get f;
+}
+abstract class B {
+  A get a;
+}
+int Function(int)? f(B? b) => b?.a.f;
+''');
+
+    var node = findNode.functionReference('b?.a.f');
+    assertResolvedNodeText(node, r'''FunctionReference
+  function: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: b
+        staticElement: <testLibraryFragment>::@function::f::@parameter::b
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        staticElement: <testLibraryFragment>::@class::B::@getter::a
+        element: <testLibraryFragment>::@class::B::@getter::a#element
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      staticElement: <testLibraryFragment>::@class::A::@getter::f
+      element: <testLibraryFragment>::@class::A::@getter::f#element
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
 ''');
   }
 
