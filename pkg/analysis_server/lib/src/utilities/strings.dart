@@ -126,16 +126,6 @@ String? removeEnd(String? str, String? remove) {
   return str;
 }
 
-/// If the [text] length is above the [limit], replace the middle with `...`.
-String shorten(String text, int limit) {
-  if (text.length > limit) {
-    var headLength = limit ~/ 2 - 1;
-    var tailLength = limit - headLength - 3;
-    return '${text.substring(0, headLength)}...${text.substring(text.length - tailLength)}';
-  }
-  return text;
-}
-
 /// Information about a single replacement that should be made to convert the
 /// "old" string to the "new" one.
 class SimpleDiff {
