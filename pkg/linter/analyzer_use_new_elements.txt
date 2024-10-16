@@ -99,7 +99,6 @@ lib/src/rules/null_closures.dart
 lib/src/rules/omit_obvious_local_variable_types.dart
 lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
-lib/src/rules/package_api_docs.dart
 lib/src/rules/package_prefixed_library_names.dart
 lib/src/rules/prefer_adjacent_string_concatenation.dart
 lib/src/rules/prefer_asserts_with_message.dart
@@ -324,7 +323,6 @@ test/rules/omit_obvious_local_variable_types_test.dart
 test/rules/one_member_abstracts_test.dart
 test/rules/only_throw_errors_test.dart
 test/rules/overridden_fields_test.dart
-test/rules/package_api_docs_test.dart
 test/rules/package_names_test.dart
 test/rules/package_prefixed_library_names_test.dart
 test/rules/parameter_assignments_test.dart

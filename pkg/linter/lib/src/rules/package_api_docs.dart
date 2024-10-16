@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 
@@ -14,76 +13,9 @@ class PackageApiDocs extends LintRule {
       : super(
           name: LintNames.package_api_docs,
           description: _desc,
+          state: State.deprecated(since: Version(3, 7, 0)),
         );
 
   @override
-  LintCode get lintCode => LinterLintCode.package_api_docs;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
-    registry.addConstructorDeclaration(this, visitor);
-    registry.addFieldDeclaration(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
-    registry.addClassDeclaration(this, visitor);
-    registry.addEnumDeclaration(this, visitor);
-    registry.addFunctionDeclaration(this, visitor);
-    registry.addTopLevelVariableDeclaration(this, visitor);
-    registry.addClassTypeAlias(this, visitor);
-    registry.addFunctionTypeAlias(this, visitor);
-  }
-}
-
-class _Visitor extends GeneralizingAstVisitor<void> {
-  final PackageApiDocs rule;
-
-  _Visitor(this.rule);
-
-  // ignore: prefer_expression_function_bodies
-  void check(Declaration node) {
-    // See: https://github.com/dart-lang/linter/issues/3395
-    // (`DartProject` removal).
-    return;
-
-    // // If no project info is set, bail early.
-    // // https://github.com/dart-lang/linter/issues/154
-    // var currentProject = rule.project;
-    // if (currentProject == null) {
-    //   return;
-    // }
-    //
-    // var declaredElement = node.declaredElement;
-    // if (declaredElement != null && currentProject.isApi(declaredElement)) {
-    //   if (node.documentationComment == null) {
-    //     rule.reportLint(getNodeToAnnotate(node));
-    //   }
-    // }
-  }
-
-  ///  classMember ::=
-  ///    [ConstructorDeclaration]
-  ///  | [FieldDeclaration]
-  ///  | [MethodDeclaration]
-  @override
-  void visitClassMember(ClassMember node) {
-    check(node);
-  }
-
-  ///  compilationUnitMember ::=
-  ///    [ClassDeclaration]
-  ///  | [EnumDeclaration]
-  ///  | [FunctionDeclaration]
-  ///  | [TopLevelVariableDeclaration]
-  ///  | [ClassTypeAlias]
-  ///  | [FunctionTypeAlias]
-  @override
-  void visitCompilationUnitMember(CompilationUnitMember node) {
-    check(node);
-  }
-
-  @override
-  void visitNode(AstNode node) {
-    // Don't visit children
-  }
+  LintCode get lintCode => LinterLintCode.removed_lint;
 }
