@@ -141,7 +141,7 @@ var x = B(a: A(), b: const [0]);
   Future<void> test_implicitConst_invalidConstant() async {
     await resolveTestCode('''
 class A {
-  const A(_, __);
+  const A(_, _);
 }
 
 void f(bool b) {
@@ -151,7 +151,7 @@ void f(bool b) {
 
     await assertHasFix('''
 class A {
-  const A(_, __);
+  const A(_, _);
 }
 
 void f(bool b) {
