@@ -15,7 +15,6 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
 class FixAllCommandHandler extends SimpleEditCommandHandler
     with LspHandlerHelperMixin {
@@ -101,14 +100,10 @@ class _FixAllOperation extends TemporaryOverlayOperation
   }) : super(server);
 
   Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
-    return await lockRequestsWithTemporaryOverlays(() async {
-      var result = await requireResolvedUnit(path);
-      return result.mapResult(_computeEditsImpl);
-    });
+    return await lockRequestsWithTemporaryOverlays(_computeEditsImpl);
   }
 
-  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl(
-      ResolvedUnitResult result) async {
+  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {
     if (cancellationToken.isCancellationRequested) {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
