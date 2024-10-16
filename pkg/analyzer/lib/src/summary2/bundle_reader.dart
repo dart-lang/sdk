@@ -1216,9 +1216,11 @@ class LibraryReader {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var fragmentName = _readFragmentName();
       var name = reference.elementName;
 
       var element = FunctionElementImpl(name, -1);
+      element.name2 = fragmentName;
 
       var linkedData = FunctionElementLinkedData(
         reference: reference,
@@ -1366,8 +1368,10 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var fragmentName = _readFragmentName();
       var name = reference.elementName;
       var element = MethodElementImpl(name, -1);
+      element.name2 = fragmentName;
       var linkedData = MethodElementLinkedData(
         reference: reference,
         libraryReader: this,
@@ -1564,9 +1568,11 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
+    var fragmentName = _readFragmentName();
     var name = reference.elementName;
 
     var element = PropertyAccessorElementImpl(name, -1);
+    element.name2 = fragmentName;
     PropertyAccessorElementFlags.read(_reader, element);
 
     var linkedData = PropertyAccessorElementLinkedData(

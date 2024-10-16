@@ -3584,21 +3584,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
-
-  @override
   List<ParameterElement> get parameters {
     linkedData?.read(this);
     return _parameters;
@@ -4766,6 +4751,9 @@ class FunctionElementImpl extends ExecutableElementImpl
         FunctionElement,
         FunctionTypedElementImpl,
         TopLevelFunctionFragment {
+  @override
+  FragmentNameImpl? name2;
+
   late final LocalFunctionElementImpl element2 = LocalFunctionElementImpl(this);
 
   /// The element corresponding to this fragment.
@@ -7895,6 +7883,9 @@ final class MetadataImpl implements Metadata {
 class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
     implements MethodElement, MethodFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -9386,6 +9377,9 @@ abstract class PromotableElementImpl2 extends VariableElementImpl2
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     with AugmentableElement<PropertyAccessorElementImpl>
     implements PropertyAccessorElement, GetterFragment, SetterFragment {
+  @override
+  FragmentNameImpl? name2;
+
   PropertyInducingElementImpl? _variable;
 
   /// The element corresponding to this fragment.

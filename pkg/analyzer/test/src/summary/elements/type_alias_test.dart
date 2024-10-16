@@ -2825,11 +2825,11 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
-            get f @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::A::@getter::f
               element: <testLibraryFragment>::@class::A::@getter::f#element
           setters
-            set f= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
               formalParameters
@@ -7276,7 +7276,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::A#element
           setter2: <testLibraryFragment>::@setter::A
       setters
-        set A= @19
+        set A @19
           reference: <testLibraryFragment>::@setter::A
           element: <testLibraryFragment>::@setter::A#element
           formalParameters

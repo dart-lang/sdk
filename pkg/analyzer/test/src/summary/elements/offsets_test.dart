@@ -1687,47 +1687,47 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
-            get withInit @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::withInit
               element: <testLibraryFragment>::@class::C::@getter::withInit#element
-            get withoutInit @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::withoutInit
               element: <testLibraryFragment>::@class::C::@getter::withoutInit#element
-            get multiWithInit @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::multiWithInit
               element: <testLibraryFragment>::@class::C::@getter::multiWithInit#element
-            get multiWithoutInit @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
               element: <testLibraryFragment>::@class::C::@getter::multiWithoutInit#element
-            get multiWithInit2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::multiWithInit2
               element: <testLibraryFragment>::@class::C::@getter::multiWithInit2#element
           setters
-            set withInit= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::withInit
               element: <testLibraryFragment>::@class::C::@setter::withInit#element
               formalParameters
                 _withInit @-1
                   element: <testLibraryFragment>::@class::C::@setter::withInit::@parameter::_withInit#element
-            set withoutInit= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::withoutInit
               element: <testLibraryFragment>::@class::C::@setter::withoutInit#element
               formalParameters
                 _withoutInit @-1
                   element: <testLibraryFragment>::@class::C::@setter::withoutInit::@parameter::_withoutInit#element
-            set multiWithInit= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit
               element: <testLibraryFragment>::@class::C::@setter::multiWithInit#element
               formalParameters
                 _multiWithInit @-1
                   element: <testLibraryFragment>::@class::C::@setter::multiWithInit::@parameter::_multiWithInit#element
-            set multiWithoutInit= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
               element: <testLibraryFragment>::@class::C::@setter::multiWithoutInit#element
               formalParameters
                 _multiWithoutInit @-1
                   element: <testLibraryFragment>::@class::C::@setter::multiWithoutInit::@parameter::_multiWithoutInit#element
-            set multiWithInit2= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit2
               element: <testLibraryFragment>::@class::C::@setter::multiWithInit2#element
               formalParameters
@@ -2199,92 +2199,92 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
-            get hasDocComment @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::hasDocComment
               element: <testLibraryFragment>::@class::C::@getter::hasDocComment#element
-            get hasDocComment2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::hasDocComment2
               element: <testLibraryFragment>::@class::C::@getter::hasDocComment2#element
-            get hasAnnotation @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation
               element: <testLibraryFragment>::@class::C::@getter::hasAnnotation#element
-            get hasAnnotation2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::hasAnnotation2
               element: <testLibraryFragment>::@class::C::@getter::hasAnnotation2#element
-            get annotationThenComment @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment
               element: <testLibraryFragment>::@class::C::@getter::annotationThenComment#element
-            get annotationThenComment2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::annotationThenComment2
               element: <testLibraryFragment>::@class::C::@getter::annotationThenComment2#element
-            get commentThenAnnotation @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation
               element: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation#element
-            get commentThenAnnotation2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2
               element: <testLibraryFragment>::@class::C::@getter::commentThenAnnotation2#element
-            get commentAroundAnnotation @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation
               element: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation#element
-            get commentAroundAnnotation2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
               element: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2#element
           setters
-            set hasDocComment= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment
               element: <testLibraryFragment>::@class::C::@setter::hasDocComment#element
               formalParameters
                 _hasDocComment @-1
                   element: <testLibraryFragment>::@class::C::@setter::hasDocComment::@parameter::_hasDocComment#element
-            set hasDocComment2= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment2
               element: <testLibraryFragment>::@class::C::@setter::hasDocComment2#element
               formalParameters
                 _hasDocComment2 @-1
                   element: <testLibraryFragment>::@class::C::@setter::hasDocComment2::@parameter::_hasDocComment2#element
-            set hasAnnotation= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation
               element: <testLibraryFragment>::@class::C::@setter::hasAnnotation#element
               formalParameters
                 _hasAnnotation @-1
                   element: <testLibraryFragment>::@class::C::@setter::hasAnnotation::@parameter::_hasAnnotation#element
-            set hasAnnotation2= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
               element: <testLibraryFragment>::@class::C::@setter::hasAnnotation2#element
               formalParameters
                 _hasAnnotation2 @-1
                   element: <testLibraryFragment>::@class::C::@setter::hasAnnotation2::@parameter::_hasAnnotation2#element
-            set annotationThenComment= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment
               element: <testLibraryFragment>::@class::C::@setter::annotationThenComment#element
               formalParameters
                 _annotationThenComment @-1
                   element: <testLibraryFragment>::@class::C::@setter::annotationThenComment::@parameter::_annotationThenComment#element
-            set annotationThenComment2= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
               element: <testLibraryFragment>::@class::C::@setter::annotationThenComment2#element
               formalParameters
                 _annotationThenComment2 @-1
                   element: <testLibraryFragment>::@class::C::@setter::annotationThenComment2::@parameter::_annotationThenComment2#element
-            set commentThenAnnotation= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
               element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation#element
               formalParameters
                 _commentThenAnnotation @-1
                   element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation::@parameter::_commentThenAnnotation#element
-            set commentThenAnnotation2= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
               element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2#element
               formalParameters
                 _commentThenAnnotation2 @-1
                   element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2::@parameter::_commentThenAnnotation2#element
-            set commentAroundAnnotation= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
               element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation#element
               formalParameters
                 _commentAroundAnnotation @-1
                   element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation::@parameter::_commentAroundAnnotation#element
-            set commentAroundAnnotation2= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
               element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2#element
               formalParameters
@@ -3386,47 +3386,47 @@ library
           getter2: <testLibraryFragment>::@getter::multiWithInit2
           setter2: <testLibraryFragment>::@setter::multiWithInit2
       getters
-        get withInit @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::withInit
           element: <testLibraryFragment>::@getter::withInit#element
-        get withoutInit @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::withoutInit
           element: <testLibraryFragment>::@getter::withoutInit#element
-        get multiWithInit @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::multiWithInit
           element: <testLibraryFragment>::@getter::multiWithInit#element
-        get multiWithoutInit @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::multiWithoutInit
           element: <testLibraryFragment>::@getter::multiWithoutInit#element
-        get multiWithInit2 @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::multiWithInit2
           element: <testLibraryFragment>::@getter::multiWithInit2#element
       setters
-        set withInit= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::withInit
           element: <testLibraryFragment>::@setter::withInit#element
           formalParameters
             _withInit @-1
               element: <testLibraryFragment>::@setter::withInit::@parameter::_withInit#element
-        set withoutInit= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::withoutInit
           element: <testLibraryFragment>::@setter::withoutInit#element
           formalParameters
             _withoutInit @-1
               element: <testLibraryFragment>::@setter::withoutInit::@parameter::_withoutInit#element
-        set multiWithInit= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::multiWithInit
           element: <testLibraryFragment>::@setter::multiWithInit#element
           formalParameters
             _multiWithInit @-1
               element: <testLibraryFragment>::@setter::multiWithInit::@parameter::_multiWithInit#element
-        set multiWithoutInit= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::multiWithoutInit
           element: <testLibraryFragment>::@setter::multiWithoutInit#element
           formalParameters
             _multiWithoutInit @-1
               element: <testLibraryFragment>::@setter::multiWithoutInit::@parameter::_multiWithoutInit#element
-        set multiWithInit2= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::multiWithInit2
           element: <testLibraryFragment>::@setter::multiWithInit2#element
           formalParameters
@@ -3984,92 +3984,92 @@ library
           getter2: <testLibraryFragment>::@getter::commentAroundAnnotation2
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation2
       getters
-        get hasDocComment @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::hasDocComment
           element: <testLibraryFragment>::@getter::hasDocComment#element
-        get hasDocComment2 @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::hasDocComment2
           element: <testLibraryFragment>::@getter::hasDocComment2#element
-        get hasAnnotation @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::hasAnnotation
           element: <testLibraryFragment>::@getter::hasAnnotation#element
-        get hasAnnotation2 @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::hasAnnotation2
           element: <testLibraryFragment>::@getter::hasAnnotation2#element
-        get annotationThenComment @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::annotationThenComment
           element: <testLibraryFragment>::@getter::annotationThenComment#element
-        get annotationThenComment2 @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::annotationThenComment2
           element: <testLibraryFragment>::@getter::annotationThenComment2#element
-        get commentThenAnnotation @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::commentThenAnnotation
           element: <testLibraryFragment>::@getter::commentThenAnnotation#element
-        get commentThenAnnotation2 @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::commentThenAnnotation2
           element: <testLibraryFragment>::@getter::commentThenAnnotation2#element
-        get commentAroundAnnotation @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::commentAroundAnnotation
           element: <testLibraryFragment>::@getter::commentAroundAnnotation#element
-        get commentAroundAnnotation2 @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::commentAroundAnnotation2
           element: <testLibraryFragment>::@getter::commentAroundAnnotation2#element
       setters
-        set hasDocComment= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::hasDocComment
           element: <testLibraryFragment>::@setter::hasDocComment#element
           formalParameters
             _hasDocComment @-1
               element: <testLibraryFragment>::@setter::hasDocComment::@parameter::_hasDocComment#element
-        set hasDocComment2= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::hasDocComment2
           element: <testLibraryFragment>::@setter::hasDocComment2#element
           formalParameters
             _hasDocComment2 @-1
               element: <testLibraryFragment>::@setter::hasDocComment2::@parameter::_hasDocComment2#element
-        set hasAnnotation= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::hasAnnotation
           element: <testLibraryFragment>::@setter::hasAnnotation#element
           formalParameters
             _hasAnnotation @-1
               element: <testLibraryFragment>::@setter::hasAnnotation::@parameter::_hasAnnotation#element
-        set hasAnnotation2= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::hasAnnotation2
           element: <testLibraryFragment>::@setter::hasAnnotation2#element
           formalParameters
             _hasAnnotation2 @-1
               element: <testLibraryFragment>::@setter::hasAnnotation2::@parameter::_hasAnnotation2#element
-        set annotationThenComment= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::annotationThenComment
           element: <testLibraryFragment>::@setter::annotationThenComment#element
           formalParameters
             _annotationThenComment @-1
               element: <testLibraryFragment>::@setter::annotationThenComment::@parameter::_annotationThenComment#element
-        set annotationThenComment2= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::annotationThenComment2
           element: <testLibraryFragment>::@setter::annotationThenComment2#element
           formalParameters
             _annotationThenComment2 @-1
               element: <testLibraryFragment>::@setter::annotationThenComment2::@parameter::_annotationThenComment2#element
-        set commentThenAnnotation= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::commentThenAnnotation
           element: <testLibraryFragment>::@setter::commentThenAnnotation#element
           formalParameters
             _commentThenAnnotation @-1
               element: <testLibraryFragment>::@setter::commentThenAnnotation::@parameter::_commentThenAnnotation#element
-        set commentThenAnnotation2= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::commentThenAnnotation2
           element: <testLibraryFragment>::@setter::commentThenAnnotation2#element
           formalParameters
             _commentThenAnnotation2 @-1
               element: <testLibraryFragment>::@setter::commentThenAnnotation2::@parameter::_commentThenAnnotation2#element
-        set commentAroundAnnotation= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation
           element: <testLibraryFragment>::@setter::commentAroundAnnotation#element
           formalParameters
             _commentAroundAnnotation @-1
               element: <testLibraryFragment>::@setter::commentAroundAnnotation::@parameter::_commentAroundAnnotation#element
-        set commentAroundAnnotation2= @-1
+        set <null-name>
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation2
           element: <testLibraryFragment>::@setter::commentAroundAnnotation2#element
           formalParameters
@@ -4558,11 +4558,11 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::A::@setter::foo
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               formalParameters
@@ -4790,7 +4790,7 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           setters
-            set foo= @16
+            set foo @16
               reference: <testLibraryFragment>::@class::A::@setter::foo
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               formalParameters

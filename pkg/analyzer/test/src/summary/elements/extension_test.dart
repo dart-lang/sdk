@@ -102,7 +102,7 @@ library
               element: <testLibraryFragment>::@extension::E::@field::x#element
               getter2: <testLibraryFragment>::@extension::E::@getter::x
           getters
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::E::@getter::x
               element: <testLibraryFragment>::@extension::E::@getter::x#element
   extensions
@@ -321,7 +321,7 @@ library
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::E::@getter::foo
               element: <testLibraryFragment>::@extension::E::@getter::foo#element
           methods
@@ -344,7 +344,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   extensions
@@ -482,7 +482,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
@@ -620,7 +620,7 @@ library
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               setter2: <testLibraryFragment>::@extension::E::@setter::foo
           setters
-            set foo= @27
+            set foo @27
               reference: <testLibraryFragment>::@extension::E::@setter::foo
               element: <testLibraryFragment>::@extension::E::@setter::foo#element
               formalParameters
@@ -994,11 +994,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1171,11 +1171,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1364,12 +1364,12 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1560,11 +1560,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1582,7 +1582,7 @@ library
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           setters
-            augment set foo= @64
+            augment set foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1726,11 +1726,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -2013,11 +2013,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
           getters
-            get foo1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
               element: <testLibraryFragment>::@extension::A::@getter::foo1#element
           setters
-            set foo1= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               formalParameters
@@ -2038,11 +2038,11 @@ library
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
           getters
-            get foo2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
           setters
-            set foo2= @-1
+            set <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
               formalParameters
@@ -2473,12 +2473,12 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -2650,12 +2650,12 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -3807,7 +3807,7 @@ library
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
           setters
-            set foo1= @42
+            set foo1 @42
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               formalParameters
@@ -3827,7 +3827,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
           setters
-            set foo2= @49
+            set foo2 @49
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
               formalParameters
@@ -3964,11 +3964,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -3984,7 +3984,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           previousFragment: <testLibraryFragment>::@extension::A
           setters
-            augment set foo= @64
+            augment set foo @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -4129,14 +4129,14 @@ library
               element: <testLibraryFragment>::@extension::A::@field::foo2#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo2
           setters
-            set foo1= @42
+            set foo1 @42
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               formalParameters
                 _ @51
                   element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-            set foo2= @63
+            set foo2 @63
               reference: <testLibraryFragment>::@extension::A::@setter::foo2
               element: <testLibraryFragment>::@extension::A::@setter::foo2#element
               formalParameters
@@ -4151,7 +4151,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           previousFragment: <testLibraryFragment>::@extension::A
           setters
-            augment set foo1= @57
+            augment set foo1 @57
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               formalParameters

@@ -737,6 +737,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var functionExpression = node.functionExpression;
     var body = functionExpression.body;
@@ -745,6 +746,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ExecutableElementImpl executableElement;
     if (node.isGetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.name2 = fragmentName;
       element.isAugmentation = node.augmentKeyword != null;
       element.isGetter = true;
       element.isStatic = true;
@@ -759,6 +761,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.topVariables.addAccessor(element);
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.name2 = fragmentName;
       element.isAugmentation = node.augmentKeyword != null;
       element.isSetter = true;
       element.isStatic = true;
@@ -773,6 +776,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.topVariables.addAccessor(element);
     } else {
       var element = FunctionElementImpl(name, nameOffset);
+      element.name2 = fragmentName;
       element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = true;
       reference = _enclosingContext.addFunction(name, element);
@@ -975,11 +979,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var nameOffset = nameToken.offset;
+    var fragmentName = _buildFragmentName(nameToken);
 
     Reference reference;
     ExecutableElementImpl executableElement;
     if (node.isGetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.name2 = fragmentName;
       element.isAbstract = node.isAbstract;
       element.isAugmentation = node.augmentKeyword != null;
       element.isGetter = true;
@@ -999,6 +1005,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _buildSyntheticVariable(name: name, accessorElement: element);
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.name2 = fragmentName;
       element.isAbstract = node.isAbstract;
       element.isAugmentation = node.augmentKeyword != null;
       element.isSetter = true;
@@ -1017,6 +1024,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       var element = MethodElementImpl(name, nameOffset);
+      element.name2 = fragmentName;
       element.isAbstract = node.isAbstract;
       element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = node.isStatic;

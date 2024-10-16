@@ -80,7 +80,7 @@ library
                 this.it @27
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -179,7 +179,7 @@ library
                 this.it @27
                   element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -282,7 +282,7 @@ library
                 this.it @42
                   element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -390,7 +390,7 @@ library
                 this.it @46
                   element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -523,7 +523,7 @@ library
                     element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
                     staticType: int
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -623,7 +623,7 @@ library
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -710,7 +710,7 @@ library
                 this.it @30
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -800,10 +800,10 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
@@ -892,10 +892,10 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
@@ -980,10 +980,10 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
@@ -1090,7 +1090,7 @@ library
                 this.it @43
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -1174,7 +1174,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @37
@@ -1276,7 +1276,7 @@ library
               element: <testLibraryFragment>::@extensionType::X::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
               element: <testLibraryFragment>::@extensionType::X::@getter::it#element
   classes
@@ -1368,7 +1368,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @56
@@ -1380,7 +1380,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -1457,7 +1457,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -1540,7 +1540,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @43
@@ -1552,7 +1552,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -1629,7 +1629,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -1693,7 +1693,7 @@ library
               element: <testLibraryFragment>::@extensionType::X::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
               element: <testLibraryFragment>::@extensionType::X::@getter::it#element
   extensionTypes
@@ -1763,7 +1763,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -1836,7 +1836,7 @@ library
               element: <testLibraryFragment>::@extensionType::X::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::X::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::X::@getter::it
               element: <testLibraryFragment>::@extensionType::X::@getter::it#element
       typeAliases
@@ -2051,7 +2051,7 @@ library
                 this.it @43
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -2131,7 +2131,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -2223,7 +2223,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -2302,7 +2302,7 @@ library
               element: <testLibraryFragment>::@extensionType::0::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::0::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::0::@getter::it
               element: <testLibraryFragment>::@extensionType::0::@getter::it#element
   extensionTypes
@@ -2391,7 +2391,7 @@ library
                 this.<empty> @17
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::<empty>#element
           getters
-            get <empty> @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>
               element: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element
   extensionTypes
@@ -2468,7 +2468,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -2552,11 +2552,11 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               setter2: <testLibraryFragment>::@extensionType::A::@setter::foo
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           setters
-            set foo= @33
+            set foo @33
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -2651,7 +2651,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @42
@@ -2663,7 +2663,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -2756,7 +2756,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @42
@@ -2768,7 +2768,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -2843,7 +2843,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -2925,7 +2925,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @44
@@ -2937,7 +2937,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -3036,7 +3036,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @45
@@ -3048,7 +3048,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -3143,7 +3143,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @44
@@ -3155,7 +3155,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
@@ -3230,7 +3230,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -3319,7 +3319,7 @@ library
                 this.it @45
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
@@ -3463,7 +3463,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3632,7 +3632,7 @@ library
                 this.it @65
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it#element
           methods
@@ -3776,7 +3776,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -3929,7 +3929,7 @@ library
                 this.it @40
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -4081,7 +4081,7 @@ library
                 this.it @42
                   element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -4259,14 +4259,14 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -4489,14 +4489,14 @@ library
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -4735,15 +4735,15 @@ library
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -4984,14 +4984,14 @@ library
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -5009,7 +5009,7 @@ library
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           setters
-            augment set foo= @77
+            augment set foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -5203,14 +5203,14 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -5392,7 +5392,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @59
@@ -5596,14 +5596,14 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo1
               element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
           setters
-            set foo1= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               formalParameters
@@ -5624,11 +5624,11 @@ library
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
           getters
-            get foo2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
           setters
-            set foo2= @-1
+            set <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               formalParameters
@@ -5813,7 +5813,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @52
@@ -6015,7 +6015,7 @@ library
                 this.it @40
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @55
@@ -6215,15 +6215,15 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -6445,15 +6445,15 @@ library
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -6667,7 +6667,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo1 @52
@@ -6879,7 +6879,7 @@ library
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
             get foo @67
@@ -7057,7 +7057,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @72
@@ -7069,7 +7069,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::I1::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -7089,7 +7089,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
@@ -7323,7 +7323,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @72
@@ -7342,7 +7342,7 @@ library
                 this.it @79
                   element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -7371,7 +7371,7 @@ library
                 this.it @108
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -7398,7 +7398,7 @@ library
                 this.it @90
                   element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it#element
   extensionTypes
@@ -7632,7 +7632,7 @@ library
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @75
@@ -7651,7 +7651,7 @@ library
                 this.it @82
                   element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -7684,7 +7684,7 @@ library
                 this.it @104
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
@@ -7906,7 +7906,7 @@ library
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @75
@@ -7925,7 +7925,7 @@ library
                 this.it @82
                   element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::I1::@getter::it
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -7960,7 +7960,7 @@ library
                 this.it @108
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
@@ -8129,7 +8129,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -8288,7 +8288,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -8474,7 +8474,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -8653,7 +8653,7 @@ library
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -8822,7 +8822,7 @@ library
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -8991,7 +8991,7 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           methods
@@ -9183,11 +9183,11 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           setters
-            set foo1= @48
+            set foo1 @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               formalParameters
@@ -9207,7 +9207,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
           setters
-            set foo2= @62
+            set foo2 @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               formalParameters
@@ -9395,14 +9395,14 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::foo
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -9418,7 +9418,7 @@ library
           element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           setters
-            augment set foo= @77
+            augment set foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
@@ -9613,18 +9613,18 @@ library
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
           setters
-            set foo1= @48
+            set foo1 @48
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               formalParameters
                 _ @57
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
-            set foo2= @69
+            set foo2 @69
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo2
               element: <testLibraryFragment>::@extensionType::A::@setter::foo2#element
               formalParameters
@@ -9639,7 +9639,7 @@ library
           element: <testLibraryFragment>::@extensionType::A#element
           previousFragment: <testLibraryFragment>::@extensionType::A
           setters
-            augment set foo1= @70
+            augment set foo1 @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               formalParameters
@@ -9774,7 +9774,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -9907,7 +9907,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart

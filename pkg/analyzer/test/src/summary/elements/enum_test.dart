@@ -183,16 +183,16 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get aaa @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::aaa
               element: <testLibraryFragment>::@enum::E::@getter::aaa#element
-            get bbb @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::bbb
               element: <testLibraryFragment>::@enum::E::@getter::bbb#element
-            get ccc @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::ccc
               element: <testLibraryFragment>::@enum::E::@getter::ccc#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -377,13 +377,13 @@ library
                 a @47
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
-            get int @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::int
               element: <testLibraryFragment>::@enum::E::@getter::int#element
-            get string @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::string
               element: <testLibraryFragment>::@enum::E::@getter::string#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -512,10 +512,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get _name @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::_name
               element: <testLibraryFragment>::@enum::E::@getter::_name#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -660,10 +660,10 @@ library
                 a @41
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -785,10 +785,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get _ @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::_
               element: <testLibraryFragment>::@enum::E::@getter::_#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -916,10 +916,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -1039,10 +1039,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -1183,13 +1183,13 @@ library
                 this.x @44
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x
               element: <testLibraryFragment>::@enum::E::@getter::x#element
   enums
@@ -1353,16 +1353,16 @@ library
                 this.x @62
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x::@def::0
               element: <testLibraryFragment>::@enum::E::@getter::x::@def::0#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x::@def::1
               element: <testLibraryFragment>::@enum::E::@getter::x::@def::1#element
   enums
@@ -1502,10 +1502,10 @@ library
                 this.x @29
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -1661,13 +1661,13 @@ library
                   reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x
               element: <testLibraryFragment>::@enum::E::@getter::x#element
   enums
@@ -1815,13 +1815,13 @@ library
                 this.x @48
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x
               element: <testLibraryFragment>::@enum::E::@getter::x#element
   enums
@@ -1968,13 +1968,13 @@ library
                 this.x @38
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x
               element: <testLibraryFragment>::@enum::E::@getter::x#element
   enums
@@ -2121,13 +2121,13 @@ library
                 this.x @34
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x
               element: <testLibraryFragment>::@enum::E::@getter::x#element
   enums
@@ -2274,10 +2274,10 @@ library
                 a @44
                   element: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -2408,10 +2408,10 @@ library
                 a @32
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -2615,13 +2615,13 @@ library
                     literal: 0 @70
                     staticType: int
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::x
               element: <testLibraryFragment>::@enum::E::@getter::x#element
   enums
@@ -2751,10 +2751,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -2890,13 +2890,13 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::foo
               element: <testLibraryFragment>::@enum::E::@getter::foo#element
   enums
@@ -3109,10 +3109,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
             get foo @23
@@ -3257,10 +3257,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
@@ -3388,10 +3388,10 @@ library
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       extensionTypes
@@ -3404,7 +3404,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   classes
@@ -3568,10 +3568,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
@@ -3733,10 +3733,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
@@ -3886,10 +3886,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
           methods
@@ -4036,10 +4036,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
           methods
@@ -4161,10 +4161,10 @@ library
               reference: <testLibraryFragment>::@enum::0::@constructor::new
               element: <testLibraryFragment>::@enum::0::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::0::@getter::v
               element: <testLibraryFragment>::@enum::0::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::0::@getter::values
               element: <testLibraryFragment>::@enum::0::@getter::values#element
   enums
@@ -4290,10 +4290,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       mixins
@@ -4424,10 +4424,10 @@ library
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       extensionTypes
@@ -4440,7 +4440,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   classes
@@ -4593,10 +4593,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       mixins
@@ -4755,14 +4755,14 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
           setters
-            set foo= @19
+            set foo @19
               reference: <testLibraryFragment>::@enum::E::@setter::foo
               element: <testLibraryFragment>::@enum::E::@setter::foo#element
               formalParameters
@@ -4900,10 +4900,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5036,10 +5036,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5133,7 +5133,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5229,7 +5229,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5319,7 +5319,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5404,7 +5404,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5488,7 +5488,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5572,7 +5572,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5664,7 +5664,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -5817,13 +5817,13 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get a @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::a
               element: <testLibraryFragment>::@enum::E::@getter::a#element
-            get b @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::b
               element: <testLibraryFragment>::@enum::E::@getter::b#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -6024,13 +6024,13 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get a @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::a
               element: <testLibraryFragment>::@enum::E::@getter::a#element
-            get b @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::b
               element: <testLibraryFragment>::@enum::E::@getter::b#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
@@ -6039,7 +6039,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::annotation#element
           getter2: <testLibraryFragment>::@getter::annotation
       getters
-        get annotation @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::annotation
           element: <testLibraryFragment>::@getter::annotation#element
   enums
@@ -6198,13 +6198,13 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v1
               element: <testLibraryFragment>::@enum::E::@getter::v1#element
-            get v2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v2
               element: <testLibraryFragment>::@enum::E::@getter::v2#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -6375,10 +6375,10 @@ library
               reference: <testLibraryFragment>::@enum::E1::@constructor::new
               element: <testLibraryFragment>::@enum::E1::@constructor::new#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E1::@getter::v1
               element: <testLibraryFragment>::@enum::E1::@getter::v1#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E1::@getter::values
               element: <testLibraryFragment>::@enum::E1::@getter::values#element
         enum E2 @20
@@ -6398,10 +6398,10 @@ library
               reference: <testLibraryFragment>::@enum::E2::@constructor::new
               element: <testLibraryFragment>::@enum::E2::@constructor::new#element
           getters
-            get v2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E2::@getter::v2
               element: <testLibraryFragment>::@enum::E2::@getter::v2#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E2::@getter::values
               element: <testLibraryFragment>::@enum::E2::@getter::values#element
   enums
@@ -6739,16 +6739,16 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get a @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::a
               element: <testLibraryFragment>::@enum::E::@getter::a#element
-            get b @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::b
               element: <testLibraryFragment>::@enum::E::@getter::b#element
-            get c @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::c
               element: <testLibraryFragment>::@enum::E::@getter::c#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
@@ -6935,10 +6935,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
@@ -6947,7 +6947,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   enums
@@ -7190,7 +7190,7 @@ library
                 this.value @48
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::value#element
           getters
-            get value @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::A::@getter::value
               element: <testLibraryFragment>::@class::A::@getter::value#element
       enums
@@ -7219,16 +7219,16 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get a @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::a
               element: <testLibraryFragment>::@enum::E::@getter::a#element
-            get b @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::b
               element: <testLibraryFragment>::@enum::E::@getter::b#element
-            get c @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::c
               element: <testLibraryFragment>::@enum::E::@getter::c#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
@@ -7385,10 +7385,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -7543,10 +7543,10 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
@@ -7555,7 +7555,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   enums
@@ -7723,10 +7723,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
           methods
@@ -7749,7 +7749,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   enums
@@ -7978,13 +7978,13 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::foo
               element: <testLibraryFragment>::@enum::E::@getter::foo#element
           methods
@@ -8007,7 +8007,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   enums
@@ -8207,10 +8207,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
@@ -8219,7 +8219,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   enums
@@ -8377,10 +8377,10 @@ library
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
@@ -8389,7 +8389,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        get <null-name>
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   enums
@@ -8547,10 +8547,10 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values#element
           methods
@@ -8794,10 +8794,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a1.dart
@@ -9028,7 +9028,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values#element
           methods
@@ -9053,10 +9053,10 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values#element
           methods
@@ -9235,7 +9235,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructor::new#element
           getters
-            get values @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values#element
           methods
@@ -9450,10 +9450,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v1
               element: <testLibraryFragment>::@enum::A::@getter::v1#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -9470,7 +9470,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
           getters
-            get v2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2#element
   enums
@@ -9734,10 +9734,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v1
               element: <testLibraryFragment>::@enum::A::@getter::v1#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -9756,7 +9756,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
           getters
-            get v2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -9773,7 +9773,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3#element
               getter2: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
           getters
-            get v3 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3#element
   enums
@@ -10008,10 +10008,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v1
               element: <testLibraryFragment>::@enum::A::@getter::v1#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -10033,7 +10033,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
           getters
-            get v2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2#element
   enums
@@ -10304,16 +10304,16 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v1
               element: <testLibraryFragment>::@enum::A::@getter::v1#element
-            get v2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v2
               element: <testLibraryFragment>::@enum::A::@getter::v2#element
-            get v3 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v3
               element: <testLibraryFragment>::@enum::A::@getter::v3#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -10583,13 +10583,13 @@ library
                 value @54
                   element: <testLibraryFragment>::@enum::A::@constructor::new::@parameter::value#element
           getters
-            get v1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v1
               element: <testLibraryFragment>::@enum::A::@getter::v1#element
-            get v2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v2
               element: <testLibraryFragment>::@enum::A::@getter::v2#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -10765,13 +10765,13 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get v2 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v2
               element: <testLibraryFragment>::@enum::A::@getter::v2#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -10917,10 +10917,10 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -11076,10 +11076,10 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -11242,10 +11242,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -11387,10 +11387,10 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -11542,10 +11542,10 @@ library
               periodOffset: 38
               nameEnd: 44
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -11706,13 +11706,13 @@ library
               element: <testLibraryFragment>::@enum::A::@field::f#element
               getter2: <testLibraryFragment>::@enum::A::@getter::f
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get f @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::f
               element: <testLibraryFragment>::@enum::A::@getter::f#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -11892,13 +11892,13 @@ library
               element: <testLibraryFragment>::@enum::A::@field::f#element
               getter2: <testLibraryFragment>::@enum::A::@getter::f
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get f @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::f
               element: <testLibraryFragment>::@enum::A::@getter::f#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -12099,13 +12099,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -12324,13 +12324,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -12565,13 +12565,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
@@ -12809,13 +12809,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -12829,7 +12829,7 @@ library
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           setters
-            augment set foo= @53
+            augment set foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
               formalParameters
@@ -13027,13 +13027,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -13247,13 +13247,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -13443,10 +13443,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
             get foo @39
@@ -13645,13 +13645,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
               element: <testLibraryFragment>::@enum::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -13668,7 +13668,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
           getters
-            get foo2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2#element
   enums
@@ -13868,13 +13868,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo1
               element: <testLibraryFragment>::@enum::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -13894,7 +13894,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
           getters
-            get foo2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2#element
   enums
@@ -14058,10 +14058,10 @@ library
                 this.foo @47
                   element: <testLibraryFragment>::@enum::A::@constructor::new::@parameter::foo#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -14078,7 +14078,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo#element
   enums
@@ -14252,10 +14252,10 @@ library
                     literal: 0 @49
                     staticType: int
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -14272,7 +14272,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo#element
   enums
@@ -14453,10 +14453,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
             get foo1 @39
@@ -14676,10 +14676,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
             get foo1 @49
@@ -14885,13 +14885,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
@@ -15110,13 +15110,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
@@ -15339,10 +15339,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
             get foo1 @39
@@ -15551,10 +15551,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
             get foo @39
@@ -15780,10 +15780,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
             get foo @54
@@ -15961,10 +15961,10 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -16136,10 +16136,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -16358,10 +16358,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -16584,10 +16584,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -16798,10 +16798,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -16984,10 +16984,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -17176,10 +17176,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -17351,10 +17351,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -17532,10 +17532,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -17721,10 +17721,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -17929,10 +17929,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -18124,10 +18124,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -18309,10 +18309,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           methods
@@ -18487,10 +18487,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
       mixins
@@ -18714,10 +18714,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
       mixins
@@ -18964,14 +18964,14 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           setters
-            set foo1= @35
+            set foo1 @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
               formalParameters
@@ -18991,7 +18991,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
           setters
-            set foo2= @45
+            set foo2 @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setter::foo2#element
               formalParameters
@@ -19185,13 +19185,13 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::foo
               element: <testLibraryFragment>::@enum::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -19203,7 +19203,7 @@ library
           element: <testLibraryFragment>::@enum::A#element
           previousFragment: <testLibraryFragment>::@enum::A
           setters
-            augment set foo= @53
+            augment set foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
               formalParameters
@@ -19369,10 +19369,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -19384,7 +19384,7 @@ library
           element: <testLibraryFragment>::@enum::A#element
           previousFragment: <testLibraryFragment>::@enum::A
           setters
-            augment set foo= @53
+            augment set foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo#element
               formalParameters
@@ -19589,21 +19589,21 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
           setters
-            set foo1= @35
+            set foo1 @35
               reference: <testLibraryFragment>::@enum::A::@setter::foo1
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
               formalParameters
                 _ @44
                   element: <testLibraryFragment>::@enum::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
-            set foo2= @56
+            set foo2 @56
               reference: <testLibraryFragment>::@enum::A::@setter::foo2
               element: <testLibraryFragment>::@enum::A::@setter::foo2#element
               formalParameters
@@ -19618,7 +19618,7 @@ library
           element: <testLibraryFragment>::@enum::A#element
           previousFragment: <testLibraryFragment>::@enum::A
           setters
-            augment set foo1= @53
+            augment set foo1 @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
               element: <testLibraryFragment>::@enum::A::@setter::foo1#element
               formalParameters
@@ -19769,10 +19769,10 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -19928,10 +19928,10 @@ library
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -20120,10 +20120,10 @@ library
               nameEnd: 67
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -20330,10 +20330,10 @@ library
               nameEnd: 52
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -20510,10 +20510,10 @@ library
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -20686,10 +20686,10 @@ library
               reference: <testLibraryFragment>::@enum::B::@constructor::new
               element: <testLibraryFragment>::@enum::B::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::B::@getter::v
               element: <testLibraryFragment>::@enum::B::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::B::@getter::values
               element: <testLibraryFragment>::@enum::B::@getter::values#element
     <testLibrary>::@fragment::package:test/b.dart
@@ -20864,10 +20864,10 @@ library
               reference: <testLibraryFragment>::@enum::B::@constructor::new
               element: <testLibraryFragment>::@enum::B::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::B::@getter::v
               element: <testLibraryFragment>::@enum::B::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::B::@getter::values
               element: <testLibraryFragment>::@enum::B::@getter::values#element
           methods
@@ -21044,10 +21044,10 @@ library
               reference: <testLibraryFragment>::@enum::B::@constructor::new
               element: <testLibraryFragment>::@enum::B::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::B::@getter::v
               element: <testLibraryFragment>::@enum::B::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::B::@getter::values
               element: <testLibraryFragment>::@enum::B::@getter::values#element
           methods
@@ -21226,10 +21226,10 @@ library
               reference: <testLibraryFragment>::@enum::A::@constructor::new
               element: <testLibraryFragment>::@enum::A::@constructor::new#element
           getters
-            get v @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::v
               element: <testLibraryFragment>::@enum::A::@getter::v#element
-            get values @-1
+            get <null-name>
               reference: <testLibraryFragment>::@enum::A::@getter::values
               element: <testLibraryFragment>::@enum::A::@getter::values#element
     <testLibrary>::@fragment::package:test/a.dart

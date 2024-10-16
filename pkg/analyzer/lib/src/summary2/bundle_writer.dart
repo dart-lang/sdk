@@ -448,6 +448,7 @@ class BundleWriter {
   void _writeFunctionElement(FunctionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -520,6 +521,7 @@ class BundleWriter {
   void _writeMethodElement(MethodElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -650,6 +652,7 @@ class BundleWriter {
   void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     PropertyAccessorElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
