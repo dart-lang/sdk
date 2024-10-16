@@ -109,7 +109,6 @@ import 'package:analysis_server/src/services/correction/dart/import_library.dart
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_body.dart';
-import 'package:analysis_server/src/services/correction/dart/insert_on_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_semicolon.dart';
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_conditional_on_debug_mode.dart';
@@ -387,7 +386,6 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
   LinterLintCode.omit_local_variable_types: [ReplaceWithVar.new],
   LinterLintCode.omit_obvious_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_property_types: [ReplaceWithVar.new],
   LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
   LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
@@ -470,9 +468,6 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.specify_nonobvious_local_variable_types: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LinterLintCode.specify_nonobvious_property_types: [
-    AddTypeAnnotation.bulkFixable,
-  ],
   LinterLintCode.strict_top_level_inference_add_type: [AddReturnType.new],
   LinterLintCode.type_annotate_public_apis: [AddTypeAnnotation.bulkFixable],
   LinterLintCode.type_init_formals: [RemoveTypeAnnotation.other],
@@ -545,18 +540,13 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
 };
 
 final _builtInNonLintMultiProducers = {
-  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [
-    ImportAddHide.new,
-  ],
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO: [
     AddExtensionOverride.new,
   ],
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
     AddExtensionOverride.new,
   ],
-  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [
-    AmbiguousImportFix.new,
-  ],
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [ImportAddHide.new],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
   CompileTimeErrorCode.CAST_TO_NON_TYPE: [
     DataDriven.new,
@@ -1177,11 +1167,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY: [InsertBody.new],
   ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY: [InsertBody.new],
   ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_TOKEN: [
-    InsertSemicolon.new,
-    ReplaceWithArrow.new,
-    InsertOnKeyword.new,
-  ],
+  ParserErrorCode.EXPECTED_TOKEN: [InsertSemicolon.new, ReplaceWithArrow.new],
   ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE: [RemoveOnClause.new],
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [RemoveConstructor.new],
   ParserErrorCode.EXTERNAL_CLASS: [RemoveLexeme.modifier],
