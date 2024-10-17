@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -36,17 +36,17 @@ class UseEnums extends LintRule {
 /// A superclass for the [_EnumVisitor] and [_NonEnumVisitor].
 class _BaseVisitor extends RecursiveAstVisitor<void> {
   /// The element representing the enum declaration that's being visited.
-  final ClassElement classElement;
+  final ClassElement2 classElement;
 
   _BaseVisitor(this.classElement);
 
   /// Return `true` if the given [node] is an invocation of a generative
   /// constructor from the class being converted.
   bool invokesGenerativeConstructor(InstanceCreationExpression node) {
-    var constructorElement = node.constructorName.staticElement;
+    var constructorElement = node.constructorName.element;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement3 == classElement;
+        constructorElement.enclosingElement2 == classElement;
   }
 }
 
@@ -101,18 +101,18 @@ class _NonEnumVisitor extends _BaseVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element == null) {
       throw _InvalidEnumException();
     }
     if (element != classElement) {
-      if (element.supertype?.element == classElement) {
+      if (element.supertype?.element3 == classElement) {
         throw _InvalidEnumException();
       } else if (element.interfaces
-          .map((e) => e.element)
+          .map((e) => e.element3)
           .contains(classElement)) {
         throw _InvalidEnumException();
-      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element3).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.
@@ -143,7 +143,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isAugmentation) return;
 
     if (node.abstractKeyword != null) return;
-    var classElement = node.declaredElement;
+    var classElement = node.declaredFragment?.element;
     if (classElement == null) return;
 
     // Enums can only extend Object.
@@ -162,23 +162,23 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member is FieldDeclaration) {
         if (!member.isStatic) continue;
         for (var field in member.fields.variables) {
-          var fieldElement = field.declaredElement;
-          if (fieldElement is! FieldElement) continue;
+          var fieldElement = field.declaredFragment?.element;
+          if (fieldElement is! FieldElement2) continue;
           if (field.isSynthetic || !field.isConst) continue;
           var initializer = field.initializer;
           if (initializer is! InstanceCreationExpression) continue;
 
-          var constructorElement = initializer.constructorName.staticElement;
+          var constructorElement = initializer.constructorName.element;
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
-          if (constructorElement.enclosingElement3 != classElement) continue;
+          if (constructorElement.enclosingElement2 != classElement) continue;
           if (fieldElement.computeConstantValue() == null) continue;
 
           candidateConstants.add(field);
         }
       }
       if (member is ConstructorDeclaration) {
-        var constructor = member.declaredElement;
+        var constructor = member.declaredFragment?.element;
         if (constructor == null) return;
         if (!constructor.isFactory && !constructor.isConst) return;
         var name = member.name?.lexeme;
