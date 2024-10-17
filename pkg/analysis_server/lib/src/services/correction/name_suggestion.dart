@@ -68,7 +68,9 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
       _addSingleCharacterName(excluded, res, 0x73);
     } else if (expectedType is InterfaceType) {
       var className = expectedType.element3.name;
-      _addAll(excluded, res, getCamelWordCombinations(className));
+      if (className != null) {
+        _addAll(excluded, res, getCamelWordCombinations(className));
+      }
     }
   }
   // done

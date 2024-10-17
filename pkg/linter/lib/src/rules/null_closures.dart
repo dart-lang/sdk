@@ -233,13 +233,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = type.element3;
     if (element.isSynthetic) return null;
 
-    var method = getMethod(element.library2.name, element.name);
+    var elementName = element.name;
+    if (elementName == null) {
+      return null;
+    }
+
+    var method = getMethod(element.library2.name, elementName);
     if (method != null) return method;
 
     for (var supertype in element.allSupertypes) {
       var superElement = supertype.element3;
-      method = getMethod(superElement.library2.name, superElement.name);
-      if (method != null) return method;
+      if (superElement.name case var superElementName?) {
+        method = getMethod(superElement.library2.name, superElementName);
+        if (method != null) return method;
+      }
     }
     return null;
   }

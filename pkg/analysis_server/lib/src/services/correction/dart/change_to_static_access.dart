@@ -53,12 +53,15 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
     var declaringElement = invokedElement.enclosingElement2;
 
     if (declaringElement is InterfaceElement2) {
-      _className = declaringElement.name;
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addReplacement(range.node(target_final), (builder) {
-          builder.writeReference2(declaringElement);
+      var declaringElementName = declaringElement.name;
+      if (declaringElementName != null) {
+        _className = declaringElementName;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addReplacement(range.node(target_final), (builder) {
+            builder.writeReference2(declaringElement);
+          });
         });
-      });
+      }
     } else if (declaringElement is ExtensionElement2) {
       var extensionName = declaringElement.name;
       if (extensionName != null) {

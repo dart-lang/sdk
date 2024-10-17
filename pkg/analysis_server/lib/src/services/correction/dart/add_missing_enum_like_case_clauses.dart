@@ -35,6 +35,10 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       }
       var classElement = expressionType.element3;
       var className = classElement.name;
+      if (className == null) {
+        return;
+      }
+
       var caseNames = _caseNames(node);
       var missingNames = _constantNames(classElement)
         ..removeWhere((e) => caseNames.contains(e));

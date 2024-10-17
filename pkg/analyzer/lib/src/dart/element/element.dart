@@ -166,9 +166,6 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   List<ConstructorElement> constructors = [];
-
-  @override
-  String get name => super.name!;
 }
 
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
@@ -8588,9 +8585,6 @@ abstract class NotAugmentedInterfaceElementImpl
   List<InterfaceType> get mixins {
     return element.mixins;
   }
-
-  @override
-  String get name => element.name;
 
   @override
   ConstructorElement? get unnamedConstructor {

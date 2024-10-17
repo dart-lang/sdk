@@ -1125,9 +1125,6 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// guard against infinite loops.
   List<InterfaceType> get mixins;
 
-  @override
-  String get name;
-
   /// The superclass of this element.
   ///
   /// For [ClassElement] returns `null` only if this class is `Object`. If the

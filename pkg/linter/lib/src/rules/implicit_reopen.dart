@@ -73,8 +73,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     required InterfaceElement2 other,
     required String reason,
   }) {
-    rule.reportLintForToken(member.name,
-        arguments: [type, target.name, other.name, reason]);
+    var targetName = target.name;
+    var otherName = other.name;
+    if (targetName != null && otherName != null) {
+      rule.reportLintForToken(
+        member.name,
+        arguments: [type, targetName, otherName, reason],
+      );
+    }
   }
 
   @override

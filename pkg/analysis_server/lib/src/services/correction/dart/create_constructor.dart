@@ -159,9 +159,15 @@ class CreateConstructor extends ResolvedCorrectionProducer {
       return;
     }
 
-    // prepare target ClassDeclaration
     var targetElement = constructorElement.enclosingElement2;
     var targetFragment = (targetElement as ClassElement2).firstFragment;
+
+    var targetElementName = targetElement.name;
+    if (targetElementName == null) {
+      return;
+    }
+
+    // prepare target ClassDeclaration
     var targetResult =
         await sessionHelper.getElementDeclaration2(targetFragment);
     if (targetResult == null) {
@@ -181,7 +187,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertConstructor(targetNode, (builder) {
-        builder.writeConstructorDeclaration(targetElement.name,
+        builder.writeConstructorDeclaration(targetElementName,
             argumentList: instanceCreation.argumentList);
       });
     });
