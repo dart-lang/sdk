@@ -4607,8 +4607,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         .expression;
     entry.value = value..parent = entry;
 
-    actualTypes.add(computeNonNull(keyInferenceResult.inferredType));
-    actualTypes.add(computeNonNull(valueInferenceResult.inferredType));
+    actualTypes.add(entry.isKeyNullAware
+        ? computeNonNull(keyInferenceResult.inferredType)
+        : keyInferenceResult.inferredType);
+    actualTypes.add(entry.isValueNullAware
+        ? computeNonNull(valueInferenceResult.inferredType)
+        : valueInferenceResult.inferredType);
     actualTypesForSet.add(const DynamicType());
 
     offsets.mapEntryOffset = entry.fileOffset;
