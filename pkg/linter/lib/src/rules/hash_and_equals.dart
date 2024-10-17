@@ -4,12 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../extensions.dart';
 
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
@@ -70,11 +69,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on ClassDeclaration {
   bool hasField(String name) =>
-      declaredElement?.allFields.namedOrNull(name) != null;
+      declaredFragment?.element.fields2.namedOrNull(name) != null;
   bool hasMethod(String name) =>
-      declaredElement?.allMethods.namedOrNull(name) != null;
+      declaredFragment?.element.methods2.namedOrNull(name) != null;
 }
 
-extension<E extends ClassMemberElement> on List<E> {
+extension<E extends Element2> on List<E> {
   E? namedOrNull(String name) => firstWhereOrNull((e) => e.name == name);
 }
