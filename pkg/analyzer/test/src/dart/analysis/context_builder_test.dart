@@ -13,7 +13,8 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptionsImpl, AnalysisOptionsBuilder;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -83,7 +84,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
         analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(
       analysisOptions,
-      AnalysisOptionsImpl()..strictRawTypes = true,
+      (AnalysisOptionsBuilder()..strictRawTypes = true).build(),
     );
   }
 

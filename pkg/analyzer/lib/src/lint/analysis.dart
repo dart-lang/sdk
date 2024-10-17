@@ -30,16 +30,6 @@ void printAndFail(String message, {int exitCode = 15}) {
   io.exit(exitCode);
 }
 
-void _updateAnalyzerOptions(
-  AnalysisOptionsImpl analysisOptions,
-  LinterOptions options,
-) {
-  analysisOptions.lint = options.enableLints;
-  analysisOptions.warning = false;
-  analysisOptions.enableTiming = options.enableTiming;
-  analysisOptions.lintRules = options.enabledRules.toList(growable: false);
-}
-
 class DriverOptions {
   /// The maximum number of sources for which AST structures should be kept
   /// in the cache.  The default is 512.
@@ -92,7 +82,11 @@ class LintDriver {
         required contextRoot,
         required sdk,
       }) {
-        _updateAnalyzerOptions(analysisOptions, options);
+        analysisOptions.lint = options.enableLints;
+        analysisOptions.warning = false;
+        analysisOptions.enableTiming = options.enableTiming;
+        analysisOptions.lintRules =
+            options.enabledRules.toList(growable: false);
       },
     );
 

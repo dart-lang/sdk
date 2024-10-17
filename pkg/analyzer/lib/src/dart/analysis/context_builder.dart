@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -119,20 +118,19 @@ class ContextBuilderImpl implements ContextBuilder {
     var optionsFile = contextRoot.optionsFile;
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
 
-    var analysisOptionsMap =
-        // If there's an options file defined (as, e.g. passed into the
-        // AnalysisContextCollection), use a shared options map based on it.
-        (definedOptionsFile && optionsFile != null)
-            ? AnalysisOptionsMap.forSharedOptions(_getAnalysisOptions(
-                contextRoot,
-                optionsFile,
-                sourceFactory,
-                sdk,
-                updateAnalysisOptions2))
-            // Else, create one from the options file mappings stored in the
-            // context root.
-            : _createOptionsMap(
-                contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
+    AnalysisOptionsMap analysisOptionsMap;
+    // If there's an options file defined (as, e.g. passed into the
+    // AnalysisContextCollection), use a shared options map based on it.
+    if (definedOptionsFile && optionsFile != null) {
+      analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
+          _getAnalysisOptions(contextRoot, optionsFile, sourceFactory, sdk,
+              updateAnalysisOptions2));
+    } else {
+      // Otherwise, create one from the options file mappings stored in the
+      // context root.
+      analysisOptionsMap = _createOptionsMap(
+          contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
+    }
 
     var analysisContext =
         DriverBasedAnalysisContext(resourceProvider, contextRoot);
@@ -204,9 +202,9 @@ class ContextBuilderImpl implements ContextBuilder {
         (contextRoot as ContextRootImpl).optionsFileMap.entries;
     for (var entry in optionsMappings) {
       var file = entry.value;
-      var options = AnalysisOptionsImpl(file: file);
-      var optionsYaml = provider.getOptionsFromFile(file);
-      options.applyOptions(optionsYaml);
+      var options = AnalysisOptionsImpl.fromYaml(
+          file: file, optionsMap: provider.getOptionsFromFile(file));
+
       _optionsMap.add(entry.key, options);
     }
 
@@ -300,17 +298,20 @@ class ContextBuilderImpl implements ContextBuilder {
             required DartSdk sdk})?
         updateAnalysisOptions,
   ) {
-    var options = AnalysisOptionsImpl(file: optionsFile);
+    AnalysisOptionsImpl? options;
 
     if (optionsFile != null) {
       try {
         var provider = AnalysisOptionsProvider(sourceFactory);
-        var optionsMap = provider.getOptionsFromFile(optionsFile);
-        options.applyOptions(optionsMap);
+        options = AnalysisOptionsImpl.fromYaml(
+          optionsMap: provider.getOptionsFromFile(optionsFile),
+          file: optionsFile,
+        );
       } catch (e) {
-        // ignore
+        // Ignore exception.
       }
     }
+    options ??= AnalysisOptionsImpl(file: optionsFile);
 
     var pubspecFile = _findPubspecFile(contextRoot);
     if (pubspecFile != null) {

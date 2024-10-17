@@ -142,7 +142,7 @@ linter:
   group('options processing', () {
     group('raw maps', () {
       LintConfig parseMap(Map<Object, Object?> map) {
-        return parseConfig(wrap(map) as YamlMap)!;
+        return parseLintConfig(wrap(map) as YamlMap)!;
       }
 
       test('rule list', () {

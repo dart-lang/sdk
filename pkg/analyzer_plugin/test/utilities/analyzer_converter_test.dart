@@ -157,10 +157,10 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     ];
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
     var severity = analyzer.ErrorSeverity.WARNING;
-    var options = analyzer.AnalysisOptionsImpl();
-    options.errorProcessors = [
-      analyzer.ErrorProcessor(analyzerErrors[0].errorCode.name, severity)
-    ];
+    var options = (analyzer.AnalysisOptionsBuilder()
+          ..errorProcessors.add(analyzer.ErrorProcessor(
+              analyzerErrors[0].errorCode.name, severity)))
+        .build();
 
     var pluginErrors = converter.convertAnalysisErrors(analyzerErrors,
         lineInfo: lineInfo, options: options);
@@ -189,10 +189,10 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       await createError(25),
     ];
     var severity = analyzer.ErrorSeverity.WARNING;
-    var options = analyzer.AnalysisOptionsImpl();
-    options.errorProcessors = [
-      analyzer.ErrorProcessor(analyzerErrors[0].errorCode.name, severity)
-    ];
+    var options = (analyzer.AnalysisOptionsBuilder()
+          ..errorProcessors.add(analyzer.ErrorProcessor(
+              analyzerErrors[0].errorCode.name, severity)))
+        .build();
 
     var pluginErrors =
         converter.convertAnalysisErrors(analyzerErrors, options: options);

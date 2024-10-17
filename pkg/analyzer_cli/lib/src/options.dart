@@ -189,7 +189,7 @@ class CommandLineOptions {
       analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: enabledExperiments,
-      );
+      ) as ExperimentStatus;
     }
   }
 
