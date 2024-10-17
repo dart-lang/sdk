@@ -10,13 +10,16 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
@@ -27,9 +30,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
-import 'rule_test_support.dart';
 
-export 'package:analyzer/src/dart/analysis/experiments.dart';
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
