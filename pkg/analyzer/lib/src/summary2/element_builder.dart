@@ -1347,8 +1347,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = TypeParameterElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 

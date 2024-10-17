@@ -10372,6 +10372,9 @@ abstract class TypeDefiningElementImpl2 extends ElementImpl2
 /// A concrete implementation of a [TypeParameterElement].
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement, TypeParameterFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
@@ -10467,21 +10470,6 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     return super.name!;
-  }
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
   }
 
   @override

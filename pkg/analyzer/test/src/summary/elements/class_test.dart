@@ -25037,6 +25037,61 @@ library
 ''');
   }
 
+  test_class_typeParameters_missingName() async {
+    var library = await buildLibrary(r'''
+class A<T,> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          typeParameters
+            covariant T @8
+              defaultType: dynamic
+            covariant @10
+              defaultType: dynamic
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
+          typeParameters
+            T @8
+              element: <not-implemented>
+            <null-name>
+              element: <not-implemented>
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+  classes
+    class A
+      firstFragment: <testLibraryFragment>::@class::A
+      typeParameters
+        T
+        
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+''');
+  }
+
   test_class_typeParameters_variance_contravariant() async {
     var library = await buildLibrary('class C<in T> {}');
     checkElementText(library, r'''

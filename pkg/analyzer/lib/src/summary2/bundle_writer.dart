@@ -723,13 +723,14 @@ class BundleWriter {
     });
   }
 
-  void _writeTypeParameterElement(TypeParameterElement typeParameter) {
-    typeParameter as TypeParameterElementImpl;
-    _sink._writeStringReference(typeParameter.name);
-    _sink.writeByte(_encodeVariance(typeParameter).index);
-    _resolutionSink._writeAnnotationList(typeParameter.metadata);
-    _resolutionSink.writeType(typeParameter.bound);
-    _resolutionSink.writeType(typeParameter.defaultType);
+  void _writeTypeParameterElement(TypeParameterElement element) {
+    element as TypeParameterElementImpl;
+    _sink._writeStringReference(element.name);
+    _writeFragmentName(element.name2);
+    _sink.writeByte(_encodeVariance(element).index);
+    _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeType(element.bound);
+    _resolutionSink.writeType(element.defaultType);
   }
 
   /// Add [typeParameters] to the indexing scope, so make them available

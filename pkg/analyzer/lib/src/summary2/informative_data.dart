@@ -816,6 +816,7 @@ class InformativeDataApplier {
         element as TypeParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
+        _setFragmentNameOffset(element.name2, info.nameOffset2);
       },
     );
   }
@@ -2009,6 +2010,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
     });
   }
 }
@@ -2046,12 +2048,14 @@ class _InfoTypeParameter {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
 
   factory _InfoTypeParameter(SummaryDataReader reader) {
     return _InfoTypeParameter._(
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
     );
   }
 
@@ -2059,6 +2063,7 @@ class _InfoTypeParameter {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
   });
 }
 

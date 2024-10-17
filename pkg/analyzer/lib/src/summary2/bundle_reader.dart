@@ -1801,9 +1801,11 @@ class LibraryReader {
   List<TypeParameterElementImpl> _readTypeParameters() {
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
+      var fragmentName = _readFragmentName();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
       var element = TypeParameterElementImpl(name, -1);
+      element.name2 = fragmentName;
       element.variance = variance;
       return element;
     });
