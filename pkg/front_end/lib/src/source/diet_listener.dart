@@ -37,6 +37,7 @@ import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart'
     show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
+import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 import '../kernel/body_builder_context.dart';
@@ -46,9 +47,7 @@ import '../type_inference/type_inference_engine.dart'
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
 import 'offset_map.dart';
-import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
-import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
 
@@ -371,22 +370,30 @@ class DietListener extends StackListenerImpl {
 
     Identifier identifier = name as Identifier;
     ProcedureKind kind = computeProcedureKind(getOrSet);
-    SourceFunctionBuilder builder;
+    FunctionFragment functionFragment;
     switch (kind) {
       case ProcedureKind.Method:
       case ProcedureKind.Operator:
-        builder = _offsetMap.lookupMethod(identifier);
+        functionFragment = _offsetMap.lookupMethod(identifier);
       case ProcedureKind.Getter:
-        builder = _offsetMap.lookupGetter(identifier);
+        functionFragment = _offsetMap.lookupGetter(identifier);
       case ProcedureKind.Setter:
-        builder = _offsetMap.lookupSetter(identifier);
+        functionFragment = _offsetMap.lookupSetter(identifier);
       // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
-    final BodyBuilder listener = createFunctionListener(builder,
-        inOutlineBuildingPhase: false, inMetadata: false, inConstFields: false);
-    buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
+    FunctionBodyBuildingContext functionBodyBuildingContext =
+        functionFragment.createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
+      final BodyBuilder listener = createFunctionListener(
+          functionBodyBuildingContext,
+          inOutlineBuildingPhase: false,
+          inMetadata: false,
+          inConstFields: false);
+      buildFunctionBody(
+          listener, bodyToken, metadata, MemberKind.TopLevelMethod);
+    }
   }
 
   @override
@@ -674,19 +681,25 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     Identifier identifier = name as Identifier;
-    SourceFunctionBuilder builder = _offsetMap.lookupConstructor(identifier);
-    if (_inRedirectingFactory) {
-      buildRedirectingFactoryMethod(
-          bodyToken, builder, MemberKind.Factory, metadata);
-    } else {
-      buildFunctionBody(
-          createFunctionListener(builder,
-              inOutlineBuildingPhase: false,
-              inMetadata: false,
-              inConstFields: false),
-          bodyToken,
-          metadata,
-          MemberKind.Factory);
+    FunctionFragment functionFragment =
+        _offsetMap.lookupConstructor(identifier);
+
+    FunctionBodyBuildingContext functionBodyBuildingContext =
+        functionFragment.createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
+      if (_inRedirectingFactory) {
+        buildRedirectingFactoryMethod(bodyToken, functionBodyBuildingContext,
+            MemberKind.Factory, metadata);
+      } else {
+        buildFunctionBody(
+            createFunctionListener(functionBodyBuildingContext,
+                inOutlineBuildingPhase: false,
+                inMetadata: false,
+                inConstFields: false),
+            bodyToken,
+            metadata,
+            MemberKind.Factory);
+      }
     }
   }
 
@@ -798,36 +811,30 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
     Identifier identifier = name as Identifier;
 
-    SourceFunctionBuilder builder;
+    FunctionFragment functionFragment;
     if (isConstructor) {
-      builder = _offsetMap.lookupConstructor(identifier);
+      functionFragment = _offsetMap.lookupConstructor(identifier);
     } else {
       ProcedureKind kind = computeProcedureKind(getOrSet);
       switch (kind) {
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
-          builder = _offsetMap.lookupMethod(identifier);
+          functionFragment = _offsetMap.lookupMethod(identifier);
         case ProcedureKind.Getter:
-          builder = _offsetMap.lookupGetter(identifier);
+          functionFragment = _offsetMap.lookupGetter(identifier);
         case ProcedureKind.Setter:
-          builder = _offsetMap.lookupSetter(identifier);
+          functionFragment = _offsetMap.lookupSetter(identifier);
         // Coverage-ignore(suite): Not run.
         case ProcedureKind.Factory:
           throw new UnsupportedError("Unexpected procedure kind: $kind");
       }
     }
-    if (!(builder is SourceExtensionTypeConstructorBuilder &&
-        builder.isConst)) {
-      // TODO(johnniwinther): Ensure building of const extension type
-      //  constructor body. An error is reported by the parser but we skip
-      //  the body here to avoid overwriting the already lowering const
-      //  constructor.
-      // TODO(johnniwinther): Pass [memberKind] from the caller.
-      MemberKind memberKind = builder.isStatic
-          ? MemberKind.StaticMethod
-          : MemberKind.NonStaticMethod;
+    FunctionBodyBuildingContext functionBodyBuildingContext =
+        functionFragment.createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
+      MemberKind memberKind = functionBodyBuildingContext.memberKind;
       buildFunctionBody(
-          createFunctionListener(builder,
+          createFunctionListener(functionBodyBuildingContext,
               inOutlineBuildingPhase: false,
               inMetadata: false,
               inConstFields: false),
@@ -891,37 +898,42 @@ class DietListener extends StackListenerImpl {
       ..constantContext = constantContext;
   }
 
-  BodyBuilder createFunctionListener(SourceFunctionBuilder builder,
+  BodyBuilder createFunctionListener(
+      FunctionBodyBuildingContext functionBodyBuildingContext,
       {required bool inOutlineBuildingPhase,
       required bool inMetadata,
       required bool inConstFields}) {
     final LookupScope typeParameterScope =
-        builder.computeTypeParameterScope(memberScope);
-    final LocalScope formalParameterScope =
-        builder.computeFormalParameterScope(typeParameterScope);
+        functionBodyBuildingContext.computeTypeParameterScope(memberScope);
+    final LocalScope formalParameterScope = functionBodyBuildingContext
+        .computeFormalParameterScope(typeParameterScope);
     return createListener(
-        builder.createBodyBuilderContext(
+        functionBodyBuildingContext.createBodyBuilderContext(
             inOutlineBuildingPhase: inOutlineBuildingPhase,
             inMetadata: inMetadata,
             inConstFields: inConstFields),
         typeParameterScope,
-        thisVariable: builder.thisVariable,
-        thisTypeParameters: builder.thisTypeParameters,
+        thisVariable: functionBodyBuildingContext.thisVariable,
+        thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
         formalParameterScope: formalParameterScope,
-        inferenceDataForTesting: builder
-            .dataForTesting
-            // Coverage-ignore(suite): Not run.
-            ?.inferenceData);
+        inferenceDataForTesting:
+            functionBodyBuildingContext.inferenceDataForTesting);
   }
 
-  void buildRedirectingFactoryMethod(Token token, SourceFunctionBuilder builder,
-      MemberKind kind, Token? metadata) {
+  void buildRedirectingFactoryMethod(
+      Token token,
+      FunctionBodyBuildingContext functionBodyBuildingContext,
+      MemberKind kind,
+      Token? metadata) {
     _benchmarker
         // Coverage-ignore(suite): Not run.
         ?.beginSubdivide(
             BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod);
-    final BodyBuilder listener = createFunctionListener(builder,
-        inOutlineBuildingPhase: false, inMetadata: false, inConstFields: false);
+    final BodyBuilder listener = createFunctionListener(
+        functionBodyBuildingContext,
+        inOutlineBuildingPhase: false,
+        inMetadata: false,
+        inConstFields: false);
     try {
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1128,11 +1140,13 @@ class DietListener extends StackListenerImpl {
       // TODO(johnniwinther): Handle [ParserRecovery].
       pop() as Identifier;
     }
-    SourceFunctionBuilder builder =
+    FunctionFragment functionFragment =
         _offsetMap.lookupPrimaryConstructor(beginToken);
-    if (!builder.isConst) {
+    FunctionBodyBuildingContext functionBodyBuildingContext =
+        functionFragment.createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
       buildPrimaryConstructor(
-          createFunctionListener(builder,
+          createFunctionListener(functionBodyBuildingContext,
               inOutlineBuildingPhase: false,
               inMetadata: false,
               inConstFields: false),

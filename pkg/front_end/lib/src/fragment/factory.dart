@@ -4,7 +4,7 @@
 
 part of 'fragment.dart';
 
-class FactoryFragment implements Fragment {
+class FactoryFragment implements Fragment, FunctionFragment {
   final String name;
   final Uri fileUri;
   final int startCharOffset;
@@ -50,5 +50,58 @@ class FactoryFragment implements Fragment {
   }
 
   @override
+  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+    return new _FactoryBodyBuildingContext(this);
+  }
+
+  @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
+class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
+  FactoryFragment _fragment;
+
+  _FactoryBodyBuildingContext(this._fragment);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  MemberKind get memberKind => MemberKind.Factory;
+
+  @override
+  bool get shouldBuild => true;
+
+  @override
+  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+    return _fragment.builder.computeFormalParameterScope(typeParameterScope);
+  }
+
+  @override
+  LookupScope computeTypeParameterScope(LookupScope enclosingScope) {
+    return _fragment.builder.computeTypeParameterScope(enclosingScope);
+  }
+
+  @override
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return _fragment.builder.createBodyBuilderContext(
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
+
+  @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
+  List<TypeParameter>? get thisTypeParameters =>
+      _fragment.builder.thisTypeParameters;
+
+  @override
+  VariableDeclaration? get thisVariable => _fragment.builder.thisVariable;
 }

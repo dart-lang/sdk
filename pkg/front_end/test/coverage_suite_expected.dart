@@ -480,7 +480,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/constructor.dart": (
-    hitCount: 10,
+    hitCount: 45,
     missCount: 0,
   ),
   // 100.0%.
@@ -500,7 +500,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/factory.dart": (
-    hitCount: 7,
+    hitCount: 35,
     missCount: 0,
   ),
   // 100.0%.
@@ -510,12 +510,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/getter.dart": (
-    hitCount: 7,
+    hitCount: 41,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/method.dart": (
-    hitCount: 7,
+    hitCount: 41,
     missCount: 0,
   ),
   // 100.0%.
@@ -530,12 +530,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/primary_constructor.dart": (
-    hitCount: 10,
+    hitCount: 41,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/fragment/setter.dart": (
-    hitCount: 7,
+    hitCount: 41,
     missCount: 0,
   ),
   // 100.0%.
@@ -835,7 +835,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/diet_listener.dart": (
-    hitCount: 654,
+    hitCount: 659,
     missCount: 0,
   ),
   // 100.0%.
@@ -850,7 +850,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/offset_map.dart": (
-    hitCount: 156,
+    hitCount: 151,
     missCount: 0,
   ),
   // 100.0%.
