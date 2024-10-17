@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
@@ -15,7 +16,14 @@ final tests = <IsolateTest>[
   // Kill the app.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    await service.kill(isolateId);
+    try {
+      await service.kill(isolateId);
+    } on RPCError catch (e) {
+      // There's a good chance `kill()` will throw due to the VM shutting down.
+      // If an RPCError is thrown, make sure it's actually because the VM
+      // service connection has disappeared.
+      expect(e.code, RPCErrorKind.kConnectionDisposed.code);
+    }
   }
 ];
 
