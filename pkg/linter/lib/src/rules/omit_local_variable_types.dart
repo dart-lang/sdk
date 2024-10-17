@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
@@ -57,8 +57,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var loopType = loopParts.iterable.staticType;
       if (loopType is! InterfaceType) return;
 
-      var iterableType = loopType.asInstanceOf(typeProvider.iterableElement);
+      var iterableType = loopType.asInstanceOf2(typeProvider.iterableElement2);
       if (iterableType == null) return;
+
       if (iterableType.typeArguments.isNotEmpty &&
           iterableType.typeArguments.first == staticType) {
         rule.reportLint(loopVariableType);
@@ -100,12 +101,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on Expression {
   bool get dependsOnDeclaredTypeForInference {
     if (this case MethodInvocation(:var methodName, typeArguments: null)) {
-      var element = methodName.staticElement;
-      if (element is FunctionElement) {
-        if (element.returnType is TypeParameterType) {
-          return true;
-        }
-      }
+      var element = methodName.element;
+      return switch (element) {
+        LocalFunctionElement() => element.returnType is TypeParameterType,
+        TopLevelFunctionElement() => element.returnType is TypeParameterType,
+        _ => false,
+      };
     }
     return false;
   }
