@@ -166,9 +166,6 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   List<ConstructorElement> constructors = [];
-
-  @override
-  String get name => super.name!;
 }
 
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
@@ -8590,9 +8587,6 @@ abstract class NotAugmentedInterfaceElementImpl
   }
 
   @override
-  String get name => element.name;
-
-  @override
   ConstructorElement? get unnamedConstructor {
     return element.unnamedConstructor;
   }
@@ -9158,6 +9152,9 @@ class PrefixFragmentImpl implements PrefixFragment {
   int nameOffset;
 
   @override
+  FragmentNameImpl name2;
+
+  @override
   final bool isDeferred;
 
   @override
@@ -9173,6 +9170,7 @@ class PrefixFragmentImpl implements PrefixFragment {
     required this.enclosingFragment,
     required this.name,
     required this.nameOffset,
+    required this.name2,
     required this.isDeferred,
   });
 
@@ -9181,14 +9179,6 @@ class PrefixFragmentImpl implements PrefixFragment {
 
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingFragment;
-
-  @override
-  FragmentName? get name2 {
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
 }
 
 abstract class PromotableElementImpl2 extends VariableElementImpl2

@@ -1203,6 +1203,10 @@ class LibraryBuilder with MacroApplicationsContainer {
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
       name: name,
+      name2: FragmentNameImpl(
+        name: name,
+        nameOffset: nameOffset,
+      ),
       nameOffset: nameOffset,
       isDeferred: isDeferred,
     );

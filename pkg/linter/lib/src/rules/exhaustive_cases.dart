@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -39,9 +39,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var interfaceElement = expressionType.element;
+      var interfaceElement = expressionType.element3;
       // Handled in analyzer.
-      if (interfaceElement is! ClassElement) {
+      if (interfaceElement is! ClassElement2) {
         return;
       }
       var enumDescription = interfaceElement.asEnumLikeClass();
@@ -61,13 +61,13 @@ class _Visitor extends SimpleAstVisitor<void> {
           expression = member.expression.unParenthesized;
         }
         if (expression is Identifier) {
-          var variable = expression.staticElement.variableElement;
-          if (variable is VariableElement) {
+          var variable = expression.element.variableElement;
+          if (variable is VariableElement2) {
             enumConstants.remove(variable.computeConstantValue());
           }
         } else if (expression is PropertyAccess) {
-          var variable = expression.propertyName.staticElement.variableElement;
-          if (variable is VariableElement) {
+          var variable = expression.propertyName.element.variableElement;
+          if (variable is VariableElement2) {
             enumConstants.remove(variable.computeConstantValue());
           }
         }
@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var end = statement.rightParenthesis.end;
         var elements = enumConstants[constant]!;
         var preferredElement = elements.firstWhere(
-            (element) => !element.hasDeprecated,
+            (element) => !element.metadata2.hasDeprecated,
             orElse: () => elements.first);
         rule.reportLintForOffset(
           offset,
@@ -94,11 +94,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on Element? {
-  Element? get variableElement {
+extension on Element2? {
+  Element2? get variableElement {
     var self = this;
-    if (self is PropertyAccessorElement) {
-      var variable = self.variable2;
+    if (self is GetterElement) {
+      var variable = self.variable3;
       if (variable != null) {
         return variable;
       }

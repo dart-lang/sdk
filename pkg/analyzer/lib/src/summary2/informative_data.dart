@@ -665,7 +665,10 @@ class InformativeDataApplier {
           }
         }
 
-        element.prefix2?.nameOffset = info.prefixOffset;
+        if (element.prefix2 case var prefixFragment?) {
+          prefixFragment.nameOffset = info.prefixOffset;
+          prefixFragment.name2.nameOffset = info.prefixOffset;
+        }
         _applyToCombinators(element.combinators, info.combinators);
       },
     );

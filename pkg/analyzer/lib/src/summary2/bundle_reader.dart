@@ -1325,6 +1325,7 @@ class LibraryReader {
         enclosingFragment: libraryFragment,
         name: name,
         nameOffset: -1,
+        name2: FragmentNameImpl(name: name, nameOffset: -1),
         isDeferred: isDeferred,
       );
 

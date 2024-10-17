@@ -293,6 +293,37 @@ main() {
       ]);
     });
 
+    test('equalityOp(x == null) when x is an assignment expression', () {
+      // int? x;
+      // if ((x = <int?>) == null) {
+      //   return;
+      // }
+      // x is promoted to `int`.
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'int?'),
+        if_(x.write(expr('int?')).eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+      ]);
+    });
+
+    test(
+        'equalityOp(x == null) when x is an assignment expression'
+        'and inference-update-4 is disabled', () {
+      var x = Var('x');
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'int?'),
+        if_(x.write(expr('int?')).eq(nullLiteral), [
+          return_(),
+        ]),
+        checkNotPromoted(x),
+      ]);
+    });
+
     test('equalityOp(x == null) when x is non-nullable', () {
       var x = Var('x');
       h.run([
@@ -1631,6 +1662,39 @@ main() {
           ], [
             checkReachable(true),
           ]),
+        ]);
+      });
+
+      test(
+          'isExpression_end() variables in assignment expressions are promoted',
+          () {
+        // num x;
+        // if ((x = <int>) is int) {
+        //   x is promoted to `int`.
+        // }
+        // x is not promoted
+
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          if_(x.write(expr('int')).is_('int'), [
+            checkPromoted(x, 'int'),
+          ]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test(
+          'isExpression_end() variables in assignment expressions are not'
+          ' promoted when inference-update-4 is disabled', () {
+        var x = Var('x');
+        h.disableInferenceUpdate4();
+        h.run([
+          declare(x, type: 'num'),
+          if_(x.write(expr('int')).is_('int'), [
+            checkNotPromoted(x),
+          ]),
+          checkNotPromoted(x),
         ]);
       });
 
