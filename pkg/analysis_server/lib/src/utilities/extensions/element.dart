@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
@@ -20,6 +21,26 @@ extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Set` from
   /// `dart:core`.
   bool get isDartCoreSet => name == 'Set' && library.isDartCore;
+}
+
+extension Element2Extension on Element2 {
+  /// Return `true` if this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@deprecated`
+  /// annotation.
+  bool get hasOrInheritsDeprecated {
+    if (this is Annotatable && (this as Annotatable).metadata2.hasDeprecated) {
+      return true;
+    }
+    var ancestor = enclosingElement2;
+    if (ancestor is InterfaceElement2) {
+      if (ancestor.metadata2.hasDeprecated) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    }
+    return ancestor is LibraryFragment &&
+        (ancestor as LibraryFragment).metadata2.hasDeprecated;
+  }
 }
 
 extension ElementExtension on Element {
