@@ -36,17 +36,12 @@ bool isExactWidgetTypeContainer(DartType? type) =>
 bool isExactWidgetTypeSizedBox(DartType? type) =>
     _flutter.isExactWidgetTypeSizedBox(type);
 
-bool isKDebugMode(Element? element) => _flutter.isKDebugMode(element);
-
-bool isKDebugMode2(Element2? element) => _flutter.isKDebugMode2(element);
+bool isKDebugMode(Element2? element) => _flutter.isKDebugMode(element);
 
 bool isState(InterfaceElement element) => _flutter.isState(element);
 
-bool isStatefulWidget(ClassElement? element) =>
+bool isStatefulWidget(ClassElement2? element) =>
     element != null && _flutter.isStatefulWidget(element);
-
-bool isStatefulWidget2(ClassElement2? element) =>
-    element != null && _flutter.isStatefulWidget2(element);
 
 bool isWidgetProperty(DartType? type) {
   if (isWidgetType(type)) {
@@ -133,12 +128,7 @@ class _Flutter {
       type is InterfaceType &&
       isExactly(type.element, _nameSizedBox, _uriBasic);
 
-  bool isKDebugMode(Element? element) =>
-      element != null &&
-      element.name == 'kDebugMode' &&
-      element.source?.uri == _uriFoundation;
-
-  bool isKDebugMode2(Element2? element) =>
+  bool isKDebugMode(Element2? element) =>
       element != null &&
       element.name == 'kDebugMode' &&
       element.library2.uri == _uriFoundation;
@@ -148,12 +138,7 @@ class _Flutter {
       element.allSupertypes
           .any((type) => isExactly(type.element, _nameState, _uriFramework));
 
-  bool isStatefulWidget(ClassElement element) =>
-      isExactly(element, _nameStatefulWidget, _uriFramework) ||
-      element.allSupertypes.any((type) =>
-          isExactly(type.element, _nameStatefulWidget, _uriFramework));
-
-  bool isStatefulWidget2(ClassElement2 element) =>
+  bool isStatefulWidget(ClassElement2 element) =>
       isExactly2(element, _nameStatefulWidget, _uriFramework) ||
       element.allSupertypes.any((type) =>
           isExactly(type.element, _nameStatefulWidget, _uriFramework));
