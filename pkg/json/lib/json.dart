@@ -387,6 +387,24 @@ mixin _FromJson on _Shared {
         .firstWhereOrNull((c) => c.identifier.name == 'fromJson')
         ?.identifier;
     if (fromJson != null) {
+      // to support fromJson(String s) or others not Map
+      final fromJsonFirstParam = constructors
+          .firstWhereOrNull((c) => c.identifier.name == 'fromJson')
+          ?.positionalParameters
+          .firstOrNull;
+
+      if (fromJsonFirstParam?.type != null) {
+        return RawCode.fromParts([
+          if (nullCheck != null) nullCheck,
+          fromJson,
+          '(',
+          jsonReference,
+          ' as ',
+          fromJsonFirstParam!.type.code,
+          ')',
+        ]);
+      }
+
       return RawCode.fromParts([
         if (nullCheck != null) nullCheck,
         fromJson,
