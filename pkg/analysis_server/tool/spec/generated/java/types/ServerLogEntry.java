@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class ServerLogEntry {
 
   public static final ServerLogEntry[] EMPTY_ARRAY = new ServerLogEntry[0];
 
-  public static final List<ServerLogEntry> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ServerLogEntry> EMPTY_LIST = List.of();
 
   /**
    * The time (milliseconds since epoch) at which the server created this log entry.
@@ -65,8 +63,8 @@ public class ServerLogEntry {
       ServerLogEntry other = (ServerLogEntry) obj;
       return
         other.time == time &&
-        ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.data, data);
+        Objects.equals(other.kind, kind) &&
+        Objects.equals(other.data, data);
     }
     return false;
   }
@@ -82,10 +80,9 @@ public class ServerLogEntry {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ServerLogEntry> list = new ArrayList<ServerLogEntry>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ServerLogEntry> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -113,11 +110,11 @@ public class ServerLogEntry {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(time);
-    builder.append(kind);
-    builder.append(data);
-    return builder.toHashCode();
+    return Objects.hash(
+      time,
+      kind,
+      data
+    );
   }
 
   public JsonObject toJson() {

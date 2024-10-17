@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class FlutterWidgetProperty {
 
   public static final FlutterWidgetProperty[] EMPTY_ARRAY = new FlutterWidgetProperty[0];
 
-  public static final List<FlutterWidgetProperty> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FlutterWidgetProperty> EMPTY_LIST = List.of();
 
   /**
    * The documentation of the property to show to the user. Omitted if the server does not know the
@@ -108,15 +106,15 @@ public class FlutterWidgetProperty {
     if (obj instanceof FlutterWidgetProperty) {
       FlutterWidgetProperty other = (FlutterWidgetProperty) obj;
       return
-        ObjectUtilities.equals(other.documentation, documentation) &&
-        ObjectUtilities.equals(other.expression, expression) &&
+        Objects.equals(other.documentation, documentation) &&
+        Objects.equals(other.expression, expression) &&
         other.id == id &&
         other.isRequired == isRequired &&
         other.isSafeToUpdate == isSafeToUpdate &&
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.children, children) &&
-        ObjectUtilities.equals(other.editor, editor) &&
-        ObjectUtilities.equals(other.value, value);
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.children, children) &&
+        Objects.equals(other.editor, editor) &&
+        Objects.equals(other.value, value);
     }
     return false;
   }
@@ -138,10 +136,9 @@ public class FlutterWidgetProperty {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FlutterWidgetProperty> list = new ArrayList<FlutterWidgetProperty>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FlutterWidgetProperty> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -219,17 +216,17 @@ public class FlutterWidgetProperty {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(documentation);
-    builder.append(expression);
-    builder.append(id);
-    builder.append(isRequired);
-    builder.append(isSafeToUpdate);
-    builder.append(name);
-    builder.append(children);
-    builder.append(editor);
-    builder.append(value);
-    return builder.toHashCode();
+    return Objects.hash(
+      documentation,
+      expression,
+      id,
+      isRequired,
+      isSafeToUpdate,
+      name,
+      children,
+      editor,
+      value
+    );
   }
 
   public JsonObject toJson() {

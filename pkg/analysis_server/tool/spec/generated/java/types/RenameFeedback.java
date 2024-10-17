@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -31,7 +29,7 @@ public class RenameFeedback extends RefactoringFeedback {
 
   public static final RenameFeedback[] EMPTY_ARRAY = new RenameFeedback[0];
 
-  public static final List<RenameFeedback> EMPTY_LIST = Lists.newArrayList();
+  public static final List<RenameFeedback> EMPTY_LIST = List.of();
 
   /**
    * The offset to the beginning of the name selected to be renamed, or -1 if the name does not exist
@@ -72,8 +70,8 @@ public class RenameFeedback extends RefactoringFeedback {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.elementKindName, elementKindName) &&
-        ObjectUtilities.equals(other.oldName, oldName);
+        Objects.equals(other.elementKindName, elementKindName) &&
+        Objects.equals(other.oldName, oldName);
     }
     return false;
   }
@@ -90,10 +88,9 @@ public class RenameFeedback extends RefactoringFeedback {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<RenameFeedback> list = new ArrayList<RenameFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<RenameFeedback> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -130,12 +127,12 @@ public class RenameFeedback extends RefactoringFeedback {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(elementKindName);
-    builder.append(oldName);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      elementKindName,
+      oldName
+    );
   }
 
   public JsonObject toJson() {

@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -36,7 +34,7 @@ public class AnalysisOptions {
 
   public static final AnalysisOptions[] EMPTY_ARRAY = new AnalysisOptions[0];
 
-  public static final List<AnalysisOptions> EMPTY_LIST = Lists.newArrayList();
+  public static final List<AnalysisOptions> EMPTY_LIST = List.of();
 
   /**
    * Deprecated: this feature is always enabled.
@@ -100,13 +98,13 @@ public class AnalysisOptions {
     if (obj instanceof AnalysisOptions) {
       AnalysisOptions other = (AnalysisOptions) obj;
       return
-        ObjectUtilities.equals(other.enableAsync, enableAsync) &&
-        ObjectUtilities.equals(other.enableDeferredLoading, enableDeferredLoading) &&
-        ObjectUtilities.equals(other.enableEnums, enableEnums) &&
-        ObjectUtilities.equals(other.enableNullAwareOperators, enableNullAwareOperators) &&
-        ObjectUtilities.equals(other.generateDart2jsHints, generateDart2jsHints) &&
-        ObjectUtilities.equals(other.generateHints, generateHints) &&
-        ObjectUtilities.equals(other.generateLints, generateLints);
+        Objects.equals(other.enableAsync, enableAsync) &&
+        Objects.equals(other.enableDeferredLoading, enableDeferredLoading) &&
+        Objects.equals(other.enableEnums, enableEnums) &&
+        Objects.equals(other.enableNullAwareOperators, enableNullAwareOperators) &&
+        Objects.equals(other.generateDart2jsHints, generateDart2jsHints) &&
+        Objects.equals(other.generateHints, generateHints) &&
+        Objects.equals(other.generateLints, generateLints);
     }
     return false;
   }
@@ -126,10 +124,9 @@ public class AnalysisOptions {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<AnalysisOptions> list = new ArrayList<AnalysisOptions>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<AnalysisOptions> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -194,15 +191,15 @@ public class AnalysisOptions {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(enableAsync);
-    builder.append(enableDeferredLoading);
-    builder.append(enableEnums);
-    builder.append(enableNullAwareOperators);
-    builder.append(generateDart2jsHints);
-    builder.append(generateHints);
-    builder.append(generateLints);
-    return builder.toHashCode();
+    return Objects.hash(
+      enableAsync,
+      enableDeferredLoading,
+      enableEnums,
+      enableNullAwareOperators,
+      generateDart2jsHints,
+      generateHints,
+      generateLints
+    );
   }
 
   public JsonObject toJson() {

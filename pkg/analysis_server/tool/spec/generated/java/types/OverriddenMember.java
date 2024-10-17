@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class OverriddenMember {
 
   public static final OverriddenMember[] EMPTY_ARRAY = new OverriddenMember[0];
 
-  public static final List<OverriddenMember> EMPTY_LIST = Lists.newArrayList();
+  public static final List<OverriddenMember> EMPTY_LIST = List.of();
 
   /**
    * The element that is being overridden.
@@ -58,8 +56,8 @@ public class OverriddenMember {
     if (obj instanceof OverriddenMember) {
       OverriddenMember other = (OverriddenMember) obj;
       return
-        ObjectUtilities.equals(other.element, element) &&
-        ObjectUtilities.equals(other.className, className);
+        Objects.equals(other.element, element) &&
+        Objects.equals(other.className, className);
     }
     return false;
   }
@@ -74,10 +72,9 @@ public class OverriddenMember {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<OverriddenMember> list = new ArrayList<OverriddenMember>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<OverriddenMember> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +95,10 @@ public class OverriddenMember {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(element);
-    builder.append(className);
-    return builder.toHashCode();
+    return Objects.hash(
+      element,
+      className
+    );
   }
 
   public JsonObject toJson() {

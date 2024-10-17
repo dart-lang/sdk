@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class ElementDeclaration {
 
   public static final ElementDeclaration[] EMPTY_ARRAY = new ElementDeclaration[0];
 
-  public static final List<ElementDeclaration> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ElementDeclaration> EMPTY_LIST = List.of();
 
   /**
    * The name of the declaration.
@@ -118,17 +116,17 @@ public class ElementDeclaration {
     if (obj instanceof ElementDeclaration) {
       ElementDeclaration other = (ElementDeclaration) obj;
       return
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.kind, kind) &&
         other.fileIndex == fileIndex &&
         other.offset == offset &&
         other.line == line &&
         other.column == column &&
         other.codeOffset == codeOffset &&
         other.codeLength == codeLength &&
-        ObjectUtilities.equals(other.className, className) &&
-        ObjectUtilities.equals(other.mixinName, mixinName) &&
-        ObjectUtilities.equals(other.parameters, parameters);
+        Objects.equals(other.className, className) &&
+        Objects.equals(other.mixinName, mixinName) &&
+        Objects.equals(other.parameters, parameters);
     }
     return false;
   }
@@ -152,10 +150,9 @@ public class ElementDeclaration {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ElementDeclaration> list = new ArrayList<ElementDeclaration>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ElementDeclaration> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -245,19 +242,19 @@ public class ElementDeclaration {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(name);
-    builder.append(kind);
-    builder.append(fileIndex);
-    builder.append(offset);
-    builder.append(line);
-    builder.append(column);
-    builder.append(codeOffset);
-    builder.append(codeLength);
-    builder.append(className);
-    builder.append(mixinName);
-    builder.append(parameters);
-    return builder.toHashCode();
+    return Objects.hash(
+      name,
+      kind,
+      fileIndex,
+      offset,
+      line,
+      column,
+      codeOffset,
+      codeLength,
+      className,
+      mixinName,
+      parameters
+    );
   }
 
   public JsonObject toJson() {

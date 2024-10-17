@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class SourceFileEdit {
 
   public static final SourceFileEdit[] EMPTY_ARRAY = new SourceFileEdit[0];
 
-  public static final List<SourceFileEdit> EMPTY_LIST = Lists.newArrayList();
+  public static final List<SourceFileEdit> EMPTY_LIST = List.of();
 
   /**
    * The file containing the code to be modified.
@@ -67,9 +65,9 @@ public class SourceFileEdit {
     if (obj instanceof SourceFileEdit) {
       SourceFileEdit other = (SourceFileEdit) obj;
       return
-        ObjectUtilities.equals(other.file, file) &&
+        Objects.equals(other.file, file) &&
         other.fileStamp == fileStamp &&
-        ObjectUtilities.equals(other.edits, edits);
+        Objects.equals(other.edits, edits);
     }
     return false;
   }
@@ -85,10 +83,9 @@ public class SourceFileEdit {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<SourceFileEdit> list = new ArrayList<SourceFileEdit>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<SourceFileEdit> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -119,11 +116,11 @@ public class SourceFileEdit {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(file);
-    builder.append(fileStamp);
-    builder.append(edits);
-    return builder.toHashCode();
+    return Objects.hash(
+      file,
+      fileStamp,
+      edits
+    );
   }
 
   public JsonObject toJson() {

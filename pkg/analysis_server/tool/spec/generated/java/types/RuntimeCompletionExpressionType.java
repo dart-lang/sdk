@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class RuntimeCompletionExpressionType {
 
   public static final RuntimeCompletionExpressionType[] EMPTY_ARRAY = new RuntimeCompletionExpressionType[0];
 
-  public static final List<RuntimeCompletionExpressionType> EMPTY_LIST = Lists.newArrayList();
+  public static final List<RuntimeCompletionExpressionType> EMPTY_LIST = List.of();
 
   /**
    * The path of the library that has this type. Omitted if the type is not declared in any library,
@@ -93,13 +91,13 @@ public class RuntimeCompletionExpressionType {
     if (obj instanceof RuntimeCompletionExpressionType) {
       RuntimeCompletionExpressionType other = (RuntimeCompletionExpressionType) obj;
       return
-        ObjectUtilities.equals(other.libraryPath, libraryPath) &&
-        ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.typeArguments, typeArguments) &&
-        ObjectUtilities.equals(other.returnType, returnType) &&
-        ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
-        ObjectUtilities.equals(other.parameterNames, parameterNames);
+        Objects.equals(other.libraryPath, libraryPath) &&
+        Objects.equals(other.kind, kind) &&
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.typeArguments, typeArguments) &&
+        Objects.equals(other.returnType, returnType) &&
+        Objects.equals(other.parameterTypes, parameterTypes) &&
+        Objects.equals(other.parameterNames, parameterNames);
     }
     return false;
   }
@@ -119,10 +117,9 @@ public class RuntimeCompletionExpressionType {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<RuntimeCompletionExpressionType> list = new ArrayList<RuntimeCompletionExpressionType>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<RuntimeCompletionExpressionType> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -183,15 +180,15 @@ public class RuntimeCompletionExpressionType {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(libraryPath);
-    builder.append(kind);
-    builder.append(name);
-    builder.append(typeArguments);
-    builder.append(returnType);
-    builder.append(parameterTypes);
-    builder.append(parameterNames);
-    return builder.toHashCode();
+    return Objects.hash(
+      libraryPath,
+      kind,
+      name,
+      typeArguments,
+      returnType,
+      parameterTypes,
+      parameterNames
+    );
   }
 
   public JsonObject toJson() {

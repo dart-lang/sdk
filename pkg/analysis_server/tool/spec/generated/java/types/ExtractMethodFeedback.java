@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -31,7 +29,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
 
   public static final ExtractMethodFeedback[] EMPTY_ARRAY = new ExtractMethodFeedback[0];
 
-  public static final List<ExtractMethodFeedback> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExtractMethodFeedback> EMPTY_LIST = List.of();
 
   /**
    * The offset to the beginning of the expression or statements that will be extracted.
@@ -99,10 +97,10 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.returnType, returnType) &&
-        ObjectUtilities.equals(other.names, names) &&
+        Objects.equals(other.returnType, returnType) &&
+        Objects.equals(other.names, names) &&
         other.canCreateGetter == canCreateGetter &&
-        ObjectUtilities.equals(other.parameters, parameters) &&
+        Objects.equals(other.parameters, parameters) &&
         Arrays.equals(other.offsets, offsets) &&
         Arrays.equals(other.lengths, lengths);
     }
@@ -125,10 +123,9 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExtractMethodFeedback> list = new ArrayList<ExtractMethodFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExtractMethodFeedback> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -196,16 +193,16 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(returnType);
-    builder.append(names);
-    builder.append(canCreateGetter);
-    builder.append(parameters);
-    builder.append(offsets);
-    builder.append(lengths);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      returnType,
+      names,
+      canCreateGetter,
+      parameters,
+      offsets,
+      lengths
+    );
   }
 
   public JsonObject toJson() {

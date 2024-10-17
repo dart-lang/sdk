@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class Outline {
 
   public static final Outline[] EMPTY_ARRAY = new Outline[0];
 
-  public static final List<Outline> EMPTY_LIST = Lists.newArrayList();
+  public static final List<Outline> EMPTY_LIST = List.of();
 
   /**
    * A description of the element represented by this node.
@@ -88,12 +86,12 @@ public class Outline {
     if (obj instanceof Outline) {
       Outline other = (Outline) obj;
       return
-        ObjectUtilities.equals(other.element, element) &&
+        Objects.equals(other.element, element) &&
         other.offset == offset &&
         other.length == length &&
         other.codeOffset == codeOffset &&
         other.codeLength == codeLength &&
-        ObjectUtilities.equals(other.children, children);
+        Objects.equals(other.children, children);
     }
     return false;
   }
@@ -110,12 +108,11 @@ public class Outline {
     Outline outline = new Outline(parent, element, offset, length, codeOffset, codeLength);
 
     // compute children recursively
-    List<Outline> childrenList = Lists.newArrayList();
+    List<Outline> childrenList = = new ArrayList<>();
     JsonElement childrenJsonArray = outlineObject.get("children");
     if (childrenJsonArray instanceof JsonArray) {
-      Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
-      while (childrenElementIterator.hasNext()) {
-        JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
+      for (JsonElement jsonElement : (JsonArray) childrenJsonArray) {
+        JsonObject childObject = jsonElement.getAsJsonObject();
         childrenList.add(fromJson(outline, childObject));
       }
     }
@@ -175,14 +172,14 @@ public class Outline {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(element);
-    builder.append(offset);
-    builder.append(length);
-    builder.append(codeOffset);
-    builder.append(codeLength);
-    builder.append(children);
-    return builder.toHashCode();
+    return Objects.hash(
+      element,
+      offset,
+      length,
+      codeOffset,
+      codeLength,
+      children
+    );
   }
 
   /**

@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class TypeHierarchyItem {
 
   public static final TypeHierarchyItem[] EMPTY_ARRAY = new TypeHierarchyItem[0];
 
-  public static final List<TypeHierarchyItem> EMPTY_LIST = Lists.newArrayList();
+  public static final List<TypeHierarchyItem> EMPTY_LIST = List.of();
 
   /**
    * The class element represented by this item.
@@ -96,10 +94,10 @@ public class TypeHierarchyItem {
     if (obj instanceof TypeHierarchyItem) {
       TypeHierarchyItem other = (TypeHierarchyItem) obj;
       return
-        ObjectUtilities.equals(other.classElement, classElement) &&
-        ObjectUtilities.equals(other.displayName, displayName) &&
-        ObjectUtilities.equals(other.memberElement, memberElement) &&
-        ObjectUtilities.equals(other.superclass, superclass) &&
+        Objects.equals(other.classElement, classElement) &&
+        Objects.equals(other.displayName, displayName) &&
+        Objects.equals(other.memberElement, memberElement) &&
+        Objects.equals(other.superclass, superclass) &&
         Arrays.equals(other.interfaces, interfaces) &&
         Arrays.equals(other.mixins, mixins) &&
         Arrays.equals(other.subclasses, subclasses);
@@ -122,10 +120,9 @@ public class TypeHierarchyItem {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<TypeHierarchyItem> list = new ArrayList<TypeHierarchyItem>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<TypeHierarchyItem> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -197,15 +194,15 @@ public class TypeHierarchyItem {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(classElement);
-    builder.append(displayName);
-    builder.append(memberElement);
-    builder.append(superclass);
-    builder.append(interfaces);
-    builder.append(mixins);
-    builder.append(subclasses);
-    return builder.toHashCode();
+    return Objects.hash(
+      classElement,
+      displayName,
+      memberElement,
+      superclass,
+      interfaces,
+      mixins,
+      subclasses
+    );
   }
 
   public JsonObject toJson() {

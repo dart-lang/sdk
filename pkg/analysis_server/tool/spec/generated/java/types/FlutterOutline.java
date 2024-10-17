@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class FlutterOutline {
 
   public static final FlutterOutline[] EMPTY_ARRAY = new FlutterOutline[0];
 
-  public static final List<FlutterOutline> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FlutterOutline> EMPTY_LIST = List.of();
 
   /**
    * The kind of the node.
@@ -126,18 +124,18 @@ public class FlutterOutline {
     if (obj instanceof FlutterOutline) {
       FlutterOutline other = (FlutterOutline) obj;
       return
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.kind, kind) &&
         other.offset == offset &&
         other.length == length &&
         other.codeOffset == codeOffset &&
         other.codeLength == codeLength &&
-        ObjectUtilities.equals(other.label, label) &&
-        ObjectUtilities.equals(other.dartElement, dartElement) &&
-        ObjectUtilities.equals(other.attributes, attributes) &&
-        ObjectUtilities.equals(other.className, className) &&
-        ObjectUtilities.equals(other.parentAssociationLabel, parentAssociationLabel) &&
-        ObjectUtilities.equals(other.variableName, variableName) &&
-        ObjectUtilities.equals(other.children, children);
+        Objects.equals(other.label, label) &&
+        Objects.equals(other.dartElement, dartElement) &&
+        Objects.equals(other.attributes, attributes) &&
+        Objects.equals(other.className, className) &&
+        Objects.equals(other.parentAssociationLabel, parentAssociationLabel) &&
+        Objects.equals(other.variableName, variableName) &&
+        Objects.equals(other.children, children);
     }
     return false;
   }
@@ -162,10 +160,9 @@ public class FlutterOutline {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FlutterOutline> list = new ArrayList<FlutterOutline>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FlutterOutline> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -264,20 +261,20 @@ public class FlutterOutline {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(offset);
-    builder.append(length);
-    builder.append(codeOffset);
-    builder.append(codeLength);
-    builder.append(label);
-    builder.append(dartElement);
-    builder.append(attributes);
-    builder.append(className);
-    builder.append(parentAssociationLabel);
-    builder.append(variableName);
-    builder.append(children);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      offset,
+      length,
+      codeOffset,
+      codeLength,
+      label,
+      dartElement,
+      attributes,
+      className,
+      parentAssociationLabel,
+      variableName,
+      children
+    );
   }
 
   public JsonObject toJson() {

@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class BulkFixDetail {
 
   public static final BulkFixDetail[] EMPTY_ARRAY = new BulkFixDetail[0];
 
-  public static final List<BulkFixDetail> EMPTY_LIST = Lists.newArrayList();
+  public static final List<BulkFixDetail> EMPTY_LIST = List.of();
 
   /**
    * The code of the diagnostic associated with the fix.
@@ -58,7 +56,7 @@ public class BulkFixDetail {
     if (obj instanceof BulkFixDetail) {
       BulkFixDetail other = (BulkFixDetail) obj;
       return
-        ObjectUtilities.equals(other.code, code) &&
+        Objects.equals(other.code, code) &&
         other.occurrences == occurrences;
     }
     return false;
@@ -74,10 +72,9 @@ public class BulkFixDetail {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<BulkFixDetail> list = new ArrayList<BulkFixDetail>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<BulkFixDetail> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +95,10 @@ public class BulkFixDetail {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(code);
-    builder.append(occurrences);
-    return builder.toHashCode();
+    return Objects.hash(
+      code,
+      occurrences
+    );
   }
 
   public JsonObject toJson() {

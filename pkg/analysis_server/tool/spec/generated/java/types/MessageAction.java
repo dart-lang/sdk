@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,7 +32,7 @@ public class MessageAction {
 
   public static final MessageAction[] EMPTY_ARRAY = new MessageAction[0];
 
-  public static final List<MessageAction> EMPTY_LIST = Lists.newArrayList();
+  public static final List<MessageAction> EMPTY_LIST = List.of();
 
   /**
    * The label of the button to be displayed, and the value to be returned to the server if the
@@ -54,7 +52,7 @@ public class MessageAction {
     if (obj instanceof MessageAction) {
       MessageAction other = (MessageAction) obj;
       return
-        ObjectUtilities.equals(other.label, label);
+        Objects.equals(other.label, label);
     }
     return false;
   }
@@ -68,10 +66,9 @@ public class MessageAction {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<MessageAction> list = new ArrayList<MessageAction>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<MessageAction> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -86,9 +83,9 @@ public class MessageAction {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(label);
-    return builder.toHashCode();
+    return Objects.hash(
+      label
+    );
   }
 
   public JsonObject toJson() {

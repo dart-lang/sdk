@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class FlutterOutlineAttribute {
 
   public static final FlutterOutlineAttribute[] EMPTY_ARRAY = new FlutterOutlineAttribute[0];
 
-  public static final List<FlutterOutlineAttribute> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FlutterOutlineAttribute> EMPTY_LIST = List.of();
 
   /**
    * The name of the attribute.
@@ -95,13 +93,13 @@ public class FlutterOutlineAttribute {
     if (obj instanceof FlutterOutlineAttribute) {
       FlutterOutlineAttribute other = (FlutterOutlineAttribute) obj;
       return
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.label, label) &&
-        ObjectUtilities.equals(other.literalValueBoolean, literalValueBoolean) &&
-        ObjectUtilities.equals(other.literalValueInteger, literalValueInteger) &&
-        ObjectUtilities.equals(other.literalValueString, literalValueString) &&
-        ObjectUtilities.equals(other.nameLocation, nameLocation) &&
-        ObjectUtilities.equals(other.valueLocation, valueLocation);
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.label, label) &&
+        Objects.equals(other.literalValueBoolean, literalValueBoolean) &&
+        Objects.equals(other.literalValueInteger, literalValueInteger) &&
+        Objects.equals(other.literalValueString, literalValueString) &&
+        Objects.equals(other.nameLocation, nameLocation) &&
+        Objects.equals(other.valueLocation, valueLocation);
     }
     return false;
   }
@@ -121,10 +119,9 @@ public class FlutterOutlineAttribute {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FlutterOutlineAttribute> list = new ArrayList<FlutterOutlineAttribute>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FlutterOutlineAttribute> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -187,15 +184,15 @@ public class FlutterOutlineAttribute {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(name);
-    builder.append(label);
-    builder.append(literalValueBoolean);
-    builder.append(literalValueInteger);
-    builder.append(literalValueString);
-    builder.append(nameLocation);
-    builder.append(valueLocation);
-    return builder.toHashCode();
+    return Objects.hash(
+      name,
+      label,
+      literalValueBoolean,
+      literalValueInteger,
+      literalValueString,
+      nameLocation,
+      valueLocation
+    );
   }
 
   public JsonObject toJson() {

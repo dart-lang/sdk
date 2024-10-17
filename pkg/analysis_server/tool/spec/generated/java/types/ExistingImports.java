@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class ExistingImports {
 
   public static final ExistingImports[] EMPTY_ARRAY = new ExistingImports[0];
 
-  public static final List<ExistingImports> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExistingImports> EMPTY_LIST = List.of();
 
   /**
    * The set of all unique imported elements for all imports.
@@ -58,8 +56,8 @@ public class ExistingImports {
     if (obj instanceof ExistingImports) {
       ExistingImports other = (ExistingImports) obj;
       return
-        ObjectUtilities.equals(other.elements, elements) &&
-        ObjectUtilities.equals(other.imports, imports);
+        Objects.equals(other.elements, elements) &&
+        Objects.equals(other.imports, imports);
     }
     return false;
   }
@@ -74,10 +72,9 @@ public class ExistingImports {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExistingImports> list = new ArrayList<ExistingImports>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExistingImports> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +95,10 @@ public class ExistingImports {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(elements);
-    builder.append(imports);
-    return builder.toHashCode();
+    return Objects.hash(
+      elements,
+      imports
+    );
   }
 
   public JsonObject toJson() {

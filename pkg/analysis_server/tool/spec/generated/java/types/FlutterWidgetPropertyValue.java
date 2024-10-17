@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class FlutterWidgetPropertyValue {
 
   public static final FlutterWidgetPropertyValue[] EMPTY_ARRAY = new FlutterWidgetPropertyValue[0];
 
-  public static final List<FlutterWidgetPropertyValue> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FlutterWidgetPropertyValue> EMPTY_LIST = List.of();
 
   private final Boolean boolValue;
 
@@ -67,12 +65,12 @@ public class FlutterWidgetPropertyValue {
     if (obj instanceof FlutterWidgetPropertyValue) {
       FlutterWidgetPropertyValue other = (FlutterWidgetPropertyValue) obj;
       return
-        ObjectUtilities.equals(other.boolValue, boolValue) &&
-        ObjectUtilities.equals(other.doubleValue, doubleValue) &&
-        ObjectUtilities.equals(other.intValue, intValue) &&
-        ObjectUtilities.equals(other.stringValue, stringValue) &&
-        ObjectUtilities.equals(other.enumValue, enumValue) &&
-        ObjectUtilities.equals(other.expression, expression);
+        Objects.equals(other.boolValue, boolValue) &&
+        Objects.equals(other.doubleValue, doubleValue) &&
+        Objects.equals(other.intValue, intValue) &&
+        Objects.equals(other.stringValue, stringValue) &&
+        Objects.equals(other.enumValue, enumValue) &&
+        Objects.equals(other.expression, expression);
     }
     return false;
   }
@@ -91,10 +89,9 @@ public class FlutterWidgetPropertyValue {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FlutterWidgetPropertyValue> list = new ArrayList<FlutterWidgetPropertyValue>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FlutterWidgetPropertyValue> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -128,14 +125,14 @@ public class FlutterWidgetPropertyValue {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(boolValue);
-    builder.append(doubleValue);
-    builder.append(intValue);
-    builder.append(stringValue);
-    builder.append(enumValue);
-    builder.append(expression);
-    return builder.toHashCode();
+    return Objects.hash(
+      boolValue,
+      doubleValue,
+      intValue,
+      stringValue,
+      enumValue,
+      expression
+    );
   }
 
   public JsonObject toJson() {

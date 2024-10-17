@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class ExistingImport {
 
   public static final ExistingImport[] EMPTY_ARRAY = new ExistingImport[0];
 
-  public static final List<ExistingImport> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExistingImport> EMPTY_LIST = List.of();
 
   /**
    * The URI of the imported library. It is an index in the strings field, in the enclosing
@@ -75,10 +73,9 @@ public class ExistingImport {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExistingImport> list = new ArrayList<ExistingImport>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExistingImport> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -100,10 +97,10 @@ public class ExistingImport {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(uri);
-    builder.append(elements);
-    return builder.toHashCode();
+    return Objects.hash(
+      uri,
+      elements
+    );
   }
 
   public JsonObject toJson() {

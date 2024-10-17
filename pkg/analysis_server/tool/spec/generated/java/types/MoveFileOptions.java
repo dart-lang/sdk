@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -31,7 +29,7 @@ public class MoveFileOptions extends RefactoringOptions {
 
   public static final MoveFileOptions[] EMPTY_ARRAY = new MoveFileOptions[0];
 
-  public static final List<MoveFileOptions> EMPTY_LIST = Lists.newArrayList();
+  public static final List<MoveFileOptions> EMPTY_LIST = List.of();
 
   /**
    * The new file path to which the given file is being moved.
@@ -50,7 +48,7 @@ public class MoveFileOptions extends RefactoringOptions {
     if (obj instanceof MoveFileOptions) {
       MoveFileOptions other = (MoveFileOptions) obj;
       return
-        ObjectUtilities.equals(other.newFile, newFile);
+        Objects.equals(other.newFile, newFile);
     }
     return false;
   }
@@ -64,10 +62,9 @@ public class MoveFileOptions extends RefactoringOptions {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<MoveFileOptions> list = new ArrayList<MoveFileOptions>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<MoveFileOptions> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -81,9 +78,9 @@ public class MoveFileOptions extends RefactoringOptions {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(newFile);
-    return builder.toHashCode();
+    return Objects.hash(
+      newFile
+    );
   }
 
   /**

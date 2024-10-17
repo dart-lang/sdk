@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class AnalysisStatus {
 
   public static final AnalysisStatus[] EMPTY_ARRAY = new AnalysisStatus[0];
 
-  public static final List<AnalysisStatus> EMPTY_LIST = Lists.newArrayList();
+  public static final List<AnalysisStatus> EMPTY_LIST = List.of();
 
   /**
    * True if analysis is currently being performed.
@@ -59,7 +57,7 @@ public class AnalysisStatus {
       AnalysisStatus other = (AnalysisStatus) obj;
       return
         other.isAnalyzing == isAnalyzing &&
-        ObjectUtilities.equals(other.analysisTarget, analysisTarget);
+        Objects.equals(other.analysisTarget, analysisTarget);
     }
     return false;
   }
@@ -74,10 +72,9 @@ public class AnalysisStatus {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<AnalysisStatus> list = new ArrayList<AnalysisStatus>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<AnalysisStatus> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +95,10 @@ public class AnalysisStatus {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(isAnalyzing);
-    builder.append(analysisTarget);
-    return builder.toHashCode();
+    return Objects.hash(
+      isAnalyzing,
+      analysisTarget
+    );
   }
 
   public JsonObject toJson() {
