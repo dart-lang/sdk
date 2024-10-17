@@ -1579,7 +1579,8 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('fragments: ');
         _sink.write(e.fragments.map((f) {
           expect(f.element, same(e));
-          return '@${f.nameOffset}';
+          expect(f.name2.name, e.name);
+          return '@${f.name2.nameOffset}';
         }).join(' '));
       });
     });
