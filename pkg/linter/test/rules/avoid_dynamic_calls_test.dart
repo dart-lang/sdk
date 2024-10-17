@@ -539,6 +539,14 @@ void f(dynamic a) {
     ]);
   }
 
+  test_prefixedIdentifier_dynamicMethodCall_asDynamic() async {
+    await assertNoDiagnostics(r'''
+void f(Object? a) {
+  (a as dynamic).foo();
+}
+''');
+  }
+
   test_prefixedIdentifier_noSuchMethod() async {
     await assertNoDiagnostics(r'''
 void f(dynamic a, Invocation i) {

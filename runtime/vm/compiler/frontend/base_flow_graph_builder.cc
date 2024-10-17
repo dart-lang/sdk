@@ -448,16 +448,14 @@ Fragment BaseFlowGraphBuilder::GenericCheckBound() {
   // problems with JIT (even though should_omit_check_bounds() will be false
   // in JIT).
   const intptr_t deopt_id = GetNextDeoptId();
-  if (should_omit_check_bounds()) {
-    // Drop length but preserve index.
-    return DropTempsPreserveTop(/*num_temps_to_drop=*/1);
-  } else {
-    Value* index = Pop();
-    Value* length = Pop();
-    auto* instr = new (Z) GenericCheckBoundInstr(length, index, deopt_id);
-    Push(instr);
-    return Fragment(instr);
-  }
+  Value* index = Pop();
+  Value* length = Pop();
+  auto* instr = new (Z) GenericCheckBoundInstr(
+      length, index, deopt_id,
+      should_omit_check_bounds() ? GenericCheckBoundInstr::Mode::kPhantom
+                                 : GenericCheckBoundInstr::Mode::kReal);
+  Push(instr);
+  return Fragment(instr);
 }
 
 Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {

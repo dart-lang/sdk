@@ -484,6 +484,10 @@ class InformativeDataApplier {
       var primaryConstructorParameter = primaryConstructor
           .parameters_unresolved.first as ParameterElementImpl;
       primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
+      _setFragmentNameOffset(
+        primaryConstructorParameter.name2,
+        infoRep.fieldNameOffset,
+      );
       primaryConstructorParameter.setCodeRange(
         infoRep.fieldCodeOffset,
         infoRep.fieldCodeLength,
@@ -560,6 +564,7 @@ class InformativeDataApplier {
         element as ParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
+        _setFragmentNameOffset(element.name2, info.nameOffset2);
         _applyToTypeParameters(element.typeParameters, info.typeParameters);
         _applyToFormalParameters(element.parameters, info.parameters);
       },
@@ -1192,6 +1197,7 @@ class _InfoFormalParameter {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
 
@@ -1200,6 +1206,7 @@ class _InfoFormalParameter {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30() - 1,
+      nameOffset2: reader.readOptionalUInt30(),
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
       ),
@@ -1213,6 +1220,7 @@ class _InfoFormalParameter {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.typeParameters,
     required this.parameters,
   });
@@ -1754,7 +1762,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(1 + (node.name?.offset ?? -1));
-
+      sink.writeOptionalUInt30(node.name?.offsetIfNotEmpty);
       var notDefault = node.notDefault;
       if (notDefault is FieldFormalParameter) {
         _writeTypeParameters(notDefault.typeParameters);

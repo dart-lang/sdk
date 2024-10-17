@@ -6211,6 +6211,13 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&is_ok);
 }
 
+Definition* GenericCheckBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!flow_graph->is_licm_allowed()) {
+    if (IsPhantom()) return index()->definition();
+  }
+  return CheckBoundBaseInstr::Canonicalize(flow_graph);
+}
+
 LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 2;

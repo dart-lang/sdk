@@ -604,7 +604,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            _f @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
@@ -777,7 +777,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            _f @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
@@ -869,7 +869,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            _c @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c
@@ -1066,13 +1066,13 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            _f @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
         set <null-name>
           reference: <testLibraryFragment>::@setter::s
           element: <testLibraryFragment>::@setter::s#element
           formalParameters
-            _s @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::s::@parameter::_s#element
   topLevelVariables
     f
@@ -1210,13 +1210,13 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            _c @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
         set <null-name>
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           formalParameters
-            _d @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     c
@@ -1820,7 +1820,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            _v @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v

@@ -602,6 +602,7 @@ class BundleWriter {
   // TODO(scheglov): Deduplicate parameter writing implementation.
   void _writeParameterElement(ParameterElement element) {
     element as ParameterElementImpl;
+    _writeFragmentName(element.name2);
     _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);

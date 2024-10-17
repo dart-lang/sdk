@@ -2833,7 +2833,7 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
               formalParameters
-                _f @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::f::@parameter::_f#element
       typeAliases
         Foo @8

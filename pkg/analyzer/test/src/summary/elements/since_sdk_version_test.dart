@@ -178,7 +178,7 @@ library
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
               sinceSdkVersion: 2.15.0
               formalParameters
-                _foo @-1
+                <null-name>
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A

@@ -493,7 +493,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
@@ -3154,7 +3154,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
@@ -3308,7 +3308,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
@@ -3474,7 +3474,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
         const a @6
@@ -7221,13 +7221,13 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::isStatic
               element: <testLibraryFragment>::@class::A::@setter::isStatic#element
               formalParameters
-                _isStatic @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::isStatic::@parameter::_isStatic#element
             set <null-name>
               reference: <testLibraryFragment>::@class::A::@setter::isInstance
               element: <testLibraryFragment>::@class::A::@setter::isInstance#element
               formalParameters
-                _isInstance @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::isInstance::@parameter::_isInstance#element
       topLevelVariables
         const foo @6
@@ -8485,7 +8485,7 @@ library
           reference: <testLibraryFragment>::@setter::isNotConst
           element: <testLibraryFragment>::@setter::isNotConst#element
           formalParameters
-            _isNotConst @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::isNotConst::@parameter::_isNotConst#element
   topLevelVariables
     const foo
@@ -9659,7 +9659,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            _v @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     const a
@@ -10280,7 +10280,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     const a

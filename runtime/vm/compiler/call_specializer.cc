@@ -1607,16 +1607,17 @@ void TypedDataSpecializer::AppendMutableCheck(TemplateDartCall<0>* call,
 void TypedDataSpecializer::AppendBoundsCheck(TemplateDartCall<0>* call,
                                              Definition* array,
                                              Definition** index) {
-  if (flow_graph_->ShouldOmitCheckBoundsIn(call->env()->function())) {
-    return;
-  }
+  auto omit_check =
+      flow_graph_->ShouldOmitCheckBoundsIn(call->env()->function());
 
   auto length = new (Z) LoadFieldInstr(
       new (Z) Value(array), Slot::TypedDataBase_length(), call->source());
   flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
 
   auto check = new (Z) GenericCheckBoundInstr(
-      new (Z) Value(length), new (Z) Value(*index), DeoptId::kNone);
+      new (Z) Value(length), new (Z) Value(*index), DeoptId::kNone,
+      omit_check ? GenericCheckBoundInstr::Mode::kPhantom
+                 : GenericCheckBoundInstr::Mode::kReal);
   flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
 
   // Use data dependency as control dependency.

@@ -1459,6 +1459,7 @@ class LibraryReader {
   // TODO(scheglov): Deduplicate parameter reading implementation.
   List<ParameterElementImpl> _readParameters() {
     return _reader.readTypedList(() {
+      var fragmentName = _readFragmentName();
       var name = _reader.readStringReference();
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
@@ -1514,6 +1515,7 @@ class LibraryReader {
           reference.element = element;
         }
       }
+      element.name2 = fragmentName;
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters();

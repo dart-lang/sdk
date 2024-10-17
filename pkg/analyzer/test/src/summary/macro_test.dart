@@ -3482,7 +3482,7 @@ library
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               formalParameters
-                _foo @-1
+                <null-name>
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
@@ -6187,7 +6187,7 @@ library
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               formalParameters
-                _foo @-1
+                <null-name>
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
@@ -10379,7 +10379,7 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::foo
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               formalParameters
-                _foo @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
