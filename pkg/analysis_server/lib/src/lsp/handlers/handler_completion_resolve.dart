@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
-import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -129,9 +129,8 @@ class CompletionResolveHandler
         if (element != null) {
           var formats = clientCapabilities.completionDocumentationFormats;
           var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
-          var dartDoc = DartUnitHoverComputer.computePreferredDocumentation(
-              dartDocInfo,
-              element,
+          var dartDocComputer = DartDocumentationComputer(dartDocInfo);
+          var dartDoc = dartDocComputer.computePreferred(element,
               server.lspClientConfiguration.global.preferredDocumentation);
           // `dartDoc` can be both null or empty.
           documentation = dartDoc != null && dartDoc.isNotEmpty

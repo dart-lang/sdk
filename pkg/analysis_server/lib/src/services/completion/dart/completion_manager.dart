@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
@@ -195,8 +196,9 @@ class DartCompletionRequest {
   /// context, or `null` if the context does not impose any type.
   final DartType? contextType;
 
-  /// Return the object used to resolve macros in Dartdoc comments.
-  final DartdocDirectiveInfo dartdocDirectiveInfo;
+  /// Return the object used to compute documentation for elements and resolve
+  /// macros in Dartdoc comments.
+  final DartDocumentationComputer documentationComputer;
 
   /// Return the object used to compute the values of the features used to
   /// compute relevance scores for suggestions.
@@ -284,7 +286,8 @@ class DartCompletionRequest {
       completionPreference: completionPreference,
       content: fileContent,
       contextType: contextType,
-      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      documentationComputer: DartDocumentationComputer(
+          dartdocDirectiveInfo ?? DartdocDirectiveInfo()),
       featureComputer: featureComputer,
       libraryElement: libraryElement,
       libraryFragment: unitElement,
@@ -325,7 +328,7 @@ class DartCompletionRequest {
     required this.completionPreference,
     required this.content,
     required this.contextType,
-    required this.dartdocDirectiveInfo,
+    required this.documentationComputer,
     required this.featureComputer,
     required this.libraryElement,
     required this.libraryFragment,

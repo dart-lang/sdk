@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
-import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,17 +21,17 @@ typedef _OffsetLength = ({int offset, int length});
 /// A computer for the hover at the specified offset of a Dart
 /// [CompilationUnit].
 class DartUnitHoverComputer {
-  final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
   final int _offset;
   final DocumentationPreference documentationPreference;
+  final DartDocumentationComputer _documentationComputer;
 
   DartUnitHoverComputer(
-    this._dartdocInfo,
+    DartdocDirectiveInfo dartdocInfo,
     this._unit,
     this._offset, {
     this.documentationPreference = DocumentationPreference.full,
-  });
+  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo);
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -83,8 +83,8 @@ class DartUnitHoverComputer {
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = computePreferredDocumentation(
-            _dartdocInfo, element, documentationPreference);
+        hover.dartdoc = _documentationComputer.computePreferred(
+            element, documentationPreference);
       }
       // parameter
       hover.parameter = _parameterDisplayString(node);
@@ -272,94 +272,6 @@ class DartUnitHoverComputer {
             element.isSynthetic);
   }
 
-  static Documentation? computeDocumentation(
-      DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented,
-      {bool includeSummary = false}) {
-    // TODO(dantup): We're reusing this in parameter information - move it
-    // somewhere shared?
-    Element? element = elementBeingDocumented;
-    if (element is FieldFormalParameterElement) {
-      element = element.field;
-    }
-    if (element is ParameterElement) {
-      element = element.enclosingElement3;
-    }
-    if (element == null) {
-      // This can happen when the code is invalid, such as having a field formal
-      // parameter for a field that does not exist.
-      return null;
-    }
-
-    Element? documentedElement;
-    Element? documentedGetter;
-
-    // Look for documentation comments of overridden members
-    var overridden = findOverriddenElements(element);
-    var candidates = [
-      element,
-      ...overridden.superElements,
-      ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement(variable2: var variable?))
-        variable
-    ];
-    for (var candidate in candidates) {
-      if (candidate.documentationComment != null) {
-        documentedElement = candidate;
-        break;
-      }
-      if (documentedGetter == null &&
-          candidate is PropertyAccessorElement &&
-          candidate.isSetter) {
-        var getter = candidate.correspondingGetter;
-        if (getter != null && getter.documentationComment != null) {
-          documentedGetter = getter;
-        }
-      }
-    }
-
-    // Use documentation of a corresponding getter if setters don't have it
-    documentedElement ??= documentedGetter;
-    if (documentedElement == null) {
-      return null;
-    }
-
-    var rawDoc = documentedElement.documentationComment;
-    if (rawDoc == null) {
-      return null;
-    }
-    var result =
-        dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
-
-    var documentedElementClass = documentedElement.enclosingElement3;
-    if (documentedElementClass != null &&
-        documentedElementClass != element.enclosingElement3) {
-      var documentedClass = documentedElementClass.displayName;
-      result.full = '${result.full}\n\nCopied from `$documentedClass`.';
-    }
-
-    return result;
-  }
-
-  /// Compute documentation for [element] and return either the summary or full
-  /// docs (or `null`) depending on `preference`.
-  static String? computePreferredDocumentation(
-    DartdocDirectiveInfo dartdocInfo,
-    Element element,
-    DocumentationPreference preference,
-  ) {
-    if (preference == DocumentationPreference.none) {
-      return null;
-    }
-
-    var doc = computeDocumentation(
-      dartdocInfo,
-      element,
-      includeSummary: preference == DocumentationPreference.summary,
-    );
-
-    return doc is DocumentationWithSummary ? doc.summary : doc?.full;
-  }
-
   static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.staticElement;
@@ -391,12 +303,4 @@ class DartUnitHoverComputer {
     }
     return node.staticType;
   }
-}
-
-/// The type of documentation the user prefers to see in hovers and other
-/// related displays in their editor.
-enum DocumentationPreference {
-  none,
-  summary,
-  full,
 }

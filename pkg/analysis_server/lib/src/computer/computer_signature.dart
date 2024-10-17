@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,17 +15,18 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 /// A computer for the signature at the specified offset of a Dart
 /// [CompilationUnit].
 class DartUnitSignatureComputer {
-  final DartdocDirectiveInfo _dartdocInfo;
   final AstNode? _node;
   late ArgumentList _argumentList;
   final DocumentationPreference documentationPreference;
+  final DartDocumentationComputer _documentationComputer;
 
   DartUnitSignatureComputer(
-    this._dartdocInfo,
+    DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
     int offset, {
     this.documentationPreference = DocumentationPreference.full,
-  }) : _node = NodeLocator(offset).searchWithin(unit);
+  })  : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+        _node = NodeLocator(offset).searchWithin(unit);
 
   /// The [ArgumentList] node located by [compute].
   ArgumentList get argumentList => _argumentList;
@@ -75,8 +76,7 @@ class DartUnitSignatureComputer {
 
     _argumentList = argumentList;
     var convertedParameters = parameters.map((p) => _convertParam(p)).toList();
-    var dartdoc = DartUnitHoverComputer.computePreferredDocumentation(
-      _dartdocInfo,
+    var dartdoc = _documentationComputer.computePreferred(
       element,
       documentationPreference,
     );
