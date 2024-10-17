@@ -21,11 +21,11 @@ import 'analyzer.dart';
 import 'util/dart_type_utilities.dart';
 
 class EnumLikeClassDescription {
-  final Map<DartObject, Set<FieldElement>> _enumConstants;
+  final Map<DartObject, Set<FieldElement2>> _enumConstants;
   EnumLikeClassDescription(this._enumConstants);
 
   /// Returns a fresh map of the class's enum-like constant values.
-  Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
+  Map<DartObject, Set<FieldElement2>> get enumConstants => {..._enumConstants};
 }
 
 extension AstNodeExtension on AstNode {
@@ -161,9 +161,28 @@ extension ClassElementExtension on ClassElement {
   /// Get all mixins, including merged augmentations.
   List<InterfaceType> get allMixins => augmented.mixins;
 
+  /// Returns whether this class is exactly [otherName] declared in
+  /// [otherLibrary].
+  bool isClass(String otherName, String otherLibrary) =>
+      name == otherName && library.name == otherLibrary;
+}
+
+extension ClassElementExtension2 on ClassElement2 {
+  bool get hasImmutableAnnotation {
+    var inheritedAndSelfElements = <InterfaceElement2>[
+      ...allSupertypes.map((t) => t.element3),
+      this,
+    ];
+
+    return inheritedAndSelfElements.any((e) => e.metadata2.hasImmutable);
+
+    // TODO(pq): update when implemented or replace w/ a better has{*} call
+    // https://github.com/dart-lang/linter/issues/4939
+    //return inheritedAndSelfElements.any((e) => e.augmented.metadata.any((e) => e.isImmutable));
+  }
+
   bool get hasSubclassInDefiningCompilationUnit {
-    var compilationUnit = library.definingCompilationUnit;
-    for (var cls in compilationUnit.classes) {
+    for (var cls in library2.classes) {
       InterfaceType? classType = cls.thisType;
       do {
         classType = classType?.superclass;
@@ -201,7 +220,7 @@ extension ClassElementExtension on ClassElement {
     }
 
     // With only private non-factory constructors.
-    for (var constructor in constructors) {
+    for (var constructor in constructors2) {
       if (!constructor.isPrivate || constructor.isFactory) {
         return null;
       }
@@ -211,8 +230,8 @@ extension ClassElementExtension on ClassElement {
 
     // And 2 or more static const fields whose type is the enclosing class.
     var enumConstantCount = 0;
-    var enumConstants = <DartObject, Set<FieldElement>>{};
-    for (var field in fields) {
+    var enumConstants = <DartObject, Set<FieldElement2>>{};
+    for (var field in fields2) {
       // Ensure static const.
       if (field.isSynthetic || !field.isConst || !field.isStatic) {
         continue;
@@ -238,27 +257,7 @@ extension ClassElementExtension on ClassElement {
     return EnumLikeClassDescription(enumConstants);
   }
 
-  /// Returns whether this class is exactly [otherName] declared in
-  /// [otherLibrary].
-  bool isClass(String otherName, String otherLibrary) =>
-      name == otherName && library.name == otherLibrary;
-
   bool isEnumLikeClass() => asEnumLikeClass() != null;
-}
-
-extension ClassElementExtension2 on ClassElement2 {
-  bool get hasImmutableAnnotation {
-    var inheritedAndSelfElements = <InterfaceElement2>[
-      ...allSupertypes.map((t) => t.element3),
-      this,
-    ];
-
-    return inheritedAndSelfElements.any((e) => e.metadata2.hasImmutable);
-
-    // TODO(pq): update when implemented or replace w/ a better has{*} call
-    // https://github.com/dart-lang/linter/issues/4939
-    //return inheritedAndSelfElements.any((e) => e.augmented.metadata.any((e) => e.isImmutable));
-  }
 }
 
 extension ClassMemberListExtension on List<ClassMember> {

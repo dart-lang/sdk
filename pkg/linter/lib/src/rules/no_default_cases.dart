@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -42,9 +42,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expressionType is InterfaceType) {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
-          var interfaceElement = expressionType.element;
-          if (interfaceElement is EnumElement ||
-              interfaceElement is ClassElement &&
+          var interfaceElement = expressionType.element3;
+          if (interfaceElement is EnumElement2 ||
+              interfaceElement is ClassElement2 &&
                   interfaceElement.isEnumLikeClass()) {
             rule.reportLint(member);
           }
