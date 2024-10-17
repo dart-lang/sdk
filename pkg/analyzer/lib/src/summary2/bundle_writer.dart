@@ -706,6 +706,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     _sink.writeBool(element.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, element);
 

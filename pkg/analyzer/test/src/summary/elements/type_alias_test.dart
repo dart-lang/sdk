@@ -6217,6 +6217,89 @@ library
 ''');
   }
 
+  test_typedef_nonFunction_missingName() async {
+    var library = await buildLibrary(r'''
+typedef = int;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      typeAliases
+        functionTypeAliasBased @8
+          reference: <testLibraryFragment>::@typeAlias::0
+          aliasedType: dynamic Function()
+          aliasedElement: GenericFunctionTypeElement
+            returnType: dynamic
+      topLevelVariables
+        static int @10
+          reference: <testLibraryFragment>::@topLevelVariable::int
+          enclosingElement3: <testLibraryFragment>
+          type: dynamic
+      accessors
+        synthetic static get int @-1
+          reference: <testLibraryFragment>::@getter::int
+          enclosingElement3: <testLibraryFragment>
+          returnType: dynamic
+        synthetic static set int= @-1
+          reference: <testLibraryFragment>::@setter::int
+          enclosingElement3: <testLibraryFragment>
+          parameters
+            requiredPositional _int @-1
+              type: dynamic
+          returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        <null-name>
+          reference: <testLibraryFragment>::@typeAlias::0
+          element: <testLibraryFragment>::@typeAlias::0#element
+      topLevelVariables
+        int @10
+          reference: <testLibraryFragment>::@topLevelVariable::int
+          element: <testLibraryFragment>::@topLevelVariable::int#element
+          getter2: <testLibraryFragment>::@getter::int
+          setter2: <testLibraryFragment>::@setter::int
+      getters
+        get <null-name>
+          reference: <testLibraryFragment>::@getter::int
+          element: <testLibraryFragment>::@getter::int#element
+      setters
+        set <null-name>
+          reference: <testLibraryFragment>::@setter::int
+          element: <testLibraryFragment>::@setter::int#element
+          formalParameters
+            <null-name>
+              element: <testLibraryFragment>::@setter::int::@parameter::_int#element
+  typeAliases
+    
+      firstFragment: <testLibraryFragment>::@typeAlias::0
+      aliasedType: dynamic Function()
+  topLevelVariables
+    int
+      firstFragment: <testLibraryFragment>::@topLevelVariable::int
+      type: dynamic
+      getter: <testLibraryFragment>::@getter::int#element
+      setter: <testLibraryFragment>::@setter::int#element
+  getters
+    synthetic static get int
+      firstFragment: <testLibraryFragment>::@getter::int
+  setters
+    synthetic static set int=
+      firstFragment: <testLibraryFragment>::@setter::int
+      formalParameters
+        requiredPositional _int
+          type: dynamic
+''');
+  }
+
   test_typedef_nonFunction_using_dynamic() async {
     var library = await buildLibrary(r'''
 typedef A = dynamic;

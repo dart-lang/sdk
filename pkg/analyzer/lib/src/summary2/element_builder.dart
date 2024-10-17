@@ -827,8 +827,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = TypeAliasElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.isFunctionTypeAliasBased = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -837,7 +839,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addTypeAlias(name, element);
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var reference = _enclosingContext.addTypeAlias(refName, element);
     _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
@@ -939,8 +942,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
+    var fragmentName = _buildFragmentName(nameToken);
 
     var element = TypeAliasElementImpl(name, nameToken.offset);
+    element.name2 = fragmentName;
     element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -949,7 +954,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addTypeAlias(name, element);
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var reference = _enclosingContext.addTypeAlias(refName, element);
     if (!element.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }

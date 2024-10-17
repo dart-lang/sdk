@@ -618,6 +618,7 @@ class InformativeDataApplier {
     element as TypeAliasElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -638,6 +639,7 @@ class InformativeDataApplier {
     element as TypeAliasElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -1284,6 +1286,7 @@ class _InfoFunctionTypeAlias {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
@@ -1294,6 +1297,7 @@ class _InfoFunctionTypeAlias {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -1309,6 +1313,7 @@ class _InfoFunctionTypeAlias {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.parameters,
@@ -1320,6 +1325,7 @@ class _InfoGenericTypeAlias {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoTypeParameter> aliasedTypeParameters;
@@ -1331,6 +1337,7 @@ class _InfoGenericTypeAlias {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -1349,6 +1356,7 @@ class _InfoGenericTypeAlias {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.aliasedTypeParameters,
@@ -1607,6 +1615,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeFormalParameters(node.parameters);
@@ -1622,6 +1631,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       if (aliasedType is GenericFunctionType) {
