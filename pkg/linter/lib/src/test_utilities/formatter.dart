@@ -104,7 +104,7 @@ abstract class ReportFormatter {
 
 /// Simple formatter suitable for subclassing.
 class SimpleFormatter implements ReportFormatter {
-  final IOSink out;
+  final StringSink out;
   final Iterable<AnalysisErrorInfo> errors;
 
   int errorCount = 0;
@@ -263,7 +263,7 @@ class Stat implements Comparable<Stat> {
   int compareTo(Stat other) => other.elapsed - elapsed;
 }
 
-extension IOSinkExtension on IOSink {
+extension StringSinkExtension on StringSink {
   void writeTimings(List<Stat> timings, int summaryLength) {
     var names = timings.map((s) => s.name).toList();
 

@@ -64,10 +64,10 @@ class StringSpelunker extends _AbstractSpelunker {
 }
 
 abstract class _AbstractSpelunker {
-  final IOSink sink;
+  final StringSink sink;
   FeatureSet featureSet;
 
-  _AbstractSpelunker({IOSink? sink, FeatureSet? featureSet})
+  _AbstractSpelunker({StringSink? sink, FeatureSet? featureSet})
       : sink = sink ?? stdout,
         featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
@@ -89,7 +89,7 @@ abstract class _AbstractSpelunker {
 class _SourceVisitor extends GeneralizingAstVisitor {
   int indent = 0;
 
-  final IOSink sink;
+  final StringSink sink;
 
   _SourceVisitor(this.sink);
 

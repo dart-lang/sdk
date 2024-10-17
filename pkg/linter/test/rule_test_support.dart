@@ -29,8 +29,6 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import 'mocks.dart';
-
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -311,12 +309,12 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         buffer.writeln();
         buffer.writeln();
         try {
-          var astSink = CollectingSink();
+          var astSink = StringBuffer();
 
           StringSpelunker(result.unit.toSource(),
                   sink: astSink, featureSet: result.unit.featureSet)
               .spelunk();
-          buffer.write(astSink.buffer);
+          buffer.write(astSink);
           buffer.writeln();
           // I hereby choose to catch this type.
           // ignore: avoid_catching_errors

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -44,7 +43,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
   return errors;
 }
 
-void printUsage(ArgParser parser, IOSink out, [String? error]) {
+void printUsage(ArgParser parser, StringSink out, [String? error]) {
   var message = 'Benchmark lint rules.';
   if (error != null) {
     message = error;
@@ -135,7 +134,7 @@ Future<void> runLinter(List<String> args) async {
   await writeBenchmarks(outSink, filesToLint, linterOptions, filter);
 }
 
-Future<void> writeBenchmarks(IOSink out, List<File> filesToLint,
+Future<void> writeBenchmarks(StringSink out, List<File> filesToLint,
     LinterOptions linterOptions, LintFilter filter) async {
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
@@ -182,40 +181,12 @@ abstract class LintFilter {
   bool filter(AnalysisError lint);
 }
 
-class _ErrorWatchingSink implements IOSink {
+class _ErrorWatchingSink implements StringSink {
   bool encounteredError = false;
 
-  final IOSink delegate;
+  final StringSink delegate;
 
   _ErrorWatchingSink(this.delegate);
-
-  @override
-  Future<void> get done => delegate.done;
-
-  @override
-  Encoding get encoding => delegate.encoding;
-
-  @override
-  set encoding(Encoding encoding) => delegate.encoding = encoding;
-
-  @override
-  void add(List<int> data) => delegate.add(data);
-
-  @override
-  void addError(Object error, [StackTrace? stackTrace]) {
-    encounteredError = true;
-    delegate.addError(error, stackTrace);
-  }
-
-  @override
-  Future<void> addStream(Stream<List<int>> stream) =>
-      delegate.addStream(stream);
-
-  @override
-  Future<void> close() => delegate.close();
-
-  @override
-  Future<void> flush() => delegate.flush();
 
   @override
   void write(Object? obj) => delegate.write(obj);

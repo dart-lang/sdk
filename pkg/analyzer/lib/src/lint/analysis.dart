@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:linter/src/test_utilities/test_linter.dart';
+library;
+
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -55,7 +58,7 @@ class DriverOptions {
   String? packageConfigPath;
 }
 
-/// A driver _only used_ by [DartLinter], which is only used by package:linter
+/// A driver _only used_ by [TestLinter], which is only used by package:linter
 /// tests and tools.
 class LintDriver {
   /// The files which have been analyzed so far.  This is used to compute the
