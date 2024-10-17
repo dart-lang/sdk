@@ -6268,6 +6268,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         newSsaNode,
         operations,
         unpromotedType: unpromotedType);
+
+    // Update the type of the variable for looking up the write expression.
+    if (inferenceUpdate4Enabled && node is Expression) {
+      _Reference<Type> reference = _variableReference(
+        variableKey,
+        unpromotedType,
+      );
+      _storeExpressionInfo(node, reference);
+      _storeExpressionReference(node, reference);
+    }
   }
 }
 
