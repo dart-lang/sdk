@@ -94,8 +94,6 @@ const map2 = {?nullVar: 1, intConst: 1, stringConst: 1};
 const map3 = {null: ?nullVar, intConst: 1, stringConst: 1};
 //    ^
 // [cfe] Constant evaluation error:
-//            ^
-// [cfe] The value 'null' can't be assigned to a variable of type 'Object' because 'Object' is not nullable.
 //                   ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_VALUE

@@ -548,7 +548,6 @@ class SourceLoader extends Loader {
               packageForLanguageVersion.languageVersion!.major,
               packageForLanguageVersion.languageVersion!.minor);
           if (version > target.currentSdkVersion) {
-            // Coverage-ignore-block(suite): Not run.
             packageLanguageVersionProblem =
                 templateLanguageVersionTooHighPackage.withArguments(
                     version.major,

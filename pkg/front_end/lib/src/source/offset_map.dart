@@ -15,7 +15,6 @@ import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/fragment.dart';
 import 'source_field_builder.dart';
-import 'source_function_builder.dart';
 
 /// Map from offsets of directives and declarations to the objects the define.
 ///
@@ -25,6 +24,7 @@ class OffsetMap {
   final Uri uri;
   final Map<int, DeclarationFragment> _declarations = {};
   final Map<int, FieldFragment> _fields = {};
+  final Map<int, PrimaryConstructorFragment> _primaryConstructors = {};
   final Map<int, ConstructorFragment> _constructors = {};
   final Map<int, FactoryFragment> _factoryFragments = {};
   final Map<int, GetterFragment> _getters = {};
@@ -105,12 +105,12 @@ class OffsetMap {
   }
 
   void registerPrimaryConstructor(
-      Token beginToken, ConstructorFragment builder) {
-    _constructors[beginToken.charOffset] = builder;
+      Token beginToken, PrimaryConstructorFragment fragment) {
+    _primaryConstructors[beginToken.charOffset] = fragment;
   }
 
-  SourceFunctionBuilder lookupPrimaryConstructor(Token beginToken) {
-    return _checkBuilder(_constructors[beginToken.charOffset]?.builder,
+  FunctionFragment lookupPrimaryConstructor(Token beginToken) {
+    return _checkFragment(_primaryConstructors[beginToken.charOffset],
         '<primary-constructor>', beginToken.charOffset);
   }
 
@@ -124,12 +124,10 @@ class OffsetMap {
     _factoryFragments[identifier.nameOffset] = fragment;
   }
 
-  SourceFunctionBuilder lookupConstructor(Identifier identifier) {
-    return _checkBuilder(
-        _constructors[identifier.nameOffset]?.builder ??
-            _factoryFragments[identifier.nameOffset]?.builder,
-        identifier.name,
-        identifier.nameOffset);
+  FunctionFragment lookupConstructor(Identifier identifier) {
+    FunctionFragment? fragment = _constructors[identifier.nameOffset];
+    fragment ??= _factoryFragments[identifier.nameOffset];
+    return _checkFragment(fragment, identifier.name, identifier.nameOffset);
   }
 
   void registerGetter(Identifier identifier, GetterFragment fragment) {
@@ -144,19 +142,19 @@ class OffsetMap {
     _methods[identifier.nameOffset] = fragment;
   }
 
-  SourceFunctionBuilder lookupGetter(Identifier identifier) {
-    return _checkBuilder(_getters[identifier.nameOffset]?.builder,
-        identifier.name, identifier.nameOffset);
+  FunctionFragment lookupGetter(Identifier identifier) {
+    return _checkFragment(_getters[identifier.nameOffset], identifier.name,
+        identifier.nameOffset);
   }
 
-  SourceFunctionBuilder lookupSetter(Identifier identifier) {
-    return _checkBuilder(_setters[identifier.nameOffset]?.builder,
-        identifier.name, identifier.nameOffset);
+  FunctionFragment lookupSetter(Identifier identifier) {
+    return _checkFragment(_setters[identifier.nameOffset], identifier.name,
+        identifier.nameOffset);
   }
 
-  SourceFunctionBuilder lookupMethod(Identifier identifier) {
-    return _checkBuilder(_methods[identifier.nameOffset]?.builder,
-        identifier.name, identifier.nameOffset);
+  FunctionFragment lookupMethod(Identifier identifier) {
+    return _checkFragment(_methods[identifier.nameOffset], identifier.name,
+        identifier.nameOffset);
   }
 
   T _checkDirective<T>(T? directive, String name, int charOffset) {
@@ -178,5 +176,13 @@ class OffsetMap {
           declaration.fileUri);
     }
     return declaration;
+  }
+
+  T _checkFragment<T>(T? fragment, String name, int fileOffset) {
+    if (fragment == null) {
+      internalProblem(
+          templateInternalProblemNotFound.withArguments(name), fileOffset, uri);
+    }
+    return fragment;
   }
 }

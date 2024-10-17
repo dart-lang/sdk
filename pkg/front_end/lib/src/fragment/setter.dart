@@ -4,13 +4,14 @@
 
 part of 'fragment.dart';
 
-class SetterFragment implements Fragment {
+class SetterFragment implements Fragment, FunctionFragment {
   final String name;
   final Uri fileUri;
   final int startCharOffset;
   final int charOffset;
   final int charOpenParenOffset;
   final int charEndOffset;
+  final bool isTopLevel;
   final List<MetadataBuilder>? metadata;
   final Modifiers modifiers;
   final TypeBuilder returnType;
@@ -28,6 +29,7 @@ class SetterFragment implements Fragment {
       required this.charOffset,
       required this.charOpenParenOffset,
       required this.charEndOffset,
+      required this.isTopLevel,
       required this.metadata,
       required this.modifiers,
       required this.returnType,
@@ -48,5 +50,61 @@ class SetterFragment implements Fragment {
   }
 
   @override
+  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+    return new _SetterBodyBuildingContext(this);
+  }
+
+  @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+}
+
+class _SetterBodyBuildingContext implements FunctionBodyBuildingContext {
+  SetterFragment _fragment;
+
+  _SetterBodyBuildingContext(this._fragment);
+
+  @override
+  MemberKind get memberKind => _fragment.isTopLevel
+      ? MemberKind.TopLevelMethod
+      : (_fragment.modifiers.isStatic
+          ? MemberKind.StaticMethod
+          : MemberKind.NonStaticMethod);
+
+  @override
+  bool get shouldBuild => true;
+
+  @override
+  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+    return _fragment.builder.computeFormalParameterScope(typeParameterScope);
+  }
+
+  @override
+  LookupScope computeTypeParameterScope(LookupScope enclosingScope) {
+    return _fragment.builder.computeTypeParameterScope(enclosingScope);
+  }
+
+  @override
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return _fragment.builder.createBodyBuilderContext(
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
+
+  @override
+  InferenceDataForTesting? get inferenceDataForTesting => _fragment
+      .builder
+      .dataForTesting
+      // Coverage-ignore(suite): Not run.
+      ?.inferenceData;
+
+  @override
+  List<TypeParameter>? get thisTypeParameters =>
+      _fragment.builder.thisTypeParameters;
+
+  @override
+  VariableDeclaration? get thisVariable => _fragment.builder.thisVariable;
 }

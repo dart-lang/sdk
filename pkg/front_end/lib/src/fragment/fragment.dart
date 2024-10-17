@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:kernel/ast.dart';
 
+import '../base/local_scope.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -14,6 +16,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
@@ -25,6 +28,7 @@ import '../source/source_field_builder.dart';
 import '../source/source_procedure_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
+import '../type_inference/type_inference_engine.dart';
 
 part 'class.dart';
 part 'constructor.dart';
@@ -33,10 +37,12 @@ part 'extension.dart';
 part 'extension_type.dart';
 part 'factory.dart';
 part 'field.dart';
+part 'function.dart';
 part 'getter.dart';
 part 'method.dart';
 part 'mixin.dart';
 part 'named_mixin_application.dart';
+part 'primary_constructor.dart';
 part 'setter.dart';
 part 'typedef.dart';
 

@@ -4,74 +4,73 @@
 
 part of 'fragment.dart';
 
-class GetterFragment implements Fragment, FunctionFragment {
+class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final String name;
   final Uri fileUri;
-  final int startCharOffset;
   final int charOffset;
-  final int charOpenParenOffset;
-  final int charEndOffset;
-  final bool isTopLevel;
-  final List<MetadataBuilder>? metadata;
   final Modifiers modifiers;
-  final TypeBuilder returnType;
+  final OmittedTypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
-  final AsyncMarker asyncModifier;
-  final String? nativeMethodName;
+  final bool forAbstractClassOrMixin;
+  Token? _beginInitializers;
 
-  SourceProcedureBuilder? _builder;
+  AbstractSourceConstructorBuilder? _builder;
 
-  GetterFragment(
+  PrimaryConstructorFragment(
       {required this.name,
       required this.fileUri,
-      required this.startCharOffset,
       required this.charOffset,
-      required this.charOpenParenOffset,
-      required this.charEndOffset,
-      required this.isTopLevel,
-      required this.metadata,
       required this.modifiers,
       required this.returnType,
       required this.typeParameters,
       required this.formals,
-      required this.asyncModifier,
-      required this.nativeMethodName});
+      required this.forAbstractClassOrMixin,
+      required Token? beginInitializers})
+      : _beginInitializers = beginInitializers;
+
+  Token? get beginInitializers {
+    Token? result = _beginInitializers;
+    // Ensure that we don't hold onto the token.
+    _beginInitializers = null;
+    return result;
+  }
 
   @override
-  SourceProcedureBuilder get builder {
+  AbstractSourceConstructorBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(SourceProcedureBuilder value) {
+  void set builder(AbstractSourceConstructorBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
 
   @override
   FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
-    return new _GetterBodyBuildingContext(this);
+    return new _PrimaryConstructorBodyBuildingContext(this);
   }
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$charOffset)';
 }
 
-class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
-  GetterFragment _fragment;
+class _PrimaryConstructorBodyBuildingContext
+    implements FunctionBodyBuildingContext {
+  PrimaryConstructorFragment _fragment;
 
-  _GetterBodyBuildingContext(this._fragment);
-
-  @override
-  MemberKind get memberKind => _fragment.isTopLevel
-      ? MemberKind.TopLevelMethod
-      : (_fragment.modifiers.isStatic
-          ? MemberKind.StaticMethod
-          : MemberKind.NonStaticMethod);
+  _PrimaryConstructorBodyBuildingContext(this._fragment);
 
   @override
-  bool get shouldBuild => true;
+  // Coverage-ignore(suite): Not run.
+  // TODO(johnniwinther): This matches what is passed when parsing, but seems
+  // odd given that it used to allow 'covariant' modifiers, which shouldn't be
+  // allowed on constructors.
+  MemberKind get memberKind => MemberKind.NonStaticMethod;
+
+  @override
+  bool get shouldBuild => !_fragment.modifiers.isConst;
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {

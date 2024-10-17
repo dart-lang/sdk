@@ -1,0 +1,7 @@
+test(String? key, num? value) {}
+
+typedef Exactly<T> = T Function(T);
+
+extension E<X> on X {
+  void expectStaticType<Y extends Exactly<X>>() {}
+}

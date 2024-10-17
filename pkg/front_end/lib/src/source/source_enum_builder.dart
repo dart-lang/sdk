@@ -351,23 +351,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (needsSynthesizedDefaultConstructor) {
       synthesizedDefaultConstructorBuilder =
           new DeclaredSourceConstructorBuilder(
-              /* metadata = */ null,
-              Modifiers.Const,
-              /* returnType = */ libraryBuilder.loader.inferableTypes
-                  .addInferableType(),
-              /* name = */ "",
-              /* typeParameters = */ null,
-              /* formals = */ [],
-              libraryBuilder,
-              this,
-              fileUri,
-              charOffset,
-              charOffset,
-              charOffset,
-              charEndOffset,
-              constructorReference,
-              tearOffReference,
-              new NameScheme(
+              metadata: null,
+              modifiers: Modifiers.Const,
+              returnType:
+                  libraryBuilder.loader.inferableTypes.addInferableType(),
+              name: "",
+              typeVariables: null,
+              formals: [],
+              libraryBuilder: libraryBuilder,
+              declarationBuilder: this,
+              fileUri: fileUri,
+              startCharOffset: charOffset,
+              charOffset: charOffset,
+              charOpenParenOffset: charOffset,
+              charEndOffset: charEndOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: new NameScheme(
                   isInstanceMember: false,
                   containerName: new ClassName(name),
                   containerType: ContainerType.Class,
