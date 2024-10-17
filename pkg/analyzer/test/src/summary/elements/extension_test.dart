@@ -547,7 +547,7 @@ library
           reference: <testLibraryFragment>::@extension::E
           element: <testLibraryFragment>::@extension::E#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::E::@field::foo
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
@@ -615,7 +615,7 @@ library
           reference: <testLibraryFragment>::@extension::E
           element: <testLibraryFragment>::@extension::E#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::E::@field::foo
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               setter2: <testLibraryFragment>::@extension::E::@setter::foo
@@ -1856,7 +1856,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo
               element: <testLibraryFragment>::@extension::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
@@ -2172,7 +2172,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
@@ -2189,7 +2189,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           previousFragment: <testLibraryFragment>::@extension::A
           fields
-            foo2 @-1
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
@@ -2321,7 +2321,7 @@ library
             T1 @27
               element: <not-implemented>
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
@@ -2341,7 +2341,7 @@ library
             T2 @41
               element: <not-implemented>
           fields
-            foo2 @-1
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
@@ -2810,11 +2810,11 @@ library
           element: <testLibraryFragment>::@extension::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
-            foo2 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo2
               element: <testLibraryFragment>::@extension::A::@field::foo2#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo2
@@ -2973,7 +2973,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo
               element: <testLibraryFragment>::@extension::A::@field::foo#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
@@ -3802,7 +3802,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
@@ -3822,7 +3822,7 @@ library
           element: <testLibraryFragment>::@extension::A#element
           previousFragment: <testLibraryFragment>::@extension::A
           fields
-            foo2 @-1
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
@@ -4120,11 +4120,11 @@ library
           element: <testLibraryFragment>::@extension::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
-            foo2 @-1
+            <null-name>
               reference: <testLibraryFragment>::@extension::A::@field::foo2
               element: <testLibraryFragment>::@extension::A::@field::foo2#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo2

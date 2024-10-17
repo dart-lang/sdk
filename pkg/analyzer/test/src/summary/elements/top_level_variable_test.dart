@@ -50,7 +50,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
@@ -106,7 +106,7 @@ library
       libraryImports
         dart:async
       topLevelVariables
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
@@ -157,7 +157,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -204,7 +204,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -281,7 +281,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            f @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
               getter2: <testLibraryFragment>::@class::C::@getter::f
@@ -298,7 +298,7 @@ library
           reference: <testLibraryFragment>::@class::D
           element: <testLibraryFragment>::@class::D#element
           fields
-            f @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::D::@field::f
               element: <testLibraryFragment>::@class::D::@field::f#element
               getter2: <testLibraryFragment>::@class::D::@getter::f
@@ -370,7 +370,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
@@ -423,11 +423,11 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
-        synthetic y @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::y
           element: <testLibraryFragment>::@topLevelVariable::y#element
           getter2: <testLibraryFragment>::@getter::y
@@ -497,7 +497,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -565,7 +565,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -634,7 +634,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           setter2: <testLibraryFragment>::@setter::x
@@ -690,7 +690,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           setter2: <testLibraryFragment>::@setter::x
@@ -744,7 +744,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic f @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::f
           element: <testLibraryFragment>::@topLevelVariable::f#element
           setter2: <testLibraryFragment>::@setter::f
@@ -810,11 +810,11 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           setter2: <testLibraryFragment>::@setter::x
-        synthetic y @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::y
           element: <testLibraryFragment>::@topLevelVariable::y#element
           setter2: <testLibraryFragment>::@setter::y
@@ -959,7 +959,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -1029,7 +1029,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -1125,7 +1125,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::foo::@def::0#element
           getter2: <testLibraryFragment>::@getter::foo::@def::0
           setter2: <testLibraryFragment>::@setter::foo
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
           element: <testLibraryFragment>::@topLevelVariable::foo::@def::1#element
           getter2: <testLibraryFragment>::@getter::foo::@def::1
@@ -1232,7 +1232,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::foo::@def::0#element
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo::@def::0
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo::@def::1
           element: <testLibraryFragment>::@topLevelVariable::foo::@def::1#element
           setter2: <testLibraryFragment>::@setter::foo::@def::1
@@ -1706,7 +1706,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           getter2: <testLibraryFragment>::@getter::x
@@ -1718,7 +1718,7 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
           element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x#element
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::x
@@ -1810,7 +1810,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibraryFragment>::@topLevelVariable::x#element
           setter2: <testLibraryFragment>::@setter::x
@@ -1825,7 +1825,7 @@ library
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
           element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x#element
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::x
@@ -1921,7 +1921,7 @@ library
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
           element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x#element
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::x
@@ -1933,7 +1933,7 @@ library
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
           element: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x#element
           setter2: <testLibrary>::@fragment::package:test/b.dart::@setter::x
@@ -2641,6 +2641,116 @@ library
 ''');
   }
 
+  test_variable_missingName() async {
+    var library = await buildLibrary(r'''
+Object? a,;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      topLevelVariables
+        static a @8
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          enclosingElement3: <testLibraryFragment>
+          type: Object?
+        static @10
+          reference: <testLibraryFragment>::@topLevelVariable::0
+          enclosingElement3: <testLibraryFragment>
+          type: Object?
+      accessors
+        synthetic static get a @-1
+          reference: <testLibraryFragment>::@getter::a
+          enclosingElement3: <testLibraryFragment>
+          returnType: Object?
+        synthetic static set a= @-1
+          reference: <testLibraryFragment>::@setter::a
+          enclosingElement3: <testLibraryFragment>
+          parameters
+            requiredPositional _a @-1
+              type: Object?
+          returnType: void
+        synthetic static get @-1
+          reference: <testLibraryFragment>::@getter::0
+          enclosingElement3: <testLibraryFragment>
+          returnType: Object?
+        synthetic static set = @-1
+          reference: <testLibraryFragment>::@setter::0
+          enclosingElement3: <testLibraryFragment>
+          parameters
+            requiredPositional _ @-1
+              type: Object?
+          returnType: void
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        a @8
+          reference: <testLibraryFragment>::@topLevelVariable::a
+          element: <testLibraryFragment>::@topLevelVariable::a#element
+          getter2: <testLibraryFragment>::@getter::a
+          setter2: <testLibraryFragment>::@setter::a
+        <null-name>
+          reference: <testLibraryFragment>::@topLevelVariable::0
+          element: <testLibraryFragment>::@topLevelVariable::0#element
+          getter2: <testLibraryFragment>::@getter::0
+          setter2: <testLibraryFragment>::@setter::0
+      getters
+        get <null-name>
+          reference: <testLibraryFragment>::@getter::a
+          element: <testLibraryFragment>::@getter::a#element
+        get <null-name>
+          reference: <testLibraryFragment>::@getter::0
+          element: <testLibraryFragment>::@getter::0#element
+      setters
+        set <null-name>
+          reference: <testLibraryFragment>::@setter::a
+          element: <testLibraryFragment>::@setter::a#element
+          formalParameters
+            <null-name>
+              element: <testLibraryFragment>::@setter::a::@parameter::_a#element
+        set <null-name>
+          reference: <testLibraryFragment>::@setter::0
+          element: <testLibraryFragment>::@setter::0#element
+          formalParameters
+            <null-name>
+              element: <testLibraryFragment>::@setter::0::@parameter::_#element
+  topLevelVariables
+    a
+      firstFragment: <testLibraryFragment>::@topLevelVariable::a
+      type: Object?
+      getter: <testLibraryFragment>::@getter::a#element
+      setter: <testLibraryFragment>::@setter::a#element
+    
+      firstFragment: <testLibraryFragment>::@topLevelVariable::0
+      type: Object?
+      getter: <testLibraryFragment>::@getter::0#element
+      setter: <testLibraryFragment>::@setter::0#element
+  getters
+    synthetic static get a
+      firstFragment: <testLibraryFragment>::@getter::a
+    synthetic static get 
+      firstFragment: <testLibraryFragment>::@getter::0
+  setters
+    synthetic static set a=
+      firstFragment: <testLibraryFragment>::@setter::a
+      formalParameters
+        requiredPositional _a
+          type: Object?
+    synthetic static set =
+      firstFragment: <testLibraryFragment>::@setter::0
+      formalParameters
+        requiredPositional _
+          type: Object?
+''');
+  }
+
   test_variable_propagatedType_const_noDep() async {
     var library = await buildLibrary('const i = 0;');
     checkElementText(library, r'''
@@ -3006,7 +3116,7 @@ library
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x
           element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::x#element
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::x
@@ -3021,7 +3131,7 @@ library
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic x @-1
+        synthetic <null-name>
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x
           element: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::x#element
           getter2: <testLibrary>::@fragment::package:test/b.dart::@getter::x
@@ -3835,7 +3945,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
@@ -3980,7 +4090,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           setter2: <testLibraryFragment>::@setter::foo

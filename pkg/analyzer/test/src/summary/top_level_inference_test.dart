@@ -6236,7 +6236,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::staticClassVariable#element
               getter2: <testLibraryFragment>::@class::A::@getter::staticClassVariable
               setter2: <testLibraryFragment>::@class::A::@setter::staticClassVariable
-            staticGetter @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::staticGetter
               element: <testLibraryFragment>::@class::A::@field::staticGetter#element
               getter2: <testLibraryFragment>::@class::A::@getter::staticGetter
@@ -6317,7 +6317,7 @@ library
           element: <testLibraryFragment>::@topLevelVariable::r_instanceClassMethod#element
           getter2: <testLibraryFragment>::@getter::r_instanceClassMethod
           setter2: <testLibraryFragment>::@setter::r_instanceClassMethod
-        synthetic topLevelGetter @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::topLevelGetter
           element: <testLibraryFragment>::@topLevelVariable::topLevelGetter#element
           getter2: <testLibraryFragment>::@getter::topLevelGetter
@@ -11282,7 +11282,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            d @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::d
               element: <testLibraryFragment>::@class::C::@field::d#element
               getter2: <testLibraryFragment>::@class::C::@getter::d
@@ -11691,7 +11691,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -12036,11 +12036,11 @@ library
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               getter2: <testLibraryFragment>::@class::B::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::z
               element: <testLibraryFragment>::@class::B::@field::z#element
               setter2: <testLibraryFragment>::@class::B::@setter::z
@@ -12518,11 +12518,11 @@ library
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               getter2: <testLibraryFragment>::@class::B::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::z
               element: <testLibraryFragment>::@class::B::@field::z#element
               setter2: <testLibraryFragment>::@class::B::@setter::z
@@ -13081,15 +13081,15 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::y
               element: <testLibraryFragment>::@class::A::@field::y#element
               getter2: <testLibraryFragment>::@class::A::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::z
               element: <testLibraryFragment>::@class::A::@field::z#element
               getter2: <testLibraryFragment>::@class::A::@getter::z
@@ -13116,11 +13116,11 @@ library
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               getter2: <testLibraryFragment>::@class::B::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::z
               element: <testLibraryFragment>::@class::B::@field::z#element
               setter2: <testLibraryFragment>::@class::B::@setter::z
@@ -13331,15 +13331,15 @@ library
             E @17
               element: <not-implemented>
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::y
               element: <testLibraryFragment>::@class::A::@field::y#element
               getter2: <testLibraryFragment>::@class::A::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::z
               element: <testLibraryFragment>::@class::A::@field::z#element
               getter2: <testLibraryFragment>::@class::A::@getter::z
@@ -13369,11 +13369,11 @@ library
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               getter2: <testLibraryFragment>::@class::B::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::z
               element: <testLibraryFragment>::@class::B::@field::z#element
               setter2: <testLibraryFragment>::@class::B::@setter::z
@@ -13555,7 +13555,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -13571,7 +13571,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
@@ -13587,7 +13587,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -13728,7 +13728,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -13744,7 +13744,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
@@ -13760,7 +13760,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -13910,7 +13910,7 @@ library
             T @17
               element: <not-implemented>
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -13929,7 +13929,7 @@ library
             T @52
               element: <not-implemented>
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
@@ -13945,7 +13945,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -14089,7 +14089,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -14105,7 +14105,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
@@ -14121,7 +14121,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -14301,11 +14301,11 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::y
               element: <testLibraryFragment>::@class::A::@field::y#element
               getter2: <testLibraryFragment>::@class::A::@getter::y
@@ -14324,11 +14324,11 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               setter2: <testLibraryFragment>::@class::B::@setter::y
@@ -14542,7 +14542,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -14558,7 +14558,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -14577,7 +14577,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -14727,7 +14727,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -14743,7 +14743,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -14762,7 +14762,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               setter2: <testLibraryFragment>::@class::C::@setter::x
@@ -14921,7 +14921,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -14937,7 +14937,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -15117,7 +15117,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -15133,7 +15133,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -15152,7 +15152,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -15301,7 +15301,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -15317,7 +15317,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -15336,7 +15336,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               setter2: <testLibraryFragment>::@class::C::@setter::x
@@ -15519,15 +15519,15 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               setter2: <testLibraryFragment>::@class::A::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::y
               element: <testLibraryFragment>::@class::A::@field::y#element
               setter2: <testLibraryFragment>::@class::A::@setter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::z
               element: <testLibraryFragment>::@class::A::@field::z#element
               setter2: <testLibraryFragment>::@class::A::@setter::z
@@ -15563,11 +15563,11 @@ library
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
               setter2: <testLibraryFragment>::@class::B::@setter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               getter2: <testLibraryFragment>::@class::B::@getter::y
-            z @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::z
               element: <testLibraryFragment>::@class::B::@field::z#element
               setter2: <testLibraryFragment>::@class::B::@setter::z
@@ -15759,7 +15759,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               setter2: <testLibraryFragment>::@class::A::@setter::x
@@ -15778,7 +15778,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -15797,7 +15797,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -15949,7 +15949,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               setter2: <testLibraryFragment>::@class::A::@setter::x
@@ -15968,7 +15968,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x
@@ -15987,7 +15987,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -16162,11 +16162,11 @@ library
             T @25
               element: <not-implemented>
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::y
               element: <testLibraryFragment>::@class::A::@field::y#element
               getter2: <testLibraryFragment>::@class::A::@getter::y
@@ -16185,11 +16185,11 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               getter2: <testLibraryFragment>::@class::B::@getter::x
-            y @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::y
               element: <testLibraryFragment>::@class::B::@field::y#element
               getter2: <testLibraryFragment>::@class::B::@getter::y
@@ -16351,7 +16351,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -16514,7 +16514,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
@@ -16538,7 +16538,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibraryFragment>::@class::B#element
           fields
-            x @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::B::@field::x
               element: <testLibraryFragment>::@class::B::@field::x#element
               setter2: <testLibraryFragment>::@class::B::@setter::x

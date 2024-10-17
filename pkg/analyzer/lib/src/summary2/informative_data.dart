@@ -447,6 +447,10 @@ class InformativeDataApplier {
       var representationField = element.fields.first;
       var infoRep = info.representation;
       representationField.nameOffset = infoRep.fieldNameOffset;
+      _setFragmentNameOffset(
+        representationField.name2,
+        infoRep.fieldNameOffset2,
+      );
       representationField.setCodeRange(
         infoRep.fieldCodeOffset,
         infoRep.fieldCodeLength,
@@ -533,6 +537,7 @@ class InformativeDataApplier {
         element as FieldElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
+        _setFragmentNameOffset(element.name2, info.nameOffset2);
         element.documentationComment = info.documentationComment;
 
         var applyOffsets = ApplyConstantOffsets(
@@ -779,6 +784,7 @@ class InformativeDataApplier {
     element as TopLevelVariableElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
 
     var applyOffsets = ApplyConstantOffsets(
@@ -1139,6 +1145,7 @@ class _InfoExtensionTypeRepresentation {
   final int fieldCodeOffset;
   final int fieldCodeLength;
   final int fieldNameOffset;
+  final int? fieldNameOffset2;
   final Uint32List fieldConstantOffsets;
 
   factory _InfoExtensionTypeRepresentation(SummaryDataReader reader) {
@@ -1152,6 +1159,7 @@ class _InfoExtensionTypeRepresentation {
       fieldCodeOffset: reader.readUInt30(),
       fieldCodeLength: reader.readUInt30(),
       fieldNameOffset: reader.readUInt30(),
+      fieldNameOffset2: reader.readOptionalUInt30(),
       fieldConstantOffsets: reader.readUInt30List(),
     );
   }
@@ -1166,6 +1174,7 @@ class _InfoExtensionTypeRepresentation {
     required this.fieldCodeOffset,
     required this.fieldCodeLength,
     required this.fieldNameOffset,
+    required this.fieldNameOffset2,
     required this.fieldConstantOffsets,
   });
 }
@@ -1174,6 +1183,7 @@ class _InfoFieldDeclaration {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final Uint32List constantOffsets;
 
@@ -1182,6 +1192,7 @@ class _InfoFieldDeclaration {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       constantOffsets: reader.readUInt30List(),
     );
@@ -1191,6 +1202,7 @@ class _InfoFieldDeclaration {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.constantOffsets,
   });
@@ -1721,6 +1733,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(codeOffset);
       sink.writeUInt30(node.end - codeOffset);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeOffsets(
         metadata: node.metadata,
@@ -1738,6 +1751,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(codeOffset);
     sink.writeUInt30(node.end - codeOffset);
     sink.writeUInt30(node.name.offset);
+    sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
     _writeDocumentationComment(node);
 
     // TODO(scheglov): Replace with some kind of double-iterating list.
@@ -1955,6 +1969,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(codeOffset);
     sink.writeUInt30(codeEnd - codeOffset);
     sink.writeUInt30(node.fieldName.offset);
+    sink.writeOptionalUInt30(node.fieldName.offsetIfNotEmpty);
 
     _writeOffsets(
       metadata: node.fieldMetadata,
@@ -1966,6 +1981,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(codeOffset);
     sink.writeUInt30(node.end - codeOffset);
     sink.writeUInt30(node.name.offset);
+    sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
     _writeDocumentationComment(node);
 
     // TODO(scheglov): Replace with some kind of double-iterating list.
@@ -1991,6 +2007,7 @@ class _InfoTopLevelVariable {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final Uint32List constantOffsets;
 
@@ -1999,6 +2016,7 @@ class _InfoTopLevelVariable {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       constantOffsets: reader.readUInt30List(),
     );
@@ -2008,6 +2026,7 @@ class _InfoTopLevelVariable {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.constantOffsets,
   });

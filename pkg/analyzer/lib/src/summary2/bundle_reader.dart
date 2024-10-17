@@ -1138,8 +1138,10 @@ class LibraryReader {
     var reference = _readReference();
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
+    var fragmentName = _readFragmentName();
 
-    var name = reference.elementName;
+    // TODO(scheglov): we do this only because FieldElement2 uses this name.
+    var name = _reader.readStringReference();
     var isConstElement = _reader.readBool();
 
     FieldElementImpl element;
@@ -1148,6 +1150,7 @@ class LibraryReader {
     } else {
       element = FieldElementImpl(name, -1);
     }
+    element.name2 = fragmentName;
 
     var linkedData = FieldElementLinkedData(
       reference: reference,
@@ -1691,8 +1694,10 @@ class LibraryReader {
     var reference = _readReference();
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
+    var fragmentName = _readFragmentName();
 
-    var name = reference.elementName;
+    // TODO(scheglov): we do this only because FieldElement2 uses this name.
+    var name = _reader.readStringReference();
     var isConst = _reader.readBool();
 
     TopLevelVariableElementImpl element;
@@ -1701,6 +1706,7 @@ class LibraryReader {
     } else {
       element = TopLevelVariableElementImpl(name, -1);
     }
+    element.name2 = fragmentName;
 
     var linkedData = TopLevelVariableElementLinkedData(
       reference: reference,

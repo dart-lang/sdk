@@ -7132,7 +7132,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibraryFragment>::@topLevelVariable::A#element
           getter2: <testLibraryFragment>::@getter::A
@@ -7271,7 +7271,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibraryFragment>::@topLevelVariable::A#element
           setter2: <testLibraryFragment>::@setter::A

@@ -407,6 +407,8 @@ class BundleWriter {
     _writeReference(element);
     _writeOptionalReference(element.getter?.reference);
     _writeOptionalReference(element.setter?.reference);
+    _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -683,6 +685,8 @@ class BundleWriter {
     _writeReference(element);
     _writeOptionalReference(element.getter?.reference);
     _writeOptionalReference(element.setter?.reference);
+    _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
