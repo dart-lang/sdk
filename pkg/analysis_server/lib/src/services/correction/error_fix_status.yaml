@@ -2207,8 +2207,6 @@ LintCode.only_throw_errors:
   status: noFix
 LintCode.overridden_fields:
   status: noFix
-LintCode.package_api_docs:
-  status: noFix
 LintCode.package_names:
   status: noFix
   notes: |-

@@ -205,7 +205,7 @@ library
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
                   element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f#element
           getters
-            get f @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::X::@getter::f
               element: <testLibraryFragment>::@class::X::@getter::f#element
       typeAliases

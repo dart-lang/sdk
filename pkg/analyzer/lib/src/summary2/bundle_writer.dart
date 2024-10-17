@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -155,6 +156,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeFragmentName(element.name2);
     ClassElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -200,9 +202,7 @@ class BundleWriter {
   void _writeConstructorElement(ConstructorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
-    _sink.writeOptionalObject(element.name2, (name) {
-      _sink._writeStringReference(name.name);
-    });
+    _writeFragmentName(element.name2);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -256,6 +256,7 @@ class BundleWriter {
   void _writeEnumElement(EnumElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -325,7 +326,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
-    _sink.writeBool(element.name != null);
+    _writeFragmentName(element.name2);
     ExtensionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -360,6 +361,7 @@ class BundleWriter {
   void _writeExtensionTypeElement(ExtensionTypeElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     ExtensionTypeElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -437,9 +439,16 @@ class BundleWriter {
     });
   }
 
+  void _writeFragmentName(FragmentName? fragmentName) {
+    _sink.writeOptionalObject(fragmentName, (fragmentName) {
+      _sink._writeStringReference(fragmentName.name);
+    });
+  }
+
   void _writeFunctionElement(FunctionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -512,6 +521,7 @@ class BundleWriter {
   void _writeMethodElement(MethodElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -530,6 +540,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeFragmentName(element.name2);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -641,6 +652,7 @@ class BundleWriter {
   void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeFragmentName(element.name2);
     PropertyAccessorElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);

@@ -186,11 +186,9 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
 class LinterOptions extends DriverOptions {
   final Iterable<LintRule> enabledRules;
-  final String? analysisOptions;
 
   LinterOptions({
     Iterable<LintRule>? enabledRules,
-    this.analysisOptions,
   }) : enabledRules = enabledRules ?? Registry.ruleRegistry;
 }
 

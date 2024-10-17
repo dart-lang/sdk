@@ -8,7 +8,7 @@
 #
 # Packages can be rolled to the latest version with `tools/manage_deps.dart`.
 #
-# For example
+# For example:
 #
 #     dart tools/manage_deps.dart bump third_party/pkg/dart_style
 
@@ -131,6 +131,7 @@ vars = {
   "clock_rev": "7956d60042f4ea979c4554d43eeb57d087627869",
   "collection_rev": "887b826b50f48d6a9cd2c0684aa353e8e3a0fad0",
   "convert_rev": "d361833e117cb2438d2a2a6d0b0acb28ff0910fb",
+  "core_rev": "279afbcda95f4e0a39e44ab82f9c60eeb70d7514",
   "crypto_rev": "3d26ef4cf22d4b218ba30e616544ad3cf52f64a1",
   "csslib_rev": "a3700b05bbcc42782e8a7024790dbf019d89c249",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -406,6 +407,8 @@ deps = {
       Var("dart_git") + "collection.git" + "@" + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/convert":
       Var("dart_git") + "convert.git" + "@" + Var("convert_rev"),
+  Var("dart_root") + "/third_party/pkg/core":
+      Var("dart_git") + "core.git" + "@" + Var("core_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
       Var("dart_git") + "crypto.git" + "@" + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":

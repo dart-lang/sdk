@@ -3584,21 +3584,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
-
-  @override
   List<ParameterElement> get parameters {
     linkedData?.read(this);
     return _parameters;
@@ -4766,6 +4751,9 @@ class FunctionElementImpl extends ExecutableElementImpl
         FunctionElement,
         FunctionTypedElementImpl,
         TopLevelFunctionFragment {
+  @override
+  FragmentNameImpl? name2;
+
   late final LocalFunctionElementImpl element2 = LocalFunctionElementImpl(this);
 
   /// The element corresponding to this fragment.
@@ -5095,6 +5083,9 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   @override
   ElementLinkedData? linkedData;
 
+  @override
+  FragmentNameImpl? name2;
+
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
 
   List<PropertyAccessorElementImpl> _accessors =
@@ -5199,26 +5190,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If unnamed extension.
-    if (name == null) {
-      return null;
-    }
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
 
   @override
   InstanceFragment? get nextFragment => augmentation as InstanceFragment?;
@@ -6670,89 +6641,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
           .toList();
 
   @override
-  bool get hasAlwaysThrows => _wrappedElement.hasAlwaysThrows;
-
-  @override
-  bool get hasDeprecated => _wrappedElement.hasDeprecated;
-
-  @override
-  bool get hasDoNotStore => _wrappedElement.hasDoNotStore;
-
-  @override
-  bool get hasDoNotSubmit => _wrappedElement.hasDoNotSubmit;
-
-  @override
-  bool get hasFactory => _wrappedElement.hasFactory;
-
-  @override
-  bool get hasImmutable => _wrappedElement.hasImmutable;
-
-  @override
   bool get hasImplicitReturnType => _wrappedElement.hasImplicitReturnType;
-
-  @override
-  bool get hasInternal => _wrappedElement.hasInternal;
-
-  @override
-  bool get hasIsTest => _wrappedElement.hasIsTest;
-
-  @override
-  bool get hasIsTestGroup => _wrappedElement.hasIsTestGroup;
-
-  @override
-  bool get hasJS => _wrappedElement.hasJS;
-
-  @override
-  bool get hasLiteral => _wrappedElement.hasLiteral;
-
-  @override
-  bool get hasMustBeConst => _wrappedElement.hasMustBeConst;
-
-  @override
-  bool get hasMustBeOverridden => _wrappedElement.hasMustBeOverridden;
-
-  @override
-  bool get hasMustCallSuper => _wrappedElement.hasMustCallSuper;
-
-  @override
-  bool get hasNonVirtual => _wrappedElement.hasNonVirtual;
-
-  @override
-  bool get hasOptionalTypeArgs => _wrappedElement.hasOptionalTypeArgs;
-
-  @override
-  bool get hasOverride => _wrappedElement.hasOverride;
-
-  @override
-  bool get hasProtected => _wrappedElement.hasProtected;
-
-  @override
-  bool get hasRedeclare => _wrappedElement.hasRedeclare;
-
-  @override
-  bool get hasReopen => _wrappedElement.hasReopen;
-
-  @override
-  bool get hasRequired => _wrappedElement.hasRequired;
-
-  @override
-  bool get hasSealed => _wrappedElement.hasSealed;
-
-  @override
-  bool get hasUseResult => _wrappedElement.hasUseResult;
-
-  @override
-  bool get hasVisibleForOverriding => _wrappedElement.hasVisibleForOverriding;
-
-  @override
-  bool get hasVisibleForTemplate => _wrappedElement.hasVisibleForTemplate;
-
-  @override
-  bool get hasVisibleForTesting => _wrappedElement.hasVisibleForTesting;
-
-  @override
-  bool get hasVisibleOutsideTemplate =>
-      _wrappedElement.hasVisibleOutsideTemplate;
 
   @override
   bool get isAbstract => _wrappedElement.isAbstract;
@@ -6777,9 +6666,6 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
 
   @override
   DartType get returnType => _wrappedElement.returnType;
-
-  @override
-  Version? get sinceSdkVersion => _wrappedElement.sinceSdkVersion;
 
   @override
   FunctionType get type => _wrappedElement.type;
@@ -7110,87 +6996,6 @@ mixin MaybeAugmentedInstanceElementMixin
       .toList();
 
   @override
-  bool get hasAlwaysThrows => declaration.hasAlwaysThrows;
-
-  @override
-  bool get hasDeprecated => declaration.hasDeprecated;
-
-  @override
-  bool get hasDoNotStore => declaration.hasDoNotStore;
-
-  @override
-  bool get hasDoNotSubmit => declaration.hasDoNotSubmit;
-
-  @override
-  bool get hasFactory => declaration.hasFactory;
-
-  @override
-  bool get hasImmutable => declaration.hasImmutable;
-
-  @override
-  bool get hasInternal => declaration.hasInternal;
-
-  @override
-  bool get hasIsTest => declaration.hasIsTest;
-
-  @override
-  bool get hasIsTestGroup => declaration.hasIsTestGroup;
-
-  @override
-  bool get hasJS => declaration.hasJS;
-
-  @override
-  bool get hasLiteral => declaration.hasLiteral;
-
-  @override
-  bool get hasMustBeConst => declaration.hasMustBeConst;
-
-  @override
-  bool get hasMustBeOverridden => declaration.hasMustBeOverridden;
-
-  @override
-  bool get hasMustCallSuper => declaration.hasMustCallSuper;
-
-  @override
-  bool get hasNonVirtual => declaration.hasNonVirtual;
-
-  @override
-  bool get hasOptionalTypeArgs => declaration.hasOptionalTypeArgs;
-
-  @override
-  bool get hasOverride => declaration.hasOverride;
-
-  @override
-  bool get hasProtected => declaration.hasProtected;
-
-  @override
-  bool get hasRedeclare => declaration.hasRedeclare;
-
-  @override
-  bool get hasReopen => declaration.hasReopen;
-
-  @override
-  bool get hasRequired => declaration.hasRequired;
-
-  @override
-  bool get hasSealed => declaration.hasSealed;
-
-  @override
-  bool get hasUseResult => declaration.hasUseResult;
-
-  @override
-  bool get hasVisibleForOverriding => declaration.hasVisibleForOverriding;
-
-  @override
-  bool get hasVisibleForTemplate => declaration.hasVisibleForTemplate;
-
-  @override
-  bool get hasVisibleForTesting => declaration.hasVisibleForTesting;
-
-  @override
-  bool get hasVisibleOutsideTemplate => declaration.hasVisibleOutsideTemplate;
-
-  @override
   int get id => declaration.id;
 
   @override
@@ -7243,9 +7048,6 @@ mixin MaybeAugmentedInstanceElementMixin
       .map((e) => e.asElement2 as SetterElement?)
       .nonNulls
       .toList();
-
-  @override
-  Version? get sinceSdkVersion => declaration.sinceSdkVersion;
 
   @override
   List<TypeParameterElement2> get typeParameters2 => declaration.typeParameters
@@ -7912,6 +7714,9 @@ final class MetadataImpl implements Metadata {
 class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
     implements MethodElement, MethodFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -9403,6 +9208,9 @@ abstract class PromotableElementImpl2 extends VariableElementImpl2
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     with AugmentableElement<PropertyAccessorElementImpl>
     implements PropertyAccessorElement, GetterFragment, SetterFragment {
+  @override
+  FragmentNameImpl? name2;
+
   PropertyInducingElementImpl? _variable;
 
   /// The element corresponding to this fragment.

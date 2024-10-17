@@ -7140,6 +7140,10 @@ LintCode:
     categories: [effectiveDart, publicInterface]
     hasPublishedDocs: false
     deprecatedDetails: |-
+      **NOTE:** This lint is deprecated because it is has not
+      been fully functional since at least Dart 2.0.
+      Remove all inclusions of this lint from your analysis options.
+
       **DO** provide doc comments for all public APIs.
 
       As described in the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files),

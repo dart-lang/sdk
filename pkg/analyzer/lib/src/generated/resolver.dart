@@ -1238,16 +1238,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
+  ///
+  /// [node] should be the original expression node (before resolution). If the
+  /// resolution process rewrote [node] to some other expression, that
+  /// expression should be passed in as [rewrittenExpression].
   void nullShortingTermination(ExpressionImpl node,
-      {bool discardType = false}) {
+      {ExpressionImpl? rewrittenExpression}) {
+    // Verify that `rewrittenExpression` properly reflects any rewrites that
+    // were performed on `node`.
+    assert(identical(rewrittenExpression ?? node, _replacements[node] ?? node));
+
     if (identical(_unfinishedNullShorts.last, node)) {
       do {
         _unfinishedNullShorts.removeLast();
         flowAnalysis.flow!.nullAwareAccess_end();
       } while (identical(_unfinishedNullShorts.last, node));
-      if (node is! CascadeExpression && !discardType) {
-        node.setPseudoExpressionStaticType(
-            typeSystem.makeNullable(node.staticType as TypeImpl));
+      if (node is! CascadeExpression) {
+        // Make the static type of `node` (or whatever it was rewritten to)
+        // nullable.
+        rewrittenExpression ??= node;
+        rewrittenExpression.setPseudoExpressionStaticType(typeSystem
+            .makeNullable(rewrittenExpression.staticType as TypeImpl));
       }
     }
   }
@@ -3034,7 +3045,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var replacement =
         insertGenericFunctionInstantiation(node, contextType: contextType);
 
-    nullShortingTermination(node);
+    nullShortingTermination(node, rewrittenExpression: replacement);
     _insertImplicitCallReference(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
     inferenceLogWriter?.exitExpression(node);
@@ -3236,10 +3247,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       _resolveRewrittenFunctionExpressionInvocation(
           functionRewrite, whyNotPromotedList,
           contextType: contextType);
-      nullShortingTermination(node, discardType: true);
-    } else {
-      nullShortingTermination(node);
     }
+    nullShortingTermination(node, rewrittenExpression: functionRewrite);
     var replacement =
         insertGenericFunctionInstantiation(node, contextType: contextType);
     checkForArgumentTypesNotAssignableInList(
@@ -3515,7 +3524,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var replacement =
         insertGenericFunctionInstantiation(node, contextType: contextType);
 
-    nullShortingTermination(node);
+    nullShortingTermination(node, rewrittenExpression: replacement);
     _insertImplicitCallReference(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
     inferenceLogWriter?.exitExpression(node);

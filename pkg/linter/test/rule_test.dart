@@ -8,8 +8,6 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -41,17 +39,10 @@ void defineRuleTests() {
   group('rule', () {
     group('dart', () {
       // Rule tests run with default analysis options.
-      testRules(ruleTestDataDir);
-
-      // Rule tests run against specific configurations.
-      for (var entry in Directory(testConfigDir).listSync()) {
-        if (entry is! Directory) continue;
-        group('(config: ${p.basename(entry.path)})', () {
-          var analysisOptionsFile =
-              File(p.join(entry.path, 'analysis_options.yaml'));
-          var analysisOptions = analysisOptionsFile.readAsStringSync();
-          testRules(ruleTestDataDir, analysisOptions: analysisOptions);
-        });
+      for (var entry in Directory(ruleTestDataDir).listSync()) {
+        if (entry is! File || !isDartFile(entry)) continue;
+        var ruleName = p.basenameWithoutExtension(entry.path);
+        testRule(ruleName, entry);
       }
     });
   });
@@ -107,29 +98,20 @@ void defineRuleUnitTests() {
   });
 }
 
-void testRule(String ruleName, File file,
-    {bool useMockSdk = true, String? analysisOptions}) {
+void testRule(String ruleName, File file, {bool useMockSdk = true}) {
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
     }
 
-    var errorInfos = await _getErrorInfos(ruleName, file,
-        useMockSdk: useMockSdk, analysisOptions: analysisOptions);
-    _validateExpectedLints(file, errorInfos, analysisOptions: analysisOptions);
+    var errorInfos =
+        await _getErrorInfos(ruleName, file, useMockSdk: useMockSdk);
+    _validateExpectedLints(file, errorInfos);
   });
 }
 
-void testRules(String ruleDir, {String? analysisOptions}) {
-  for (var entry in Directory(ruleDir).listSync()) {
-    if (entry is! File || !isDartFile(entry)) continue;
-    var ruleName = p.basenameWithoutExtension(entry.path);
-    testRule(ruleName, entry, analysisOptions: analysisOptions);
-  }
-}
-
 Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
-    {required bool useMockSdk, required String? analysisOptions}) async {
+    {required bool useMockSdk}) async {
   registerLintRules();
   var rule = Registry.ruleRegistry[ruleName];
   if (rule == null) {
@@ -137,7 +119,7 @@ Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
   }
 
   if (useMockSdk) {
-    var driver = buildDriver(rule, file, analysisOptions: analysisOptions);
+    var driver = buildDriver(rule, file);
     return await driver.lintFiles([file]);
   }
 
@@ -170,8 +152,10 @@ Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
 
 /// Parse lint annotations in the given [file] and validate that they correspond
 /// with errors in the provided [errorInfos].
-void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
-    {String? analysisOptions}) {
+void _validateExpectedLints(
+  File file,
+  Iterable<AnalysisErrorInfo> errorInfos,
+) {
   var expected = <AnnotationMatcher>[];
 
   var lineNumber = 1;
@@ -213,12 +197,7 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
     // Dump results for debugging purposes.
 
     // AST
-    var optionsProvider = AnalysisOptionsProvider();
-    var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
-    var optionsImpl = AnalysisOptionsImpl();
-    optionsImpl.applyOptions(optionMap);
-
-    var features = optionsImpl.contextFeatures;
+    var features = AnalysisOptionsImpl().contextFeatures;
 
     FileSpelunker(file.absolute.path, featureSet: features).spelunk();
     printToConsole('');

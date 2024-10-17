@@ -1607,6 +1607,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     if ((cid == kArrayCid || cid == kImmutableArrayCid) &&
         !IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
+      Page::Of(to)->AllocateCardTable();
     }
     if (IsExternalTypedDataClassId(cid)) {
       const auto& external_to = slow_forward_map_.AddExternalTypedData(

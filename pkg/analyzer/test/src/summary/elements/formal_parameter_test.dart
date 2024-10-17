@@ -1023,11 +1023,11 @@ library
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
           getters
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::x
               element: <testLibraryFragment>::@class::C::@getter::x#element
           setters
-            set x= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters

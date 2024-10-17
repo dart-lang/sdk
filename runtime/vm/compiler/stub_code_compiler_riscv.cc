@@ -1841,14 +1841,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ ret();
   }
   if (cards) {
-    Label remember_card_slow;
-
     // Get card table.
     __ Bind(&remember_card);
     __ AndImmediate(TMP, A0, target::kPageMask);  // Page.
     __ lx(TMP2,
           Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ beqz(TMP2, &remember_card_slow);
 
     // Atomically dirty the card.
     __ sub(A6, A6, TMP);                               // Offset in page.
@@ -1863,17 +1860,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 #else
     __ amoord(ZR, TMP, Address(TMP2, 0));
 #endif
-    __ ret();
-
-    // Card table not yet allocated.
-    __ Bind(&remember_card_slow);
-    {
-      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mv(A0, A0);  // Arg0 = Object
-      __ mv(A1, A6);  // Arg1 = Slot
-      rt.Call(kRememberCardRuntimeEntry, /*argument_count=*/2);
-    }
     __ ret();
   }
 }

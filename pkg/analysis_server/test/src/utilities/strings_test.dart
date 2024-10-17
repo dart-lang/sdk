@@ -89,16 +89,4 @@ class StringsTest {
     expect(removeEnd('www.domain.com', 'domain'), 'www.domain.com');
     expect(removeEnd('www.domain.com', '.com'), 'www.domain');
   }
-
-  void test_shorten() {
-    expect(shorten('', 10), '');
-    expect(shorten('0', 10), '0');
-    expect(shorten('012', 10), '012');
-    expect(shorten('0123456789', 10), '0123456789');
-    expect(shorten('0123456789abcd', 10), '0123...bcd');
-    expect(shorten('0123456789abcde', 10), '0123...cde');
-    expect(shorten('0123456789abcdef', 10), '0123...def');
-    expect(shorten('0123456789abcdef', 11), '0123...cdef');
-    expect(shorten('0123456789abcdef', 12), '01234...cdef');
-  }
 }

@@ -461,7 +461,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.
   bool isGroup(engine.ExecutableElement2? element) {
-    if (element != null && element.hasIsTestGroup) {
+    if (element != null && element.metadata2.hasIsTestGroup) {
       return true;
     }
     return element is engine.TopLevelFunctionElement &&
@@ -472,7 +472,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [element] is the method 'test' defined in the
   /// test package.
   bool isTest(engine.ExecutableElement2? element) {
-    if (element != null && element.hasIsTest) {
+    if (element != null && element.metadata2.hasIsTest) {
       return true;
     }
     return element is engine.TopLevelFunctionElement &&

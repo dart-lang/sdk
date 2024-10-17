@@ -19,6 +19,7 @@ lib/src/rules/avoid_catching_errors.dart
 lib/src/rules/avoid_double_and_int_checks.dart
 lib/src/rules/avoid_dynamic_calls.dart
 lib/src/rules/avoid_empty_else.dart
+lib/src/rules/avoid_equals_and_hash_code_on_mutable_classes.dart
 lib/src/rules/avoid_escaping_inner_quotes.dart
 lib/src/rules/avoid_final_parameters.dart
 lib/src/rules/avoid_function_literals_in_foreach_calls.dart
@@ -53,6 +54,7 @@ lib/src/rules/constant_identifier_names.dart
 lib/src/rules/control_flow_in_finally.dart
 lib/src/rules/curly_braces_in_flow_control_structures.dart
 lib/src/rules/dangling_library_doc_comments.dart
+lib/src/rules/diagnostic_describe_all_properties.dart
 lib/src/rules/directives_ordering.dart
 lib/src/rules/discarded_futures.dart
 lib/src/rules/do_not_use_environment.dart
@@ -97,7 +99,6 @@ lib/src/rules/null_closures.dart
 lib/src/rules/omit_obvious_local_variable_types.dart
 lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
-lib/src/rules/package_api_docs.dart
 lib/src/rules/package_prefixed_library_names.dart
 lib/src/rules/prefer_adjacent_string_concatenation.dart
 lib/src/rules/prefer_asserts_with_message.dart
@@ -173,6 +174,7 @@ lib/src/rules/unnecessary_to_list_in_spreads.dart
 lib/src/rules/unrelated_type_equality_checks.dart
 lib/src/rules/use_colored_box.dart
 lib/src/rules/use_decorated_box.dart
+lib/src/rules/use_full_hex_values_for_flutter_colors.dart
 lib/src/rules/use_function_type_syntax_for_parameters.dart
 lib/src/rules/use_if_null_to_convert_nulls_to_bools.dart
 lib/src/rules/use_is_even_rather_than_modulo.dart
@@ -321,7 +323,6 @@ test/rules/omit_obvious_local_variable_types_test.dart
 test/rules/one_member_abstracts_test.dart
 test/rules/only_throw_errors_test.dart
 test/rules/overridden_fields_test.dart
-test/rules/package_api_docs_test.dart
 test/rules/package_names_test.dart
 test/rules/package_prefixed_library_names_test.dart
 test/rules/parameter_assignments_test.dart

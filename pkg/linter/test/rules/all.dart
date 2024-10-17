@@ -165,7 +165,6 @@ import 'omit_obvious_local_variable_types_test.dart'
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
-import 'package_api_docs_test.dart' as package_api_docs;
 import 'package_names_test.dart' as package_names;
 import 'package_prefixed_library_names_test.dart'
     as package_prefixed_library_names;
@@ -434,7 +433,6 @@ void main() {
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
-  package_api_docs.main();
   package_names.main();
   package_prefixed_library_names.main();
   parameter_assignments.main();

@@ -24,7 +24,7 @@ final errorY = error(ErrorCodes.ParseError, 'y');
 class ErrorOrRecord2ExtensionTest {
   test_ifResults_error() {
     var called = false;
-    (success(1), errorX).ifResults((_, __) => called = true);
+    (success(1), errorX).ifResults((_, _) => called = true);
     expect(called, isFalse);
   }
 
@@ -75,7 +75,7 @@ class ErrorOrRecord2ExtensionTest {
 class ErrorOrRecord3ExtensionTest {
   test_ifResults_error() {
     var called = false;
-    (success(1), success(1), errorX).ifResults((_, __, ___) => called = true);
+    (success(1), success(1), errorX).ifResults((_, _, _) => called = true);
     expect(called, isFalse);
   }
 
@@ -132,7 +132,7 @@ class ErrorOrRecord4ExtensionTest {
   test_ifResults_error() {
     var called = false;
     (success(1), success(1), success(1), errorX)
-        .ifResults((_, __, ___, ____) => called = true);
+        .ifResults((_, _, _, _) => called = true);
     expect(called, isFalse);
   }
 

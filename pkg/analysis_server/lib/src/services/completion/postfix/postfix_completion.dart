@@ -197,7 +197,7 @@ abstract final class DartPostfixCompletion {
 
   static bool _false(_) => false;
 
-  static Future<PostfixCompletion?> _null(_, __) async => null;
+  static Future<PostfixCompletion?> _null(_, _) async => null;
 }
 
 /// A description of a postfix completion.

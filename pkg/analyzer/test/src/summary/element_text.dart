@@ -205,8 +205,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
 
       // _writeList(
       //   'libraryExports',
@@ -283,8 +282,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeDisplayName(e);
 
       _writeElementList(
@@ -347,8 +345,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
@@ -642,8 +639,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -704,8 +700,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       // _writeType('type', f.type);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
       // _writeTypeParameterElements(e.typeParameters);
       // _writeFragmentList('parameters', f, f.parameters2, _writeFormalParameterFragments);
@@ -862,8 +857,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -928,8 +922,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
 
       // expect(f.typeParameters2, isEmpty);
@@ -1000,7 +993,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeSinceSdkVersion(e.metadata2.sinceSdkVersion);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
@@ -1135,7 +1128,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 
-      _writeMetadata(f.metadata);
+      _writeMetadata(f.metadata2, includeSince: false);
 
       if (configuration.withImports) {
         var imports = f.libraryImports2.where((import) {
@@ -1199,7 +1192,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeMetadata(e.metadata);
+      _writeMetadata(e.metadata2, includeSince: false);
       // _writeNamespaceCombinators(e.combinators);
     });
   }
@@ -1474,8 +1467,9 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMetadata(List<ElementAnnotation> annotations) {
+  void _writeMetadata(Metadata metadata, {bool includeSince = true}) {
     if (configuration.withMetadata) {
+      var annotations = metadata.annotations;
       if (annotations.isNotEmpty) {
         _sink.writelnWithIndent('metadata');
         _sink.withIndent(() {
@@ -1485,6 +1479,9 @@ class _Element2Writer extends _AbstractElementWriter {
           }
         });
       }
+    }
+    if (includeSince) {
+      _writeSinceSdkVersion(metadata.sinceSdkVersion);
     }
   }
 
@@ -1502,8 +1499,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeTypeInferenceError(e);
 
       _writeElementList(
@@ -1549,8 +1545,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       _writeFragmentCodeRange(f);
       // _writeTypeInferenceError(f);
 
@@ -1635,8 +1630,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
 
       expect(e.typeParameters2, isEmpty);
       _writeElementList(
@@ -1700,8 +1694,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
 
       expect(f.typeParameters2, isEmpty);
@@ -1739,8 +1732,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeCodeRange(e);
       _writeElementList(
         'typeParameters',
@@ -1777,8 +1769,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(e);
       _writeFragmentList(
         'typeParameters',
@@ -1838,8 +1829,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
@@ -1896,8 +1886,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(f);
       // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
@@ -1938,8 +1927,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata2.annotations);
-      _writeSinceSdkVersion(e.sinceSdkVersion);
+      _writeMetadata(e.metadata2);
       // _writeCodeRange(e);
       _writeElementList(
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
@@ -1977,8 +1965,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('reference', f);
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata2.annotations);
-      _writeSinceSdkVersion(f.sinceSdkVersion);
+      _writeMetadata(f.metadata2);
       // _writeCodeRange(e);
       _writeFragmentList(
           'typeParameters', f, f.typeParameters2, _writeTypeParameterFragment);
@@ -2021,7 +2008,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(e.metadata2.annotations);
+      _writeMetadata(e.metadata2, includeSince: false);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -2047,7 +2034,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(f.metadata2.annotations);
+      _writeMetadata(f.metadata2, includeSince: false);
     });
 
     // _assertNonSyntheticElementSelf(f);

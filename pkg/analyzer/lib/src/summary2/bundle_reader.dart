@@ -768,9 +768,11 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
-    var name = reference.elementName;
+    var fragmentName = _readFragmentName();
+    var name = fragmentName?.name ?? '';
 
     var element = ClassElementImpl(name, -1);
+    element.name2 = fragmentName;
 
     var linkedData = ClassElementLinkedData(
       reference: reference,
@@ -941,9 +943,11 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
-    var name = reference.elementName;
+    var fragmentName = _readFragmentName();
+    var name = fragmentName?.name ?? '';
 
     var element = EnumElementImpl(name, -1);
+    element.name2 = fragmentName;
 
     var linkedData = EnumElementLinkedData(
       reference: reference,
@@ -1030,9 +1034,12 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
-    var name = _reader.readBool() ? reference.elementName : null;
+    var fragmentName = _readFragmentName();
+    var name = fragmentName?.name;
 
     var element = ExtensionElementImpl(name, -1);
+    element.name2 = fragmentName;
+
     element.setLinkedData(
       reference,
       ExtensionElementLinkedData(
@@ -1074,9 +1081,12 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
-    var name = reference.elementName;
+    var fragmentName = _readFragmentName();
+    var name = fragmentName?.name ?? '';
 
     var element = ExtensionTypeElementImpl(name, -1);
+    element.name2 = fragmentName;
+
     element.setLinkedData(
       reference,
       ExtensionTypeElementLinkedData(
@@ -1189,6 +1199,16 @@ class LibraryReader {
     }
   }
 
+  FragmentNameImpl? _readFragmentName() {
+    return _reader.readOptionalObject((reader) {
+      return ConstructorFragmentNameImpl(
+        name: _reader.readStringReference(),
+        nameOffset: -1,
+        periodOffset: -1,
+      );
+    });
+  }
+
   void _readFunctions(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -1196,9 +1216,11 @@ class LibraryReader {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var fragmentName = _readFragmentName();
       var name = reference.elementName;
 
       var element = FunctionElementImpl(name, -1);
+      element.name2 = fragmentName;
 
       var linkedData = FunctionElementLinkedData(
         reference: reference,
@@ -1346,8 +1368,10 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var fragmentName = _readFragmentName();
       var name = reference.elementName;
       var element = MethodElementImpl(name, -1);
+      element.name2 = fragmentName;
       var linkedData = MethodElementLinkedData(
         reference: reference,
         libraryReader: this,
@@ -1369,9 +1393,11 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
-    var name = reference.elementName;
+    var fragmentName = _readFragmentName();
+    var name = fragmentName?.name ?? '';
 
     var element = MixinElementImpl(name, -1);
+    element.name2 = fragmentName;
 
     var linkedData = MixinElementLinkedData(
       reference: reference,
@@ -1542,9 +1568,11 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
+    var fragmentName = _readFragmentName();
     var name = reference.elementName;
 
     var element = PropertyAccessorElementImpl(name, -1);
+    element.name2 = fragmentName;
     PropertyAccessorElementFlags.read(_reader, element);
 
     var linkedData = PropertyAccessorElementLinkedData(

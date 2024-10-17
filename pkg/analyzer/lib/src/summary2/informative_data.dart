@@ -186,6 +186,7 @@ class InformativeDataApplier {
         element as PropertyAccessorElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
+        _setFragmentNameOffset(element.name2, info.nameOffset2);
         element.documentationComment = info.documentationComment;
         _applyToFormalParameters(
           element.parameters_unresolved,
@@ -218,6 +219,7 @@ class InformativeDataApplier {
     element as ClassElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -256,6 +258,7 @@ class InformativeDataApplier {
     element as ClassElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -350,6 +353,7 @@ class InformativeDataApplier {
     element as EnumElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
 
     _applyToTypeParameters(
@@ -399,6 +403,7 @@ class InformativeDataApplier {
     element as ExtensionElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -431,6 +436,7 @@ class InformativeDataApplier {
     element as ExtensionTypeElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -567,6 +573,7 @@ class InformativeDataApplier {
     element as FunctionElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -693,6 +700,7 @@ class InformativeDataApplier {
         element as MethodElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
+        _setFragmentNameOffset(element.name2, info.nameOffset2);
         element.documentationComment = info.documentationComment;
         _applyToTypeParameters(
           element.typeParameters_unresolved,
@@ -729,6 +737,7 @@ class InformativeDataApplier {
     element as MixinElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
+    _setFragmentNameOffset(element.name2, info.nameOffset2);
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -808,6 +817,12 @@ class InformativeDataApplier {
     return null;
   }
 
+  void _setFragmentNameOffset(FragmentNameImpl? name, int? offset) {
+    if (name != null && offset != null) {
+      name.nameOffset = offset;
+    }
+  }
+
   void _setupApplyConstantOffsetsForTypeAlias(
     TypeAliasElementImpl element,
     Uint32List constantOffsets, {
@@ -853,6 +868,7 @@ class _InfoClassDeclaration {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoConstructorDeclaration> constructors;
@@ -878,6 +894,7 @@ class _InfoClassDeclaration {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30() - nameOffsetDelta,
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -905,6 +922,7 @@ class _InfoClassDeclaration {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.constructors,
@@ -919,6 +937,7 @@ class _InfoClassTypeAlias {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final Uint32List constantOffsets;
@@ -928,6 +947,7 @@ class _InfoClassTypeAlias {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -940,6 +960,7 @@ class _InfoClassTypeAlias {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.constantOffsets,
@@ -1047,6 +1068,7 @@ class _InfoExtensionTypeDeclaration {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final _InfoExtensionTypeRepresentation representation;
@@ -1061,6 +1083,7 @@ class _InfoExtensionTypeDeclaration {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -1086,6 +1109,7 @@ class _InfoExtensionTypeDeclaration {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.representation,
@@ -1198,6 +1222,7 @@ class _InfoFunctionDeclaration {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
@@ -1208,6 +1233,7 @@ class _InfoFunctionDeclaration {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -1223,6 +1249,7 @@ class _InfoFunctionDeclaration {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.parameters,
@@ -1350,6 +1377,7 @@ class _InfoMethodDeclaration {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
@@ -1360,6 +1388,7 @@ class _InfoMethodDeclaration {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -1375,6 +1404,7 @@ class _InfoMethodDeclaration {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.typeParameters,
     required this.parameters,
@@ -1431,6 +1461,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1447,6 +1478,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeOffsets(
@@ -1459,6 +1491,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1476,6 +1509,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(1 + (node.name?.offset ?? -1));
+      sink.writeOptionalUInt30(node.name?.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1492,6 +1526,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeRepresentation(node, node.representation);
@@ -1514,6 +1549,7 @@ class _InformativeDataWriter {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);
         sink.writeUInt30(node.name.offset);
+        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
         _writeDocumentationComment(node);
         _writeTypeParameters(node.functionExpression.typeParameters);
         _writeFormalParameters(node.functionExpression.parameters);
@@ -1533,6 +1569,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.functionExpression.typeParameters);
       _writeFormalParameters(node.functionExpression.parameters);
@@ -1582,6 +1619,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1744,6 +1782,7 @@ class _InformativeDataWriter {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);
         sink.writeUInt30(node.name.offset);
+        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
         _writeDocumentationComment(node);
         _writeTypeParameters(node.typeParameters);
         _writeFormalParameters(node.parameters);
@@ -1791,6 +1830,7 @@ class _InformativeDataWriter {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);
         sink.writeUInt30(node.name.offset);
+        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
         _writeDocumentationComment(node);
         _writeTypeParameters(node.typeParameters);
         _writeFormalParameters(node.parameters);
@@ -2602,6 +2642,12 @@ class _SafeListIterator<T> {
     } else {
       return null;
     }
+  }
+}
+
+extension on Token {
+  int? get offsetIfNotEmpty {
+    return lexeme.isNotEmpty ? offset : null;
   }
 }
 

@@ -1414,6 +1414,7 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
     if ((SetType::Storage::ArrayCid == kArrayCid) &&
         Array::UseCardMarkingForAllocation(length)) {
       table->untag()->SetCardRememberedBitUnsynchronized();
+      Page::Of(table)->AllocateCardTable();
     }
     InitTypeArgsOrNext(table);
     table->untag()->length_ = Smi::New(length);
@@ -6508,6 +6509,7 @@ class ArrayDeserializationCluster
                                      stamp_canonical);
       if (Array::UseCardMarkingForAllocation(length)) {
         array->untag()->SetCardRememberedBitUnsynchronized();
+        Page::Of(array)->AllocateCardTable();
       }
       array->untag()->type_arguments_ =
           static_cast<TypeArgumentsPtr>(d.ReadRef());

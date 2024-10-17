@@ -7,10 +7,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexExpressionResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -731,6 +733,48 @@ AssignmentExpression
   staticElement: dart:core::<fragment>::@class::num::@method::+
   element: dart:core::<fragment>::@class::num::@method::+#element
   staticType: double?
+''');
+  }
+
+  test_rewrite_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  T Function<T>(T) operator[](int i);
+}
+abstract class B {
+  A get a;
+}
+int Function(int)? f(B? b) => b?.a[0];
+''');
+
+    var node = findNode.functionReference('b?.a[0]');
+    assertResolvedNodeText(node, r'''FunctionReference
+  function: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: b
+        staticElement: <testLibraryFragment>::@function::f::@parameter::b
+        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        staticElement: <testLibraryFragment>::@class::B::@getter::a
+        element: <testLibraryFragment>::@class::B::@getter::a#element
+        staticType: A
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::i
+      staticType: int
+    rightBracket: ]
+    staticElement: <testLibraryFragment>::@class::A::@method::[]
+    element: <testLibraryFragment>::@class::A::@method::[]#element
+    staticType: T Function<T>(T)
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
 ''');
   }
 

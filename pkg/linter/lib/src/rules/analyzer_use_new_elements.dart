@@ -29,6 +29,7 @@ bool _isOldModelElement(Element2? element) {
         'DirectiveUriWithSource',
         'ElementAnnotation',
         'ElementKind',
+        'ElementLocation',
       }.contains(firstFragment.name)) {
         return false;
       }

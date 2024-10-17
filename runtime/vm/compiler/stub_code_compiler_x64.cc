@@ -2158,14 +2158,10 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   }
 
   if (cards) {
-    Label remember_card_slow;
-
     // Get card table.
     __ Bind(&remember_card);
     __ movq(TMP, RDX);                           // Object.
     __ andq(TMP, Immediate(target::kPageMask));  // Page.
-    __ cmpq(Address(TMP, target::Page::card_table_offset()), Immediate(0));
-    __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Atomically dirty the card.
     __ pushq(RAX);
@@ -2182,18 +2178,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ orq(Address(TMP, R13, TIMES_8, 0), RAX);
     __ popq(RCX);
     __ popq(RAX);
-    __ ret();
-
-    // Card table not yet allocated.
-    __ Bind(&remember_card_slow);
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ movq(CallingConventions::kArg1Reg, RDX);
-      __ movq(CallingConventions::kArg2Reg, R13);
-      rt.Call(kRememberCardRuntimeEntry, 2);
-    }
     __ ret();
   }
 }

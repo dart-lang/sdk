@@ -188,20 +188,20 @@ library
               element: <testLibraryFragment>::@mixin::M::@field::s#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::s
           getters
-            get f @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::M::@getter::f
               element: <testLibraryFragment>::@mixin::M::@getter::f#element
             get g @112
               reference: <testLibraryFragment>::@mixin::M::@getter::g
               element: <testLibraryFragment>::@mixin::M::@getter::g#element
           setters
-            set f= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::M::@setter::f
               element: <testLibraryFragment>::@mixin::M::@setter::f#element
               formalParameters
                 _f @-1
                   element: <testLibraryFragment>::@mixin::M::@setter::f::@parameter::_f#element
-            set s= @126
+            set s @126
               reference: <testLibraryFragment>::@mixin::M::@setter::s
               element: <testLibraryFragment>::@mixin::M::@setter::s#element
               formalParameters
@@ -364,7 +364,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@field::x#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::x
           getters
-            get x @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::M::@getter::x
               element: <testLibraryFragment>::@mixin::M::@getter::x#element
   mixins
@@ -1808,7 +1808,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
       mixins
@@ -1963,6 +1963,41 @@ library
 ''');
   }
 
+  test_mixin_missingName() async {
+    var library = await buildLibrary(r'''
+mixin {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      mixins
+        mixin @6
+          reference: <testLibraryFragment>::@mixin::0
+          enclosingElement3: <testLibraryFragment>
+          superclassConstraints
+            Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        mixin <null-name>
+          reference: <testLibraryFragment>::@mixin::0
+          element: <testLibraryFragment>::@mixin::0#element
+  mixins
+    mixin 
+      firstFragment: <testLibraryFragment>::@mixin::0
+      superclassConstraints
+        Object
+''');
+  }
+
   test_mixin_setter_invokesSuperSelf_getter() async {
     var library = await buildLibrary(r'''
 mixin M on A {
@@ -2013,7 +2048,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
-            set foo= @21
+            set foo @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               formalParameters
@@ -2088,7 +2123,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           setters
-            set foo= @21
+            set foo @21
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               formalParameters
@@ -2182,7 +2217,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::B::@getter::it
           getters
-            get it @-1
+            get <null-name>
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
       mixins
@@ -3025,11 +3060,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -3207,11 +3242,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -3405,12 +3440,12 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -3606,11 +3641,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -3628,7 +3663,7 @@ library
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           setters
-            augment set foo= @53
+            augment set foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -3777,11 +3812,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -4074,11 +4109,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           getters
-            get foo1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
               element: <testLibraryFragment>::@mixin::A::@getter::foo1#element
           setters
-            set foo1= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters
@@ -4099,11 +4134,11 @@ library
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           getters
-            get foo2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2#element
           setters
-            set foo2= @-1
+            set <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               formalParameters
@@ -4281,11 +4316,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           getters
-            get foo1 @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo1
               element: <testLibraryFragment>::@mixin::A::@getter::foo1#element
           setters
-            set foo1= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters
@@ -4309,11 +4344,11 @@ library
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           getters
-            get foo2 @-1
+            get <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2#element
           setters
-            set foo2= @-1
+            set <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               formalParameters
@@ -4761,12 +4796,12 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -4943,12 +4978,12 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -6443,7 +6478,7 @@ library
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
           setters
-            set foo1= @31
+            set foo1 @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters
@@ -6463,7 +6498,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
           setters
-            set foo2= @45
+            set foo2 @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               formalParameters
@@ -6605,11 +6640,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo
           getters
-            get foo @-1
+            get <null-name>
               reference: <testLibraryFragment>::@mixin::A::@getter::foo
               element: <testLibraryFragment>::@mixin::A::@getter::foo#element
           setters
-            set foo= @-1
+            set <null-name>
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -6625,7 +6660,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
           setters
-            augment set foo= @53
+            augment set foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
@@ -6775,14 +6810,14 @@ library
               element: <testLibraryFragment>::@mixin::A::@field::foo2#element
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo2
           setters
-            set foo1= @31
+            set foo1 @31
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters
                 _ @40
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
-            set foo2= @52
+            set foo2 @52
               reference: <testLibraryFragment>::@mixin::A::@setter::foo2
               element: <testLibraryFragment>::@mixin::A::@setter::foo2#element
               formalParameters
@@ -6797,7 +6832,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
           setters
-            augment set foo1= @53
+            augment set foo1 @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters

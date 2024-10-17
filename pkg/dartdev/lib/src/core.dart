@@ -119,14 +119,33 @@ Future<int> runProcess(
   }
 
   log.trace(command.join(' '));
-  final process = await Process.start(command.first, command.skip(1).toList(),
-      workingDirectory: cwd);
+  final process = await Process.start(
+    command.first,
+    command.skip(1).toList(),
+    workingDirectory: cwd,
+  );
   final (_, _, exitCode) = await (
     forward(process.stdout, false),
     forward(process.stderr, true),
     process.exitCode
   ).wait;
   return exitCode;
+}
+
+Future<int> runProcessInheritStdio(
+  List<String> command, {
+  bool logToTrace = false,
+  void Function(String str)? listener,
+  String? cwd,
+}) async {
+  log.trace(command.join(' '));
+  final process = await Process.start(
+    command.first,
+    command.skip(1).toList(),
+    workingDirectory: cwd,
+    mode: ProcessStartMode.inheritStdio,
+  );
+  return await process.exitCode;
 }
 
 Future _streamLineTransform(
