@@ -53,9 +53,6 @@ class DriverOptions {
 
   /// The path to a `.packages` configuration file
   String? packageConfigPath;
-
-  /// Whether to use Dart's Strong Mode analyzer.
-  bool strongMode = true;
 }
 
 /// A driver _only used_ by [DartLinter], which is only used by package:linter
