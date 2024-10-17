@@ -664,6 +664,8 @@ import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
 import 'null_argument_to_non_null_type_test.dart'
     as null_argument_to_non_null_type;
+import 'null_aware_elements_const_literals_error_test.dart'
+    as null_aware_elements_const_literals_error;
 import 'null_check_always_fails_test.dart' as null_check_always_fails;
 import 'null_safety_read_write_test.dart' as null_safety_read_write;
 import 'nullable_type_in_catch_clause_test.dart'
@@ -1351,6 +1353,7 @@ main() {
     not_map_spread.main();
     not_null_aware_null_spread.main();
     null_argument_to_non_null_type.main();
+    null_aware_elements_const_literals_error.main();
     null_check_always_fails.main();
     null_safety_read_write.main();
     nullable_type_in_catch_clause.main();
