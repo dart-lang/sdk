@@ -1652,24 +1652,34 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     List<NominalVariableBuilder>? typeVariables =
         nominalVariableCopy?.newVariableBuilders;
 
-    ConstructorFragment builder = _addConstructor(
-        null,
-        isConst ? Modifiers.Const : Modifiers.empty,
-        constructorName,
-        typeVariables,
-        formals,
-        /* startCharOffset = */
-        charOffset,
-        charOffset,
-        /* charOpenParenOffset = */
-        charOffset,
-        /* charEndOffset = */
-        charOffset,
-        /* nativeMethodName = */
-        null,
-        isConst: isConst,
-        forAbstractClassOrMixin: false);
-    offsetMap.registerPrimaryConstructor(beginToken, builder);
+    PrimaryConstructorFragment fragment = new PrimaryConstructorFragment(
+        name: constructorName,
+        fileUri: _compilationUnit.fileUri,
+        charOffset: charOffset,
+        modifiers: isConst ? Modifiers.Const : Modifiers.empty,
+        returnType: addInferableType(),
+        typeParameters: typeVariables,
+        formals: formals,
+        forAbstractClassOrMixin: false,
+        beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
+            // const constructors will have their initializers compiled and
+            // written into the outline. In case of super-parameters language
+            // feature, the super initializers are required to infer the types
+            // of super parameters.
+            // TODO(johnniwinther): Avoid using a dummy token to ensure building
+            // of constant constructors in the outline phase.
+            ? new Token.eof(-1)
+            : null);
+
+    _nominalParameterNameSpaces.pop().addTypeVariables(
+        _problemReporting, typeVariables,
+        ownerName: constructorName, allowNameConflict: true);
+    _addFragment(fragment);
+    if (isConst) {
+      _declarationFragments.current.declaresConstConstructor = true;
+    }
+
+    offsetMap.registerPrimaryConstructor(beginToken, fragment);
   }
 
   @override

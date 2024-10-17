@@ -37,6 +37,7 @@ part 'getter.dart';
 part 'method.dart';
 part 'mixin.dart';
 part 'named_mixin_application.dart';
+part 'primary_constructor.dart';
 part 'setter.dart';
 part 'typedef.dart';
 

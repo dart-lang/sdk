@@ -347,7 +347,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     assert(!_languageVersion.isFinal);
 
     if (version > loader.target.currentSdkVersion) {
-      // Coverage-ignore-block(suite): Not run.
       // If trying to set a language version that is higher than the current sdk
       // version it's an error.
       addPostponedProblem(

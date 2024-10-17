@@ -644,44 +644,118 @@ class _Added {
         AbstractSourceConstructorBuilder constructorBuilder;
         if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
           constructorBuilder = new SourceExtensionTypeConstructorBuilder(
-              fragment.metadata,
-              fragment.modifiers,
-              fragment.returnType,
-              name,
-              fragment.typeParameters,
-              fragment.formals,
-              enclosingLibraryBuilder,
-              declarationBuilder,
-              fragment.fileUri,
-              fragment.startCharOffset,
-              fragment.charOffset,
-              fragment.charOpenParenOffset,
-              fragment.charEndOffset,
-              constructorReference,
-              tearOffReference,
-              nameScheme,
+              metadata: fragment.metadata,
+              modifiers: fragment.modifiers,
+              returnType: fragment.returnType,
+              name: name,
+              typeVariables: fragment.typeParameters,
+              formals: fragment.formals,
+              libraryBuilder: enclosingLibraryBuilder,
+              declarationBuilder: declarationBuilder,
+              fileUri: fragment.fileUri,
+              startCharOffset: fragment.startCharOffset,
+              charOffset: fragment.charOffset,
+              charOpenParenOffset: fragment.charOpenParenOffset,
+              charEndOffset: fragment.charEndOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: nameScheme,
               nativeMethodName: fragment.nativeMethodName,
               forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
               beginInitializers: fragment.beginInitializers);
         } else {
           constructorBuilder = new DeclaredSourceConstructorBuilder(
-              fragment.metadata,
-              fragment.modifiers,
-              fragment.returnType,
-              fragment.name,
-              fragment.typeParameters,
-              fragment.formals,
-              enclosingLibraryBuilder,
-              declarationBuilder!,
-              fragment.fileUri,
-              fragment.startCharOffset,
-              fragment.charOffset,
-              fragment.charOpenParenOffset,
-              fragment.charEndOffset,
-              constructorReference,
-              tearOffReference,
-              nameScheme,
+              metadata: fragment.metadata,
+              modifiers: fragment.modifiers,
+              returnType: fragment.returnType,
+              name: fragment.name,
+              typeVariables: fragment.typeParameters,
+              formals: fragment.formals,
+              libraryBuilder: enclosingLibraryBuilder,
+              declarationBuilder: declarationBuilder!,
+              fileUri: fragment.fileUri,
+              startCharOffset: fragment.startCharOffset,
+              charOffset: fragment.charOffset,
+              charOpenParenOffset: fragment.charOpenParenOffset,
+              charEndOffset: fragment.charEndOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: nameScheme,
               nativeMethodName: fragment.nativeMethodName,
+              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
+              beginInitializers: fragment.beginInitializers);
+        }
+        fragment.builder = constructorBuilder;
+        builders.add(new _AddBuilder(fragment.name, constructorBuilder,
+            fragment.fileUri, fragment.charOffset));
+
+        // TODO(johnniwinther): There is no way to pass the tear off reference
+        //  here.
+        if (constructorReference != null) {
+          loader.buildersCreatedWithReferences[constructorReference] =
+              constructorBuilder;
+        }
+      case PrimaryConstructorFragment():
+        String name = fragment.name;
+
+        NameScheme nameScheme = new NameScheme(
+            isInstanceMember: false,
+            containerName: containerName,
+            containerType: containerType,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? constructorReference;
+        Reference? tearOffReference;
+
+        if (indexedContainer != null) {
+          constructorReference = indexedContainer.lookupConstructorReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+          tearOffReference = indexedContainer.lookupGetterReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        }
+
+        AbstractSourceConstructorBuilder constructorBuilder;
+        if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
+          constructorBuilder = new SourceExtensionTypeConstructorBuilder(
+              metadata: null,
+              modifiers: fragment.modifiers,
+              returnType: fragment.returnType,
+              name: name,
+              typeVariables: fragment.typeParameters,
+              formals: fragment.formals,
+              libraryBuilder: enclosingLibraryBuilder,
+              declarationBuilder: declarationBuilder,
+              fileUri: fragment.fileUri,
+              startCharOffset: fragment.charOffset,
+              charOffset: fragment.charOffset,
+              charOpenParenOffset: fragment.charOffset,
+              charEndOffset: fragment.charOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: nameScheme,
+              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
+              beginInitializers: fragment.beginInitializers);
+        } else {
+          // Coverage-ignore-block(suite): Not run.
+          constructorBuilder = new DeclaredSourceConstructorBuilder(
+              metadata: null,
+              modifiers: fragment.modifiers,
+              returnType: fragment.returnType,
+              name: fragment.name,
+              typeVariables: fragment.typeParameters,
+              formals: fragment.formals,
+              libraryBuilder: enclosingLibraryBuilder,
+              declarationBuilder: declarationBuilder!,
+              fileUri: fragment.fileUri,
+              startCharOffset: fragment.charOffset,
+              charOffset: fragment.charOffset,
+              charOpenParenOffset: fragment.charOffset,
+              charEndOffset: fragment.charOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: nameScheme,
               forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
               beginInitializers: fragment.beginInitializers);
         }
