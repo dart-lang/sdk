@@ -136,15 +136,17 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var previousParentWidget = parentWidget;
     if (node.isWidgetCreation) {
-      var element = node.constructorName.staticElement;
+      var element = node.constructorName.element;
       if (element == null) {
         throw StateError(
             'Unresolved constructor name: ${node.constructorName}');
       }
-      var childWidget = element.enclosingElement3.name;
-      if (!element.librarySource.uri
-          .toString()
-          .startsWith('package:flutter/')) {
+      var childWidget = element.enclosingElement2.name!;
+      var library = element.library2;
+      if (library != null &&
+          !library.firstFragment.source.uri
+              .toString()
+              .startsWith('package:flutter/')) {
         childWidget = 'user-defined';
       }
       data.recordWidgetCreation(childWidget, parentWidget);

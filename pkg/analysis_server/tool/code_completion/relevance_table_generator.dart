@@ -14,8 +14,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show Element, InterfaceElement, LibraryElement;
+import 'package:analyzer/dart/element/element2.dart'
+    show Element2, InterfaceElement2, LibraryElement2;
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -300,7 +300,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   late InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
-  late LibraryElement enclosingLibrary;
+  late LibraryElement2 enclosingLibrary;
 
   /// The type provider associated with the current compilation unit.
   late TypeProvider typeProvider;
@@ -485,7 +485,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    enclosingLibrary = node.declaredElement!.library;
+    enclosingLibrary = node.declaredFragment!.element;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
     inheritanceManager = InheritanceManager3();
@@ -1314,8 +1314,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the element associated with the left-most identifier that is a
   /// child of the [node].
-  Element? _leftMostElement(AstNode node) =>
-      _leftMostIdentifier(node)?.staticElement;
+  Element2? _leftMostElement(AstNode node) =>
+      _leftMostIdentifier(node)?.element;
 
   /// Return the left-most child of the [node] if it is a simple identifier, or
   /// `null` if the left-most child is not a simple identifier. Comments and
@@ -1341,20 +1341,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind? _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return featureComputer
-          .computeElementKind(node.constructorName.staticElement!);
+      return featureComputer.computeElementKind2(node.constructorName.element!);
     }
     var element = _leftMostElement(node);
     if (element == null) {
       return null;
     }
-    if (element is InterfaceElement) {
+    if (element is InterfaceElement2) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element!;
+        element = parent.element2!;
       }
     }
-    return featureComputer.computeElementKind(element);
+    return featureComputer.computeElementKind2(element);
   }
 
   /// Return the left-most token that is a child of the [node].

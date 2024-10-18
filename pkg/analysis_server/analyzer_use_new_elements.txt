@@ -1492,6 +1492,7 @@ test/verify_error_fix_status_test.dart
 test/verify_no_utf8_encode_test.dart
 test/verify_sorted_test.dart
 test/verify_tests_test.dart
+tool/bulk_fix/parse_utils.dart
 tool/bulk_fix/supported_diagnostics.dart
 tool/bulk_fix/supported_lints.dart
 tool/code_completion/benchmark/flutter.dart
@@ -1504,6 +1505,11 @@ tool/code_completion/corpus.dart
 tool/code_completion/implicit_type_declarations.dart
 tool/code_completion/metrics_util.dart
 tool/code_completion/output_utilities.dart
+tool/code_completion/completion_metrics.dart
+tool/code_completion/flutter_metrics.dart
+tool/code_completion/relevance_metrics.dart
+tool/code_completion/relevance_table_generator.dart
+tool/code_completion/visitors.dart
 tool/codebase/failing_tests.dart
 tool/generate_testing_package.dart
 tool/instrumentation/log/log.dart
