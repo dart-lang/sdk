@@ -1373,7 +1373,8 @@ class LibraryReader {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
       var fragmentName = _readFragmentName();
-      var name = reference.elementName;
+      // TODO(scheglov): we do this only because MethodElement2 uses this name.
+      var name = _reader.readStringReference();
       var element = MethodElementImpl(name, -1);
       element.name2 = fragmentName;
       var linkedData = MethodElementLinkedData(

@@ -16829,6 +16829,62 @@ library
 ''');
   }
 
+  test_class_getter_missingName() async {
+    var library = await buildLibrary('''
+class A {
+  get () => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+          methods
+            get @12
+              reference: <testLibraryFragment>::@class::A::@method::get
+              enclosingElement3: <testLibraryFragment>::@class::A
+              returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+          methods
+            get @12
+              reference: <testLibraryFragment>::@class::A::@method::get
+              element: <testLibraryFragment>::@class::A::@method::get#element
+  classes
+    class A
+      firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        get
+          firstFragment: <testLibraryFragment>::@class::A::@method::get
+''');
+  }
+
   test_class_getter_native() async {
     var library = await buildLibrary('''
 class C {
@@ -18206,6 +18262,62 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+''');
+  }
+
+  test_class_method_missingName() async {
+    var library = await buildLibrary('''
+class A {
+  () {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+          methods
+            @12
+              reference: <testLibraryFragment>::@class::A::@method::0
+              enclosingElement3: <testLibraryFragment>::@class::A
+              returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+          methods
+            <null-name>
+              reference: <testLibraryFragment>::@class::A::@method::0
+              element: <testLibraryFragment>::@class::A::@method::0#element
+  classes
+    class A
+      firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        
+          firstFragment: <testLibraryFragment>::@class::A::@method::0
 ''');
   }
 
@@ -23116,6 +23228,71 @@ library
       setters
         set foo=
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo
+          formalParameters
+            requiredPositional _
+              type: int
+''');
+  }
+
+  test_class_setter_missingName() async {
+    var library = await buildLibrary('''
+class A {
+  set (int _) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+          methods
+            set @12
+              reference: <testLibraryFragment>::@class::A::@method::set
+              enclosingElement3: <testLibraryFragment>::@class::A
+              parameters
+                requiredPositional _ @21
+                  type: int
+              returnType: dynamic
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibraryFragment>::@class::A#element
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+          methods
+            set @12
+              reference: <testLibraryFragment>::@class::A::@method::set
+              element: <testLibraryFragment>::@class::A::@method::set#element
+              formalParameters
+                _ @21
+                  element: <testLibraryFragment>::@class::A::@method::set::@parameter::_#element
+  classes
+    class A
+      firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        set
+          firstFragment: <testLibraryFragment>::@class::A::@method::set
           formalParameters
             requiredPositional _
               type: int

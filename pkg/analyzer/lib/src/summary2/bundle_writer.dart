@@ -524,6 +524,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
     _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
