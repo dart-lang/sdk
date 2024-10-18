@@ -113,7 +113,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   Iterable<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
-  int get charOffset => _nameOffset;
+  int get fileOffset => _nameOffset;
 
   @override
   String get name => extensionName.name;
@@ -239,7 +239,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   void addMemberInternal(SourceMemberBuilder memberBuilder,
       BuiltMemberKind memberKind, Member member, Member? tearOff) {
     unhandled("${memberBuilder.runtimeType}:${memberKind}", "addMemberInternal",
-        memberBuilder.charOffset, memberBuilder.fileUri);
+        memberBuilder.fileOffset, memberBuilder.fileUri);
   }
 
   @override
@@ -268,7 +268,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         unhandled(
             "${memberBuilder.runtimeType}:${memberKind}",
             "addMemberDescriptorInternal",
-            memberBuilder.charOffset,
+            memberBuilder.fileOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
@@ -327,9 +327,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     } else {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.charOffset, noLength, augmentation.fileUri, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
     }
   }

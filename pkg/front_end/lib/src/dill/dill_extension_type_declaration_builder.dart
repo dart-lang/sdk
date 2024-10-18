@@ -151,7 +151,7 @@ class DillExtensionTypeDeclarationBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => _extensionTypeDeclaration.fileOffset;
+  int get fileOffset => _extensionTypeDeclaration.fileOffset;
 
   @override
   String get name => _extensionTypeDeclaration.name;

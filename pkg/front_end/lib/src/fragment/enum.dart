@@ -18,9 +18,8 @@ class EnumFragment extends DeclarationFragment implements Fragment {
   late final List<TypeBuilder>? interfaces;
   late final List<EnumConstantInfo?>? enumConstantInfos;
   late final List<ConstructorReferenceBuilder> constructorReferences;
-  late final int startCharOffset;
-  late final int charOffset;
-  late final int charEndOffset;
+  late final int startOffset;
+  late final int endOffset;
 
   EnumFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
       super.typeParameterScope, super._nominalParameterNameSpace);

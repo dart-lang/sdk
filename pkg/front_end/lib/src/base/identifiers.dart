@@ -198,7 +198,7 @@ class QualifiedNameBuilder extends QualifiedName {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get firstOffset => qualifier.charOffset;
+  int get firstOffset => qualifier.fileOffset;
 
   @override
   String toString() => "qualified-name-builder($qualifier, $name)";

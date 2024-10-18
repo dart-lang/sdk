@@ -24,7 +24,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => message.charOffset;
+  int get fileOffset => message.charOffset;
 
   @override
   // Coverage-ignore(suite): Not run.

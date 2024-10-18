@@ -25,7 +25,7 @@ enum TypeVariableKind {
 sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final String name;
@@ -45,7 +45,7 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   final List<MetadataBuilder>? metadata;
 
-  TypeVariableBuilder(this.name, this.charOffset, this.fileUri,
+  TypeVariableBuilder(this.name, this.fileOffset, this.fileUri,
       {this.bound,
       this.defaultType,
       required this.kind,
@@ -406,7 +406,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
         TypeUse.typeParameterBound,
         fileUri ?? // Coverage-ignore(suite): Not run.
             missingUri,
-        charOffset,
+        fileOffset,
         /* hierarchy = */ null,
         hasExplicitTypeArguments: false);
     if (hasUnsetParameterBound) {
@@ -723,7 +723,7 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
         TypeUse.typeParameterBound,
         fileUri ?? // Coverage-ignore(suite): Not run.
             missingUri,
-        charOffset,
+        fileOffset,
         /* hierarchy = */ null,
         hasExplicitTypeArguments: false);
     if (identical(parameter.bound, StructuralParameter.unsetBoundSentinel)) {

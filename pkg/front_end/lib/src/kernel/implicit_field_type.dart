@@ -106,7 +106,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => fieldBuilder.charOffset;
+  int get charOffset => fieldBuilder.fileOffset;
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
@@ -119,7 +119,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
       fieldBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity
               .withArguments(fieldBuilder.name),
-          fieldBuilder.charOffset,
+          fieldBuilder.fileOffset,
           fieldBuilder.name.length,
           fieldBuilder.fileUri);
       DartType type = const InvalidType();

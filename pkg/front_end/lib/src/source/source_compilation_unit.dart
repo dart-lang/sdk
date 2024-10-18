@@ -959,7 +959,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     void reportIssues(List<NonSimplicityIssue> issues) {
       for (NonSimplicityIssue issue in issues) {
-        addProblem(issue.message, issue.declaration.charOffset,
+        addProblem(issue.message, issue.declaration.fileOffset,
             issue.declaration.name.length, issue.declaration.fileUri,
             context: issue.context);
       }
@@ -1144,7 +1144,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             typeVariable.bound,
             typeVariableName: typeVariable.name,
             fileUri: typeVariable.fileUri,
-            charOffset: typeVariable.charOffset) ||
+            charOffset: typeVariable.fileOffset) ||
         hasReportedErrors;
     hasReportedErrors = _recursivelyReportGenericFunctionTypesAsBoundsForType(
             typeVariable.bound) ||
@@ -1179,7 +1179,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 typeVariable.bound,
                 typeVariableName: typeVariable.name,
                 fileUri: typeVariable.fileUri,
-                charOffset: typeVariable.charOffset) ||
+                charOffset: typeVariable.fileOffset) ||
             hasReportedErrors;
       }
     }
@@ -1304,9 +1304,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       int? otherFileOffset;
       if (prefixFragment.deferred) {
         deferredFileOffset = prefixFragment.prefixOffset;
-        otherFileOffset = existing.charOffset;
+        otherFileOffset = existing.fileOffset;
       } else if (existing.deferred) {
-        deferredFileOffset = existing.charOffset;
+        deferredFileOffset = existing.fileOffset;
         otherFileOffset = prefixFragment.prefixOffset;
       }
       if (deferredFileOffset != null) {
@@ -1334,7 +1334,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             templateDuplicatedDeclarationCause
                 .withArguments(fullName)
                 .withLocation(
-                    existing.fileUri!, existing.charOffset, fullName.length)
+                    existing.fileUri!, existing.fileOffset, fullName.length)
           ]);
     }
     // TODO(johnniwinther): For enhanced parts, this should be the prefix name

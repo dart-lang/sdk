@@ -330,7 +330,7 @@ List<NonSimplicityIssue> getInboundReferenceIssues(
                 <LocatedMessage>[
                   templateNonSimpleBoundViaVariable
                       .withArguments(dependency.declaration!.name)
-                      .withLocation(dependent.fileUri!, dependent.charOffset,
+                      .withLocation(dependent.fileUri!, dependent.fileOffset,
                           dependent.name.length)
                 ]));
           }
@@ -556,7 +556,7 @@ List<List<RawTypeCycleElement>> findRawTypeCycles(
         declaration, declaration.typeParameters);
   } else {
     unhandled('$declaration (${declaration.runtimeType})', 'findRawTypeCycles',
-        declaration.charOffset, declaration.fileUri);
+        declaration.fileOffset, declaration.fileUri);
   }
   return const [];
 }
@@ -590,7 +590,7 @@ List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
             .withArguments(cycleElement.type.declaration!.name)
             .withLocation(
                 cycleElement.typeVariable!.fileUri!,
-                cycleElement.typeVariable!.charOffset,
+                cycleElement.typeVariable!.fileOffset,
                 cycleElement.typeVariable!.name.length));
       }
 
@@ -645,7 +645,7 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     unhandled(
         '$declaration (${declaration.runtimeType})',
         'getNonSimplicityIssuesForDeclaration',
-        declaration.charOffset,
+        declaration.fileOffset,
         declaration.fileUri);
   }
   List<List<RawTypeCycleElement>> cyclesToReport =

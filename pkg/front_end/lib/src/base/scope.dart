@@ -540,12 +540,12 @@ abstract class ProblemBuilder extends BuilderImpl {
   final Builder builder;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final Uri fileUri;
 
-  ProblemBuilder(this.name, this.builder, this.charOffset, this.fileUri);
+  ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
 
   @override
   bool get hasProblem => true;
@@ -1143,10 +1143,10 @@ abstract class MergedScope<T extends Builder> {
           context = messageNonAugmentationMemberConflictCause;
         }
         originLibrary.addProblem(
-            message, newBuilder.charOffset, name.length, newBuilder.fileUri,
+            message, newBuilder.fileOffset, name.length, newBuilder.fileUri,
             context: [
               context.withLocation(existingBuilder.fileUri!,
-                  existingBuilder.charOffset, name.length)
+                  existingBuilder.fileOffset, name.length)
             ]);
       }
     } else {
@@ -1175,7 +1175,7 @@ abstract class MergedScope<T extends Builder> {
               templateUnmatchedAugmentationDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
-            message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+            message, newBuilder.fileOffset, name.length, newBuilder.fileUri);
       } else {
         if (inPatchLibrary &&
             !name.startsWith('_') &&
@@ -1183,7 +1183,7 @@ abstract class MergedScope<T extends Builder> {
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
-              newBuilder.charOffset,
+              newBuilder.fileOffset,
               noLength,
               newBuilder.fileUri);
         }
@@ -1345,13 +1345,13 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
                   // Coverage-ignore(suite): Not run.
                   templateNonAugmentationConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri,
               context: [
                 messageNonAugmentationConstructorConflictCause.withLocation(
                     existingConstructor.fileUri!,
-                    existingConstructor.charOffset,
+                    existingConstructor.fileOffset,
                     noLength)
               ]);
         }
@@ -1365,7 +1365,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
                   // Coverage-ignore(suite): Not run.
                   templateUnmatchedAugmentationConstructor
                       .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri);
         } else {
@@ -1384,7 +1384,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri);
         }

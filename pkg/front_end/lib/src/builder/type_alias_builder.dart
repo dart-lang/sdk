@@ -238,7 +238,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       // Coverage-ignore(suite): Not run.
       case ExtensionBuilder():
         unexpected(
-            "type", "${rhsTypeDeclaration.runtimeType}", charOffset, fileUri);
+            "type", "${rhsTypeDeclaration.runtimeType}", fileOffset, fileUri);
     }
   }
 
@@ -259,7 +259,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // alias, which is ensured by the call to [_ensureUnaliasedType]
         // earlier.
         return unexpected(
-            "unaliased", "${rhsDeclaration.runtimeType}", charOffset, fileUri);
+            "unaliased", "${rhsDeclaration.runtimeType}", fileOffset, fileUri);
       case ClassBuilder():
       case ExtensionTypeDeclarationBuilder():
       case NominalVariableBuilder():
@@ -343,7 +343,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Cyclic type alias.
         currentAliasBuilder.libraryBuilder.addProblem(
             templateCyclicTypedef.withArguments(this.name),
-            charOffset,
+            fileOffset,
             noLength,
             fileUri);
         // Ensure that it is not reported again.
@@ -367,7 +367,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                     typeVariable, const NullabilityBuilder.omitted(),
                     arguments: const [],
                     fileUri: fileUri,
-                    charOffset: charOffset,
+                    charOffset: fileOffset,
                     instanceTypeVariableAccess:
                         InstanceTypeVariableAccessState.Unexpected),
           ];
@@ -388,7 +388,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                 usedAsClassFileUri,
                 context: [
                   messageTypedefTypeVariableNotConstructorCause.withLocation(
-                      current.fileUri!, current.charOffset, noLength),
+                      current.fileUri!, current.fileOffset, noLength),
                 ]);
             return this;
           }
@@ -447,7 +447,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           previousAliasBuilder.libraryBuilder.addProblem(
               templateTypeArgumentMismatch.withArguments(
                   currentAliasBuilder.typeVariables?.length ?? 0),
-              previousAliasBuilder.charOffset,
+              previousAliasBuilder.fileOffset,
               noLength,
               previousAliasBuilder.fileUri);
           previousAliasBuilder.thisType = const InvalidType();

@@ -86,7 +86,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   final DeclarationBuilder? declarationBuilder;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final Uri fileUri;
@@ -100,7 +100,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.libraryBuilder,
       this.declarationBuilder,
       this.fileUri,
-      this.charOffset,
+      this.fileOffset,
       int charEndOffset,
       NameScheme fieldNameScheme,
       {Reference? fieldReference,
@@ -138,7 +138,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           name,
           fieldNameScheme,
           fileUri,
-          charOffset,
+          fileOffset,
           charEndOffset,
           fieldGetterReference,
           fieldSetterReference,
@@ -160,7 +160,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           name,
           fieldNameScheme,
           fileUri,
-          charOffset,
+          fileOffset,
           charEndOffset,
           fieldGetterReference);
     } else if (isLate &&
@@ -175,7 +175,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               name,
               fieldNameScheme,
               fileUri,
-              charOffset,
+              fileOffset,
               charEndOffset,
               fieldReference,
               fieldGetterReference,
@@ -192,7 +192,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               name,
               fieldNameScheme,
               fileUri,
-              charOffset,
+              fileOffset,
               charEndOffset,
               fieldReference,
               fieldGetterReference,
@@ -211,7 +211,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               name,
               fieldNameScheme,
               fileUri,
-              charOffset,
+              fileOffset,
               charEndOffset,
               fieldReference,
               fieldGetterReference,
@@ -228,7 +228,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               name,
               fieldNameScheme,
               fileUri,
-              charOffset,
+              fileOffset,
               charEndOffset,
               fieldReference,
               fieldGetterReference,
@@ -253,7 +253,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
             name,
             fieldNameScheme,
             fileUri,
-            charOffset,
+            fileOffset,
             charEndOffset,
             fieldReference,
             fieldGetterReference,
@@ -270,7 +270,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
             name,
             fieldNameScheme,
             fileUri,
-            charOffset,
+            fileOffset,
             charEndOffset,
             fieldReference,
             fieldGetterReference,
@@ -290,7 +290,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
       _fieldEncoding = new RegularFieldEncoding(
-          name, fieldNameScheme, fileUri, charOffset, charEndOffset,
+          name, fieldNameScheme, fileUri, fileOffset, charEndOffset,
           isFinal: isFinal,
           isConst: isConst,
           isLate: isLate,
@@ -368,7 +368,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         // Coverage-ignore(suite): Not run.
         !isFinal) {
       internalProblem(
-          messageInternalProblemAlreadyInitialized, charOffset, fileUri);
+          messageInternalProblemAlreadyInitialized, fileOffset, fileUri);
     }
     _fieldEncoding.createBodies(coreTypes, initializer);
   }
@@ -538,7 +538,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       return fieldType;
     }
 
-    return libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset,
+    return libraryBuilder.loader.withUriForCrashReporting(fileUri, fileOffset,
         () {
       InferredType implicitFieldType = fieldType as InferredType;
       DartType inferredType = implicitFieldType.computeType(hierarchy);
@@ -1677,7 +1677,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Uri get fileUri => fieldBuilder.fileUri;
 
   @override
-  int get charOffset => fieldBuilder.charOffset;
+  int get charOffset => fieldBuilder.fileOffset;
 
   @override
   bool get isAbstract => _member.isAbstract;

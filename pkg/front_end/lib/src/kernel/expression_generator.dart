@@ -3412,7 +3412,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         }
       } else if (member is AmbiguousBuilder) {
         return _helper.buildProblem(
-            member.message, member.charOffset, name.text.length);
+            member.message, member.fileOffset, name.text.length);
       } else if (member.isStatic &&
           !member.isFactory &&
           typeArguments != null) {

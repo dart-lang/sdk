@@ -10,7 +10,7 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   final LibraryBuilder parent;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final String name;
@@ -21,7 +21,7 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   final Uri fileUri;
 
   BuiltinTypeDeclarationBuilder(
-      this.name, this.type, this.parent, this.charOffset)
+      this.name, this.type, this.parent, this.fileOffset)
       : fileUri = parent.fileUri;
 
   @override

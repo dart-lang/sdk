@@ -57,7 +57,7 @@ class FormalParameterBuilder extends BuilderImpl
   SourceFunctionBuilder? _parent;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   final Modifiers modifiers;
 
@@ -98,7 +98,7 @@ class FormalParameterBuilder extends BuilderImpl
   final bool isWildcard;
 
   FormalParameterBuilder(
-      this.kind, this.modifiers, this.type, this.name, this.charOffset,
+      this.kind, this.modifiers, this.type, this.name, this.fileOffset,
       {required this.fileUri,
       this.isExtensionThis = false,
       required this.hasImmediatelyDeclaredInitializer,
@@ -182,7 +182,7 @@ class FormalParameterBuilder extends BuilderImpl
           isLowered: isExtensionThis,
           isSynthesized: name == noNameSentinel,
           isWildcard: isWildcard)
-        ..fileOffset = charOffset;
+        ..fileOffset = fileOffset;
     }
     return variable!;
   }
@@ -200,7 +200,7 @@ class FormalParameterBuilder extends BuilderImpl
         modifiers | Modifiers.InitializingFormal,
         builderFactory.addInferableType(),
         name,
-        charOffset,
+        fileOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
@@ -215,7 +215,7 @@ class FormalParameterBuilder extends BuilderImpl
           modifiers | Modifiers.Final | Modifiers.InitializingFormal,
           type,
           name,
-          charOffset,
+          fileOffset,
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
           hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
@@ -227,7 +227,7 @@ class FormalParameterBuilder extends BuilderImpl
           modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
           type,
           name,
-          charOffset,
+          fileOffset,
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
           hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)

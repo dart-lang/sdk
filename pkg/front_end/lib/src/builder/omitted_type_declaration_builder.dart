@@ -23,7 +23,7 @@ class OmittedTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       this.name, this.omittedTypeBuilder, this.parent);
 
   @override
-  int get charOffset => TreeNode.noOffset;
+  int get fileOffset => TreeNode.noOffset;
 
   @override
   DartType buildAliasedType(

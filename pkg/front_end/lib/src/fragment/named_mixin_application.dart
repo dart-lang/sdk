@@ -7,9 +7,9 @@ part of 'fragment.dart';
 class NamedMixinApplicationFragment implements Fragment {
   final String name;
   final Uri fileUri;
-  final int startCharOffset;
-  final int charOffset;
-  final int charEndOffset;
+  final int startOffset;
+  final int nameOffset;
+  final int endOffset;
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final List<NominalVariableBuilder>? typeParameters;
@@ -23,9 +23,9 @@ class NamedMixinApplicationFragment implements Fragment {
   NamedMixinApplicationFragment(
       {required this.name,
       required this.fileUri,
-      required this.startCharOffset,
-      required this.charOffset,
-      required this.charEndOffset,
+      required this.startOffset,
+      required this.nameOffset,
+      required this.endOffset,
       required this.modifiers,
       required this.metadata,
       required this.typeParameters,
@@ -48,5 +48,5 @@ class NamedMixinApplicationFragment implements Fragment {
   }
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }

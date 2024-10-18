@@ -22,7 +22,7 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   late final Modifiers modifiers;
   late final TypeBuilder onType;
   late final int startOffset;
-  late final int nameOffset;
+  late final int nameOrExtensionOffset;
   late final int endOffset;
 
   ExtensionFragment(

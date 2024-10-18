@@ -244,7 +244,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         template = templateNotAType;
         context = <LocatedMessage>[
           messageNotATypeContext.withLocation(
-              member.fileUri!, member.charOffset, nameLength)
+              member.fileUri!, member.fileOffset, nameLength)
         ];
         message = template.withArguments(nameText);
       }
@@ -391,7 +391,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     }
     library.addProblem(message, charOffset!, noLength, fileUri, context: [
       messageTypedefCause.withLocation(
-          aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+          aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
     ]);
     return null;
   }

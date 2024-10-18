@@ -20,7 +20,6 @@ class MixinFragment extends DeclarationFragment implements Fragment {
   late final List<TypeBuilder>? interfaces;
   late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
-  late final int charOffset;
   late final int endOffset;
 
   MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,

@@ -7,10 +7,10 @@ part of 'fragment.dart';
 class MethodFragment implements Fragment, FunctionFragment {
   final String name;
   final Uri fileUri;
-  final int startCharOffset;
-  final int charOffset;
-  final int charOpenParenOffset;
-  final int charEndOffset;
+  final int startOffset;
+  final int nameOffset;
+  final int formalsOffset;
+  final int endOffset;
   final bool isTopLevel;
   final List<MetadataBuilder>? metadata;
   final Modifiers modifiers;
@@ -26,10 +26,10 @@ class MethodFragment implements Fragment, FunctionFragment {
   MethodFragment(
       {required this.name,
       required this.fileUri,
-      required this.startCharOffset,
-      required this.charOffset,
-      required this.charOpenParenOffset,
-      required this.charEndOffset,
+      required this.startOffset,
+      required this.nameOffset,
+      required this.formalsOffset,
+      required this.endOffset,
       required this.isTopLevel,
       required this.metadata,
       required this.modifiers,
@@ -57,7 +57,7 @@ class MethodFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
 class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {

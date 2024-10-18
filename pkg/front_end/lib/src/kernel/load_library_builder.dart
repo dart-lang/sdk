@@ -37,7 +37,7 @@ class LoadLibraryBuilder extends BuilderImpl {
 
   /// Offset of the import prefix.
   @override
-  final int charOffset;
+  final int fileOffset;
 
   /// Synthetic static method to represent the tear-off of 'loadLibrary'.  If
   /// null, no tear-offs were seen in the code and no method is generated.
@@ -51,7 +51,7 @@ class LoadLibraryBuilder extends BuilderImpl {
 
   final List<Combinator>? _combinators;
 
-  LoadLibraryBuilder(this.parent, this.charOffset, this._imported, this._prefix,
+  LoadLibraryBuilder(this.parent, this.fileOffset, this._imported, this._prefix,
       this._importCharOffset, this._combinators);
 
   @override
@@ -68,7 +68,7 @@ class LoadLibraryBuilder extends BuilderImpl {
       // Coverage-ignore-block(suite): Not run.
       return tearoff!;
     }
-    LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
+    LoadLibrary expression = createLoadLibrary(fileOffset, forest, null);
     String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
     Reference? reference = parent.indexedLibrary?.lookupGetterReference(name);
@@ -81,8 +81,8 @@ class LoadLibraryBuilder extends BuilderImpl {
         fileUri: parent.library.fileUri,
         isStatic: true,
         reference: reference)
-      ..fileStartOffset = charOffset
-      ..fileOffset = charOffset;
+      ..fileStartOffset = fileOffset
+      ..fileOffset = fileOffset;
   }
 
   @override

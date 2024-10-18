@@ -635,7 +635,7 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   }
 
   @override
-  int get memberCharOffset => _member.charOffset;
+  int get memberCharOffset => _member.fileOffset;
 
   @override
   void registerSuperCall() {

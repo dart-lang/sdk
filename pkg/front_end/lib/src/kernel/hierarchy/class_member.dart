@@ -574,7 +574,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         classBuilder.addProblem(
             templateCombinedMemberSignatureFailed.withArguments(
                 name, declarations.first.fullNameForErrors),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             nameLength,
             context: context);
         // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
@@ -948,7 +948,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       extensionTypeDeclarationBuilder.addProblem(
           templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
               name, declarations.first.fullNameForErrors),
-          extensionTypeDeclarationBuilder.charOffset,
+          extensionTypeDeclarationBuilder.fileOffset,
           nameLength,
           context: context);
       // TODO(johnniwinther): Maybe we should have an invalid marker to avoid

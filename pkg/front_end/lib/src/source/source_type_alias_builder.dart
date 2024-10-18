@@ -32,7 +32,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   final SourceLibraryBuilder parent;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final String name;
@@ -64,7 +64,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       required int fileOffset,
       required TypedefFragment fragment,
       required Reference? reference})
-      : charOffset = fileOffset,
+      : fileOffset = fileOffset,
         parent = enclosingLibraryBuilder,
         _reference = reference ?? new Reference(),
         _introductory = fragment,
@@ -109,10 +109,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
         fileUri: fileUri,
         reference: _reference)
-      ..fileOffset = charOffset;
+      ..fileOffset = fileOffset;
     if (_checkCyclicTypedefDependency(type, this, {this})) {
       typedef.type = new InvalidType();
-      _type = new InvalidTypeBuilderImpl(fileUri, charOffset);
+      _type = new InvalidTypeBuilderImpl(fileUri, fileOffset);
     }
     if (typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables!) {
@@ -120,13 +120,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           // The bound is erroneous and should be set to [InvalidType].
           typeVariable.parameterBound = new InvalidType();
           typeVariable.parameterDefaultType = new InvalidType();
-          typeVariable.bound = new InvalidTypeBuilderImpl(fileUri, charOffset);
+          typeVariable.bound = new InvalidTypeBuilderImpl(fileUri, fileOffset);
           typeVariable.defaultType =
-              new InvalidTypeBuilderImpl(fileUri, charOffset);
+              new InvalidTypeBuilderImpl(fileUri, fileOffset);
           // The typedef itself can't be used without proper bounds of its type
           // variables, so we set it to mean [InvalidType] too.
           typedef.type = new InvalidType();
-          _type = new InvalidTypeBuilderImpl(fileUri, charOffset);
+          _type = new InvalidTypeBuilderImpl(fileUri, fileOffset);
         }
       }
     }
@@ -168,7 +168,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               seenTypeAliasBuilder.libraryBuilder.addProblem(
                   templateCyclicTypedef
                       .withArguments(seenTypeAliasBuilder.name),
-                  seenTypeAliasBuilder.charOffset,
+                  seenTypeAliasBuilder.fileOffset,
                   seenTypeAliasBuilder.name.length,
                   seenTypeAliasBuilder.fileUri);
             }

@@ -103,7 +103,7 @@ abstract class MembersNodeBuilder {
       } else {
         declarationBuilder.addProblem(
             messageInheritedMembersConflict,
-            declarationBuilder.charOffset,
+            declarationBuilder.fileOffset,
             declarationBuilder.fullNameForErrors.length,
             context: _inheritedConflictContext(a, b));
       }
@@ -1089,7 +1089,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     classBuilder.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
             classBuilder.fullNameForErrors, names),
-        classBuilder.charOffset,
+        classBuilder.fileOffset,
         classBuilder.fullNameForErrors.length,
         context: context);
   }
@@ -2849,7 +2849,7 @@ void reportCantInferParameterType(ClassBuilder cls,
       .toList();
   cls.addProblem(
       templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      parameter.charOffset,
+      parameter.fileOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -2870,7 +2870,7 @@ void reportCantInferTypes(ClassBuilder cls, SourceProcedureBuilder member,
       .toList();
   cls.addProblem(
       templateCantInferTypesDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
+      member.fileOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -2938,7 +2938,7 @@ void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
   // }
   cls.addProblem(
       templateCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
+      member.fileOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -2959,7 +2959,7 @@ void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
   String name = member.fullNameForErrors;
   cls.addProblem(
       templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
+      member.fileOffset,
       name.length,
       wasHandled: true,
       context: context);

@@ -173,7 +173,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
   // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
+  ProcedureKind? get kind => unsupported("kind", fileOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
