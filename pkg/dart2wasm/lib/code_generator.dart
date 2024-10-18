@@ -187,7 +187,8 @@ abstract class AstCodeGenerator
     final location = source.getLocation(fileUri, fileOffset);
     final old = _sourceMapFileOffset;
     _sourceMapFileOffset = fileOffset;
-    b.startSourceMapping(fileUri, location.line - 1, location.column - 1, null);
+    b.startSourceMapping(fileUri, location.line - 1, location.column - 1,
+        enclosingMember.name.text);
     return old;
   }
 
