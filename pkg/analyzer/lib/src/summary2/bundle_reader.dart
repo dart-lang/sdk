@@ -1324,12 +1324,9 @@ class LibraryReader {
     return _reader.readOptionalObject((reader) {
       var fragmentName = _readFragmentName();
       var reference = _readReference();
-      var name = _reader.readStringReference();
       var isDeferred = _reader.readBool();
       var fragment = PrefixFragmentImpl(
         enclosingFragment: libraryFragment,
-        name: name,
-        nameOffset: -1,
         name2: fragmentName,
         isDeferred: isDeferred,
       );

@@ -46,7 +46,7 @@ class FindElement2 extends _FindElementBase {
 
   TopLevelFunctionElement function(String name) {
     for (var function in unitElement.functions2) {
-      if (function.name == name) {
+      if (function.name2?.name == name) {
         return function.element;
       }
     }
@@ -165,7 +165,7 @@ class FindElement2 extends _FindElementBase {
 
     void findIn(List<FormalParameterFragment> parameters) {
       for (var parameter in parameters) {
-        if (parameter.name == name) {
+        if (parameter.name2?.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
@@ -268,7 +268,7 @@ class FindElement2 extends _FindElementBase {
     for (var libraryFragment in unitElement.withEnclosing2) {
       for (var import_ in libraryFragment.libraryImports2) {
         var prefix = import_.prefix2;
-        if (prefix != null && prefix.name == name) {
+        if (prefix != null && prefix.name2?.name == name) {
           return prefix.element;
         }
       }
@@ -282,7 +282,7 @@ class FindElement2 extends _FindElementBase {
     unit.accept(FunctionAstVisitor(
       typeParameter: (node) {
         var element = node.declaredFragment!;
-        if (element.name == name) {
+        if (element.name2?.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
@@ -326,7 +326,7 @@ abstract class _FindElementBase {
 
   ClassElement2 class_(String name) {
     for (var class_ in unitElement.classes2) {
-      if (class_.name == name) {
+      if (class_.name2?.name == name) {
         return class_.element;
       }
     }
@@ -335,12 +335,12 @@ abstract class _FindElementBase {
 
   InterfaceElement2 classOrMixin(String name) {
     for (var class_ in unitElement.classes2) {
-      if (class_.name == name) {
+      if (class_.name2?.name == name) {
         return class_.element;
       }
     }
     for (var mixin in unitElement.mixins2) {
-      if (mixin.name == name) {
+      if (mixin.name2?.name == name) {
         return mixin.element;
       }
     }
@@ -354,7 +354,7 @@ abstract class _FindElementBase {
 
     void findIn(List<ConstructorFragment> constructors) {
       for (var constructor in constructors) {
-        if (constructor.name == name) {
+        if (constructor.name2?.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
@@ -364,19 +364,19 @@ abstract class _FindElementBase {
     }
 
     for (var class_ in unitElement.classes2) {
-      if (of == null || class_.name == of) {
+      if (of == null || class_.name2?.name == of) {
         findIn(class_.constructors2);
       }
     }
 
     for (var enum_ in unitElement.enums2) {
-      if (of == null || enum_.name == of) {
+      if (of == null || enum_.name2?.name == of) {
         findIn(enum_.constructors2);
       }
     }
 
     for (var extensionType in unitElement.extensionTypes2) {
-      if (of == null || extensionType.name == of) {
+      if (of == null || extensionType.name2?.name == of) {
         findIn(extensionType.constructors2);
       }
     }
@@ -389,7 +389,7 @@ abstract class _FindElementBase {
 
   EnumElement2 enum_(String name) {
     for (var enum_ in unitElement.enums2) {
-      if (enum_.name == name) {
+      if (enum_.name2?.name == name) {
         return enum_.element;
       }
     }
@@ -398,7 +398,7 @@ abstract class _FindElementBase {
 
   ExtensionElement2 extension_(String name) {
     for (var extension_ in unitElement.extensions2) {
-      if (extension_.name == name) {
+      if (extension_.name2?.name == name) {
         return extension_.element;
       }
     }
@@ -407,7 +407,7 @@ abstract class _FindElementBase {
 
   ExtensionTypeElement2 extensionType(String name) {
     for (var element in unitElement.extensionTypes2) {
-      if (element.name == name) {
+      if (element.name2?.name == name) {
         return element.element;
       }
     }
@@ -442,7 +442,7 @@ abstract class _FindElementBase {
 
   MixinElement2 mixin(String name) {
     for (var mixin in unitElement.mixins2) {
-      if (mixin.name == name) {
+      if (mixin.name2?.name == name) {
         return mixin.element;
       }
     }
@@ -455,7 +455,7 @@ abstract class _FindElementBase {
     for (var class_ in unitElement.classes2) {
       for (var constructor in class_.constructors2) {
         for (var parameter in constructor.formalParameters) {
-          if (parameter.name == name) {
+          if (parameter.name2?.name == name) {
             if (result != null) {
               throw StateError('Not unique: $name');
             }
@@ -483,7 +483,7 @@ abstract class _FindElementBase {
 
   TopLevelFunctionElement topFunction(String name) {
     for (var function in unitElement.functions2) {
-      if (function.name == name) {
+      if (function.name2?.name == name) {
         return function.element;
       }
     }
@@ -500,7 +500,7 @@ abstract class _FindElementBase {
 
   TopLevelVariableElement2 topVar(String name) {
     for (var variable in unitElement.topLevelVariables2) {
-      if (variable.name == name) {
+      if (variable.name2?.name == name) {
         return variable.element;
       }
     }
@@ -509,7 +509,7 @@ abstract class _FindElementBase {
 
   TypeAliasElement2 typeAlias(String name) {
     for (var element in unitElement.typeAliases2) {
-      if (element.name == name) {
+      if (element.name2?.name == name) {
         return element.element;
       }
     }
@@ -532,7 +532,7 @@ abstract class _FindElementBase {
     required T? Function(ExtensionFragment element) fromExtension,
   }) {
     bool filter(Fragment fragment) {
-      return className == null || fragment.name == className;
+      return className == null || fragment.name2?.name == className;
     }
 
     var classes = [
@@ -563,7 +563,7 @@ abstract class _FindElementBase {
 extension<T extends Fragment> on List<T> {
   T? named(String targetName) {
     for (var element in this) {
-      if (element.name == targetName) {
+      if (element.name2?.name == targetName) {
         return element;
       }
     }

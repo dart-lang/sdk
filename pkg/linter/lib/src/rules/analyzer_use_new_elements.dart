@@ -30,7 +30,7 @@ bool _isOldModelElement(Element2? element) {
         'ElementAnnotation',
         'ElementKind',
         'ElementLocation',
-      }.contains(firstFragment.name)) {
+      }.contains(firstFragment.name2?.name)) {
         return false;
       }
       return true;

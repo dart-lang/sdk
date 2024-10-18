@@ -9017,7 +9017,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
   PrefixElementImpl2 get element2 {
     return enclosingElement3.prefixes.firstWhere((element) {
-      return element.name == name;
+      return (element.name ?? '') == name;
     });
   }
 
@@ -9118,7 +9118,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   }
 
   @override
-  String get name => firstFragment.name;
+  String? get name => firstFragment.name2?.name;
 
   @override
   // TODO(scheglov): implement scope
@@ -9157,12 +9157,6 @@ class PrefixFragmentImpl implements PrefixFragment {
   final CompilationUnitElementImpl enclosingFragment;
 
   @override
-  final String name;
-
-  @override
-  int nameOffset;
-
-  @override
   FragmentNameImpl? name2;
 
   @override
@@ -9179,8 +9173,6 @@ class PrefixFragmentImpl implements PrefixFragment {
 
   PrefixFragmentImpl({
     required this.enclosingFragment,
-    required this.name,
-    required this.nameOffset,
     required this.name2,
     required this.isDeferred,
   });

@@ -33,9 +33,9 @@ abstract class AbstractCodeLensProvider
   /// If for any reason the location cannot be computed, returns `null`.
   Location? getLocation(Fragment fragment) {
     // We can't produce a location to a name if there isn't one.
-    var nameOffset = fragment.nameOffset;
+    var nameOffset = fragment.name2?.nameOffset;
     var nameLength = fragment.element.displayName.length;
-    if (nameOffset == null || nameOffset == -1) {
+    if (nameOffset == null) {
       return null;
     }
 

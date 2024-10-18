@@ -861,11 +861,6 @@ abstract class Fragment {
 
   /// The name of this fragment.
   ///
-  /// Returns `null` if this fragment doesn't have a name.
-  String? get name;
-
-  /// The name of this fragment.
-  ///
   /// Returns `null` if the fragment does not have a name, e.g. an unnamed
   /// [ExtensionFragment].
   ///
@@ -875,11 +870,6 @@ abstract class Fragment {
   /// Returns `null` if the fragment declaration node does not have the name
   /// specified, and the parser inserted a synthetic identifier.
   FragmentName? get name2;
-
-  /// The offset of the name in this fragment.
-  ///
-  /// Returns `null` if the fragment has no name.
-  int? get nameOffset;
 
   /// The next fragment in the augmentation chain.
   ///
@@ -1016,9 +1006,6 @@ abstract class GetterFragment implements ExecutableFragment {
   //  but can't because the Impl class supports both getters and setters.
   // @override
   // GetterElement get element;
-
-  @override
-  String? get name;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -1184,9 +1171,6 @@ abstract class InterfaceFragment implements InstanceFragment {
   ///
   /// [MixinFragment] cannot have mixins, so the empty list is returned.
   List<InterfaceType> get mixins;
-
-  @override
-  String get name;
 
   /// The superclass declared by this fragment.
   InterfaceType? get supertype;
@@ -1682,9 +1666,6 @@ abstract class MethodFragment implements ExecutableFragment {
   InstanceFragment? get enclosingFragment;
 
   @override
-  String get name;
-
-  @override
   MethodFragment? get nextFragment;
 
   @override
@@ -1781,7 +1762,7 @@ abstract class PrefixElement2 implements Element2, FragmentedElement {
   LibraryElement2 get library2;
 
   @override
-  String get name;
+  String? get name;
 
   /// The name lookup scope for this import prefix.
   ///
@@ -1805,9 +1786,6 @@ abstract class PrefixFragment implements Fragment {
   bool get isDeferred;
 
   @override
-  String get name;
-
-  @override
   PrefixFragment? get nextFragment;
 
   @override
@@ -1829,9 +1807,6 @@ abstract class PromotableElement2 implements VariableElement2 {
 abstract class PromotableFragment implements VariableFragment {
   @override
   PromotableElement2 get element;
-
-  @override
-  String get name;
 }
 
 /// A variable that has an associated getter and possibly a setter. Note that
@@ -1917,9 +1892,6 @@ abstract class PropertyInducingFragment
   bool get isSynthetic;
 
   @override
-  String get name;
-
-  @override
   PropertyInducingFragment? get nextFragment;
 
   @override
@@ -1977,9 +1949,6 @@ abstract class SetterFragment implements ExecutableFragment {
   //  but can't because the Impl class supports both getters and setters.
   // @override
   // SetterElement get element;
-
-  @override
-  String? get name;
 
   /// The field or top-level variable associated with this setter.
   ///
@@ -2131,9 +2100,6 @@ abstract class TypeAliasFragment
   LibraryFragment? get enclosingFragment;
 
   @override
-  String get name;
-
-  @override
   TypeAliasFragment? get nextFragment;
 
   @override
@@ -2194,9 +2160,6 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 abstract class TypeParameterFragment implements TypeDefiningFragment {
   @override
   TypeParameterElement2 get element;
-
-  @override
-  String get name;
 
   @override
   TypeParameterFragment? get nextFragment;

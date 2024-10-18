@@ -506,7 +506,6 @@ class BundleWriter {
     _sink.writeOptionalObject(fragment, (fragment) {
       _writeFragmentName(fragment.name2);
       _writeReference2(fragment.element.reference);
-      _sink._writeStringReference(fragment.name);
       _sink.writeBool(fragment.isDeferred);
     });
   }
