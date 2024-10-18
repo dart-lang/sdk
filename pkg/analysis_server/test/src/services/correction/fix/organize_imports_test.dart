@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -90,6 +92,17 @@ class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.directives_ordering;
+
+  bool Function(AnalysisError error) get _firstUnusedShownNameErrorFilter {
+    var firstError = true;
+    return (AnalysisError error) {
+      if (firstError && error.errorCode == WarningCode.UNUSED_SHOWN_NAME) {
+        firstError = false;
+        return true;
+      }
+      return false;
+    };
+  }
 
   Future<void> test_organizeImports() async {
     await resolveTestCode('''
@@ -208,5 +221,44 @@ void f(Stream<String> args) {
   C.m();
 }
 ''');
+  }
+
+  Future<void> test_removeNameFromCombinator_first() async {
+    await resolveTestCode('''
+import 'dart:math' show max, Random;
+
+void foo(Random r) {}
+''');
+    await assertHasFix('''
+import 'dart:math' show Random;
+
+void foo(Random r) {}
+''');
+  }
+
+  Future<void> test_removeNameFromCombinator_last() async {
+    await resolveTestCode('''
+import 'dart:math' show Random, max;
+
+void foo(Random r) {}
+''');
+    await assertHasFix('''
+import 'dart:math' show Random;
+
+void foo(Random r) {}
+''');
+  }
+
+  Future<void> test_removeNameFromCombinator_multiple() async {
+    await resolveTestCode('''
+import 'dart:math' show max, min, Random;
+
+void foo(Random r) {}
+''');
+    await assertHasFix('''
+import 'dart:math' show Random;
+
+void foo(Random r) {}
+''', errorFilter: _firstUnusedShownNameErrorFilter);
   }
 }

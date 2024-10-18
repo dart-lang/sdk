@@ -1864,6 +1864,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ConvertToWildcardVariable.new,
   ],
   WarningCode.UNUSED_SHOWN_NAME: [
+    OrganizeImports.new,
     RemoveNameFromCombinator.new,
   ],
 };

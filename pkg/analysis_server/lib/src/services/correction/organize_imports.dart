@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -63,6 +64,16 @@ class ImportOrganizer {
               error.errorCode == WarningCode.UNUSED_IMPORT ||
               error.errorCode == HintCode.UNNECESSARY_IMPORT) &&
           directive.uri.offset == error.offset) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isUnusedShowName(SimpleIdentifier name) {
+    for (var error in errors) {
+      if ((error.errorCode == WarningCode.UNUSED_SHOWN_NAME) &&
+          name.offset == error.offset) {
         return true;
       }
     }
@@ -178,12 +189,24 @@ class ImportOrganizer {
       var sb = StringBuffer();
       DirectiveSortPriority? currentPriority;
       var previousDirectiveText = '';
+      var showCombinators = <ImportDirective, List<SimpleIdentifier>>{};
       for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
           var directive = directiveInfo.directive;
           if (removeUnused && _isUnusedImport(directive) ||
               (removeUnused && previousDirectiveText == directiveInfo.text)) {
             continue;
+          }
+          if (directive is ImportDirective) {
+            var combinators = directive.combinators;
+            if (combinators.isNotEmpty) {
+              var shownNames = combinators
+                  .whereType<ShowCombinator>()
+                  .map((combinator) => combinator.shownNames)
+                  .expand((names) => names);
+              var list = shownNames.where(_isUnusedShowName).toList();
+              showCombinators[directive] = list;
+            }
           }
         }
         if (currentPriority != directiveInfo.priority) {
@@ -192,9 +215,21 @@ class ImportOrganizer {
           }
           currentPriority = directiveInfo.priority;
         }
-        sb.write(directiveInfo.text);
+        var text = directiveInfo.text;
+        if (showCombinators.containsKey(directiveInfo.directive)) {
+          var showCombinatorList = showCombinators[directiveInfo.directive]!;
+          var showOffset = text.indexOf('show');
+          for (var name in showCombinatorList) {
+            if (text.contains('${name.name},')) {
+              text = text.replaceFirst('${name.name}, ', '', showOffset);
+            } else if (text.contains(', ${name.name}')) {
+              text = text.replaceFirst(', ${name.name}', '', showOffset);
+            }
+          }
+        }
+        sb.write(text);
         sb.write(endOfLine);
-        previousDirectiveText = directiveInfo.text;
+        previousDirectiveText = text;
       }
       directivesCode = sb.toString();
       directivesCode = directivesCode.trimRight();
