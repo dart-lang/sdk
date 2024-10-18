@@ -71,14 +71,13 @@ class _ErrorProducer extends KeyValueProducer {
   Producer? producerForKey(String key) => enumProducer;
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    for (var error in errorCodeValues) {
-      yield identifier('${error.name.toLowerCase()}: ');
-    }
-    for (var rule in Registry.ruleRegistry.rules) {
-      yield identifier('${rule.name}: ');
-    }
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var error in errorCodeValues)
+        identifier('${error.name.toLowerCase()}: '),
+      for (var rule in Registry.ruleRegistry.rules)
+        identifier('${rule.name}: '),
+    ];
   }
 }
 
@@ -88,13 +87,11 @@ class _ExperimentProducer extends Producer {
   const _ExperimentProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    for (var feature in ExperimentStatus.knownFeatures.values) {
-      if (!feature.isEnabledByDefault) {
-        yield identifier(feature.enableString);
-      }
-    }
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var feature in ExperimentStatus.knownFeatures.values)
+        if (!feature.isEnabledByDefault) identifier(feature.enableString),
+    ];
   }
 }
 
@@ -104,13 +101,13 @@ class _LintRuleProducer extends Producer {
   const _LintRuleProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    for (var rule in Registry.ruleRegistry.rules) {
-      // TODO(pq): consider suggesting internal lints if editing an SDK options file
-      if (!rule.state.isInternal && !rule.state.isRemoved) {
-        yield identifier(rule.name, docComplete: rule.description);
-      }
-    }
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var rule in Registry.ruleRegistry.rules)
+        // TODO(pq): consider suggesting internal lints if editing an SDK
+        // options file.
+        if (!rule.state.isInternal && !rule.state.isRemoved)
+          identifier(rule.name, docComplete: rule.description),
+    ];
   }
 }
