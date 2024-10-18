@@ -849,6 +849,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 5,
     "Update library '{0}' import",
   );
+  static const IMPORT_LIBRARY_HIDE = FixKind(
+    'dart.fix.import.libraryHide',
+    DartFixKindPriority.standard,
+    "Use '{0}' from '{1}'{2}{3}",
+  );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',
     DartFixKindPriority.standard - 20,
