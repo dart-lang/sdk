@@ -28,6 +28,7 @@ lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
 lib/src/rules/avoid_print.dart
 lib/src/rules/avoid_private_typedef_functions.dart
+lib/src/rules/avoid_redundant_argument_values.dart
 lib/src/rules/avoid_relative_lib_imports.dart
 lib/src/rules/avoid_return_types_on_setters.dart
 lib/src/rules/avoid_returning_null.dart
@@ -169,6 +170,7 @@ lib/src/rules/unnecessary_library_directive.dart
 lib/src/rules/unnecessary_library_name.dart
 lib/src/rules/unnecessary_new.dart
 lib/src/rules/unnecessary_null_aware_assignments.dart
+lib/src/rules/unnecessary_null_checks.dart
 lib/src/rules/unnecessary_null_in_if_null_operators.dart
 lib/src/rules/unnecessary_nullable_for_final_variable_declarations.dart
 lib/src/rules/unnecessary_parenthesis.dart
