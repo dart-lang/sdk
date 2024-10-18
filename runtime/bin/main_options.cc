@@ -550,6 +550,9 @@ bool Options::ParseArguments(int argc,
       } else if (IsOption(argv[i], "disable-telemetry")) {
         disable_dartdev_analytics = true;
         skipVmOption = true;
+      } else if (IsOption(argv[i], "suppress-analytics")) {
+        dart_options->AddArgument("--suppress-analytics");
+        skipVmOption = true;
       } else if (IsOption(argv[i], "no-analytics")) {
         // Just add this option even if we don't go to dartdev.
         // It is irrelevant for the vm.

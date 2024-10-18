@@ -63,13 +63,16 @@ Run "${runner!.executableName} help" to see global options.''');
     try {
       final testExecutable = await getExecutableForCommand('test:test',
           nativeAssets: nativeAssets);
-      final argsRestNoExperiment = args.rest
-          .where((e) => !e.startsWith('--$experimentFlagName='))
+      final argsRestNoExperimentOrSuppressAnalytics = args.rest
+          .where((e) =>
+              !e.startsWith('--$experimentFlagName=') &&
+              e != '--suppress-analytics')
           .toList();
-      log.trace('dart $testExecutable ${argsRestNoExperiment.join(' ')}');
+      log.trace(
+          'dart $testExecutable ${argsRestNoExperimentOrSuppressAnalytics.join(' ')}');
       VmInteropHandler.run(
         testExecutable.executable,
-        argsRestNoExperiment,
+        argsRestNoExperimentOrSuppressAnalytics,
         packageConfigOverride: testExecutable.packageConfig!,
         // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
         // provided directly to the process spawned by `dart run` and
