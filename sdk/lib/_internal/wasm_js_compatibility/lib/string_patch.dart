@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show EfficientLengthIterable, patch;
+import 'dart:_internal' show EfficientLengthIterable, patch, unsafeCast;
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
 import 'dart:_string';
@@ -99,4 +99,11 @@ class String {
         WasmI32.fromInt(index * 4),
         WasmI32.fromInt(end - index)));
   }
+}
+
+extension _StringExt on String {
+  int firstNonWhitespace() =>
+      unsafeCast<JSStringImpl>(this).firstNonWhitespace();
+
+  int lastNonWhitespace() => unsafeCast<JSStringImpl>(this).lastNonWhitespace();
 }
