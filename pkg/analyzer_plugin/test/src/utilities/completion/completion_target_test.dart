@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element_2.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -888,6 +889,7 @@ class _Base extends AbstractContextTest {
   int? offset;
   late CompletionTarget target;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   void assertTarget(
     String entityText,
@@ -955,6 +957,7 @@ class _Base extends AbstractContextTest {
 
     var result = await resolveFile(path);
     findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
 
     target = CompletionTarget.forOffset(result.unit, offset!);
   }

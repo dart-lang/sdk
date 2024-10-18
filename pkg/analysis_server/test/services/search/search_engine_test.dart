@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element_2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart';
@@ -30,6 +31,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
   late ResolvedUnitResult result;
   late FindNode findNode;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   void addTestFile(String content) {
     newFile(testFile.path, content);
@@ -41,6 +43,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
   }
 
   /// Put the [code] into the test file, and resolve it.
@@ -580,7 +583,7 @@ class B extends A {
   Future<void> test_searchReferences_parameter_topLevelShadow_wildcard() async {
     var code = '''
 int _ = 0;
-int f(int _) => _; 
+int f(int _) => _;
 ''';
     await resolveTestCode(code);
 
@@ -606,7 +609,7 @@ int f(int _) => _;
 
   Future<void> test_searchReferences_parameter_wildcard() async {
     var code = '''
-f(int _) {} 
+f(int _) {}
 ''';
     await resolveTestCode(code);
 
