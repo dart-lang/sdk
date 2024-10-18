@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,7 +32,7 @@ public class LibraryPathSet {
 
   public static final LibraryPathSet[] EMPTY_ARRAY = new LibraryPathSet[0];
 
-  public static final List<LibraryPathSet> EMPTY_LIST = Lists.newArrayList();
+  public static final List<LibraryPathSet> EMPTY_LIST = List.of();
 
   /**
    * The filepath for which this request's libraries should be active in completion suggestions. This
@@ -61,8 +59,8 @@ public class LibraryPathSet {
     if (obj instanceof LibraryPathSet) {
       LibraryPathSet other = (LibraryPathSet) obj;
       return
-        ObjectUtilities.equals(other.scope, scope) &&
-        ObjectUtilities.equals(other.libraryPaths, libraryPaths);
+        Objects.equals(other.scope, scope) &&
+        Objects.equals(other.libraryPaths, libraryPaths);
     }
     return false;
   }
@@ -77,10 +75,9 @@ public class LibraryPathSet {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<LibraryPathSet> list = new ArrayList<LibraryPathSet>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<LibraryPathSet> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -103,10 +100,10 @@ public class LibraryPathSet {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(scope);
-    builder.append(libraryPaths);
-    return builder.toHashCode();
+    return Objects.hash(
+      scope,
+      libraryPaths
+    );
   }
 
   public JsonObject toJson() {

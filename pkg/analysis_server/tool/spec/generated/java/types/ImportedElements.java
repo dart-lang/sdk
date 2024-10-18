@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,7 +32,7 @@ public class ImportedElements {
 
   public static final ImportedElements[] EMPTY_ARRAY = new ImportedElements[0];
 
-  public static final List<ImportedElements> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ImportedElements> EMPTY_LIST = List.of();
 
   /**
    * The absolute and normalized path of the file containing the library.
@@ -65,9 +63,9 @@ public class ImportedElements {
     if (obj instanceof ImportedElements) {
       ImportedElements other = (ImportedElements) obj;
       return
-        ObjectUtilities.equals(other.path, path) &&
-        ObjectUtilities.equals(other.prefix, prefix) &&
-        ObjectUtilities.equals(other.elements, elements);
+        Objects.equals(other.path, path) &&
+        Objects.equals(other.prefix, prefix) &&
+        Objects.equals(other.elements, elements);
     }
     return false;
   }
@@ -83,10 +81,9 @@ public class ImportedElements {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ImportedElements> list = new ArrayList<ImportedElements>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ImportedElements> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -114,11 +111,11 @@ public class ImportedElements {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(path);
-    builder.append(prefix);
-    builder.append(elements);
-    return builder.toHashCode();
+    return Objects.hash(
+      path,
+      prefix,
+      elements
+    );
   }
 
   public JsonObject toJson() {

@@ -10,7 +10,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -543,9 +542,10 @@ class ContextLocatorImpl implements ContextLocator {
       var provider =
           AnalysisOptionsProvider(workspace.createSourceFactory(null, null));
 
-      var options = AnalysisOptionsImpl(file: optionsFile);
-      var optionsYaml = provider.getOptionsFromFile(optionsFile);
-      options.applyOptions(optionsYaml);
+      var options = AnalysisOptionsImpl.fromYaml(
+        file: optionsFile,
+        optionsMap: provider.getOptionsFromFile(optionsFile),
+      );
 
       return options.enabledLegacyPluginNames.toSet();
     } catch (_) {

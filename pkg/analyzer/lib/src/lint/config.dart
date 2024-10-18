@@ -7,7 +7,7 @@ import 'package:yaml/yaml.dart';
 
 /// Parses [optionsMap] into a [LintConfig], returning the config, or `null` if
 /// [optionsMap] does not have `linter` map.
-LintConfig? parseConfig(YamlMap optionsMap) {
+LintConfig? parseLintConfig(YamlMap optionsMap) {
   var options = optionsMap.valueAt('linter');
   // Quick check of basic contract.
   if (options is YamlMap) {
@@ -24,7 +24,7 @@ LintConfig? processAnalysisOptionsFile(String fileContents, {String? fileUrl}) {
   var yaml = loadYamlNode(fileContents,
       sourceUrl: fileUrl != null ? Uri.parse(fileUrl) : null);
   if (yaml is YamlMap) {
-    return parseConfig(yaml);
+    return parseLintConfig(yaml);
   }
   return null;
 }

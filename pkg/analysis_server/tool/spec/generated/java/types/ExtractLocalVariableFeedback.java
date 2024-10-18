@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -31,7 +29,7 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   public static final ExtractLocalVariableFeedback[] EMPTY_ARRAY = new ExtractLocalVariableFeedback[0];
 
-  public static final List<ExtractLocalVariableFeedback> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExtractLocalVariableFeedback> EMPTY_LIST = List.of();
 
   /**
    * The offsets of the expressions that cover the specified selection, from the down most to the up
@@ -80,7 +78,7 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
       return
         Arrays.equals(other.coveringExpressionOffsets, coveringExpressionOffsets) &&
         Arrays.equals(other.coveringExpressionLengths, coveringExpressionLengths) &&
-        ObjectUtilities.equals(other.names, names) &&
+        Objects.equals(other.names, names) &&
         Arrays.equals(other.offsets, offsets) &&
         Arrays.equals(other.lengths, lengths);
     }
@@ -100,10 +98,9 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExtractLocalVariableFeedback> list = new ArrayList<ExtractLocalVariableFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExtractLocalVariableFeedback> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -149,13 +146,13 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(coveringExpressionOffsets);
-    builder.append(coveringExpressionLengths);
-    builder.append(names);
-    builder.append(offsets);
-    builder.append(lengths);
-    return builder.toHashCode();
+    return Objects.hash(
+      coveringExpressionOffsets,
+      coveringExpressionLengths,
+      names,
+      offsets,
+      lengths
+    );
   }
 
   public JsonObject toJson() {

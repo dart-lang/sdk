@@ -136,6 +136,8 @@ extension ElementOrNullExtension on Element? {
         self.enclosingElement3 is! CompilationUnitElement) {
       // TODO(scheglov): update `FunctionElementImpl.element` return type?
       return self.element2;
+    } else if (self is InterfaceElementImpl) {
+      return self.element;
     } else if (self is LabelElementImpl) {
       return self.element2;
     } else if (self is LocalVariableElementImpl) {
@@ -155,6 +157,27 @@ extension ElementOrNullExtension on Element? {
       return self as FieldElement2;
     } else {
       return (self as Fragment?)?.element;
+    }
+  }
+}
+
+extension FormalParameterExtension on FormalParameterElement {
+  void appendToWithoutDelimiters(
+    StringBuffer buffer, {
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
+  }) {
+    buffer.write(
+      type.getDisplayString(
+        // ignore:deprecated_member_use_from_same_package
+        withNullability: withNullability,
+      ),
+    );
+    buffer.write(' ');
+    buffer.write(displayName);
+    if (defaultValueCode != null) {
+      buffer.write(' = ');
+      buffer.write(defaultValueCode);
     }
   }
 }

@@ -65,8 +65,10 @@ lib/src/rules/empty_statements.dart
 lib/src/rules/enable_null_safety.dart
 lib/src/rules/eol_at_end_of_file.dart
 lib/src/rules/erase_dart_type_extension_types.dart
+lib/src/rules/exhaustive_cases.dart
 lib/src/rules/file_names.dart
 lib/src/rules/flutter_style_todos.dart
+lib/src/rules/hash_and_equals.dart
 lib/src/rules/implicit_call_tearoffs.dart
 lib/src/rules/implicit_reopen.dart
 lib/src/rules/invalid_case_patterns.dart
@@ -84,6 +86,7 @@ lib/src/rules/literal_only_boolean_expressions.dart
 lib/src/rules/missing_code_block_language_in_doc_comment.dart
 lib/src/rules/missing_whitespace_between_adjacent_strings.dart
 lib/src/rules/no_adjacent_strings_in_list.dart
+lib/src/rules/no_default_cases.dart
 lib/src/rules/no_duplicate_case_values.dart
 lib/src/rules/no_leading_underscores_for_library_prefixes.dart
 lib/src/rules/no_leading_underscores_for_local_identifiers.dart
@@ -96,9 +99,11 @@ lib/src/rules/non_constant_identifier_names.dart
 lib/src/rules/noop_primitive_operations.dart
 lib/src/rules/null_check_on_nullable_type_parameter.dart
 lib/src/rules/null_closures.dart
+lib/src/rules/omit_local_variable_types.dart
 lib/src/rules/omit_obvious_local_variable_types.dart
 lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
+lib/src/rules/package_api_docs.dart
 lib/src/rules/package_prefixed_library_names.dart
 lib/src/rules/prefer_adjacent_string_concatenation.dart
 lib/src/rules/prefer_asserts_with_message.dart
@@ -174,6 +179,7 @@ lib/src/rules/unnecessary_to_list_in_spreads.dart
 lib/src/rules/unrelated_type_equality_checks.dart
 lib/src/rules/use_colored_box.dart
 lib/src/rules/use_decorated_box.dart
+lib/src/rules/use_enums.dart
 lib/src/rules/use_full_hex_values_for_flutter_colors.dart
 lib/src/rules/use_function_type_syntax_for_parameters.dart
 lib/src/rules/use_if_null_to_convert_nulls_to_bools.dart
@@ -196,7 +202,6 @@ lib/src/utils.dart
 test/all.dart
 test/annotation_test.dart
 test/ascii_utils_test.dart
-test/canonicalization_test.dart
 test/directives_ordering_test.dart
 test/doc_test.dart
 test/engine_test.dart

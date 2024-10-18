@@ -7,10 +7,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
@@ -190,12 +188,6 @@ List<AnalysisError> analyzeAnalysisOptions(
     );
   }
   return errors;
-}
-
-@Deprecated("Use 'applyOptions' made available in "
-    "'package:analyzer/src/analysis_options/apply_options.dart'")
-void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
-  options.applyOptions(optionMap);
 }
 
 /// Returns the name of the first plugin, if one is specified in [options],

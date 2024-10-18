@@ -12,6 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/ast/token.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/element2.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
@@ -55,10 +56,37 @@ String? getAliasedTypeString(engine.Element element) {
   return null;
 }
 
+String? getAliasedTypeString2(engine.Element2 element) {
+  if (element is engine.TypeAliasElement2) {
+    var aliasedType = element.aliasedType;
+    return aliasedType.getDisplayString();
+  }
+  return null;
+}
+
 /// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
 /// a color.
 String? getColorHexString(engine.Element? element) {
   if (element is engine.VariableElement) {
+    var dartValue = element.computeConstantValue();
+    if (dartValue != null) {
+      var color = ColorComputer.getColorForObject(dartValue);
+      if (color != null) {
+        return '#'
+                '${color.red.toRadixString(16).padLeft(2, '0')}'
+                '${color.green.toRadixString(16).padLeft(2, '0')}'
+                '${color.blue.toRadixString(16).padLeft(2, '0')}'
+            .toUpperCase();
+      }
+    }
+  }
+  return null;
+}
+
+/// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
+/// a color.
+String? getColorHexString2(engine.Element2? element) {
+  if (element is engine.VariableElement2) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
       var color = ColorComputer.getColorForObject(dartValue);
@@ -85,6 +113,26 @@ String? getReturnTypeString(engine.Element element) {
     var type = element.type;
     return type.getDisplayString();
   } else if (element is engine.TypeAliasElement) {
+    var aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      var returnType = aliasedType.returnType;
+      return returnType.getDisplayString();
+    }
+  }
+  return null;
+}
+
+String? getReturnTypeString2(engine.Element2 element) {
+  if (element is engine.ExecutableElement2) {
+    if (element.kind == engine.ElementKind.SETTER) {
+      return null;
+    } else {
+      return element.returnType.getDisplayString();
+    }
+  } else if (element is engine.VariableElement2) {
+    var type = element.type;
+    return type.getDisplayString();
+  } else if (element is engine.TypeAliasElement2) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
@@ -213,6 +261,44 @@ Location? newLocation_fromElement(engine.Element? element) {
   return _locationForArgs(unitElement, range);
 }
 
+/// Create a Location based on an [engine.Element].
+Location? newLocation_fromElement2(engine.Element2? element) {
+  if (element == null) {
+    return null;
+  }
+  if (element is engine.FragmentedElement) {
+    var fragment = (element as engine.FragmentedElement).firstFragment;
+    if (fragment == null) {
+      return null;
+    }
+    var offset = fragment.nameOffset ?? 0;
+    var length = fragment.name?.length ?? 0;
+    var range = engine.SourceRange(offset, length);
+    return _locationForArgs2(fragment, range);
+  } else if (element is engine.LocalFunctionElement) {
+    var offset = element.nameOffset;
+    var length = element.name?.length ?? 0;
+    var range = engine.SourceRange(offset, length);
+    var fragment = element.enclosingFunction;
+    return _locationForArgs2(fragment, range);
+  } else if (element is engine.LocalVariableElement2) {
+    var offset = element.nameOffset;
+    var length = element.name.length;
+    var range = engine.SourceRange(offset, length);
+    var fragment = element.enclosingFunction;
+    return _locationForArgs2(fragment, range);
+  } else if (element is engine.LabelElement2) {
+    var offset = element.nameOffset;
+    var length = element.name.length;
+    var range = engine.SourceRange(offset, length);
+    var fragment = element.enclosingFunction;
+    return _locationForArgs2(fragment, range);
+  } else {
+    assert(false, 'Could not convert ${element.runtimeType} to Location.');
+    return null;
+  }
+}
+
 /// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
   var unitElement = _getUnitElement(match.element);
@@ -337,5 +423,22 @@ Location _locationForArgs(
 
   return Location(unitElement.source.fullName, range.offset, range.length,
       startLine, startColumn,
+      endLine: endLine, endColumn: endColumn);
+}
+
+/// Creates a new [Location].
+Location _locationForArgs2(engine.Fragment fragment, engine.SourceRange range) {
+  var lineInfo = fragment.libraryFragment.lineInfo;
+
+  var startLocation = lineInfo.getLocation(range.offset);
+  var endLocation = lineInfo.getLocation(range.end);
+
+  var startLine = startLocation.lineNumber;
+  var startColumn = startLocation.columnNumber;
+  var endLine = endLocation.lineNumber;
+  var endColumn = endLocation.columnNumber;
+
+  return Location(fragment.libraryFragment.source.fullName, range.offset,
+      range.length, startLine, startColumn,
       endLine: endLine, endColumn: endColumn);
 }

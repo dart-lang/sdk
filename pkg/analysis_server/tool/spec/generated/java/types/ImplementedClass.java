@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class ImplementedClass {
 
   public static final ImplementedClass[] EMPTY_ARRAY = new ImplementedClass[0];
 
-  public static final List<ImplementedClass> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ImplementedClass> EMPTY_LIST = List.of();
 
   /**
    * The offset of the name of the implemented class.
@@ -74,10 +72,9 @@ public class ImplementedClass {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ImplementedClass> list = new ArrayList<ImplementedClass>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ImplementedClass> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +95,10 @@ public class ImplementedClass {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length
+    );
   }
 
   public JsonObject toJson() {

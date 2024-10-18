@@ -154,7 +154,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     } else if (isArray(field.type)) {
       return 'Arrays.equals(other.$name, $name)';
     } else {
-      return 'ObjectUtilities.equals($other.$name, $name)';
+      return 'Objects.equals($other.$name, $name)';
     }
   }
 
@@ -259,18 +259,16 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
   void _writeTypeObject(TypeDecl type, dom.Element? html) {
     writeln('import java.util.Arrays;');
+    writeln('import java.util.ArrayList;');
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
+    writeln('import java.util.Objects;');
     writeln('import com.google.common.collect.Lists;');
     writeln('import com.google.dart.server.utilities.general.JsonUtilities;');
-    writeln('import com.google.dart.server.utilities.general.ObjectUtilities;');
     writeln('import com.google.gson.JsonArray;');
     writeln('import com.google.gson.JsonElement;');
     writeln('import com.google.gson.JsonObject;');
     writeln('import com.google.gson.JsonPrimitive;');
-    writeln('import org.apache.commons.lang3.builder.HashCodeBuilder;');
-    writeln('import java.util.ArrayList;');
-    writeln('import java.util.Iterator;');
     writeln('import org.apache.commons.lang3.StringUtils;');
     writeln();
     javadocComment(toHtmlVisitor.collectHtml(() {
@@ -299,8 +297,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       // public static final "EMPTY_LIST" field
       //
       publicField(javaName('EMPTY_LIST'), () {
-        writeln(
-            'public static final List<$className> EMPTY_LIST = Lists.newArrayList();');
+        writeln('public static final List<$className> EMPTY_LIST = List.of();');
       });
 
       //
@@ -335,7 +332,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       if (className == 'NavigationRegion') {
         privateField(javaName('targetObjects'), () {
           writeln(
-              'private final List<NavigationTarget> targetObjects = Lists.newArrayList();');
+              'private final List<NavigationTarget> targetObjects = new ArrayList<>();');
         });
       }
       if (className == 'NavigationTarget') {
@@ -434,8 +431,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         publicMethod('lookupTargets', () {
           writeln(
               'public void lookupTargets(List<NavigationTarget> allTargets) {');
-          writeln('  for (int i = 0; i < targets.length; i++) {');
-          writeln('    int targetIndex = targets[i];');
+          writeln('  for (int targetIndex : targets) {');
           writeln('    NavigationTarget target = allTargets.get(targetIndex);');
           writeln('    targetObjects.add(target);');
           writeln('  }');
@@ -529,12 +525,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
   Outline outline = new Outline(parent, element, offset, length, codeOffset, codeLength);
 
   // compute children recursively
-  List<Outline> childrenList = Lists.newArrayList();
+  List<Outline> childrenList = = new ArrayList<>();
   JsonElement childrenJsonArray = outlineObject.get("children");
   if (childrenJsonArray instanceof JsonArray) {
-    Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
-    while (childrenElementIterator.hasNext()) {
-      JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
+    for (JsonElement jsonElement : (JsonArray) childrenJsonArray) {
+      JsonObject childObject = jsonElement.getAsJsonObject();
       childrenList.add(fromJson(outline, childObject));
     }
   }
@@ -563,10 +558,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln('  return EMPTY_LIST;');
             writeln('}');
             writeln(
-                'ArrayList<$className> list = new ArrayList<$className>(jsonArray.size());');
-            writeln('Iterator<JsonElement> iterator = jsonArray.iterator();');
-            writeln('while (iterator.hasNext()) {');
-            writeln('  list.add(fromJson(iterator.next().getAsJsonObject()));');
+                'List<$className> list = new ArrayList<>(jsonArray.size());');
+            writeln('for (final JsonElement element : jsonArray) {');
+            writeln('  list.add(fromJson(element.getAsJsonObject()));');
             writeln('}');
             writeln('return list;');
           });
@@ -676,11 +670,20 @@ class CodegenJavaType extends CodegenJavaVisitor {
         writeln('@Override');
         writeln('public int hashCode() {');
         indent(() {
-          writeln('HashCodeBuilder builder = new HashCodeBuilder();');
-          for (var i = 0; i < fields.length; i++) {
-            writeln('builder.append(${javaName(fields[i].name)});');
+          write('return Objects.hash(');
+          if (fields.isNotEmpty) {
+            writeln();
           }
-          writeln('return builder.toHashCode();');
+          for (var i = 0; i < fields.length; i++) {
+            indent(() {
+              write(javaName(fields[i].name));
+              if (i + 1 != fields.length) {
+                write(', ');
+              }
+              writeln();
+            });
+          }
+          writeln(');');
         });
         writeln('}');
       });

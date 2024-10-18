@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class AnalysisError {
 
   public static final AnalysisError[] EMPTY_ARRAY = new AnalysisError[0];
 
-  public static final List<AnalysisError> EMPTY_LIST = Lists.newArrayList();
+  public static final List<AnalysisError> EMPTY_LIST = List.of();
 
   /**
    * The severity of the error.
@@ -110,15 +108,15 @@ public class AnalysisError {
     if (obj instanceof AnalysisError) {
       AnalysisError other = (AnalysisError) obj;
       return
-        ObjectUtilities.equals(other.severity, severity) &&
-        ObjectUtilities.equals(other.type, type) &&
-        ObjectUtilities.equals(other.location, location) &&
-        ObjectUtilities.equals(other.message, message) &&
-        ObjectUtilities.equals(other.correction, correction) &&
-        ObjectUtilities.equals(other.code, code) &&
-        ObjectUtilities.equals(other.url, url) &&
-        ObjectUtilities.equals(other.contextMessages, contextMessages) &&
-        ObjectUtilities.equals(other.hasFix, hasFix);
+        Objects.equals(other.severity, severity) &&
+        Objects.equals(other.type, type) &&
+        Objects.equals(other.location, location) &&
+        Objects.equals(other.message, message) &&
+        Objects.equals(other.correction, correction) &&
+        Objects.equals(other.code, code) &&
+        Objects.equals(other.url, url) &&
+        Objects.equals(other.contextMessages, contextMessages) &&
+        Objects.equals(other.hasFix, hasFix);
     }
     return false;
   }
@@ -140,10 +138,9 @@ public class AnalysisError {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<AnalysisError> list = new ArrayList<AnalysisError>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<AnalysisError> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -223,17 +220,17 @@ public class AnalysisError {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(severity);
-    builder.append(type);
-    builder.append(location);
-    builder.append(message);
-    builder.append(correction);
-    builder.append(code);
-    builder.append(url);
-    builder.append(contextMessages);
-    builder.append(hasFix);
-    return builder.toHashCode();
+    return Objects.hash(
+      severity,
+      type,
+      location,
+      message,
+      correction,
+      code,
+      url,
+      contextMessages,
+      hasFix
+    );
   }
 
   public JsonObject toJson() {

@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -34,7 +32,7 @@ public class CompletionSuggestion {
 
   public static final CompletionSuggestion[] EMPTY_ARRAY = new CompletionSuggestion[0];
 
-  public static final List<CompletionSuggestion> EMPTY_LIST = Lists.newArrayList();
+  public static final List<CompletionSuggestion> EMPTY_LIST = List.of();
 
   /**
    * The kind of element being suggested.
@@ -233,31 +231,31 @@ public class CompletionSuggestion {
     if (obj instanceof CompletionSuggestion) {
       CompletionSuggestion other = (CompletionSuggestion) obj;
       return
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.kind, kind) &&
         other.relevance == relevance &&
-        ObjectUtilities.equals(other.completion, completion) &&
-        ObjectUtilities.equals(other.displayText, displayText) &&
-        ObjectUtilities.equals(other.replacementOffset, replacementOffset) &&
-        ObjectUtilities.equals(other.replacementLength, replacementLength) &&
+        Objects.equals(other.completion, completion) &&
+        Objects.equals(other.displayText, displayText) &&
+        Objects.equals(other.replacementOffset, replacementOffset) &&
+        Objects.equals(other.replacementLength, replacementLength) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
         other.isDeprecated == isDeprecated &&
         other.isPotential == isPotential &&
-        ObjectUtilities.equals(other.docSummary, docSummary) &&
-        ObjectUtilities.equals(other.docComplete, docComplete) &&
-        ObjectUtilities.equals(other.declaringType, declaringType) &&
-        ObjectUtilities.equals(other.defaultArgumentListString, defaultArgumentListString) &&
+        Objects.equals(other.docSummary, docSummary) &&
+        Objects.equals(other.docComplete, docComplete) &&
+        Objects.equals(other.declaringType, declaringType) &&
+        Objects.equals(other.defaultArgumentListString, defaultArgumentListString) &&
         Arrays.equals(other.defaultArgumentListTextRanges, defaultArgumentListTextRanges) &&
-        ObjectUtilities.equals(other.element, element) &&
-        ObjectUtilities.equals(other.returnType, returnType) &&
-        ObjectUtilities.equals(other.parameterNames, parameterNames) &&
-        ObjectUtilities.equals(other.parameterTypes, parameterTypes) &&
-        ObjectUtilities.equals(other.requiredParameterCount, requiredParameterCount) &&
-        ObjectUtilities.equals(other.hasNamedParameters, hasNamedParameters) &&
-        ObjectUtilities.equals(other.parameterName, parameterName) &&
-        ObjectUtilities.equals(other.parameterType, parameterType) &&
-        ObjectUtilities.equals(other.libraryUri, libraryUri) &&
-        ObjectUtilities.equals(other.isNotImported, isNotImported);
+        Objects.equals(other.element, element) &&
+        Objects.equals(other.returnType, returnType) &&
+        Objects.equals(other.parameterNames, parameterNames) &&
+        Objects.equals(other.parameterTypes, parameterTypes) &&
+        Objects.equals(other.requiredParameterCount, requiredParameterCount) &&
+        Objects.equals(other.hasNamedParameters, hasNamedParameters) &&
+        Objects.equals(other.parameterName, parameterName) &&
+        Objects.equals(other.parameterType, parameterType) &&
+        Objects.equals(other.libraryUri, libraryUri) &&
+        Objects.equals(other.isNotImported, isNotImported);
     }
     return false;
   }
@@ -295,10 +293,9 @@ public class CompletionSuggestion {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<CompletionSuggestion> list = new ArrayList<CompletionSuggestion>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<CompletionSuggestion> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -516,33 +513,33 @@ public class CompletionSuggestion {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(relevance);
-    builder.append(completion);
-    builder.append(displayText);
-    builder.append(replacementOffset);
-    builder.append(replacementLength);
-    builder.append(selectionOffset);
-    builder.append(selectionLength);
-    builder.append(isDeprecated);
-    builder.append(isPotential);
-    builder.append(docSummary);
-    builder.append(docComplete);
-    builder.append(declaringType);
-    builder.append(defaultArgumentListString);
-    builder.append(defaultArgumentListTextRanges);
-    builder.append(element);
-    builder.append(returnType);
-    builder.append(parameterNames);
-    builder.append(parameterTypes);
-    builder.append(requiredParameterCount);
-    builder.append(hasNamedParameters);
-    builder.append(parameterName);
-    builder.append(parameterType);
-    builder.append(libraryUri);
-    builder.append(isNotImported);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      relevance,
+      completion,
+      displayText,
+      replacementOffset,
+      replacementLength,
+      selectionOffset,
+      selectionLength,
+      isDeprecated,
+      isPotential,
+      docSummary,
+      docComplete,
+      declaringType,
+      defaultArgumentListString,
+      defaultArgumentListTextRanges,
+      element,
+      returnType,
+      parameterNames,
+      parameterTypes,
+      requiredParameterCount,
+      hasNamedParameters,
+      parameterName,
+      parameterType,
+      libraryUri,
+      isNotImported
+    );
   }
 
   public JsonObject toJson() {

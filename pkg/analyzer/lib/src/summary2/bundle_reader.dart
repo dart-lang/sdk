@@ -1138,8 +1138,10 @@ class LibraryReader {
     var reference = _readReference();
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
+    var fragmentName = _readFragmentName();
 
-    var name = reference.elementName;
+    // TODO(scheglov): we do this only because FieldElement2 uses this name.
+    var name = _reader.readStringReference();
     var isConstElement = _reader.readBool();
 
     FieldElementImpl element;
@@ -1148,6 +1150,7 @@ class LibraryReader {
     } else {
       element = FieldElementImpl(name, -1);
     }
+    element.name2 = fragmentName;
 
     var linkedData = FieldElementLinkedData(
       reference: reference,
@@ -1691,8 +1694,10 @@ class LibraryReader {
     var reference = _readReference();
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
+    var fragmentName = _readFragmentName();
 
-    var name = reference.elementName;
+    // TODO(scheglov): we do this only because FieldElement2 uses this name.
+    var name = _reader.readStringReference();
     var isConst = _reader.readBool();
 
     TopLevelVariableElementImpl element;
@@ -1701,6 +1706,7 @@ class LibraryReader {
     } else {
       element = TopLevelVariableElementImpl(name, -1);
     }
+    element.name2 = fragmentName;
 
     var linkedData = TopLevelVariableElementLinkedData(
       reference: reference,
@@ -1753,7 +1759,8 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
-    var name = reference.elementName;
+    var fragmentName = _readFragmentName();
+    var name = _reader.readStringReference();
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
@@ -1764,6 +1771,7 @@ class LibraryReader {
     } else {
       element = TypeAliasElementImpl(name, -1);
     }
+    element.name2 = fragmentName;
 
     var linkedData = TypeAliasElementLinkedData(
       reference: reference,
@@ -1793,9 +1801,11 @@ class LibraryReader {
   List<TypeParameterElementImpl> _readTypeParameters() {
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
+      var fragmentName = _readFragmentName();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
       var element = TypeParameterElementImpl(name, -1);
+      element.name2 = fragmentName;
       element.variance = variance;
       return element;
     });

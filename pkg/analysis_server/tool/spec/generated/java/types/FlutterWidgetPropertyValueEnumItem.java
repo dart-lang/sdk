@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class FlutterWidgetPropertyValueEnumItem {
 
   public static final FlutterWidgetPropertyValueEnumItem[] EMPTY_ARRAY = new FlutterWidgetPropertyValueEnumItem[0];
 
-  public static final List<FlutterWidgetPropertyValueEnumItem> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FlutterWidgetPropertyValueEnumItem> EMPTY_LIST = List.of();
 
   /**
    * The URI of the library containing the className. When the enum item is passed back, this will
@@ -72,10 +70,10 @@ public class FlutterWidgetPropertyValueEnumItem {
     if (obj instanceof FlutterWidgetPropertyValueEnumItem) {
       FlutterWidgetPropertyValueEnumItem other = (FlutterWidgetPropertyValueEnumItem) obj;
       return
-        ObjectUtilities.equals(other.libraryUri, libraryUri) &&
-        ObjectUtilities.equals(other.className, className) &&
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.documentation, documentation);
+        Objects.equals(other.libraryUri, libraryUri) &&
+        Objects.equals(other.className, className) &&
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.documentation, documentation);
     }
     return false;
   }
@@ -92,10 +90,9 @@ public class FlutterWidgetPropertyValueEnumItem {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FlutterWidgetPropertyValueEnumItem> list = new ArrayList<FlutterWidgetPropertyValueEnumItem>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FlutterWidgetPropertyValueEnumItem> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -132,12 +129,12 @@ public class FlutterWidgetPropertyValueEnumItem {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(libraryUri);
-    builder.append(className);
-    builder.append(name);
-    builder.append(documentation);
-    return builder.toHashCode();
+    return Objects.hash(
+      libraryUri,
+      className,
+      name,
+      documentation
+    );
   }
 
   public JsonObject toJson() {

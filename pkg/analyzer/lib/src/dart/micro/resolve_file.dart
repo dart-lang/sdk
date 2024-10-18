@@ -12,10 +12,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
-import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
@@ -31,7 +29,8 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptionsImpl, AnalysisOptionsBuilder;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -726,10 +725,12 @@ class FileResolver {
       return;
     }
 
-    var analysisOptions = AnalysisOptionsImpl()
-      ..strictInference = fileAnalysisOptions.strictInference
-      ..contextFeatures = FeatureSet.latestLanguageVersion()
-      ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
+    var analysisOptions = (AnalysisOptionsBuilder()
+          ..strictInference = fileAnalysisOptions.strictInference
+          ..contextFeatures =
+              FeatureSet.latestLanguageVersion() as ExperimentStatus
+          ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+        .build();
 
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
@@ -855,12 +856,14 @@ class FileResolver {
       }
     }
 
-    var options = AnalysisOptionsImpl();
+    late AnalysisOptionsImpl options;
 
-    if (optionMap != null) {
+    if (optionMap case YamlMap map) {
       performance.run('applyToAnalysisOptions', (_) {
-        options.applyOptions(optionMap!);
+        options = AnalysisOptionsImpl.fromYaml(optionsMap: map);
       });
+    } else {
+      options = AnalysisOptionsImpl();
     }
 
     if (isThirdParty) {

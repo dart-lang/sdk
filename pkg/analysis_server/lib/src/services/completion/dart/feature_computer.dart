@@ -16,12 +16,14 @@ import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -237,6 +239,68 @@ class FeatureComputer {
     return protocol.ElementKind.UNKNOWN;
   }
 
+  /// Return the element kind used to compute relevance for the given [element].
+  /// This differs from the kind returned to the client in that getters and
+  /// setters are always mapped into a different kind: FIELD for getters and
+  /// setters declared in a class or extension, and TOP_LEVEL_VARIABLE for
+  /// top-level getters and setters.
+  protocol.ElementKind computeElementKind2(Element2 element) {
+    if (element is LibraryElement2) {
+      return protocol.ElementKind.PREFIX;
+    } else if (element is EnumElement2) {
+      return protocol.ElementKind.ENUM;
+    } else if (element is MixinElement2) {
+      return protocol.ElementKind.MIXIN;
+    } else if (element is ClassElement2) {
+      return protocol.ElementKind.CLASS;
+    } else if (element is FieldElement2 && element.isEnumConstant) {
+      return protocol.ElementKind.ENUM_CONSTANT;
+    } else if (element is GetterElement) {
+      var variable = element.variable3;
+      if (variable == null) {
+        return protocol.ElementKind.UNKNOWN;
+      }
+      element = variable;
+    } else if (element is SetterElement) {
+      var variable = element.variable3;
+      if (variable == null) {
+        return protocol.ElementKind.UNKNOWN;
+      }
+      element = variable;
+    }
+    var kind = element.kind;
+    if (kind == ElementKind.CONSTRUCTOR) {
+      return protocol.ElementKind.CONSTRUCTOR;
+    } else if (kind == ElementKind.EXTENSION) {
+      return protocol.ElementKind.EXTENSION;
+    } else if (kind == ElementKind.FIELD) {
+      return protocol.ElementKind.FIELD;
+    } else if (kind == ElementKind.FUNCTION) {
+      return protocol.ElementKind.FUNCTION;
+    } else if (kind == ElementKind.FUNCTION_TYPE_ALIAS) {
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == ElementKind.GENERIC_FUNCTION_TYPE) {
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    } else if (kind == ElementKind.LABEL) {
+      return protocol.ElementKind.LABEL;
+    } else if (kind == ElementKind.LOCAL_VARIABLE) {
+      return protocol.ElementKind.LOCAL_VARIABLE;
+    } else if (kind == ElementKind.METHOD) {
+      return protocol.ElementKind.METHOD;
+    } else if (kind == ElementKind.PARAMETER) {
+      return protocol.ElementKind.PARAMETER;
+    } else if (kind == ElementKind.PREFIX) {
+      return protocol.ElementKind.PREFIX;
+    } else if (kind == ElementKind.TOP_LEVEL_VARIABLE) {
+      return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == ElementKind.TYPE_ALIAS) {
+      return protocol.ElementKind.TYPE_ALIAS;
+    } else if (kind == ElementKind.TYPE_PARAMETER) {
+      return protocol.ElementKind.TYPE_PARAMETER;
+    }
+    return protocol.ElementKind.UNKNOWN;
+  }
+
   /// Return the value of the _context type_ feature for an element with the
   /// given [elementType] when completing in a location with the given
   /// [contextType].
@@ -291,8 +355,35 @@ class FeatureComputer {
     return range.conditionalProbability(distance);
   }
 
+  /// Return the value of the _element kind_ feature for the [element] when
+  /// completing at the given [completionLocation]. If a [distance] is given it
+  /// will be used to provide finer-grained relevance scores.
+  double elementKindFeature2(Element2 element, String? completionLocation,
+      {double? distance}) {
+    if (completionLocation == null) {
+      return 0.0;
+    }
+    var locationTable = elementKindRelevance[completionLocation];
+    if (locationTable == null) {
+      return 0.0;
+    }
+    var range = locationTable[computeElementKind2(element)];
+    if (range == null) {
+      return 0.0;
+    }
+    if (distance == null) {
+      return range.middle;
+    }
+    return range.conditionalProbability(distance);
+  }
+
   /// Return the value of the _has deprecated_ feature for the given [element].
   double hasDeprecatedFeature(Element element) {
+    return element.hasOrInheritsDeprecated ? -1.0 : 0.0;
+  }
+
+  // Return the value of the _has deprecated_ feature for the given [element].
+  double hasDeprecatedFeature2(Element2 element) {
     return element.hasOrInheritsDeprecated ? -1.0 : 0.0;
   }
 
@@ -306,6 +397,20 @@ class FeatureComputer {
       InterfaceElement subclass, InterfaceElement superclass) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
+    return _inheritanceDistance(subclass.asElement2 as InterfaceElement2?,
+        superclass.asElement2 as InterfaceElement2, {});
+  }
+
+  /// Return the inheritance distance between the [subclass] and the
+  /// [superclass]. We define the inheritance distance between two types to be
+  /// zero if the two types are the same and the minimum number of edges that
+  /// must be traversed in the type graph to get from the subtype to the
+  /// supertype if the two types are not the same. Return `-1` if the [subclass]
+  /// is not a subclass of the [superclass].
+  int inheritanceDistance2(
+      InterfaceElement2 subclass, InterfaceElement2 superclass) {
+    // This method is only visible for the metrics computation and might be made
+    // private at some future date.
     return _inheritanceDistance(subclass, superclass, {});
   }
 
@@ -314,7 +419,9 @@ class FeatureComputer {
   /// whose static type is the [subclass].
   double inheritanceDistanceFeature(
       InterfaceElement subclass, InterfaceElement superclass) {
-    var distance = _inheritanceDistance(subclass, superclass, {});
+    var distance = _inheritanceDistance(
+        subclass.asElement2 as InterfaceElement2,
+        superclass.asElement2 as InterfaceElement2, {});
     return distanceToPercent(distance);
   }
 
@@ -328,6 +435,30 @@ class FeatureComputer {
       return 1.0;
     } else if (element is PropertyAccessorElement && element.isSynthetic) {
       var variable = element.variable2;
+      if (variable != null && variable.isStatic && variable.isConst) {
+        return 1.0;
+      }
+    }
+    return 0.0;
+  }
+
+  /// Return the value of the _is constant_ feature for the given [element].
+  double isConstantFeature2(Element2 element) {
+    if (element is ConstructorElement2 && element.isConst) {
+      return 1.0;
+    } else if (element is FieldElement2 &&
+        element.isStatic &&
+        element.isConst) {
+      return 1.0;
+    } else if (element is TopLevelVariableElement2 && element.isConst) {
+      return 1.0;
+    } else if (element is GetterElement && element.isSynthetic) {
+      var variable = element.variable3;
+      if (variable != null && variable.isStatic && variable.isConst) {
+        return 1.0;
+      }
+    } else if (element is SetterElement && element.isSynthetic) {
+      var variable = element.variable3;
       if (variable != null && variable.isStatic && variable.isConst) {
         return 1.0;
       }
@@ -397,8 +528,8 @@ class FeatureComputer {
   /// cycles in the type graph.
   ///
   /// This is the implementation of [inheritanceDistance].
-  int _inheritanceDistance(InterfaceElement? subclass,
-      InterfaceElement superclass, Set<InterfaceElement> visited) {
+  int _inheritanceDistance(InterfaceElement2? subclass,
+      InterfaceElement2 superclass, Set<InterfaceElement2> visited) {
     if (subclass == null) {
       return -1;
     } else if (subclass == superclass) {
@@ -407,18 +538,18 @@ class FeatureComputer {
       return -1;
     }
     var minDepth =
-        _inheritanceDistance(subclass.supertype?.element, superclass, visited);
+        _inheritanceDistance(subclass.supertype?.element3, superclass, visited);
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
-        var depth = _inheritanceDistance(type.element, superclass, visited);
+        var depth = _inheritanceDistance(type.element3, superclass, visited);
         if (minDepth < 0 || (depth >= 0 && depth < minDepth)) {
           minDepth = depth;
         }
       }
     }
 
-    if (subclass is MixinElement) {
+    if (subclass is MixinElement2) {
       visitTypes(subclass.superclassConstraints);
     }
     visitTypes(subclass.mixins);

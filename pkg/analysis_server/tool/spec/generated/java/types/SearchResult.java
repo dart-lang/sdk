@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class SearchResult {
 
   public static final SearchResult[] EMPTY_ARRAY = new SearchResult[0];
 
-  public static final List<SearchResult> EMPTY_LIST = Lists.newArrayList();
+  public static final List<SearchResult> EMPTY_LIST = List.of();
 
   /**
    * The location of the code that matched the search criteria.
@@ -73,10 +71,10 @@ public class SearchResult {
     if (obj instanceof SearchResult) {
       SearchResult other = (SearchResult) obj;
       return
-        ObjectUtilities.equals(other.location, location) &&
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.location, location) &&
+        Objects.equals(other.kind, kind) &&
         other.isPotential == isPotential &&
-        ObjectUtilities.equals(other.path, path);
+        Objects.equals(other.path, path);
     }
     return false;
   }
@@ -93,10 +91,9 @@ public class SearchResult {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<SearchResult> list = new ArrayList<SearchResult>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<SearchResult> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -134,12 +131,12 @@ public class SearchResult {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(location);
-    builder.append(kind);
-    builder.append(isPotential);
-    builder.append(path);
-    return builder.toHashCode();
+    return Objects.hash(
+      location,
+      kind,
+      isPotential,
+      path
+    );
   }
 
   public JsonObject toJson() {

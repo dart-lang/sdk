@@ -7,13 +7,11 @@ import 'dart:io';
 import 'package:analyzer/src/lint/util.dart';
 import 'package:path/path.dart' as p;
 
-/// Shared IO sink for standard error reporting.
-/// Visible for testing
-IOSink errorSink = stderr;
+/// A shared sink for standard error reporting.
+StringSink errorSink = stderr;
 
-/// Shared IO sink for standard out reporting.
-/// Visible for testing
-IOSink outSink = stdout;
+/// A shared sink for standard out reporting.
+StringSink outSink = stdout;
 
 /// Collect all lintable files, recursively, under this [path] root, ignoring
 /// links.

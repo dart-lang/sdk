@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -298,6 +299,28 @@ class RelevanceComputer {
     );
   }
 
+  /// Return the relevance score for a top-level [element].
+  int computeTopLevelRelevance2(Element2 element,
+      {required DartType elementType, required bool isNotImportedLibrary}) {
+    // TODO(brianwilkerson): The old relevance computation used a signal based
+    //  on whether the element being suggested was from the same library in
+    //  which completion is being performed. Explore whether that's a useful
+    //  signal.
+    var contextType =
+        featureComputer.contextTypeFeature(request.contextType, elementType);
+    var elementKind = _computeElementKind2(element);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature2(element);
+    var isConstant =
+        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
+    return computeScore(
+      contextType: contextType,
+      elementKind: elementKind,
+      hasDeprecated: hasDeprecated,
+      isConstant: isConstant,
+      isNotImported: featureComputer.isNotImportedFeature(isNotImportedLibrary),
+    );
+  }
+
   /// Compute the relevance for an [accessor].
   int _computeAccessorRelevance(
       DartType? type, Element accessor, bool isNotImportedLibrary,
@@ -335,6 +358,23 @@ class RelevanceComputer {
   double _computeElementKind(Element element, {double? distance}) {
     var location = completionLocation;
     var elementKind = featureComputer.elementKindFeature(element, location,
+        distance: distance);
+    if (elementKind < 0.0) {
+      if (location == null) {
+        listener?.missingCompletionLocationAt(
+            request.target.containingNode, request.target.entity!);
+      } else {
+        listener?.missingElementKindTableFor(location);
+      }
+    }
+    return elementKind;
+  }
+
+  /// Compute the value of the _element kind_ feature for the given [element] in
+  /// the completion context.
+  double _computeElementKind2(Element2 element, {double? distance}) {
+    var location = completionLocation;
+    var elementKind = featureComputer.elementKindFeature2(element, location,
         distance: distance);
     if (elementKind < 0.0) {
       if (location == null) {

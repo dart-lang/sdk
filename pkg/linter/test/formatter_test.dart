@@ -40,7 +40,7 @@ void defineTests() {
 
       var info = AnalysisErrorInfoImpl([error], lineInfo);
 
-      var out = CollectingSink();
+      var out = StringBuffer();
 
       var reporter = SimpleFormatter([info], out, fileCount: 1, elapsedMs: 13)
         ..write();
@@ -50,18 +50,17 @@ void defineTests() {
       });
 
       test('write', () {
-        expect(out.buffer.toString().trim(), '''/foo/bar/baz.dart 3:2 [test] MSG
+        expect(out.toString().trim(), '''/foo/bar/baz.dart 3:2 [test] MSG
 
 1 file analyzed, 1 issue found, in 13 ms.''');
       });
 
       test('stats', () {
-        out.buffer.clear();
+        out.clear();
         SimpleFormatter([info], out,
                 fileCount: 1, showStatistics: true, elapsedMs: 13)
             .write();
-        expect(out.buffer.toString(),
-            startsWith('''/foo/bar/baz.dart 3:2 [test] MSG
+        expect(out.toString(), startsWith('''/foo/bar/baz.dart 3:2 [test] MSG
 
 1 file analyzed, 1 issue found, in 13 ms.
 
@@ -90,16 +89,16 @@ mock_code                               1
 
       var info = AnalysisErrorInfoImpl([error], lineInfo);
 
-      var out = CollectingSink();
+      var out = StringBuffer();
 
       group('machine-output', () {
         test('write', () {
-          out.buffer.clear();
+          out.clear();
           SimpleFormatter([info], out,
                   fileCount: 1, machineOutput: true, elapsedMs: 13)
               .write();
 
-          expect(out.buffer.toString().trim(),
+          expect(out.toString().trim(),
               '''MockErrorSeverity|MockErrorType|MockError|/foo/bar/baz.dart|3|4|13|MSG
 
 1 file analyzed, 1 issue found, in 13 ms.''');

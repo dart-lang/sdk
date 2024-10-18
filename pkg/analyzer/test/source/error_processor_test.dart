@@ -5,7 +5,6 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:collection/collection.dart';
@@ -169,11 +168,11 @@ analyzer:
 }
 
 class _TestContext {
-  final analysisOptions = AnalysisOptionsImpl();
+  late AnalysisOptions analysisOptions;
 
   void configureOptions(String options) {
-    var optionMap = AnalysisOptionsProvider().getOptionsFromString(options);
-    analysisOptions.applyOptions(optionMap);
+    analysisOptions = AnalysisOptionsImpl.fromYaml(
+        optionsMap: AnalysisOptionsProvider().getOptionsFromString(options));
   }
 
   ErrorProcessor? getProcessor(AnalysisError error) {

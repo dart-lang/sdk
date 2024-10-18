@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class NavigationTarget {
 
   public static final NavigationTarget[] EMPTY_ARRAY = new NavigationTarget[0];
 
-  public static final List<NavigationTarget> EMPTY_LIST = Lists.newArrayList();
+  public static final List<NavigationTarget> EMPTY_LIST = List.of();
 
   /**
    * The kind of the element.
@@ -96,14 +94,14 @@ public class NavigationTarget {
     if (obj instanceof NavigationTarget) {
       NavigationTarget other = (NavigationTarget) obj;
       return
-        ObjectUtilities.equals(other.kind, kind) &&
+        Objects.equals(other.kind, kind) &&
         other.fileIndex == fileIndex &&
         other.offset == offset &&
         other.length == length &&
         other.startLine == startLine &&
         other.startColumn == startColumn &&
-        ObjectUtilities.equals(other.codeOffset, codeOffset) &&
-        ObjectUtilities.equals(other.codeLength, codeLength);
+        Objects.equals(other.codeOffset, codeOffset) &&
+        Objects.equals(other.codeLength, codeLength);
     }
     return false;
   }
@@ -124,10 +122,9 @@ public class NavigationTarget {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<NavigationTarget> list = new ArrayList<NavigationTarget>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<NavigationTarget> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -194,16 +191,16 @@ public class NavigationTarget {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(fileIndex);
-    builder.append(offset);
-    builder.append(length);
-    builder.append(startLine);
-    builder.append(startColumn);
-    builder.append(codeOffset);
-    builder.append(codeLength);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      fileIndex,
+      offset,
+      length,
+      startLine,
+      startColumn,
+      codeOffset,
+      codeLength
+    );
   }
 
   public void lookupFile(String[] allTargetFiles) {

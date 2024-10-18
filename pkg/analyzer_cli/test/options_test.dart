@@ -9,7 +9,8 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show overrideKnownFeatures;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptionsImpl, AnalysisOptionsBuilder;
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
@@ -291,7 +292,7 @@ class ArgumentsTest with ResourceProviderMixin {
   void test_updateAnalysisOptions_defaultLanguageVersion() {
     _applyAnalysisOptions(
       ['a.dart'],
-      (analysisOptions) {},
+      (_) {},
       (analysisOptions) {
         expect(
           analysisOptions.nonPackageLanguageVersion,
@@ -304,7 +305,7 @@ class ArgumentsTest with ResourceProviderMixin {
 
     _applyAnalysisOptions(
       ['--default-language-version=2.7', 'a.dart'],
-      (analysisOptions) {},
+      (_) {},
       (analysisOptions) {
         expect(
           analysisOptions.nonPackageLanguageVersion,
@@ -337,20 +338,19 @@ class ArgumentsTest with ResourceProviderMixin {
       releaseVersion: null,
     );
 
-    FeatureSet featuresWithExperiments(List<String> experiments) {
+    ExperimentStatus featuresWithExperiments(List<String> experiments) {
       return FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: experiments,
-      );
+      ) as ExperimentStatus;
     }
 
     overrideKnownFeatures({'a': feature_a, 'b': feature_b}, () {
       // Replace.
       _applyAnalysisOptions(
         ['--enable-experiment=b', 'a.dart'],
-        (analysisOptions) {
-          analysisOptions.contextFeatures = featuresWithExperiments(['a']);
-        },
+        (optionsBuilder) =>
+            optionsBuilder.contextFeatures = featuresWithExperiments(['a']),
         (analysisOptions) {
           var featureSet = analysisOptions.contextFeatures;
           expect(featureSet.isEnabled(feature_a), isFalse);
@@ -361,9 +361,8 @@ class ArgumentsTest with ResourceProviderMixin {
       // Don't change if not provided.
       _applyAnalysisOptions(
         ['a.dart'],
-        (analysisOptions) {
-          analysisOptions.contextFeatures = featuresWithExperiments(['a']);
-        },
+        (optionsBuilder) =>
+            optionsBuilder.contextFeatures = featuresWithExperiments(['a']),
         (analysisOptions) {
           var featureSet = analysisOptions.contextFeatures;
           expect(featureSet.isEnabled(feature_a), isTrue);
@@ -375,14 +374,16 @@ class ArgumentsTest with ResourceProviderMixin {
 
   void _applyAnalysisOptions(
     List<String> args,
-    void Function(AnalysisOptionsImpl) configureInitial,
+    void Function(AnalysisOptionsBuilder) configureInitial,
     void Function(AnalysisOptionsImpl) checkApplied,
   ) {
     _parse(args);
     expect(commandLineOptions, isNotNull);
 
-    var analysisOptions = AnalysisOptionsImpl();
-    configureInitial(analysisOptions);
+    var optionsBuilder = AnalysisOptionsBuilder();
+    configureInitial(optionsBuilder);
+
+    var analysisOptions = optionsBuilder.build();
 
     commandLineOptions!.updateAnalysisOptions(analysisOptions);
     checkApplied(analysisOptions);

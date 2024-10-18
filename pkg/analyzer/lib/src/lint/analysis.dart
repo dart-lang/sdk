@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:linter/src/test_utilities/test_linter.dart';
+library;
+
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -27,16 +30,6 @@ void printAndFail(String message, {int exitCode = 15}) {
   io.exit(exitCode);
 }
 
-void _updateAnalyzerOptions(
-  AnalysisOptionsImpl analysisOptions,
-  LinterOptions options,
-) {
-  analysisOptions.lint = options.enableLints;
-  analysisOptions.warning = false;
-  analysisOptions.enableTiming = options.enableTiming;
-  analysisOptions.lintRules = options.enabledRules.toList(growable: false);
-}
-
 class DriverOptions {
   /// The maximum number of sources for which AST structures should be kept
   /// in the cache.  The default is 512.
@@ -55,7 +48,7 @@ class DriverOptions {
   String? packageConfigPath;
 }
 
-/// A driver _only used_ by [DartLinter], which is only used by package:linter
+/// A driver _only used_ by [TestLinter], which is only used by package:linter
 /// tests and tools.
 class LintDriver {
   /// The files which have been analyzed so far.  This is used to compute the
@@ -89,7 +82,11 @@ class LintDriver {
         required contextRoot,
         required sdk,
       }) {
-        _updateAnalyzerOptions(analysisOptions, options);
+        analysisOptions.lint = options.enableLints;
+        analysisOptions.warning = false;
+        analysisOptions.enableTiming = options.enableTiming;
+        analysisOptions.lintRules =
+            options.enabledRules.toList(growable: false);
       },
     );
 

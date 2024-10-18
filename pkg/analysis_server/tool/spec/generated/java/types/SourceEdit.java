@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class SourceEdit {
 
   public static final SourceEdit[] EMPTY_ARRAY = new SourceEdit[0];
 
-  public static final List<SourceEdit> EMPTY_LIST = Lists.newArrayList();
+  public static final List<SourceEdit> EMPTY_LIST = List.of();
 
   /**
    * The offset of the region to be modified.
@@ -91,9 +89,9 @@ public class SourceEdit {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.replacement, replacement) &&
-        ObjectUtilities.equals(other.id, id) &&
-        ObjectUtilities.equals(other.description, description);
+        Objects.equals(other.replacement, replacement) &&
+        Objects.equals(other.id, id) &&
+        Objects.equals(other.description, description);
     }
     return false;
   }
@@ -111,10 +109,9 @@ public class SourceEdit {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<SourceEdit> list = new ArrayList<SourceEdit>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<SourceEdit> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -169,13 +166,13 @@ public class SourceEdit {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(replacement);
-    builder.append(id);
-    builder.append(description);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      replacement,
+      id,
+      description
+    );
   }
 
   public JsonObject toJson() {

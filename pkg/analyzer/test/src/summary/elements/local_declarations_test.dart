@@ -188,7 +188,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic g @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::g
           element: <testLibraryFragment>::@topLevelVariable::g#element
           getter2: <testLibraryFragment>::@getter::g

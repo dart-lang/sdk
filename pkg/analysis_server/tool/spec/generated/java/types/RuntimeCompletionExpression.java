@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -35,7 +33,7 @@ public class RuntimeCompletionExpression {
 
   public static final RuntimeCompletionExpression[] EMPTY_ARRAY = new RuntimeCompletionExpression[0];
 
-  public static final List<RuntimeCompletionExpression> EMPTY_LIST = Lists.newArrayList();
+  public static final List<RuntimeCompletionExpression> EMPTY_LIST = List.of();
 
   /**
    * The offset of the expression in the code for completion.
@@ -69,7 +67,7 @@ public class RuntimeCompletionExpression {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.type, type);
+        Objects.equals(other.type, type);
     }
     return false;
   }
@@ -85,10 +83,9 @@ public class RuntimeCompletionExpression {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<RuntimeCompletionExpression> list = new ArrayList<RuntimeCompletionExpression>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<RuntimeCompletionExpression> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -117,11 +114,11 @@ public class RuntimeCompletionExpression {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(type);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      type
+    );
   }
 
   public JsonObject toJson() {

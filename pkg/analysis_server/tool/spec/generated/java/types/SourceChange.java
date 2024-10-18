@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class SourceChange {
 
   public static final SourceChange[] EMPTY_ARRAY = new SourceChange[0];
 
-  public static final List<SourceChange> EMPTY_LIST = Lists.newArrayList();
+  public static final List<SourceChange> EMPTY_LIST = List.of();
 
   /**
    * A human-readable description of the change to be applied.
@@ -87,12 +85,12 @@ public class SourceChange {
     if (obj instanceof SourceChange) {
       SourceChange other = (SourceChange) obj;
       return
-        ObjectUtilities.equals(other.message, message) &&
-        ObjectUtilities.equals(other.edits, edits) &&
-        ObjectUtilities.equals(other.linkedEditGroups, linkedEditGroups) &&
-        ObjectUtilities.equals(other.selection, selection) &&
-        ObjectUtilities.equals(other.selectionLength, selectionLength) &&
-        ObjectUtilities.equals(other.id, id);
+        Objects.equals(other.message, message) &&
+        Objects.equals(other.edits, edits) &&
+        Objects.equals(other.linkedEditGroups, linkedEditGroups) &&
+        Objects.equals(other.selection, selection) &&
+        Objects.equals(other.selectionLength, selectionLength) &&
+        Objects.equals(other.id, id);
     }
     return false;
   }
@@ -111,10 +109,9 @@ public class SourceChange {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<SourceChange> list = new ArrayList<SourceChange>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<SourceChange> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -168,14 +165,14 @@ public class SourceChange {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(message);
-    builder.append(edits);
-    builder.append(linkedEditGroups);
-    builder.append(selection);
-    builder.append(selectionLength);
-    builder.append(id);
-    return builder.toHashCode();
+    return Objects.hash(
+      message,
+      edits,
+      linkedEditGroups,
+      selection,
+      selectionLength,
+      id
+    );
   }
 
   public JsonObject toJson() {

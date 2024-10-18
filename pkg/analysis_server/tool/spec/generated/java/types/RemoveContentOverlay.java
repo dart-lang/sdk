@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,7 +35,7 @@ public class RemoveContentOverlay {
 
   public static final RemoveContentOverlay[] EMPTY_ARRAY = new RemoveContentOverlay[0];
 
-  public static final List<RemoveContentOverlay> EMPTY_LIST = Lists.newArrayList();
+  public static final List<RemoveContentOverlay> EMPTY_LIST = List.of();
 
   private final String type;
 
@@ -53,7 +51,7 @@ public class RemoveContentOverlay {
     if (obj instanceof RemoveContentOverlay) {
       RemoveContentOverlay other = (RemoveContentOverlay) obj;
       return
-        ObjectUtilities.equals(other.type, type);
+        Objects.equals(other.type, type);
     }
     return false;
   }
@@ -67,10 +65,9 @@ public class RemoveContentOverlay {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<RemoveContentOverlay> list = new ArrayList<RemoveContentOverlay>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<RemoveContentOverlay> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -81,9 +78,9 @@ public class RemoveContentOverlay {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(type);
-    return builder.toHashCode();
+    return Objects.hash(
+      type
+    );
   }
 
   public JsonObject toJson() {

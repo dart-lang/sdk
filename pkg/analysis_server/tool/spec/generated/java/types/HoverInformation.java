@@ -9,18 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -33,7 +31,7 @@ public class HoverInformation {
 
   public static final HoverInformation[] EMPTY_ARRAY = new HoverInformation[0];
 
-  public static final List<HoverInformation> EMPTY_LIST = Lists.newArrayList();
+  public static final List<HoverInformation> EMPTY_LIST = List.of();
 
   /**
    * The offset of the range of characters that encompasses the cursor position and has the same
@@ -135,16 +133,16 @@ public class HoverInformation {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.containingLibraryPath, containingLibraryPath) &&
-        ObjectUtilities.equals(other.containingLibraryName, containingLibraryName) &&
-        ObjectUtilities.equals(other.containingClassDescription, containingClassDescription) &&
-        ObjectUtilities.equals(other.dartdoc, dartdoc) &&
-        ObjectUtilities.equals(other.elementDescription, elementDescription) &&
-        ObjectUtilities.equals(other.elementKind, elementKind) &&
-        ObjectUtilities.equals(other.isDeprecated, isDeprecated) &&
-        ObjectUtilities.equals(other.parameter, parameter) &&
-        ObjectUtilities.equals(other.propagatedType, propagatedType) &&
-        ObjectUtilities.equals(other.staticType, staticType);
+        Objects.equals(other.containingLibraryPath, containingLibraryPath) &&
+        Objects.equals(other.containingLibraryName, containingLibraryName) &&
+        Objects.equals(other.containingClassDescription, containingClassDescription) &&
+        Objects.equals(other.dartdoc, dartdoc) &&
+        Objects.equals(other.elementDescription, elementDescription) &&
+        Objects.equals(other.elementKind, elementKind) &&
+        Objects.equals(other.isDeprecated, isDeprecated) &&
+        Objects.equals(other.parameter, parameter) &&
+        Objects.equals(other.propagatedType, propagatedType) &&
+        Objects.equals(other.staticType, staticType);
     }
     return false;
   }
@@ -169,10 +167,9 @@ public class HoverInformation {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<HoverInformation> list = new ArrayList<HoverInformation>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<HoverInformation> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -278,20 +275,20 @@ public class HoverInformation {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(containingLibraryPath);
-    builder.append(containingLibraryName);
-    builder.append(containingClassDescription);
-    builder.append(dartdoc);
-    builder.append(elementDescription);
-    builder.append(elementKind);
-    builder.append(isDeprecated);
-    builder.append(parameter);
-    builder.append(propagatedType);
-    builder.append(staticType);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      containingLibraryPath,
+      containingLibraryName,
+      containingClassDescription,
+      dartdoc,
+      elementDescription,
+      elementKind,
+      isDeprecated,
+      parameter,
+      propagatedType,
+      staticType
+    );
   }
 
   public JsonObject toJson() {

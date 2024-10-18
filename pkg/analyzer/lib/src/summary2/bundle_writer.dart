@@ -407,6 +407,8 @@ class BundleWriter {
     _writeReference(element);
     _writeOptionalReference(element.getter?.reference);
     _writeOptionalReference(element.setter?.reference);
+    _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -683,6 +685,8 @@ class BundleWriter {
     _writeReference(element);
     _writeOptionalReference(element.getter?.reference);
     _writeOptionalReference(element.setter?.reference);
+    _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -702,6 +706,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeFragmentName(element.name2);
+    _sink._writeStringReference(element.name);
     _sink.writeBool(element.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, element);
 
@@ -717,13 +723,14 @@ class BundleWriter {
     });
   }
 
-  void _writeTypeParameterElement(TypeParameterElement typeParameter) {
-    typeParameter as TypeParameterElementImpl;
-    _sink._writeStringReference(typeParameter.name);
-    _sink.writeByte(_encodeVariance(typeParameter).index);
-    _resolutionSink._writeAnnotationList(typeParameter.metadata);
-    _resolutionSink.writeType(typeParameter.bound);
-    _resolutionSink.writeType(typeParameter.defaultType);
+  void _writeTypeParameterElement(TypeParameterElement element) {
+    element as TypeParameterElementImpl;
+    _sink._writeStringReference(element.name);
+    _writeFragmentName(element.name2);
+    _sink.writeByte(_encodeVariance(element).index);
+    _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeType(element.bound);
+    _resolutionSink.writeType(element.defaultType);
   }
 
   /// Add [typeParameters] to the indexing scope, so make them available

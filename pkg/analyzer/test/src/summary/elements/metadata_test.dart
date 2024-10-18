@@ -3680,7 +3680,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
-        synthetic f @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::f
           element: <testLibraryFragment>::@topLevelVariable::f#element
           getter2: <testLibraryFragment>::@getter::f
@@ -3784,7 +3784,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
-        synthetic f @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::f
           element: <testLibraryFragment>::@topLevelVariable::f#element
           setter2: <testLibraryFragment>::@setter::f
@@ -4840,7 +4840,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            m @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::m
               element: <testLibraryFragment>::@class::C::@field::m#element
               getter2: <testLibraryFragment>::@class::C::@getter::m
@@ -5321,7 +5321,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibraryFragment>::@class::C#element
           fields
-            m @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::C::@field::m
               element: <testLibraryFragment>::@class::C::@field::m#element
               setter2: <testLibraryFragment>::@class::C::@setter::m
@@ -6047,7 +6047,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            getter @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::getter
               element: <testLibraryFragment>::@class::A::@field::getter#element
               getter2: <testLibraryFragment>::@class::A::@getter::getter
@@ -6394,7 +6394,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibraryFragment>::@class::A#element
           fields
-            setter @-1
+            <null-name>
               reference: <testLibraryFragment>::@class::A::@field::setter
               element: <testLibraryFragment>::@class::A::@field::setter#element
               setter2: <testLibraryFragment>::@class::A::@setter::setter
@@ -6866,7 +6866,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@field::e3
               element: <testLibraryFragment>::@enum::E::@field::e3#element
               getter2: <testLibraryFragment>::@enum::E::@getter::e3
-            values @-1
+            <null-name>
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
@@ -8154,7 +8154,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
-        synthetic getter @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::getter
           element: <testLibraryFragment>::@topLevelVariable::getter#element
           getter2: <testLibraryFragment>::@getter::getter
@@ -8273,7 +8273,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           getter2: <testLibraryFragment>::@getter::foo
-        synthetic setter @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::setter
           element: <testLibraryFragment>::@topLevelVariable::setter#element
           setter2: <testLibraryFragment>::@setter::setter
@@ -9255,7 +9255,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibraryFragment>::@topLevelVariable::a#element
           getter2: <testLibraryFragment>::@getter::a
-        synthetic foo @-1
+        synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           setter2: <testLibraryFragment>::@setter::foo
@@ -10614,7 +10614,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
               getter2: <testLibraryFragment>::@enum::E::@getter::c
-            values @-1
+            <null-name>
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values

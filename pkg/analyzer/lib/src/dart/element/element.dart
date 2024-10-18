@@ -9519,6 +9519,9 @@ abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
     with MacroTargetElement
     implements PropertyInducingElement, PropertyInducingFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// The getter associated with this element.
   @override
   PropertyAccessorElementImpl? getter;
@@ -9579,21 +9582,6 @@ abstract class PropertyInducingElementImpl
   @override
   LibraryFragment get libraryFragment =>
       thisOrAncestorOfType<CompilationUnitElement>() as LibraryFragment;
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
-  }
 
   @override
   PropertyInducingFragment? get nextFragment =>
@@ -10052,6 +10040,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         AugmentableElement<TypeAliasElementImpl>,
         MacroTargetElement
     implements TypeAliasElement, TypeAliasFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
@@ -10190,21 +10181,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   String get name {
     return super.name!;
-  }
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
   }
 
   @override
@@ -10396,6 +10372,9 @@ abstract class TypeDefiningElementImpl2 extends ElementImpl2
 /// A concrete implementation of a [TypeParameterElement].
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement, TypeParameterFragment {
+  @override
+  FragmentNameImpl? name2;
+
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
@@ -10491,21 +10470,6 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     return super.name!;
-  }
-
-  @override
-  FragmentName? get name2 {
-    var name = this.name;
-
-    // If synthetic name.
-    if (name.isEmpty) {
-      return null;
-    }
-
-    return FragmentNameImpl(
-      name: name,
-      nameOffset: nameOffset,
-    );
   }
 
   @override

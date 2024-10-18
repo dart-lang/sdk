@@ -9,12 +9,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// The concrete implementation of [CodeStyleOptions].
 class CodeStyleOptionsImpl implements CodeStyleOptions {
   /// The analysis options that owns this instance.
-  final AnalysisOptions _options;
+  late final AnalysisOptions options;
 
   @override
   final bool useFormatter;
 
-  CodeStyleOptionsImpl(this._options, {required this.useFormatter});
+  CodeStyleOptionsImpl({required this.useFormatter});
 
   @override
   bool get addTrailingCommas => _isLintEnabled('require_trailing_commas');
@@ -77,7 +77,7 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   }
 
   /// Returns whether the lint rule with the given [name] is enabled.
-  bool _isLintEnabled(String name) => _options.isLintEnabled(name);
+  bool _isLintEnabled(String name) => options.isLintEnabled(name);
 
   /// Returns the preferred lint quote, otherwise `null`.
   String? _lintQuote() => _isLintEnabled('prefer_single_quotes')

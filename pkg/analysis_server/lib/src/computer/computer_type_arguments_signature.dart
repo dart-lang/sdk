@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
-import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,19 +16,20 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 /// the [TypeArgumentList] surrounding the specified offset of a Dart
 /// [CompilationUnit].
 class DartTypeArgumentsSignatureComputer {
-  final DartdocDirectiveInfo _dartdocInfo;
   final AstNode? _node;
   final Set<lsp.MarkupKind>? preferredFormats;
   late TypeArgumentList _argumentList;
   final DocumentationPreference documentationPreference;
+  final DartDocumentationComputer _documentationComputer;
 
   DartTypeArgumentsSignatureComputer(
-    this._dartdocInfo,
+    DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
     int offset,
     this.preferredFormats, {
     this.documentationPreference = DocumentationPreference.full,
-  }) : _node = NodeLocator(offset).searchWithin(unit);
+  })  : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+        _node = NodeLocator(offset).searchWithin(unit);
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;
@@ -56,8 +57,8 @@ class DartTypeArgumentsSignatureComputer {
     _argumentList = argumentList;
 
     var label = element.getDisplayString();
-    var documentation = DartUnitHoverComputer.computePreferredDocumentation(
-        _dartdocInfo, element, documentationPreference);
+    var documentation = _documentationComputer.computePreferred(
+        element, documentationPreference);
 
     return _toSignatureHelp(
       label,

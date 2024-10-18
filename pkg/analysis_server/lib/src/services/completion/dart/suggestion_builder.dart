@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -1191,8 +1190,7 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element element) {
-    var doc = DartUnitHoverComputer.computeDocumentation(
-      request.dartdocDirectiveInfo,
+    var doc = request.documentationComputer.compute(
       element,
       includeSummary: true,
     );
@@ -1255,9 +1253,8 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    var doc = DartUnitHoverComputer.computeDocumentation(
-        request.dartdocDirectiveInfo, element,
-        includeSummary: true);
+    var doc =
+        request.documentationComputer.compute(element, includeSummary: true);
     if (doc is DocumentationWithSummary) {
       suggestion.docComplete = doc.full;
       suggestion.docSummary = doc.summary;

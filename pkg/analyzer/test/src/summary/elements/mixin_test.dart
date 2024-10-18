@@ -179,11 +179,11 @@ library
               element: <testLibraryFragment>::@mixin::M::@field::f#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::f
               setter2: <testLibraryFragment>::@mixin::M::@setter::f
-            g @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::g
               element: <testLibraryFragment>::@mixin::M::@field::g#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::g
-            s @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::s
               element: <testLibraryFragment>::@mixin::M::@field::s#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::s
@@ -437,7 +437,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibraryFragment>::@mixin::M#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -503,7 +503,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibraryFragment>::@mixin::M#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -569,7 +569,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibraryFragment>::@mixin::M#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -2043,7 +2043,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibraryFragment>::@mixin::M#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
@@ -2118,7 +2118,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibraryFragment>::@mixin::M#element
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
@@ -3947,7 +3947,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -4485,7 +4485,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4502,7 +4502,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
-            foo2 @-1
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -4639,7 +4639,7 @@ library
             T1 @23
               element: <not-implemented>
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4659,7 +4659,7 @@ library
             T1 @37
               element: <not-implemented>
           fields
-            foo2 @-1
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -5143,11 +5143,11 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
-            foo2 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo2
               element: <testLibraryFragment>::@mixin::A::@field::foo2#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo2
@@ -5311,7 +5311,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -6473,7 +6473,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
@@ -6493,7 +6493,7 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
-            foo2 @-1
+            <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
@@ -6801,11 +6801,11 @@ library
           element: <testLibraryFragment>::@mixin::A#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo1 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo1
-            foo2 @-1
+            <null-name>
               reference: <testLibraryFragment>::@mixin::A::@field::foo2
               element: <testLibraryFragment>::@mixin::A::@field::foo2#element
               setter2: <testLibraryFragment>::@mixin::A::@setter::foo2
