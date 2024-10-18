@@ -447,7 +447,7 @@ abstract class Element2 {
   /// for which the [predicate] returns `true`.
   ///
   /// Returns `null` if there is no such element.
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2) predicate,
   );
 

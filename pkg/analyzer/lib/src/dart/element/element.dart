@@ -3038,14 +3038,14 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2) predicate,
   ) {
     Element2? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement2;
     }
-    return element as E?;
+    return element;
   }
 
   @override
@@ -3224,13 +3224,12 @@ abstract class ElementImpl2 implements Element2 {
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
-      bool Function(Element2 p1) predicate) {
+  Element2? thisOrAncestorMatching2(bool Function(Element2 p1) predicate) {
     Element2? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement2;
     }
-    return element as E?;
+    return element;
   }
 
   @override
@@ -7138,11 +7137,11 @@ mixin MaybeAugmentedInstanceElementMixin
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2) predicate,
   ) {
     if (predicate(this)) {
-      return this as E;
+      return this;
     }
     return library2.thisOrAncestorMatching2(predicate);
   }
@@ -8347,7 +8346,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2 p1) predicate,
   ) {
     return null;
