@@ -231,11 +231,11 @@ AnalysisOptionsWarningCode:
     problemMessage: "The option '{1}' isn't supported by '{0}'. Try using the only supported option: '{2}'."
     hasPublishedDocs: false
     comment: |-
-      An error code indicating that a plugin is being configured with an
+      An error code indicating that a YAML section is being configured with an
       unsupported option where there is just one legal value.
 
       Parameters:
-      0: the plugin name
+      0: the section name
       1: the unsupported option key
       2: the legal value
   UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
@@ -243,11 +243,11 @@ AnalysisOptionsWarningCode:
     correctionMessage: "Try using one of the supported options: {2}."
     hasPublishedDocs: false
     comment: |-
-      An error code indicating that a plugin is being configured with an
+      An error code indicating that a YAML section is being configured with an
       unsupported option and legal options are provided.
 
       Parameters:
-      0: the plugin name
+      0: the section name
       1: the unsupported option key
       2: legal values
   UNSUPPORTED_VALUE:
