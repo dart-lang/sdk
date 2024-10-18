@@ -29,10 +29,10 @@ class BulkFixDetails {
           .getResolvedUnit(file.absolute.path) as ResolvedUnitResult;
       for (var classDecl
           in resolvedFile.unit.declarations.whereType<ClassDeclaration>()) {
-        var classElement = classDecl.declaredElement;
+        var classElement = classDecl.declaredFragment?.element;
         if (classElement != null &&
             classElement.allSupertypes.any(
-                (element) => element.element.name == 'CorrectionProducer')) {
+                (element) => element.element3.name == 'CorrectionProducer')) {
           var correctionName = classDecl.name.lexeme;
 
           for (var method in classDecl.members.whereType<MethodDeclaration>()) {

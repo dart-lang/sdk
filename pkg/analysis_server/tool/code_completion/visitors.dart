@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart' as element;
+import 'package:analyzer/dart/element/element2.dart' as element;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -640,7 +640,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (_doIncludeSimpleIdentifier(node)) {
       protocol.ElementKind? elementKind;
-      var kind = node.staticElement?.kind;
+      var kind = node.element?.kind;
       if (kind != null) {
         elementKind = protocol.convertElementKind(kind);
 
@@ -827,8 +827,8 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // The null check, node.staticElement == null, handles the cases where the
     // invocation is unknown, i.e. the 'arg' in 'foo.bar(arg: 1)', where foo is
     // dynamic.
-    if ((node.staticElement == null ||
-            node.staticElement?.kind == element.ElementKind.PARAMETER) &&
+    if ((node.element == null ||
+            node.element?.kind == element.ElementKind.PARAMETER) &&
         node.parent is Label &&
         node.thisOrAncestorOfType<ArgumentList>() != null) {
       return false;

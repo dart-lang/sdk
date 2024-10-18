@@ -474,13 +474,15 @@ class BundleWriter {
     LibraryImportElementFlags.write(_sink, element);
   }
 
-  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
-    if (prefix is DeferredImportElementPrefix) {
+  void _writeImportElementPrefix(ImportElementPrefixImpl? prefix) {
+    if (prefix is DeferredImportElementPrefixImpl) {
       _sink.writeByte(ImportElementPrefixKind.isDeferred.index);
       _sink._writeStringReference(prefix.element.name);
-    } else if (prefix is ImportElementPrefix) {
+      _writeReference(prefix.element);
+    } else if (prefix is ImportElementPrefixImpl) {
       _sink.writeByte(ImportElementPrefixKind.isNotDeferred.index);
       _sink._writeStringReference(prefix.element.name);
+      _writeReference(prefix.element);
     } else {
       _sink.writeByte(ImportElementPrefixKind.isNull.index);
     }
@@ -502,6 +504,8 @@ class BundleWriter {
 
   void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
     _sink.writeOptionalObject(fragment, (fragment) {
+      _writeFragmentName(fragment.name2);
+      _writeReference2(fragment.element.reference);
       _sink._writeStringReference(fragment.name);
       _sink.writeBool(fragment.isDeferred);
     });
@@ -676,7 +680,10 @@ class BundleWriter {
 
   /// Write the reference of a non-local element.
   void _writeReference(ElementImpl element) {
-    var reference = element.reference;
+    _writeReference2(element.reference);
+  }
+
+  void _writeReference2(Reference? reference) {
     var index = _references._indexOfReference(reference);
     _sink.writeUInt30(index);
   }

@@ -1219,11 +1219,19 @@ class FileState {
     UnlinkedLibraryImportPrefix? unlinkedPrefix;
     var prefix = node.prefix;
     if (prefix != null) {
+      UnlinkedLibraryImportPrefixName? name;
+      if (!prefix.isSynthetic) {
+        name = UnlinkedLibraryImportPrefixName(
+          name: prefix.name,
+          nameOffset: prefix.offset,
+        );
+      }
+
       unlinkedPrefix = UnlinkedLibraryImportPrefix(
         deferredOffset: node.deferredKeyword?.offset,
         asOffset: node.asKeyword!.offset,
-        name: prefix.name,
         nameOffset: prefix.offset,
+        name: name,
       );
     }
 

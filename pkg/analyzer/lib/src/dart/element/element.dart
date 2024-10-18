@@ -4738,7 +4738,7 @@ class FragmentNameImpl implements FragmentName {
   });
 
   @override
-  int? get nameEnd => nameOffset + name.length;
+  int get nameEnd => nameOffset + name.length;
 }
 
 /// A concrete implementation of a [FunctionElement].
@@ -9152,7 +9152,7 @@ class PrefixFragmentImpl implements PrefixFragment {
   int nameOffset;
 
   @override
-  FragmentNameImpl name2;
+  FragmentNameImpl? name2;
 
   @override
   final bool isDeferred;
