@@ -10,6 +10,7 @@ analyzer:
 
 linter:
   rules:
+    - analyzer_use_new_elements
     - avoid_dynamic_calls
     - avoid_unused_constructor_parameters
     - flutter_style_todos
