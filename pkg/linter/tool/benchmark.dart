@@ -6,12 +6,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
-import 'package:glob/glob.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
@@ -28,7 +26,7 @@ Future<void> main(List<String> args) async {
 const unableToProcessExitCode = 64;
 
 Future<Iterable<AnalysisErrorInfo>> lintFiles(
-    TestLinter linter, List<File> filesToLint, LintFilter filter) async {
+    TestLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
   var errorWatcher = _ErrorWatchingSink(errorSink);
@@ -37,7 +35,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
   if (errorWatcher.encounteredError) {
     exitCode = loggedAnalyzerErrorExitCode;
   } else if (errors.isNotEmpty) {
-    exitCode = _maxSeverity(errors, filter);
+    exitCode = _maxSeverity(errors);
   }
 
   return errors;
@@ -94,12 +92,11 @@ Future<void> runLinter(List<String> args) async {
   var ruleNames = options['rules'];
 
   LinterOptions linterOptions;
-  LintFilter? filter;
   if (configFile is String) {
     var config = LintConfig.parse(readFile(configFile));
     var enabledRules = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
-    filter = _FileGlobFilter(config.fileIncludes, config.fileExcludes);
+
     linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
     var rules = <LintRule>[];
@@ -115,7 +112,6 @@ Future<void> runLinter(List<String> args) async {
   } else {
     linterOptions = LinterOptions();
   }
-  filter ??= _FileGlobFilter([], []);
 
   var customSdk = options['dart-sdk'];
   if (customSdk is String) {
@@ -131,14 +127,18 @@ Future<void> runLinter(List<String> args) async {
           .map(File.new),
   ];
 
-  await writeBenchmarks(outSink, filesToLint, linterOptions, filter);
+  await writeBenchmarks(
+    outSink,
+    filesToLint,
+    linterOptions,
+  );
 }
 
-Future<void> writeBenchmarks(StringSink out, List<File> filesToLint,
-    LinterOptions linterOptions, LintFilter filter) async {
+Future<void> writeBenchmarks(
+    StringSink out, List<File> filesToLint, LinterOptions linterOptions) async {
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
-    await lintFiles(TestLinter(linterOptions), filesToLint, filter);
+    await lintFiles(TestLinter(linterOptions), filesToLint);
     lintRuleTimers.timers.forEach((n, t) {
       var timing = t.elapsedMilliseconds;
       var previous = timings[n];
@@ -168,17 +168,10 @@ Future<void> writeBenchmarks(StringSink out, List<File> filesToLint,
   out.writeTimings(stats, 0);
 }
 
-int _maxSeverity(List<AnalysisErrorInfo> infos, LintFilter filter) {
-  var filteredErrors = infos
-      .expand((i) => i.errors)
-      .where((AnalysisError e) => !filter.filter(e));
+int _maxSeverity(List<AnalysisErrorInfo> infos) {
+  var filteredErrors = infos.expand((i) => i.errors);
   return filteredErrors.fold(
       0, (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal));
-}
-
-/// Filtered lints are omitted from linter output.
-abstract class LintFilter {
-  bool filter(AnalysisError lint);
 }
 
 class _ErrorWatchingSink implements StringSink {
@@ -206,19 +199,4 @@ class _ErrorWatchingSink implements StringSink {
     }
     delegate.writeln(obj);
   }
-}
-
-class _FileGlobFilter extends LintFilter {
-  final List<Glob> includes;
-  final List<Glob> excludes;
-
-  _FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
-      : includes = includeGlobs.map(Glob.new).toList(),
-        excludes = excludeGlobs.map(Glob.new).toList();
-
-  @override
-  bool filter(AnalysisError lint) =>
-      // TODO(srawlins): specify order.
-      excludes.any((glob) => glob.matches(lint.source.fullName)) &&
-      !includes.any((glob) => glob.matches(lint.source.fullName));
 }

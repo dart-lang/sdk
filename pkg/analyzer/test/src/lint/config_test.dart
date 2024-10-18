@@ -37,15 +37,6 @@ rules:
   var config = LintConfig.parse(src);
 
   group('lint config', () {
-    group('file', () {
-      test('includes', () {
-        expect(config.fileIncludes, unorderedEquals(['foo']));
-      });
-      test('excludes', () {
-        expect(
-            config.fileExcludes, unorderedEquals(['test/**', '**/_data.dart']));
-      });
-    });
     group('rule', () {
       test('configs', () {
         expect(config.ruleConfigs, hasLength(3));

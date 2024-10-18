@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
@@ -31,13 +32,9 @@ LintConfig? processAnalysisOptionsFile(String fileContents, {String? fileUrl}) {
 
 /// The configuration of lint rules within an analysis options file.
 class LintConfig {
-  final List<String> fileIncludes;
-
-  final List<String> fileExcludes;
-
   final List<RuleConfig> ruleConfigs;
 
-  LintConfig(this.fileIncludes, this.fileExcludes, this.ruleConfigs);
+  LintConfig(this.ruleConfigs);
 
   factory LintConfig.parse(String source, {String? sourceUrl}) {
     var yaml = loadYamlNode(source,
@@ -51,37 +48,13 @@ class LintConfig {
   }
 
   factory LintConfig.parseMap(YamlMap yaml) {
-    var fileIncludes = <String>[];
-    var fileExcludes = <String>[];
     var ruleConfigs = <RuleConfig>[];
-
-    yaml.nodes.forEach((key, value) {
-      if (key is! YamlScalar) {
-        return;
-      }
-      switch (key.toString()) {
-        case 'files':
-          if (value is YamlMap) {
-            _addAsListOrString(value['include'], fileIncludes);
-            _addAsListOrString(value['exclude'], fileExcludes);
-          }
-
-        case 'rules':
-          ruleConfigs.addAll(_ruleConfigs(value));
-      }
-    });
-
-    return LintConfig(fileIncludes, fileExcludes, ruleConfigs);
-  }
-
-  static void _addAsListOrString(Object? value, List<String> list) {
-    if (value is List) {
-      for (var entry in value) {
-        list.add(entry as String);
-      }
-    } else if (value is String) {
-      list.add(value);
+    var rulesNode = yaml.valueAt(AnalyzerOptions.rules);
+    if (rulesNode != null) {
+      ruleConfigs.addAll(_ruleConfigs(rulesNode));
     }
+
+    return LintConfig(ruleConfigs);
   }
 
   static bool? _asBool(YamlNode scalar) {
