@@ -131,7 +131,7 @@ vars = {
   "clock_rev": "7956d60042f4ea979c4554d43eeb57d087627869",
   "collection_rev": "887b826b50f48d6a9cd2c0684aa353e8e3a0fad0",
   "convert_rev": "d361833e117cb2438d2a2a6d0b0acb28ff0910fb",
-  "core_rev": "279afbcda95f4e0a39e44ab82f9c60eeb70d7514",
+  "core_rev": "3a3ed8e36626b0c72b6edd152fff68d33997b236",
   "crypto_rev": "3d26ef4cf22d4b218ba30e616544ad3cf52f64a1",
   "csslib_rev": "a3700b05bbcc42782e8a7024790dbf019d89c249",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
