@@ -6840,6 +6840,9 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
   bool get isInterface => declaration.isInterface;
 
   @override
+  bool get isMacro => declaration.isMacro;
+
+  @override
   bool get isMixinApplication => declaration.isMixinApplication;
 
   @override
@@ -6930,8 +6933,7 @@ mixin MaybeAugmentedExtensionTypeElementMixin
   ExtensionTypeElementImpl get firstFragment => declaration;
 
   @override
-  ConstructorElement2 get primaryConstructor2 =>
-      representation as ConstructorElement2;
+  ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 
   @override
   FieldElement2 get representation2 => representation as FieldElement2;

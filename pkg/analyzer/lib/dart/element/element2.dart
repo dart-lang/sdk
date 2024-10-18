@@ -162,6 +162,11 @@ abstract class ClassElement2 implements InterfaceElement2 {
   /// not extended or mixed in.
   bool get isInterface;
 
+  /// Whether the class is a macro class.
+  ///
+  /// A class is a macro class if it has a `macro` modifer.
+  bool get isMacro;
+
   /// Whether the class is a mixin application.
   ///
   /// A class is a mixin application if it was declared using the syntax

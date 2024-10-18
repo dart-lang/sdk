@@ -382,6 +382,11 @@ extension ElementExtension2 on Element2? {
         self.name == 'print' &&
         self.firstFragment.libraryFragment.element.isDartCore;
   }
+
+  bool get isMacro => switch (this) {
+        ClassElement2(:var isMacro) => isMacro,
+        _ => false,
+      };
 }
 
 extension ExpressionExtension on Expression? {
