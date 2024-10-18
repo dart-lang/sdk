@@ -182,6 +182,24 @@ extension FormalParameterExtension on FormalParameterElement {
   }
 }
 
+extension LibraryFragmentExtension on LibraryFragment {
+  /// Returns a list containing this library fragment and all of its enclosing
+  /// fragments.
+  List<LibraryFragment> get withEnclosing2 {
+    var result = <LibraryFragment>[];
+    var current = this;
+    while (true) {
+      result.add(current);
+      if (current.enclosingFragment case var enclosing?) {
+        current = enclosing;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+}
+
 extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {

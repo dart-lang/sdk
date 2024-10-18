@@ -51,6 +51,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
         DirectiveUri,
+        DirectiveUriWithUnit,
         ElementAnnotation,
         ElementKind,
         ElementLocation,
@@ -2303,4 +2304,9 @@ abstract class VariableFragment implements Fragment {
   /// Variables that are declared with the 'const' modifier will return `false`
   /// even though they are implicitly final.
   bool get isFinal;
+}
+
+extension DirectiveUriWithUnitExtension on DirectiveUriWithUnit {
+  /// The library fragment associated with this directive.
+  LibraryFragment get libraryFragment => unit as LibraryFragment;
 }
