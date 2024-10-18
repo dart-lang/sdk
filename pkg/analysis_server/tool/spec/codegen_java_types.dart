@@ -525,7 +525,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   Outline outline = new Outline(parent, element, offset, length, codeOffset, codeLength);
 
   // compute children recursively
-  List<Outline> childrenList = = new ArrayList<>();
+  List<Outline> childrenList = new ArrayList<>();
   JsonElement childrenJsonArray = outlineObject.get("children");
   if (childrenJsonArray instanceof JsonArray) {
     for (JsonElement jsonElement : (JsonArray) childrenJsonArray) {
