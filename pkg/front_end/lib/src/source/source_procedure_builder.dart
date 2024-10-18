@@ -38,7 +38,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   final DeclarationBuilder? declarationBuilder;
 
-  final int charOpenParenOffset;
+  final int formalsOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
@@ -83,34 +83,34 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   final MemberName _memberName;
 
-  @override
-  final int charOffset;
+  final int nameOffset;
 
   @override
   final Uri fileUri;
 
   SourceProcedureBuilder(
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      this.returnType,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      this.kind,
-      this.libraryBuilder,
-      this.declarationBuilder,
-      this.fileUri,
-      int startCharOffset,
-      this.charOffset,
-      this.charOpenParenOffset,
-      int charEndOffset,
-      Reference? procedureReference,
-      this._tearOffReference,
-      AsyncMarker asyncModifier,
-      NameScheme nameScheme,
-      {String? nativeMethodName,
+      {required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required this.returnType,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required this.kind,
+      required this.libraryBuilder,
+      required this.declarationBuilder,
+      required this.fileUri,
+      required int startOffset,
+      required this.nameOffset,
+      required this.formalsOffset,
+      required int endOffset,
+      required Reference? procedureReference,
+      required Reference? tearOffReference,
+      required AsyncMarker asyncModifier,
+      required NameScheme nameScheme,
+      String? nativeMethodName,
       bool isSynthetic = false})
       : assert(kind != ProcedureKind.Factory),
+        _tearOffReference = tearOffReference,
         this.isExtensionInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
         this.isExtensionTypeInstanceMember =
@@ -127,9 +127,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         fileUri: fileUri,
         reference: procedureReference,
         isSynthetic: isSynthetic)
-      ..fileStartOffset = startCharOffset
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileStartOffset = startOffset
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
     if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
@@ -140,12 +140,16 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           isExtensionMember: isExtensionInstanceMember,
           isExtensionTypeMember: isExtensionTypeInstanceMember,
           reference: _tearOffReference,
-          fileUri: fileUri);
+          fileUri: fileUri)
+        ..fileOffset = nameOffset;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, name)
           .attachMember(_extensionTearOff!);
     }
   }
+
+  @override
+  int get fileOffset => nameOffset;
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
@@ -340,7 +344,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   void _build() {
     buildFunction();
-    _procedure.function.fileOffset = charOpenParenOffset;
+    _procedure.function.fileOffset = formalsOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
     _procedure.isAbstract = isAbstract;
     _procedure.isExternal = isExternal;

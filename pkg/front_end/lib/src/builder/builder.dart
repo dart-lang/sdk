@@ -16,7 +16,7 @@ abstract class Builder {
 
   Uri? get fileUri;
 
-  int get charOffset;
+  int get fileOffset;
 
   Builder get origin;
 
@@ -367,7 +367,7 @@ abstract class BuilderImpl implements Builder {
   @override
   // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
-    unsupported("${runtimeType}.applyAugmentation", charOffset, fileUri);
+    unsupported("${runtimeType}.applyAugmentation", fileOffset, fileUri);
   }
 
   @override

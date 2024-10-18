@@ -284,7 +284,7 @@ class MacroIntrospection {
                 : null);
     _classBuilders[declaration] = builder;
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -334,7 +334,7 @@ class MacroIntrospection {
         aliasedType:
             types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -374,7 +374,7 @@ class MacroIntrospection {
           );
           namedParameters.add(declaration);
           _declarationOffsets[declaration] =
-              new UriOffset(formal.fileUri, formal.charOffset);
+              new UriOffset(formal.fileUri, formal.fileOffset);
         } else {
           macro.FormalParameterDeclarationImpl declaration =
               new macro.FormalParameterDeclarationImpl(
@@ -390,7 +390,7 @@ class MacroIntrospection {
           );
           positionalParameters.add(declaration);
           _declarationOffsets[declaration] =
-              new UriOffset(formal.fileUri, formal.charOffset);
+              new UriOffset(formal.fileUri, formal.fileOffset);
         }
       }
       return (positionalParameters, namedParameters);
@@ -443,7 +443,7 @@ class MacroIntrospection {
     );
     if (builder.fileUri != null) {
       _declarationOffsets[declaration] =
-          new UriOffset(builder.fileUri!, builder.charOffset);
+          new UriOffset(builder.fileUri!, builder.fileOffset);
     }
     return declaration;
   }
@@ -488,7 +488,7 @@ class MacroIntrospection {
       typeParameters: const [],
     );
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -560,7 +560,7 @@ class MacroIntrospection {
           typeParameters: const []);
     }
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -616,7 +616,7 @@ class MacroIntrospection {
           type: types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     }
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -643,7 +643,7 @@ class MacroIntrospection {
                 : null);
     if (nominalVariableBuilder.fileUri != null) {
       _declarationOffsets[declaration] = new UriOffset(
-          nominalVariableBuilder.fileUri!, nominalVariableBuilder.charOffset);
+          nominalVariableBuilder.fileUri!, nominalVariableBuilder.fileOffset);
     }
     return declaration;
   }

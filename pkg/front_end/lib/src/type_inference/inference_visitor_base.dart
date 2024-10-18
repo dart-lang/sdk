@@ -3976,7 +3976,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           .map((ExtensionAccessCandidate c) =>
               messageAmbiguousExtensionCause.withLocation(
                   c.memberBuilder.fileUri!,
-                  c.memberBuilder.charOffset,
+                  c.memberBuilder.fileOffset,
                   name == unaryMinusName ? 1 : c.memberBuilder.name.length))
           .toList();
       template = ambiguousTemplate;
@@ -4504,7 +4504,7 @@ class _WhyNotPromotedVisitor
                 reason.propertyName,
                 field.readTarget.enclosingClass!.name,
                 NonPromotionDocumentationLink.conflictingNonPromotableField.url)
-            .withLocation(field.fileUri, field.charOffset, noLength));
+            .withLocation(field.fileUri, field.fileOffset, noLength));
       }
       for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
         messages.add(templateFieldNotPromotedBecauseConflictingGetter
@@ -4512,7 +4512,7 @@ class _WhyNotPromotedVisitor
                 reason.propertyName,
                 getter.procedure.enclosingClass!.name,
                 NonPromotionDocumentationLink.conflictingGetter.url)
-            .withLocation(getter.fileUri, getter.charOffset, noLength));
+            .withLocation(getter.fileUri, getter.fileOffset, noLength));
       }
       for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
         messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder

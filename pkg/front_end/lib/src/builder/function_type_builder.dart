@@ -318,7 +318,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
           newTypeVariables ??= typeVariables.toList();
           StructuralVariableBuilder newTypeVariableBuilder =
               newTypeVariables[i] = new StructuralVariableBuilder(
-                  variable.name, variable.charOffset, variable.fileUri,
+                  variable.name, variable.fileOffset, variable.fileUri,
                   bound: bound);
           unboundTypeVariables.add(newTypeVariableBuilder);
           if (functionTypeUpperSubstitution == null) {

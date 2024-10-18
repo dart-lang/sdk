@@ -82,7 +82,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
 
   LibraryBuilder get libraryBuilder => declarationBuilder.libraryBuilder;
 
-  int get declarationOffset => declarationBuilder.charOffset;
+  int get declarationOffset => declarationBuilder.fileOffset;
 
   Uri get declarationUri => declarationBuilder.fileUri;
 

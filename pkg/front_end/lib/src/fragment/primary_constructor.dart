@@ -7,7 +7,9 @@ part of 'fragment.dart';
 class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final String name;
   final Uri fileUri;
-  final int charOffset;
+  final int startOffset;
+  final int? nameOffset;
+  final int formalsOffset;
   final Modifiers modifiers;
   final OmittedTypeBuilder returnType;
   final List<NominalVariableBuilder>? typeParameters;
@@ -20,7 +22,9 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   PrimaryConstructorFragment(
       {required this.name,
       required this.fileUri,
-      required this.charOffset,
+      required this.startOffset,
+      required this.nameOffset,
+      required this.formalsOffset,
       required this.modifiers,
       required this.returnType,
       required this.typeParameters,
@@ -28,6 +32,8 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
       required this.forAbstractClassOrMixin,
       required Token? beginInitializers})
       : _beginInitializers = beginInitializers;
+
+  int get fileOffset => nameOffset ?? formalsOffset;
 
   Token? get beginInitializers {
     Token? result = _beginInitializers;
@@ -53,7 +59,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$charOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$formalsOffset)';
 }
 
 class _PrimaryConstructorBodyBuildingContext

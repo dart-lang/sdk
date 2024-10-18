@@ -635,7 +635,7 @@ class BodyBuilder extends StackListenerImpl
       return buildProblem(
           fasta.messageSuperAsExpression, node.fileOffset, noLength);
     } else if (node is ProblemBuilder) {
-      return buildProblem(node.message, node.charOffset, noLength);
+      return buildProblem(node.message, node.fileOffset, noLength);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -657,7 +657,7 @@ class BodyBuilder extends StackListenerImpl
     // Coverage-ignore(suite): Not run.
     else if (node is ProblemBuilder) {
       Expression expression =
-          buildProblem(node.message, node.charOffset, noLength);
+          buildProblem(node.message, node.fileOffset, noLength);
       return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
@@ -760,7 +760,7 @@ class BodyBuilder extends StackListenerImpl
           variable, fasta.templateDuplicatedDeclaration, <LocatedMessage>[
         fasta.templateDuplicatedDeclarationCause
             .withArguments(name)
-            .withLocation(uri, existing.charOffset, name.length)
+            .withLocation(uri, existing.fileOffset, name.length)
       ]);
       return;
     }
@@ -949,12 +949,12 @@ class BodyBuilder extends StackListenerImpl
       while (declaration.next != null) {
         // If we have duplicates, we try to find the right declaration.
         if (declaration.fileUri == uri &&
-            declaration.charOffset == fileOffset) {
+            declaration.fileOffset == fileOffset) {
           break;
         }
         declaration = declaration.next!;
       }
-      if (declaration.fileUri != uri || declaration.charOffset != fileOffset) {
+      if (declaration.fileUri != uri || declaration.fileOffset != fileOffset) {
         // If we don't have the right declaration, skip the initializer.
         continue;
       }
@@ -1044,15 +1044,15 @@ class BodyBuilder extends StackListenerImpl
                 buildInvalidInitializer(
                     buildProblem(
                         fasta.messageExternalConstructorWithFieldInitializers,
-                        formal.charOffset,
+                        formal.fileOffset,
                         formal.name.length),
-                    formal.charOffset)
+                    formal.fileOffset)
               ];
             } else {
               initializers = buildFieldInitializer(
                   formal.name,
-                  formal.charOffset,
-                  formal.charOffset,
+                  formal.fileOffset,
+                  formal.fileOffset,
                   new VariableGet(formal.variable!),
                   formal: formal);
             }
@@ -1159,12 +1159,12 @@ class BodyBuilder extends StackListenerImpl
         if (formal.isNamed) {
           (superParametersAsArguments ??= <Object>[]).add(new NamedExpression(
               formal.name,
-              createVariableGet(formal.variable!, formal.charOffset,
+              createVariableGet(formal.variable!, formal.fileOffset,
                   forNullGuardedAccess: false))
-            ..fileOffset = formal.charOffset);
+            ..fileOffset = formal.fileOffset);
         } else {
           (superParametersAsArguments ??= <Object>[]).add(createVariableGet(
-              formal.variable!, formal.charOffset,
+              formal.variable!, formal.fileOffset,
               forNullGuardedAccess: false));
         }
       }
@@ -1815,9 +1815,9 @@ class BodyBuilder extends StackListenerImpl
           if (formal.isNamed) {
             NamedExpression superParameterAsArgument = new NamedExpression(
                 formal.name,
-                createVariableGet(formal.variable!, formal.charOffset,
+                createVariableGet(formal.variable!, formal.fileOffset,
                     forNullGuardedAccess: false))
-              ..fileOffset = formal.charOffset;
+              ..fileOffset = formal.fileOffset;
             (namedSuperParametersAsArguments ??= <NamedExpression>[])
                 .add(superParameterAsArgument);
             (namedSuperParameterNames ??= <String>{}).add(formal.name);
@@ -1825,7 +1825,7 @@ class BodyBuilder extends StackListenerImpl
                 .add(superParameterAsArgument);
           } else {
             Expression superParameterAsArgument = createVariableGet(
-                formal.variable!, formal.charOffset,
+                formal.variable!, formal.fileOffset,
                 forNullGuardedAccess: false);
             (positionalSuperParametersAsArguments ??= <Expression>[])
                 .add(superParameterAsArgument);
@@ -2755,7 +2755,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         if (left is ProblemBuilder) {
           ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.charOffset, noLength);
+          left = buildProblem(problem.message, problem.fileOffset, noLength);
         }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
@@ -2778,7 +2778,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         if (left is ProblemBuilder) {
           ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.charOffset, noLength);
+          left = buildProblem(problem.message, problem.fileOffset, noLength);
         }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
@@ -5015,14 +5015,14 @@ class BodyBuilder extends StackListenerImpl
     } else if (name is ProblemBuilder) {
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
-          name.message, name.charOffset, name.name.length, name.fileUri);
+          name.message, name.fileOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           isMarkedAsNullable
               ? const NullabilityBuilder.nullable()
               : const NullabilityBuilder.omitted(),
           name.message
-              .withLocation(name.fileUri, name.charOffset, name.name.length));
+              .withLocation(name.fileUri, name.fileOffset, name.name.length));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -5050,7 +5050,7 @@ class BodyBuilder extends StackListenerImpl
           _localScope.addLocalVariable(name, builder);
         } else {
           // Coverage-ignore-block(suite): Not run.
-          reportDuplicatedDeclaration(existing, name, builder.charOffset);
+          reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
@@ -5070,7 +5070,7 @@ class BodyBuilder extends StackListenerImpl
           _localScope.addLocalVariable(name, builder);
         } else {
           // Coverage-ignore-block(suite): Not run.
-          reportDuplicatedDeclaration(existing, name, builder.charOffset);
+          reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
@@ -5707,7 +5707,7 @@ class BodyBuilder extends StackListenerImpl
             FormalParameterBuilder parameter = catchParameters.parameters![i];
             compileTimeErrors ??= <Statement>[];
             compileTimeErrors.add(buildProblemStatement(
-                fasta.messageCatchSyntaxExtraParameters, parameter.charOffset,
+                fasta.messageCatchSyntaxExtraParameters, parameter.fileOffset,
                 length: parameter.name.length));
           }
         }
@@ -8822,7 +8822,7 @@ class BodyBuilder extends StackListenerImpl
         case StructuralVariableBuilder():
           if (!libraryFeatures.genericMetadata.isEnabled) {
             addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
-                variable.charOffset, variable.name.length);
+                variable.fileOffset, variable.name.length);
           }
           break;
         case NominalVariableBuilder():
@@ -9089,7 +9089,7 @@ class BodyBuilder extends StackListenerImpl
             context: [
               fasta.templateFieldAlreadyInitializedAtDeclarationCause
                   .withArguments(name)
-                  .withLocation(uri, builder.charOffset, name.length)
+                  .withLocation(uri, builder.fileOffset, name.length)
             ]);
         MemberBuilder constructor =
             libraryBuilder.loader.getDuplicatedFieldInitializerError();
@@ -9120,7 +9120,7 @@ class BodyBuilder extends StackListenerImpl
                 uri,
                 context: [
                   fasta.messageInitializingFormalTypeMismatchField.withLocation(
-                      builder.fileUri, builder.charOffset, noLength)
+                      builder.fileUri, builder.fileOffset, noLength)
                 ]);
           }
         }
@@ -9187,7 +9187,7 @@ class BodyBuilder extends StackListenerImpl
           if (formal.isSuperInitializingFormal) {
             addProblem(
                 fasta.messageUnexpectedSuperParametersInGenerativeConstructors,
-                formal.charOffset,
+                formal.fileOffset,
                 noLength);
           }
         }
@@ -9481,7 +9481,7 @@ class BodyBuilder extends StackListenerImpl
             fasta.templateDuplicatedDeclarationCause
                 .withArguments(name)
                 .withLocation(
-                    existing.fileUri!, existing.charOffset, name.length)
+                    existing.fileUri!, existing.fileOffset, name.length)
           ];
     addProblem(fasta.templateDuplicatedDeclaration.withArguments(name),
         charOffset, name.length,
@@ -10179,7 +10179,7 @@ class FormalParameters {
       Builder? existing = local[parameter.name];
       if (existing != null) {
         helper.reportDuplicatedDeclaration(
-            existing, parameter.name, parameter.charOffset);
+            existing, parameter.name, parameter.fileOffset);
       } else {
         local[parameter.name] = parameter;
       }

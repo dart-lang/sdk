@@ -116,7 +116,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _classBuilder.name;
 
   @override
-  int get _fileOffset => _classBuilder.charOffset;
+  int get _fileOffset => _classBuilder.fileOffset;
 
   @override
   Uri get _fileUri => _classBuilder.fileUri;
@@ -402,7 +402,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _extensionTypeBuilder.name;
 
   @override
-  int get _fileOffset => _extensionTypeBuilder.charOffset;
+  int get _fileOffset => _extensionTypeBuilder.fileOffset;
 
   @override
   Uri get _fileUri => _extensionTypeBuilder.fileUri;

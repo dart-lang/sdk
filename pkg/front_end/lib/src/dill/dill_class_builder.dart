@@ -76,7 +76,7 @@ class DillClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  int get charOffset => cls.fileOffset;
+  int get fileOffset => cls.fileOffset;
 
   @override
   String get name => cls.name;

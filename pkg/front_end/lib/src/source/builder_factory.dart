@@ -67,9 +67,9 @@ abstract class BuilderFactory {
   void beginClassOrNamedMixinApplicationHeader();
 
   /// Registers that this builder is preparing for a class declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
+  /// given [name] and [typeVariables] located at [nameOffset].
   void beginClassDeclaration(
-      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
 
   void beginClassBody();
 
@@ -79,9 +79,9 @@ abstract class BuilderFactory {
       List<NominalVariableBuilder>? typeVariables);
 
   /// Registers that this builder is preparing for a mixin declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
+  /// given [name] and [typeVariables] located at [nameOffset].
   void beginMixinDeclaration(
-      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
 
   void beginMixinBody();
 
@@ -103,9 +103,9 @@ abstract class BuilderFactory {
   void beginEnumDeclarationHeader(String name);
 
   /// Registers that this builder is preparing for an enum declaration with
-  /// the given [name] and [typeVariables] located [charOffset].
+  /// the given [name] and [typeVariables] located at [nameOffset].
   void beginEnumDeclaration(
-      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
 
   void beginEnumBody();
 
@@ -126,9 +126,9 @@ abstract class BuilderFactory {
   void endExtensionDeclaration(String? name);
 
   /// Registers that this builder is preparing for an extension type declaration
-  /// with the given [name] and [typeVariables] located [charOffset].
+  /// with the given [name] and [typeVariables] located at [nameOffset].
   void beginExtensionTypeDeclaration(
-      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
 
   void beginExtensionTypeBody();
 
@@ -218,76 +218,75 @@ abstract class BuilderFactory {
       int uriOffset);
 
   void addClass(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixins,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset);
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required Identifier identifier,
+      required List<NominalVariableBuilder>? typeVariables,
+      required TypeBuilder? supertype,
+      required MixinApplicationBuilder? mixins,
+      required List<TypeBuilder>? interfaces,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required int supertypeOffset});
 
   void addEnum(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      MixinApplicationBuilder? supertypeBuilder,
-      List<TypeBuilder>? interfaceBuilders,
-      List<EnumConstantInfo?>? enumConstantInfos,
-      int startCharOffset,
-      int charEndOffset);
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Identifier identifier,
+      required List<NominalVariableBuilder>? typeVariables,
+      required MixinApplicationBuilder? supertypeBuilder,
+      required List<TypeBuilder>? interfaceBuilders,
+      required List<EnumConstantInfo?>? enumConstantInfos,
+      required int startOffset,
+      required int endOffset});
 
   void addExtensionDeclaration(
-      OffsetMap offsetMap,
-      Token beginToken,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      Identifier? identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder type,
-      int startOffset,
-      int nameOffset,
-      int endOffset);
+      {required OffsetMap offsetMap,
+      required Token beginToken,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required Identifier? identifier,
+      required List<NominalVariableBuilder>? typeVariables,
+      required TypeBuilder onType,
+      required int startOffset,
+      required int nameOrExtensionOffset,
+      required int endOffset});
 
   void addExtensionTypeDeclaration(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int endOffset);
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required Identifier identifier,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<TypeBuilder>? interfaces,
+      required int startOffset,
+      required int endOffset});
 
   void addMixinDeclaration(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      List<TypeBuilder>? supertypeConstraints,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset);
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required Identifier identifier,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<TypeBuilder>? supertypeConstraints,
+      required List<TypeBuilder>? interfaces,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset});
 
   void addNamedMixinApplication(
-      List<MetadataBuilder>? metadata,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      Modifiers modifiers,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder mixinApplication,
-      List<TypeBuilder>? interfaces,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset);
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required Modifiers modifiers,
+      required TypeBuilder? supertype,
+      required MixinApplicationBuilder mixinApplication,
+      required List<TypeBuilder>? interfaces,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset});
 
   MixinApplicationBuilder addMixinApplication(
       List<TypeBuilder> mixins, int charOffset);
@@ -308,9 +307,9 @@ abstract class BuilderFactory {
       required List<FormalParameterBuilder>? formals,
       required List<NominalVariableBuilder>? typeVariables,
       required Token? beginInitializers,
-      required int startCharOffset,
-      required int endCharOffset,
-      required int charOffset,
+      required int startOffset,
+      required int endOffset,
+      required int nameOffset,
       required int formalsOffset,
       required Modifiers modifiers,
       required bool inConstructor,
@@ -324,19 +323,19 @@ abstract class BuilderFactory {
       required ProcedureKind? kind});
 
   void addConstructor(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      Identifier identifier,
-      String constructorName,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      {Token? beginInitializers,
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required Identifier identifier,
+      required String constructorName,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required int startOffset,
+      required int nameOffset,
+      required int formalsOffset,
+      required int endOffset,
+      required String? nativeMethodName,
+      required Token? beginInitializers,
       required bool forAbstractClassOrMixin});
 
   void addPrimaryConstructor(
@@ -344,7 +343,9 @@ abstract class BuilderFactory {
       required Token beginToken,
       required String constructorName,
       required List<FormalParameterBuilder>? formals,
-      required int charOffset,
+      required int startOffset,
+      required int? nameOffset,
+      required int formalsOffset,
       required bool isConst});
 
   void addPrimaryConstructorField(
@@ -354,78 +355,78 @@ abstract class BuilderFactory {
       required int charOffset});
 
   void addFactoryMethod(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      Identifier identifier,
-      List<FormalParameterBuilder>? formals,
-      ConstructorReferenceBuilder? redirectionTarget,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      AsyncMarker asyncModifier);
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required Identifier identifier,
+      required List<FormalParameterBuilder>? formals,
+      required ConstructorReferenceBuilder? redirectionTarget,
+      required int startOffset,
+      required int nameOffset,
+      required int formalsOffset,
+      required int endOffset,
+      required String? nativeMethodName,
+      required AsyncMarker asyncModifier});
 
   String? computeAndValidateConstructorName(
       DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
   void addMethod(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      TypeBuilder? returnType,
-      Identifier identifier,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      ProcedureKind kind,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      AsyncMarker asyncModifier,
-      {required bool isInstanceMember,
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required TypeBuilder? returnType,
+      required Identifier identifier,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required ProcedureKind kind,
+      required int startOffset,
+      required int nameOffset,
+      required int formalsOffset,
+      required int endOffset,
+      required String? nativeMethodName,
+      required AsyncMarker asyncModifier,
+      required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember});
 
   void addGetter(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      TypeBuilder? returnType,
-      Identifier identifier,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      AsyncMarker asyncModifier,
-      {required bool isInstanceMember,
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required TypeBuilder? returnType,
+      required Identifier identifier,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required int startOffset,
+      required int nameOffset,
+      required int formalsOffset,
+      required int endOffset,
+      required String? nativeMethodName,
+      required AsyncMarker asyncModifier,
+      required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember});
 
   void addSetter(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      TypeBuilder? returnType,
-      Identifier identifier,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      AsyncMarker asyncModifier,
-      {required bool isInstanceMember,
+      {required OffsetMap offsetMap,
+      required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required TypeBuilder? returnType,
+      required Identifier identifier,
+      required String name,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required int startOffset,
+      required int nameOffset,
+      required int formalsOffset,
+      required int endOffset,
+      required String? nativeMethodName,
+      required AsyncMarker asyncModifier,
+      required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember});
 

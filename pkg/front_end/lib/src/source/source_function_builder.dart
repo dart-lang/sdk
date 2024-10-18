@@ -257,11 +257,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isWildcard &&
             identifier.name == '_' &&
-            formal.charOffset == identifier.nameOffset) {
+            formal.fileOffset == identifier.nameOffset) {
           return formal;
         }
         if (formal.name == identifier.name &&
-            formal.charOffset == identifier.nameOffset) {
+            formal.fileOffset == identifier.nameOffset) {
           return formal;
         }
       }
@@ -354,7 +354,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           libraryBuilder.addProblem(
               templateRequiredNamedParameterHasDefaultValueError
                   .withArguments(formal.name),
-              formal.charOffset,
+              formal.fileOffset,
               formal.name.length,
               formal.fileUri);
         }
@@ -406,7 +406,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
                 extensionTypeDeclarationBuilder.extensionTypeDeclaration,
                 Nullability.nonNullable,
                 typeArguments))
-          ..fileOffset = charOffset
+          ..fileOffset = fileOffset
           ..isLowered = true;
       } else {
         _thisVariable = function.positionalParameters.first;
@@ -531,9 +531,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
       // Coverage-ignore-block(suite): Not run.
       augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
-          augmentation.charOffset, noLength, augmentation.fileUri!, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri!, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
       return false;
     }
@@ -544,8 +544,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   void reportAugmentationMismatch(Builder augmentation) {
     libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-        augmentation.charOffset, noLength, augmentation.fileUri!, context: [
-      messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
+        augmentation.fileOffset, noLength, augmentation.fileUri!, context: [
+      messagePatchDeclarationOrigin.withLocation(fileUri, fileOffset, noLength)
     ]);
   }
 }

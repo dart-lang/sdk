@@ -53,7 +53,7 @@ class SourceExtensionTypeDeclarationBuilder
   final SourceLibraryBuilder parent;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final String name;
@@ -111,7 +111,7 @@ class SourceExtensionTypeDeclarationBuilder
       required this.indexedContainer,
       required FieldFragment? representationFieldFragment})
       : parent = enclosingLibraryBuilder,
-        charOffset = nameOffset,
+        fileOffset = nameOffset,
         _modifiers = fragment.modifiers,
         typeParameters = fragment.typeParameters,
         interfaceBuilders = fragment.interfaces,
@@ -220,7 +220,7 @@ class SourceExtensionTypeDeclarationBuilder
   int compareTo(SourceExtensionTypeDeclarationBuilder other) {
     int result = "$fileUri".compareTo("${other.fileUri}");
     if (result != 0) return result;
-    return charOffset.compareTo(other.charOffset);
+    return fileOffset.compareTo(other.fileOffset);
   }
 
   /// Builds the [ExtensionTypeDeclaration] for this extension type declaration
@@ -280,7 +280,7 @@ class SourceExtensionTypeDeclarationBuilder
             if (aliasBuilder != null) {
               errorContext = [
                 messageTypedefCause.withLocation(
-                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                    aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ];
             }
           } else {
@@ -297,7 +297,7 @@ class SourceExtensionTypeDeclarationBuilder
               if (aliasBuilder != null) {
                 errorContext = [
                   messageTypedefCause.withLocation(
-                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                      aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
                 ];
               }
             }
@@ -311,7 +311,7 @@ class SourceExtensionTypeDeclarationBuilder
                     .withArguments(typeBuilder.fullNameForErrors, interface);
                 errorContext = [
                   messageTypedefCause.withLocation(
-                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                      aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
                 ];
               } else {
                 errorMessage = templateSuperExtensionTypeIsIllegal
@@ -328,7 +328,7 @@ class SourceExtensionTypeDeclarationBuilder
             // Coverage-ignore-block(suite): Not run.
             errorContext = [
               messageTypedefCause.withLocation(
-                  aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                  aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           }
         } else {
@@ -337,7 +337,7 @@ class SourceExtensionTypeDeclarationBuilder
                 .withArguments(typeBuilder.fullNameForErrors, interface);
             errorContext = [
               messageTypedefCause.withLocation(
-                  aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                  aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           } else {
             errorMessage = templateSuperExtensionTypeIsIllegal
@@ -380,7 +380,7 @@ class SourceExtensionTypeDeclarationBuilder
           if (isBottom(representationType)) {
             libraryBuilder.addProblem(
                 messageExtensionTypeRepresentationTypeBottom,
-                representationFieldBuilder!.charOffset,
+                representationFieldBuilder!.fileOffset,
                 representationFieldBuilder!.name.length,
                 representationFieldBuilder!.fileUri);
             representationType = const InvalidType();
@@ -432,14 +432,14 @@ class SourceExtensionTypeDeclarationBuilder
               if (extensionTypeDeclarationBuilder != this) {
                 context.add(messageExtensionTypeDeclarationCause.withLocation(
                     extensionTypeDeclarationBuilder.fileUri,
-                    extensionTypeDeclarationBuilder.charOffset,
+                    extensionTypeDeclarationBuilder.fileOffset,
                     extensionTypeDeclarationBuilder.name.length));
               }
             }
             for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
               context.add(messageTypedefCause.withLocation(
                   typeAliasBuilder.fileUri,
-                  typeAliasBuilder.charOffset,
+                  typeAliasBuilder.fileOffset,
                   typeAliasBuilder.name.length));
             }
             libraryBuilder.addProblem(
@@ -781,7 +781,7 @@ class SourceExtensionTypeDeclarationBuilder
         unhandled(
             "${memberBuilder.runtimeType}:${memberKind}",
             "addMemberInternal",
-            memberBuilder.charOffset,
+            memberBuilder.fileOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionTypeRepresentationField:
         assert(tearOff == null, "Unexpected tear-off $tearOff");
@@ -810,7 +810,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionTypeRepresentationField:
         // Coverage-ignore(suite): Not run.
         unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
-            memberBuilder.charOffset, memberBuilder.fileUri);
+            memberBuilder.fileOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
         kind = ExtensionTypeMemberKind.Field;
@@ -872,9 +872,9 @@ class SourceExtensionTypeDeclarationBuilder
       // with origin declaration.
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.charOffset, noLength, augmentation.fileUri, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
     }
   }

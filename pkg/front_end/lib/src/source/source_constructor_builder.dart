@@ -134,7 +134,7 @@ abstract class AbstractSourceConstructorBuilder
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
-      libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset, () {
+      libraryBuilder.loader.withUriForCrashReporting(fileUri, fileOffset, () {
         for (FormalParameterBuilder formal in formals!) {
           if (formal.type is InferableTypeBuilder) {
             if (formal.isInitializingFormal) {
@@ -399,7 +399,7 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final Uri fileUri;
@@ -420,10 +420,10 @@ class DeclaredSourceConstructorBuilder
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
-      required int startCharOffset,
-      required this.charOffset,
-      required int charOpenParenOffset,
-      required int charEndOffset,
+      required int startOffset,
+      required this.fileOffset,
+      required int formalsOffset,
+      required int endOffset,
       required Reference? constructorReference,
       required Reference? tearOffReference,
       required NameScheme nameScheme,
@@ -435,15 +435,15 @@ class DeclaredSourceConstructorBuilder
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         _memberName = nameScheme.getDeclaredName(name),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
-            charOpenParenOffset, nativeMethodName, beginInitializers) {
+            formalsOffset, nativeMethodName, beginInitializers) {
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
         fileUri: fileUri,
         reference: constructorReference,
         isSynthetic: isSynthetic)
-      ..startFileOffset = startCharOffset
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..startFileOffset = startOffset
+      ..fileOffset = fileOffset
+      ..fileEndOffset = endOffset;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
@@ -451,7 +451,7 @@ class DeclaredSourceConstructorBuilder
         nameScheme.getConstructorMemberName(name, isTearOff: true),
         libraryBuilder,
         fileUri,
-        charOffset,
+        fileOffset,
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
   }
@@ -613,7 +613,7 @@ class DeclaredSourceConstructorBuilder
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
       MemberBuilder? memberBuilder = superclassBuilder.constructorScope
-          .lookup("", charOffset, libraryBuilder.fileUri);
+          .lookup("", fileOffset, libraryBuilder.fileUri);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
@@ -627,7 +627,7 @@ class DeclaredSourceConstructorBuilder
 
     MemberBuilder? constructorBuilder =
         superclassBuilder.findConstructorOrFactory(superTarget.name.text,
-            charOffset, libraryBuilder.fileUri, libraryBuilder);
+            fileOffset, libraryBuilder.fileUri, libraryBuilder);
     if (constructorBuilder is ConstructorBuilder) {
       return constructorBuilder;
     } else {
@@ -1063,7 +1063,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => _constructor.fileOffset;
+  int get fileOffset => _constructor.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1232,7 +1232,7 @@ class SourceExtensionTypeConstructorBuilder
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final Uri fileUri;
@@ -1247,10 +1247,10 @@ class SourceExtensionTypeConstructorBuilder
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
-      required int startCharOffset,
-      required this.charOffset,
-      required int charOpenParenOffset,
-      required int charEndOffset,
+      required int startOffset,
+      required this.fileOffset,
+      required int formalsOffset,
+      required int endOffset,
       required Reference? constructorReference,
       required Reference? tearOffReference,
       required NameScheme nameScheme,
@@ -1259,12 +1259,12 @@ class SourceExtensionTypeConstructorBuilder
       required Token? beginInitializers})
       : _memberName = nameScheme.getDeclaredName(name),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
-            charOpenParenOffset, nativeMethodName, beginInitializers) {
+            formalsOffset, nativeMethodName, beginInitializers) {
     _constructor = new Procedure(
         dummyName, ProcedureKind.Method, new FunctionNode(null),
         fileUri: fileUri, reference: constructorReference)
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileOffset = fileOffset
+      ..fileEndOffset = endOffset;
     nameScheme
         .getConstructorMemberName(name, isTearOff: false)
         .attachMember(_constructor);
@@ -1272,7 +1272,7 @@ class SourceExtensionTypeConstructorBuilder
         nameScheme.getConstructorMemberName(name, isTearOff: true),
         libraryBuilder,
         fileUri,
-        charOffset,
+        fileOffset,
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
         forceCreateLowering: true)

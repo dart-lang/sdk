@@ -1306,8 +1306,7 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.endClassDeclarationForParserRecovery(typeVariables);
     } else {
       Identifier identifier = name as Identifier;
-      final int startCharOffset =
-          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      final int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
 
       String classNameForErrors = identifier.name;
       if (supertype != null) {
@@ -1350,18 +1349,18 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers |= Modifiers.Abstract;
       }
       _builderFactory.addClass(
-          _offsetMap,
-          metadata,
-          modifiers,
-          identifier,
-          typeVariables,
-          supertype,
-          mixinApplication,
-          interfaces,
-          startCharOffset,
-          identifier.nameOffset,
-          endToken.charOffset,
-          supertypeOffset);
+          offsetMap: _offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          identifier: identifier,
+          typeVariables: typeVariables,
+          supertype: supertype,
+          mixins: mixinApplication,
+          interfaces: interfaces,
+          startOffset: startOffset,
+          nameOffset: identifier.nameOffset,
+          endOffset: endToken.charOffset,
+          supertypeOffset: supertypeOffset);
     }
     popDeclarationContext(DeclarationContext.Class);
   }
@@ -1401,11 +1400,11 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.endMixinDeclarationForParserRecovery(typeVariables);
     } else {
       Identifier identifier = name as Identifier;
-      int startOffset = metadata == null
-          ? beginToken.charOffset
-          :
-          // Coverage-ignore(suite): Not run.
-          metadata.first.charOffset;
+      int startOffset = metadata
+              // Coverage-ignore(suite): Not run.
+              ?.first // Coverage-ignore(suite): Not run.
+              .atOffset ??
+          beginToken.charOffset;
       String classNameForErrors = identifier.name;
       if (supertypeConstraints != null) {
         for (TypeBuilder supertype in supertypeConstraints) {
@@ -1433,17 +1432,16 @@ class OutlineBuilder extends StackListenerImpl {
       }
 
       _builderFactory.addMixinDeclaration(
-          _offsetMap,
-          metadata,
-          modifiers,
-          identifier,
-          typeVariables,
-          supertypeConstraints,
-          interfaces,
-          startOffset,
-          identifier.nameOffset,
-          endToken.charOffset,
-          -1);
+          offsetMap: _offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          identifier: identifier,
+          typeVariables: typeVariables,
+          supertypeConstraints: supertypeConstraints,
+          interfaces: interfaces,
+          startOffset: startOffset,
+          nameOffset: identifier.nameOffset,
+          endOffset: endToken.charOffset);
     }
     popDeclarationContext(DeclarationContext.Mixin);
   }
@@ -1495,25 +1493,23 @@ class OutlineBuilder extends StackListenerImpl {
     List<NominalVariableBuilder>? typeVariables =
         pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
-    int nameOffset = name?.nameOffset ?? extensionKeyword.charOffset;
+    int nameOrExtensionOffset = name?.nameOffset ?? extensionKeyword.charOffset;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(extensionKeyword.charOffset);
-    int startOffset = metadata == null
-        ? extensionKeyword.charOffset
-        : metadata.first.charOffset;
+    int startOffset = metadata?.first.atOffset ?? extensionKeyword.charOffset;
     _builderFactory.addExtensionDeclaration(
-        _offsetMap,
-        beginToken,
-        metadata,
+        offsetMap: _offsetMap,
+        beginToken: beginToken,
+        metadata: metadata,
         // TODO(johnniwinther): Support modifiers on extensions?
-        Modifiers.empty,
-        name,
-        typeVariables,
-        onType as TypeBuilder,
-        startOffset,
-        nameOffset,
-        endToken.charOffset);
+        modifiers: Modifiers.empty,
+        identifier: name,
+        typeVariables: typeVariables,
+        onType: onType as TypeBuilder,
+        startOffset: startOffset,
+        nameOrExtensionOffset: nameOrExtensionOffset,
+        endOffset: endToken.charOffset);
     popDeclarationContext(DeclarationContext.Extension);
   }
 
@@ -1528,10 +1524,11 @@ class OutlineBuilder extends StackListenerImpl {
     List<NominalVariableBuilder>? typeVariables =
         pop() as List<NominalVariableBuilder>?;
     String name = nameToken.lexeme;
-    int offset = nameToken.charOffset;
+    int nameOffset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
     push(typeVariables ?? NullValues.NominalVariables);
-    _builderFactory.beginExtensionTypeDeclaration(name, offset, typeVariables);
+    _builderFactory.beginExtensionTypeDeclaration(
+        name, nameOffset, typeVariables);
   }
 
   @override
@@ -1557,19 +1554,17 @@ class OutlineBuilder extends StackListenerImpl {
 
     reportIfNotEnabled(libraryFeatures.inlineClass,
         extensionKeyword.next!.charOffset, extensionKeyword.next!.length);
-    int startOffset = metadata == null
-        ? extensionKeyword.charOffset
-        : metadata.first.charOffset;
+    int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
     _builderFactory.addExtensionTypeDeclaration(
-        _offsetMap,
-        metadata,
+        offsetMap: _offsetMap,
+        metadata: metadata,
         // TODO(johnniwinther): Support modifiers on extension types?
-        Modifiers.empty,
-        identifier,
-        typeVariables,
-        interfaces,
-        startOffset,
-        endToken.charOffset);
+        modifiers: Modifiers.empty,
+        identifier: identifier,
+        typeVariables: typeVariables,
+        interfaces: interfaces,
+        startOffset: startOffset,
+        endOffset: endToken.charOffset);
 
     popDeclarationContext(DeclarationContext.ExtensionType);
   }
@@ -1588,13 +1583,20 @@ class OutlineBuilder extends StackListenerImpl {
     List<FormalParameterBuilder>? formals =
         pop(NullValues.FormalParameters) as List<FormalParameterBuilder>?;
     int charOffset = pop() as int; // Pop formals char offset
+
+    int? nameOffset;
+    int formalsOffset = charOffset;
+
     String constructorName = '';
     if (hasConstructorName) {
       // TODO(johnniwinther): Handle [ParserRecovery].
       Identifier identifier = pop() as Identifier;
-      charOffset = identifier.nameOffset;
+      nameOffset = charOffset = identifier.nameOffset;
       constructorName = identifier.name;
     }
+
+    int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
+
     bool inExtensionType =
         declarationContext == DeclarationContext.ExtensionType;
     if (formals != null) {
@@ -1610,25 +1612,25 @@ class OutlineBuilder extends StackListenerImpl {
             _compilationUnit.addProblem(
                 // ignore: lines_longer_than_80_chars
                 messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
-                formal.charOffset,
+                formal.fileOffset,
                 formal.name.length,
                 formal.fileUri);
           }
           if (type is ImplicitTypeBuilder) {
             _compilationUnit.addProblem(messageExpectedRepresentationType,
-                formal.charOffset, formal.name.length, formal.fileUri);
+                formal.fileOffset, formal.name.length, formal.fileUri);
             formal.type =
-                new InvalidTypeBuilderImpl(formal.fileUri, formal.charOffset);
+                new InvalidTypeBuilderImpl(formal.fileUri, formal.fileOffset);
           }
           if (formal.modifiers.containsSyntacticModifiers(
               ignoreCovariant: true, ignoreRequired: true)) {
             _compilationUnit.addProblem(messageRepresentationFieldModifier,
-                formal.charOffset, formal.name.length, formal.fileUri);
+                formal.fileOffset, formal.name.length, formal.fileUri);
           }
           if (formal.isInitializingFormal) {
             _compilationUnit.addProblem(
                 messageExtensionTypePrimaryConstructorWithInitializingFormal,
-                formal.charOffset,
+                formal.fileOffset,
                 formal.name.length,
                 formal.fileUri);
           }
@@ -1636,13 +1638,13 @@ class OutlineBuilder extends StackListenerImpl {
 
         if (formal.isPositional) {
           if (formal.isOptionalPositional) {
-            firstOptionalPositionalParameterOffset = formal.charOffset;
+            firstOptionalPositionalParameterOffset = formal.fileOffset;
           } else {
             requiredPositionalCount++;
           }
         }
         if (formal.isNamed) {
-          firstNamedParameterOffset = formal.charOffset;
+          firstNamedParameterOffset = formal.fileOffset;
         }
         _builderFactory.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
@@ -1652,7 +1654,7 @@ class OutlineBuilder extends StackListenerImpl {
             metadata: null,
             type: formal.type,
             name: formal.name,
-            charOffset: formal.charOffset);
+            charOffset: formal.fileOffset);
         formals[i] = formal.forPrimaryConstructor(_builderFactory);
       }
       if (inExtensionType) {
@@ -1682,7 +1684,10 @@ class OutlineBuilder extends StackListenerImpl {
         offsetMap: _offsetMap,
         beginToken: beginToken,
         constructorName: constructorName == "new" ? "" : constructorName,
-        charOffset: charOffset,
+        startOffset: startOffset,
+        nameOffset: nameOffset,
+        formalsOffset: formalsOffset,
+        // TODO(johnniwinther): Provide `endOffset`.
         formals: formals,
         isConst: constKeyword != null);
   }
@@ -1745,66 +1750,67 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     if (identifier is Identifier) {
       _builderFactory.endTopLevelMethod();
-      final int startCharOffset =
-          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      final int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
+      int nameOffset = identifier.nameOffset;
+      int endOffset = endToken.charOffset;
       ProcedureKind kind = computeProcedureKind(getOrSet);
       switch (kind) {
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
           _builderFactory.addMethod(
-              _offsetMap,
-              metadata,
-              modifiers,
-              returnType,
-              identifier,
-              identifier.name,
-              typeVariables,
-              formals,
-              kind,
-              startCharOffset,
-              identifier.nameOffset,
-              formalsOffset,
-              endToken.charOffset,
-              nativeMethodName,
-              asyncModifier,
+              offsetMap: _offsetMap,
+              metadata: metadata,
+              modifiers: modifiers,
+              returnType: returnType,
+              identifier: identifier,
+              name: identifier.name,
+              typeVariables: typeVariables,
+              formals: formals,
+              kind: kind,
+              startOffset: startOffset,
+              nameOffset: nameOffset,
+              formalsOffset: formalsOffset,
+              endOffset: endOffset,
+              nativeMethodName: nativeMethodName,
+              asyncModifier: asyncModifier,
               isInstanceMember: false,
               isExtensionMember: false,
               isExtensionTypeMember: false);
         case ProcedureKind.Getter:
           _builderFactory.addGetter(
-              _offsetMap,
-              metadata,
-              modifiers,
-              returnType,
-              identifier,
-              identifier.name,
-              typeVariables,
-              formals,
-              startCharOffset,
-              identifier.nameOffset,
-              formalsOffset,
-              endToken.charOffset,
-              nativeMethodName,
-              asyncModifier,
+              offsetMap: _offsetMap,
+              metadata: metadata,
+              modifiers: modifiers,
+              returnType: returnType,
+              identifier: identifier,
+              name: identifier.name,
+              typeVariables: typeVariables,
+              formals: formals,
+              startOffset: startOffset,
+              nameOffset: nameOffset,
+              formalsOffset: formalsOffset,
+              endOffset: endOffset,
+              nativeMethodName: nativeMethodName,
+              asyncModifier: asyncModifier,
               isInstanceMember: false,
               isExtensionMember: false,
               isExtensionTypeMember: false);
         case ProcedureKind.Setter:
           _builderFactory.addSetter(
-              _offsetMap,
-              metadata,
-              modifiers,
-              returnType,
-              identifier,
-              identifier.name,
-              typeVariables,
-              formals,
-              startCharOffset,
-              identifier.nameOffset,
-              formalsOffset,
-              endToken.charOffset,
-              nativeMethodName,
-              asyncModifier,
+              offsetMap: _offsetMap,
+              metadata: metadata,
+              modifiers: modifiers,
+              returnType: returnType,
+              identifier: identifier,
+              name: identifier.name,
+              typeVariables: typeVariables,
+              formals: formals,
+              startOffset: startOffset,
+              nameOffset: nameOffset,
+              formalsOffset: formalsOffset,
+              endOffset: endOffset,
+              nativeMethodName: nativeMethodName,
+              asyncModifier: asyncModifier,
               isInstanceMember: false,
               isExtensionMember: false,
               isExtensionTypeMember: false);
@@ -2072,7 +2078,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     String name;
     ProcedureKind? kind;
-    int charOffset = identifier.qualifierOffset;
+    int nameOffset = identifier.qualifierOffset;
     if (operator != null) {
       name = operator.text;
       kind = ProcedureKind.Operator;
@@ -2101,12 +2107,12 @@ class OutlineBuilder extends StackListenerImpl {
             unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
                 identifier.nameOffset, uri);
         }
-        addProblem(template.withArguments(name), charOffset, name.length);
+        addProblem(template.withArguments(name), nameOffset, name.length);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequiredPositional) {
-              addProblem(messageOperatorWithOptionalFormals, formal.charOffset,
+              addProblem(messageOperatorWithOptionalFormals, formal.fileOffset,
                   formal.name.length);
             }
           }
@@ -2115,7 +2121,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (typeVariables != null) {
         NominalVariableBuilder typeVariableBuilder = typeVariables.first;
         addProblem(messageOperatorWithTypeParameters,
-            typeVariableBuilder.charOffset, typeVariableBuilder.name.length);
+            typeVariableBuilder.fileOffset, typeVariableBuilder.name.length);
       }
     } else {
       name = identifier.name;
@@ -2201,10 +2207,9 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
 
-    int startCharOffset =
-        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+    int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
 
-    int endCharOffset = endToken.charOffset;
+    int endOffset = endToken.charOffset;
 
     bool forAbstractClassOrMixin =
         inAbstractOrSealedClass || methodKind == _MethodKind.mixinConstructor;
@@ -2221,9 +2226,9 @@ class OutlineBuilder extends StackListenerImpl {
         formals: formals,
         typeVariables: typeVariables,
         beginInitializers: beginInitializers,
-        startCharOffset: startCharOffset,
-        endCharOffset: endCharOffset,
-        charOffset: charOffset,
+        startOffset: startOffset,
+        endOffset: endOffset,
+        nameOffset: nameOffset,
         formalsOffset: formalsOffset,
         modifiers: modifiers,
         inConstructor: inConstructor,
@@ -2375,19 +2380,19 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers |= Modifiers.Abstract;
       }
 
-      int startCharOffset = beginToken.charOffset;
-      int charEndOffset = endToken.charOffset;
+      int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
+      int endOffset = endToken.charOffset;
       _builderFactory.addNamedMixinApplication(
-          metadata,
-          identifier.name,
-          typeVariables,
-          modifiers,
-          supertype as TypeBuilder?,
-          mixinApplication,
-          interfaces,
-          startCharOffset,
-          identifier.nameOffset,
-          charEndOffset);
+          metadata: metadata,
+          name: identifier.name,
+          typeVariables: typeVariables,
+          modifiers: modifiers,
+          supertype: supertype as TypeBuilder?,
+          mixinApplication: mixinApplication,
+          interfaces: interfaces,
+          startOffset: startOffset,
+          nameOffset: identifier.nameOffset,
+          endOffset: endOffset);
     }
     popDeclarationContext(DeclarationContext.NamedMixinApplication);
   }
@@ -2656,13 +2661,13 @@ class OutlineBuilder extends StackListenerImpl {
             !formals[0].isWildcard) {
           addProblem(
               templateDuplicatedParameterName.withArguments(formals[1].name),
-              formals[1].charOffset,
+              formals[1].fileOffset,
               formals[1].name.length,
               context: [
                 templateDuplicatedParameterNameCause
                     .withArguments(formals[1].name)
                     .withLocation(
-                        uri, formals[0].charOffset, formals[0].name.length)
+                        uri, formals[0].fileOffset, formals[0].name.length)
               ]);
         }
       } else if (formals.length > 2) {
@@ -2677,12 +2682,12 @@ class OutlineBuilder extends StackListenerImpl {
             // Coverage-ignore-block(suite): Not run.
             addProblem(
                 templateDuplicatedParameterName.withArguments(formal.name),
-                formal.charOffset,
+                formal.fileOffset,
                 formal.name.length,
                 context: [
                   templateDuplicatedParameterNameCause
                       .withArguments(formal.name)
-                      .withLocation(uri, seenNames[formal.name]!.charOffset,
+                      .withLocation(uri, seenNames[formal.name]!.fileOffset,
                           seenNames[formal.name]!.name.length)
                 ]);
           } else {
@@ -2709,7 +2714,7 @@ class OutlineBuilder extends StackListenerImpl {
         if (formal.isSuperInitializingFormal) {
           _compilationUnit.addProblem(
               messageExtensionTypeConstructorWithSuperFormalParameter,
-              formal.charOffset,
+              formal.fileOffset,
               formal.name.length,
               formal.fileUri);
         }
@@ -2809,7 +2814,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(mixins ?? NullValues.MixinApplicationBuilder);
     push(interfaces ?? NullValues.TypeBuilderList);
 
-    push(enumKeyword.charOffset); // start char offset.
     push(leftBrace.endGroup!.charOffset); // end char offset.
   }
 
@@ -2833,7 +2837,6 @@ class OutlineBuilder extends StackListenerImpl {
       /* enum constants */ ...repeatedKind(
           ValueKinds.EnumConstantInfoOrNull, elementsCount),
       /* endCharOffset */ ValueKinds.Integer,
-      /* startCharOffset */ ValueKinds.Integer,
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
       /* mixins */ unionOfKinds([
         ValueKinds.MixinApplicationBuilderOrNull,
@@ -2868,8 +2871,8 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
 
-    int endCharOffset = popCharOffset();
-    int startCharOffset = popCharOffset();
+    int endOffset = popCharOffset();
+
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     MixinApplicationBuilder? mixinBuilder =
@@ -2878,8 +2881,9 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<NominalVariableBuilder>?;
     Object? identifier = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    checkEmpty(startCharOffset);
+    checkEmpty(beginToken.charOffset);
 
+    int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
     if (identifier is Identifier) {
       if (enumConstantInfos == null) {
         if (!leftBrace.isSynthetic) {
@@ -2894,7 +2898,7 @@ class OutlineBuilder extends StackListenerImpl {
             _compilationUnit.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
-                interface.charOffset ?? startCharOffset,
+                interface.charOffset ?? startOffset,
                 identifier.name.length,
                 uri);
           }
@@ -2902,15 +2906,15 @@ class OutlineBuilder extends StackListenerImpl {
       }
 
       _builderFactory.addEnum(
-          _offsetMap,
-          metadata,
-          identifier,
-          typeVariables,
-          mixinBuilder,
-          interfaces,
-          enumConstantInfos,
-          startCharOffset,
-          endCharOffset);
+          offsetMap: _offsetMap,
+          metadata: metadata,
+          identifier: identifier,
+          typeVariables: typeVariables,
+          supertypeBuilder: mixinBuilder,
+          interfaceBuilders: interfaces,
+          enumConstantInfos: enumConstantInfos,
+          startOffset: startOffset,
+          endOffset: endOffset);
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(typeVariables);
     }
@@ -3623,19 +3627,18 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.endFactoryMethodForParserRecovery();
     } else {
       _builderFactory.addFactoryMethod(
-        _offsetMap,
-        metadata,
-        modifiers,
-        name,
-        formals,
-        redirectionTarget,
-        beginToken.charOffset,
-        name.qualifierOffset,
-        formalsOffset,
-        endToken.charOffset,
-        nativeMethodName,
-        asyncModifier,
-      );
+          offsetMap: _offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          identifier: name,
+          formals: formals,
+          redirectionTarget: redirectionTarget,
+          startOffset: metadata?.first.atOffset ?? beginToken.charOffset,
+          nameOffset: name.qualifierOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endToken.charOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier);
     }
     nativeMethodName = null;
     inConstructor = false;

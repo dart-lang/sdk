@@ -1564,10 +1564,10 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.addProblem(messageConstConstructorNonFinalField,
-            constructor.charOffset, noLength,
+            constructor.fileOffset, noLength,
             context: nonFinalFields
                 .map((field) => messageConstConstructorNonFinalFieldCause
-                    .withLocation(field.fileUri, field.charOffset, noLength))
+                    .withLocation(field.fileUri, field.fileOffset, noLength))
                 .toList());
         nonFinalFields.clear();
       }
@@ -1575,11 +1575,11 @@ class KernelTarget {
         for (FieldBuilder field in lateFinalFields) {
           classDeclaration.addProblem(
               messageConstConstructorLateFinalFieldError,
-              field.charOffset,
+              field.fileOffset,
               noLength,
               context: [
                 messageConstConstructorLateFinalFieldCause.withLocation(
-                    constructor.fileUri!, constructor.charOffset, noLength)
+                    constructor.fileUri!, constructor.fileOffset, noLength)
               ]);
         }
         lateFinalFields.clear();
@@ -1623,7 +1623,7 @@ class KernelTarget {
               libraryBuilder.addProblem(
                   templateFinalFieldNotInitialized
                       .withArguments(fieldBuilder.name),
-                  fieldBuilder.charOffset,
+                  fieldBuilder.fileOffset,
                   fieldBuilder.name.length,
                   fieldBuilder.fileUri);
             }
@@ -1632,7 +1632,7 @@ class KernelTarget {
             libraryBuilder.addProblem(
                 templateFieldNonNullableWithoutInitializerError.withArguments(
                     fieldBuilder.name, fieldBuilder.fieldType),
-                fieldBuilder.charOffset,
+                fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
                 fieldBuilder.fileUri);
           }
@@ -1656,14 +1656,14 @@ class KernelTarget {
             libraryBuilder.addProblem(
                 templateFinalFieldNotInitializedByConstructor
                     .withArguments(fieldBuilder.name),
-                constructorBuilder.charOffset,
+                constructorBuilder.fileOffset,
                 constructorBuilder.name.length,
                 constructorBuilder.fileUri,
                 context: [
                   templateMissingImplementationCause
                       .withArguments(fieldBuilder.name)
                       .withLocation(fieldBuilder.fileUri,
-                          fieldBuilder.charOffset, fieldBuilder.name.length)
+                          fieldBuilder.fileOffset, fieldBuilder.name.length)
                 ]);
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
@@ -1671,14 +1671,14 @@ class KernelTarget {
             libraryBuilder.addProblem(
                 templateFieldNonNullableNotInitializedByConstructorError
                     .withArguments(fieldBuilder.name, fieldBuilder.field.type),
-                constructorBuilder.charOffset,
+                constructorBuilder.fileOffset,
                 noLength,
                 constructorBuilder.fileUri,
                 context: [
                   templateMissingImplementationCause
                       .withArguments(fieldBuilder.name)
                       .withLocation(fieldBuilder.fileUri,
-                          fieldBuilder.charOffset, fieldBuilder.name.length)
+                          fieldBuilder.fileOffset, fieldBuilder.name.length)
                 ]);
           }
         }

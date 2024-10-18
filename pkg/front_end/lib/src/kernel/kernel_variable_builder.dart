@@ -23,7 +23,7 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   Builder? get parent => null;
 
   @override
-  int get charOffset => variable.fileOffset;
+  int get fileOffset => variable.fileOffset;
 
   @override
   bool get isLocal => true;

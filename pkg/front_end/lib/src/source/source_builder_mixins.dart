@@ -71,17 +71,17 @@ mixin SourceDeclarationBuilderMixin
             //  type declarations.
             templateExtensionMemberConflictsWithObjectMember
                 .withArguments(name),
-            declaration.charOffset,
+            declaration.fileOffset,
             name.length);
       }
       if (declaration.parent != this) {
         // Coverage-ignore-block(suite): Not run.
         if (fileUri != declaration.parent!.fileUri) {
-          unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
+          unexpected("$fileUri", "${declaration.parent!.fileUri}", fileOffset,
               fileUri);
         } else {
           unexpected(fullNameForErrors, declaration.parent!.fullNameForErrors,
-              charOffset, fileUri);
+              fileOffset, fileUri);
         }
       } else if (declaration is SourceMemberBuilder) {
         SourceMemberBuilder memberBuilder = declaration;
@@ -94,7 +94,7 @@ mixin SourceDeclarationBuilderMixin
         });
       } else {
         unhandled("${declaration.runtimeType}", "buildBuilders",
-            declaration.charOffset, declaration.fileUri);
+            declaration.fileOffset, declaration.fileUri);
       }
     }
 
@@ -300,17 +300,17 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
       // TODO(ahe): Revisit these messages. It seems like the last two should
       // be `context` parameter to this message.
       addProblem(templateConflictsWithMember.withArguments(name),
-          constructor.charOffset, noLength);
+          constructor.fileOffset, noLength);
       if (constructor.isFactory) {
         addProblem(
             templateConflictsWithFactory.withArguments("${this.name}.${name}"),
-            member.charOffset,
+            member.fileOffset,
             noLength);
       } else {
         addProblem(
             templateConflictsWithConstructor
                 .withArguments("${this.name}.${name}"),
-            member.charOffset,
+            member.fileOffset,
             noLength);
       }
     }
@@ -320,9 +320,9 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
       if (constructor == null || !setter.isStatic) return;
       // Coverage-ignore-block(suite): Not run.
       addProblem(templateConflictsWithConstructor.withArguments(name),
-          setter.charOffset, noLength);
+          setter.fileOffset, noLength);
       addProblem(templateConflictsWithSetter.withArguments(name),
-          constructor.charOffset, noLength);
+          constructor.fileOffset, noLength);
     });
   }
 }

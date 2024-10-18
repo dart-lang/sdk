@@ -619,13 +619,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (currentSetter.isConflictingSetter) {
             sourceLibraryBuilder.addProblem(
                 templateConflictsWithImplicitSetter.withArguments(name),
-                currentSetter.charOffset,
+                currentSetter.fileOffset,
                 noLength,
                 currentSetter.fileUri);
           } else {
             sourceLibraryBuilder.addProblem(
                 templateConflictsWithMember.withArguments(name),
-                currentSetter.charOffset,
+                currentSetter.fileOffset,
                 noLength,
                 currentSetter.fileUri);
           }
@@ -635,7 +635,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // TODO(ahe): Context argument to previous message?
         sourceLibraryBuilder.addProblem(
             templateConflictsWithSetter.withArguments(name),
-            conflictingGetable.charOffset,
+            conflictingGetable.fileOffset,
             noLength,
             conflictingGetable.fileUri!);
       }
@@ -787,7 +787,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             case NominalVariableBuilder():
             case StructuralVariableBuilder():
               unhandled(
-                  'member', 'exportScope', builder.charOffset, builder.fileUri);
+                  'member', 'exportScope', builder.fileOffset, builder.fileUri);
           }
         } else if (builder is MemberBuilder) {
           for (Member exportedMember in builder.exportedMembers) {
@@ -805,7 +805,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         } else {
           unhandled(
-              'member', 'exportScope', builder.charOffset, builder.fileUri);
+              'member', 'exportScope', builder.fileOffset, builder.fileUri);
         }
       }
     }
@@ -1197,14 +1197,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         addProblem(
             templateInvalidGetterSetterType.withArguments(
                 getterType, getterMemberName, setterType, setterMemberName),
-            getterBuilder.charOffset,
+            getterBuilder.fileOffset,
             getterBuilder.name.length,
             getterBuilder.fileUri,
             context: [
               templateInvalidGetterSetterTypeSetterContext
                   .withArguments(setterMemberName)
                   .withLocation(setterBuilder.fileUri!,
-                      setterBuilder.charOffset, setterBuilder.name.length)
+                      setterBuilder.fileOffset, setterBuilder.name.length)
             ]);
       }
     }
@@ -1374,7 +1374,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return;
     } else {
       unhandled("${declaration.runtimeType}", "buildBuilder",
-          declaration.charOffset, declaration.fileUri);
+          declaration.fileOffset, declaration.fileUri);
     }
   }
 
@@ -1405,7 +1405,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.addProcedure(member);
       }
     } else {
-      unhandled("${member.runtimeType}", "_buildMember", declaration.charOffset,
+      unhandled("${member.runtimeType}", "_buildMember", declaration.fileOffset,
           declaration.fileUri);
     }
   }
@@ -1675,7 +1675,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Nothing needed.
       } else {
         unhandled("${builder.runtimeType}", "buildBodyNodes",
-            builder.charOffset, builder.fileUri);
+            builder.fileOffset, builder.fileUri);
       }
     }
     return count;
@@ -1836,7 +1836,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       addProblem(
           templateFieldNonNullableWithoutInitializerError.withArguments(
               fieldBuilder.name, fieldBuilder.fieldType),
-          fieldBuilder.charOffset,
+          fieldBuilder.fileOffset,
           fieldBuilder.name.length,
           fieldBuilder.fileUri);
     }
@@ -1855,7 +1855,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
                 formal.name, formal.variable!.type),
-            formal.charOffset,
+            formal.fileOffset,
             formal.name.length,
             formal.fileUri);
       }
@@ -2189,15 +2189,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
           addProblem(
               message,
-              dependency.typeVariableBoundOfItself.charOffset,
+              dependency.typeVariableBoundOfItself.fileOffset,
               dependency.typeVariableBoundOfItself.name.length,
               dependency.typeVariableBoundOfItself.fileUri);
 
           typeVariable.bound = new NamedTypeBuilderImpl(
-              new SyntheticTypeName(typeVariable.name, typeVariable.charOffset),
+              new SyntheticTypeName(typeVariable.name, typeVariable.fileOffset),
               const NullabilityBuilder.omitted(),
               fileUri: typeVariable.fileUri,
-              charOffset: typeVariable.charOffset,
+              charOffset: typeVariable.fileOffset,
               instanceTypeVariableAccess:
                   InstanceTypeVariableAccessState.Unexpected)
             ..bind(
@@ -2208,7 +2208,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                         dependency.typeVariableBoundOfItself
                                 .fileUri ?? // Coverage-ignore(suite): Not run.
                             fileUri,
-                        dependency.typeVariableBoundOfItself.charOffset,
+                        dependency.typeVariableBoundOfItself.fileOffset,
                         dependency.typeVariableBoundOfItself.name.length)));
         }
       }
@@ -2467,7 +2467,7 @@ Uri computeLibraryUri(Builder declaration) {
     current = current.parent;
   }
   return unhandled("no library parent", "${declaration.runtimeType}",
-      declaration.charOffset, declaration.fileUri);
+      declaration.fileOffset, declaration.fileUri);
 }
 
 class PostponedProblem {

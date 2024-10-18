@@ -185,12 +185,12 @@ class BuilderMixinInferrer {
   // Coverage-ignore(suite): Not run.
   void reportProblem(Message message, Class kernelClass) {
     int length = cls.isMixinApplication ? 1 : cls.fullNameForErrors.length;
-    cls.addProblem(message, cls.charOffset, length);
+    cls.addProblem(message, cls.fileOffset, length);
   }
 
   // Coverage-ignore(suite): Not run.
   Never reportUnsupportedProblem(String operation) {
-    return unsupported(operation, cls.charOffset, cls.fileUri);
+    return unsupported(operation, cls.fileOffset, cls.fileUri);
   }
 }
 

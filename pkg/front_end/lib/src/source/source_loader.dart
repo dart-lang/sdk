@@ -1361,24 +1361,24 @@ severity: $severity
       }
     }
     SourceProcedureBuilder builder = new SourceProcedureBuilder(
-        /* metadata = */ null,
-        Modifiers.empty,
-        const ImplicitTypeBuilder(),
-        "debugExpr",
-        /* type variables = */ null,
-        /* formals = */ null,
-        ProcedureKind.Method,
-        libraryBuilder,
-        declarationBuilder,
-        libraryBuilder.fileUri,
-        /* start char offset = */ 0,
-        /* char offset = */ 0,
-        /* open paren offset = */ -1,
-        /* end offset = */ -1,
-        /* procedure reference = */ null,
-        /* tear off reference = */ null,
-        AsyncMarker.Sync,
-        new NameScheme(
+        metadata: null,
+        modifiers: Modifiers.empty,
+        returnType: const ImplicitTypeBuilder(),
+        name: "debugExpr",
+        typeVariables: null,
+        formals: null,
+        kind: ProcedureKind.Method,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        fileUri: libraryBuilder.fileUri,
+        startOffset: 0,
+        nameOffset: 0,
+        formalsOffset: -1,
+        endOffset: -1,
+        procedureReference: null,
+        tearOffReference: null,
+        asyncModifier: AsyncMarker.Sync,
+        nameScheme: new NameScheme(
             containerName: null,
             containerType: ContainerType.Library,
             isInstanceMember: false,
@@ -1968,16 +1968,16 @@ severity: $severity
       if (objectClass.supertypeBuilder != null) {
         objectClass.supertypeBuilder = null;
         objectClass.addProblem(
-            messageObjectExtends, objectClass.charOffset, noLength);
+            messageObjectExtends, objectClass.fileOffset, noLength);
       }
       if (objectClass.interfaceBuilders != null) {
         objectClass.addProblem(
-            messageObjectImplements, objectClass.charOffset, noLength);
+            messageObjectImplements, objectClass.fileOffset, noLength);
         objectClass.interfaceBuilders = null;
       }
       if (objectClass.mixedInTypeBuilder != null) {
         objectClass.addProblem(
-            messageObjectMixesIn, objectClass.charOffset, noLength);
+            messageObjectMixesIn, objectClass.fileOffset, noLength);
         objectClass.mixedInTypeBuilder = null;
       }
     }
@@ -2062,7 +2062,7 @@ severity: $severity
         classBuilder.addProblem(
             templateCyclicClassHierarchy
                 .withArguments(classBuilder.fullNameForErrors),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             noLength);
       }
     }
@@ -2094,7 +2094,7 @@ severity: $severity
         extensionTypeBuilder.addProblem(
             templateCyclicClassHierarchy
                 .withArguments(extensionTypeBuilder.fullNameForErrors),
-            extensionTypeBuilder.charOffset,
+            extensionTypeBuilder.fileOffset,
             noLength);
       }
     }
@@ -2114,13 +2114,13 @@ severity: $severity
         cls.addProblem(
             templateIllegalMixinDueToConstructors
                 .withArguments(builder.fullNameForErrors),
-            cls.charOffset,
+            cls.fileOffset,
             noLength,
             context: [
               templateIllegalMixinDueToConstructorsCause
                   .withArguments(builder.fullNameForErrors)
                   .withLocation(
-                      constructor.fileUri!, constructor.charOffset, noLength)
+                      constructor.fileUri!, constructor.fileOffset, noLength)
             ]);
       }
     }
@@ -2131,7 +2131,7 @@ severity: $severity
       // Coverage-ignore-block(suite): Not run.
       cls.addProblem(
           templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
-          cls.charOffset,
+          cls.fileOffset,
           noLength);
       return true;
     }
@@ -2152,7 +2152,7 @@ severity: $severity
         // Coverage-ignore-block(suite): Not run.
         classBuilder.addProblem(
             templateExtendingEnum.withArguments(supertype.name),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             noLength);
       } else if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
           (denyListedClasses.contains(supertype) ||
@@ -2163,17 +2163,17 @@ severity: $severity
           classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
-              classBuilder.charOffset,
+              classBuilder.fileOffset,
               noLength,
               context: [
                 messageTypedefCause.withLocation(
-                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                    aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ]);
         } else {
           classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
-              classBuilder.charOffset,
+              classBuilder.fileOffset,
               noLength);
         }
       }
@@ -2192,13 +2192,13 @@ severity: $severity
           classBuilder.addProblem(
               templateExtendingRestricted
                   .withArguments(mixedInTypeBuilder.fullNameForErrors),
-              classBuilder.charOffset,
+              classBuilder.fileOffset,
               noLength,
               context: declaration is TypeAliasBuilder
                   ? [
                       messageTypedefUnaliasedTypeCause.withLocation(
                           unaliasedDeclaration.fileUri,
-                          unaliasedDeclaration.charOffset,
+                          unaliasedDeclaration.fileOffset,
                           noLength),
                     ]
                   : null);
@@ -2215,12 +2215,12 @@ severity: $severity
         classBuilder.addProblem(
             templateIllegalMixin
                 .withArguments(mixedInTypeBuilder.fullNameForErrors),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             noLength,
             context: declaration is TypeAliasBuilder
                 ? [
                     messageTypedefCause.withLocation(
-                        declaration.fileUri, declaration.charOffset, noLength),
+                        declaration.fileUri, declaration.fileOffset, noLength),
                   ]
                 : null);
       }
@@ -2418,7 +2418,7 @@ severity: $severity
           cls.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
-              cls.charOffset,
+              cls.fileOffset,
               noLength);
         } else if (baseOrFinalSuperClass.isBase) {
           final Template<Message Function(String, String)> template =
@@ -2428,7 +2428,7 @@ severity: $severity
           cls.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
-              cls.charOffset,
+              cls.fileOffset,
               noLength);
         }
       }
@@ -2539,7 +2539,7 @@ severity: $severity
                       .withArguments(interfaceDeclaration.fullNameForErrors,
                           checkedClass.fullNameForErrors)
                       .withLocation(checkedClass.fileUri,
-                          checkedClass.charOffset, noLength)
+                          checkedClass.fileOffset, noLength)
               ];
 
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
@@ -2746,7 +2746,7 @@ severity: $severity
                 member.isAbstract == false) {
               classBuilder.libraryBuilder.addProblem(
                   templateEnumInheritsRestricted.withArguments(name.text),
-                  classBuilder.charOffset,
+                  classBuilder.fileOffset,
                   classBuilder.name.length,
                   classBuilder.fileUri,
                   context: <LocatedMessage>[
@@ -2990,15 +2990,15 @@ severity: $severity
       if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
         if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+              libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
               context: [
                 messageExportedMain.withLocation(mainBuilder.fileUri!,
-                    mainBuilder.charOffset, mainBuilder.name.length)
+                    mainBuilder.fileOffset, mainBuilder.name.length)
               ]);
         } else {
           libraryBuilder.addProblem(
               messageMainNotFunctionDeclaration,
-              mainBuilder.charOffset,
+              mainBuilder.fileOffset,
               mainBuilder.name.length,
               mainBuilder.fileUri);
         }
@@ -3008,17 +3008,17 @@ severity: $severity
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainTooManyRequiredParametersExported,
-                libraryBuilder.charOffset,
+                libraryBuilder.fileOffset,
                 noLength,
                 libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(mainBuilder.fileUri!,
-                      mainBuilder.charOffset, mainBuilder.name.length)
+                      mainBuilder.fileOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
                 messageMainTooManyRequiredParameters,
-                mainBuilder.charOffset,
+                mainBuilder.fileOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
           }
@@ -3027,17 +3027,17 @@ severity: $severity
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
                 messageMainRequiredNamedParametersExported,
-                libraryBuilder.charOffset,
+                libraryBuilder.fileOffset,
                 noLength,
                 libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(mainBuilder.fileUri!,
-                      mainBuilder.charOffset, mainBuilder.name.length)
+                      mainBuilder.fileOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
                 messageMainRequiredNamedParameters,
-                mainBuilder.charOffset,
+                mainBuilder.fileOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
           }
@@ -3051,18 +3051,18 @@ severity: $severity
               libraryBuilder.addProblem(
                   templateMainWrongParameterTypeExported.withArguments(
                       parameterType, listOfString),
-                  libraryBuilder.charOffset,
+                  libraryBuilder.fileOffset,
                   noLength,
                   libraryBuilder.fileUri,
                   context: [
                     messageExportedMain.withLocation(mainBuilder.fileUri!,
-                        mainBuilder.charOffset, mainBuilder.name.length)
+                        mainBuilder.fileOffset, mainBuilder.name.length)
                   ]);
             } else {
               libraryBuilder.addProblem(
                   templateMainWrongParameterType.withArguments(
                       parameterType, listOfString),
-                  mainBuilder.charOffset,
+                  mainBuilder.fileOffset,
                   mainBuilder.name.length,
                   mainBuilder.fileUri);
             }
@@ -3072,14 +3072,14 @@ severity: $severity
     } else if (mainBuilder != null) {
       if (mainBuilder.parent != libraryBuilder) {
         libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-            libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+            libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
             context: [
               messageExportedMain.withLocation(
-                  mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
+                  mainBuilder.fileUri!, mainBuilder.fileOffset, noLength)
             ]);
       } else {
         libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
-            mainBuilder.charOffset, noLength, mainBuilder.fileUri);
+            mainBuilder.fileOffset, noLength, mainBuilder.fileUri);
       }
     }
   }

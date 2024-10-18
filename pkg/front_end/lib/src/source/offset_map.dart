@@ -172,7 +172,7 @@ class OffsetMap {
           templateInternalProblemNotFound.withArguments(name), charOffset, uri);
     }
     if (uri != declaration.fileUri) {
-      unexpected("$uri", "${declaration.fileUri}", declaration.charOffset,
+      unexpected("$uri", "${declaration.fileUri}", declaration.fileOffset,
           declaration.fileUri);
     }
     return declaration;

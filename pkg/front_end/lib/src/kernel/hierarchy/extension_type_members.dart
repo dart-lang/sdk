@@ -977,7 +977,7 @@ class _SanitizedMember {
         extensionTypeDeclarationBuilder.addProblem(
             templateImplementNonExtensionTypeAndExtensionTypeMember
                 .withArguments(extensionTypeDeclarationBuilder.name, name.text),
-            extensionTypeDeclarationBuilder.charOffset,
+            extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
             context: context);
       } else if (extensionTypeMemberDeclarations.length > 1) {
@@ -989,7 +989,7 @@ class _SanitizedMember {
         extensionTypeDeclarationBuilder.addProblem(
             templateImplementMultipleExtensionTypeMembers.withArguments(
                 extensionTypeDeclarationBuilder.name, name.text),
-            extensionTypeDeclarationBuilder.charOffset,
+            extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
             context: context);
       }

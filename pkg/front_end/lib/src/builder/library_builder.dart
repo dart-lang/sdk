@@ -407,7 +407,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   Builder? get parent => null;
 
   @override
-  int get charOffset => -1;
+  int get fileOffset => -1;
 
   @override
   bool get isPart => false;

@@ -136,7 +136,7 @@ abstract class BuilderClassMember implements ClassMember {
   MemberBuilderImpl get memberBuilder;
 
   @override
-  int get charOffset => memberBuilder.charOffset;
+  int get charOffset => memberBuilder.fileOffset;
 
   @override
   DeclarationBuilder get declarationBuilder =>

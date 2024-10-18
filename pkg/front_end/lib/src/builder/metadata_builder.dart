@@ -15,9 +15,9 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class MetadataBuilder {
   /// Token for `@` for annotations that have not yet been parsed.
-  Token? _beginToken;
+  Token? _atToken;
 
-  final int charOffset;
+  final int atOffset;
 
   /// `true` if the annotation begins with 'patch'.
   ///
@@ -28,12 +28,12 @@ class MetadataBuilder {
   /// Expression for an already parsed annotation.
   Expression? _expression;
 
-  MetadataBuilder(Token this._beginToken)
-      : charOffset = _beginToken.charOffset,
-        hasPatch = _beginToken.next?.lexeme == 'patch';
+  MetadataBuilder(Token this._atToken)
+      : atOffset = _atToken.charOffset,
+        hasPatch = _atToken.next?.lexeme == 'patch';
 
   // Coverage-ignore(suite): Not run.
-  Token? get beginToken => _beginToken;
+  Token? get beginToken => _atToken;
 
   static void buildAnnotations(
       Annotatable parent,
@@ -59,15 +59,15 @@ class MetadataBuilder {
 
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
-      Token? beginToken = annotationBuilder._beginToken;
+      Token? beginToken = annotationBuilder._atToken;
       if (beginToken != null) {
         bodyBuilder ??= library.loader.createBodyBuilderForOutlineExpression(
             library, bodyBuilderContext, scope, fileUri);
         Expression annotation = bodyBuilder.parseAnnotation(beginToken);
-        annotationBuilder._beginToken = null;
+        annotationBuilder._atToken = null;
         if (createFileUriExpression) {
           annotation = new FileUriExpression(annotation, fileUri)
-            ..fileOffset = annotationBuilder.charOffset;
+            ..fileOffset = annotationBuilder.atOffset;
         }
         // Record the index of [annotation] in `parent.annotations`.
         parsedAnnotationBuilders[annotationBuilder] = parent.annotations.length;
@@ -98,7 +98,7 @@ class MetadataBuilder {
         // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
           annotation = new FileUriExpression(annotation, fileUri)
-            ..fileOffset = annotationBuilder.charOffset;
+            ..fileOffset = annotationBuilder.atOffset;
         }
         parent.addAnnotation(annotation);
       }

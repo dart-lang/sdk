@@ -58,9 +58,9 @@ Class initializeClass(
     List<NominalVariableBuilder>? typeVariables,
     String name,
     Uri fileUri,
-    int startCharOffset,
-    int charOffset,
-    int charEndOffset,
+    int startOffset,
+    int nameOffset,
+    int endOffset,
     IndexedClass? indexedClass,
     {required bool isAugmentation}) {
   Class cls = new Class(
@@ -74,13 +74,13 @@ Class initializeClass(
       reference: isAugmentation ? null : indexedClass?.reference,
       fileUri: fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
-    cls.startFileOffset = startCharOffset;
+    cls.startFileOffset = startOffset;
   }
   if (cls.fileOffset == TreeNode.noOffset) {
-    cls.fileOffset = charOffset;
+    cls.fileOffset = nameOffset;
   }
   if (cls.fileEndOffset == TreeNode.noOffset) {
-    cls.fileEndOffset = charEndOffset;
+    cls.fileEndOffset = endOffset;
   }
 
   return cls;
@@ -93,10 +93,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         ClassDeclaration,
         SourceDeclarationBuilder {
   @override
-  final SourceLibraryBuilder parent;
+  final SourceLibraryBuilder libraryBuilder;
 
-  @override
-  final int charOffset;
+  final int nameOffset;
 
   @override
   final String name;
@@ -163,30 +162,33 @@ class SourceClassBuilder extends ClassBuilderImpl
   MergedClassMemberScope? _mergedScope;
 
   SourceClassBuilder(
-      this.metadata,
-      this._modifiers,
-      this.name,
-      this.typeVariables,
-      this.supertypeBuilder,
-      this.interfaceBuilders,
-      this.onTypes,
-      this.typeParameterScope,
-      this.nameSpaceBuilder,
-      this.parent,
-      this.constructorReferences,
-      this.fileUri,
-      int startCharOffset,
-      int nameOffset,
-      int charEndOffset,
+      {required this.metadata,
+      required Modifiers modifiers,
+      required this.name,
+      required this.typeVariables,
+      required this.supertypeBuilder,
+      required this.interfaceBuilders,
+      required this.onTypes,
+      required this.typeParameterScope,
+      required this.nameSpaceBuilder,
+      required this.libraryBuilder,
+      required this.constructorReferences,
+      required this.fileUri,
+      required int startOffset,
+      required this.nameOffset,
+      required int endOffset,
       this.indexedClass,
-      {this.mixedInTypeBuilder,
+      this.mixedInTypeBuilder,
       this.isMixinDeclaration = false})
-      : charOffset = nameOffset,
-        actualCls = initializeClass(typeVariables, name, fileUri,
-            startCharOffset, nameOffset, charEndOffset, indexedClass,
-            isAugmentation: _modifiers.isAugment) {
+      : _modifiers = modifiers,
+        actualCls = initializeClass(typeVariables, name, fileUri, startOffset,
+            nameOffset, endOffset, indexedClass,
+            isAugmentation: modifiers.isAugment) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
+
+  @override
+  int get fileOffset => nameOffset;
 
   @override
   bool get isAbstract => _modifiers.isAbstract;
@@ -276,8 +278,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   Class get cls => origin.actualCls;
 
   @override
-  SourceLibraryBuilder get libraryBuilder =>
-      super.libraryBuilder as SourceLibraryBuilder;
+  SourceLibraryBuilder get parent => libraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
     SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
@@ -291,13 +292,13 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (declaration.parent?.origin != origin) {
           // Coverage-ignore-block(suite): Not run.
           if (fileUri != declaration.parent?.fileUri) {
-            unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
+            unexpected("$fileUri", "${declaration.parent?.fileUri}", fileOffset,
                 fileUri);
           } else {
             unexpected(
                 fullNameForErrors,
                 declaration.parent?.fullNameForErrors ?? '',
-                charOffset,
+                fileOffset,
                 fileUri);
           }
         }
@@ -314,7 +315,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         });
       } else {
         unhandled("${declaration.runtimeType}", "buildBuilders",
-            declaration.charOffset, declaration.fileUri);
+            declaration.fileOffset, declaration.fileUri);
       }
     }
 
@@ -341,7 +342,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // and that is allowed to be a mixin's interface.
       libraryBuilder.addProblem(
           templateSupertypeIsIllegal.withArguments(actualCls.superclass!.name),
-          charOffset,
+          fileOffset,
           noLength,
           fileUri);
       supertype = null;
@@ -640,8 +641,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (originLength != augmentationLength) {
         // Coverage-ignore-block(suite): Not run.
         augmentation.addProblem(messagePatchClassTypeVariablesMismatch,
-            augmentation.charOffset, noLength, context: [
-          messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
+            augmentation.fileOffset, noLength, context: [
+          messagePatchClassOrigin.withLocation(fileUri, fileOffset, noLength)
         ]);
       } else if (typeVariables != null) {
         int count = 0;
@@ -652,9 +653,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     } else {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.charOffset, noLength, augmentation.fileUri, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
     }
   }
@@ -737,7 +738,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
-            charOffset, noLength);
+            fileOffset, noLength);
       }
 
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
@@ -754,7 +755,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.charOffset,
+              customValuesDeclaration!.fileOffset,
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
@@ -770,7 +771,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.charOffset,
+              customValuesDeclaration!.fileOffset,
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
@@ -778,7 +779,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           libraryBuilder.addProblem(
               templateInheritedRestrictedMemberOfEnumImplementer.withArguments(
                   "values", superclassDeclaringConcreteValues.name),
-              charOffset,
+              fileOffset,
               noLength,
               fileUri);
         }
@@ -792,7 +793,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             libraryBuilder.addProblem(
                 templateEnumImplementerContainsRestrictedInstanceDeclaration
                     .withArguments(this.name, restrictedMemberName),
-                member.charOffset,
+                member.fileOffset,
                 member.fullNameForErrors.length,
                 fileUri);
           }
@@ -805,7 +806,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 templateInheritedRestrictedMemberOfEnumImplementer
                     .withArguments(restrictedMemberName,
                         restrictedNameMemberProvider.name),
-                charOffset,
+                fileOffset,
                 noLength,
                 fileUri);
           }
@@ -830,7 +831,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (isMacroFound) {
         addProblem(templateMacroClassNotDeclaredMacro.withArguments(name),
-            charOffset, noLength);
+            fileOffset, noLength);
       }
     }
 
@@ -842,7 +843,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
-              aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+              aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
         ]);
       } else {
         addProblem(message, nameOffset, nameLength);
@@ -882,7 +883,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             addProblem(
                 templateIllegalMixinDueToConstructors
                     .withArguments(fullNameForErrors),
-                constructor.charOffset,
+                constructor.fileOffset,
                 noLength);
           }
         }
@@ -926,14 +927,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
           addProblem(templateImplementsSuperClass.withArguments(interface.name),
-              this.charOffset, noLength);
+              this.fileOffset, noLength);
         } else if (interface.cls.name == "FutureOr" &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.path == "async") {
           // Coverage-ignore-block(suite): Not run.
-          addProblem(messageImplementsFutureOr, this.charOffset, noLength);
+          addProblem(messageImplementsFutureOr, this.fileOffset, noLength);
         } else if (implemented.contains(interface)) {
           // Aggregate repetitions.
           problems ??= <ClassBuilder, int>{};
@@ -1040,7 +1041,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                   variance.keyword,
                   supertype.typeName!.name);
         }
-        libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
+        libraryBuilder.addProblem(message, fileOffset, noLength, fileUri);
       }
     }
     if (message != null) {
@@ -1048,13 +1049,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       return new NamedTypeBuilderImpl(
           typeName, const NullabilityBuilder.omitted(),
           fileUri: fileUri,
-          charOffset: charOffset,
+          charOffset: fileOffset,
           instanceTypeVariableAccess:
               InstanceTypeVariableAccessState.Unexpected)
         ..bind(
             libraryBuilder,
             new InvalidTypeDeclarationBuilder(typeName.name,
-                message.withLocation(fileUri, charOffset, noLength)));
+                message.withLocation(fileUri, fileOffset, noLength)));
     }
     return supertype;
   }
@@ -1066,14 +1067,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           computeVariance(typeParameter, fieldBuilder.fieldType);
       if (fieldBuilder.isClassInstanceMember) {
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
-            fieldBuilder.fileUri, fieldBuilder.charOffset);
+            fieldBuilder.fileUri, fieldBuilder.fileOffset);
       }
       if (fieldBuilder.isClassInstanceMember &&
           fieldBuilder.isAssignable &&
           !fieldBuilder.isCovariantByDeclaration) {
         fieldVariance = Variance.contravariant.combine(fieldVariance);
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
-            fieldBuilder.fileUri, fieldBuilder.charOffset);
+            fieldBuilder.fileUri, fieldBuilder.fileOffset);
       }
     }
   }
@@ -1288,7 +1289,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   int compareTo(SourceClassBuilder other) {
     int result = "$fileUri".compareTo("${other.fileUri}");
     if (result != 0) return result;
-    return charOffset.compareTo(other.charOffset);
+    return fileOffset.compareTo(other.fileOffset);
   }
 
   void _handleSeenCovariant(

@@ -40,7 +40,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   Member get member;
 
   @override
-  int get charOffset => member.fileOffset;
+  int get fileOffset => member.fileOffset;
 
   @override
   Uri get fileUri => member.fileUri;

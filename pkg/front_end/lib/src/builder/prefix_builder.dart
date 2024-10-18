@@ -35,7 +35,7 @@ class PrefixBuilder extends BuilderImpl {
   final Uri fileUri;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   final LoadLibraryBuilder? loadLibraryBuilder;
 
@@ -45,7 +45,7 @@ class PrefixBuilder extends BuilderImpl {
       {required this.fileUri,
       required int prefixOffset,
       required int importOffset})
-      : charOffset = prefixOffset,
+      : fileOffset = prefixOffset,
         isWildcard = name == '_' {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");

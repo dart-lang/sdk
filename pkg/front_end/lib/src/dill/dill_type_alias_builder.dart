@@ -32,7 +32,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   DillTypeAliasBuilder(this.typedef, this.tearOffs, this.parent);
 
   @override
-  int get charOffset => typedef.fileOffset;
+  int get fileOffset => typedef.fileOffset;
 
   @override
   String get name => typedef.name;
