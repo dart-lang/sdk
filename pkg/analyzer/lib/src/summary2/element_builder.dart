@@ -30,7 +30,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
-  var _nextUnnamedId = 0;
+  int _nextUnnamedId = 0;
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,

@@ -674,7 +674,9 @@ class InformativeDataApplier {
 
         if (element.prefix2 case var prefixFragment?) {
           prefixFragment.nameOffset = info.prefixOffset;
-          prefixFragment.name2.nameOffset = info.prefixOffset;
+          if (prefixFragment.name2 case var name?) {
+            name.nameOffset = info.prefixOffset;
+          }
         }
         _applyToCombinators(element.combinators, info.combinators);
       },
@@ -1369,12 +1371,14 @@ class _InfoGenericTypeAlias {
 class _InfoImport {
   final int nameOffset;
   final int prefixOffset;
+  final int? prefixOffset2;
   final List<_InfoCombinator> combinators;
 
   factory _InfoImport(SummaryDataReader reader) {
     return _InfoImport._(
       nameOffset: reader.readUInt30(),
       prefixOffset: reader.readUInt30() - 1,
+      prefixOffset2: reader.readOptionalUInt30(),
       combinators: reader.readTypedList(
         () => _InfoCombinator(reader),
       ),
@@ -1384,6 +1388,7 @@ class _InfoImport {
   _InfoImport._({
     required this.nameOffset,
     required this.prefixOffset,
+    required this.prefixOffset2,
     required this.combinators,
   });
 }
@@ -1477,6 +1482,7 @@ class _InformativeDataWriter {
     sink.writeList2<ImportDirective>(unit.directives, (directive) {
       sink.writeUInt30(directive.importKeyword.offset);
       sink.writeUInt30(1 + (directive.prefix?.offset ?? -1));
+      sink.writeOptionalUInt30(directive.prefix?.token.offsetIfNotEmpty);
       _writeCombinators(directive.combinators);
     });
 

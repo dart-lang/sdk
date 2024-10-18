@@ -889,6 +889,46 @@ library
 ''');
   }
 
+  test_import_prefixed_missingName() async {
+    var library = await buildLibrary(r'''
+import 'dart:math' as;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  libraryImports
+    dart:math as @21
+      enclosingElement3: <testLibraryFragment>
+  prefixes
+    @21
+      reference: <testLibraryFragment>::@prefix::0
+      enclosingElement3: <testLibraryFragment>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      libraryImports
+        dart:math as @21
+          enclosingElement3: <testLibraryFragment>
+      libraryImportPrefixes
+        @21
+          reference: <testLibraryFragment>::@prefix::0
+          enclosingElement3: <testLibraryFragment>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:math as <null-name>
+      prefixes
+        <testLibraryFragment>::@prefix2::1
+          fragments: <null-name>
+''');
+  }
+
   test_import_self() async {
     var library = await buildLibrary('''
 import 'test.dart' as p;

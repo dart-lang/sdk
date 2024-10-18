@@ -1270,10 +1270,8 @@ class LibraryReader {
     required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
-    PrefixElementImpl buildElement(String name) {
+    PrefixElementImpl buildElement(String name, Reference reference) {
       // TODO(scheglov): Make reference required.
-      var containerRef = containerUnit.reference!;
-      var reference = containerRef.getChild('@prefix').getChild(name);
       var existing = reference.element;
       if (existing is PrefixElementImpl) {
         return existing;
@@ -1290,13 +1288,15 @@ class LibraryReader {
     switch (kind) {
       case ImportElementPrefixKind.isDeferred:
         var name = _reader.readStringReference();
+        var reference = _readReference();
         return DeferredImportElementPrefixImpl(
-          element: buildElement(name),
+          element: buildElement(name, reference),
         );
       case ImportElementPrefixKind.isNotDeferred:
         var name = _reader.readStringReference();
+        var reference = _readReference();
         return ImportElementPrefixImpl(
-          element: buildElement(name),
+          element: buildElement(name, reference),
         );
       case ImportElementPrefixKind.isNull:
         return null;
@@ -1322,20 +1322,19 @@ class LibraryReader {
     required CompilationUnitElementImpl libraryFragment,
   }) {
     return _reader.readOptionalObject((reader) {
+      var fragmentName = _readFragmentName();
+      var reference = _readReference();
       var name = _reader.readStringReference();
       var isDeferred = _reader.readBool();
       var fragment = PrefixFragmentImpl(
         enclosingFragment: libraryFragment,
         name: name,
         nameOffset: -1,
-        name2: FragmentNameImpl(name: name, nameOffset: -1),
+        name2: fragmentName,
         isDeferred: isDeferred,
       );
 
-      var containerRef = libraryFragment.reference!;
-      var reference = containerRef.getChild('@prefix2').getChild(name);
       var element = reference.element2 as PrefixElementImpl2?;
-
       if (element == null) {
         element = PrefixElementImpl2(
           reference: reference,

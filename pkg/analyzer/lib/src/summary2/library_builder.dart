@@ -102,6 +102,9 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// The `export` directives that export this library.
   final List<Export> exports = [];
 
+  /// The identifier of the reference used for unnamed fragments.
+  int _nextUnnamedId = 0;
+
   /// The fields that were speculatively created as [ConstFieldElementImpl],
   /// but we want to clear [ConstVariableElement.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
@@ -1074,8 +1077,8 @@ class LibraryBuilder with MacroApplicationsContainer {
   }) {
     var importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
       var prefix = _buildLibraryImportPrefix(
-        name: unlinked.name,
         nameOffset: unlinked.nameOffset,
+        name: unlinked.name,
         containerLibrary: containerLibrary,
         containerUnit: containerUnit,
       );
@@ -1093,8 +1096,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     var prefixFragment = state.unlinked.prefix.mapOrNull((unlinked) {
       return _buildLibraryImportPrefixFragment(
         libraryFragment: containerUnit,
-        name: unlinked.name,
-        nameOffset: unlinked.nameOffset,
+        unlinkedName: unlinked.name,
         isDeferred: unlinked.deferredOffset != null,
       );
     });
@@ -1171,20 +1173,21 @@ class LibraryBuilder with MacroApplicationsContainer {
   }
 
   PrefixElementImpl _buildLibraryImportPrefix({
-    required String name,
     required int nameOffset,
+    required UnlinkedLibraryImportPrefixName? name,
     required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     // TODO(scheglov): Make reference required.
     var containerRef = containerUnit.reference!;
-    var reference = containerRef.getChild('@prefix').getChild(name);
+    var refName = name?.name ?? '${_nextUnnamedId++}';
+    var reference = containerRef.getChild('@prefix').getChild(refName);
     var existing = reference.element;
     if (existing is PrefixElementImpl) {
       return existing;
     } else {
       var result = PrefixElementImpl(
-        name,
+        name?.name ?? '',
         nameOffset,
         reference: reference,
       );
@@ -1196,23 +1199,28 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({
     required CompilationUnitElementImpl libraryFragment,
-    required String name,
-    required int nameOffset,
+    required UnlinkedLibraryImportPrefixName? unlinkedName,
     required bool isDeferred,
   }) {
+    FragmentNameImpl? fragmentName;
+    if (unlinkedName != null) {
+      fragmentName = FragmentNameImpl(
+        name: unlinkedName.name,
+        nameOffset: unlinkedName.nameOffset,
+      );
+    }
+
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
-      name: name,
-      name2: FragmentNameImpl(
-        name: name,
-        nameOffset: nameOffset,
-      ),
-      nameOffset: nameOffset,
+      name: unlinkedName?.name ?? '',
+      nameOffset: unlinkedName?.nameOffset ?? -1,
+      name2: fragmentName,
       isDeferred: isDeferred,
     );
 
     var containerRef = libraryFragment.reference!;
-    var reference = containerRef.getChild('@prefix2').getChild(name);
+    var refName = unlinkedName?.name ?? '${_nextUnnamedId++}';
+    var reference = containerRef.getChild('@prefix2').getChild(refName);
     var element = reference.element2 as PrefixElementImpl2?;
 
     if (element == null) {

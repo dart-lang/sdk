@@ -917,7 +917,7 @@ abstract class FragmentName {
   String get name;
 
   /// The offset of the end of the name.
-  int? get nameEnd;
+  int get nameEnd;
 
   /// The offset of the name in the file.
   int get nameOffset;
