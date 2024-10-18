@@ -88,8 +88,13 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
-  ConstructorElement2? get redirectedConstructor2 =>
-      redirectedConstructor.asElement2 as ConstructorElement2;
+  ConstructorElement2? get redirectedConstructor2 {
+    var element = redirectedConstructor.asElement2;
+    return switch (element) {
+      ConstructorElement2() => element,
+      _ => null,
+    };
+  }
 
   @override
   InterfaceType get returnType => type.returnType as InterfaceType;

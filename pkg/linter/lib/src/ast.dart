@@ -9,7 +9,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/workspace/workspace.dart'; // ignore: implementation_imports
@@ -24,6 +26,18 @@ final List<String> reservedWords = _collectReservedWords();
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (Element element) {
+    if (name == null || element.displayName == name) {
+      children.add(element);
+    }
+    return false;
+  });
+  return children;
+}
+
+/// Returns direct children of [parent].
+List<Element2> getChildren2(Element2 parent, [String? name]) {
+  var children = <Element2>[];
+  visitChildren2(parent, (Element2 element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
@@ -307,6 +321,12 @@ void visitChildren(Element element, ElementProcessor processor) {
   element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
+/// Uses [processor] to visit all of the children of [element].
+/// If [processor] returns `true`, then children of a child are visited too.
+void visitChildren2(Element2 element, ElementProcessor2 processor) {
+  element.visitChildren2(_ElementVisitorAdapter2(processor));
+}
+
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
@@ -418,6 +438,10 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
 /// If `true` is returned, children of [element] will be visited.
 typedef ElementProcessor = bool Function(Element element);
 
+/// An [Element] processor function type.
+/// If `true` is returned, children of [element] will be visited.
+typedef ElementProcessor2 = bool Function(Element2 element);
+
 /// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
   final ElementProcessor processor;
@@ -429,6 +453,21 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
     var visitChildren = processor(element);
     if (visitChildren) {
       element.visitChildren(this);
+    }
+  }
+}
+
+/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+class _ElementVisitorAdapter2 extends GeneralizingElementVisitor2<void> {
+  final ElementProcessor2 processor;
+
+  _ElementVisitorAdapter2(this.processor);
+
+  @override
+  void visitElement(Element2 element) {
+    var visitChildren = processor(element);
+    if (visitChildren) {
+      element.visitChildren2(this);
     }
   }
 }

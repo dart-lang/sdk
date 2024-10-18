@@ -1021,7 +1021,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       reference = _enclosingContext.addGetter(name, element);
       executableElement = element;
 
-      _buildSyntheticVariable(name: name, accessorElement: element);
+      var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+      _buildSyntheticVariable(name: refName, accessorElement: element);
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.name2 = fragmentName;
@@ -1030,16 +1031,20 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isSetter = true;
       element.isStatic = node.isStatic;
 
-      reference = _enclosingContext.addSetter(name, element);
+      var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+      reference = _enclosingContext.addSetter(refName, element);
       executableElement = element;
 
       _buildSyntheticVariable(name: name, accessorElement: element);
     } else {
-      if (name == '-') {
+      var isUnaryMinus = false;
+      if (fragmentName?.name == '-') {
         var parameters = node.parameters;
-        if (parameters != null && parameters.parameters.isEmpty) {
-          name = 'unary-';
-        }
+        isUnaryMinus = parameters != null && parameters.parameters.isEmpty;
+      }
+
+      if (isUnaryMinus) {
+        name = 'unary-';
       }
 
       var element = MethodElementImpl(name, nameOffset);
@@ -1048,7 +1053,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = node.isStatic;
 
-      reference = _enclosingContext.addMethod(name, element);
+      String refName;
+      if (isUnaryMinus) {
+        refName = 'unary-';
+      } else {
+        refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+      }
+
+      reference = _enclosingContext.addMethod(refName, element);
       executableElement = element;
     }
     executableElement.hasImplicitReturnType = node.returnType == null;

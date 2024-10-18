@@ -127,6 +127,7 @@ lib/src/rules/prefer_if_null_operators.dart
 lib/src/rules/prefer_inlined_adds.dart
 lib/src/rules/prefer_interpolation_to_compose_strings.dart
 lib/src/rules/prefer_is_empty.dart
+lib/src/rules/prefer_is_not_empty.dart
 lib/src/rules/prefer_is_not_operator.dart
 lib/src/rules/prefer_iterable_whereType.dart
 lib/src/rules/prefer_mixin.dart

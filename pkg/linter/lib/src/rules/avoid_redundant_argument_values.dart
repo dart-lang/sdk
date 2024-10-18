@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
-      var param = arg.staticParameterElement;
+      var param = arg.correspondingParameter;
       if (arg is NamedExpression) {
         arg = arg.expression;
       }
@@ -59,10 +59,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void checkArgument(Expression arg, ParameterElement? param) {
+  void checkArgument(Expression arg, FormalParameterElement? param) {
     if (param == null ||
-        param.declaration.isRequired ||
-        param.hasRequired ||
+        param.isRequired ||
+        param.metadata2.hasRequired ||
         !param.isOptional) {
       return;
     }
@@ -93,13 +93,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.constructorName.staticElement;
+    var constructor = node.constructorName.element;
     if (constructor != null && !constructor.isFactory) {
       check(node.argumentList);
       return;
     }
 
-    var redirectedConstructor = constructor?.redirectedConstructor;
+    var redirectedConstructor = constructor?.redirectedConstructor2;
     if (constructor == null || redirectedConstructor == null) {
       check(node.argumentList);
       return;
@@ -113,10 +113,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       visitedConstructors.add(redirectedConstructor);
       constructor = redirectedConstructor;
-      redirectedConstructor = redirectedConstructor.redirectedConstructor;
+      redirectedConstructor = redirectedConstructor.redirectedConstructor2;
     }
 
-    var parameters = constructor!.parameters;
+    var parameters = constructor!.formalParameters;
 
     // If the constructor being called is a redirecting factory constructor, an
     // argument is redundant if it is equal to the default value of the
@@ -130,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
-      ParameterElement? param;
+      FormalParameterElement? param;
       if (arg is NamedExpression) {
         param = parameters.firstWhereOrNull(
             (p) => p.isNamed && p.name == arg.name.label.name);
