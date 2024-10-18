@@ -5028,7 +5028,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.GETTER;
 
   @override
-  String get name => firstFragment.name;
+  String? get name => firstFragment.name;
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
@@ -9730,7 +9730,13 @@ class SetterElementImpl extends ExecutableElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  String get displayName => name.substring(0, name.length - 1);
+  String get displayName {
+    if (name case var name?) {
+      return name.substring(0, name.length - 1);
+    } else {
+      return '<null-name>';
+    }
+  }
 
   @override
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
@@ -9742,7 +9748,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.SETTER;
 
   @override
-  String get name => firstFragment.name;
+  String? get name => firstFragment.name;
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;

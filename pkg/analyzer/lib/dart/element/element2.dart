@@ -990,7 +990,7 @@ abstract class GetterElement implements ExecutableElement2, FragmentedElement {
   GetterFragment? get firstFragment;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -1013,7 +1013,7 @@ abstract class GetterFragment implements ExecutableFragment {
   // GetterElement get element;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -1951,7 +1951,7 @@ abstract class SetterElement implements ExecutableElement2, FragmentedElement {
   SetterFragment? get firstFragment;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this setter.
   ///
@@ -1974,7 +1974,7 @@ abstract class SetterFragment implements ExecutableFragment {
   // SetterElement get element;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this setter.
   ///

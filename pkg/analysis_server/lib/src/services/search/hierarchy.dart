@@ -327,7 +327,7 @@ String? _getBaseName(Element element) {
 String? _getBaseName2(Element2 element) {
   if (element is SetterElement) {
     var name = element.name;
-    return name.substring(0, name.length - 1);
+    return name?.substring(0, name.length - 1);
   }
   return element.name;
 }
