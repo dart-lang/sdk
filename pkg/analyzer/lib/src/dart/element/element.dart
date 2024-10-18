@@ -2441,8 +2441,10 @@ abstract class ElementImpl implements Element, Element2 {
   @override
   Element2? get enclosingElement2 {
     var candidate = _enclosingElement3;
-    if (candidate is CompilationUnitElementImpl ||
-        candidate is AugmentableElement) {
+    if (candidate is CompilationUnitElementImpl) {
+      throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
+    }
+    if (candidate is AugmentableElement) {
       throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
     }
     return candidate as Element2?;
@@ -7138,12 +7140,20 @@ mixin MaybeAugmentedInstanceElementMixin
   @override
   E? thisOrAncestorMatching2<E extends Element2>(
     bool Function(Element2) predicate,
-  ) =>
-      declaration.thisOrAncestorMatching2(predicate);
+  ) {
+    if (predicate(this)) {
+      return this as E;
+    }
+    return library2.thisOrAncestorMatching2(predicate);
+  }
 
   @override
-  E? thisOrAncestorOfType2<E extends Element2>() =>
-      declaration.thisOrAncestorOfType2<E>();
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    if (this case E result) {
+      return result;
+    }
+    return library2.thisOrAncestorOfType2<E>();
+  }
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {

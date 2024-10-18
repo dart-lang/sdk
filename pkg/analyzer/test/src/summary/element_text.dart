@@ -950,6 +950,11 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeInstanceElement(InstanceElement2 e) {
+    expect(e.thisOrAncestorOfType2<InstanceElement2>(), same(e));
+    expect(e.thisOrAncestorOfType2<GetterElement>(), isNull);
+    expect(e.thisOrAncestorMatching2((_) => true), same(e));
+    expect(e.thisOrAncestorMatching2((_) => false), isNull);
+
     _sink.writeIndentedLine(() {
       switch (e) {
         case ClassElement2():
