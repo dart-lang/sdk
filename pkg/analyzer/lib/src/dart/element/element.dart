@@ -3038,14 +3038,14 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2) predicate,
   ) {
     Element2? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement2;
     }
-    return element as E?;
+    return element;
   }
 
   @override
@@ -3224,13 +3224,12 @@ abstract class ElementImpl2 implements Element2 {
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
-      bool Function(Element2 p1) predicate) {
+  Element2? thisOrAncestorMatching2(bool Function(Element2 p1) predicate) {
     Element2? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement2;
     }
-    return element as E?;
+    return element;
   }
 
   @override
@@ -7138,11 +7137,11 @@ mixin MaybeAugmentedInstanceElementMixin
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2) predicate,
   ) {
     if (predicate(this)) {
-      return this as E;
+      return this;
     }
     return library2.thisOrAncestorMatching2(predicate);
   }
@@ -8347,7 +8346,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
+  Element2? thisOrAncestorMatching2(
     bool Function(Element2 p1) predicate,
   ) {
     return null;
@@ -9018,7 +9017,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
   PrefixElementImpl2 get element2 {
     return enclosingElement3.prefixes.firstWhere((element) {
-      return element.name == name;
+      return (element.name ?? '') == name;
     });
   }
 
@@ -9119,7 +9118,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   }
 
   @override
-  String get name => firstFragment.name;
+  String? get name => firstFragment.name2?.name;
 
   @override
   // TODO(scheglov): implement scope
@@ -9158,12 +9157,6 @@ class PrefixFragmentImpl implements PrefixFragment {
   final CompilationUnitElementImpl enclosingFragment;
 
   @override
-  final String name;
-
-  @override
-  int nameOffset;
-
-  @override
   FragmentNameImpl? name2;
 
   @override
@@ -9180,8 +9173,6 @@ class PrefixFragmentImpl implements PrefixFragment {
 
   PrefixFragmentImpl({
     required this.enclosingFragment,
-    required this.name,
-    required this.nameOffset,
     required this.name2,
     required this.isDeferred,
   });

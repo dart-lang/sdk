@@ -88,28 +88,33 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
 
   bool _isCompatibleWithReturnType(
       MethodDeclaration method, DartType? newType) {
-    if (newType != null) {
-      var clazz = method.thisOrAncestorOfType<ClassDeclaration>();
-      if (clazz != null) {
-        var classElement = clazz.declaredFragment!.element;
-        var overriddenList = InheritanceManager3().getOverridden4(
-            classElement,
-            Name.forLibrary(
-              classElement.library2,
-              method.declaredFragment!.name!,
-            ));
-
-        if (overriddenList != null) {
-          var notSubtype = overriddenList.any((element) => !libraryElement2
-              .typeSystem
-              .isSubtypeOf(newType, element.returnType));
-          if (notSubtype) {
-            return false;
-          }
-        }
-      }
-      return true;
+    if (newType == null) {
+      return false;
     }
-    return false;
+
+    var clazz = method.thisOrAncestorOfType<ClassDeclaration>();
+    if (clazz == null) {
+      return false;
+    }
+
+    var methodName = method.declaredFragment!.name2;
+    if (methodName == null) {
+      return false;
+    }
+
+    var classElement = clazz.declaredFragment!.element;
+    var overriddenList = InheritanceManager3().getOverridden4(
+      classElement,
+      Name.forLibrary(classElement.library2, methodName.name),
+    );
+
+    if (overriddenList != null) {
+      var notSubtype = overriddenList.any((element) =>
+          !libraryElement2.typeSystem.isSubtypeOf(newType, element.returnType));
+      if (notSubtype) {
+        return false;
+      }
+    }
+    return true;
   }
 }

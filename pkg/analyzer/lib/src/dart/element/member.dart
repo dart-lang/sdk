@@ -333,8 +333,7 @@ abstract class ExecutableMember extends Member
       _element2.isAccessibleIn2(library);
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
-          bool Function(Element2 p1) predicate) =>
+  Element2? thisOrAncestorMatching2(bool Function(Element2 p1) predicate) =>
       _element2.thisOrAncestorMatching2(predicate);
 
   @override
@@ -610,8 +609,7 @@ class FieldMember extends VariableMember
   }
 
   @override
-  E? thisOrAncestorMatching2<E extends Element2>(
-      bool Function(Element2 e) predicate) {
+  Element2? thisOrAncestorMatching2(bool Function(Element2 e) predicate) {
     return _element2.thisOrAncestorMatching2(predicate);
   }
 

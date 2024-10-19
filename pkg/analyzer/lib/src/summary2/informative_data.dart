@@ -673,7 +673,6 @@ class InformativeDataApplier {
         }
 
         if (element.prefix2 case var prefixFragment?) {
-          prefixFragment.nameOffset = info.prefixOffset;
           if (prefixFragment.name2 case var name?) {
             name.nameOffset = info.prefixOffset;
           }
