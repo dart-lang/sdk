@@ -49,7 +49,7 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
       return;
     }
 
-    // if target (outer) is if-case, we cannot join them
+    // if target (inner) is if-case, we cannot join them
     if (targetIfStatement.caseClause != null) {
       return;
     }
@@ -70,7 +70,7 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
 
     var condition = '$outerConditionSource && $targetConditionSource';
 
-    // If target (outer) is if-case.
+    // If outer is if-case.
     var outerCaseClause = outerIfStatement.caseClause;
     if (outerCaseClause != null) {
       var casePattern = outerCaseClause.guardedPattern.pattern;

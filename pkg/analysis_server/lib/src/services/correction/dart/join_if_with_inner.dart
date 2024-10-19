@@ -43,7 +43,7 @@ class JoinIfWithInner extends ResolvedCorrectionProducer {
       return;
     }
 
-    // if outer is if-case, we cannot join them
+    // if inner is if-case, we cannot join them
     if (innerIfStatement.caseClause != null) {
       return;
     }
