@@ -17,6 +17,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element_2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -510,6 +511,8 @@ abstract class _ContextResolutionTest
 
   late FindElement findElement;
 
+  late FindElement2 findElement2;
+
   late FindNode findNode;
 
   late ResolvedUnitResult result;
@@ -555,6 +558,7 @@ abstract class _ContextResolutionTest
     var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
 
     findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
     findNode = FindNode(result.content, result.unit);
     return result;
   }

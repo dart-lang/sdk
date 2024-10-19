@@ -266,6 +266,9 @@ class AnalyzerOptions {
   // Formatter options.
   static const String pageWidth = 'page_width';
 
+  // Linter options.
+  static const String rules = 'rules';
+
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 
   /// Ways to say `true` or `false`.
@@ -295,6 +298,10 @@ class AnalyzerOptions {
     strictCasts,
     strictInference,
     strictRawTypes,
+  ];
+
+  static const List<String> linterOptions = [
+    rules,
   ];
 
   /// Supported 'analyzer' optional checks options.
@@ -749,7 +756,7 @@ class LanguageOptionValidator extends OptionsValidator {
 /// Validates `linter` top-level options.
 // TODO(pq): move into `linter` package and plugin.
 class LinterOptionsValidator extends TopLevelOptionValidator {
-  LinterOptionsValidator() : super('linter', const ['rules']);
+  LinterOptionsValidator() : super('linter', AnalyzerOptions.linterOptions);
 }
 
 /// Validates `analyzer` optional-checks value configuration options.

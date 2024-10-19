@@ -2441,8 +2441,10 @@ abstract class ElementImpl implements Element, Element2 {
   @override
   Element2? get enclosingElement2 {
     var candidate = _enclosingElement3;
-    if (candidate is CompilationUnitElementImpl ||
-        candidate is AugmentableElement) {
+    if (candidate is CompilationUnitElementImpl) {
+      throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
+    }
+    if (candidate is AugmentableElement) {
       throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
     }
     return candidate as Element2?;
@@ -5028,7 +5030,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.GETTER;
 
   @override
-  String get name => firstFragment.name;
+  String? get name => firstFragment.name;
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
@@ -6840,6 +6842,9 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
   bool get isInterface => declaration.isInterface;
 
   @override
+  bool get isMacro => declaration.isMacro;
+
+  @override
   bool get isMixinApplication => declaration.isMixinApplication;
 
   @override
@@ -6930,8 +6935,7 @@ mixin MaybeAugmentedExtensionTypeElementMixin
   ExtensionTypeElementImpl get firstFragment => declaration;
 
   @override
-  ConstructorElement2 get primaryConstructor2 =>
-      representation as ConstructorElement2;
+  ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 
   @override
   FieldElement2 get representation2 => representation as FieldElement2;
@@ -7136,12 +7140,20 @@ mixin MaybeAugmentedInstanceElementMixin
   @override
   E? thisOrAncestorMatching2<E extends Element2>(
     bool Function(Element2) predicate,
-  ) =>
-      declaration.thisOrAncestorMatching2(predicate);
+  ) {
+    if (predicate(this)) {
+      return this as E;
+    }
+    return library2.thisOrAncestorMatching2(predicate);
+  }
 
   @override
-  E? thisOrAncestorOfType2<E extends Element2>() =>
-      declaration.thisOrAncestorOfType2<E>();
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    if (this case E result) {
+      return result;
+    }
+    return library2.thisOrAncestorOfType2<E>();
+  }
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
@@ -9730,7 +9742,13 @@ class SetterElementImpl extends ExecutableElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  String get displayName => name.substring(0, name.length - 1);
+  String get displayName {
+    if (name case var name?) {
+      return name.substring(0, name.length - 1);
+    } else {
+      return '<null-name>';
+    }
+  }
 
   @override
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
@@ -9742,7 +9760,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.SETTER;
 
   @override
-  String get name => firstFragment.name;
+  String? get name => firstFragment.name;
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;

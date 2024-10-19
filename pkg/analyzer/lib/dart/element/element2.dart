@@ -162,6 +162,11 @@ abstract class ClassElement2 implements InterfaceElement2 {
   /// not extended or mixed in.
   bool get isInterface;
 
+  /// Whether the class is a macro class.
+  ///
+  /// A class is a macro class if it has a `macro` modifer.
+  bool get isMacro;
+
   /// Whether the class is a mixin application.
   ///
   /// A class is a mixin application if it was declared using the syntax
@@ -990,7 +995,7 @@ abstract class GetterElement implements ExecutableElement2, FragmentedElement {
   GetterFragment? get firstFragment;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -1013,7 +1018,7 @@ abstract class GetterFragment implements ExecutableFragment {
   // GetterElement get element;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this getter.
   ///
@@ -1951,7 +1956,7 @@ abstract class SetterElement implements ExecutableElement2, FragmentedElement {
   SetterFragment? get firstFragment;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this setter.
   ///
@@ -1974,7 +1979,7 @@ abstract class SetterFragment implements ExecutableFragment {
   // SetterElement get element;
 
   @override
-  String get name;
+  String? get name;
 
   /// The field or top-level variable associated with this setter.
   ///

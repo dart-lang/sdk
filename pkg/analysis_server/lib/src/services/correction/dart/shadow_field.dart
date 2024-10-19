@@ -35,6 +35,11 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
+    var fieldName = accessor.name;
+    if (fieldName == null) {
+      return;
+    }
+
     if (accessor.enclosingElement2 is! InterfaceElement2) {
       // TODO(brianwilkerson): Should we also require that the getter be synthetic?
       return;
@@ -64,7 +69,6 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var fieldName = accessor.name;
     var offset = statement.offset;
     var prefix = utils.getLinePrefix(offset);
     //

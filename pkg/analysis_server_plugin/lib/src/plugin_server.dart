@@ -220,7 +220,8 @@ class PluginServer {
       return [];
     }
     var listener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(listener, result.libraryElement.source);
+    var errorReporter =
+        ErrorReporter(listener, result.libraryElement2.firstFragment.source);
 
     var currentUnit = LintRuleUnitContext(
       file: result.file,
@@ -244,8 +245,8 @@ class PluginServer {
     var context = LinterContextWithResolvedResults(
       allUnits,
       currentUnit,
-      libraryResult.element.typeProvider,
-      libraryResult.element.typeSystem as TypeSystemImpl,
+      libraryResult.element2.typeProvider,
+      libraryResult.element2.typeSystem as TypeSystemImpl,
       (analysisContext.currentSession as AnalysisSessionImpl)
           .inheritanceManager,
       // TODO(srawlins): Support 'package' parameter.

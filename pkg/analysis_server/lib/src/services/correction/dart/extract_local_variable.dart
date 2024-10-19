@@ -90,8 +90,16 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
     required Expression target,
     required Element2? targetProperty,
   }) async {
-    if (targetProperty is GetterElement &&
-        typeSystem.isPotentiallyNullable(targetProperty.returnType)) {
+    if (targetProperty is! GetterElement) {
+      return;
+    }
+
+    var propertyName = targetProperty.name;
+    if (propertyName == null) {
+      return;
+    }
+
+    if (typeSystem.isPotentiallyNullable(targetProperty.returnType)) {
       AstNode? enclosingNode = target;
       while (true) {
         if (enclosingNode == null || enclosingNode is FunctionBody) {
@@ -121,7 +129,6 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
               }
 
               await builder.addDartFileEdit(file, (builder) {
-                var propertyName = targetProperty.name;
                 builder.addInsertion(ifLineOffset, (builder) {
                   builder.write(prefix);
                   builder.writeln('final $propertyName = $initializerCode;');

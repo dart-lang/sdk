@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element_2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
@@ -25,6 +26,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late LibraryElement testLibraryElement;
   late FindNode findNode;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   void addTestSource(String code) {
     testCode = code;
@@ -49,6 +51,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testUnit = result.unit;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
+    findElement2 = FindElement2(testUnit);
     return result;
   }
 
@@ -73,6 +76,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
+    findElement2 = FindElement2(testUnit);
     return result;
   }
 

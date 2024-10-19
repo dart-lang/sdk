@@ -131,7 +131,7 @@ vars = {
   "clock_rev": "7956d60042f4ea979c4554d43eeb57d087627869",
   "collection_rev": "887b826b50f48d6a9cd2c0684aa353e8e3a0fad0",
   "convert_rev": "d361833e117cb2438d2a2a6d0b0acb28ff0910fb",
-  "core_rev": "279afbcda95f4e0a39e44ab82f9c60eeb70d7514",
+  "core_rev": "3a3ed8e36626b0c72b6edd152fff68d33997b236",
   "crypto_rev": "3d26ef4cf22d4b218ba30e616544ad3cf52f64a1",
   "csslib_rev": "a3700b05bbcc42782e8a7024790dbf019d89c249",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -152,7 +152,7 @@ vars = {
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "00a9c82d31c01ae88ec9ae4021d842e9b832aa52",
   "html_rev": "6d3bc86cf2ab530ef3fa5f84b5980dc318a02af4",
-  "http_rev": "f59cd79e1322c6272481e4f2ccfa9afcb37a6525",
+  "http_rev": "5e2281edd25f9addbf26242a0658d8f2dfa1134b",
   "http_multi_server_rev": "e7515b5896b83d522189802a1e14e103e19426c0",
   "http_parser_rev": "23d775898ee90be9daf3297e298a8869bc755d84",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
