@@ -19,6 +19,20 @@ class JoinIfWithOuterTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.JOIN_IF_WITH_OUTER;
 
+  Future<void> test_bothOuterAndInnerAreIfCase() async {
+    await resolveTestCode('''
+Object? foo() => 5;
+void f() {
+  if (foo() case final v?) {
+    if (v case final int x) {
+      print(x);
+    }
+  }
+}
+''');
+    await assertNoAssistAt('if (v');
+  }
+
   Future<void> test_conditionAndOr() async {
     await resolveTestCode('''
 void f() {
@@ -72,6 +86,69 @@ void f() {
     await assertHasAssistAt('if (3 == 3', '''
 void f() {
   if ((1 == 1 || 2 == 2) && 3 == 3) {
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCaseAddWhen() async {
+    await resolveTestCode('''
+Object foo() => 5;
+void f() {
+  if (foo() case final int v) {
+    if (v == 5) {
+      print(0);
+    }
+  }
+}
+''');
+    await assertHasAssistAt('if (v == 5', '''
+Object foo() => 5;
+void f() {
+  if (foo() case final int v when v == 5) {
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCaseAppendWhen() async {
+    await resolveTestCode('''
+Object foo() => 5;
+void f() {
+  if (foo() case final int v when v.isOdd) {
+    if (v == 5) {
+      print(0);
+    }
+  }
+}
+''');
+    await assertHasAssistAt('if (v == 5', '''
+Object foo() => 5;
+void f() {
+  if (foo() case final int v when v.isOdd && v == 5) {
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCaseAppendWhenWithParenthesis() async {
+    await resolveTestCode('''
+Object foo() => 5;
+void f() {
+  if (foo() case final int v when v.isOdd || v != 3) {
+    if (v == 5) {
+      print(0);
+    }
+  }
+}
+''');
+    await assertHasAssistAt('if (v == 5', '''
+Object foo() => 5;
+void f() {
+  if (foo() case final int v when (v.isOdd || v != 3) && v == 5) {
     print(0);
   }
 }

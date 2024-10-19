@@ -48,6 +48,12 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     if (outerIfStatement.elseStatement != null) {
       return;
     }
+
+    // if target (outer) is if-case, we cannot join them
+    if (targetIfStatement.caseClause != null) {
+      return;
+    }
+
     // prepare environment
     var prefix = utils.getNodePrefix(outerIfStatement);
     // merge conditions
@@ -61,7 +67,30 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     if (outerCondition.shouldWrapParenthesisBeforeAnd) {
       outerConditionSource = '($outerConditionSource)';
     }
+
     var condition = '$outerConditionSource && $targetConditionSource';
+
+    // If target (outer) is if-case.
+    var outerCaseClause = outerIfStatement.caseClause;
+    if (outerCaseClause != null) {
+      var casePattern = outerCaseClause.guardedPattern.pattern;
+      var caseWhenExpression =
+          outerCaseClause.guardedPattern.whenClause?.expression;
+
+      if (caseWhenExpression != null) {
+        var caseWhenSource = '$caseWhenExpression';
+        if (caseWhenExpression.shouldWrapParenthesisBeforeAnd) {
+          caseWhenSource = '($caseWhenSource)';
+        }
+
+        condition =
+            '$outerConditionSource case $casePattern when $caseWhenSource && $targetConditionSource';
+      } else {
+        condition =
+            '$outerConditionSource case $casePattern when $targetConditionSource';
+      }
+    }
+
     // replace outer "if" statement
     var targetThenStatement = targetIfStatement.thenStatement;
     var targetThenStatements = getStatements(targetThenStatement);
