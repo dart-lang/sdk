@@ -21,9 +21,8 @@ class JoinIfWithOuterTest extends AssistProcessorTest {
 
   Future<void> test_bothOuterAndInnerAreIfCase() async {
     await resolveTestCode('''
-Object? foo() => 5;
-void f() {
-  if (foo() case final v?) {
+void f(Object? p) {
+  if (p case final v?) {
     if (v case final int x) {
       print(x);
     }
@@ -94,9 +93,8 @@ void f() {
 
   Future<void> test_ifCaseAddWhen() async {
     await resolveTestCode('''
-Object foo() => 5;
-void f() {
-  if (foo() case final int v) {
+void f(Object? p) {
+  if (p case final int v) {
     if (v == 5) {
       print(0);
     }
@@ -104,9 +102,27 @@ void f() {
 }
 ''');
     await assertHasAssistAt('if (v == 5', '''
-Object foo() => 5;
-void f() {
-  if (foo() case final int v when v == 5) {
+void f(Object? p) {
+  if (p case final int v when v == 5) {
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCaseAddWhenUnrelated() async {
+    await resolveTestCode('''
+void f(Object? p, Object? q) {
+  if (p case final int v) {
+    if (q != null) {
+      print(0);
+    }
+  }
+}
+''');
+    await assertHasAssistAt('if (q != null', '''
+void f(Object? p, Object? q) {
+  if (p case final int v when q != null) {
     print(0);
   }
 }
@@ -115,9 +131,8 @@ void f() {
 
   Future<void> test_ifCaseAppendWhen() async {
     await resolveTestCode('''
-Object foo() => 5;
-void f() {
-  if (foo() case final int v when v.isOdd) {
+void f(Object? p) {
+  if (p case final int v when v.isOdd) {
     if (v == 5) {
       print(0);
     }
@@ -125,30 +140,65 @@ void f() {
 }
 ''');
     await assertHasAssistAt('if (v == 5', '''
-Object foo() => 5;
-void f() {
-  if (foo() case final int v when v.isOdd && v == 5) {
+void f(Object? p) {
+  if (p case final int v when v.isOdd && v == 5) {
     print(0);
   }
 }
 ''');
   }
 
-  Future<void> test_ifCaseAppendWhenWithParenthesis() async {
+  Future<void> test_ifCaseAppendWhenWithParenthesisBoth() async {
     await resolveTestCode('''
-Object foo() => 5;
-void f() {
-  if (foo() case final int v when v.isOdd || v != 3) {
+void f(Object? p) {
+  if (p case final int v when v.isOdd || v > 3) {
+    if (v == 5 || v != 6) {
+      print(0);
+    }
+  }
+}
+''');
+    await assertHasAssistAt('if (v', '''
+void f(Object? p) {
+  if (p case final int v when (v.isOdd || v > 3) && (v == 5 || v != 6)) {
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCaseAppendWhenWithParenthesisInner() async {
+    await resolveTestCode('''
+void f(Object? p) {
+  if (p case final int v when v.isOdd) {
+    if (v == 5 || v != 3) {
+      print(0);
+    }
+  }
+}
+''');
+    await assertHasAssistAt('if (v', '''
+void f(Object? p) {
+  if (p case final int v when v.isOdd && (v == 5 || v != 3)) {
+    print(0);
+  }
+}
+''');
+  }
+
+  Future<void> test_ifCaseAppendWhenWithParenthesisOuter() async {
+    await resolveTestCode('''
+void f(Object? p) {
+  if (p case final int v when v.isOdd || v != 3) {
     if (v == 5) {
       print(0);
     }
   }
 }
 ''');
-    await assertHasAssistAt('if (v == 5', '''
-Object foo() => 5;
-void f() {
-  if (foo() case final int v when (v.isOdd || v != 3) && v == 5) {
+    await assertHasAssistAt('if (v', '''
+void f(Object? p) {
+  if (p case final int v when (v.isOdd || v != 3) && v == 5) {
     print(0);
   }
 }
