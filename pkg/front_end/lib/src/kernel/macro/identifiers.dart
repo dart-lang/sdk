@@ -43,9 +43,9 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
           uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
         case ExtensionTypeDeclarationBuilder():
           uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
         // TODO(johnniwinther): Handle this case.
-        case StructuralVariableBuilder():
+        case StructuralParameterBuilder():
         // TODO(johnniwinther): Handle this case.
         case ExtensionBuilder():
         // TODO(johnniwinther): Handle this case.
@@ -79,8 +79,8 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
       case TypeAliasBuilder():
         return macroIntrospection
             .getTypeAliasDeclaration(typeDeclarationBuilder);
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():

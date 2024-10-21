@@ -1337,7 +1337,7 @@ severity: $severity
                   ScopeKind.declaration,
                   "debugExpression in class $enclosingClassOrExtension",
                   parent: TypeParameterScope.fromList(
-                      dietListener.memberScope, builder.typeVariables));
+                      dietListener.memberScope, builder.typeParameters));
           case ExtensionBuilder():
             declarationBuilder = builder;
             dietListener
@@ -1346,13 +1346,13 @@ severity: $severity
                   builder.nameSpace,
                   ScopeKind.declaration,
                   "debugExpression in extension $enclosingClassOrExtension",
-                  // TODO(johnniwinther): Shouldn't type variables be in scope?
+                  // TODO(johnniwinther): Shouldn't type parameters be in scope?
                   parent: dietListener.memberScope);
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
-          case NominalVariableBuilder():
-          case StructuralVariableBuilder():
+          case NominalParameterBuilder():
+          case StructuralParameterBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
           // TODO(johnniwinther): How should we handle this case?
@@ -1365,7 +1365,7 @@ severity: $severity
         modifiers: Modifiers.empty,
         returnType: const ImplicitTypeBuilder(),
         name: "debugExpr",
-        typeVariables: null,
+        typeParameters: null,
         formals: null,
         kind: ProcedureKind.Method,
         libraryBuilder: libraryBuilder,
@@ -1872,51 +1872,52 @@ severity: $severity
     return delayedDefaultValueCloners;
   }
 
-  void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
+  void finishTypeParameters(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    Map<NominalVariableBuilder, SourceLibraryBuilder>
-        unboundTypeVariableBuilders = new Map.identity();
-    Map<StructuralVariableBuilder, SourceLibraryBuilder>
-        unboundFunctionTypeTypeVariableBuilders = new Map.identity();
+    Map<NominalParameterBuilder, SourceLibraryBuilder>
+        unboundNominalParameterBuilders = new Map.identity();
+    Map<StructuralParameterBuilder, SourceLibraryBuilder>
+        unboundStructuralParameterBuilders = new Map.identity();
     for (SourceLibraryBuilder library in libraryBuilders) {
-      library.collectUnboundTypeVariables(
-          unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
+      library.collectUnboundTypeParameters(
+          unboundNominalParameterBuilders, unboundStructuralParameterBuilders);
     }
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilder> sortedTypeVariables =
-        sortAllTypeVariablesTopologically([
-      ...unboundFunctionTypeTypeVariableBuilders.keys,
-      ...unboundTypeVariableBuilders.keys
+    List<TypeParameterBuilder> sortedTypeParameters =
+        sortAllTypeParametersTopologically([
+      ...unboundStructuralParameterBuilders.keys,
+      ...unboundNominalParameterBuilders.keys
     ]);
 
-    for (TypeVariableBuilder builder in sortedTypeVariables) {
+    for (TypeParameterBuilder builder in sortedTypeParameters) {
       switch (builder) {
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundTypeVariableBuilders[builder]!;
-          libraryBuilder.checkTypeVariableDependencies([builder]);
-        case StructuralVariableBuilder():
+              unboundNominalParameterBuilders[builder]!;
+          libraryBuilder.checkTypeParameterDependencies([builder]);
+        case StructuralParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundFunctionTypeTypeVariableBuilders[builder]!;
-          libraryBuilder.checkTypeVariableDependencies([builder]);
+              unboundStructuralParameterBuilders[builder]!;
+          libraryBuilder.checkTypeParameterDependencies([builder]);
       }
     }
-    for (TypeVariableBuilder builder in sortedTypeVariables) {
+    for (TypeParameterBuilder builder in sortedTypeParameters) {
       switch (builder) {
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundTypeVariableBuilders[builder]!;
+              unboundNominalParameterBuilders[builder]!;
           builder.finish(libraryBuilder, object, dynamicType);
-        case StructuralVariableBuilder():
+        case StructuralParameterBuilder():
           SourceLibraryBuilder? libraryBuilder =
-              unboundFunctionTypeTypeVariableBuilders[builder]!;
+              unboundStructuralParameterBuilders[builder]!;
           builder.finish(libraryBuilder, object, dynamicType);
       }
     }
 
-    ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
+    ticker
+        .logMs("Resolved ${sortedTypeParameters.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].
@@ -1925,7 +1926,7 @@ severity: $severity
     for (SourceLibraryBuilder library in libraryBuilders) {
       count += library.computeVariances();
     }
-    ticker.logMs("Computed variances of $count type variables");
+    ticker.logMs("Computed variances of $count type parameters");
   }
 
   void computeDefaultTypes(
@@ -1939,7 +1940,7 @@ severity: $severity
       count += library.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClass);
     }
-    ticker.logMs("Computed default types for $count type variables");
+    ticker.logMs("Computed default types for $count type parameters");
   }
 
   void finishNativeMethods() {
@@ -2051,8 +2052,8 @@ severity: $severity
         classBuilder.supertypeBuilder =
             new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                 objectClass, const NullabilityBuilder.omitted(),
-                instanceTypeVariableAccess:
-                    InstanceTypeVariableAccessState.Unexpected);
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Unexpected);
         classBuilder.interfaceBuilders = null;
         classBuilder.mixedInTypeBuilder = null;
 

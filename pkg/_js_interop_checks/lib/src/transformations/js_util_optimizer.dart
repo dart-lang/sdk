@@ -1133,7 +1133,7 @@ class ExtensionIndex {
     } else if (type is ExtensionType) {
       return isInteropExtensionType(type.extensionTypeDeclaration);
     } else if (type is TypeParameterType || type is StructuralParameterType) {
-      return isStaticInteropType(type.nonTypeVariableBound);
+      return isStaticInteropType(type.nonTypeParameterBound);
     }
     return false;
   }
@@ -1156,7 +1156,7 @@ class ExtensionIndex {
         return true;
       }
     } else if (type is TypeParameterType || type is StructuralParameterType) {
-      return isExternalDartReferenceType(type.nonTypeVariableBound);
+      return isExternalDartReferenceType(type.nonTypeParameterBound);
     }
     return false;
   }

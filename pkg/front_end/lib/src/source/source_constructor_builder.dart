@@ -92,12 +92,12 @@ abstract class AbstractSourceConstructorBuilder
       Modifiers modifiers,
       this.returnType,
       String name,
-      List<NominalVariableBuilder>? typeVariables,
+      List<NominalParameterBuilder>? typeParameters,
       List<FormalParameterBuilder>? formals,
       this.charOpenParenOffset,
       String? nativeMethodName,
       this.beginInitializers)
-      : super(metadata, modifiers, name, typeVariables, formals,
+      : super(metadata, modifiers, name, typeParameters, formals,
             nativeMethodName) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
@@ -415,7 +415,7 @@ class DeclaredSourceConstructorBuilder
       required Modifiers modifiers,
       required OmittedTypeBuilder returnType,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required this.formals,
       required this.libraryBuilder,
       required this.declarationBuilder,
@@ -434,7 +434,7 @@ class DeclaredSourceConstructorBuilder
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
+        super(metadata, modifiers, returnType, name, typeParameters, formals,
             formalsOffset, nativeMethodName, beginInitializers) {
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
@@ -997,7 +997,7 @@ class DeclaredSourceConstructorBuilder
   @override
   DartType substituteFieldType(DartType fieldType) {
     // Nothing to do. Regular generative constructors don't have their own
-    // type variables.
+    // type parameters.
     return fieldType;
   }
 
@@ -1242,7 +1242,7 @@ class SourceExtensionTypeConstructorBuilder
       required Modifiers modifiers,
       required OmittedTypeBuilder returnType,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required this.libraryBuilder,
       required this.declarationBuilder,
@@ -1258,7 +1258,7 @@ class SourceExtensionTypeConstructorBuilder
       required bool forAbstractClassOrEnumOrMixin,
       required Token? beginInitializers})
       : _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
+        super(metadata, modifiers, returnType, name, typeParameters, formals,
             formalsOffset, nativeMethodName, beginInitializers) {
     _constructor = new Procedure(
         dummyName, ProcedureKind.Method, new FunctionNode(null),
@@ -1483,9 +1483,9 @@ class SourceExtensionTypeConstructorBuilder
   Substitution? _substitutionCache;
 
   Substitution get _substitution {
-    if (typeVariables != null) {
+    if (typeParameters != null) {
       assert(extensionTypeDeclarationBuilder.typeParameters!.length ==
-          typeVariables?.length);
+          typeParameters?.length);
       _substitutionCache = Substitution.fromPairs(
           extensionTypeDeclarationBuilder
               .extensionTypeDeclaration.typeParameters,

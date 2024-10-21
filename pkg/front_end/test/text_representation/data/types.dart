@@ -181,7 +181,7 @@ genericFunctionType4(
         /*normal|limited.T Function<T extends num>([T, T?])*/
         /*verbose.T Function<T extends dart.core::num>([T, T?])*/
         o) {}
-// TODO(johnniwinther): Support interdependent function type variables.
+// TODO(johnniwinther): Support interdependent structural parameters.
 //genericFunctionType5(T Function<T, S extends T>([T, S]) o) {}
 //genericFunctionType6(T Function<T extends S, S>([T, S]) o) {}
 typedefType1(Typedef1 /*void Function()*/ o) {}

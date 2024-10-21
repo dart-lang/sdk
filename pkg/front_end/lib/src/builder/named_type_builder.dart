@@ -32,7 +32,7 @@ import '../base/messages.dart'
         templateSupertypeIsIllegal,
         templateSupertypeIsIllegalAliased,
         templateSupertypeIsNullableAliased,
-        templateSupertypeIsTypeVariable,
+        templateSupertypeIsTypeParameter,
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
@@ -53,21 +53,21 @@ import 'nullability_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
-/// Enum used to determine how instance type variable access is allowed.
-enum InstanceTypeVariableAccessState {
-  /// Instance type variable access is allowed.
+/// Enum used to determine how instance type parameter access is allowed.
+enum InstanceTypeParameterAccessState {
+  /// Instance type parameter access is allowed.
   ///
-  /// This is used for valid references to instance type variables, like
+  /// This is used for valid references to instance type parameters, like
   ///
   ///     class Class<T> {
   ///       void instanceMethod(T t) {}
   ///     }
   Allowed,
 
-  /// Instance type variable access is disallowed and results in a compile-time
+  /// Instance type parameter access is disallowed and results in a compile-time
   /// error.
   ///
-  /// This is used for static references to instance type variables, like
+  /// This is used for static references to instance type parameters, like
   ///
   ///     class Class<T> {
   ///       static void staticMethod(T t) {}
@@ -76,10 +76,10 @@ enum InstanceTypeVariableAccessState {
   /// The type is resolved as an [InvalidType].
   Disallowed,
 
-  /// Instance type variable access is invalid since it occurs in an invalid
+  /// Instance type parameter access is invalid since it occurs in an invalid
   /// context. The occurrence _doesn't_ result in a compile-time error.
   ///
-  /// This is used for references to instance type variables where they might
+  /// This is used for references to instance type parameters where they might
   /// be valid if the context where, like
   ///
   ///     class Extension<T> {
@@ -89,10 +89,10 @@ enum InstanceTypeVariableAccessState {
   /// The type is resolved as an [InvalidType].
   Invalid,
 
-  /// Instance type variable access is unexpected and results in an assertion
+  /// Instance type parameter access is unexpected and results in an assertion
   /// failure.
   ///
-  /// This is used for [NamedTypeBuilder]s for known non-type variable types,
+  /// This is used for [NamedTypeBuilder]s for known non-type parameter types,
   /// like for `Object` and `String`.
   Unexpected,
 }
@@ -115,7 +115,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   TypeDeclarationBuilder? _declaration;
 
-  final InstanceTypeVariableAccessState _instanceTypeVariableAccess;
+  final InstanceTypeParameterAccessState _instanceTypeParameterAccess;
 
   final bool hasExplicitTypeArguments;
 
@@ -127,7 +127,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
     bool isExplicit = true;
     if (arguments != null) {
       for (TypeBuilder argument in arguments) {
@@ -141,14 +141,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             arguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeVariableAccess: instanceTypeVariableAccess)
+            instanceTypeParameterAccess: instanceTypeParameterAccess)
         :
         // Coverage-ignore(suite): Not run.
         new _InferredNamedTypeBuilder(name, nullabilityBuilder,
             arguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeVariableAccess: instanceTypeVariableAccess);
+            instanceTypeParameterAccess: instanceTypeParameterAccess);
   }
 
   NamedTypeBuilderImpl._(
@@ -157,9 +157,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       this.typeArguments,
       this.fileUri,
       this.charOffset,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess,
       TypeDeclarationBuilder? declaration})
-      : this._instanceTypeVariableAccess = instanceTypeVariableAccess,
+      : this._instanceTypeParameterAccess = instanceTypeParameterAccess,
         this.hasExplicitTypeArguments = typeArguments != null,
         this._declaration = declaration;
 
@@ -176,7 +176,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess,
       DartType? type}) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
 
   factory NamedTypeBuilderImpl.forInvalidType(String name,
@@ -212,7 +212,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         _isDeferred = prefix.deferred;
         member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
       } else {
-        // Attempt to use a member or type variable as a prefix.
+        // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
         int nameLength = typeName.fullNameLength;
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
@@ -262,7 +262,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       return;
     }
     if (typeArguments != null) {
-      if (_declaration!.isTypeVariable) {
+      if (_declaration!.isTypeParameter) {
         String nameText = typeName.name;
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
@@ -273,11 +273,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         //  additional errors?
         _declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri!, nameOffset, nameLength));
-      } else if (typeArguments!.length != declaration.typeVariablesCount) {
+      } else if (typeArguments!.length != declaration.typeParametersCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
         Message message = templateTypeArgumentMismatch
-            .withArguments(declaration.typeVariablesCount);
+            .withArguments(declaration.typeParametersCount);
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri!, nameOffset, nameLength));
@@ -293,15 +293,15 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, nameOffset, nameLength));
-    } else if (_declaration is NominalVariableBuilder) {
-      NominalVariableBuilder typeParameterBuilder =
-          _declaration as NominalVariableBuilder;
-      if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
+    } else if (_declaration is NominalParameterBuilder) {
+      NominalParameterBuilder typeParameterBuilder =
+          _declaration as NominalParameterBuilder;
+      if (typeParameterBuilder.kind == TypeParameterKind.classMixinOrEnum ||
           typeParameterBuilder.kind ==
-              TypeVariableKind.extensionOrExtensionType ||
-          typeParameterBuilder.kind == TypeVariableKind.extensionSynthesized) {
-        switch (_instanceTypeVariableAccess) {
-          case InstanceTypeVariableAccessState.Disallowed:
+              TypeParameterKind.extensionOrExtensionType ||
+          typeParameterBuilder.kind == TypeParameterKind.extensionSynthesized) {
+        switch (_instanceTypeParameterAccess) {
+          case InstanceTypeParameterAccessState.Disallowed:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
             Message message = messageTypeVariableInStaticContext;
@@ -310,19 +310,19 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             _declaration = buildInvalidTypeDeclarationBuilder(
                 message.withLocation(fileUri!, nameOffset, nameLength));
             return;
-          case InstanceTypeVariableAccessState.Invalid:
+          case InstanceTypeParameterAccessState.Invalid:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
             Message message = messageTypeVariableInStaticContext;
             _declaration = buildInvalidTypeDeclarationBuilder(
                 message.withLocation(fileUri!, nameOffset, nameLength));
             return;
-          case InstanceTypeVariableAccessState.Unexpected:
+          case InstanceTypeParameterAccessState.Unexpected:
             // Coverage-ignore(suite): Not run.
             assert(false,
-                "Unexpected instance type variable $typeParameterBuilder");
+                "Unexpected instance type parameter $typeParameterBuilder");
             break;
-          case InstanceTypeVariableAccessState.Allowed:
+          case InstanceTypeParameterAccessState.Allowed:
             break;
         }
       }
@@ -363,8 +363,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
     Template<Message Function(String name)> template =
-        declaration.isTypeVariable
-            ? templateSupertypeIsTypeVariable
+        declaration.isTypeParameter
+            ? templateSupertypeIsTypeParameter
             : templateSupertypeIsIllegal;
     library.addProblem(template.withArguments(fullNameForErrors), charOffset!,
         noLength, fileUri);
@@ -378,10 +378,10 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (type is InvalidType) return null;
 
     Message message;
-    if (declaration.isTypeVariable) {
+    if (declaration.isTypeParameter) {
       // Coverage-ignore-block(suite): Not run.
       message =
-          templateSupertypeIsTypeVariable.withArguments(fullNameForErrors);
+          templateSupertypeIsTypeParameter.withArguments(fullNameForErrors);
     } else if (type.nullability == Nullability.nullable) {
       message = templateSupertypeIsNullableAliased.withArguments(
           fullNameForErrors, type);
@@ -496,11 +496,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? unalias(
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<StructuralVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralParameterBuilder>? unboundTypeParameters}) {
     if (declaration is TypeAliasBuilder) {
       return (declaration as TypeAliasBuilder).unalias(typeArguments,
           usedTypeAliasBuilders: usedTypeAliasBuilders,
-          unboundTypeVariables: unboundTypeVariables);
+          unboundTypeParameters: unboundTypeParameters);
     }
     return this;
   }
@@ -622,8 +622,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             declaration.message.uri,
             severity: Severity.error);
         return null;
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionTypeDeclarationBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -659,8 +659,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             declaration.message.uri,
             severity: Severity.error);
         return null;
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -679,7 +679,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         arguments: typeArguments,
         fileUri: fileUri,
         charOffset: charOffset,
-        instanceTypeVariableAccess: _instanceTypeVariableAccess);
+        instanceTypeParameterAccess: _instanceTypeParameterAccess);
   }
 
   /// Returns a copy of this named type using the provided type [arguments]
@@ -692,30 +692,30 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
-          instanceTypeVariableAccess: _instanceTypeVariableAccess);
+          instanceTypeParameterAccess: _instanceTypeParameterAccess);
     } else {
       // Coverage-ignore-block(suite): Not run.
       return new NamedTypeBuilderImpl(typeName, nullabilityBuilder,
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
-          instanceTypeVariableAccess: _instanceTypeVariableAccess);
+          instanceTypeParameterAccess: _instanceTypeParameterAccess);
     }
   }
 
   @override
   Nullability computeNullability(
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     return combineNullabilitiesForSubstitution(
         inner: declaration.computeNullabilityWithArguments(typeArguments,
-            typeVariablesTraversalState: typeVariablesTraversalState),
+            typeParametersTraversalState: typeParametersTraversalState),
         outer: nullabilityBuilder.build());
   }
 
   @override
-  VarianceCalculationValue computeTypeVariableBuilderVariance(
-      NominalVariableBuilder variable,
+  VarianceCalculationValue computeTypeParameterBuilderVariance(
+      NominalParameterBuilder variable,
       {required SourceLoader sourceLoader}) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
@@ -726,7 +726,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           for (int i = 0; i < arguments.length; ++i) {
             result = result.meet(declaration.cls.typeParameters[i].variance
                 .combine(arguments[i]
-                    .computeTypeVariableBuilderVariance(variable,
+                    .computeTypeParameterBuilderVariance(variable,
                         sourceLoader: sourceLoader)
                     .variance!));
           }
@@ -737,50 +737,50 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
         if (arguments != null) {
           for (int i = 0; i < arguments.length; ++i) {
-            NominalVariableBuilder declarationTypeVariable =
-                declaration.typeVariables![i];
-            VarianceCalculationValue? declarationTypeVariableVariance =
-                declarationTypeVariable.varianceCalculationValue;
-            if (declarationTypeVariableVariance == null ||
-                declarationTypeVariableVariance ==
+            NominalParameterBuilder declarationTypeParameter =
+                declaration.typeParameters![i];
+            VarianceCalculationValue? declarationTypeParameterVariance =
+                declarationTypeParameter.varianceCalculationValue;
+            if (declarationTypeParameterVariance == null ||
+                declarationTypeParameterVariance ==
                     VarianceCalculationValue.pending) {
               assert(!declaration.fromDill);
-              declarationTypeVariable.varianceCalculationValue =
+              declarationTypeParameter.varianceCalculationValue =
                   VarianceCalculationValue.inProgress;
               Variance computedVariance = declaration.type
-                  .computeTypeVariableBuilderVariance(declarationTypeVariable,
+                  .computeTypeParameterBuilderVariance(declarationTypeParameter,
                       sourceLoader: sourceLoader)
                   .variance!;
 
-              declarationTypeVariable.varianceCalculationValue =
-                  declarationTypeVariableVariance =
+              declarationTypeParameter.varianceCalculationValue =
+                  declarationTypeParameterVariance =
                       new VarianceCalculationValue.fromVariance(
                           computedVariance);
-            } else if (declarationTypeVariableVariance ==
+            } else if (declarationTypeParameterVariance ==
                 VarianceCalculationValue.inProgress) {
               assert(!declaration.fromDill);
-              NominalVariableBuilder declarationTypeVariable =
-                  declaration.typeVariables![i];
+              NominalParameterBuilder declarationTypeParameter =
+                  declaration.typeParameters![i];
               // Cyclic type alias.
               assert(sourceLoader.assertProblemReportedElsewhere(
-                  "computeTypeVariableBuilderVariance: Cyclic type alias.",
+                  "computeTypeParameterBuilderVariance: Cyclic type alias.",
                   expectedPhase: CompilationPhaseForProblemReporting.outline));
 
               // Use [Variance.unrelated] for recovery.  The type with the
               // cyclic dependency will be replaced with an [InvalidType]
               // elsewhere.
-              declarationTypeVariable.varianceCalculationValue =
-                  declarationTypeVariableVariance =
+              declarationTypeParameter.varianceCalculationValue =
+                  declarationTypeParameterVariance =
                       new VarianceCalculationValue.fromVariance(
                           Variance.unrelated);
-              declarationTypeVariable.variance = Variance.unrelated;
+              declarationTypeParameter.variance = Variance.unrelated;
             }
 
             result = result.meet(arguments[i]
-                .computeTypeVariableBuilderVariance(variable,
+                .computeTypeParameterBuilderVariance(variable,
                     sourceLoader: sourceLoader)
                 .variance!
-                .combine(declarationTypeVariableVariance.variance!));
+                .combine(declarationTypeParameterVariance.variance!));
           }
         }
         return new VarianceCalculationValue.fromVariance(result);
@@ -791,19 +791,19 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             result = result.meet(declaration
                 .extensionTypeDeclaration.typeParameters[i].variance
                 .combine(arguments[i]
-                    .computeTypeVariableBuilderVariance(variable,
+                    .computeTypeParameterBuilderVariance(variable,
                         sourceLoader: sourceLoader)
                     .variance!));
           }
         }
         return new VarianceCalculationValue.fromVariance(result);
-      case NominalVariableBuilder():
+      case NominalParameterBuilder():
         if (declaration == variable) {
           return VarianceCalculationValue.calculatedCovariant;
         } else {
           return VarianceCalculationValue.calculatedUnrelated;
         }
-      case StructuralVariableBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -828,31 +828,31 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
       List<List<int>> edges, int index) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
-    if (declaration is NominalVariableBuilder &&
-        variableIndices.containsKey(declaration)) {
-      edges[variableIndices[declaration]!].add(index);
+    if (declaration is NominalParameterBuilder &&
+        parameterIndices.containsKey(declaration)) {
+      edges[parameterIndices[declaration]!].add(index);
     }
     if (arguments != null) {
       for (TypeBuilder argument in arguments) {
-        argument.collectReferencesFrom(variableIndices, edges, index);
+        argument.collectReferencesFrom(parameterIndices, edges, index);
       }
     }
   }
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralVariableBuilder> unboundTypeVariables,
+      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralParameterBuilder> unboundTypeParameters,
       {final Variance variance = Variance.covariant}) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
 
-    if (declaration is TypeVariableBuilder) {
+    if (declaration is TypeParameterBuilder) {
       if (variance == Variance.contravariant) {
         TypeBuilder? replacement = lowerSubstitution[declaration];
         if (replacement != null) {
@@ -880,7 +880,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ClassBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeVariables,
+              upperSubstitution, lowerSubstitution, unboundTypeParameters,
               variance: variance);
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -890,7 +890,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionTypeDeclarationBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeVariables,
+              upperSubstitution, lowerSubstitution, unboundTypeParameters,
               variance: variance);
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -899,9 +899,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
       case TypeAliasBuilder():
         for (int i = 0; i < arguments.length; ++i) {
-          NominalVariableBuilder variable = declaration.typeVariables![i];
+          NominalParameterBuilder variable = declaration.typeParameters![i];
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeVariables,
+              upperSubstitution, lowerSubstitution, unboundTypeParameters,
               variance: variance.combine(variable.variance));
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -909,11 +909,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           }
         }
       // Coverage-ignore(suite): Not run.
-      case NominalVariableBuilder():
+      case NominalParameterBuilder():
         // Handled above.
         throw new UnsupportedError("Unexpected NominalVariableBuilder");
       // Coverage-ignore(suite): Not run.
-      case StructuralVariableBuilder():
+      case StructuralParameterBuilder():
         // Handled above.
         throw new UnsupportedError("Unexpected StructuralVariableBuilder");
       // Coverage-ignore(suite): Not run.
@@ -938,7 +938,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? unaliasAndErase() {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is TypeAliasBuilder) {
-      // We pass empty lists as [unboundTypes] and [unboundTypeVariables]
+      // We pass empty lists as [unboundTypes] and [unboundTypeParameters]
       // because new builders can be generated during unaliasing. We ignore
       // the returned builders, however, because they will not be used in the
       // output and are needed only for the checks.
@@ -946,19 +946,19 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       // We also don't instantiate-to-bound raw types because it won't affect
       // the dependency cycle analysis.
       return declaration
-          .unalias(typeArguments, unboundTypeVariables: [])?.unaliasAndErase();
+          .unalias(typeArguments, unboundTypeParameters: [])?.unaliasAndErase();
     } else if (declaration is ExtensionTypeDeclarationBuilder) {
       TypeBuilder? representationType =
           declaration.declaredRepresentationTypeBuilder;
       if (representationType == null) {
         return null;
       } else {
-        List<NominalVariableBuilder>? typeParameters =
+        List<NominalParameterBuilder>? typeParameters =
             declaration.typeParameters;
         List<TypeBuilder>? typeArguments = this.typeArguments;
         if (typeParameters != null && typeArguments != null) {
           representationType = representationType.subst(
-              new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
+              new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
                   typeParameters, typeArguments));
         }
         return representationType.unaliasAndErase();
@@ -969,13 +969,13 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  bool usesTypeVariables(Set<String> typeVariableNames) {
-    if (typeVariableNames.contains(typeName.name)) {
+  bool usesTypeParameters(Set<String> typeParameterNames) {
+    if (typeParameterNames.contains(typeName.name)) {
       return true;
     }
     if (typeArguments != null) {
       for (TypeBuilder argument in typeArguments!) {
-        if (argument.usesTypeVariables(typeVariableNames)) {
+        if (argument.usesTypeParameters(typeParameterNames)) {
           return true;
         }
       }
@@ -995,7 +995,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             bool hasInbound = false;
             List<TypeParameter> typeParameters = declaration.cls.typeParameters;
             for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
-              if (containsTypeVariable(
+              if (containsTypeParameter(
                   typeParameters[i].bound, typeParameters.toSet())) {
                 hasInbound = true;
               }
@@ -1004,9 +1004,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
               typesAndDependencies
                   .add(new TypeWithInBoundReferences(this, const []));
             }
-          } else if (declaration.typeVariables != null) {
+          } else if (declaration.typeParameters != null) {
             List<InBoundReferences> dependencies =
-                findInboundReferences(declaration.typeVariables!);
+                findInboundReferences(declaration.typeParameters!);
             if (dependencies.length != 0) {
               typesAndDependencies
                   .add(new TypeWithInBoundReferences(this, dependencies));
@@ -1018,7 +1018,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             List<TypeParameter> typeParameters =
                 declaration.typedef.typeParameters;
             for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
-              if (containsTypeVariable(
+              if (containsTypeParameter(
                   typeParameters[i].bound, typeParameters.toSet())) {
                 hasInbound = true;
               }
@@ -1029,9 +1029,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
                   .add(new TypeWithInBoundReferences(this, const []));
             }
           } else {
-            if (declaration.typeVariables != null) {
+            if (declaration.typeParameters != null) {
               List<InBoundReferences> dependencies =
-                  findInboundReferences(declaration.typeVariables!);
+                  findInboundReferences(declaration.typeParameters!);
               if (dependencies.length != 0) {
                 typesAndDependencies
                     .add(new TypeWithInBoundReferences(this, dependencies));
@@ -1040,9 +1040,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             if (declaration.type is FunctionTypeBuilder) {
               FunctionTypeBuilder type =
                   declaration.type as FunctionTypeBuilder;
-              if (type.typeVariables != null) {
+              if (type.typeParameters != null) {
                 List<InBoundReferences> dependencies =
-                    findInboundReferences(type.typeVariables!);
+                    findInboundReferences(type.typeParameters!);
                 if (dependencies.length != 0) {
                   // Coverage-ignore-block(suite): Not run.
                   typesAndDependencies
@@ -1061,8 +1061,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
                   .add(new TypeWithInBoundReferences(this, dependencies));
             }
           }
-        case NominalVariableBuilder():
-        case StructuralVariableBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         case BuiltinTypeDeclarationBuilder():
@@ -1092,14 +1092,14 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess})
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess})
       : super._(
             typeName: name,
             nullabilityBuilder: nullabilityBuilder,
             typeArguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeVariableAccess: instanceTypeVariableAccess);
+            instanceTypeParameterAccess: instanceTypeParameterAccess);
 
   _ExplicitNamedTypeBuilder.forDartType(DartType type,
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
@@ -1110,8 +1110,8 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
             typeName: new PredefinedTypeName(declaration.name),
             nullabilityBuilder: nullabilityBuilder,
             typeArguments: arguments,
-            instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Unexpected,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Unexpected,
             fileUri: fileUri,
             charOffset: charOffset);
 
@@ -1120,7 +1120,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess,
       DartType? type})
       : this._type = type,
         super._(
@@ -1130,7 +1130,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
             typeArguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeVariableAccess: instanceTypeVariableAccess);
+            instanceTypeParameterAccess: instanceTypeParameterAccess);
 
   _ExplicitNamedTypeBuilder.forInvalidType(String name,
       NullabilityBuilder nullabilityBuilder, LocatedMessage message,
@@ -1143,8 +1143,8 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
                 context: context),
             fileUri: message.uri,
             charOffset: message.charOffset,
-            instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Unexpected);
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Unexpected);
 
   @override
   bool get isExplicit => true;
@@ -1168,14 +1168,14 @@ class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
-      required InstanceTypeVariableAccessState instanceTypeVariableAccess})
+      required InstanceTypeParameterAccessState instanceTypeParameterAccess})
       : super._(
             typeName: name,
             nullabilityBuilder: nullabilityBuilder,
             typeArguments: arguments,
             fileUri: fileUri,
             charOffset: charOffset,
-            instanceTypeVariableAccess: instanceTypeVariableAccess);
+            instanceTypeParameterAccess: instanceTypeParameterAccess);
 
   @override
   bool get isExplicit => false;

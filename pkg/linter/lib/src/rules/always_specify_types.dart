@@ -26,6 +26,7 @@ class AlwaysSpecifyTypes extends LintRule {
         LintNames.avoid_types_on_closure_parameters,
         LintNames.omit_local_variable_types,
         LintNames.omit_obvious_local_variable_types,
+        LintNames.omit_obvious_property_types,
       ];
 
   @override

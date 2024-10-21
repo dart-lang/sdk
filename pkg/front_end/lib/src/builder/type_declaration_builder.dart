@@ -10,7 +10,7 @@ abstract class ITypeDeclarationBuilder implements Builder {
 
   bool get isNamedMixinApplication;
 
-  int get typeVariablesCount => 0;
+  int get typeParametersCount => 0;
 
   @override
   TypeDeclarationBuilder get origin;
@@ -51,11 +51,11 @@ abstract class ITypeDeclarationBuilder implements Builder {
   /// Computes the nullability of this type declaration when instantiated with
   /// [typeArguments].
   ///
-  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
-  /// between type variables,
+  /// [typeParametersTraversalState] is passed to handle cyclic dependencies
+  /// between type parameters,
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState});
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState});
 }
 
 abstract class TypeDeclarationBuilderImpl extends BuilderImpl
@@ -77,7 +77,7 @@ abstract class TypeDeclarationBuilderImpl extends BuilderImpl
   String get fullNameForErrors => name;
 
   @override
-  int get typeVariablesCount => 0;
+  int get typeParametersCount => 0;
 
   @override
   String toString() {

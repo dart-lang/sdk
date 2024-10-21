@@ -14,7 +14,8 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final OmittedTypeBuilder returnType;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
+  final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
   final bool forAbstractClassOrMixin;
@@ -33,6 +34,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
       required this.metadata,
       required this.returnType,
       required this.typeParameters,
+      required this.typeParameterScope,
       required this.formals,
       required this.nativeMethodName,
       required this.forAbstractClassOrMixin,
@@ -92,8 +94,8 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
   }
 
   @override
-  LookupScope computeTypeParameterScope(LookupScope enclosingScope) {
-    return _fragment.builder.computeTypeParameterScope(enclosingScope);
+  LookupScope get typeParameterScope {
+    return _fragment.typeParameterScope;
   }
 
   @override

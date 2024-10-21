@@ -48,11 +48,11 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     if (typeArguments != null && typeArguments.length == 1) {
       return typeArguments.single.computeNullability(
-          typeVariablesTraversalState: typeVariablesTraversalState);
+          typeParametersTraversalState: typeParametersTraversalState);
     } else {
       // This is `FutureOr<dynamic>`.
       return Nullability.nullable;

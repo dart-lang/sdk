@@ -1609,7 +1609,7 @@ enum FuzzOriginalType {
 //   extension Extension<@Const() T> on Class<T> {
 //   }
 // ```
-// will visit the first metadata, then the type variables which itself has the
+// will visit the first metadata, then the type parameters which itself has the
 // second metadata, only then it visits the extension (which is what we care
 // about here) --- and we will with the current handling of metadata think the
 // metadata for the extension goes from the first metadata to the second.

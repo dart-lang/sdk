@@ -55,8 +55,8 @@ class OmittedTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     // TODO(johnniwinther): This should probably be an error case.
     throw new UnimplementedError(
         '${runtimeType}.computeNullabilityWithArguments');

@@ -8,12 +8,12 @@ import 'ast.dart';
 import 'src/find_type_visitor.dart';
 import 'src/replacement_visitor.dart';
 
-/// Returns all free type variables in [type].
+/// Returns all free type parameters in [type].
 ///
 /// Returns the set of all [TypeParameter]s that are referred to by a
 /// [TypeParameterType] in [type] that are not bound to an enclosing
 /// [FunctionType].
-Set<StructuralParameter> allFreeTypeVariables(DartType type) {
+Set<StructuralParameter> allFreeTypeParameters(DartType type) {
   _AllFreeTypeVariablesVisitor visitor = new _AllFreeTypeVariablesVisitor();
   visitor.visit(type);
   return visitor.freeStructuralVariables;
@@ -54,7 +54,7 @@ Map<TypeParameter, DartType> getSubstitutionMap(Supertype type) {
 ///
 /// It is an error to call this with a [type] that contains a [FunctionType]
 /// that declares one of the parameters in [variables].
-bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
+bool containsTypeParameter(DartType type, Set<TypeParameter> variables,
     {DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler}) {
   if (variables.isEmpty) return false;
   return new _OccurrenceVisitor(variables,
@@ -72,7 +72,7 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
 ///
 /// It is an error to call this with a [type] that contains a [FunctionType]
 /// that declares one of the parameters in [parameters].
-bool containsStructuralTypeVariable(
+bool containsStructuralParameter(
     DartType type, Set<StructuralParameter> parameters,
     {DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler}) {
   if (parameters.isEmpty) return false;
@@ -83,7 +83,7 @@ bool containsStructuralTypeVariable(
 
 /// Returns `true` if [type] contains any free type variables, that is, type
 /// variable for function types whose function type is part of [type].
-bool containsFreeFunctionTypeVariables(DartType type) {
+bool containsFreeStructuralParameters(DartType type) {
   return new _FreeFunctionTypeVariableVisitor().visit(type);
 }
 
@@ -91,7 +91,7 @@ bool containsFreeFunctionTypeVariables(DartType type) {
 ///
 /// Returns `true` if [type] contains a [TypeParameterType] that doesn't refer
 /// to an enclosing generic [FunctionType] within [type].
-bool containsFreeTypeVariables(DartType type,
+bool containsFreeTypeParameters(DartType type,
     {Set<StructuralParameter>? boundVariables}) {
   return new _FreeTypeVariableVisitor(boundVariables: boundVariables)
       .visit(type);
@@ -2029,13 +2029,13 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 ///
 /// The algorithm for elimination of type variables is described in
 /// https://github.com/dart-lang/language/pull/957
-class NullabilityAwareTypeVariableEliminator
+class NullabilityAwareTypeParameterEliminator
     extends NullabilityAwareTypeVariableEliminatorBase {
   final Set<StructuralParameter> structuralEliminationTargets;
   final Set<TypeParameter> nominalEliminationTargets;
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
-  NullabilityAwareTypeVariableEliminator(
+  NullabilityAwareTypeParameterEliminator(
       {required this.structuralEliminationTargets,
       required this.nominalEliminationTargets,
       required DartType bottomType,
@@ -2049,9 +2049,9 @@ class NullabilityAwareTypeVariableEliminator
 
   @override
   bool containsTypeVariablesToEliminate(DartType type) {
-    return containsStructuralTypeVariable(type, structuralEliminationTargets,
+    return containsStructuralParameter(type, structuralEliminationTargets,
             unhandledTypeHandler: unhandledTypeHandler) ||
-        containsTypeVariable(type, nominalEliminationTargets,
+        containsTypeParameter(type, nominalEliminationTargets,
             unhandledTypeHandler: unhandledTypeHandler);
   }
 
@@ -2076,11 +2076,11 @@ class NullabilityAwareTypeVariableEliminator
 ///
 /// The algorithm for elimination of type variables is described in
 /// https://github.com/dart-lang/language/pull/957
-class NullabilityAwareFreeTypeVariableEliminator
+class NullabilityAwareFreeTypeParameterEliminator
     extends NullabilityAwareTypeVariableEliminatorBase {
   Set<StructuralParameter> _boundVariables = <StructuralParameter>{};
 
-  NullabilityAwareFreeTypeVariableEliminator(
+  NullabilityAwareFreeTypeParameterEliminator(
       {required DartType bottomType,
       required DartType topType,
       required DartType topFunctionType})
@@ -2103,7 +2103,7 @@ class NullabilityAwareFreeTypeVariableEliminator
 
   @override
   bool containsTypeVariablesToEliminate(DartType type) {
-    return containsFreeTypeVariables(type, boundVariables: _boundVariables);
+    return containsFreeTypeParameters(type, boundVariables: _boundVariables);
   }
 
   @override

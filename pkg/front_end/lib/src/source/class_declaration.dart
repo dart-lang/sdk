@@ -200,7 +200,7 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
                     extensionTypeDeclarationBuilder =
                     targetBuilder.parent as ExtensionTypeDeclarationBuilder;
                 typeArgumentCount =
-                    extensionTypeDeclarationBuilder.typeVariablesCount;
+                    extensionTypeDeclarationBuilder.typeParametersCount;
               } else {
                 typeArgumentCount =
                     targetNode.enclosingClass!.typeParameters.length;

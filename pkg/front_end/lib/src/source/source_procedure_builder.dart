@@ -93,7 +93,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       required Modifiers modifiers,
       required this.returnType,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required this.kind,
       required this.libraryBuilder,
@@ -116,7 +116,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, name, typeVariables, formals,
+        super(metadata, modifiers, name, typeParameters, formals,
             nativeMethodName) {
     _procedure = new Procedure(
         dummyName,

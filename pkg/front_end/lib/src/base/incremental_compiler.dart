@@ -2101,7 +2101,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           .buildSyntheticLibrariesUntilBuildScopes([debugLibrary]);
       lastGoodKernelTarget
           .buildSyntheticLibrariesUntilComputeDefaultTypes([debugLibrary]);
-      lastGoodKernelTarget.loader.finishTypeVariables(
+      lastGoodKernelTarget.loader.finishTypeParameters(
           [debugLibrary],
           lastGoodKernelTarget.objectClassBuilder,
           lastGoodKernelTarget.dynamicType);

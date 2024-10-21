@@ -36,8 +36,8 @@ class ImplicitTypeArgument extends AuxiliaryType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get nonTypeVariableBound {
-    throw unsupported("nonTypeVariableBound", -1, null);
+  DartType get nonTypeParameterBound {
+    throw unsupported("nonTypeParameterBound", -1, null);
   }
 
   @override

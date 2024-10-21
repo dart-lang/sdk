@@ -111,6 +111,7 @@ linter:
     - null_closures
     - omit_local_variable_types
     - omit_obvious_local_variable_types
+    - omit_obvious_property_types
     - one_member_abstracts
     - only_throw_errors
     - overridden_fields
@@ -169,6 +170,7 @@ linter:
     - sort_pub_dependencies
     - sort_unnamed_constructors_first
     - specify_nonobvious_local_variable_types
+    - specify_nonobvious_property_types
     - test_types_in_equals
     - throw_in_finally
     - tighten_type_of_initializing_formals

@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
-import 'dill_class_builder.dart' show computeTypeVariableBuilders;
+import 'dill_class_builder.dart' show computeTypeParameterBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
@@ -23,7 +23,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   final Map<Name, Procedure>? tearOffs;
 
-  List<NominalVariableBuilder>? _typeVariables;
+  List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _type;
 
   @override
@@ -44,12 +44,12 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   Reference get reference => typedef.reference;
 
   @override
-  List<NominalVariableBuilder>? get typeVariables {
-    if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
-      _typeVariables = computeTypeVariableBuilders(
+  List<NominalParameterBuilder>? get typeParameters {
+    if (_typeParameters == null && typedef.typeParameters.isNotEmpty) {
+      _typeParameters = computeTypeParameterBuilders(
           typedef.typeParameters, libraryBuilder.loader);
     }
-    return _typeVariables;
+    return _typeParameters;
   }
 
   @override
@@ -57,7 +57,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   bool get fromDill => true;
 
   @override
-  int get typeVariablesCount => typedef.typeParameters.length;
+  int get typeParametersCount => typedef.typeParameters.length;
 
   @override
   TypeBuilder get type {
@@ -72,7 +72,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    // For performance reasons, [typeVariables] aren't restored from [target].
+    // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {

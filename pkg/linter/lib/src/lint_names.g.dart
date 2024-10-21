@@ -307,6 +307,9 @@ abstract final class LintNames {
   static const String omit_obvious_local_variable_types =
       'omit_obvious_local_variable_types';
 
+  static const String omit_obvious_property_types =
+      'omit_obvious_property_types';
+
   static const String one_member_abstracts = 'one_member_abstracts';
 
   static const String only_throw_errors = 'only_throw_errors';
@@ -450,6 +453,9 @@ abstract final class LintNames {
 
   static const String specify_nonobvious_local_variable_types =
       'specify_nonobvious_local_variable_types';
+
+  static const String specify_nonobvious_property_types =
+      'specify_nonobvious_property_types';
 
   static const String super_goes_last = 'super_goes_last';
 

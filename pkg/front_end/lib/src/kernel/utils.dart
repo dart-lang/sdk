@@ -257,12 +257,13 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,
         const ImplicitTypeBuilder(), '');
-final NominalVariableBuilder dummyNominalVariableBuilder =
-    new NominalVariableBuilder(NominalVariableBuilder.noNameSentinel, -1, null,
-        kind: TypeVariableKind.function);
-final StructuralVariableBuilder dummyStructuralVariableBuilder =
-    new StructuralVariableBuilder(
-        StructuralVariableBuilder.noNameSentinel, -1, null);
+final NominalParameterBuilder dummyNominalVariableBuilder =
+    new NominalParameterBuilder(
+        NominalParameterBuilder.noNameSentinel, -1, null,
+        kind: TypeParameterKind.function);
+final StructuralParameterBuilder dummyStructuralVariableBuilder =
+    new StructuralParameterBuilder(
+        StructuralParameterBuilder.noNameSentinel, -1, null);
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);

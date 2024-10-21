@@ -47,8 +47,8 @@ abstract class InferredType extends AuxiliaryType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get nonTypeVariableBound {
-    throw unsupported("nonTypeVariableBound", charOffset ?? -1, fileUri);
+  DartType get nonTypeParameterBound {
+    throw unsupported("nonTypeParameterBound", charOffset ?? -1, fileUri);
   }
 
   @override

@@ -28,7 +28,7 @@ class DillExtensionTypeDeclarationBuilder
 
   late final ConstructorScope _constructorScope;
 
-  List<NominalVariableBuilder>? _typeParameters;
+  List<NominalParameterBuilder>? _typeParameters;
 
   List<TypeBuilder>? _interfaceBuilders;
 
@@ -187,14 +187,14 @@ class DillExtensionTypeDeclarationBuilder
       _extensionTypeDeclaration;
 
   @override
-  List<NominalVariableBuilder>? get typeParameters {
-    List<NominalVariableBuilder>? typeVariables = _typeParameters;
-    if (typeVariables == null &&
+  List<NominalParameterBuilder>? get typeParameters {
+    List<NominalParameterBuilder>? typeParameters = _typeParameters;
+    if (typeParameters == null &&
         _extensionTypeDeclaration.typeParameters.isNotEmpty) {
-      typeVariables = _typeParameters = computeTypeVariableBuilders(
+      typeParameters = _typeParameters = computeTypeParameterBuilders(
           _extensionTypeDeclaration.typeParameters, libraryBuilder.loader);
     }
-    return typeVariables;
+    return typeParameters;
   }
 
   @override

@@ -164,23 +164,23 @@ class MacroTypes {
       case FunctionTypeBuilder(
           :TypeBuilder returnType,
           :List<ParameterBuilder>? formals,
-          :List<StructuralVariableBuilder>? typeVariables
+          typeParameters: List<StructuralParameterBuilder>? typeParameters
         ):
         bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
         var (
           List<macro.FormalParameterImpl> positionalParameters,
           List<macro.FormalParameterImpl> namedParameters
         ) = _createParameters(libraryBuilder, formals);
-        List<macro.TypeParameterImpl> typeParameters = [];
-        if (typeVariables != null) {
-          for (StructuralVariableBuilder typeVariable in typeVariables) {
-            typeParameters.add(new macro.TypeParameterImpl(
+        List<macro.TypeParameterImpl> macroTypeParameters = [];
+        if (typeParameters != null) {
+          for (StructuralParameterBuilder typeParameter in typeParameters) {
+            macroTypeParameters.add(new macro.TypeParameterImpl(
                 id: macro.RemoteInstance.uniqueId,
-                bound: typeVariable.bound != null
-                    ? _createTypeAnnotation(libraryBuilder, typeVariable.bound)
+                bound: typeParameter.bound != null
+                    ? _createTypeAnnotation(libraryBuilder, typeParameter.bound)
                     : null,
                 metadata: const [],
-                name: typeVariable.name));
+                name: typeParameter.name));
           }
         }
         typeAnnotation = new macro.FunctionTypeAnnotationImpl(
@@ -189,7 +189,7 @@ class MacroTypes {
             namedParameters: namedParameters,
             positionalParameters: positionalParameters,
             returnType: getTypeAnnotation(libraryBuilder, returnType),
-            typeParameters: typeParameters);
+            typeParameters: macroTypeParameters);
       case RecordTypeBuilder(
           :List<RecordTypeFieldBuilder>? positionalFields,
           :List<RecordTypeFieldBuilder>? namedFields
@@ -371,8 +371,8 @@ class _StaticTypeImpl extends macro.StaticTypeImpl {
         case OmittedTypeDeclarationBuilder():
         case TypeAliasBuilder():
         case ExtensionBuilder():
-        case NominalVariableBuilder():
-        case StructuralVariableBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
         // There is no instance of [declaration].
       }
     }

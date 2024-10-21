@@ -2814,11 +2814,11 @@ ConflictsWithSetter:
   problemMessage: "Conflicts with setter '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
 
-ConflictsWithTypeVariable:
+ConflictsWithTypeParameter:
   problemMessage: "Conflicts with type variable '#name'."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
 
-ConflictsWithTypeVariableCause:
+ConflictsWithTypeParameterCause:
   problemMessage: "This is the type variable."
   severity: CONTEXT
 
@@ -2915,11 +2915,11 @@ IllegalMixin:
   problemMessage: "The type '#name' can't be mixed in."
   analyzerCode: ILLEGAL_MIXIN
 
-OverrideTypeVariablesMismatch:
+OverrideTypeParametersMismatch:
   problemMessage: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
-OverrideTypeVariablesBoundMismatch:
+OverrideTypeParametersBoundMismatch:
   problemMessage: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
 
 OverriddenMethodCause:
@@ -3057,15 +3057,15 @@ PartOfSelf:
   script:
     main.dart: "part 'main.dart';"
 
-TypeVariableDuplicatedName:
+TypeParameterDuplicatedName:
   problemMessage: "A type variable can't have the same name as another."
   analyzerCode: DUPLICATE_DEFINITION
 
-TypeVariableDuplicatedNameCause:
+TypeParameterDuplicatedNameCause:
   problemMessage: "The other type variable named '#name'."
   severity: CONTEXT
 
-TypeVariableSameNameAsEnclosing:
+TypeParameterSameNameAsEnclosing:
   problemMessage: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
 
@@ -3076,7 +3076,7 @@ AnnotationOnTypeArgument:
   script:
     - "class A<E> {} class C { m() => new A<@Object() C>(); }"
 
-AnnotationOnFunctionTypeTypeVariable:
+AnnotationOnFunctionTypeTypeParameter:
   problemMessage: "A type variable on a function type can't have annotations."
   script: |
      // @dart=2.13
@@ -3163,10 +3163,10 @@ TypedefNotType:
   problemMessage: "Can't create typedef from non-type."
   analyzerCode: INVALID_TYPE_IN_TYPEDEF
 
-TypedefTypeVariableNotConstructor:
+TypedefTypeParameterNotConstructor:
   problemMessage: "Can't use a typedef denoting a type variable as a constructor, nor for a static member access."
 
-TypedefTypeVariableNotConstructorCause:
+TypedefTypeParameterNotConstructorCause:
   problemMessage: "This is the type variable ultimately denoted."
   severity: CONTEXT
 
@@ -3559,7 +3559,7 @@ SupertypeIsNullableAliased:
     typedef B = A?;
     class C extends B {}
 
-SupertypeIsTypeVariable:
+SupertypeIsTypeParameter:
   problemMessage: "The type variable '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
@@ -3583,7 +3583,7 @@ SuperExtensionTypeIsNullableAliased:
     typedef B = A?;
     extension type E(B it) implements B {}
 
-SuperExtensionTypeIsTypeVariable:
+SuperExtensionTypeIsTypeParameter:
   problemMessage: "The type variable '#name' can't be implemented by an extension type."
   script: |
     extension type E<T>(T it) implements T {}
@@ -4057,7 +4057,7 @@ InvalidAssignmentErrorNullabilityNullType:
       i = n;
     }
 
-PatchClassTypeVariablesMismatch:
+PatchClassTypeParametersMismatch:
   problemMessage: "A patch class must have the same number of type variables as its origin class."
 
 PatchClassOrigin:
@@ -4486,14 +4486,14 @@ NonSimpleBoundViaReference:
   problemMessage: "Bound of this variable references raw type '#name'."
   severity: CONTEXT
 
-CycleInTypeVariables:
+CycleInTypeParameters:
   problemMessage: "Type '#name' is a bound of itself via '#string'."
   correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends B, B extends A>() {}"
 
-DirectCycleInTypeVariables:
+DirectCycleInTypeParameters:
   problemMessage: "Type '#name' can't use itself as a bound."
   correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
@@ -5308,26 +5308,26 @@ NonPositiveArrayDimensions:
   problemMessage: "Array dimensions must be positive numbers."
   external: test/ffi_test.dart
 
-InvalidTypeVariableInSupertype:
+InvalidTypeParameterInSupertype:
   problemMessage: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
 
-InvalidTypeVariableInSupertypeWithVariance:
+InvalidTypeParameterInSupertypeWithVariance:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
   script: >
     class A<out X> {}
     class B<out Y> extends A<Function(Y)> {}
 
-InvalidTypeVariableVariancePosition:
+InvalidTypeParameterVariancePosition:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position."
   script: >
     class A<out T> {
       void method(T x) {}
     }
 
-InvalidTypeVariableVariancePositionInReturnType:
+InvalidTypeParameterVariancePositionInReturnType:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in the return type."
   script: >
     class A<in T> {

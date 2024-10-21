@@ -60,7 +60,7 @@ class DillClassBuilder extends ClassBuilderImpl
 
   late final ConstructorScope _constructorScope;
 
-  List<NominalVariableBuilder>? _typeVariables;
+  List<NominalParameterBuilder>? _typeParameters;
 
   TypeBuilder? _supertypeBuilder;
 
@@ -132,13 +132,13 @@ class DillClassBuilder extends ClassBuilderImpl
   bool get isNamedMixinApplication => cls.isMixinApplication;
 
   @override
-  List<NominalVariableBuilder>? get typeVariables {
-    List<NominalVariableBuilder>? typeVariables = _typeVariables;
-    if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables = _typeVariables = computeTypeVariableBuilders(
+  List<NominalParameterBuilder>? get typeParameters {
+    List<NominalParameterBuilder>? typeParameters = _typeParameters;
+    if (typeParameters == null && cls.typeParameters.isNotEmpty) {
+      typeParameters = _typeParameters = computeTypeParameterBuilders(
           cls.typeParameters, libraryBuilder.loader);
     }
-    return typeVariables;
+    return typeParameters;
   }
 
   @override
@@ -207,12 +207,12 @@ class DillClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  int get typeVariablesCount => cls.typeParameters.length;
+  int get typeParametersCount => cls.typeParameters.length;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    // For performance reasons, [typeVariables] aren't restored from [target].
+    // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
@@ -267,7 +267,7 @@ class DillClassBuilder extends ClassBuilderImpl
   void clearCachedValues() {
     _supertypeBuilder = null;
     _interfaceBuilders = null;
-    _typeVariables = null;
+    _typeParameters = null;
   }
 }
 
@@ -278,11 +278,11 @@ TypeBuilder? computeTypeBuilder(
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<NominalVariableBuilder>? computeTypeVariableBuilders(
+List<NominalParameterBuilder>? computeTypeParameterBuilders(
     List<TypeParameter>? typeParameters, Loader loader) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  return <NominalVariableBuilder>[
+  return <NominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
-      new NominalVariableBuilder.fromKernel(typeParameter, loader: loader)
+      new NominalParameterBuilder.fromKernel(typeParameter, loader: loader)
   ];
 }

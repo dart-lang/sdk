@@ -12,7 +12,8 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final int formalsOffset;
   final Modifiers modifiers;
   final OmittedTypeBuilder returnType;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
+  final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
@@ -28,6 +29,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
       required this.modifiers,
       required this.returnType,
       required this.typeParameters,
+      required this.typeParameterScope,
       required this.formals,
       required this.forAbstractClassOrMixin,
       required Token? beginInitializers})
@@ -84,8 +86,8 @@ class _PrimaryConstructorBodyBuildingContext
   }
 
   @override
-  LookupScope computeTypeParameterScope(LookupScope enclosingScope) {
-    return _fragment.builder.computeTypeParameterScope(enclosingScope);
+  LookupScope get typeParameterScope {
+    return _fragment.typeParameterScope;
   }
 
   @override

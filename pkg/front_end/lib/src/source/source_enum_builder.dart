@@ -87,7 +87,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
   SourceEnumBuilder.internal(
       {required List<MetadataBuilder>? metadata,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
       required TypeBuilder supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
@@ -106,7 +106,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             metadata: metadata,
             modifiers: Modifiers.empty,
             name: name,
-            typeVariables: typeVariables,
+            typeParameters: typeParameters,
             supertypeBuilder: supertypeBuilder,
             interfaceBuilders: interfaceBuilders,
             onTypes: null,
@@ -123,7 +123,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
   factory SourceEnumBuilder(
       {required List<MetadataBuilder>? metadata,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
       required TypeBuilder? supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
@@ -141,7 +141,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
         metadata: metadata,
         name: name,
-        typeVariables: typeVariables,
+        typeParameters: typeParameters,
         underscoreEnumTypeBuilder: underscoreEnumTypeBuilder,
         supertypeBuilder: supertypeBuilder,
         interfaceBuilders: interfaceBuilders,
@@ -206,32 +206,36 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // directly from dart:core.
     intType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("int"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess:
-            // If "int" resolves to an instance type variable then that we would
-            // allowed (the types that we are adding are in instance context
-            // after all) but it would be unexpected and we would like an
-            // assertion failure, since "int" was meant to be `int` from
+        instanceTypeParameterAccess:
+            // If "int" resolves to an instance type parameter then that we
+            // would allowed (the types that we are adding are in instance
+            // context after all) but it would be unexpected and we would like
+            // an assertion failure, since "int" was meant to be `int` from
             // `dart:core`.
             // TODO(johnniwinther): Add a more robust way of creating named
             // typed builders for dart:core types. This might be needed for the
             // enhanced enums feature where enums can actually declare type
             // variables.
-            InstanceTypeVariableAccessState.Unexpected);
+            InstanceTypeParameterAccessState.Unexpected);
     stringType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("String"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
     objectType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
     selfType = new NamedTypeBuilderImpl(new SyntheticTypeName(name, fileOffset),
         const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected,
         fileUri: fileUri,
         charOffset: fileOffset);
     listType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("List"), const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
 
     // metadata class E extends _Enum {
     //   const E(int index, String name) : super(index, name);
@@ -328,11 +332,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
         isSynthesized: true);
     if (customValuesDeclaration != null) {
       customValuesDeclaration.next = valuesBuilder;
-      nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+      nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
     } else {
       nameSpace.addLocalMember("values", valuesBuilder, setter: false);
-      nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+      nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
     }
 
@@ -355,7 +359,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
               returnType:
                   libraryBuilder.loader.inferableTypes.addInferableType(),
               name: "",
-              typeVariables: null,
+              typeParameters: null,
               formals: [],
               libraryBuilder: libraryBuilder,
               declarationBuilder: this,
@@ -380,7 +384,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
       nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);
-      nameSpaceBuilder.checkTypeVariableConflict(
+      nameSpaceBuilder.checkTypeParameterConflict(
           libraryBuilder,
           synthesizedDefaultConstructorBuilder!.name,
           synthesizedDefaultConstructorBuilder!,
@@ -392,7 +396,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         modifiers: Modifiers.empty,
         returnType: stringType,
         name: "_enumToString",
-        typeVariables: null,
+        typeParameters: null,
         formals: null,
         kind: ProcedureKind.Method,
         libraryBuilder: libraryBuilder,
@@ -412,7 +416,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             libraryName: new LibraryName(coreLibrary.library.reference)),
         isSynthetic: true);
     nameSpace.addLocalMember("_enumToString", toStringBuilder, setter: false);
-    nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+    nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri!);
 
     String className = name;
@@ -495,7 +499,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             isEnumElement: true);
         nameSpace.addLocalMember(name, fieldBuilder..next = existing,
             setter: false);
-        nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+        nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
             fieldBuilder.name, fieldBuilder, fieldBuilder.fileUri);
         elementBuilders.add(fieldBuilder);
       }

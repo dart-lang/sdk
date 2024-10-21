@@ -137,11 +137,11 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.redirectingFactoryTargetName');
   }
 
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
     if (isDeclarationInstanceContext) {
-      return InstanceTypeVariableAccessState.Allowed;
+      return InstanceTypeParameterAccessState.Allowed;
     } else {
-      return InstanceTypeVariableAccessState.Disallowed;
+      return InstanceTypeParameterAccessState.Disallowed;
     }
   }
 
@@ -528,8 +528,8 @@ class LibraryBodyBuilderContext extends BodyBuilderContext {
 mixin _DeclarationBodyBuilderContext<T extends DeclarationBuilder>
     implements BodyBuilderContext {
   @override
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
-    return InstanceTypeVariableAccessState.Allowed;
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
+    return InstanceTypeParameterAccessState.Allowed;
   }
 }
 
@@ -671,11 +671,11 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   bool get isExternalField => _member.isExternal;
 
   @override
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
     if (_member.isExtensionMember && !_member.isExternal) {
-      return InstanceTypeVariableAccessState.Invalid;
+      return InstanceTypeParameterAccessState.Invalid;
     } else {
-      return super.instanceTypeVariableAccessState;
+      return super.instanceTypeParameterAccessState;
     }
   }
 

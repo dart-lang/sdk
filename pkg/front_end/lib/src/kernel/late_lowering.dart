@@ -52,7 +52,7 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
             null)
           ..fileOffset = fileOffset,
         new ReturnStatement(
-            // If [type] is a type variable with undetermined nullability we
+            // If [type] is a type parameter with undetermined nullability we
             // need to create a read of the field that is promoted to the type
             // variable type.
             createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
@@ -170,7 +170,7 @@ Statement createGetterWithInitializerWithRecheck(CoreTypes coreTypes,
             null)
           ..fileOffset = fileOffset,
         new ReturnStatement(
-            // If [type] is a type variable with undetermined nullability we
+            // If [type] is a type parameter with undetermined nullability we
             // need to create a read of the field that is promoted to the type
             // variable type.
             createVariableRead(needsPromotion: type.isPotentiallyNonNullable))

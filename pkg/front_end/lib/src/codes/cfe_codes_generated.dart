@@ -4767,26 +4767,26 @@ Message _withArgumentsOverrideTypeMismatchSetter(
 const Template<
         Message Function(DartType _type, String name, String name2,
             DartType _type2, String name3)>
-    templateOverrideTypeVariablesBoundMismatch = const Template<
+    templateOverrideTypeParametersBoundMismatch = const Template<
         Message Function(DartType _type, String name, String name2,
             DartType _type2, String name3)>(
-  "OverrideTypeVariablesBoundMismatch",
+  "OverrideTypeParametersBoundMismatch",
   problemMessageTemplate:
       r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
-  withArguments: _withArgumentsOverrideTypeVariablesBoundMismatch,
+  withArguments: _withArgumentsOverrideTypeParametersBoundMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
     Message Function(DartType _type, String name, String name2, DartType _type2,
-        String name3)> codeOverrideTypeVariablesBoundMismatch = const Code<
+        String name3)> codeOverrideTypeParametersBoundMismatch = const Code<
     Message Function(DartType _type, String name, String name2, DartType _type2,
         String name3)>(
-  "OverrideTypeVariablesBoundMismatch",
+  "OverrideTypeParametersBoundMismatch",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeVariablesBoundMismatch(
+Message _withArgumentsOverrideTypeParametersBoundMismatch(
     DartType _type, String name, String name2, DartType _type2, String name3) {
   TypeLabeler labeler = new TypeLabeler();
   List<Object> typeParts = labeler.labelType(_type);
@@ -4800,7 +4800,7 @@ Message _withArgumentsOverrideTypeVariablesBoundMismatch(
   String type = typeParts.join();
   String type2 = type2Parts.join();
   return new Message(
-    codeOverrideTypeVariablesBoundMismatch,
+    codeOverrideTypeParametersBoundMismatch,
     problemMessage:
         """Declared bound '${type}' of type variable '${name}' of '${name2}' doesn't match the bound '${type2}' on overridden method '${name3}'.""" +
             labeler.originMessages,

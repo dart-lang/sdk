@@ -141,7 +141,7 @@ Future<void> main() async {
         "myPrefix", false, libraryBuilder, null,
         fileUri: uri, prefixOffset: -1, importOffset: -1);
     String assignmentOperator = "+=";
-    TypeDeclarationBuilder declaration = new NominalVariableBuilder.fromKernel(
+    TypeDeclarationBuilder declaration = new NominalParameterBuilder.fromKernel(
         new TypeParameter("T", const DynamicType(), const DynamicType()),
         loader: null);
     VariableDeclaration variable =
@@ -252,7 +252,7 @@ Future<void> main() async {
         " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check(
-        "TypeUseGenerator(offset: 4, declaration: NominalVariableBuilder(T), "
+        "TypeUseGenerator(offset: 4, declaration: NominalParameterBuilder(T), "
         "plainNameForRead: foo)",
         new TypeUseGenerator(
             helper, token, declaration, new SyntheticTypeName("foo", -1)));

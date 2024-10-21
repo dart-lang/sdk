@@ -252,13 +252,13 @@ const MessageCode messageAmbiguousExtensionCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAnnotationOnFunctionTypeTypeVariable =
-    messageAnnotationOnFunctionTypeTypeVariable;
+const Code<Null> codeAnnotationOnFunctionTypeTypeParameter =
+    messageAnnotationOnFunctionTypeTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAnnotationOnFunctionTypeTypeVariable =
+const MessageCode messageAnnotationOnFunctionTypeTypeParameter =
     const MessageCode(
-  "AnnotationOnFunctionTypeTypeVariable",
+  "AnnotationOnFunctionTypeTypeParameter",
   problemMessage:
       r"""A type variable on a function type can't have annotations.""",
 );
@@ -1611,26 +1611,26 @@ Message _withArgumentsConflictsWithSetter(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateConflictsWithTypeVariable =
+    templateConflictsWithTypeParameter =
     const Template<Message Function(String name)>(
-  "ConflictsWithTypeVariable",
+  "ConflictsWithTypeParameter",
   problemMessageTemplate: r"""Conflicts with type variable '#name'.""",
-  withArguments: _withArgumentsConflictsWithTypeVariable,
+  withArguments: _withArgumentsConflictsWithTypeParameter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithTypeVariable =
+const Code<Message Function(String name)> codeConflictsWithTypeParameter =
     const Code<Message Function(String name)>(
-  "ConflictsWithTypeVariable",
+  "ConflictsWithTypeParameter",
   analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithTypeVariable(String name) {
+Message _withArgumentsConflictsWithTypeParameter(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(
-    codeConflictsWithTypeVariable,
+    codeConflictsWithTypeParameter,
     problemMessage: """Conflicts with type variable '${name}'.""",
     arguments: {
       'name': name,
@@ -1639,12 +1639,12 @@ Message _withArgumentsConflictsWithTypeVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConflictsWithTypeVariableCause =
-    messageConflictsWithTypeVariableCause;
+const Code<Null> codeConflictsWithTypeParameterCause =
+    messageConflictsWithTypeParameterCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
-  "ConflictsWithTypeVariableCause",
+const MessageCode messageConflictsWithTypeParameterCause = const MessageCode(
+  "ConflictsWithTypeParameterCause",
   severity: Severity.context,
   problemMessage: r"""This is the type variable.""",
 );
@@ -2588,31 +2588,31 @@ const MessageCode messageCovariantMember = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
-    templateCycleInTypeVariables =
+    templateCycleInTypeParameters =
     const Template<Message Function(String name, String string)>(
-  "CycleInTypeVariables",
+  "CycleInTypeParameters",
   problemMessageTemplate:
       r"""Type '#name' is a bound of itself via '#string'.""",
   correctionMessageTemplate:
       r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-  withArguments: _withArgumentsCycleInTypeVariables,
+  withArguments: _withArgumentsCycleInTypeParameters,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)>
-    codeCycleInTypeVariables =
+    codeCycleInTypeParameters =
     const Code<Message Function(String name, String string)>(
-  "CycleInTypeVariables",
+  "CycleInTypeParameters",
   analyzerCodes: <String>["TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCycleInTypeVariables(String name, String string) {
+Message _withArgumentsCycleInTypeParameters(String name, String string) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (string.isEmpty) throw 'No string provided';
   return new Message(
-    codeCycleInTypeVariables,
+    codeCycleInTypeParameters,
     problemMessage: """Type '${name}' is a bound of itself via '${string}'.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
@@ -3005,28 +3005,28 @@ ${num3} ms/libraries.""",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateDirectCycleInTypeVariables =
+    templateDirectCycleInTypeParameters =
     const Template<Message Function(String name)>(
-  "DirectCycleInTypeVariables",
+  "DirectCycleInTypeParameters",
   problemMessageTemplate: r"""Type '#name' can't use itself as a bound.""",
   correctionMessageTemplate:
       r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-  withArguments: _withArgumentsDirectCycleInTypeVariables,
+  withArguments: _withArgumentsDirectCycleInTypeParameters,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDirectCycleInTypeVariables =
+const Code<Message Function(String name)> codeDirectCycleInTypeParameters =
     const Code<Message Function(String name)>(
-  "DirectCycleInTypeVariables",
+  "DirectCycleInTypeParameters",
   analyzerCodes: <String>["TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCycleInTypeVariables(String name) {
+Message _withArgumentsDirectCycleInTypeParameters(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(
-    codeDirectCycleInTypeVariables,
+    codeDirectCycleInTypeParameters,
     problemMessage: """Type '${name}' can't use itself as a bound.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
@@ -9793,23 +9793,23 @@ const MessageCode messageInvalidThisInInitializer = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string2, String name2)>
-    templateInvalidTypeVariableInSupertype =
+    templateInvalidTypeParameterInSupertype =
     const Template<Message Function(String name, String string2, String name2)>(
-  "InvalidTypeVariableInSupertype",
+  "InvalidTypeParameterInSupertype",
   problemMessageTemplate:
       r"""Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'.""",
-  withArguments: _withArgumentsInvalidTypeVariableInSupertype,
+  withArguments: _withArgumentsInvalidTypeParameterInSupertype,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string2, String name2)>
-    codeInvalidTypeVariableInSupertype =
+    codeInvalidTypeParameterInSupertype =
     const Code<Message Function(String name, String string2, String name2)>(
-  "InvalidTypeVariableInSupertype",
+  "InvalidTypeParameterInSupertype",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeVariableInSupertype(
+Message _withArgumentsInvalidTypeParameterInSupertype(
     String name, String string2, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
@@ -9817,7 +9817,7 @@ Message _withArgumentsInvalidTypeVariableInSupertype(
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   return new Message(
-    codeInvalidTypeVariableInSupertype,
+    codeInvalidTypeParameterInSupertype,
     problemMessage:
         """Can't use implicitly 'out' variable '${name}' in an '${string2}' position in supertype '${name2}'.""",
     arguments: {
@@ -9832,27 +9832,27 @@ Message _withArgumentsInvalidTypeVariableInSupertype(
 const Template<
         Message Function(
             String string, String name, String string2, String name2)>
-    templateInvalidTypeVariableInSupertypeWithVariance = const Template<
+    templateInvalidTypeParameterInSupertypeWithVariance = const Template<
         Message Function(
             String string, String name, String string2, String name2)>(
-  "InvalidTypeVariableInSupertypeWithVariance",
+  "InvalidTypeParameterInSupertypeWithVariance",
   problemMessageTemplate:
       r"""Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'.""",
-  withArguments: _withArgumentsInvalidTypeVariableInSupertypeWithVariance,
+  withArguments: _withArgumentsInvalidTypeParameterInSupertypeWithVariance,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
         Message Function(
             String string, String name, String string2, String name2)>
-    codeInvalidTypeVariableInSupertypeWithVariance = const Code<
+    codeInvalidTypeParameterInSupertypeWithVariance = const Code<
         Message Function(
             String string, String name, String string2, String name2)>(
-  "InvalidTypeVariableInSupertypeWithVariance",
+  "InvalidTypeParameterInSupertypeWithVariance",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeVariableInSupertypeWithVariance(
+Message _withArgumentsInvalidTypeParameterInSupertypeWithVariance(
     String string, String name, String string2, String name2) {
   if (string.isEmpty) throw 'No string provided';
   if (name.isEmpty) throw 'No name provided';
@@ -9861,7 +9861,7 @@ Message _withArgumentsInvalidTypeVariableInSupertypeWithVariance(
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   return new Message(
-    codeInvalidTypeVariableInSupertypeWithVariance,
+    codeInvalidTypeParameterInSupertypeWithVariance,
     problemMessage:
         """Can't use '${string}' type variable '${name}' in an '${string2}' position in supertype '${name2}'.""",
     arguments: {
@@ -9875,30 +9875,30 @@ Message _withArgumentsInvalidTypeVariableInSupertypeWithVariance(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name, String string2)>
-    templateInvalidTypeVariableVariancePosition = const Template<
+    templateInvalidTypeParameterVariancePosition = const Template<
         Message Function(String string, String name, String string2)>(
-  "InvalidTypeVariableVariancePosition",
+  "InvalidTypeParameterVariancePosition",
   problemMessageTemplate:
       r"""Can't use '#string' type variable '#name' in an '#string2' position.""",
-  withArguments: _withArgumentsInvalidTypeVariableVariancePosition,
+  withArguments: _withArgumentsInvalidTypeParameterVariancePosition,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string, String name, String string2)>
-    codeInvalidTypeVariableVariancePosition =
+    codeInvalidTypeParameterVariancePosition =
     const Code<Message Function(String string, String name, String string2)>(
-  "InvalidTypeVariableVariancePosition",
+  "InvalidTypeParameterVariancePosition",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeVariableVariancePosition(
+Message _withArgumentsInvalidTypeParameterVariancePosition(
     String string, String name, String string2) {
   if (string.isEmpty) throw 'No string provided';
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (string2.isEmpty) throw 'No string provided';
   return new Message(
-    codeInvalidTypeVariableVariancePosition,
+    codeInvalidTypeParameterVariancePosition,
     problemMessage:
         """Can't use '${string}' type variable '${name}' in an '${string2}' position.""",
     arguments: {
@@ -9911,30 +9911,30 @@ Message _withArgumentsInvalidTypeVariableVariancePosition(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name, String string2)>
-    templateInvalidTypeVariableVariancePositionInReturnType = const Template<
+    templateInvalidTypeParameterVariancePositionInReturnType = const Template<
         Message Function(String string, String name, String string2)>(
-  "InvalidTypeVariableVariancePositionInReturnType",
+  "InvalidTypeParameterVariancePositionInReturnType",
   problemMessageTemplate:
       r"""Can't use '#string' type variable '#name' in an '#string2' position in the return type.""",
-  withArguments: _withArgumentsInvalidTypeVariableVariancePositionInReturnType,
+  withArguments: _withArgumentsInvalidTypeParameterVariancePositionInReturnType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string, String name, String string2)>
-    codeInvalidTypeVariableVariancePositionInReturnType =
+    codeInvalidTypeParameterVariancePositionInReturnType =
     const Code<Message Function(String string, String name, String string2)>(
-  "InvalidTypeVariableVariancePositionInReturnType",
+  "InvalidTypeParameterVariancePositionInReturnType",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeVariableVariancePositionInReturnType(
+Message _withArgumentsInvalidTypeParameterVariancePositionInReturnType(
     String string, String name, String string2) {
   if (string.isEmpty) throw 'No string provided';
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (string2.isEmpty) throw 'No string provided';
   return new Message(
-    codeInvalidTypeVariableVariancePositionInReturnType,
+    codeInvalidTypeParameterVariancePositionInReturnType,
     problemMessage:
         """Can't use '${string}' type variable '${name}' in an '${string2}' position in the return type.""",
     arguments: {
@@ -14423,30 +14423,31 @@ Message _withArgumentsOverrideMoreRequiredArguments(String name, String name2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2)>
-    templateOverrideTypeVariablesMismatch =
+    templateOverrideTypeParametersMismatch =
     const Template<Message Function(String name, String name2)>(
-  "OverrideTypeVariablesMismatch",
+  "OverrideTypeParametersMismatch",
   problemMessageTemplate:
       r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
-  withArguments: _withArgumentsOverrideTypeVariablesMismatch,
+  withArguments: _withArgumentsOverrideTypeParametersMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String name2)>
-    codeOverrideTypeVariablesMismatch =
+    codeOverrideTypeParametersMismatch =
     const Code<Message Function(String name, String name2)>(
-  "OverrideTypeVariablesMismatch",
+  "OverrideTypeParametersMismatch",
   analyzerCodes: <String>["INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
+Message _withArgumentsOverrideTypeParametersMismatch(
+    String name, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
   return new Message(
-    codeOverrideTypeVariablesMismatch,
+    codeOverrideTypeParametersMismatch,
     problemMessage:
         """Declared type variables of '${name}' doesn't match those on overridden method '${name2}'.""",
     arguments: {
@@ -14796,12 +14797,12 @@ const MessageCode messagePatchClassOrigin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codePatchClassTypeVariablesMismatch =
-    messagePatchClassTypeVariablesMismatch;
+const Code<Null> codePatchClassTypeParametersMismatch =
+    messagePatchClassTypeParametersMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchClassTypeVariablesMismatch = const MessageCode(
-  "PatchClassTypeVariablesMismatch",
+const MessageCode messagePatchClassTypeParametersMismatch = const MessageCode(
+  "PatchClassTypeParametersMismatch",
   problemMessage:
       r"""A patch class must have the same number of type variables as its origin class.""",
 );
@@ -15914,26 +15915,27 @@ Message _withArgumentsSuperExtensionTypeIsIllegal(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateSuperExtensionTypeIsTypeVariable =
+    templateSuperExtensionTypeIsTypeParameter =
     const Template<Message Function(String name)>(
-  "SuperExtensionTypeIsTypeVariable",
+  "SuperExtensionTypeIsTypeParameter",
   problemMessageTemplate:
       r"""The type variable '#name' can't be implemented by an extension type.""",
-  withArguments: _withArgumentsSuperExtensionTypeIsTypeVariable,
+  withArguments: _withArgumentsSuperExtensionTypeIsTypeParameter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeSuperExtensionTypeIsTypeVariable =
+const Code<Message Function(String name)>
+    codeSuperExtensionTypeIsTypeParameter =
     const Code<Message Function(String name)>(
-  "SuperExtensionTypeIsTypeVariable",
+  "SuperExtensionTypeIsTypeParameter",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsTypeVariable(String name) {
+Message _withArgumentsSuperExtensionTypeIsTypeParameter(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(
-    codeSuperExtensionTypeIsTypeVariable,
+    codeSuperExtensionTypeIsTypeParameter,
     problemMessage:
         """The type variable '${name}' can't be implemented by an extension type.""",
     arguments: {
@@ -16232,27 +16234,27 @@ Message _withArgumentsSupertypeIsIllegal(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateSupertypeIsTypeVariable =
+const Template<Message Function(String name)> templateSupertypeIsTypeParameter =
     const Template<Message Function(String name)>(
-  "SupertypeIsTypeVariable",
+  "SupertypeIsTypeParameter",
   problemMessageTemplate:
       r"""The type variable '#name' can't be used as supertype.""",
-  withArguments: _withArgumentsSupertypeIsTypeVariable,
+  withArguments: _withArgumentsSupertypeIsTypeParameter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeSupertypeIsTypeVariable =
+const Code<Message Function(String name)> codeSupertypeIsTypeParameter =
     const Code<Message Function(String name)>(
-  "SupertypeIsTypeVariable",
+  "SupertypeIsTypeParameter",
   analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsTypeVariable(String name) {
+Message _withArgumentsSupertypeIsTypeParameter(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(
-    codeSupertypeIsTypeVariable,
+    codeSupertypeIsTypeParameter,
     problemMessage:
         """The type variable '${name}' can't be used as supertype.""",
     arguments: {
@@ -16662,44 +16664,56 @@ Message _withArgumentsTypeOriginWithFileUri(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeTypeVariableDuplicatedName =
-    messageTypeVariableDuplicatedName;
+const Code<Null> codeTypeParameterDuplicatedName =
+    messageTypeParameterDuplicatedName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeVariableDuplicatedName = const MessageCode(
-  "TypeVariableDuplicatedName",
+const MessageCode messageTypeParameterDuplicatedName = const MessageCode(
+  "TypeParameterDuplicatedName",
   analyzerCodes: <String>["DUPLICATE_DEFINITION"],
   problemMessage: r"""A type variable can't have the same name as another.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateTypeVariableDuplicatedNameCause =
+    templateTypeParameterDuplicatedNameCause =
     const Template<Message Function(String name)>(
-  "TypeVariableDuplicatedNameCause",
+  "TypeParameterDuplicatedNameCause",
   problemMessageTemplate: r"""The other type variable named '#name'.""",
-  withArguments: _withArgumentsTypeVariableDuplicatedNameCause,
+  withArguments: _withArgumentsTypeParameterDuplicatedNameCause,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeTypeVariableDuplicatedNameCause =
+const Code<Message Function(String name)> codeTypeParameterDuplicatedNameCause =
     const Code<Message Function(String name)>(
-  "TypeVariableDuplicatedNameCause",
+  "TypeParameterDuplicatedNameCause",
   severity: Severity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeVariableDuplicatedNameCause(String name) {
+Message _withArgumentsTypeParameterDuplicatedNameCause(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(
-    codeTypeVariableDuplicatedNameCause,
+    codeTypeParameterDuplicatedNameCause,
     problemMessage: """The other type variable named '${name}'.""",
     arguments: {
       'name': name,
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypeParameterSameNameAsEnclosing =
+    messageTypeParameterSameNameAsEnclosing;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypeParameterSameNameAsEnclosing = const MessageCode(
+  "TypeParameterSameNameAsEnclosing",
+  analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_CLASS"],
+  problemMessage:
+      r"""A type variable can't have the same name as its enclosing declaration.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeVariableInConstantContext =
@@ -16721,18 +16735,6 @@ const MessageCode messageTypeVariableInStaticContext = const MessageCode(
   "TypeVariableInStaticContext",
   analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
   problemMessage: r"""Type variables can't be used in static members.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeTypeVariableSameNameAsEnclosing =
-    messageTypeVariableSameNameAsEnclosing;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeVariableSameNameAsEnclosing = const MessageCode(
-  "TypeVariableSameNameAsEnclosing",
-  analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_CLASS"],
-  problemMessage:
-      r"""A type variable can't have the same name as its enclosing declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16786,24 +16788,24 @@ const MessageCode messageTypedefNullableType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeTypedefTypeVariableNotConstructor =
-    messageTypedefTypeVariableNotConstructor;
+const Code<Null> codeTypedefTypeParameterNotConstructor =
+    messageTypedefTypeParameterNotConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefTypeVariableNotConstructor = const MessageCode(
-  "TypedefTypeVariableNotConstructor",
+const MessageCode messageTypedefTypeParameterNotConstructor = const MessageCode(
+  "TypedefTypeParameterNotConstructor",
   problemMessage:
       r"""Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeTypedefTypeVariableNotConstructorCause =
-    messageTypedefTypeVariableNotConstructorCause;
+const Code<Null> codeTypedefTypeParameterNotConstructorCause =
+    messageTypedefTypeParameterNotConstructorCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefTypeVariableNotConstructorCause =
+const MessageCode messageTypedefTypeParameterNotConstructorCause =
     const MessageCode(
-  "TypedefTypeVariableNotConstructorCause",
+  "TypedefTypeParameterNotConstructorCause",
   severity: Severity.context,
   problemMessage: r"""This is the type variable ultimately denoted.""",
 );

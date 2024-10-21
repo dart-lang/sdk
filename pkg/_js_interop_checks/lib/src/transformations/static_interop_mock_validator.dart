@@ -362,13 +362,13 @@ class StaticInteropMockValidator {
 class TypeParameterResolver extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
-    return node.nonTypeVariableBound;
+    return node.nonTypeParameterBound;
   }
 
   @override
   DartType? visitStructuralParameterType(
       StructuralParameterType node, Variance variance) {
-    return node.nonTypeVariableBound;
+    return node.nonTypeParameterBound;
   }
 
   DartType resolve(DartType node) {

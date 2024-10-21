@@ -2121,7 +2121,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitTypeLiteral(TypeLiteral node, TreeNode? removalSentinel) {
-    if (!containsFreeTypeVariables(node.type)) {
+    if (!containsFreeTypeParameters(node.type)) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitTypeLiteral(node, removalSentinel);
@@ -5033,7 +5033,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
   List<DartType>? _evaluateDartTypes(TreeNode node, List<DartType> types) {
-    // TODO: Once the frontend guarantees that there are no free type variables
+    // TODO: Once the frontend guarantees that there are no free type parameters
     // left over after substitution, we can enable this shortcut again:
     // if (env.isEmpty) return types;
     List<DartType> result =
@@ -5652,7 +5652,7 @@ class InstanceBuilder {
 /// Holds an environment of type parameters, parameters and variables.
 class EvaluationEnvironment {
   /// The values of the type parameters in scope.
-  final Map<TypeParameter, DartType> _typeVariables =
+  final Map<TypeParameter, DartType> _typeParameters =
       <TypeParameter, DartType>{};
 
   /// The references to values of the parameters/variables in scope.
@@ -5677,12 +5677,12 @@ class EvaluationEnvironment {
     // Since we look up variables in enclosing environment, the environment
     // is not empty if its parent is not empty.
     if (_parent != null && !_parent.isEmpty) return false;
-    return _typeVariables.isEmpty && _variables.isEmpty;
+    return _typeParameters.isEmpty && _variables.isEmpty;
   }
 
   void addTypeParameterValue(TypeParameter parameter, DartType value) {
-    assert(!_typeVariables.containsKey(parameter));
-    _typeVariables[parameter] = value;
+    assert(!_typeParameters.containsKey(parameter));
+    _typeParameters[parameter] = value;
   }
 
   void addVariableValue(VariableDeclaration variable, Constant value) {
@@ -5721,8 +5721,8 @@ class EvaluationEnvironment {
   }
 
   DartType substituteType(DartType type) {
-    if (_typeVariables.isEmpty) return _parent?.substituteType(type) ?? type;
-    final DartType substitutedType = substitute(type, _typeVariables);
+    if (_typeParameters.isEmpty) return _parent?.substituteType(type) ?? type;
+    final DartType substitutedType = substitute(type, _typeParameters);
     if (identical(substitutedType, type) && _parent != null) {
       // No distinct type created, substitute type in parent.
       return _parent.substituteType(type);

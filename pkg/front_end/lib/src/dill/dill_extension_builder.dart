@@ -27,7 +27,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
 
   late final ConstructorScope _constructorScope;
 
-  List<NominalVariableBuilder>? _typeParameters;
+  List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, this.libraryBuilder)
@@ -122,9 +122,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   ConstructorScope get constructorScope => _constructorScope;
 
   @override
-  List<NominalVariableBuilder>? get typeParameters {
+  List<NominalParameterBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
-      _typeParameters = computeTypeVariableBuilders(
+      _typeParameters = computeTypeParameterBuilders(
           extension.typeParameters, libraryBuilder.loader);
     }
     return _typeParameters;

@@ -904,7 +904,7 @@ class DietListener extends StackListenerImpl {
       required bool inMetadata,
       required bool inConstFields}) {
     final LookupScope typeParameterScope =
-        functionBodyBuildingContext.computeTypeParameterScope(memberScope);
+        functionBodyBuildingContext.typeParameterScope;
     final LocalScope formalParameterScope = functionBodyBuildingContext
         .computeFormalParameterScope(typeParameterScope);
     return createListener(

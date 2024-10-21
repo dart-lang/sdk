@@ -12,7 +12,7 @@ class NamedMixinApplicationFragment implements Fragment {
   final int endOffset;
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
   final TypeBuilder? supertype;
   final MixinApplicationBuilder mixins;
   final List<TypeBuilder>? interfaces;

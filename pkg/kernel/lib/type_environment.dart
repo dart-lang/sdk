@@ -83,7 +83,7 @@ abstract class TypeEnvironment extends Types {
     //
     // When none of these cases are applicable, we say that T does not have a
     // future type.
-    DartType resolved = t.nonTypeVariableBound;
+    DartType resolved = t.nonTypeParameterBound;
     if (resolved is TypeDeclarationType) {
       DartType? futureType =
           getTypeAsInstanceOf(resolved, coreTypes.futureClass, coreTypes);

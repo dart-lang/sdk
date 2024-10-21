@@ -464,16 +464,16 @@ sealed class DartType extends Node implements SharedTypeStructure<DartType> {
         nullability == Nullability.undetermined;
   }
 
-  /// Returns the non-type variable bound of this type, taking nullability
+  /// Returns the non-type parameter bound of this type, taking nullability
   /// into account.
   ///
   /// For instance in
   ///
   ///     method<T, S extends Class, U extends S?>()
   ///
-  /// the non-type variable bound of `T` is `Object?`, for `S` it is `Class`,
+  /// the non-type parameter bound of `T` is `Object?`, for `S` it is `Class`,
   /// and for `U` it is `Class?`.
-  DartType get nonTypeVariableBound;
+  DartType get nonTypeParameterBound;
 
   /// Returns `true` if members *not* declared on `Object` can be accessed on
   /// a receiver of this type.
@@ -567,7 +567,7 @@ class InvalidType extends DartType
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => true;
@@ -621,7 +621,7 @@ class DynamicType extends DartType
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -666,7 +666,7 @@ class VoidType extends DartType implements SharedVoidTypeStructure<DartType> {
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -725,7 +725,7 @@ class NeverType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {
@@ -791,7 +791,7 @@ class NullType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -855,7 +855,7 @@ class InterfaceType extends TypeDeclarationType {
       };
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -961,7 +961,7 @@ class FunctionType extends DartType
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {
@@ -1180,7 +1180,7 @@ class TypedefType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => unalias.nonTypeVariableBound;
+  DartType get nonTypeParameterBound => unalias.nonTypeParameterBound;
 
   @override
   bool get hasNonObjectMemberAccess => unalias.hasNonObjectMemberAccess;
@@ -1290,7 +1290,7 @@ class FutureOrType extends DartType {
   }
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -1394,7 +1394,7 @@ class ExtensionType extends TypeDeclarationType {
   }
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {
@@ -1667,8 +1667,8 @@ class IntersectionType extends DartType {
   }
 
   @override
-  DartType get nonTypeVariableBound {
-    DartType resolvedTypeParameterType = right.nonTypeVariableBound;
+  DartType get nonTypeParameterBound {
+    DartType resolvedTypeParameterType = right.nonTypeParameterBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
             inner: resolvedTypeParameterType.declaredNullability,
@@ -1677,7 +1677,7 @@ class IntersectionType extends DartType {
 
   @override
   bool get hasNonObjectMemberAccess =>
-      nonTypeVariableBound.hasNonObjectMemberAccess;
+      nonTypeParameterBound.hasNonObjectMemberAccess;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitIntersectionType(this);
@@ -1955,8 +1955,8 @@ class TypeParameterType extends DartType {
       : declaredNullability = computeNullabilityFromBound(parameter);
 
   @override
-  DartType get nonTypeVariableBound {
-    DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
+  DartType get nonTypeParameterBound {
+    DartType resolvedTypeParameterType = bound.nonTypeParameterBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
             inner: resolvedTypeParameterType.declaredNullability,
@@ -1965,7 +1965,7 @@ class TypeParameterType extends DartType {
 
   @override
   bool get hasNonObjectMemberAccess =>
-      nonTypeVariableBound.hasNonObjectMemberAccess;
+      nonTypeParameterBound.hasNonObjectMemberAccess;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
@@ -2097,8 +2097,8 @@ class StructuralParameterType extends DartType {
       : this(to, TypeParameterType.computeNullabilityFromBound(from));
 
   @override
-  DartType get nonTypeVariableBound {
-    DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
+  DartType get nonTypeParameterBound {
+    DartType resolvedTypeParameterType = bound.nonTypeParameterBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
             inner: resolvedTypeParameterType.nullability,
@@ -2107,7 +2107,7 @@ class StructuralParameterType extends DartType {
 
   @override
   bool get hasNonObjectMemberAccess =>
-      nonTypeVariableBound.hasNonObjectMemberAccess;
+      nonTypeParameterBound.hasNonObjectMemberAccess;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitStructuralParameterType(this);
@@ -2255,7 +2255,7 @@ class RecordType extends DartType
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {

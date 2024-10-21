@@ -23,7 +23,7 @@ abstract class FunctionBodyBuildingContext {
       required bool inMetadata,
       required bool inConstFields});
 
-  LookupScope computeTypeParameterScope(LookupScope enclosingScope);
+  LookupScope get typeParameterScope;
 
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope);
 

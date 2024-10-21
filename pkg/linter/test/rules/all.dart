@@ -162,6 +162,7 @@ import 'null_closures_test.dart' as null_closures;
 import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
 import 'omit_obvious_local_variable_types_test.dart'
     as omit_obvious_local_variable_types;
+import 'omit_obvious_property_types_test.dart' as omit_obvious_property_types;
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
@@ -237,6 +238,8 @@ import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
 import 'specify_nonobvious_local_variable_types_test.dart'
     as specify_nonobvious_local_variable_types;
+import 'specify_nonobvious_property_types_test.dart'
+    as specify_nonobvious_property_types;
 import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -430,6 +433,7 @@ void main() {
   null_closures.main();
   omit_local_variable_types.main();
   omit_obvious_local_variable_types.main();
+  omit_obvious_property_types.main();
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
@@ -488,6 +492,7 @@ void main() {
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
   specify_nonobvious_local_variable_types.main();
+  specify_nonobvious_property_types.main();
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();

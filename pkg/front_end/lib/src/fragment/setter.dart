@@ -15,7 +15,8 @@ class SetterFragment implements Fragment, FunctionFragment {
   final List<MetadataBuilder>? metadata;
   final Modifiers modifiers;
   final TypeBuilder returnType;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
+  final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
@@ -34,6 +35,7 @@ class SetterFragment implements Fragment, FunctionFragment {
       required this.modifiers,
       required this.returnType,
       required this.typeParameters,
+      required this.typeParameterScope,
       required this.formals,
       required this.asyncModifier,
       required this.nativeMethodName});
@@ -79,8 +81,8 @@ class _SetterBodyBuildingContext implements FunctionBodyBuildingContext {
   }
 
   @override
-  LookupScope computeTypeParameterScope(LookupScope enclosingScope) {
-    return _fragment.builder.computeTypeParameterScope(enclosingScope);
+  LookupScope get typeParameterScope {
+    return _fragment.typeParameterScope;
   }
 
   @override

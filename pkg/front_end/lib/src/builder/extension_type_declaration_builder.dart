@@ -9,7 +9,7 @@ abstract class ExtensionTypeDeclarationBuilder
   /// Type parameters declared on the extension type declaration.
   ///
   /// This is `null` if the extension type declaration is not generic.
-  List<NominalVariableBuilder>? get typeParameters;
+  List<NominalParameterBuilder>? get typeParameters;
 
   /// The type of the underlying representation.
   DartType get declaredRepresentationType;
@@ -49,7 +49,7 @@ abstract class ExtensionTypeDeclarationBuilderImpl
       {required bool hasExplicitTypeArguments}) {
     ExtensionType type =
         new ExtensionType(extensionTypeDeclaration, nullability, arguments);
-    if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
+    if (typeParametersCount != 0 && library is SourceLibraryBuilder) {
       library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
           inferred: !hasExplicitTypeArguments);
     }
@@ -58,8 +58,8 @@ abstract class ExtensionTypeDeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     return computeNullability();
   }
 }

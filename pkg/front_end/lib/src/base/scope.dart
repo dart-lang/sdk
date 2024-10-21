@@ -353,12 +353,12 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   Builder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
-    if (typeVariableBuilders == null) return parent;
+      LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
+    if (typeParameterBuilders == null) return parent;
     Map<String, Builder> map = {};
-    for (TypeVariableBuilder typeVariableBuilder in typeVariableBuilders) {
-      if (typeVariableBuilder.isWildcard) continue;
-      map[typeVariableBuilder.name] = typeVariableBuilder;
+    for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
+      if (typeParameterBuilder.isWildcard) continue;
+      map[typeParameterBuilder.name] = typeParameterBuilder;
     }
     return new TypeParameterScope(parent, map);
   }
