@@ -19,8 +19,11 @@ class UnnecessaryFinal extends LintRule {
         );
 
   @override
-  List<String> get incompatibleRules =>
-      const [LintNames.prefer_final_locals, LintNames.prefer_final_parameters];
+  List<String> get incompatibleRules => const [
+        LintNames.prefer_final_locals,
+        LintNames.prefer_final_parameters,
+        LintNames.prefer_final_in_for_each
+      ];
 
   @override
   List<LintCode> get lintCodes => [

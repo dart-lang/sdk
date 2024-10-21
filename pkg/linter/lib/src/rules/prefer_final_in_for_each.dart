@@ -19,6 +19,9 @@ class PreferFinalInForEach extends LintRule {
         );
 
   @override
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
+
+  @override
   List<LintCode> get lintCodes => [
         LinterLintCode.prefer_final_in_for_each_pattern,
         LinterLintCode.prefer_final_in_for_each_variable
