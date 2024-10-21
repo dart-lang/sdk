@@ -181,7 +181,7 @@ vars = {
   "sync_http_rev": "91c0dd5ef9a008f0277aadcfd83036f82e572d09",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "term_glyph_rev": "19d8c08a4e81122639129c62049896021910c932",
-  "test_rev": "8e8a83607d90a7a6813fa378b2d1962a2fc0d44b",
+  "test_rev": "73e30fb9441878abed529e242ddd3c6d6826c0dc",
   "test_descriptor_rev": "a3db1efe3dc725dcae9ee61647d3bfc19b3231ac",
   "test_process_rev": "52ee3f5ab70ed965bb7122c1d499081fbccd0bde",
   "test_reflective_loader_rev": "598af2f503955020af0eaa82558d574a03934078",
