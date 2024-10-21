@@ -1750,7 +1750,6 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
     if (identifier is Identifier) {
-      _builderFactory.endTopLevelMethod();
       final int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
       int nameOffset = identifier.nameOffset;
       int endOffset = endToken.charOffset;

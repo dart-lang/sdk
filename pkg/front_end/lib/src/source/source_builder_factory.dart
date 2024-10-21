@@ -415,13 +415,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endFactoryMethod() {
-    TypeScope typeParameterScope = _typeScopes.pop();
-    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
-        "Unexpected type scope: $typeParameterScope.");
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   void endFactoryMethodForParserRecovery() {
     TypeScope typeParameterScope = _typeScopes.pop();
@@ -442,13 +435,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         new NominalParameterScope(
             _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
-  }
-
-  @override
-  void endConstructor() {
-    TypeScope typeParameterScope = _typeScopes.pop();
-    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
-        "Unexpected type scope: $typeParameterScope.");
   }
 
   @override
@@ -473,13 +459,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         new NominalParameterScope(
             _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
-  }
-
-  @override
-  void endStaticMethod() {
-    TypeScope typeParameterScope = _typeScopes.pop();
-    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
-        "Unexpected type scope: $typeParameterScope.");
   }
 
   @override
@@ -508,13 +487,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void endInstanceMethod() {
-    TypeScope typeParameterScope = _typeScopes.pop();
-    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
-        "Unexpected type scope: $typeParameterScope.");
-  }
-
-  @override
   void endInstanceMethodForParserRecovery(
       List<NominalParameterBuilder>? typeParameters) {
     TypeScope typeParameterScope = _typeScopes.pop();
@@ -536,13 +508,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         new NominalParameterScope(
             _typeScopes.current.lookupScope, nominalParameterNameSpace),
         _typeScopes.current));
-  }
-
-  @override
-  void endTopLevelMethod() {
-    TypeScope typeParameterScope = _typeScopes.pop();
-    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
-        "Unexpected type scope: $typeParameterScope.");
   }
 
   @override
@@ -1393,13 +1358,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
     // [isConstructor]. The former is based on the enclosing declaration name
     // and get/set keyword. The latter also takes initializers into account.
-    if (inConstructor) {
-      endConstructor();
-    } else if (isStatic) {
-      endStaticMethod();
-    } else {
-      endInstanceMethod();
-    }
 
     if (isConstructor) {
       switch (declarationFragment) {
@@ -1619,6 +1577,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required String? nativeMethodName,
       required Token? beginInitializers,
       required bool forAbstractClassOrMixin}) {
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
     ConstructorFragment fragment = new ConstructorFragment(
         name: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1630,6 +1592,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         returnType: addInferableType(),
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         nativeMethodName: nativeMethodName,
         forAbstractClassOrMixin: forAbstractClassOrMixin,
@@ -1667,8 +1630,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int? nameOffset,
       required int formalsOffset,
       required bool isConst}) {
-    beginConstructor();
-    endConstructor();
+    NominalParameterNameSpace nominalParameterNameSpace =
+        new NominalParameterNameSpace();
+    _nominalParameterNameSpaces.push(nominalParameterNameSpace);
+    _typeScopes.push(new TypeScope(
+        TypeScopeKind.memberTypeParameters,
+        new NominalParameterScope(
+            _typeScopes.current.lookupScope, nominalParameterNameSpace),
+        _typeScopes.current));
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
     NominalParameterCopy? nominalVariableCopy = copyTypeParameters(
         _unboundNominalVariables, _declarationFragments.current.typeParameters,
         kind: TypeParameterKind.extensionSynthesized,
@@ -1685,6 +1658,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: isConst ? Modifiers.Const : Modifiers.empty,
         returnType: addInferableType(),
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         forAbstractClassOrMixin: false,
         beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
@@ -1790,6 +1764,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         returnType: returnType,
         typeParameters: typeParameters,
+        typeParameterScope: _typeScopes.current.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName,
@@ -1807,8 +1782,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       }
     }
 
-    // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
-    endFactoryMethod();
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
 
     _nominalParameterNameSpaces.pop().addTypeParameters(
         _problemReporting, typeParameters,
@@ -1948,6 +1924,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember}) {
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
     DeclarationFragment? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     assert(!isExtensionMember ||
@@ -1969,6 +1949,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
@@ -2001,6 +1982,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember}) {
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
     DeclarationFragment? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     assert(!isExtensionMember ||
@@ -2026,6 +2011,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         returnType: returnType,
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
@@ -2059,6 +2045,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool isInstanceMember,
       required bool isExtensionMember,
       required bool isExtensionTypeMember}) {
+    TypeScope typeParameterScope = _typeScopes.pop();
+    assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
+        "Unexpected type scope: $typeParameterScope.");
+
     DeclarationFragment? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     assert(!isExtensionMember ||
@@ -2090,6 +2080,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         kind: kind,
         asyncModifier: asyncModifier,

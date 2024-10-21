@@ -77,11 +77,6 @@ abstract class SourceFunctionBuilder
 
   LocalScope computeFormalParameterInitializerScope(LocalScope parent);
 
-  /// This scope doesn't correspond to any scope specified in the Dart
-  /// Programming Language Specification, 4th ed. It's an unspecified extension
-  /// to support generic methods.
-  LookupScope computeTypeParameterScope(LookupScope parent);
-
   FormalParameterBuilder? getFormal(Identifier identifier);
 
   Statement? get body;
@@ -240,7 +235,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         local: local);
   }
 
-  @override
+  // TODO(johnniwinther): Remove this.
   LookupScope computeTypeParameterScope(LookupScope parent) {
     if (typeParameters == null) return parent;
     Map<String, Builder> local = <String, Builder>{};

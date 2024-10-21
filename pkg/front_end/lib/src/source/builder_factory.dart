@@ -137,8 +137,6 @@ abstract class BuilderFactory {
 
   void beginFactoryMethod();
 
-  void endFactoryMethod();
-
   void endFactoryMethodForParserRecovery();
 
   void beginFunctionType();
@@ -147,28 +145,20 @@ abstract class BuilderFactory {
 
   void beginConstructor();
 
-  void endConstructor();
-
   void endConstructorForParserRecovery(
       List<NominalParameterBuilder>? typeParameters);
 
   void beginStaticMethod();
-
-  void endStaticMethod();
 
   void endStaticMethodForParserRecovery(
       List<NominalParameterBuilder>? typeParameters);
 
   void beginInstanceMethod();
 
-  void endInstanceMethod();
-
   void endInstanceMethodForParserRecovery(
       List<NominalParameterBuilder>? typeParameters);
 
   void beginTopLevelMethod();
-
-  void endTopLevelMethod();
 
   void endTopLevelMethodForParserRecovery(
       List<NominalParameterBuilder>? typeParameters);
