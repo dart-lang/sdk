@@ -19,6 +19,19 @@ class ConvertIntoGetterTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_GETTER;
 
+  Future<void> test_late() async {
+    await resolveTestCode('''
+class A {
+  late final int f = 1 + 2;
+}
+''');
+    await assertHasAssistAt('f =', '''
+class A {
+  int get f => 1 + 2;
+}
+''');
+  }
+
   Future<void> test_noInitializer() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''

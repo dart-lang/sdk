@@ -57,6 +57,30 @@ void f(Future<void> f, Future<void>? g) async {
 ''');
   }
 
+  test_awaitInside_methodInvocation() async {
+    await assertNoDiagnostics(r'''
+void f(Future<int> f) async {
+  (await f).toString();
+}
+''');
+  }
+
+  test_awaitInside_prefixExpression() async {
+    await assertNoDiagnostics(r'''
+void f(Future<bool> p) async {
+  !(await p);
+}
+''');
+  }
+
+  test_binaryExpressionInside_asExpression() async {
+    await assertNoDiagnostics(r'''
+void f(int a, int b) {
+  (b - a) as num;
+}
+''');
+  }
+
   test_binaryExpressionInside_constructorFieldInitializer() async {
     await assertDiagnostics(r'''
 class C {
@@ -66,6 +90,14 @@ class C {
 ''', [
       lint(32, 15),
     ]);
+  }
+
+  test_binaryExpressionInside_isExpression() async {
+    await assertNoDiagnostics(r'''
+void f(num a, num b) {
+  (b - a) is int;
+}
+''');
   }
 
   test_binaryExpressionInside_namedArgument() async {
@@ -114,6 +146,14 @@ bool f() {
     ]);
   }
 
+  test_binaryOperationInside_binaryOperation() async {
+    await assertNoDiagnostics(r'''
+void f(bool a, bool b) {
+  if ((a && b) || b) {}
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4041
   test_cascadeAssignmentInside_nullAware() async {
     await assertNoDiagnostics(r'''
@@ -134,6 +174,28 @@ void g(List<int>? list) {
 ''');
   }
 
+  test_cascadeInside_cascadeAssignmentExpression() async {
+    await assertNoDiagnostics(r'''
+void f(A a, int x) {
+  a..b = (x..isEven);
+}
+abstract class A {
+  int b = 0;
+}
+''');
+  }
+
+  test_cascadeInside_propertyAssignmentExpression() async {
+    await assertNoDiagnostics(r'''
+void f(A a, int x) {
+  a.b = (x..isEven);
+}
+abstract class A {
+  int b = 0;
+}
+''');
+  }
+
   test_conditionalExpressionInside_argument() async {
     await assertDiagnostics(r'''
 void f(int p) {
@@ -142,6 +204,12 @@ void f(int p) {
 ''', [
       lint(24, 16),
     ]);
+  }
+
+  test_conditionalExpressionInside_expressionBody() async {
+    await assertNoDiagnostics(r'''
+int f() => (1 == 1 ? 2 : 3);
+''');
   }
 
   test_conditionalExpressionInside_listLiteral() async {
@@ -162,9 +230,11 @@ void f() {
     ]);
   }
 
-  test_conditionalInside_expressionBody() async {
+  test_conditionalExpressionInside_targetOfMethodInvocation() async {
     await assertNoDiagnostics(r'''
-int f() => (1 == 1 ? 2 : 3);
+void f(bool b) {
+  (b ? [] : [])..add('');
+}
 ''');
   }
 
@@ -387,6 +457,62 @@ bool f() {
 ''');
   }
 
+  test_nullAwareCascadeInside_propretyAccess() async {
+    await assertNoDiagnostics(r'''
+void f(int? a) {
+  (a?..abs()).hashCode;
+}
+''');
+  }
+
+  test_nullAwareIndexExpressionInside_postfixExpression() async {
+    await assertNoDiagnostics(r'''
+void f(List<int?>? a) {
+  (a?[0])!;
+}
+''');
+  }
+
+  test_nullAwareIndexExpressionInside_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f(List<int>? a) {
+  (a?[0]).hashCode;
+}
+''');
+  }
+
+  test_nullAwareMethodInvocationInside_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f(int? a) {
+  (a?.abs()).hashCode;
+}
+''');
+  }
+
+  test_nullAwarePropertyAccessInside_postfixExpression() async {
+    await assertNoDiagnostics(r'''
+void f(int? a) {
+  (a?.sign)!;
+}
+''');
+  }
+
+  test_nullAwarePropertyAccessInside_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f(int? a) {
+  (a?.sign).hashCode;
+}
+''');
+  }
+
+  test_nullCheckInside_conditionalExpressionCondition() async {
+    await assertNoDiagnostics(r'''
+void f(bool? b) {
+  (b ?? true) ? true : true;
+}
+''');
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4062')
   test_parenthesizedPattern_nonPatternOutside() async {
     await assertDiagnostics(r'''
@@ -422,6 +548,37 @@ void f(int p) {
   (p++).hashCode;
 }
 ''');
+  }
+
+  test_prefixedIdentifierInside_cascadeAssignmentExpression() async {
+    await assertNoDiagnostics(r'''
+void f(A a) {
+  a..b = (a.b);
+}
+abstract class A {
+  int b = 0;
+}
+''');
+  }
+
+  test_prefixedIdentifierInside_targetOfMethodCall() async {
+    await assertDiagnostics(r'''
+void f() {
+  (0.isEven).toString();
+}
+''', [
+      lint(13, 10),
+    ]);
+  }
+
+  test_prefixedIdentifierInside_targetOfPropertyAccess() async {
+    await assertDiagnostics(r'''
+void f() {
+  (0.sign).isEven;
+}
+''', [
+      lint(13, 8),
+    ]);
   }
 
   test_prefixExpressionInside_targetOfMethodInvocation() async {
@@ -473,6 +630,114 @@ void f() {
 void g((int,) i) {}
 ''', [
       lint(15, 6),
+    ]);
+  }
+
+  test_setLiteralInside_binaryExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  ({1, 2, 3}) + {4};
+}
+
+extension<T> on Set<T> {
+  Set<T> operator +(Set<T> other) => {...this, ...other};
+}
+''');
+  }
+
+  test_setLiteralInside_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  ({false, true}).length;
+}
+''');
+  }
+
+  test_setLiteralInside_propertyAccess_functionArgument() async {
+    await assertDiagnostics(r'''
+void f() {
+  print(({1, 2, 3}).length);
+}
+''', [
+      lint(19, 11),
+    ]);
+  }
+
+  test_setLiteralInside_targetOfGenericTearoff() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  ({1, 2, 3}).cast<num>;
+}
+''');
+  }
+
+  test_simpleIdentifierInside_assignmentRightSide() async {
+    await assertDiagnostics(r'''
+void f(int a) {
+  a = (a);
+}
+''', [
+      lint(22, 3),
+    ]);
+  }
+
+  test_simpleIdentifierInside_conditionalExpressionCondition() async {
+    await assertDiagnostics(r'''
+void f(bool a) {
+  (a) ? 2 : 3;
+}
+''', [
+      lint(19, 3),
+    ]);
+  }
+
+  test_simpleIdentifierInside_conditionalExpressionElseExpression() async {
+    await assertDiagnostics(r'''
+void f(int a) {
+  1 == 2 ? true : (a); // LINT
+}
+''', [
+      lint(34, 3),
+    ]);
+  }
+
+  test_simpleIdentifierInside_conditionalExpressionThenExpression() async {
+    await assertDiagnostics(r'''
+void f(int a) {
+  1 == 2 ? (a) : false; // LINT
+}
+''', [
+      lint(27, 3),
+    ]);
+  }
+
+  test_simpleIdentifierInside_expressionStatement() async {
+    await assertDiagnostics(r'''
+void f(int a) {
+  (a);
+}
+''', [
+      lint(18, 3),
+    ]);
+  }
+
+  test_simpleIdentifierInside_functionArgument() async {
+    await assertDiagnostics(r'''
+void f(int a) {
+  print((a));
+}
+''', [
+      lint(24, 3),
+    ]);
+  }
+
+  test_simpleIdentifierInside_methodInvocation() async {
+    await assertDiagnostics(r'''
+void f(Function fn) {
+  (fn)(3);
+}
+''', [
+      lint(24, 4),
     ]);
   }
 
@@ -534,6 +799,38 @@ void f(Object p) {
     await assertNoDiagnostics(r'''
 void f(Object? p) {
   [...?(p as List?)];
+}
+''');
+  }
+
+  test_startsWithConstInside_prefixExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  !(const [7].contains(42));
+}
+''');
+  }
+
+  test_startsWithConstInside_targetOfMethodCall_prefixExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  !(const [7]).contains(42);
+}
+''');
+  }
+
+  test_startsWithNew2Inside_prefixExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  -(new List.empty().length);
+}
+''');
+  }
+
+  test_startsWithNewInside_prefixExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  !(new List.empty().contains(42));
 }
 ''');
   }
@@ -621,6 +918,14 @@ extension on String? {
     await assertNoDiagnostics(r'''
 void f() {
   (List<int>).toString();
+}
+''');
+  }
+
+  test_typeLiteralInside_propertyAccess() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (String).hashCode;
 }
 ''');
   }

@@ -374,11 +374,11 @@
     "categories": [
       "style"
     ],
-    "state": "removed",
+    "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DON'T** check for `null` in custom `==` operators.\n\nAs `null` is a special value, no instance of any class (other than `Null`) can\nbe equivalent to it.  Thus, it is redundant to check whether the other instance\nis `null`.\n\n**BAD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) =>\n      other != null && other is Person && name == other.name;\n}\n```\n\n**GOOD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) => other is Person && name == other.name;\n}\n```\n\nThis rule has been removed.",
+    "fixStatus": "hasFix",
+    "details": "**DON'T** check for `null` in custom `==` operators.\n\nAs `null` is a special value, no instance of any class (other than `Null`) can\nbe equivalent to it.  Thus, it is redundant to check whether the other instance\nis `null`.\n\n**BAD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) =>\n      other != null && other is Person && name == other.name;\n}\n```\n\n**GOOD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) => other is Person && name == other.name;\n}\n```",
     "sinceDartSdk": "2.0"
   },
   {
@@ -1877,7 +1877,9 @@
       "style"
     ],
     "state": "stable",
-    "incompatible": [],
+    "incompatible": [
+      "unnecessary_final"
+    ],
     "sets": [],
     "fixStatus": "hasFix",
     "details": "**DO** prefer declaring for-each loop variables as final if they are not\nreassigned later in the code.\n\nDeclaring for-each loop variables as final when possible is a good practice\nbecause it helps avoid accidental reassignments and allows the compiler to do\noptimizations.\n\n**BAD:**\n```dart\nfor (var element in elements) { // LINT\n  print('Element: $element');\n}\n```\n\n**GOOD:**\n```dart\nfor (final element in elements) {\n  print('Element: $element');\n}\n```\n\n**GOOD:**\n```dart\nfor (var element in elements) {\n  element = element + element;\n  print('Element: $element');\n}\n```",
@@ -2589,7 +2591,8 @@
     "state": "stable",
     "incompatible": [
       "prefer_final_locals",
-      "prefer_final_parameters"
+      "prefer_final_parameters",
+      "prefer_final_in_for_each"
     ],
     "sets": [],
     "fixStatus": "hasFix",

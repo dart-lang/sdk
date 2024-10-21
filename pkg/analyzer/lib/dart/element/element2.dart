@@ -278,18 +278,8 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   ConstructorFragmentName? get name2;
 
-  /// The offset of the end of the name in this fragment.
-  ///
-  /// Returns `null` if the fragment has no name.
-  int? get nameEnd;
-
   @override
   ConstructorFragment? get nextFragment;
-
-  /// The offset of the `.` before the constructor name.
-  ///
-  /// Returns `null` if the constructor is unnamed.
-  int? get periodOffset;
 
   @override
   ConstructorFragment? get previousFragment;

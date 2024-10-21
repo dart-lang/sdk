@@ -42,7 +42,7 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
     if (fieldDeclaration == null) {
       return;
     }
-    // The field must be final and has only one variable.
+    // The field must be final and have only one variable.
     var fieldList = fieldDeclaration.fields;
     var finalKeyword = fieldList.keyword;
     if (finalKeyword == null || fieldList.variables.length != 1) {
@@ -64,7 +64,9 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
     code += ' ${field.name.lexeme}';
     code += ' => ${utils.getNodeText(initializer)}';
     code += ';';
-    var replacementRange = range.startEnd(finalKeyword, fieldDeclaration);
+
+    var startingKeyword = fieldList.lateKeyword ?? finalKeyword;
+    var replacementRange = range.startEnd(startingKeyword, fieldDeclaration);
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(replacementRange, code);
     });

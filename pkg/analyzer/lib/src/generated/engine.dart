@@ -424,19 +424,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// re-throwing them).
   bool propagateLinterExceptions;
 
-  /// Whether implicit casts should be reported as potential problems.
+  @override
   final bool strictCasts;
 
-  /// A flag indicating whether inference failures are allowed, off by default.
-  ///
-  /// This option is experimental and subject to change.
+  @override
   final bool strictInference;
 
-  /// Whether raw types (types without explicit type arguments, such as `List`)
-  /// should be reported as potential problems.
-  ///
-  /// Raw types are a common source of `dynamic` being introduced implicitly.
-  /// This often leads to cast failures later on in the program.
+  @override
   final bool strictRawTypes;
 
   @override
