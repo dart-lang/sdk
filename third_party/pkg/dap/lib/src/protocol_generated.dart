@@ -127,6 +127,15 @@ class Breakpoint {
   /// This can be negative.
   final int? offset;
 
+  /// A machine-readable explanation of why a breakpoint may not be verified. If
+  /// a breakpoint is verified or a specific reason is not known, the adapter
+  /// should omit this property. Possible values include:
+  ///
+  /// - `pending`: Indicates a breakpoint might be verified in the future, but the adapter cannot verify it in the current state.
+  ///  - `failed`: Indicates a breakpoint was not able to be verified, and the
+  /// adapter does not believe it can be verified without intervention.
+  final String? reason;
+
   /// The source where the breakpoint is located.
   final Source? source;
 
@@ -146,6 +155,7 @@ class Breakpoint {
     this.line,
     this.message,
     this.offset,
+    this.reason,
     this.source,
     required this.verified,
   });
@@ -159,6 +169,7 @@ class Breakpoint {
         line = obj['line'] as int?,
         message = obj['message'] as String?,
         offset = obj['offset'] as int?,
+        reason = obj['reason'] as String?,
         source = obj['source'] == null
             ? null
             : Source.fromJson(obj['source'] as Map<String, Object?>),
@@ -192,6 +203,9 @@ class Breakpoint {
     if (obj['offset'] is! int?) {
       return false;
     }
+    if (obj['reason'] is! String?) {
+      return false;
+    }
     if (!Source.canParse(obj['source'])) {
       return false;
     }
@@ -211,6 +225,7 @@ class Breakpoint {
         if (line != null) 'line': line,
         if (message != null) 'message': message,
         if (offset != null) 'offset': offset,
+        if (reason != null) 'reason': reason,
         if (source != null) 'source': source,
         'verified': verified,
       };
@@ -302,7 +317,7 @@ class BreakpointLocationsArguments extends RequestArguments {
   final int line;
 
   /// The source location of the breakpoints; either `source.path` or
-  /// `source.reference` must be specified.
+  /// `source.sourceReference` must be specified.
   final Source source;
 
   static BreakpointLocationsArguments fromJson(Map<String, Object?> obj) =>
@@ -387,6 +402,75 @@ class BreakpointLocationsResponse extends Response {
       };
 }
 
+/// A `BreakpointMode` is provided as a option when setting breakpoints on
+/// sources or instructions.
+class BreakpointMode {
+  /// Describes one or more type of breakpoint this mode applies to.
+  final List<BreakpointModeApplicability> appliesTo;
+
+  /// A help text providing additional information about the breakpoint mode.
+  /// This string is typically shown as a hover and can be translated.
+  final String? description;
+
+  /// The name of the breakpoint mode. This is shown in the UI.
+  final String label;
+
+  /// The internal ID of the mode. This value is passed to the `setBreakpoints`
+  /// request.
+  final String mode;
+
+  static BreakpointMode fromJson(Map<String, Object?> obj) =>
+      BreakpointMode.fromMap(obj);
+
+  BreakpointMode({
+    required this.appliesTo,
+    this.description,
+    required this.label,
+    required this.mode,
+  });
+
+  BreakpointMode.fromMap(Map<String, Object?> obj)
+      : appliesTo = (obj['appliesTo'] as List)
+            .map((item) => item as BreakpointModeApplicability)
+            .toList(),
+        description = obj['description'] as String?,
+        label = obj['label'] as String,
+        mode = obj['mode'] as String;
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if ((obj['appliesTo'] is! List ||
+        (obj['appliesTo']
+            .any((item) => item is! BreakpointModeApplicability)))) {
+      return false;
+    }
+    if (obj['description'] is! String?) {
+      return false;
+    }
+    if (obj['label'] is! String) {
+      return false;
+    }
+    if (obj['mode'] is! String) {
+      return false;
+    }
+    return true;
+  }
+
+  Map<String, Object?> toJson() => {
+        'appliesTo': appliesTo,
+        if (description != null) 'description': description,
+        'label': label,
+        'mode': mode,
+      };
+}
+
+/// Describes one or more type of breakpoint a `BreakpointMode` applies to. This
+/// is a non-exhaustive enumeration and may expand as future breakpoint types
+/// are added.
+typedef BreakpointModeApplicability = String;
+
 /// Arguments for `cancel` request.
 class CancelArguments extends RequestArguments {
   /// The ID (attribute `progressId`) of the progress to cancel. If missing no
@@ -465,6 +549,14 @@ class Capabilities {
   /// The set of additional module information exposed by the debug adapter.
   final List<ColumnDescriptor>? additionalModuleColumns;
 
+  /// Modes of breakpoints supported by the debug adapter, such as 'hardware' or
+  /// 'software'. If present, the client may allow the user to select a mode and
+  /// include it in its `setBreakpoints` request.
+  ///
+  /// Clients may present the first applicable mode in this array as the
+  /// 'default' mode in gestures that set breakpoints.
+  final List<BreakpointMode>? breakpointModes;
+
   /// The set of characters that should trigger completion in a REPL. If not
   /// specified, the UI should assume the `.` character.
   final List<String>? completionTriggerCharacters;
@@ -484,6 +576,10 @@ class Capabilities {
   /// Checksum algorithms supported by the debug adapter.
   final List<ChecksumAlgorithm>? supportedChecksumAlgorithms;
 
+  /// The debug adapter supports ANSI escape sequences in styling of
+  /// `OutputEvent.output` and `Variable.value` fields.
+  final bool? supportsANSIStyling;
+
   /// The debug adapter supports the `breakpointLocations` request.
   final bool? supportsBreakpointLocationsRequest;
 
@@ -502,6 +598,10 @@ class Capabilities {
 
   /// The debug adapter supports the `configurationDone` request.
   final bool? supportsConfigurationDoneRequest;
+
+  /// The debug adapter supports the `asAddress` and `bytes` fields in the
+  /// `dataBreakpointInfo` request.
+  final bool? supportsDataBreakpointBytes;
 
   /// The debug adapter supports data breakpoints.
   final bool? supportsDataBreakpoints;
@@ -604,17 +704,20 @@ class Capabilities {
 
   Capabilities({
     this.additionalModuleColumns,
+    this.breakpointModes,
     this.completionTriggerCharacters,
     this.exceptionBreakpointFilters,
     this.supportSuspendDebuggee,
     this.supportTerminateDebuggee,
     this.supportedChecksumAlgorithms,
+    this.supportsANSIStyling,
     this.supportsBreakpointLocationsRequest,
     this.supportsCancelRequest,
     this.supportsClipboardContext,
     this.supportsCompletionsRequest,
     this.supportsConditionalBreakpoints,
     this.supportsConfigurationDoneRequest,
+    this.supportsDataBreakpointBytes,
     this.supportsDataBreakpoints,
     this.supportsDelayedStackTraceLoading,
     this.supportsDisassembleRequest,
@@ -649,6 +752,10 @@ class Capabilities {
             ?.map((item) =>
                 ColumnDescriptor.fromJson(item as Map<String, Object?>))
             .toList(),
+        breakpointModes = (obj['breakpointModes'] as List?)
+            ?.map(
+                (item) => BreakpointMode.fromJson(item as Map<String, Object?>))
+            .toList(),
         completionTriggerCharacters =
             (obj['completionTriggerCharacters'] as List?)
                 ?.map((item) => item as String)
@@ -664,6 +771,7 @@ class Capabilities {
             (obj['supportedChecksumAlgorithms'] as List?)
                 ?.map((item) => item as ChecksumAlgorithm)
                 .toList(),
+        supportsANSIStyling = obj['supportsANSIStyling'] as bool?,
         supportsBreakpointLocationsRequest =
             obj['supportsBreakpointLocationsRequest'] as bool?,
         supportsCancelRequest = obj['supportsCancelRequest'] as bool?,
@@ -673,6 +781,8 @@ class Capabilities {
             obj['supportsConditionalBreakpoints'] as bool?,
         supportsConfigurationDoneRequest =
             obj['supportsConfigurationDoneRequest'] as bool?,
+        supportsDataBreakpointBytes =
+            obj['supportsDataBreakpointBytes'] as bool?,
         supportsDataBreakpoints = obj['supportsDataBreakpoints'] as bool?,
         supportsDelayedStackTraceLoading =
             obj['supportsDelayedStackTraceLoading'] as bool?,
@@ -722,6 +832,11 @@ class Capabilities {
             .any((item) => !ColumnDescriptor.canParse(item))))) {
       return false;
     }
+    if ((obj['breakpointModes'] is! List ||
+        (obj['breakpointModes']
+            .any((item) => !BreakpointMode.canParse(item))))) {
+      return false;
+    }
     if ((obj['completionTriggerCharacters'] is! List ||
         (obj['completionTriggerCharacters'].any((item) => item is! String)))) {
       return false;
@@ -742,6 +857,9 @@ class Capabilities {
             .any((item) => item is! ChecksumAlgorithm)))) {
       return false;
     }
+    if (obj['supportsANSIStyling'] is! bool?) {
+      return false;
+    }
     if (obj['supportsBreakpointLocationsRequest'] is! bool?) {
       return false;
     }
@@ -758,6 +876,9 @@ class Capabilities {
       return false;
     }
     if (obj['supportsConfigurationDoneRequest'] is! bool?) {
+      return false;
+    }
+    if (obj['supportsDataBreakpointBytes'] is! bool?) {
       return false;
     }
     if (obj['supportsDataBreakpoints'] is! bool?) {
@@ -847,6 +968,7 @@ class Capabilities {
   Map<String, Object?> toJson() => {
         if (additionalModuleColumns != null)
           'additionalModuleColumns': additionalModuleColumns,
+        if (breakpointModes != null) 'breakpointModes': breakpointModes,
         if (completionTriggerCharacters != null)
           'completionTriggerCharacters': completionTriggerCharacters,
         if (exceptionBreakpointFilters != null)
@@ -857,6 +979,8 @@ class Capabilities {
           'supportTerminateDebuggee': supportTerminateDebuggee,
         if (supportedChecksumAlgorithms != null)
           'supportedChecksumAlgorithms': supportedChecksumAlgorithms,
+        if (supportsANSIStyling != null)
+          'supportsANSIStyling': supportsANSIStyling,
         if (supportsBreakpointLocationsRequest != null)
           'supportsBreakpointLocationsRequest':
               supportsBreakpointLocationsRequest,
@@ -870,6 +994,8 @@ class Capabilities {
           'supportsConditionalBreakpoints': supportsConditionalBreakpoints,
         if (supportsConfigurationDoneRequest != null)
           'supportsConfigurationDoneRequest': supportsConfigurationDoneRequest,
+        if (supportsDataBreakpointBytes != null)
+          'supportsDataBreakpointBytes': supportsDataBreakpointBytes,
         if (supportsDataBreakpoints != null)
           'supportsDataBreakpoints': supportsDataBreakpoints,
         if (supportsDelayedStackTraceLoading != null)
@@ -1445,14 +1571,35 @@ typedef DataBreakpointAccessType = String;
 
 /// Arguments for `dataBreakpointInfo` request.
 class DataBreakpointInfoArguments extends RequestArguments {
+  /// If `true`, the `name` is a memory address and the debugger should
+  /// interpret it as a decimal value, or hex value if it is prefixed with `0x`.
+  ///
+  /// Clients may set this property only if the `supportsDataBreakpointBytes`
+  /// capability is true.
+  final bool? asAddress;
+
+  /// If specified, a debug adapter should return information for the range of
+  /// memory extending `bytes` number of bytes from the address or variable
+  /// specified by `name`. Breakpoints set using the resulting data ID should
+  /// pause on data access anywhere within that range.
+  ///
+  /// Clients may set this property only if the `supportsDataBreakpointBytes`
+  /// capability is true.
+  final int? bytes;
+
   /// When `name` is an expression, evaluate it in the scope of this stack
   /// frame. If not specified, the expression is evaluated in the global scope.
   /// When `variablesReference` is specified, this property has no effect.
   final int? frameId;
 
+  /// The mode of the desired breakpoint. If defined, this must be one of the
+  /// `breakpointModes` the debug adapter advertised in its `Capabilities`.
+  final String? mode;
+
   /// The name of the variable's child to obtain data breakpoint information
   /// for.
-  /// If `variablesReference` isn't specified, this can be an expression.
+  /// If `variablesReference` isn't specified, this can be an expression, or an
+  /// address if `asAddress` is also true.
   final String name;
 
   /// Reference to the variable container if the data breakpoint is requested
@@ -1465,13 +1612,19 @@ class DataBreakpointInfoArguments extends RequestArguments {
       DataBreakpointInfoArguments.fromMap(obj);
 
   DataBreakpointInfoArguments({
+    this.asAddress,
+    this.bytes,
     this.frameId,
+    this.mode,
     required this.name,
     this.variablesReference,
   });
 
   DataBreakpointInfoArguments.fromMap(Map<String, Object?> obj)
-      : frameId = obj['frameId'] as int?,
+      : asAddress = obj['asAddress'] as bool?,
+        bytes = obj['bytes'] as int?,
+        frameId = obj['frameId'] as int?,
+        mode = obj['mode'] as String?,
         name = obj['name'] as String,
         variablesReference = obj['variablesReference'] as int?;
 
@@ -1479,7 +1632,16 @@ class DataBreakpointInfoArguments extends RequestArguments {
     if (obj is! Map<String, dynamic>) {
       return false;
     }
+    if (obj['asAddress'] is! bool?) {
+      return false;
+    }
+    if (obj['bytes'] is! int?) {
+      return false;
+    }
     if (obj['frameId'] is! int?) {
+      return false;
+    }
+    if (obj['mode'] is! String?) {
       return false;
     }
     if (obj['name'] is! String) {
@@ -1492,7 +1654,10 @@ class DataBreakpointInfoArguments extends RequestArguments {
   }
 
   Map<String, Object?> toJson() => {
+        if (asAddress != null) 'asAddress': asAddress,
+        if (bytes != null) 'bytes': bytes,
         if (frameId != null) 'frameId': frameId,
+        if (mode != null) 'mode': mode,
         'name': name,
         if (variablesReference != null)
           'variablesReference': variablesReference,
@@ -1670,6 +1835,13 @@ class DisassembledInstruction {
   /// file as the previous instruction.
   final Source? location;
 
+  /// A hint for how to present the instruction in the UI.
+  ///
+  /// A value of `invalid` may be used to indicate this instruction is 'filler'
+  /// and cannot be reached by the program. For example, unreadable memory
+  /// addresses may be presented is 'invalid.'
+  final String? presentationHint;
+
   /// Name of the symbol that corresponds with the location of this instruction,
   /// if any.
   final String? symbol;
@@ -1686,6 +1858,7 @@ class DisassembledInstruction {
     this.instructionBytes,
     this.line,
     this.location,
+    this.presentationHint,
     this.symbol,
   });
 
@@ -1700,6 +1873,7 @@ class DisassembledInstruction {
         location = obj['location'] == null
             ? null
             : Source.fromJson(obj['location'] as Map<String, Object?>),
+        presentationHint = obj['presentationHint'] as String?,
         symbol = obj['symbol'] as String?;
 
   static bool canParse(Object? obj) {
@@ -1730,6 +1904,9 @@ class DisassembledInstruction {
     if (!Source.canParse(obj['location'])) {
       return false;
     }
+    if (obj['presentationHint'] is! String?) {
+      return false;
+    }
     if (obj['symbol'] is! String?) {
       return false;
     }
@@ -1745,6 +1922,7 @@ class DisassembledInstruction {
         if (instructionBytes != null) 'instructionBytes': instructionBytes,
         if (line != null) 'line': line,
         if (location != null) 'location': location,
+        if (presentationHint != null) 'presentationHint': presentationHint,
         if (symbol != null) 'symbol': symbol,
       };
 }
@@ -1871,6 +2049,13 @@ class ErrorResponse extends Response {
 
 /// Arguments for `evaluate` request.
 class EvaluateArguments extends RequestArguments {
+  /// The contextual column where the expression should be evaluated. This may
+  /// be provided if `line` is also provided.
+  ///
+  /// It is measured in UTF-16 code units and the client capability
+  /// `columnsStartAt1` determines whether it is 0- or 1-based.
+  final int? column;
+
   /// The context in which the evaluate request is used.
   final String? context;
 
@@ -1886,26 +2071,46 @@ class EvaluateArguments extends RequestArguments {
   /// specified, the expression is evaluated in the global scope.
   final int? frameId;
 
+  /// The contextual line where the expression should be evaluated. In the
+  /// 'hover' context, this should be set to the start of the expression being
+  /// hovered.
+  final int? line;
+
+  /// The contextual source in which the `line` is found. This must be provided
+  /// if `line` is provided.
+  final Source? source;
+
   static EvaluateArguments fromJson(Map<String, Object?> obj) =>
       EvaluateArguments.fromMap(obj);
 
   EvaluateArguments({
+    this.column,
     this.context,
     required this.expression,
     this.format,
     this.frameId,
+    this.line,
+    this.source,
   });
 
   EvaluateArguments.fromMap(Map<String, Object?> obj)
-      : context = obj['context'] as String?,
+      : column = obj['column'] as int?,
+        context = obj['context'] as String?,
         expression = obj['expression'] as String,
         format = obj['format'] == null
             ? null
             : ValueFormat.fromJson(obj['format'] as Map<String, Object?>),
-        frameId = obj['frameId'] as int?;
+        frameId = obj['frameId'] as int?,
+        line = obj['line'] as int?,
+        source = obj['source'] == null
+            ? null
+            : Source.fromJson(obj['source'] as Map<String, Object?>);
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['column'] is! int?) {
       return false;
     }
     if (obj['context'] is! String?) {
@@ -1920,14 +2125,23 @@ class EvaluateArguments extends RequestArguments {
     if (obj['frameId'] is! int?) {
       return false;
     }
+    if (obj['line'] is! int?) {
+      return false;
+    }
+    if (!Source.canParse(obj['source'])) {
+      return false;
+    }
     return RequestArguments.canParse(obj);
   }
 
   Map<String, Object?> toJson() => {
+        if (column != null) 'column': column,
         if (context != null) 'context': context,
         'expression': expression,
         if (format != null) 'format': format,
         if (frameId != null) 'frameId': frameId,
+        if (line != null) 'line': line,
+        if (source != null) 'source': source,
       };
 }
 
@@ -2190,17 +2404,23 @@ class ExceptionFilterOptions {
   /// capability.
   final String filterId;
 
+  /// The mode of this exception breakpoint. If defined, this must be one of the
+  /// `breakpointModes` the debug adapter advertised in its `Capabilities`.
+  final String? mode;
+
   static ExceptionFilterOptions fromJson(Map<String, Object?> obj) =>
       ExceptionFilterOptions.fromMap(obj);
 
   ExceptionFilterOptions({
     this.condition,
     required this.filterId,
+    this.mode,
   });
 
   ExceptionFilterOptions.fromMap(Map<String, Object?> obj)
       : condition = obj['condition'] as String?,
-        filterId = obj['filterId'] as String;
+        filterId = obj['filterId'] as String,
+        mode = obj['mode'] as String?;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -2212,12 +2432,16 @@ class ExceptionFilterOptions {
     if (obj['filterId'] is! String) {
       return false;
     }
+    if (obj['mode'] is! String?) {
+      return false;
+    }
     return true;
   }
 
   Map<String, Object?> toJson() => {
         if (condition != null) 'condition': condition,
         'filterId': filterId,
+        if (mode != null) 'mode': mode,
       };
 }
 
@@ -2692,6 +2916,11 @@ class InitializeRequestArguments extends RequestArguments {
   /// which is the native format.
   final String? pathFormat;
 
+  /// The client will interpret ANSI escape sequences in the display of
+  /// `OutputEvent.output` and `Variable.value` fields when
+  /// `Capabilities.supportsANSIStyling` is also enabled.
+  final bool? supportsANSIStyling;
+
   /// Client supports the `argsCanBeInterpretedByShell` attribute on the
   /// `runInTerminal` request.
   final bool? supportsArgsCanBeInterpretedByShell;
@@ -2731,6 +2960,7 @@ class InitializeRequestArguments extends RequestArguments {
     this.linesStartAt1,
     this.locale,
     this.pathFormat,
+    this.supportsANSIStyling,
     this.supportsArgsCanBeInterpretedByShell,
     this.supportsInvalidatedEvent,
     this.supportsMemoryEvent,
@@ -2750,6 +2980,7 @@ class InitializeRequestArguments extends RequestArguments {
         linesStartAt1 = obj['linesStartAt1'] as bool?,
         locale = obj['locale'] as String?,
         pathFormat = obj['pathFormat'] as String?,
+        supportsANSIStyling = obj['supportsANSIStyling'] as bool?,
         supportsArgsCanBeInterpretedByShell =
             obj['supportsArgsCanBeInterpretedByShell'] as bool?,
         supportsInvalidatedEvent = obj['supportsInvalidatedEvent'] as bool?,
@@ -2786,6 +3017,9 @@ class InitializeRequestArguments extends RequestArguments {
       return false;
     }
     if (obj['pathFormat'] is! String?) {
+      return false;
+    }
+    if (obj['supportsANSIStyling'] is! bool?) {
       return false;
     }
     if (obj['supportsArgsCanBeInterpretedByShell'] is! bool?) {
@@ -2826,6 +3060,8 @@ class InitializeRequestArguments extends RequestArguments {
         if (linesStartAt1 != null) 'linesStartAt1': linesStartAt1,
         if (locale != null) 'locale': locale,
         if (pathFormat != null) 'pathFormat': pathFormat,
+        if (supportsANSIStyling != null)
+          'supportsANSIStyling': supportsANSIStyling,
         if (supportsArgsCanBeInterpretedByShell != null)
           'supportsArgsCanBeInterpretedByShell':
               supportsArgsCanBeInterpretedByShell,
@@ -2899,7 +3135,11 @@ class InstructionBreakpoint {
   /// `Breakpoint`.
   final String instructionReference;
 
-  /// The offset from the instruction reference.
+  /// The mode of this breakpoint. If defined, this must be one of the
+  /// `breakpointModes` the debug adapter advertised in its `Capabilities`.
+  final String? mode;
+
+  /// The offset from the instruction reference in bytes.
   /// This can be negative.
   final int? offset;
 
@@ -2910,6 +3150,7 @@ class InstructionBreakpoint {
     this.condition,
     this.hitCondition,
     required this.instructionReference,
+    this.mode,
     this.offset,
   });
 
@@ -2917,6 +3158,7 @@ class InstructionBreakpoint {
       : condition = obj['condition'] as String?,
         hitCondition = obj['hitCondition'] as String?,
         instructionReference = obj['instructionReference'] as String,
+        mode = obj['mode'] as String?,
         offset = obj['offset'] as int?;
 
   static bool canParse(Object? obj) {
@@ -2932,6 +3174,9 @@ class InstructionBreakpoint {
     if (obj['instructionReference'] is! String) {
       return false;
     }
+    if (obj['mode'] is! String?) {
+      return false;
+    }
     if (obj['offset'] is! int?) {
       return false;
     }
@@ -2942,6 +3187,7 @@ class InstructionBreakpoint {
         if (condition != null) 'condition': condition,
         if (hitCondition != null) 'hitCondition': hitCondition,
         'instructionReference': instructionReference,
+        if (mode != null) 'mode': mode,
         if (offset != null) 'offset': offset,
       };
 }
@@ -3059,6 +3305,68 @@ class LoadedSourcesResponse extends Response {
       return false;
     }
     if (obj['body'] is! Map<String, Object?>) {
+      return false;
+    }
+    return Response.canParse(obj);
+  }
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+      };
+}
+
+/// Arguments for `locations` request.
+class LocationsArguments extends RequestArguments {
+  /// Location reference to resolve.
+  final int locationReference;
+
+  static LocationsArguments fromJson(Map<String, Object?> obj) =>
+      LocationsArguments.fromMap(obj);
+
+  LocationsArguments({
+    required this.locationReference,
+  });
+
+  LocationsArguments.fromMap(Map<String, Object?> obj)
+      : locationReference = obj['locationReference'] as int;
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['locationReference'] is! int) {
+      return false;
+    }
+    return RequestArguments.canParse(obj);
+  }
+
+  Map<String, Object?> toJson() => {
+        'locationReference': locationReference,
+      };
+}
+
+/// Response to `locations` request.
+class LocationsResponse extends Response {
+  static LocationsResponse fromJson(Map<String, Object?> obj) =>
+      LocationsResponse.fromMap(obj);
+
+  LocationsResponse({
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
+
+  LocationsResponse.fromMap(super.obj) : super.fromMap();
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['body'] is! Map<String, Object?>?) {
       return false;
     }
     return Response.canParse(obj);
@@ -4519,10 +4827,10 @@ class SetExceptionBreakpointsArguments extends RequestArguments {
 /// information first, followed by `filterOptions` information.
 /// The `verified` property of a `Breakpoint` object signals whether the
 /// exception breakpoint or filter could be successfully created and whether the
-/// condition or hit count expressions are valid. In case of an error the
-/// `message` property explains the problem. The `id` property can be used to
-/// introduce a unique ID for the exception breakpoint or filter so that it can
-/// be updated subsequently by sending breakpoint events.
+/// condition is valid. In case of an error the `message` property explains the
+/// problem. The `id` property can be used to introduce a unique ID for the
+/// exception breakpoint or filter so that it can be updated subsequently by
+/// sending breakpoint events.
 /// For backward compatibility both the `breakpoints` array and the enclosing
 /// `body` are optional. If these elements are missing a client is not able to
 /// show problems for individual exception breakpoints or filters.
@@ -5068,6 +5376,10 @@ class SourceBreakpoint {
   /// should only be logged if those conditions are met.
   final String? logMessage;
 
+  /// The mode of this breakpoint. If defined, this must be one of the
+  /// `breakpointModes` the debug adapter advertised in its `Capabilities`.
+  final String? mode;
+
   static SourceBreakpoint fromJson(Map<String, Object?> obj) =>
       SourceBreakpoint.fromMap(obj);
 
@@ -5077,6 +5389,7 @@ class SourceBreakpoint {
     this.hitCondition,
     required this.line,
     this.logMessage,
+    this.mode,
   });
 
   SourceBreakpoint.fromMap(Map<String, Object?> obj)
@@ -5084,7 +5397,8 @@ class SourceBreakpoint {
         condition = obj['condition'] as String?,
         hitCondition = obj['hitCondition'] as String?,
         line = obj['line'] as int,
-        logMessage = obj['logMessage'] as String?;
+        logMessage = obj['logMessage'] as String?,
+        mode = obj['mode'] as String?;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5105,6 +5419,9 @@ class SourceBreakpoint {
     if (obj['logMessage'] is! String?) {
       return false;
     }
+    if (obj['mode'] is! String?) {
+      return false;
+    }
     return true;
   }
 
@@ -5114,6 +5431,7 @@ class SourceBreakpoint {
         if (hitCondition != null) 'hitCondition': hitCondition,
         'line': line,
         if (logMessage != null) 'logMessage': logMessage,
+        if (mode != null) 'mode': mode,
       };
 }
 
@@ -5151,11 +5469,11 @@ class SourceResponse extends Response {
 
 /// A Stackframe contains the source location.
 class StackFrame {
-  /// Indicates whether this frame can be restarted with the `restart` request.
-  /// Clients should only use this if the debug adapter supports the `restart`
-  /// request and the corresponding capability `supportsRestartRequest` is true.
-  /// If a debug adapter has this capability, then `canRestart` defaults to
-  /// `true` if the property is absent.
+  /// Indicates whether this frame can be restarted with the `restartFrame`
+  /// request. Clients should only use this if the debug adapter supports the
+  /// `restart` request and the corresponding capability `supportsRestartFrame`
+  /// is true. If a debug adapter has this capability, then `canRestart`
+  /// defaults to `true` if the property is absent.
   final bool? canRestart;
 
   /// Start position of the range covered by the stack frame. It is measured in
@@ -6180,6 +6498,14 @@ class ValueFormat {
 /// The client can use this information to present the children in a paged UI
 /// and fetch them in chunks.
 class Variable {
+  /// A reference that allows the client to request the location where the
+  /// variable is declared. This should be present only if the adapter is likely
+  /// to be able to resolve the location.
+  ///
+  /// This reference shares the same lifetime as the `variablesReference`. See
+  /// 'Lifetime of Object References' in the Overview section for details.
+  final int? declarationLocationReference;
+
   /// The evaluatable name of this variable which can be passed to the
   /// `evaluate` request to fetch the variable's value.
   final String? evaluateName;
@@ -6189,10 +6515,13 @@ class Variable {
   /// and fetch them in chunks.
   final int? indexedVariables;
 
-  /// The memory reference for the variable if the variable represents
-  /// executable code, such as a function pointer.
-  /// This attribute is only required if the corresponding capability
-  /// `supportsMemoryReferences` is true.
+  /// A memory reference associated with this variable.
+  /// For pointer type variables, this is generally a reference to the memory
+  /// address contained in the pointer.
+  /// For executable data, this reference may later be used in a `disassemble`
+  /// request.
+  /// This attribute may be returned by a debug adapter if corresponding
+  /// capability `supportsMemoryReferences` is true.
   final String? memoryReference;
 
   /// The variable's name.
@@ -6222,6 +6551,16 @@ class Variable {
   /// An empty string can be used if no value should be shown in the UI.
   final String value;
 
+  /// A reference that allows the client to request the location where the
+  /// variable's value is declared. For example, if the variable contains a
+  /// function pointer, the adapter may be able to look up the function's
+  /// location. This should be present only if the adapter is likely to be able
+  /// to resolve the location.
+  ///
+  /// This reference shares the same lifetime as the `variablesReference`. See
+  /// 'Lifetime of Object References' in the Overview section for details.
+  final int? valueLocationReference;
+
   /// If `variablesReference` is > 0, the variable is structured and its
   /// children can be retrieved by passing `variablesReference` to the
   /// `variables` request as long as execution remains suspended. See 'Lifetime
@@ -6231,6 +6570,7 @@ class Variable {
   static Variable fromJson(Map<String, Object?> obj) => Variable.fromMap(obj);
 
   Variable({
+    this.declarationLocationReference,
     this.evaluateName,
     this.indexedVariables,
     this.memoryReference,
@@ -6239,11 +6579,14 @@ class Variable {
     this.presentationHint,
     this.type,
     required this.value,
+    this.valueLocationReference,
     required this.variablesReference,
   });
 
   Variable.fromMap(Map<String, Object?> obj)
-      : evaluateName = obj['evaluateName'] as String?,
+      : declarationLocationReference =
+            obj['declarationLocationReference'] as int?,
+        evaluateName = obj['evaluateName'] as String?,
         indexedVariables = obj['indexedVariables'] as int?,
         memoryReference = obj['memoryReference'] as String?,
         name = obj['name'] as String,
@@ -6254,10 +6597,14 @@ class Variable {
                 obj['presentationHint'] as Map<String, Object?>),
         type = obj['type'] as String?,
         value = obj['value'] as String,
+        valueLocationReference = obj['valueLocationReference'] as int?,
         variablesReference = obj['variablesReference'] as int;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['declarationLocationReference'] is! int?) {
       return false;
     }
     if (obj['evaluateName'] is! String?) {
@@ -6284,6 +6631,9 @@ class Variable {
     if (obj['value'] is! String) {
       return false;
     }
+    if (obj['valueLocationReference'] is! int?) {
+      return false;
+    }
     if (obj['variablesReference'] is! int) {
       return false;
     }
@@ -6291,6 +6641,8 @@ class Variable {
   }
 
   Map<String, Object?> toJson() => {
+        if (declarationLocationReference != null)
+          'declarationLocationReference': declarationLocationReference,
         if (evaluateName != null) 'evaluateName': evaluateName,
         if (indexedVariables != null) 'indexedVariables': indexedVariables,
         if (memoryReference != null) 'memoryReference': memoryReference,
@@ -6299,6 +6651,8 @@ class Variable {
         if (presentationHint != null) 'presentationHint': presentationHint,
         if (type != null) 'type': type,
         'value': value,
+        if (valueLocationReference != null)
+          'valueLocationReference': valueLocationReference,
         'variablesReference': variablesReference,
       };
 }
@@ -6861,7 +7215,12 @@ class DataBreakpointInfoResponseBody {
 
   /// An identifier for the data on which a data breakpoint can be registered
   /// with the `setDataBreakpoints` request or null if no data breakpoint is
-  /// available.
+  /// available. If a `variablesReference` or `frameId` is passed, the `dataId`
+  /// is valid in the current suspended state, otherwise it's valid
+  /// indefinitely. See 'Lifetime of Object References' in the Overview section
+  /// for details. Breakpoints set using the `dataId` in the
+  /// `setDataBreakpoints` request may outlive the lifetime of the associated
+  /// `dataId`.
   final Either2<String, Null> dataId;
 
   /// UI string that describes on what data the breakpoint is set on or why a
@@ -7012,7 +7371,7 @@ class EvaluateResponseBody {
   /// A memory reference to a location appropriate for this result.
   /// For pointer type eval results, this is generally a reference to the memory
   /// address contained in the pointer.
-  /// This attribute should be returned by a debug adapter if corresponding
+  /// This attribute may be returned by a debug adapter if corresponding
   /// capability `supportsMemoryReferences` is true.
   final String? memoryReference;
 
@@ -7034,6 +7393,16 @@ class EvaluateResponseBody {
   /// corresponding capability `supportsVariableType` is true.
   final String? type;
 
+  /// A reference that allows the client to request the location where the
+  /// returned value is declared. For example, if a function pointer is
+  /// returned, the adapter may be able to look up the function's location. This
+  /// should be present only if the adapter is likely to be able to resolve the
+  /// location.
+  ///
+  /// This reference shares the same lifetime as the `variablesReference`. See
+  /// 'Lifetime of Object References' in the Overview section for details.
+  final int? valueLocationReference;
+
   /// If `variablesReference` is > 0, the evaluate result is structured and its
   /// children can be retrieved by passing `variablesReference` to the
   /// `variables` request as long as execution remains suspended. See 'Lifetime
@@ -7050,6 +7419,7 @@ class EvaluateResponseBody {
     this.presentationHint,
     required this.result,
     this.type,
+    this.valueLocationReference,
     required this.variablesReference,
   });
 
@@ -7063,6 +7433,7 @@ class EvaluateResponseBody {
                 obj['presentationHint'] as Map<String, Object?>),
         result = obj['result'] as String,
         type = obj['type'] as String?,
+        valueLocationReference = obj['valueLocationReference'] as int?,
         variablesReference = obj['variablesReference'] as int;
 
   static bool canParse(Object? obj) {
@@ -7087,6 +7458,9 @@ class EvaluateResponseBody {
     if (obj['type'] is! String?) {
       return false;
     }
+    if (obj['valueLocationReference'] is! int?) {
+      return false;
+    }
     if (obj['variablesReference'] is! int) {
       return false;
     }
@@ -7100,6 +7474,8 @@ class EvaluateResponseBody {
         if (presentationHint != null) 'presentationHint': presentationHint,
         'result': result,
         if (type != null) 'type': type,
+        if (valueLocationReference != null)
+          'valueLocationReference': valueLocationReference,
         'variablesReference': variablesReference,
       };
 }
@@ -7427,6 +7803,79 @@ class LoadedSourcesResponseBody {
       };
 }
 
+class LocationsResponseBody {
+  /// Position of the location within the `line`. It is measured in UTF-16 code
+  /// units and the client capability `columnsStartAt1` determines whether it is
+  /// 0- or 1-based. If no column is given, the first position in the start line
+  /// is assumed.
+  final int? column;
+
+  /// End position of the location within `endLine`, present if the location
+  /// refers to a range. It is measured in UTF-16 code units and the client
+  /// capability `columnsStartAt1` determines whether it is 0- or 1-based.
+  final int? endColumn;
+
+  /// End line of the location, present if the location refers to a range.  The
+  /// client capability `linesStartAt1` determines whether it is 0- or 1-based.
+  final int? endLine;
+
+  /// The line number of the location. The client capability `linesStartAt1`
+  /// determines whether it is 0- or 1-based.
+  final int line;
+
+  /// The source containing the location; either `source.path` or
+  /// `source.sourceReference` must be specified.
+  final Source source;
+
+  static LocationsResponseBody fromJson(Map<String, Object?> obj) =>
+      LocationsResponseBody.fromMap(obj);
+
+  LocationsResponseBody({
+    this.column,
+    this.endColumn,
+    this.endLine,
+    required this.line,
+    required this.source,
+  });
+
+  LocationsResponseBody.fromMap(Map<String, Object?> obj)
+      : column = obj['column'] as int?,
+        endColumn = obj['endColumn'] as int?,
+        endLine = obj['endLine'] as int?,
+        line = obj['line'] as int,
+        source = Source.fromJson(obj['source'] as Map<String, Object?>);
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['column'] is! int?) {
+      return false;
+    }
+    if (obj['endColumn'] is! int?) {
+      return false;
+    }
+    if (obj['endLine'] is! int?) {
+      return false;
+    }
+    if (obj['line'] is! int) {
+      return false;
+    }
+    if (!Source.canParse(obj['source'])) {
+      return false;
+    }
+    return true;
+  }
+
+  Map<String, Object?> toJson() => {
+        if (column != null) 'column': column,
+        if (endColumn != null) 'endColumn': endColumn,
+        if (endLine != null) 'endLine': endLine,
+        'line': line,
+        'source': source,
+      };
+}
+
 class MemoryEventBody extends EventBody {
   /// Number of bytes updated.
   final int count;
@@ -7594,7 +8043,24 @@ class OutputEventBody extends EventBody {
   /// The source location's line where the output was produced.
   final int? line;
 
+  /// A reference that allows the client to request the location where the new
+  /// value is declared. For example, if the logged value is function pointer,
+  /// the adapter may be able to look up the function's location. This should be
+  /// present only if the adapter is likely to be able to resolve the location.
+  ///
+  /// This reference shares the same lifetime as the `variablesReference`. See
+  /// 'Lifetime of Object References' in the Overview section for details.
+  final int? locationReference;
+
   /// The output to report.
+  ///
+  /// ANSI escape sequences may be used to influence text color and styling if
+  /// `supportsANSIStyling` is present in both the adapter's `Capabilities` and
+  /// the client's `InitializeRequestArguments`. A client may strip any
+  /// unrecognized ANSI sequences.
+  ///
+  /// If the `supportsANSIStyling` capabilities are not both true, then the
+  /// client should display the output literally.
   final String output;
 
   /// The source location where the output was produced.
@@ -7616,6 +8082,7 @@ class OutputEventBody extends EventBody {
     this.data,
     this.group,
     this.line,
+    this.locationReference,
     required this.output,
     this.source,
     this.variablesReference,
@@ -7627,6 +8094,7 @@ class OutputEventBody extends EventBody {
         data = obj['data'],
         group = obj['group'] as String?,
         line = obj['line'] as int?,
+        locationReference = obj['locationReference'] as int?,
         output = obj['output'] as String,
         source = obj['source'] == null
             ? null
@@ -7649,6 +8117,9 @@ class OutputEventBody extends EventBody {
     if (obj['line'] is! int?) {
       return false;
     }
+    if (obj['locationReference'] is! int?) {
+      return false;
+    }
     if (obj['output'] is! String) {
       return false;
     }
@@ -7667,6 +8138,7 @@ class OutputEventBody extends EventBody {
         if (data != null) 'data': data,
         if (group != null) 'group': group,
         if (line != null) 'line': line,
+        if (locationReference != null) 'locationReference': locationReference,
         'output': output,
         if (source != null) 'source': source,
         if (variablesReference != null)
@@ -7709,8 +8181,9 @@ class ProcessEventBody extends EventBody {
   /// Describes how the debug engine started debugging this process.
   final String? startMethod;
 
-  /// The system process id of the debugged process. This property is missing
-  /// for non-system processes.
+  /// The process ID of the debugged process, as assigned by the operating
+  /// system. This property should be omitted for logical processes that do not
+  /// map to operating system processes on the machine.
   final int? systemProcessId;
 
   static ProcessEventBody fromJson(Map<String, Object?> obj) =>
@@ -8236,6 +8709,13 @@ class SetExpressionResponseBody {
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? indexedVariables;
 
+  /// A memory reference to a location appropriate for this result.
+  /// For pointer type eval results, this is generally a reference to the memory
+  /// address contained in the pointer.
+  /// This attribute may be returned by a debug adapter if corresponding
+  /// capability `supportsMemoryReferences` is true.
+  final String? memoryReference;
+
   /// The number of named child variables.
   /// The client can use this information to present the variables in a paged UI
   /// and fetch them in chunks.
@@ -8254,6 +8734,15 @@ class SetExpressionResponseBody {
   /// The new value of the expression.
   final String value;
 
+  /// A reference that allows the client to request the location where the new
+  /// value is declared. For example, if the new value is function pointer, the
+  /// adapter may be able to look up the function's location. This should be
+  /// present only if the adapter is likely to be able to resolve the location.
+  ///
+  /// This reference shares the same lifetime as the `variablesReference`. See
+  /// 'Lifetime of Object References' in the Overview section for details.
+  final int? valueLocationReference;
+
   /// If `variablesReference` is > 0, the evaluate result is structured and its
   /// children can be retrieved by passing `variablesReference` to the
   /// `variables` request as long as execution remains suspended. See 'Lifetime
@@ -8265,15 +8754,18 @@ class SetExpressionResponseBody {
 
   SetExpressionResponseBody({
     this.indexedVariables,
+    this.memoryReference,
     this.namedVariables,
     this.presentationHint,
     this.type,
     required this.value,
+    this.valueLocationReference,
     this.variablesReference,
   });
 
   SetExpressionResponseBody.fromMap(Map<String, Object?> obj)
       : indexedVariables = obj['indexedVariables'] as int?,
+        memoryReference = obj['memoryReference'] as String?,
         namedVariables = obj['namedVariables'] as int?,
         presentationHint = obj['presentationHint'] == null
             ? null
@@ -8281,6 +8773,7 @@ class SetExpressionResponseBody {
                 obj['presentationHint'] as Map<String, Object?>),
         type = obj['type'] as String?,
         value = obj['value'] as String,
+        valueLocationReference = obj['valueLocationReference'] as int?,
         variablesReference = obj['variablesReference'] as int?;
 
   static bool canParse(Object? obj) {
@@ -8288,6 +8781,9 @@ class SetExpressionResponseBody {
       return false;
     }
     if (obj['indexedVariables'] is! int?) {
+      return false;
+    }
+    if (obj['memoryReference'] is! String?) {
       return false;
     }
     if (obj['namedVariables'] is! int?) {
@@ -8302,6 +8798,9 @@ class SetExpressionResponseBody {
     if (obj['value'] is! String) {
       return false;
     }
+    if (obj['valueLocationReference'] is! int?) {
+      return false;
+    }
     if (obj['variablesReference'] is! int?) {
       return false;
     }
@@ -8310,10 +8809,13 @@ class SetExpressionResponseBody {
 
   Map<String, Object?> toJson() => {
         if (indexedVariables != null) 'indexedVariables': indexedVariables,
+        if (memoryReference != null) 'memoryReference': memoryReference,
         if (namedVariables != null) 'namedVariables': namedVariables,
         if (presentationHint != null) 'presentationHint': presentationHint,
         if (type != null) 'type': type,
         'value': value,
+        if (valueLocationReference != null)
+          'valueLocationReference': valueLocationReference,
         if (variablesReference != null)
           'variablesReference': variablesReference,
       };
@@ -8394,6 +8896,13 @@ class SetVariableResponseBody {
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? indexedVariables;
 
+  /// A memory reference to a location appropriate for this result.
+  /// For pointer type eval results, this is generally a reference to the memory
+  /// address contained in the pointer.
+  /// This attribute may be returned by a debug adapter if corresponding
+  /// capability `supportsMemoryReferences` is true.
+  final String? memoryReference;
+
   /// The number of named child variables.
   /// The client can use this information to present the variables in a paged UI
   /// and fetch them in chunks.
@@ -8407,10 +8916,23 @@ class SetVariableResponseBody {
   /// The new value of the variable.
   final String value;
 
+  /// A reference that allows the client to request the location where the new
+  /// value is declared. For example, if the new value is function pointer, the
+  /// adapter may be able to look up the function's location. This should be
+  /// present only if the adapter is likely to be able to resolve the location.
+  ///
+  /// This reference shares the same lifetime as the `variablesReference`. See
+  /// 'Lifetime of Object References' in the Overview section for details.
+  final int? valueLocationReference;
+
   /// If `variablesReference` is > 0, the new value is structured and its
   /// children can be retrieved by passing `variablesReference` to the
   /// `variables` request as long as execution remains suspended. See 'Lifetime
   /// of Object References' in the Overview section for details.
+  ///
+  /// If this property is included in the response, any `variablesReference`
+  /// previously associated with the updated variable, and those of its
+  /// children, are no longer valid.
   final int? variablesReference;
 
   static SetVariableResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8418,17 +8940,21 @@ class SetVariableResponseBody {
 
   SetVariableResponseBody({
     this.indexedVariables,
+    this.memoryReference,
     this.namedVariables,
     this.type,
     required this.value,
+    this.valueLocationReference,
     this.variablesReference,
   });
 
   SetVariableResponseBody.fromMap(Map<String, Object?> obj)
       : indexedVariables = obj['indexedVariables'] as int?,
+        memoryReference = obj['memoryReference'] as String?,
         namedVariables = obj['namedVariables'] as int?,
         type = obj['type'] as String?,
         value = obj['value'] as String,
+        valueLocationReference = obj['valueLocationReference'] as int?,
         variablesReference = obj['variablesReference'] as int?;
 
   static bool canParse(Object? obj) {
@@ -8436,6 +8962,9 @@ class SetVariableResponseBody {
       return false;
     }
     if (obj['indexedVariables'] is! int?) {
+      return false;
+    }
+    if (obj['memoryReference'] is! String?) {
       return false;
     }
     if (obj['namedVariables'] is! int?) {
@@ -8447,6 +8976,9 @@ class SetVariableResponseBody {
     if (obj['value'] is! String) {
       return false;
     }
+    if (obj['valueLocationReference'] is! int?) {
+      return false;
+    }
     if (obj['variablesReference'] is! int?) {
       return false;
     }
@@ -8455,9 +8987,12 @@ class SetVariableResponseBody {
 
   Map<String, Object?> toJson() => {
         if (indexedVariables != null) 'indexedVariables': indexedVariables,
+        if (memoryReference != null) 'memoryReference': memoryReference,
         if (namedVariables != null) 'namedVariables': namedVariables,
         if (type != null) 'type': type,
         'value': value,
+        if (valueLocationReference != null)
+          'valueLocationReference': valueLocationReference,
         if (variablesReference != null)
           'variablesReference': variablesReference,
       };
@@ -9010,6 +9545,7 @@ const commandTypes = {
   InitializeRequestArguments: 'initialize',
   LaunchRequestArguments: 'launch',
   LoadedSourcesArguments: 'loadedSources',
+  LocationsArguments: 'locations',
   ModulesArguments: 'modules',
   NextArguments: 'next',
   PauseArguments: 'pause',

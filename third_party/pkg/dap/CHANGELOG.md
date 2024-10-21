@@ -1,3 +1,7 @@
+## 1.4.0
+
+- Updated all generated classes using the latest published version of the DAP spec.
+
 ## 1.3.0
 
 - Add `showToUser` field to `DebugAdapterException` to specify which errors should be shown to users.
