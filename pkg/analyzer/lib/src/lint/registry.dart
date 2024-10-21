@@ -39,8 +39,8 @@ class Registry with IterableMixin<LintRule> {
   /// enables `my_rule`.
   ///
   /// Unspecified rules are treated as disabled by default.
-  Iterable<LintRule> enabled(LintConfig config) => rules
-      .where((rule) => config.ruleConfigs.any((rc) => rc.enables(rule.name)));
+  Iterable<LintRule> enabled(List<RuleConfig> ruleConfigs) =>
+      rules.where((rule) => ruleConfigs.any((rc) => rc.enables(rule.name)));
 
   /// Return the lint rule with the given [name].
   LintRule? getRule(String name) => _ruleMap[name];
