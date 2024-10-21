@@ -6937,7 +6937,8 @@ mixin MaybeAugmentedExtensionTypeElementMixin
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 
   @override
-  FieldElement2 get representation2 => representation as FieldElement2;
+  FieldElement2 get representation2 =>
+      representation.asElement2 as FieldElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {

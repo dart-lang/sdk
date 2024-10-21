@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -38,8 +37,8 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $targetUri');
   }
 
-  FieldFormalParameterElement fieldFormalParameter(String name) {
-    return parameter(name) as FieldFormalParameterElement;
+  FieldFormalParameterElement2 fieldFormalParameter(String name) {
+    return parameter(name) as FieldFormalParameterElement2;
   }
 
   TopLevelFunctionElement function(String name) {
@@ -79,11 +78,11 @@ class FindElement2 extends _FindElementBase {
     return ImportFindElement(import);
   }
 
-  LabelElement label(String name) {
-    LabelElement? result;
+  LabelElement2 label(String name) {
+    LabelElement2? result;
 
-    void updateResult(Element element) {
-      if (element is LabelElement && element.name == name) {
+    void updateResult(Element2 element) {
+      if (element is LabelElement2 && element.name == name) {
         if (result != null) {
           throw StateError('Not unique: $name');
         }
@@ -93,7 +92,7 @@ class FindElement2 extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       label: (node) {
-        updateResult(node.label.staticElement!);
+        updateResult(node.label.element!);
       },
     ));
 
@@ -103,13 +102,13 @@ class FindElement2 extends _FindElementBase {
     return result!;
   }
 
-  FunctionElement localFunction(String name) {
-    FunctionElement? result;
+  LocalFunctionElement localFunction(String name) {
+    LocalFunctionElement? result;
 
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
-        var element = node.functionDeclaration.declaredElement;
-        if (element is FunctionElement && element.name == name) {
+        var element = node.functionDeclaration.declaredElement2;
+        if (element is LocalFunctionElement && element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
@@ -124,11 +123,11 @@ class FindElement2 extends _FindElementBase {
     return result!;
   }
 
-  LocalVariableElement localVar(String name) {
-    LocalVariableElement? result;
+  LocalVariableElement2 localVar(String name) {
+    LocalVariableElement2? result;
 
-    void updateResult(Element element) {
-      if (element is LocalVariableElement && element.name == name) {
+    void updateResult(Element2 element) {
+      if (element is LocalVariableElement2 && element.name == name) {
         if (result != null) {
           throw StateError('Not unique: $name');
         }
@@ -138,16 +137,16 @@ class FindElement2 extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       catchClauseParameter: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredElement2!);
       },
       declaredIdentifier: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredElement2!);
       },
       declaredVariablePattern: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredElement2!);
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredElement2!);
       },
     ));
 
