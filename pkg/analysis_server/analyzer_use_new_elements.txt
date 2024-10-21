@@ -47,6 +47,7 @@ lib/src/domains/analysis/occurrences.dart
 lib/src/domains/completion/available_suggestions.dart
 lib/src/domains/execution/completion.dart
 lib/src/flutter/flutter_notifications.dart
+lib/src/flutter/flutter_outline_computer.dart
 lib/src/g3/fixes.dart
 lib/src/g3/utilities.dart
 lib/src/handler/legacy/analysis_get_errors.dart
@@ -1499,14 +1500,14 @@ tool/code_completion/benchmark/flutter.dart
 tool/code_completion/benchmark/sliding_statistics.dart
 tool/code_completion/code_metrics.dart
 tool/code_completion/completion_at.dart
+tool/code_completion/completion_metrics.dart
 tool/code_completion/completion_metrics_base.dart
 tool/code_completion/completion_metrics_client.dart
 tool/code_completion/corpus.dart
+tool/code_completion/flutter_metrics.dart
 tool/code_completion/implicit_type_declarations.dart
 tool/code_completion/metrics_util.dart
 tool/code_completion/output_utilities.dart
-tool/code_completion/completion_metrics.dart
-tool/code_completion/flutter_metrics.dart
 tool/code_completion/relevance_metrics.dart
 tool/code_completion/relevance_table_generator.dart
 tool/code_completion/visitors.dart

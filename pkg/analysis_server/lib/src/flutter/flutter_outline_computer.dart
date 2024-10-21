@@ -7,7 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
@@ -49,7 +49,7 @@ class FlutterOutlineComputer {
   /// If the given [argument] for the [parameter] can be represented as a
   /// Flutter attribute, add it to the [attributes].
   void _addAttribute(List<protocol.FlutterOutlineAttribute> attributes,
-      Expression argument, ParameterElement? parameter) {
+      Expression argument, FormalParameterElement? parameter) {
     if (parameter == null) {
       return;
     }
@@ -132,7 +132,7 @@ class FlutterOutlineComputer {
     if (type is! InterfaceType || !type.isWidgetType) {
       return null;
     }
-    var className = type.element.displayName;
+    var className = type.element3.displayName;
 
     if (node is InstanceCreationExpression) {
       var attributes = <protocol.FlutterOutlineAttribute>[];
@@ -195,7 +195,7 @@ class FlutterOutlineComputer {
           if (visitor.outlines.isNotEmpty) {
             children.addAll(visitor.outlines);
           } else {
-            var parameter = argument.staticParameterElement;
+            var parameter = argument.correspondingParameter;
             _addAttribute(attributes, argument, parameter);
           }
         }
