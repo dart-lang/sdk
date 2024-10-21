@@ -59,6 +59,18 @@ abstract class AnalysisOptions {
   @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
   VersionConstraint? get sdkVersionConstraint;
 
+  /// Whether implicit casts should be reported as potential problems.
+  bool get strictCasts;
+
+  /// Whether inference failures are allowed, off by default.
+  bool get strictInference;
+
+  /// Whether raw types (types without explicit type arguments, such as `List`)
+  /// should be reported as potential problems.
+  ///
+  /// Raw types are a common source of `dynamic` being introduced implicitly.
+  bool get strictRawTypes;
+
   /// Return `true` if analysis is to generate warning results (e.g. best
   /// practices and analysis based on certain annotations).
   bool get warning;

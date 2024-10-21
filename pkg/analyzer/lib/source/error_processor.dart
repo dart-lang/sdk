@@ -81,6 +81,9 @@ class ErrorProcessor {
       code == error.errorCode.name ||
       code == error.errorCode.name.toUpperCase();
 
+  @override
+  String toString() => "ErrorProcessor[code='$code', severity=$severity]";
+
   /// Return an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.
   static ErrorProcessor? getProcessor(

@@ -17,6 +17,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsProviderTest);
+
+    // TODO(srawlins): add tests for multiple includes.
+    // TODO(srawlins): add tests with duplicate legacy plugin names.
+    // https://github.com/dart-lang/sdk/issues/50980
   });
 }
 
@@ -79,62 +83,212 @@ analyzer:
     expect(options.enabledLegacyPluginNames, unorderedEquals(['plugin_ddd']));
   }
 
-  test_mergeIncludedOptions() {
-    // TODO(srawlins): Split this into smaller tests.
-    // TODO(srawlins): add tests for multiple includes.
-    // TODO(srawlins): add tests with duplicate legacy plugin names.
-    // https://github.com/dart-lang/sdk/issues/50980
+  test_include_analyzerErrorSeveritiesAreMerged() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  errors:
+    toplevelerror: warning
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  errors:
+    lowlevelerror: warning
+''');
 
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        ErrorProcessorMatcher(
+            ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
+        ErrorProcessorMatcher(
+            ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING)),
+      ]),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_multipleIncludes() {
+    newFile('/first_options.yaml', '''
+analyzer:
+  errors:
+    error_1: error
+''');
+    newFile('/second_options.yaml', '''
+include: first_options.yaml
+analyzer:
+  errors:
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include: second_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      contains(
+        ErrorProcessorMatcher(ErrorProcessor('error_1', ErrorSeverity.ERROR)),
+      ),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_outermostWins() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  errors:
+    error_1: warning
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  errors:
+    error_1: ignore
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        // We want to explicitly state the expected severity.
+        // ignore: avoid_redundant_argument_values
+        ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
+        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+      ]),
+    );
+  }
+
+  test_include_analyzerExcludeListsAreMerged() {
     newFile('/other_options.yaml', '''
 analyzer:
   exclude:
     - toplevelexclude.dart
-  plugins:
-    toplevelplugin:
-      enabled: true
-  errors:
-    toplevelerror: warning
-linter:
-  rules:
-    - toplevellint
 ''');
-    String code = r'''
+    newFile(optionsFilePath, r'''
 include: other_options.yaml
 analyzer:
   exclude:
     - lowlevelexclude.dart
-  errors:
-    lowlevelerror: warning
-linter:
-  rules:
-    - lowlevellint
-''';
-    newFile(optionsFilePath, code);
+''');
 
-    var lowlevellint = TestRule.withName('lowlevellint');
-    var toplevellint = TestRule.withName('toplevellint');
-    Registry.ruleRegistry.register(lowlevellint);
-    Registry.ruleRegistry.register(toplevellint);
     var options = _getOptionsObject('/');
 
-    expect(options.lintRules, unorderedEquals([toplevellint, lowlevellint]));
     expect(
-        options.enabledLegacyPluginNames, unorderedEquals(['toplevelplugin']));
-    expect(options.excludePatterns,
-        unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']));
-    expect(
-        options.errorProcessors,
-        unorderedMatches([
-          ErrorProcessorMatcher(
-              ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
-          ErrorProcessorMatcher(
-              ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
-        ]));
+      options.excludePatterns,
+      unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']),
+    );
   }
 
-  AnalysisOptions _getOptionsObject(String posixPath) =>
+  test_include_analyzerLanguageModesAreMerged() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  language:
+    strict-casts: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+analyzer:
+  language:
+    strict-inference: true
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(options.strictCasts, true);
+    expect(options.strictInference, true);
+    expect(options.strictRawTypes, false);
+  }
+
+  test_include_linterRulesAreMerged() {
+    newFile('/other_options.yaml', '''
+linter:
+  rules:
+    - top_level_lint
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+linter:
+  rules:
+    - low_level_lint
+''');
+
+    var lowLevelLint = TestRule.withName('low_level_lint');
+    var topLevelLint = TestRule.withName('top_level_lint');
+    Registry.ruleRegistry.register(lowLevelLint);
+    Registry.ruleRegistry.register(topLevelLint);
+    var options = _getOptionsObject('/');
+
+    expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
+  }
+
+  test_include_linterRulesAreMerged_differentFormats() {
+    newFile('/other_options.yaml', '''
+linter:
+  rules:
+    top_level_lint: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+linter:
+  rules:
+    - low_level_lint
+''');
+
+    var lowLevelLint = TestRule.withName('low_level_lint');
+    var topLevelLint = TestRule.withName('top_level_lint');
+    Registry.ruleRegistry.register(lowLevelLint);
+    Registry.ruleRegistry.register(topLevelLint);
+    var options = _getOptionsObject('/');
+
+    expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
+  }
+
+  test_include_linterRulesAreMerged_outermostWins() {
+    newFile('/other_options.yaml', '''
+linter:
+  rules:
+    - top_level_lint
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+linter:
+  rules:
+    top_level_lint: false
+''');
+
+    var topLevelLint = TestRule.withName('top_level_lint');
+    Registry.ruleRegistry.register(topLevelLint);
+    var options = _getOptionsObject('/');
+
+    expect(options.lintRules, isNot(contains(topLevelLint)));
+  }
+
+  test_include_pluginCanBeIncluded() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  plugins:
+    toplevelplugin:
+      enabled: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.enabledLegacyPluginNames,
+      unorderedEquals(['toplevelplugin']),
+    );
+  }
+
+  AnalysisOptions _getOptionsObject(String filePath) =>
       AnalysisOptionsImpl.fromYaml(
-          optionsMap: provider.getOptions(getFolder(posixPath)));
+          optionsMap: provider.getOptions(getFolder(filePath)));
 }
 
 class TestRule extends LintRule {
