@@ -1231,7 +1231,6 @@ abstract class LibraryElement2
   /// returned. In particular, they are not guaranteed to be in lexical order.
   // TODO(brianwilkerson): Consider removing this from the public API. It isn't
   //  clear that it's useful, given that it ignores hide and show clauses.
-  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryElement2> get exportedLibraries2;
 
   /// The export [Namespace] of this library.

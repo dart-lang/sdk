@@ -54,7 +54,6 @@ class ElementHolder {
   }
 
   void enclose(ElementImpl element) {
-    element.enclosingElement = _element;
     element.enclosingElement3 = _element;
   }
 }
@@ -1952,8 +1951,6 @@ class _VariableBinder
             .map((e) => e.inconsistency),
       ),
     )
-      // ignore: deprecated_member_use_from_same_package
-      ..enclosingElement = first.enclosingElement
       ..enclosingElement3 = first.enclosingElement3
       ..type = InvalidTypeImpl.instance;
   }

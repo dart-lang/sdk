@@ -372,10 +372,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The cached [signatureForElements].
   Uint32List? _signatureForElements;
 
-  @override
-  @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
-  VersionConstraint? sdkVersionConstraint;
-
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
   final VersionConstraint? sourceLanguageConstraint =
@@ -555,28 +551,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     nonPackageFeatureSet = featureSet;
   }
 
-  @override
-  @Deprecated("Use 'enabledLegacyPluginNames' instead")
-  List<String> get enabledPluginNames => enabledLegacyPluginNames;
-
-  @override
-  bool get hint => warning;
-
-  /// The implementation-specific setter for [hint].
-  @Deprecated("Use 'warning=' instead")
-  set hint(bool value) => warning = value;
-
   Uint32List get signature {
     if (_signature == null) {
       ApiSignature buffer = ApiSignature();
-
-      // Append environment.
-      // TODO(pq): remove
-      // ignore: deprecated_member_use_from_same_package
-      if (sdkVersionConstraint != null) {
-        // ignore: deprecated_member_use_from_same_package
-        buffer.addString(sdkVersionConstraint.toString());
-      }
 
       // Append boolean flags.
       buffer.addBool(propagateLinterExceptions);

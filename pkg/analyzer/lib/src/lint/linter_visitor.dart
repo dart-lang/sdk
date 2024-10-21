@@ -700,13 +700,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  // ignore: deprecated_member_use_from_same_package
-  void visitOnClause(OnClause node) {
-    _runSubscriptions(node, registry._forMixinOnClause);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     _runSubscriptions(node, registry._forParenthesizedExpression);
     node.visitChildren(this);

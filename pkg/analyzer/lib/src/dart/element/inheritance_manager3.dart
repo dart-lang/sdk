@@ -1055,7 +1055,6 @@ class InheritanceManager3 {
 
     if (executable is MethodElement) {
       var result = MethodElementImpl(executable.name, -1);
-      result.enclosingElement = class_;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1067,7 +1066,6 @@ class InheritanceManager3 {
     if (executable is PropertyAccessorElementImpl) {
       assert(executable.isSetter);
       var result = PropertyAccessorElementImpl(executable.name, -1);
-      result.enclosingElement = class_;
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1075,7 +1073,6 @@ class InheritanceManager3 {
 
       var field = executable.variable2!;
       var resultField = FieldElementImpl(field.name, -1);
-      resultField.enclosingElement = class_;
       resultField.enclosingElement3 = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
@@ -1129,7 +1126,6 @@ class InheritanceManager3 {
     if (first is MethodElement) {
       var firstMethod = first;
       var result = MethodElementImpl(firstMethod.name, -1);
-      result.enclosingElement = targetClass;
       result.enclosingElement3 = targetClass;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
@@ -1140,7 +1136,6 @@ class InheritanceManager3 {
       var variableName = firstAccessor.displayName;
 
       var result = PropertyAccessorElementImpl(variableName, -1);
-      result.enclosingElement = targetClass;
       result.enclosingElement3 = targetClass;
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
@@ -1148,7 +1143,6 @@ class InheritanceManager3 {
       result.parameters = resultType.parameters;
 
       var field = FieldElementImpl(variableName, -1);
-      field.enclosingElement = targetClass;
       field.enclosingElement3 = targetClass;
       if (firstAccessor.isGetter) {
         field.getter = result;

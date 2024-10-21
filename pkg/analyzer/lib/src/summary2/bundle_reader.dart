@@ -606,7 +606,9 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
   @override
   void _read(element, reader) {
-    _readLibraryOrAugmentation(element, reader);
+    element.metadata = reader._readAnnotationList(
+      unitElement: unitElement,
+    );
 
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;
@@ -636,15 +638,6 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
         },
       );
     });
-  }
-
-  void _readLibraryOrAugmentation(
-    LibraryOrAugmentationElementImpl element,
-    ResolutionReader reader,
-  ) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
   }
 }
 
@@ -721,18 +714,11 @@ class LibraryReader {
     // Read the library units.
     libraryElement.definingCompilationUnit = _readUnitElement(
       libraryElement: libraryElement,
-      containerLibrary: libraryElement,
       containerUnit: null,
       unitSource: librarySource,
     );
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    _readLibraryOrAugmentationElement(
-      libraryElement: libraryElement,
-      containerLibrary: libraryElement,
-      containerUnit: libraryElement.definingCompilationUnit,
-    );
-
     var accessorAugmentationsOffset = _reader.readUInt30();
 
     libraryElement.linkedData = LibraryElementLinkedData(
@@ -864,7 +850,6 @@ class LibraryReader {
 
   DirectiveUri _readDirectiveUri({
     required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
@@ -917,7 +902,6 @@ class LibraryReader {
         var parent = readWithSource();
         var unitElement = _readUnitElement(
           libraryElement: libraryElement,
-          containerLibrary: containerLibrary,
           containerUnit: containerUnit,
           unitSource: parent.source,
         );
@@ -1006,7 +990,6 @@ class LibraryReader {
 
   LibraryExportElementImpl _readExportElement({
     required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     return LibraryExportElementImpl(
@@ -1014,7 +997,6 @@ class LibraryReader {
       exportKeywordOffset: -1,
       uri: _readDirectiveUri(
         libraryElement: libraryElement,
-        containerLibrary: containerLibrary,
         containerUnit: containerUnit,
       ),
     );
@@ -1243,14 +1225,12 @@ class LibraryReader {
 
   LibraryImportElementImpl _readImportElement({
     required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     var element = LibraryImportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
       importKeywordOffset: -1,
       prefix: _readImportElementPrefix(
-        containerLibrary: containerLibrary,
         containerUnit: containerUnit,
       ),
       prefix2: _readLibraryImportPrefixFragment(
@@ -1258,7 +1238,6 @@ class LibraryReader {
       ),
       uri: _readDirectiveUri(
         libraryElement: libraryElement,
-        containerLibrary: containerLibrary,
         containerUnit: containerUnit,
       ),
     );
@@ -1267,7 +1246,6 @@ class LibraryReader {
   }
 
   ImportElementPrefixImpl? _readImportElementPrefix({
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     PrefixElementImpl buildElement(String name, Reference reference) {
@@ -1277,7 +1255,6 @@ class LibraryReader {
         return existing;
       } else {
         var result = PrefixElementImpl(name, -1, reference: reference);
-        result.enclosingElement = containerLibrary;
         result.enclosingElement3 = containerUnit;
         return result;
       }
@@ -1344,20 +1321,6 @@ class LibraryReader {
       fragment.element = element;
       return fragment;
     });
-  }
-
-  void _readLibraryOrAugmentationElement({
-    required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
-    required CompilationUnitElementImpl containerUnit,
-  }) {
-    for (var import in containerUnit.libraryImports_unresolved) {
-      var prefixElement = import.prefix?.element;
-      if (prefixElement is PrefixElementImpl) {
-        prefixElement.enclosingElement = containerUnit;
-        prefixElement.enclosingElement3 = containerUnit;
-      }
-    }
   }
 
   List<MethodElementImpl> _readMethods(
@@ -1526,12 +1489,10 @@ class LibraryReader {
 
   PartElementImpl _readPartElement({
     required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     var uri = _readDirectiveUri(
       libraryElement: libraryElement,
-      containerLibrary: containerLibrary,
       containerUnit: containerUnit,
     );
 
@@ -1630,7 +1591,6 @@ class LibraryReader {
           property = existing;
         } else {
           property = TopLevelVariableElementImpl(name, -1)
-            ..enclosingElement = enclosingElement
             ..enclosingElement3 = enclosingElement
             ..reference = propertyReference
             ..isSynthetic = true;
@@ -1642,7 +1602,6 @@ class LibraryReader {
           property = existing;
         } else {
           property = FieldElementImpl(name, -1)
-            ..enclosingElement = enclosingElement
             ..enclosingElement3 = enclosingElement
             ..reference = propertyReference
             ..isStatic = accessor.isStatic
@@ -1810,7 +1769,6 @@ class LibraryReader {
 
   CompilationUnitElementImpl _readUnitElement({
     required LibraryElementImpl libraryElement,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl? containerUnit,
     required Source unitSource,
   }) {
@@ -1840,7 +1798,6 @@ class LibraryReader {
     unitElement.libraryImports = _reader.readTypedList(() {
       return _readImportElement(
         libraryElement: libraryElement,
-        containerLibrary: containerLibrary,
         containerUnit: unitElement,
       );
     });
@@ -1848,7 +1805,6 @@ class LibraryReader {
     unitElement.libraryExports = _reader.readTypedList(() {
       return _readExportElement(
         libraryElement: libraryElement,
-        containerLibrary: containerLibrary,
         containerUnit: unitElement,
       );
     });
@@ -1856,7 +1812,6 @@ class LibraryReader {
     unitElement.parts = _reader.readTypedList(() {
       return _readPartElement(
         libraryElement: libraryElement,
-        containerLibrary: libraryElement,
         containerUnit: unitElement,
       );
     });

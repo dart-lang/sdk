@@ -28,7 +28,6 @@ main() {
     defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
     defineReflectiveTests(MethodElementImplTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
-    defineReflectiveTests(VoidTypeImplTest);
     defineReflectiveTests(ClassElementImplTest);
     defineReflectiveTests(MixinElementImplTest);
     defineReflectiveTests(ElementLocationImplTest);
@@ -1080,18 +1079,6 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
     expect(types[0], doubleNone);
     expect(types[1], stringNone);
   }
-
-  @deprecated
-  void test_resolveToBound() {
-    var type = functionTypeNone(
-      typeFormals: [],
-      parameters: [],
-      returnType: voidNone,
-    );
-
-    // Returns this.
-    expect(type.resolveToBound(objectNone), same(type));
-  }
 }
 
 @reflectiveTest
@@ -1557,14 +1544,6 @@ A<int>?
     ClassElement classA = class_(name: 'A');
     InterfaceType typeA = interfaceTypeNone(classA);
     expect(0 == typeA.hashCode, isFalse);
-  }
-
-  @deprecated
-  void test_resolveToBound() {
-    var type = interfaceTypeNone(ElementFactory.classElement2('A'));
-
-    // Returns this.
-    expect(type.resolveToBound(objectNone), same(type));
   }
 
   void test_superclassConstraints_nonParameterized() {
@@ -2078,129 +2057,6 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     expect(type.element, element);
   }
 
-  @deprecated
-  void test_resolveToBound_bound() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeNone(classS);
-    TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.resolveToBound(objectNone), interfaceTypeNone(classS));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_nullableInner() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeQuestion(classS);
-    TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.resolveToBound(objectNone), same(element.bound));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_nullableInnerOuter() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeQuestion(classS);
-    var type = typeParameterTypeNone(element)
-        .withNullability(NullabilitySuffix.question);
-    expect(type.resolveToBound(objectNone), same(element.bound));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_nullableInnerStarOuter() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeQuestion(classS);
-    var type = typeParameterTypeNone(element)
-        .withNullability(NullabilitySuffix.question);
-    expect(
-        type.resolveToBound(objectNone), equals(interfaceTypeQuestion(classS)));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_nullableOuter() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeNone(classS);
-    var type = typeParameterTypeNone(element)
-        .withNullability(NullabilitySuffix.question);
-    expect(
-        type.resolveToBound(objectNone), equals(interfaceTypeQuestion(classS)));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_starInner() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeNone(classS);
-    var type = typeParameterTypeNone(element);
-    expect(type.resolveToBound(objectNone), same(element.bound));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_starInnerNullableOuter() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeQuestion(classS);
-    var type =
-        typeParameterTypeNone(element).withNullability(NullabilitySuffix.none);
-    expect(type.resolveToBound(objectNone), same(element.bound));
-  }
-
-  @deprecated
-  void test_resolveToBound_bound_starOuter() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = interfaceTypeNone(classS);
-    var type =
-        typeParameterTypeNone(element).withNullability(NullabilitySuffix.none);
-    expect(type.resolveToBound(objectNone), interfaceTypeNone(classS));
-  }
-
-  @deprecated
-  void test_resolveToBound_nestedBound() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl elementE = TypeParameterElementImpl('E', -1);
-    elementE.bound = interfaceTypeNone(classS);
-    TypeParameterTypeImpl typeE = typeParameterTypeNone(elementE);
-    TypeParameterElementImpl elementF = TypeParameterElementImpl('F', -1);
-    elementF.bound = typeE;
-    TypeParameterTypeImpl typeF = typeParameterTypeNone(elementE);
-    expect(typeF.resolveToBound(objectNone), interfaceTypeNone(classS));
-  }
-
-  @deprecated
-  void test_resolveToBound_promotedBound_interfaceType() {
-    var A = class_(name: 'A');
-    var A_none = interfaceTypeNone(A);
-
-    var T = typeParameter('T');
-    var T_A = typeParameterTypeNone(T, promotedBound: A_none);
-    expect(T_A.resolveToBound(objectQuestion), A_none);
-  }
-
-  @deprecated
-  void test_resolveToBound_promotedBound_typeParameterType_interfaceType() {
-    var A = class_(name: 'A');
-    var A_none = interfaceTypeNone(A);
-
-    var T = typeParameter('T', bound: A_none);
-    var T_none = typeParameterTypeNone(T);
-
-    var U = typeParameter('U');
-    var U_T = typeParameterTypeNone(U, promotedBound: T_none);
-    expect(U_T.resolveToBound(objectQuestion), A_none);
-  }
-
-  @deprecated
-  void test_resolveToBound_unbound() {
-    TypeParameterTypeImpl type =
-        typeParameterTypeNone(TypeParameterElementImpl('E', -1));
-    // Returns whatever type is passed to resolveToBound().
-    expect(type.resolveToBound(VoidTypeImpl.instance),
-        same(VoidTypeImpl.instance));
-  }
-
   void _assert_asInstanceOf(
     DartType type,
     ClassElement element,
@@ -2322,22 +2178,5 @@ f() {
 ''');
     expect(findNode.variableDeclaration('x = 0').declaredElement!.location,
         isNot(findNode.variableDeclaration('x = 1').declaredElement!.location));
-  }
-}
-
-@reflectiveTest
-class VoidTypeImplTest extends AbstractTypeSystemTest {
-  /// Reference {code VoidTypeImpl.getInstance()}.
-  final DartType _voidType = VoidTypeImpl.instance;
-
-  @deprecated
-  void test_isVoid() {
-    expect(_voidType.isVoid, isTrue);
-  }
-
-  @deprecated
-  void test_resolveToBound() {
-    // Returns this.
-    expect(_voidType.resolveToBound(objectNone), same(_voidType));
   }
 }

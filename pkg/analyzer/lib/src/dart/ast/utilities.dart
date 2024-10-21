@@ -1120,12 +1120,6 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
-  @Deprecated('Use visitMixinOnClause() instead')
-  @override
-  bool visitOnClause(OnClause node) {
-    return visitMixinOnClause(node);
-  }
-
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression other = _other as ParenthesizedExpression;
@@ -3023,12 +3017,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitNullLiteral(NullLiteral node) => visitNode(node);
-
-  @Deprecated('Use visitMixinOnClause() instead')
-  @override
-  bool visitOnClause(covariant MixinOnClauseImpl node) {
-    return visitMixinOnClause(node);
-  }
 
   @override
   bool visitParenthesizedExpression(

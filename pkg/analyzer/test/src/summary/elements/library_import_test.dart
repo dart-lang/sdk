@@ -35,9 +35,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -103,9 +100,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo_io.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -171,9 +165,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo_io.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -239,9 +230,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo_html.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -307,9 +295,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo_html.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -365,11 +350,6 @@ import 'dart:math';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:core
-      enclosingElement3: <testLibraryFragment>
-    dart:math
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -398,9 +378,6 @@ import 'dart:math';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:math
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -427,13 +404,6 @@ import 'a.dart' deferred as p;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart deferred as p @28
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @28
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -471,30 +441,6 @@ export 'dart:math';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as i1 @23
-      enclosingElement3: <testLibraryFragment>
-    dart:async as i2 @70
-      enclosingElement3: <testLibraryFragment>
-    dart:async as i3 @117
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    i1 @23
-      reference: <testLibraryFragment>::@prefix::i1
-      enclosingElement3: <testLibraryFragment>
-    i2 @70
-      reference: <testLibraryFragment>::@prefix::i2
-      enclosingElement3: <testLibraryFragment>
-    i3 @117
-      reference: <testLibraryFragment>::@prefix::i3
-      enclosingElement3: <testLibraryFragment>
-  libraryExports
-    dart:math
-      enclosingElement3: <testLibraryFragment>
-    dart:math
-      enclosingElement3: <testLibraryFragment>
-    dart:math
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -550,11 +496,6 @@ import 'dart:async' hide Stream, Completer; Future f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        hide: Stream, Completer
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -652,19 +593,6 @@ library
         staticType: null
       element: <null>
       element2: <null>
-  libraryImports
-    relativeUri 'ht:'
-      enclosingElement3: <testLibraryFragment>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: foo @1
-            staticElement: <null>
-            element: <null>
-            staticType: null
-          element: <null>
-          element2: <null>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -721,12 +649,6 @@ Future f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        hide: Stream
-        show: Future
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -808,13 +730,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as a @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    a @19
-      reference: <testLibraryFragment>::@prefix::a
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -897,13 +812,6 @@ import 'dart:math' as;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:math as @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    @21
-      reference: <testLibraryFragment>::@prefix::0
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -942,13 +850,6 @@ class D extends p.C {} // Prevent "unused import" warning
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/test.dart as p @22
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @22
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1029,11 +930,6 @@ Stream s;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        show: Future, Stream
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1172,11 +1068,6 @@ import 'foo.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1295,9 +1186,6 @@ import '${'foo'}.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    noRelativeUriString
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1336,9 +1224,6 @@ import 'dart:math' as p1;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:core synthetic
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1364,9 +1249,6 @@ import '';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/test.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1392,9 +1274,6 @@ import 'foo:bar';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    relativeUri 'foo:bar'
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1420,9 +1299,6 @@ import 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1451,9 +1327,6 @@ import 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    source 'package:test/a.dart'
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1479,9 +1352,6 @@ import ':';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    relativeUriString ':'
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1510,20 +1380,6 @@ import 'dart:math' as p1;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as p1 @23
-      enclosingElement3: <testLibraryFragment>
-    dart:collection as p2 @55
-      enclosingElement3: <testLibraryFragment>
-    dart:math as p1 @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p1 @23
-      reference: <testLibraryFragment>::@prefix::p1
-      enclosingElement3: <testLibraryFragment>
-    p2 @55
-      reference: <testLibraryFragment>::@prefix::p2
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1579,19 +1435,6 @@ library
         staticType: null
       element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
-  libraryImports
-    dart:math
-      enclosingElement3: <testLibraryFragment>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: a @1
-            staticElement: <testLibraryFragment>::@getter::a
-            element: <testLibraryFragment>::@getter::a#element
-            staticType: null
-          element: <testLibraryFragment>::@getter::a
-          element2: <testLibraryFragment>::@getter::a#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1692,21 +1535,6 @@ library
         staticType: null
       element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
-  libraryImports
-    dart:math
-      enclosingElement3: <testLibraryFragment>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: a @1
-            staticElement: <testLibraryFragment>::@getter::a
-            element: <testLibraryFragment>::@getter::a#element
-            staticType: null
-          element: <testLibraryFragment>::@getter::a
-          element2: <testLibraryFragment>::@getter::a#element
-      combinators
-        show: Random
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1804,11 +1632,6 @@ A v = null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1890,9 +1713,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>

@@ -183,8 +183,6 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         NullLiteral,
         NullShortableExpression,
         ObjectPattern,
-        // ignore:deprecated_member_use_from_same_package
-        OnClause,
         ParenthesizedExpression,
         ParenthesizedPattern,
         PartDirective,
@@ -255,9 +253,3 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         WildcardPattern,
         WithClause,
         YieldStatement;
-
-@Deprecated('This class was removed, use ClassDeclaration instead')
-typedef ClassOrAugmentationDeclaration = ClassDeclaration;
-
-@Deprecated('This class was removed, use MixinDeclaration instead')
-typedef MixinOrAugmentationDeclaration = MixinDeclaration;

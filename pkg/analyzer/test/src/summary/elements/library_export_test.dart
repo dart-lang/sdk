@@ -24,9 +24,6 @@ abstract class LibraryExportElementTest extends ElementsBaseTest {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -62,9 +59,6 @@ class _E {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -105,9 +99,6 @@ export 'foo.dart'
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -149,9 +140,6 @@ export 'foo.dart'
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/foo_io.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -193,9 +181,6 @@ export 'foo.dart'
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/foo_html.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -234,9 +219,6 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -294,9 +276,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -327,9 +306,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -360,11 +336,6 @@ export 'a.dart' hide A, C;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        hide: A, C
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -409,12 +380,6 @@ export 'a.dart' hide A show C;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        hide: A
-        show: C
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -467,11 +432,6 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/c.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -539,9 +499,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -580,11 +537,6 @@ export 'a.dart' show A, C;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        show: A, C
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -625,11 +577,6 @@ void set f(value) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        show: f
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -667,9 +614,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -702,9 +646,6 @@ export 'foo.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -728,9 +669,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -766,9 +704,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -800,9 +735,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -846,9 +778,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/bar.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -916,9 +845,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/bar.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -986,9 +912,6 @@ class B extends A {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/bar.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1044,11 +967,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1088,8 +1006,6 @@ class A {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1217,9 +1133,6 @@ class X {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
-    part_1
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1330,8 +1243,6 @@ class X {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1420,8 +1331,6 @@ class X {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1505,8 +1414,6 @@ mixin A {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1606,8 +1513,6 @@ class C {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1752,8 +1657,6 @@ class X {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1847,8 +1750,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1949,8 +1850,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2021,9 +1920,6 @@ export '${'foo'}.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    noRelativeUriString
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2047,9 +1943,6 @@ export '';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/test.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2073,9 +1966,6 @@ export 'foo:bar';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    relativeUri 'foo:bar'
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2099,9 +1989,6 @@ export 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2128,9 +2015,6 @@ export 'a.dart';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    source 'package:test/a.dart'
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2154,9 +2038,6 @@ export ':';
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    relativeUriString ':'
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2178,9 +2059,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>

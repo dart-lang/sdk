@@ -6,10 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:watcher/watcher.dart';
 
 /// A resource provider that allows clients to overlay the file system provided
 /// by a base resource provider. These overlays allow both the contents and
@@ -124,10 +121,6 @@ class _OverlayFile extends _OverlayResource implements File {
   /// correspond to the given [file] from the provider's base resource provider.
   _OverlayFile(super.provider, File super.file);
 
-  @Deprecated('Use watch() instead')
-  @override
-  Stream<WatchEvent> get changes => watch().changes;
-
   @override
   bool get exists => provider.hasOverlay(path) || _resource.exists;
 
@@ -166,11 +159,6 @@ class _OverlayFile extends _OverlayResource implements File {
       return _OverlayFile(provider, provider.baseProvider.getFile(newPath));
     }
   }
-
-  @Deprecated('Get Source instances from analysis results')
-  @override
-  Source createSource([Uri? uri]) =>
-      FileSource(this, uri ?? provider.pathContext.toUri(path));
 
   @override
   void delete() {
@@ -238,10 +226,6 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   /// correspond to the given [folder] from the provider's base resource
   /// provider.
   _OverlayFolder(super.provider, Folder super.folder);
-
-  @Deprecated('Use watch() instead')
-  @override
-  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get exists => provider._hasOverlayIn(path) || _resource.exists;
@@ -359,9 +343,6 @@ abstract class _OverlayResource implements Resource {
     var parent = _resource.parent;
     return _OverlayFolder(provider, parent);
   }
-
-  @override
-  Folder get parent2 => parent;
 
   @override
   String get path => _resource.path;

@@ -19,13 +19,14 @@ import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
+export 'package:analyzer/source/source.dart' show Source;
 export 'package:analyzer/src/context/packages.dart' show Packages, Package;
 export 'package:analyzer/src/dart/analysis/byte_store.dart' show ByteStore;
 export 'package:analyzer/src/dart/analysis/experiments.dart'
     show ExperimentStatus;
 export 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
-export 'package:analyzer/src/generated/source.dart' show Source, UriResolver;
+export 'package:analyzer/src/generated/source.dart' show UriResolver;
 
 /// A somewhat low level API to create [AnalysisSession].
 ///

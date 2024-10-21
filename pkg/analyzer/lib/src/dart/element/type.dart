@@ -42,19 +42,11 @@ class DynamicTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   DynamicTypeImpl._();
 
-  @Deprecated('Use element instead')
-  @override
-  DynamicElementImpl get element2 => element;
-
   @override
   Element2? get element3 => (element as Fragment).element;
 
   @override
   int get hashCode => 1;
-
-  @Deprecated('Use `is DynamicType` instead')
-  @override
-  bool get isDynamic => true;
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
@@ -185,10 +177,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   Null get element => null;
-
-  @Deprecated('Use element instead')
-  @override
-  Null get element2 => element;
 
   @override
   Null get element3 => null;
@@ -568,10 +556,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<ConstructorElement2> get constructors2 => constructors
       .map((fragment) => (fragment as ConstructorFragment).element)
       .toList();
-
-  @Deprecated('Use element instead')
-  @override
-  InterfaceElement get element2 => element;
 
   @override
   InterfaceElement2 get element3 => (element as InterfaceFragment).element;
@@ -1028,19 +1012,11 @@ class InvalidTypeImpl extends TypeImpl
   @override
   Null get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Null get element2 => element;
-
   @override
   Null get element3 => null;
 
   @override
   int get hashCode => 1;
-
-  @Deprecated('Use `is DynamicType` instead')
-  @override
-  bool get isDynamic => true;
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
@@ -1093,10 +1069,6 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
   /// Prevent the creation of instances of this class.
   NeverTypeImpl._(this.nullabilitySuffix);
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
 
   @override
   // TODO(augmentations): Implement this.
@@ -1203,10 +1175,6 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
 
   @override
   Null get element => null;
-
-  @Deprecated('Use element instead')
-  @override
-  Null get element2 => element;
 
   @override
   Null get element3 => null;
@@ -1415,13 +1383,6 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDartCoreType => false;
 
-  @Deprecated('Use `is DynamicType` instead')
-  @override
-  bool get isDynamic => false;
-
-  @override
-  bool get isVoid => false;
-
   @override
   NullabilitySuffix get nullabilitySuffix;
 
@@ -1456,10 +1417,6 @@ abstract class TypeImpl implements DartType {
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return false;
   }
-
-  @Deprecated('Use TypeSystem.resolveToBound() instead')
-  @override
-  DartType resolveToBound(DartType objectType) => this;
 
   @override
   String toString() {
@@ -1522,10 +1479,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   ElementLocation get definition => element.location!;
-
-  @Deprecated('Use element instead')
-  @override
-  TypeParameterElement get element2 => element;
 
   @override
   TypeParameterElement2 get element3 =>
@@ -1616,31 +1569,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return parameters.contains(element);
   }
 
-  @Deprecated('Use TypeSystem.resolveToBound() instead')
-  @override
-  DartType resolveToBound(DartType objectType) {
-    var promotedBound = this.promotedBound;
-    if (promotedBound != null) {
-      return promotedBound.resolveToBound(objectType);
-    }
-
-    var bound = element.bound;
-    if (bound == null) {
-      return objectType;
-    }
-
-    NullabilitySuffix newNullabilitySuffix;
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        bound.nullabilitySuffix == NullabilitySuffix.question) {
-      newNullabilitySuffix = NullabilitySuffix.question;
-    } else {
-      newNullabilitySuffix = NullabilitySuffix.none;
-    }
-
-    return (bound.resolveToBound(objectType) as TypeImpl)
-        .withNullability(newNullabilitySuffix);
-  }
-
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
@@ -1664,19 +1592,11 @@ class VoidTypeImpl extends TypeImpl
   @override
   Null get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Null get element2 => element;
-
   @override
   Null get element3 => null;
 
   @override
   int get hashCode => 2;
-
-  @Deprecated('Use `is VoidType` instead')
-  @override
-  bool get isVoid => true;
 
   @Deprecated('Check element, or use getDisplayString()')
   @override

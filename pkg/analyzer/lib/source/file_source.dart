@@ -8,18 +8,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
-/// A function that can translate the contents of files on disk as they are
-/// read. This is now obsolete, but supported the ability of server to deal with
-/// clients that convert all text to an internal format.
-@Deprecated('We will remove reading source content')
-typedef FileReadMode = String Function(String s);
-
 /// A source that represents a file.
 class FileSource extends Source {
-  /// A function that changes the way that files are read off of disk.
-  @Deprecated('We will remove reading source content')
-  static FileReadMode fileReadMode = (String s) => s;
-
   /// Map from encoded URI/filepath pair to a unique integer identifier.  This
   /// identifier is used for equality tests and hash codes.
   ///
@@ -64,8 +54,7 @@ class FileSource extends Source {
   TimestampedData<String> get contentsFromFile {
     return TimestampedData<String>(
       file.modificationStamp,
-      // ignore:deprecated_member_use_from_same_package
-      fileReadMode(file.readAsStringSync()),
+      file.readAsStringSync(),
     );
   }
 
