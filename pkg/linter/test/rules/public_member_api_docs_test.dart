@@ -417,11 +417,7 @@ class PublicMemberApiDocsTestPackageTest extends LintRuleTest {
         myPackageRootPath, pubspecYamlContent(name: 'myPackage'));
     newAnalysisOptionsYamlFile(
       myPackageRootPath,
-      analysisOptionsContent(
-        experiments: experiments,
-        rules: lintRules,
-        propagateLinterExceptions: true,
-      ),
+      analysisOptionsContent(experiments: experiments, rules: lintRules),
     );
     newFolder(fixturePackageLibPath);
     writePackageConfig(

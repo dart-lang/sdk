@@ -43,24 +43,19 @@ export 'package:linter/src/lint_names.dart';
 String analysisOptionsContent({
   List<String> experiments = const [],
   List<String> rules = const [],
-  bool propagateLinterExceptions = false,
 }) {
   var buffer = StringBuffer();
 
-  if (experiments.isNotEmpty || propagateLinterExceptions) {
-    buffer.writeln('analyzer:');
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-
-    if (propagateLinterExceptions) {
-      buffer.writeln('  optional-checks:');
-      buffer.writeln(
-        '    propagate-linter-exceptions: $propagateLinterExceptions',
-      );
-    }
+  buffer.writeln('analyzer:');
+  buffer.writeln('  enable-experiment:');
+  for (var experiment in experiments) {
+    buffer.writeln('    - $experiment');
   }
+
+  buffer.writeln('  optional-checks:');
+  buffer.writeln(
+    '    propagate-linter-exceptions: true',
+  );
 
   buffer.writeln('linter:');
   buffer.writeln('  rules:');
@@ -139,12 +134,6 @@ class ExpectedLint extends ExpectedDiagnostic {
   ExpectedLint(this._lintName, int offset, int length,
       {Pattern? messageContains})
       : super((error) => error.errorCode.name == _lintName, offset, length,
-            messageContains: messageContains);
-
-  ExpectedLint.withLintCode(LintCode lintCode, int offset, int length,
-      {Pattern? messageContains})
-      : _lintName = lintCode.uniqueName,
-        super((error) => error.errorCode == lintCode, offset, length,
             messageContains: messageContains);
 }
 
@@ -395,11 +384,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
-      analysisOptionsContent(
-        experiments: experiments,
-        rules: _lintRules,
-        propagateLinterExceptions: true,
-      ),
+      analysisOptionsContent(experiments: experiments, rules: _lintRules),
     );
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
