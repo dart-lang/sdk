@@ -15,15 +15,13 @@ class FindElement2 extends _FindElementBase {
 
   FindElement2(this.unit);
 
-  LibraryElement2 get libraryElement => unitElement.element;
-
   @override
-  LibraryFragment get unitElement => unit.declaredFragment!;
+  LibraryFragment get libraryFragment => unit.declaredFragment!;
 
   LibraryExport export(String targetUri) {
     LibraryExport? result;
 
-    for (var export in unitElement.libraryExports2) {
+    for (var export in libraryFragment.libraryExports2) {
       var exportedUri =
           export.exportedLibrary2?.firstFragment.source.uri.toString();
       if (exportedUri == targetUri) {
@@ -45,9 +43,9 @@ class FindElement2 extends _FindElementBase {
   }
 
   TopLevelFunctionElement function(String name) {
-    for (var function in unitElement.functions2) {
-      if (function.name2?.name == name) {
-        return function.element;
+    for (var function in libraryElement.functions) {
+      if (function.name == name) {
+        return function;
       }
     }
     throw StateError('Not found: $name');
@@ -56,7 +54,7 @@ class FindElement2 extends _FindElementBase {
   LibraryImport import(String targetUri, {bool mustBeUnique = true}) {
     LibraryImport? importElement;
 
-    for (var libraryFragment in unitElement.withEnclosing2) {
+    for (var libraryFragment in libraryFragment.withEnclosing2) {
       for (var import in libraryFragment.libraryImports2) {
         var importedUri =
             import.importedLibrary2?.firstFragment.source.uri.toString();
@@ -163,62 +161,51 @@ class FindElement2 extends _FindElementBase {
   FormalParameterElement parameter(String name) {
     FormalParameterElement? result;
 
-    void findIn(List<FormalParameterFragment> parameters) {
-      for (var parameter in parameters) {
-        if (parameter.name2?.name == name) {
+    void findIn(List<FormalParameterElement> formalParameters) {
+      for (var formalParameter in formalParameters) {
+        if (formalParameter.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
-          result = parameter.element;
+          result = formalParameter;
         }
       }
     }
 
-    void findInElements(List<FormalParameterElement> parameters) {
-      for (var parameter in parameters) {
-        if (parameter.name == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
-          }
-          result = parameter;
-        }
-      }
-    }
-
-    void findInExecutables(List<ExecutableFragment> executables) {
+    void findInExecutables(List<ExecutableElement2> executables) {
       for (var executable in executables) {
         findIn(executable.formalParameters);
       }
     }
 
-    void findInClasses(List<InterfaceFragment> classes) {
+    void findInClasses(List<InterfaceElement2> classes) {
       for (var class_ in classes) {
-        findInExecutables(class_.getters);
-        findInExecutables(class_.setters);
+        findInExecutables(class_.getters2);
+        findInExecutables(class_.setters2);
         findInExecutables(class_.constructors2);
         findInExecutables(class_.methods2);
       }
     }
 
-    findInExecutables(unitElement.getters);
-    findInExecutables(unitElement.setters);
-    findInExecutables(unitElement.functions2);
+    findInExecutables(libraryElement.getters);
+    findInExecutables(libraryElement.setters);
+    findInExecutables(libraryElement.functions);
 
-    findInClasses(unitElement.classes2);
-    findInClasses(unitElement.enums2);
-    findInClasses(unitElement.extensionTypes2);
-    findInClasses(unitElement.mixins2);
+    findInClasses(libraryElement.classes);
+    findInClasses(libraryElement.enums);
+    findInClasses(libraryElement.extensionTypes);
+    findInClasses(libraryElement.mixins);
 
-    for (var extension_ in unitElement.extensions2) {
-      findInExecutables(extension_.getters);
-      findInExecutables(extension_.setters);
+    for (var extension_ in libraryElement.extensions) {
+      findInExecutables(extension_.getters2);
+      findInExecutables(extension_.setters2);
       findInExecutables(extension_.methods2);
     }
 
-    for (var alias in unitElement.typeAliases2) {
-      var aliasedElement = alias.element.aliasedElement2;
+    for (var alias in libraryElement.typeAliases) {
+      var aliasedElement = alias.aliasedElement2;
       if (aliasedElement is GenericFunctionTypeElement2) {
-        findInElements(aliasedElement.formalParameters);
+        findIn(aliasedElement.formalParameters);
       }
     }
 
@@ -226,7 +213,7 @@ class FindElement2 extends _FindElementBase {
       FunctionAstVisitor(functionExpression: (node, local) {
         if (local) {
           var functionElement = node.declaredElement2!;
-          findInElements(functionElement.formalParameters);
+          findIn(functionElement.formalParameters);
         }
       }),
     );
@@ -240,7 +227,7 @@ class FindElement2 extends _FindElementBase {
   LibraryFragment part(String targetUri) {
     LibraryFragment? result;
 
-    for (var partElement in unitElement.fragmentIncludes) {
+    for (var partElement in libraryFragment.fragmentIncludes) {
       var uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
         var unitElement = uri.libraryFragment;
@@ -265,11 +252,10 @@ class FindElement2 extends _FindElementBase {
   }
 
   PrefixElement2 prefix(String name) {
-    for (var libraryFragment in unitElement.withEnclosing2) {
-      for (var import_ in libraryFragment.libraryImports2) {
-        var prefix = import_.prefix2;
-        if (prefix != null && prefix.name2?.name == name) {
-          return prefix.element;
+    for (var libraryFragment in libraryFragment.withEnclosing2) {
+      for (var importPrefix in libraryFragment.prefixes) {
+        if (importPrefix.name == name) {
+          return importPrefix;
         }
       }
     }
@@ -281,12 +267,12 @@ class FindElement2 extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       typeParameter: (node) {
-        var element = node.declaredFragment!;
-        if (element.name2?.name == name) {
+        var element = node.declaredFragment!.element;
+        if (element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
-          result = element.element;
+          result = element;
         }
       },
     ));
@@ -306,42 +292,44 @@ class ImportFindElement extends _FindElementBase {
 
   LibraryElement2 get importedLibrary => import.importedLibrary2!;
 
-  PrefixElement2? get prefix => import.prefix2?.element;
-
   @override
-  LibraryFragment get unitElement {
+  LibraryFragment get libraryFragment {
     return importedLibrary.firstFragment;
   }
+
+  PrefixElement2? get prefix => import.prefix2?.element;
 }
 
 class PartFindElement extends _FindElementBase {
   @override
-  final LibraryFragment unitElement;
+  final LibraryFragment libraryFragment;
 
-  PartFindElement(this.unitElement);
+  PartFindElement(this.libraryFragment);
 }
 
 abstract class _FindElementBase {
-  LibraryFragment get unitElement;
+  LibraryElement2 get libraryElement => libraryFragment.element;
+
+  LibraryFragment get libraryFragment;
 
   ClassElement2 class_(String name) {
-    for (var class_ in unitElement.classes2) {
-      if (class_.name2?.name == name) {
-        return class_.element;
+    for (var class_ in libraryElement.classes) {
+      if (class_.name == name) {
+        return class_;
       }
     }
     throw StateError('Not found: $name');
   }
 
   InterfaceElement2 classOrMixin(String name) {
-    for (var class_ in unitElement.classes2) {
-      if (class_.name2?.name == name) {
-        return class_.element;
+    for (var class_ in libraryElement.classes) {
+      if (class_.name == name) {
+        return class_;
       }
     }
-    for (var mixin in unitElement.mixins2) {
-      if (mixin.name2?.name == name) {
-        return mixin.element;
+    for (var mixin in libraryElement.mixins) {
+      if (mixin.name == name) {
+        return mixin;
       }
     }
     throw StateError('Not found: $name');
@@ -352,31 +340,31 @@ abstract class _FindElementBase {
 
     ConstructorElement2? result;
 
-    void findIn(List<ConstructorFragment> constructors) {
+    void findIn(List<ConstructorElement2> constructors) {
       for (var constructor in constructors) {
-        if (constructor.name2?.name == name) {
+        if (constructor.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
-          result = constructor.element;
+          result = constructor;
         }
       }
     }
 
-    for (var class_ in unitElement.classes2) {
-      if (of == null || class_.name2?.name == of) {
+    for (var class_ in libraryElement.classes) {
+      if (of == null || class_.name == of) {
         findIn(class_.constructors2);
       }
     }
 
-    for (var enum_ in unitElement.enums2) {
-      if (of == null || enum_.name2?.name == of) {
+    for (var enum_ in libraryElement.enums) {
+      if (of == null || enum_.name == of) {
         findIn(enum_.constructors2);
       }
     }
 
-    for (var extensionType in unitElement.extensionTypes2) {
-      if (of == null || extensionType.name2?.name == of) {
+    for (var extensionType in libraryElement.extensionTypes) {
+      if (of == null || extensionType.name == of) {
         findIn(extensionType.constructors2);
       }
     }
@@ -388,27 +376,27 @@ abstract class _FindElementBase {
   }
 
   EnumElement2 enum_(String name) {
-    for (var enum_ in unitElement.enums2) {
-      if (enum_.name2?.name == name) {
-        return enum_.element;
+    for (var enum_ in libraryElement.enums) {
+      if (enum_.name == name) {
+        return enum_;
       }
     }
     throw StateError('Not found: $name');
   }
 
   ExtensionElement2 extension_(String name) {
-    for (var extension_ in unitElement.extensions2) {
-      if (extension_.name2?.name == name) {
-        return extension_.element;
+    for (var extension_ in libraryElement.extensions) {
+      if (extension_.name == name) {
+        return extension_;
       }
     }
     throw StateError('Not found: $name');
   }
 
   ExtensionTypeElement2 extensionType(String name) {
-    for (var element in unitElement.extensionTypes2) {
-      if (element.name2?.name == name) {
-        return element.element;
+    for (var element in libraryElement.extensionTypes) {
+      if (element.name == name) {
+        return element;
       }
     }
     throw StateError('Not found: $name');
@@ -417,33 +405,31 @@ abstract class _FindElementBase {
   FieldElement2 field(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.fields2.named(name)?.element,
-      fromExtension: (element) => element.fields2.named(name)?.element,
+      fromClass: (element) => element.fields2.named(name),
+      fromExtension: (element) => element.fields2.named(name),
     );
   }
 
   GetterElement getter(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) =>
-          element.getters.named(name)?.element as GetterElement,
-      fromExtension: (element) =>
-          element.getters.named(name)?.element as GetterElement,
+      fromClass: (element) => element.getters2.named(name),
+      fromExtension: (element) => element.getters2.named(name),
     );
   }
 
   MethodElement2 method(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) => element.methods2.named(name)?.element,
-      fromExtension: (element) => element.methods2.named(name)?.element,
+      fromClass: (element) => element.methods2.named(name),
+      fromExtension: (element) => element.methods2.named(name),
     );
   }
 
   MixinElement2 mixin(String name) {
-    for (var mixin in unitElement.mixins2) {
-      if (mixin.name2?.name == name) {
-        return mixin.element;
+    for (var mixin in libraryElement.mixins) {
+      if (mixin.name == name) {
+        return mixin;
       }
     }
     throw StateError('Not found: $name');
@@ -452,14 +438,14 @@ abstract class _FindElementBase {
   FormalParameterElement parameter(String name) {
     FormalParameterElement? result;
 
-    for (var class_ in unitElement.classes2) {
+    for (var class_ in libraryElement.classes) {
       for (var constructor in class_.constructors2) {
-        for (var parameter in constructor.formalParameters) {
-          if (parameter.name2?.name == name) {
+        for (var formalParameter in constructor.formalParameters) {
+          if (formalParameter.name == name) {
             if (result != null) {
               throw StateError('Not unique: $name');
             }
-            result = parameter.element;
+            result = formalParameter;
           }
         }
       }
@@ -474,17 +460,15 @@ abstract class _FindElementBase {
   SetterElement setter(String name, {String? of}) {
     return _findInClassesLike(
       className: of,
-      fromClass: (element) =>
-          element.setters.named(name)?.element as SetterElement,
-      fromExtension: (element) =>
-          element.setters.named(name)?.element as SetterElement,
+      fromClass: (element) => element.setters2.named(name),
+      fromExtension: (element) => element.setters2.named(name),
     );
   }
 
   TopLevelFunctionElement topFunction(String name) {
-    for (var function in unitElement.functions2) {
-      if (function.name2?.name == name) {
-        return function.element;
+    for (var function in libraryElement.functions) {
+      if (function.name == name) {
+        return function;
       }
     }
     throw StateError('Not found: $name');
@@ -499,18 +483,18 @@ abstract class _FindElementBase {
   }
 
   TopLevelVariableElement2 topVar(String name) {
-    for (var variable in unitElement.topLevelVariables2) {
-      if (variable.name2?.name == name) {
-        return variable.element;
+    for (var variable in libraryElement.topLevelVariables) {
+      if (variable.name == name) {
+        return variable;
       }
     }
     throw StateError('Not found: $name');
   }
 
   TypeAliasElement2 typeAlias(String name) {
-    for (var element in unitElement.typeAliases2) {
-      if (element.name2?.name == name) {
-        return element.element;
+    for (var element in libraryElement.typeAliases) {
+      if (element.name == name) {
+        return element;
       }
     }
     throw StateError('Not found: $name');
@@ -519,32 +503,32 @@ abstract class _FindElementBase {
   ConstructorElement2 unnamedConstructor(String name) {
     return _findInClassesLike(
       className: name,
-      fromClass: (e) => e.constructors2
-          .firstWhereOrNull((fragment) => fragment.name2 == null)
-          ?.element,
+      fromClass: (e) => e.constructors2.firstWhereOrNull((element) {
+        return element.name.isEmpty;
+      }),
       fromExtension: (_) => null,
     );
   }
 
   T _findInClassesLike<T extends Element2>({
     required String? className,
-    required T? Function(InterfaceFragment element) fromClass,
-    required T? Function(ExtensionFragment element) fromExtension,
+    required T? Function(InterfaceElement2 element) fromClass,
+    required T? Function(ExtensionElement2 element) fromExtension,
   }) {
-    bool filter(Fragment fragment) {
-      return className == null || fragment.name2?.name == className;
+    bool filter(InstanceElement2 element) {
+      return className == null || element.name == className;
     }
 
     var classes = [
-      ...unitElement.classes2,
-      ...unitElement.enums2,
-      ...unitElement.extensionTypes2,
-      ...unitElement.mixins2,
+      ...libraryElement.classes,
+      ...libraryElement.enums,
+      ...libraryElement.extensionTypes,
+      ...libraryElement.mixins,
     ];
 
     var results = [
       ...classes.where(filter).map(fromClass),
-      ...unitElement.extensions2.where(filter).map(fromExtension),
+      ...libraryElement.extensions.where(filter).map(fromExtension),
     ].nonNulls.toList();
 
     var result = results.singleOrNull;
@@ -560,10 +544,10 @@ abstract class _FindElementBase {
   }
 }
 
-extension<T extends Fragment> on List<T> {
+extension<T extends Element2> on List<T> {
   T? named(String targetName) {
     for (var element in this) {
-      if (element.name2?.name == targetName) {
+      if (element.name == targetName) {
         return element;
       }
     }
@@ -573,18 +557,19 @@ extension<T extends Fragment> on List<T> {
 
 extension ExecutableElementExtensions on ExecutableElement2 {
   FormalParameterElement parameter(String name) {
-    for (var parameter in formalParameters) {
-      if (parameter.name == name) {
-        return parameter;
+    for (var formalParameter in formalParameters) {
+      if (formalParameter.name == name) {
+        return formalParameter;
       }
     }
     throw StateError('Not found: $name');
   }
 
   SuperFormalParameterElement2 superFormalParameter(String name) {
-    for (var parameter in formalParameters) {
-      if (parameter is SuperFormalParameterElement2 && parameter.name == name) {
-        return parameter;
+    for (var formalParameter in formalParameters) {
+      if (formalParameter is SuperFormalParameterElement2 &&
+          formalParameter.name == name) {
+        return formalParameter;
       }
     }
     throw StateError('Not found: $name');
