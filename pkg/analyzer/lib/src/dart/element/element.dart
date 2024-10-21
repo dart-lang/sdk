@@ -2398,7 +2398,7 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
-  Element2? get baseElement => this;
+  Element2 get baseElement => this;
 
   @override
   List<Element> get children => const [];
@@ -3160,7 +3160,7 @@ abstract class ElementImpl2 implements Element2 {
   final int id = ElementImpl._NEXT_ID++;
 
   @override
-  Element2? get baseElement => this;
+  Element2 get baseElement => this;
 
   @override
   List<Element2> get children2 => const [];
@@ -5013,7 +5013,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   }
 
   @override
-  GetterElement get baseElement => super.baseElement as GetterElement;
+  GetterElement get baseElement => this;
 
   @override
   SetterElement? get correspondingSetter2 =>
@@ -6955,7 +6955,7 @@ mixin MaybeAugmentedInstanceElementMixin
   List<PropertyAccessorElement> get accessors;
 
   @override
-  Element2? get baseElement => declaration.baseElement;
+  InstanceElement2 get baseElement => this;
 
   @override
   List<Element2> get children2 {
