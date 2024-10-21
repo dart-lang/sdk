@@ -49,7 +49,7 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-          {required Map<TypeVariableBuilder, TraversalState>
-              typeVariablesTraversalState}) =>
+          {required Map<TypeParameterBuilder, TraversalState>
+              typeParametersTraversalState}) =>
       Nullability.nonNullable;
 }

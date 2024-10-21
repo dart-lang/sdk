@@ -48,8 +48,8 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     return Nullability.nullable;
   }
 }

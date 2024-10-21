@@ -57,7 +57,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   late final ConstructorScope _constructorScope;
 
   @override
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
 
   @override
   final LookupScope typeParameterScope;
@@ -101,7 +101,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         name: extensionName.name,
         fileUri: fileUri,
         typeParameters:
-            NominalVariableBuilder.typeParametersFromBuilders(typeParameters),
+            NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
         reference: _reference)
       ..isUnnamedExtension = extensionName.isUnnamedExtension
       ..fileOffset = _nameOffset;

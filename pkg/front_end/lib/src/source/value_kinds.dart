@@ -211,8 +211,8 @@ class ValueKinds {
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValues.TypeBuilderList);
   static const ValueKind NominalVariableListOrNull =
-      const SingleValueKind<List<type.NominalVariableBuilder>>(
-          NullValues.NominalVariables);
+      const SingleValueKind<List<type.NominalParameterBuilder>>(
+          NullValues.NominalParameters);
   static const ValueKind VariableDeclarationListOrNull =
       const SingleValueKind<List<type.VariableDeclaration>>(
           NullValues.VariableDeclarationList);

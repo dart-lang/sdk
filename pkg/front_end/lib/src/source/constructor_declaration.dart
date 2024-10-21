@@ -54,7 +54,7 @@ abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   /// extension type declaration to this constructor.
   ///
   /// This is used for generic extension type constructors where the type
-  /// variable referring to the class type variables must be substituted for
-  /// the synthesized constructor type variables.
+  /// variable referring to the class type parameters must be substituted for
+  /// the synthesized constructor type parameters.
   DartType substituteFieldType(DartType fieldType);
 }

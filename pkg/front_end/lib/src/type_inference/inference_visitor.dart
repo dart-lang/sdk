@@ -1655,7 +1655,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(iterable, context, isVoidAllowed: false);
     DartType iterableType = iterableResult.inferredType;
     iterable = iterableResult.expression;
-    DartType inferredExpressionType = iterableType.nonTypeVariableBound;
+    DartType inferredExpressionType = iterableType.nonTypeParameterBound;
     iterable = ensureAssignable(
         wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
         inferredExpressionType,
@@ -2324,7 +2324,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadType = spreadResult.inferredType;
     inferredSpreadTypes[element.expression] = spreadType;
     Expression replacement = element;
-    DartType spreadTypeBound = spreadType.nonTypeVariableBound;
+    DartType spreadTypeBound = spreadType.nonTypeParameterBound;
     DartType? spreadElementType =
         getSpreadElementType(spreadType, spreadTypeBound, element.isNullAware);
     if (spreadElementType == null) {
@@ -4352,7 +4352,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // is a function type, the original values in output are preserved.
   void storeSpreadMapEntryElementTypes(DartType spreadMapEntryType,
       bool isNullAware, List<DartType?> output, int offset) {
-    DartType typeBound = spreadMapEntryType.nonTypeVariableBound;
+    DartType typeBound = spreadMapEntryType.nonTypeParameterBound;
     if (coreTypes.isNull(typeBound)) {
       if (isNullAware) {
         output[offset] = output[offset + 1] = const NeverType.nonNullable();
@@ -4397,7 +4397,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         spreadType, entry.isNullAware, actualTypes, length);
     DartType? actualKeyType = actualTypes[length];
     DartType? actualValueType = actualTypes[length + 1];
-    DartType spreadTypeBound = spreadType.nonTypeVariableBound;
+    DartType spreadTypeBound = spreadType.nonTypeParameterBound;
     DartType? actualElementType =
         getSpreadElementType(spreadType, spreadTypeBound, entry.isNullAware);
 
@@ -11228,12 +11228,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           break;
         case ObjectAccessTargetKind.recordNamed:
           field.recordType =
-              node.requiredType.nonTypeVariableBound as RecordType;
+              node.requiredType.nonTypeParameterBound as RecordType;
           field.accessKind = ObjectAccessKind.RecordNamed;
           break;
         case ObjectAccessTargetKind.recordIndexed:
           field.recordType =
-              node.requiredType.nonTypeVariableBound as RecordType;
+              node.requiredType.nonTypeParameterBound as RecordType;
           field.accessKind = ObjectAccessKind.RecordIndexed;
           field.recordFieldIndex = fieldTarget.recordFieldIndex!;
           break;
@@ -11641,7 +11641,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.needsCheck) {
       node.lookupType = requiredType;
     } else {
-      DartType resolvedType = matchedValueType.nonTypeVariableBound;
+      DartType resolvedType = matchedValueType.nonTypeParameterBound;
       if (resolvedType is RecordType) {
         node.lookupType = resolvedType;
       } else {

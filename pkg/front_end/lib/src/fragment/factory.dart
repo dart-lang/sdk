@@ -14,7 +14,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final TypeBuilder returnType;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;

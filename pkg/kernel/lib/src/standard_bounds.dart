@@ -1685,8 +1685,8 @@ mixin StandardBounds {
           outer: uniteNullabilities(
               type1.declaredNullability, type2.nullability)));
     }
-    NullabilityAwareTypeVariableEliminator eliminator =
-        new NullabilityAwareTypeVariableEliminator(
+    NullabilityAwareTypeParameterEliminator eliminator =
+        new NullabilityAwareTypeParameterEliminator(
             structuralEliminationTargets: {
           if (structuralEliminationTarget != null) structuralEliminationTarget
         },
@@ -1726,8 +1726,8 @@ mixin StandardBounds {
       return demoted.withDeclaredNullability(uniteNullabilities(
           demoted.declaredNullability, type2.declaredNullability));
     }
-    NullabilityAwareTypeVariableEliminator eliminator =
-        new NullabilityAwareTypeVariableEliminator(
+    NullabilityAwareTypeParameterEliminator eliminator =
+        new NullabilityAwareTypeParameterEliminator(
             structuralEliminationTargets: {},
             nominalEliminationTargets: {type1.left.parameter},
             bottomType: const NeverType.nonNullable(),

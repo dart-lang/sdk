@@ -13,12 +13,12 @@ mixin DillDeclarationBuilderMixin implements IDeclarationBuilder {
   List<TypeParameter> get typeParameterNodes;
 
   @override
-  int get typeVariablesCount => typeParameterNodes.length;
+  int get typeParametersCount => typeParameterNodes.length;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    // For performance reasons, [typeVariables] aren't restored from [target].
+    // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {

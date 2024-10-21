@@ -55,7 +55,7 @@ import 'source_member_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
-    List<NominalVariableBuilder>? typeVariables,
+    List<NominalParameterBuilder>? typeParameters,
     String name,
     Uri fileUri,
     int startOffset,
@@ -66,7 +66,7 @@ Class initializeClass(
   Class cls = new Class(
       name: name,
       typeParameters:
-          NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
+          NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
       // If the class is an augmentation class it shouldn't use the reference
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
@@ -118,7 +118,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   late final ConstructorScope _constructorScope;
 
   @override
-  List<NominalVariableBuilder>? typeVariables;
+  List<NominalParameterBuilder>? typeParameters;
 
   /// The scope in which the [typeParameters] are declared.
   final LookupScope typeParameterScope;
@@ -165,7 +165,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       {required this.metadata,
       required Modifiers modifiers,
       required this.name,
-      required this.typeVariables,
+      required this.typeParameters,
       required this.supertypeBuilder,
       required this.interfaceBuilders,
       required this.onTypes,
@@ -181,7 +181,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false})
       : _modifiers = modifiers,
-        actualCls = initializeClass(typeVariables, name, fileUri, startOffset,
+        actualCls = initializeClass(typeParameters, name, fileUri, startOffset,
             nameOffset, endOffset, indexedClass,
             isAugmentation: modifiers.isAugment) {
     actualCls.hasConstConstructor = declaresConstConstructor;
@@ -439,9 +439,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         fileUri,
         libraryBuilder.scope,
         createFileUriExpression: isAugmenting);
-    if (typeVariables != null) {
-      for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(
             libraryBuilder,
             createBodyBuilderContext(
                 inOutlineBuildingPhase: true,
@@ -532,20 +532,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  int get typeVariablesCount => typeVariables?.length ?? 0;
+  int get typeParametersCount => typeParameters?.length ?? 0;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeVariables == null) {
+    if (arguments == null && typeParameters == null) {
       return <DartType>[];
     }
 
-    if (arguments == null && typeVariables != null) {
+    if (arguments == null && typeParameters != null) {
       // TODO(johnniwinther): Use i2b here when needed.
       List<DartType> result = new List<DartType>.generate(
-          typeVariables!.length,
-          (int i) => typeVariables![i]
+          typeParameters!.length,
+          (int i) => typeParameters![i]
               .defaultType!
               // TODO(johnniwinther): Using [libraryBuilder] here instead of
               // [library] preserves the nullability of the original
@@ -556,7 +556,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       return result;
     }
 
-    if (arguments != null && arguments.length != typeVariablesCount) {
+    if (arguments != null && arguments.length != typeParametersCount) {
       // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceClassBuilder.buildAliasedTypeArguments: "
@@ -564,14 +564,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(typeVariablesCount)
+              .withArguments(typeParametersCount)
               .problemMessage,
           "buildTypeArguments",
           -1,
           null);
     }
 
-    assert(arguments!.length == typeVariablesCount);
+    assert(arguments!.length == typeParametersCount);
     List<DartType> result = new List<DartType>.generate(
         arguments!.length,
         (int i) =>
@@ -580,7 +580,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     return result;
   }
 
-  /// Returns a map which maps the type variables of [superclass] to their
+  /// Returns a map which maps the type parameters of [superclass] to their
   /// respective values as defined by the superclass clause of this class (and
   /// its superclasses).
   ///
@@ -636,18 +636,18 @@ class SourceClassBuilder extends ClassBuilderImpl
 
       mergedScope.addAugmentationScope(augmentation);
 
-      int originLength = typeVariables?.length ?? 0;
-      int augmentationLength = augmentation.typeVariables?.length ?? 0;
+      int originLength = typeParameters?.length ?? 0;
+      int augmentationLength = augmentation.typeParameters?.length ?? 0;
       if (originLength != augmentationLength) {
         // Coverage-ignore-block(suite): Not run.
-        augmentation.addProblem(messagePatchClassTypeVariablesMismatch,
+        augmentation.addProblem(messagePatchClassTypeParametersMismatch,
             augmentation.fileOffset, noLength, context: [
           messagePatchClassOrigin.withLocation(fileUri, fileOffset, noLength)
         ]);
-      } else if (typeVariables != null) {
+      } else if (typeParameters != null) {
         int count = 0;
-        for (NominalVariableBuilder t in augmentation.typeVariables!) {
-          typeVariables![count++].applyAugmentation(t);
+        for (NominalParameterBuilder t in augmentation.typeParameters!) {
+          typeParameters![count++].applyAugmentation(t);
         }
       }
     } else {
@@ -1018,26 +1018,26 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   TypeBuilder _checkSupertype(TypeBuilder supertype) {
-    if (typeVariables == null) return supertype;
+    if (typeParameters == null) return supertype;
     Message? message;
-    for (int i = 0; i < typeVariables!.length; ++i) {
-      NominalVariableBuilder typeVariableBuilder = typeVariables![i];
+    for (int i = 0; i < typeParameters!.length; ++i) {
+      NominalParameterBuilder typeParameterBuilder = typeParameters![i];
       Variance variance = supertype
-          .computeTypeVariableBuilderVariance(typeVariableBuilder,
+          .computeTypeParameterBuilderVariance(typeParameterBuilder,
               sourceLoader: libraryBuilder.loader)
           .variance!;
-      if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
-        if (typeVariables![i].parameter.isLegacyCovariant) {
-          message = templateInvalidTypeVariableInSupertype.withArguments(
-              typeVariables![i].name,
+      if (!variance.greaterThanOrEqual(typeParameters![i].variance)) {
+        if (typeParameters![i].parameter.isLegacyCovariant) {
+          message = templateInvalidTypeParameterInSupertype.withArguments(
+              typeParameters![i].name,
               variance.keyword,
               supertype.typeName!.name);
         } else {
           // Coverage-ignore-block(suite): Not run.
           message =
-              templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
-                  typeVariables![i].variance.keyword,
-                  typeVariables![i].name,
+              templateInvalidTypeParameterInSupertypeWithVariance.withArguments(
+                  typeParameters![i].variance.keyword,
+                  typeParameters![i].name,
                   variance.keyword,
                   supertype.typeName!.name);
         }
@@ -1050,8 +1050,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           typeName, const NullabilityBuilder.omitted(),
           fileUri: fileUri,
           charOffset: fileOffset,
-          instanceTypeVariableAccess:
-              InstanceTypeVariableAccessState.Unexpected)
+          instanceTypeParameterAccess:
+              InstanceTypeParameterAccessState.Unexpected)
         ..bind(
             libraryBuilder,
             new InvalidTypeDeclarationBuilder(typeName.name,
@@ -1133,11 +1133,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       // Coverage-ignore-block(suite): Not run.
       Message message;
       if (isReturnType) {
-        message = templateInvalidTypeVariableVariancePositionInReturnType
+        message = templateInvalidTypeParameterVariancePositionInReturnType
             .withArguments(typeParameter.variance.keyword, typeParameter.name!,
                 variance.keyword);
       } else {
-        message = templateInvalidTypeVariableVariancePosition.withArguments(
+        message = templateInvalidTypeParameterVariancePosition.withArguments(
             typeParameter.variance.keyword,
             typeParameter.name!,
             variance.keyword);
@@ -1413,7 +1413,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
           isInterfaceCheck,
           declaredMember,
-          templateOverrideTypeVariablesMismatch.withArguments(
+          templateOverrideTypeParametersMismatch.withArguments(
               "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
               "${interfaceMemberOrigin.enclosingClass!.name}."
@@ -1484,7 +1484,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
-                templateOverrideTypeVariablesBoundMismatch.withArguments(
+                templateOverrideTypeParametersBoundMismatch.withArguments(
                     declaredBound,
                     declaredParameter.name!,
                     "${declaredMember.enclosingClass!.name}."

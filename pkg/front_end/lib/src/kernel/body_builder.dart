@@ -244,7 +244,7 @@ class BodyBuilder extends StackListenerImpl
   ///
   /// This variable is needed to distinguish between the type of a formal
   /// parameter and its initializer because in those two regions of code the
-  /// type variables should be interpreted differently: as structural and
+  /// type parameters should be interpreted differently: as structural and
   /// nominal correspondingly.
   bool _insideOfFormalParameterType = false;
 
@@ -576,8 +576,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
-    return _context.instanceTypeVariableAccessState;
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
+    return _context.instanceTypeParameterAccessState;
   }
 
   @override
@@ -1590,10 +1590,10 @@ class BodyBuilder extends StackListenerImpl
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
     int fileOffset = offsetForToken(token);
-    List<NominalVariableBuilder>? typeParameterBuilders;
+    List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
-      typeParameterBuilders ??= <NominalVariableBuilder>[];
-      typeParameterBuilders.add(new NominalVariableBuilder.fromKernel(
+      typeParameterBuilders ??= <NominalParameterBuilder>[];
+      typeParameterBuilders.add(new NominalParameterBuilder.fromKernel(
           typeParameter,
           loader: libraryBuilder.loader));
     }
@@ -5037,12 +5037,12 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void enterNominalVariablesScope(
-      List<NominalVariableBuilder>? nominalVariableBuilders) {
+      List<NominalParameterBuilder>? nominalVariableBuilders) {
     debugEvent("enterNominalVariableScope");
     enterLocalScope(_localScope.createNestedScope(
         debugName: "function-type scope", kind: ScopeKind.typeParameters));
     if (nominalVariableBuilders != null) {
-      for (NominalVariableBuilder builder in nominalVariableBuilders) {
+      for (NominalParameterBuilder builder in nominalVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
         Builder? existing = _localScope.lookupLocalVariable(name);
@@ -5057,12 +5057,12 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void enterStructuralVariablesScope(
-      List<StructuralVariableBuilder>? structuralVariableBuilders) {
+      List<StructuralParameterBuilder>? structuralVariableBuilders) {
     debugEvent("enterStructuralVariableScope");
     enterLocalScope(_localScope.createNestedScope(
         debugName: "function-type scope", kind: ScopeKind.typeParameters));
     if (structuralVariableBuilders != null) {
-      for (StructuralVariableBuilder builder in structuralVariableBuilders) {
+      for (StructuralParameterBuilder builder in structuralVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
         Builder? existing = _localScope.lookupLocalVariable(name);
@@ -5166,14 +5166,14 @@ class BodyBuilder extends StackListenerImpl
     _structuralParameterDepthLevel--;
     FunctionTypeParameters parameters = pop() as FunctionTypeParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralVariableBuilder>? typeVariables =
-        pop() as List<StructuralVariableBuilder>?;
+    List<StructuralParameterBuilder>? typeParameters =
+        pop() as List<StructuralParameterBuilder>?;
     TypeBuilder type = parameters.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         questionMark != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        structuralVariableBuilders: typeVariables,
+        structuralVariableBuilders: typeParameters,
         hasFunctionFormalParameterSyntax: false);
     exitLocalScope();
     push(type);
@@ -5497,14 +5497,14 @@ class BodyBuilder extends StackListenerImpl
     }
     FunctionTypeParameters parameters = pop() as FunctionTypeParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralVariableBuilder>? typeVariables =
-        pop() as List<StructuralVariableBuilder>?;
+    List<StructuralParameterBuilder>? typeParameters =
+        pop() as List<StructuralParameterBuilder>?;
     TypeBuilder type = parameters.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         question != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        structuralVariableBuilders: typeVariables,
+        structuralVariableBuilders: typeParameters,
         hasFunctionFormalParameterSyntax: true);
     push(type);
     functionNestingLevel--;
@@ -6472,7 +6472,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeDeclarationBuilder is TypeAliasBuilder) {
       errorName = debugName(typeDeclarationBuilder.name, name);
       TypeAliasBuilder aliasBuilder = typeDeclarationBuilder;
-      int numberOfTypeParameters = aliasBuilder.typeVariablesCount;
+      int numberOfTypeParameters = aliasBuilder.typeParametersCount;
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
@@ -6495,7 +6495,7 @@ class BodyBuilder extends StackListenerImpl
           typeArgumentBuilders.add(typeBuilder);
         }
       } else {
-        if (aliasBuilder.typeVariablesCount > 0) {
+        if (aliasBuilder.typeParametersCount > 0) {
           // Raw generic type alias used for instance creation, needs inference.
           switch (typeDeclarationBuilder) {
             case ClassBuilder():
@@ -6576,9 +6576,9 @@ class BodyBuilder extends StackListenerImpl
                       nameToken.lexeme.length));
             case TypeAliasBuilder():
             // Coverage-ignore(suite): Not run.
-            case NominalVariableBuilder():
+            case NominalParameterBuilder():
             // Coverage-ignore(suite): Not run.
-            case StructuralVariableBuilder():
+            case StructuralParameterBuilder():
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
@@ -6622,9 +6622,9 @@ class BodyBuilder extends StackListenerImpl
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
             case TypeAliasBuilder():
             // Coverage-ignore(suite): Not run.
-            case NominalVariableBuilder():
+            case NominalParameterBuilder():
             // Coverage-ignore(suite): Not run.
-            case StructuralVariableBuilder():
+            case StructuralParameterBuilder():
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
@@ -6660,7 +6660,7 @@ class BodyBuilder extends StackListenerImpl
         case ExtensionTypeDeclarationBuilder():
           if (typeArguments != null) {
             int numberOfTypeParameters =
-                aliasBuilder.typeVariables?.length ?? 0;
+                aliasBuilder.typeParameters?.length ?? 0;
             if (numberOfTypeParameters != typeArgumentBuilders.length) {
               // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): Use position of type arguments, not nameToken.
@@ -6696,26 +6696,26 @@ class BodyBuilder extends StackListenerImpl
             forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
           } else {
             LibraryBuilder libraryBuilder;
-            List<NominalVariableBuilder>? typeVariables;
+            List<NominalParameterBuilder>? typeParameters;
             // TODO(johnniwinther): Add a shared interface for [ClassBuilder]
             // and [ExtensionTypeDeclarationBuilder].
             if (typeDeclarationBuilder is ClassBuilder) {
               libraryBuilder = typeDeclarationBuilder.libraryBuilder;
-              typeVariables = typeDeclarationBuilder.typeVariables;
+              typeParameters = typeDeclarationBuilder.typeParameters;
             } else {
               typeDeclarationBuilder as ExtensionTypeDeclarationBuilder;
               libraryBuilder = typeDeclarationBuilder.libraryBuilder;
-              typeVariables = typeDeclarationBuilder.typeParameters;
+              typeParameters = typeDeclarationBuilder.typeParameters;
             }
-            if (typeVariables == null || typeVariables.isEmpty) {
+            if (typeParameters == null || typeParameters.isEmpty) {
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, []);
             } else {
               if (forest.argumentsTypeArguments(arguments).isEmpty) {
                 // No type arguments provided to unaliased class, use defaults.
                 List<DartType> result = new List<DartType>.generate(
-                    typeVariables.length,
-                    (int i) => typeVariables![i]
+                    typeParameters.length,
+                    (int i) => typeParameters![i]
                         .defaultType!
                         .build(libraryBuilder, TypeUse.constructorTypeArgument),
                     growable: true);
@@ -6724,8 +6724,8 @@ class BodyBuilder extends StackListenerImpl
             }
           }
         case TypeAliasBuilder():
-        case NominalVariableBuilder():
-        case StructuralVariableBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
@@ -6820,8 +6820,8 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(message.messageObject, nameToken.charOffset,
                 nameToken.lexeme.length));
       case TypeAliasBuilder():
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
       // Coverage-ignore(suite): Not run.
@@ -7279,16 +7279,16 @@ class BodyBuilder extends StackListenerImpl
   void exitFunction() {
     assert(checkState(null, [
       /* inCatchBlock */ ValueKinds.Bool,
-      /* function type variables */ ValueKinds.NominalVariableListOrNull,
+      /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
     ]));
     debugEvent("exitFunction");
     functionNestingLevel--;
     inCatchBlock = pop() as bool;
     _switchScopes.pop();
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     exitLocalScope();
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     _exitLocalState();
     assert(checkState(null, [
       ValueKinds.NominalVariableListOrNull,
@@ -7304,13 +7304,13 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginNamedFunctionExpression(Token token) {
     debugEvent("beginNamedFunctionExpression");
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     // Create an additional scope in which the named function expression is
     // declared.
     createAndEnterLocalScope(
         debugName: "named function", kind: ScopeKind.namedFunctionExpression);
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     enterFunction();
   }
 
@@ -7329,8 +7329,8 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool hasImplicitReturnType = returnType == null;
     exitFunction();
-    List<NominalVariableBuilder>? typeParameters =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     List<Expression>? annotations;
     if (!isFunctionExpression) {
       annotations = pop() as List<Expression>?; // Metadata.
@@ -7414,7 +7414,7 @@ class BodyBuilder extends StackListenerImpl
       /* async marker */ ValueKinds.AsyncMarker,
       /* formal parameters */ ValueKinds.FormalParameters,
       /* inCatchBlock */ ValueKinds.Bool,
-      /* function type variables */ ValueKinds.NominalVariableListOrNull,
+      /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
     ]));
     Statement body = popNullableStatement() ??
         // In erroneous cases, there might not be function body. In such cases
@@ -7425,8 +7425,8 @@ class BodyBuilder extends StackListenerImpl
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
     exitFunction();
-    List<NominalVariableBuilder>? typeParameters =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     FunctionNode function = formals.buildFunctionNode(
         libraryBuilder,
         null,
@@ -8790,42 +8790,43 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? name = pop();
     List<Expression>? annotations = pop() as List<Expression>?;
-    String? typeVariableName;
-    int typeVariableCharOffset;
+    String? typeParameterName;
+    int typeParameterNameOffset;
     if (name is Identifier) {
-      typeVariableName = name.name;
-      typeVariableCharOffset = name.nameOffset;
+      typeParameterName = name.name;
+      typeParameterNameOffset = name.nameOffset;
     } else if (name is ParserRecovery) {
-      typeVariableName = inFunctionType
-          ? StructuralVariableBuilder.noNameSentinel
-          : NominalVariableBuilder.noNameSentinel;
-      typeVariableCharOffset = name.charOffset;
+      typeParameterName = inFunctionType
+          ? StructuralParameterBuilder.noNameSentinel
+          : NominalParameterBuilder.noNameSentinel;
+      typeParameterNameOffset = name.charOffset;
     } else {
       unhandled("${name.runtimeType}", "beginTypeVariable.name",
           token.charOffset, uri);
     }
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && typeVariableName == '_';
+        libraryFeatures.wildcardVariables.isEnabled && typeParameterName == '_';
     if (isWildcard) {
-      typeVariableName = createWildcardTypeVariableName(wildcardVariableIndex);
+      typeParameterName =
+          createWildcardTypeParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    TypeVariableBuilder variable = inFunctionType
-        ? new StructuralVariableBuilder(
-            typeVariableName, typeVariableCharOffset, uri,
+    TypeParameterBuilder variable = inFunctionType
+        ? new StructuralParameterBuilder(
+            typeParameterName, typeParameterNameOffset, uri,
             isWildcard: isWildcard)
-        : new NominalVariableBuilder(
-            typeVariableName, typeVariableCharOffset, uri,
-            kind: TypeVariableKind.function, isWildcard: isWildcard);
+        : new NominalParameterBuilder(
+            typeParameterName, typeParameterNameOffset, uri,
+            kind: TypeParameterKind.function, isWildcard: isWildcard);
     if (annotations != null) {
       switch (variable) {
-        case StructuralVariableBuilder():
+        case StructuralParameterBuilder():
           if (!libraryFeatures.genericMetadata.isEnabled) {
-            addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
+            addProblem(fasta.messageAnnotationOnFunctionTypeTypeParameter,
                 variable.fileOffset, variable.name.length);
           }
           break;
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
           inferAnnotations(variable.parameter, annotations);
           for (Expression annotation in annotations) {
             variable.parameter.addAnnotation(annotation);
@@ -8841,14 +8842,14 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
     if (inFunctionType) {
-      List<StructuralVariableBuilder>? structuralVariableBuilders =
-          const FixedNullableList<StructuralVariableBuilder>()
+      List<StructuralParameterBuilder>? structuralVariableBuilders =
+          const FixedNullableList<StructuralParameterBuilder>()
               .popNonNullable(stack, count, dummyStructuralVariableBuilder);
       enterStructuralVariablesScope(structuralVariableBuilders);
       push(structuralVariableBuilders);
     } else {
-      List<NominalVariableBuilder>? nominalVariableBuilders =
-          const FixedNullableList<NominalVariableBuilder>()
+      List<NominalParameterBuilder>? nominalVariableBuilders =
+          const FixedNullableList<NominalParameterBuilder>()
               .popNonNullable(stack, count, dummyNominalVariableBuilder);
       enterNominalVariablesScope(nominalVariableBuilders);
       push(nominalVariableBuilders);
@@ -8861,17 +8862,17 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("TypeVariable");
     TypeBuilder? bound = pop() as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder> typeVariables =
-        peek() as List<TypeVariableBuilder>;
+    List<TypeParameterBuilder> typeParameters =
+        peek() as List<TypeParameterBuilder>;
 
-    TypeVariableBuilder variable = typeVariables[index];
-    variable.bound = bound;
+    TypeParameterBuilder typeParameter = typeParameters[index];
+    typeParameter.bound = bound;
     if (variance != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!libraryFeatures.variance.isEnabled) {
         reportVarianceModifierNotEnabled(variance);
       }
-      variable.variance = new Variance.fromKeywordString(variance.lexeme);
+      typeParameter.variance = new Variance.fromKeywordString(variance.lexeme);
     }
   }
 
@@ -8879,29 +8880,29 @@ class BodyBuilder extends StackListenerImpl
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder> typeVariables =
-        peek() as List<TypeVariableBuilder>;
-    libraryBuilder.checkTypeVariableDependencies(typeVariables);
+    List<TypeParameterBuilder> typeParameters =
+        peek() as List<TypeParameterBuilder>;
+    libraryBuilder.checkTypeParameterDependencies(typeParameters);
 
-    List<StructuralVariableBuilder> unboundTypeVariables = [];
+    List<StructuralParameterBuilder> unboundTypeParameters = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
-        typeVariables,
+        typeParameters,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypeVariables: unboundTypeVariables);
-    for (int i = 0; i < typeVariables.length; ++i) {
-      typeVariables[i].defaultType = calculatedBounds[i];
-      typeVariables[i].finish(
+        unboundTypeParameters: unboundTypeParameters);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      typeParameters[i].defaultType = calculatedBounds[i];
+      typeParameters[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
     for (int i = 0;
-        i < unboundTypeVariables.length;
+        i < unboundTypeParameters.length;
         // Coverage-ignore(suite): Not run.
         ++i) {
       // Coverage-ignore-block(suite): Not run.
-      unboundTypeVariables[i].finish(
+      unboundTypeParameters[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
@@ -8913,10 +8914,10 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("NoTypeVariables");
     if (inFunctionType) {
       enterStructuralVariablesScope(null);
-      push(NullValues.StructuralVariables);
+      push(NullValues.StructuralParameters);
     } else {
       enterNominalVariablesScope(null);
-      push(NullValues.NominalVariables);
+      push(NullValues.NominalParameters);
     }
   }
 
@@ -9261,24 +9262,24 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
+  TypeBuilder validateTypeParameterUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType}) {
-    _validateTypeVariableUseInternal(typeBuilder,
+    _validateTypeParameterUseInternal(typeBuilder,
         allowPotentiallyConstantType: allowPotentiallyConstantType);
     return typeBuilder;
   }
 
-  void _validateTypeVariableUseInternal(TypeBuilder? builder,
+  void _validateTypeParameterUseInternal(TypeBuilder? builder,
       {required bool allowPotentiallyConstantType}) {
     switch (builder) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,
           typeArguments: List<TypeBuilder>? arguments
         ):
-        if (declaration!.isTypeVariable &&
-            builder.declaration is NominalVariableBuilder) {
-          NominalVariableBuilder typeParameterBuilder =
-              declaration as NominalVariableBuilder;
+        if (declaration!.isTypeParameter &&
+            builder.declaration is NominalParameterBuilder) {
+          NominalParameterBuilder typeParameterBuilder =
+              declaration as NominalParameterBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
           if (typeParameter.declaration is Class ||
               typeParameter.declaration is Extension ||
@@ -9301,28 +9302,28 @@ class BodyBuilder extends StackListenerImpl
         }
         if (arguments != null) {
           for (TypeBuilder typeBuilder in arguments) {
-            _validateTypeVariableUseInternal(typeBuilder,
+            _validateTypeParameterUseInternal(typeBuilder,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
       case FunctionTypeBuilder(
-          :List<StructuralVariableBuilder>? typeVariables,
+          typeParameters: List<StructuralParameterBuilder>? typeParameters,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
-        if (typeVariables != null) {
-          for (StructuralVariableBuilder typeVariable in typeVariables) {
-            _validateTypeVariableUseInternal(typeVariable.bound,
+        if (typeParameters != null) {
+          for (StructuralParameterBuilder typeParameter in typeParameters) {
+            _validateTypeParameterUseInternal(typeParameter.bound,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
-            _validateTypeVariableUseInternal(typeVariable.defaultType,
+            _validateTypeParameterUseInternal(typeParameter.defaultType,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
-        _validateTypeVariableUseInternal(returnType,
+        _validateTypeParameterUseInternal(returnType,
             allowPotentiallyConstantType: allowPotentiallyConstantType);
         if (formals != null) {
           for (ParameterBuilder formalParameterBuilder in formals) {
-            _validateTypeVariableUseInternal(formalParameterBuilder.type,
+            _validateTypeParameterUseInternal(formalParameterBuilder.type,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
@@ -9332,13 +9333,13 @@ class BodyBuilder extends StackListenerImpl
         ):
         if (positionalFields != null) {
           for (RecordTypeFieldBuilder field in positionalFields) {
-            _validateTypeVariableUseInternal(field.type,
+            _validateTypeParameterUseInternal(field.type,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
         if (namedFields != null) {
           for (RecordTypeFieldBuilder field in namedFields) {
-            _validateTypeVariableUseInternal(field.type,
+            _validateTypeParameterUseInternal(field.type,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
@@ -9509,7 +9510,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   DartType buildDartType(TypeBuilder typeBuilder, TypeUse typeUse,
       {required bool allowPotentiallyConstantType}) {
-    return validateTypeVariableUse(typeBuilder,
+    return validateTypeParameterUse(typeBuilder,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
         .build(libraryBuilder, typeUse);
   }
@@ -10091,7 +10092,7 @@ class FunctionTypeParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      {List<StructuralVariableBuilder>? structuralVariableBuilders,
+      {List<StructuralParameterBuilder>? structuralVariableBuilders,
       required bool hasFunctionFormalParameterSyntax}) {
     return new FunctionTypeBuilderImpl(returnType, structuralVariableBuilders,
         parameters, nullabilityBuilder, uri, charOffset,
@@ -10119,7 +10120,7 @@ class FormalParameters {
   FunctionNode buildFunctionNode(
       SourceLibraryBuilder library,
       TypeBuilder? returnTypeBuilder,
-      List<NominalVariableBuilder>? typeVariableBuilders,
+      List<NominalParameterBuilder>? typeParameterBuilders,
       AsyncMarker asyncModifier,
       Statement body,
       int fileEndOffset) {
@@ -10147,9 +10148,9 @@ class FormalParameters {
     }
 
     List<TypeParameter>? typeParameters;
-    if (typeVariableBuilders != null) {
+    if (typeParameterBuilders != null) {
       typeParameters = <TypeParameter>[];
-      for (NominalVariableBuilder t in typeVariableBuilders) {
+      for (NominalParameterBuilder t in typeParameterBuilders) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
         t.bound?.build(library, TypeUse.typeParameterBound);

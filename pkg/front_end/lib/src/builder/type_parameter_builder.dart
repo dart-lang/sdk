@@ -4,25 +4,25 @@
 
 part of 'declaration_builders.dart';
 
-enum TypeVariableKind {
-  /// A type variable declared on a function, method, or local function.
+enum TypeParameterKind {
+  /// A type parameter declared on a function, method, or local function.
   function,
 
-  /// A type variable declared on a class, mixin or enum.
+  /// A type parameter declared on a class, mixin or enum.
   classMixinOrEnum,
 
-  /// A type variable declared on an extension or an extension type.
+  /// A type parameter declared on an extension or an extension type.
   extensionOrExtensionType,
 
-  /// A type variable on an extension instance member synthesized from an
-  /// extension type variable.
+  /// A type parameter on an extension instance member synthesized from an
+  /// extension type parameter.
   extensionSynthesized,
 
-  /// A type variable builder created from a kernel node.
+  /// A type parameter builder created from a kernel node.
   fromKernel,
 }
 
-sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
+sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
   @override
   final int fileOffset;
@@ -34,9 +34,9 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   TypeBuilder? defaultType;
 
-  TypeVariableBuilder? get actualOrigin;
+  TypeParameterBuilder? get actualOrigin;
 
-  final TypeVariableKind kind;
+  final TypeParameterKind kind;
 
   final bool isWildcard;
 
@@ -45,7 +45,7 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   final List<MetadataBuilder>? metadata;
 
-  TypeVariableBuilder(this.name, this.fileOffset, this.fileUri,
+  TypeParameterBuilder(this.name, this.fileOffset, this.fileUri,
       {this.bound,
       this.defaultType,
       required this.kind,
@@ -58,7 +58,7 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   Builder? get parent => null;
 
   @override
-  bool get isTypeVariable => true;
+  bool get isTypeParameter => true;
 
   @override
   String toString() {
@@ -76,7 +76,7 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeVariableBuilder get origin => actualOrigin ?? this;
+  TypeParameterBuilder get origin => actualOrigin ?? this;
 
   Variance get variance;
 
@@ -106,33 +106,33 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
       TypeBuilder dynamicType);
 
   Nullability _computeNullabilityFromType(TypeBuilder? typeBuilder,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     if (typeBuilder == null) {
       return Nullability.undetermined;
     }
     return typeBuilder.computeNullability(
-        typeVariablesTraversalState: typeVariablesTraversalState);
+        typeParametersTraversalState: typeParametersTraversalState);
   }
 
   Nullability computeNullability(
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     if (_nullabilityFromParameterBound != null) {
       return _nullabilityFromParameterBound!;
     }
-    switch (typeVariablesTraversalState[this] ??= TraversalState.unvisited) {
+    switch (typeParametersTraversalState[this] ??= TraversalState.unvisited) {
       case TraversalState.visited:
         // Coverage-ignore(suite): Not run.
         return _nullabilityFromParameterBound!;
       case TraversalState.active:
-        typeVariablesTraversalState[this] = TraversalState.visited;
+        typeParametersTraversalState[this] = TraversalState.visited;
         return _nullabilityFromParameterBound = Nullability.undetermined;
       case TraversalState.unvisited:
-        typeVariablesTraversalState[this] = TraversalState.active;
+        typeParametersTraversalState[this] = TraversalState.active;
         Nullability nullability = _computeNullabilityFromType(bound,
-            typeVariablesTraversalState: typeVariablesTraversalState);
-        typeVariablesTraversalState[this] = TraversalState.visited;
+            typeParametersTraversalState: typeParametersTraversalState);
+        typeParametersTraversalState[this] = TraversalState.visited;
         return _nullabilityFromParameterBound =
             nullability == Nullability.nullable
                 ? Nullability.undetermined
@@ -142,58 +142,58 @@ sealed class TypeVariableBuilder extends TypeDeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     return computeNullability(
-        typeVariablesTraversalState: typeVariablesTraversalState);
+        typeParametersTraversalState: typeParametersTraversalState);
   }
 
-  TypeVariableCyclicDependency? findCyclicDependency(
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState,
-      Map<TypeVariableBuilder, TypeVariableBuilder>? cycleElements}) {
+  TypeParameterCyclicDependency? findCyclicDependency(
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState,
+      Map<TypeParameterBuilder, TypeParameterBuilder>? cycleElements}) {
     cycleElements ??= {};
 
-    switch (typeVariablesTraversalState[this] ??= TraversalState.unvisited) {
+    switch (typeParametersTraversalState[this] ??= TraversalState.unvisited) {
       case TraversalState.visited:
         return null;
       case TraversalState.active:
-        typeVariablesTraversalState[this] = TraversalState.visited;
-        List<TypeVariableBuilder>? viaTypeVariables;
-        TypeVariableBuilder? nextViaTypeVariable = cycleElements[this];
-        while (nextViaTypeVariable != null && nextViaTypeVariable != this) {
-          (viaTypeVariables ??= []).add(nextViaTypeVariable);
-          nextViaTypeVariable = cycleElements[nextViaTypeVariable];
+        typeParametersTraversalState[this] = TraversalState.visited;
+        List<TypeParameterBuilder>? viaTypeParameters;
+        TypeParameterBuilder? nextViaTypeParameter = cycleElements[this];
+        while (nextViaTypeParameter != null && nextViaTypeParameter != this) {
+          (viaTypeParameters ??= []).add(nextViaTypeParameter);
+          nextViaTypeParameter = cycleElements[nextViaTypeParameter];
         }
-        return new TypeVariableCyclicDependency(this,
-            viaTypeVariables: viaTypeVariables);
+        return new TypeParameterCyclicDependency(this,
+            viaTypeParameters: viaTypeParameters);
       case TraversalState.unvisited:
-        typeVariablesTraversalState[this] = TraversalState.active;
+        typeParametersTraversalState[this] = TraversalState.active;
         TypeBuilder? unaliasedAndErasedBound = bound?.unaliasAndErase();
         TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
             unaliasedAndErasedBound?.declaration;
-        TypeVariableBuilder? nextVariable;
-        if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilder) {
+        TypeParameterBuilder? nextVariable;
+        if (unaliasedAndErasedBoundDeclaration is TypeParameterBuilder) {
           nextVariable = unaliasedAndErasedBoundDeclaration;
         }
 
         if (nextVariable != null) {
           cycleElements[this] = nextVariable;
-          TypeVariableCyclicDependency? result =
+          TypeParameterCyclicDependency? result =
               nextVariable.findCyclicDependency(
-                  typeVariablesTraversalState: typeVariablesTraversalState,
+                  typeParametersTraversalState: typeParametersTraversalState,
                   cycleElements: cycleElements);
-          typeVariablesTraversalState[this] = TraversalState.visited;
+          typeParametersTraversalState[this] = TraversalState.visited;
           return result;
         } else {
-          typeVariablesTraversalState[this] = TraversalState.visited;
+          typeParametersTraversalState[this] = TraversalState.visited;
           return null;
         }
     }
   }
 }
 
-class NominalVariableBuilder extends TypeVariableBuilder {
+class NominalParameterBuilder extends TypeParameterBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
@@ -201,17 +201,17 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   final TypeParameter actualParameter;
 
   @override
-  NominalVariableBuilder? actualOrigin;
+  NominalParameterBuilder? actualOrigin;
 
-  /// [NominalVariableBuilder] overrides ==/hashCode in terms of
+  /// [NominalParameterBuilder] overrides ==/hashCode in terms of
   /// [actualParameter] making it vulnerable to use in sets and maps. This
   /// fields tracks the first access to [hashCode] when asserts are enabled, to
   /// signal if the [hashCode] is used before updates to [actualParameter].
   StackTrace? _hasHashCode;
 
-  NominalVariableBuilder(String name, int charOffset, Uri? fileUri,
+  NominalParameterBuilder(String name, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
-      required TypeVariableKind kind,
+      required TypeParameterKind kind,
       Variance? variableVariance,
       List<MetadataBuilder>? metadata,
       super.isWildcard = false})
@@ -227,7 +227,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
             variableVariance: variableVariance,
             metadata: metadata);
 
-  /// Restores a [NominalVariableBuilder] from kernel
+  /// Restores a [NominalParameterBuilder] from kernel
   ///
   /// The [loader] parameter is supposed to be passed by the clients and be not
   /// null. It is needed to restore [bound] and [defaultType] of the type
@@ -237,7 +237,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   /// the example below.
   ///
   ///   class A<X extends A<X>> {}
-  NominalVariableBuilder.fromKernel(TypeParameter parameter,
+  NominalParameterBuilder.fromKernel(TypeParameter parameter,
       {required Loader? loader, super.isWildcard = false})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
@@ -245,7 +245,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
         _varianceCalculationValue =
             new VarianceCalculationValue.fromVariance(parameter.variance),
         super(parameter.name ?? "", parameter.fileOffset, null,
-            kind: TypeVariableKind.fromKernel,
+            kind: TypeParameterKind.fromKernel,
             bound: loader?.computeTypeBuilder(parameter.bound),
             defaultType: loader?.computeTypeBuilder(parameter.defaultType)) {
     _nullabilityFromParameterBound =
@@ -253,13 +253,13 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   }
 
   @override
-  NominalVariableBuilder get origin => actualOrigin ?? this;
+  NominalParameterBuilder get origin => actualOrigin ?? this;
 
   /// The [TypeParameter] built by this builder.
   TypeParameter get parameter => origin.actualParameter;
 
   @override
-  void applyAugmentation(covariant NominalVariableBuilder augmentation) {
+  void applyAugmentation(covariant NominalParameterBuilder augmentation) {
     assert(
         _hasHashCode == null,
         "Cannot apply augmentation since to $this since hashCode has already "
@@ -320,7 +320,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
 
   @override
   bool operator ==(Object other) {
-    return other is NominalVariableBuilder && parameter == other.parameter;
+    return other is NominalParameterBuilder && parameter == other.parameter;
   }
 
   @override
@@ -427,7 +427,7 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   }
 
   static List<TypeParameter>? typeParametersFromBuilders(
-      List<NominalVariableBuilder>? builders) {
+      List<NominalParameterBuilder>? builders) {
     if (builders == null) return null;
     return new List<TypeParameter>.generate(
         builders.length, (int i) => builders[i].parameter,
@@ -435,29 +435,25 @@ class NominalVariableBuilder extends TypeVariableBuilder {
   }
 }
 
-List<TypeVariableBuilder> sortAllTypeVariablesTopologically(
-    Iterable<TypeVariableBuilder> typeVariables) {
-  assert(typeVariables.every((typeVariable) =>
-      typeVariable is NominalVariableBuilder ||
-      typeVariable is StructuralVariableBuilder));
-
-  Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
-    ..addAll(typeVariables);
-  List<TypeVariableBuilder> result = <TypeVariableBuilder>[];
+List<TypeParameterBuilder> sortAllTypeParametersTopologically(
+    Iterable<TypeParameterBuilder> typeParameters) {
+  Set<TypeParameterBuilder> unhandled = new Set<TypeParameterBuilder>.identity()
+    ..addAll(typeParameters);
+  List<TypeParameterBuilder> result = <TypeParameterBuilder>[];
   while (unhandled.isNotEmpty) {
-    TypeVariableBuilder rootVariable = unhandled.first;
+    TypeParameterBuilder rootVariable = unhandled.first;
     unhandled.remove(rootVariable);
 
     TypeBuilder? rootVariableBound;
-    if (rootVariable is NominalVariableBuilder) {
+    if (rootVariable is NominalParameterBuilder) {
       rootVariableBound = rootVariable.bound;
     } else {
-      rootVariable as StructuralVariableBuilder;
+      rootVariable as StructuralParameterBuilder;
       rootVariableBound = rootVariable.bound;
     }
 
     if (rootVariableBound != null) {
-      _sortAllTypeVariablesTopologicallyFromRoot(
+      _sortAllTypeParametersTopologicallyFromRoot(
           rootVariableBound, unhandled, result);
     }
     result.add(rootVariable);
@@ -465,35 +461,23 @@ List<TypeVariableBuilder> sortAllTypeVariablesTopologically(
   return result;
 }
 
-void _sortAllTypeVariablesTopologicallyFromRoot(
-    TypeBuilder root,
-    Set< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-        unhandled,
-    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-        result) {
-  assert(unhandled.every((typeVariable) =>
-      typeVariable is NominalVariableBuilder ||
-      typeVariable is StructuralVariableBuilder));
-  assert(result.every((typeVariable) =>
-      typeVariable is NominalVariableBuilder ||
-      typeVariable is StructuralVariableBuilder));
-
-  List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>?
-      foundTypeVariables;
+void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
+    Set<TypeParameterBuilder> unhandled, List<TypeParameterBuilder> result) {
+  List<TypeParameterBuilder>? foundTypeParameters;
   List<TypeBuilder>? internalDependents;
 
   switch (root) {
     case NamedTypeBuilder(:TypeDeclarationBuilder? declaration):
       switch (declaration) {
         case ClassBuilder():
-          foundTypeVariables = declaration.typeVariables;
+          foundTypeParameters = declaration.typeParameters;
         case TypeAliasBuilder():
-          foundTypeVariables = declaration.typeVariables;
+          foundTypeParameters = declaration.typeParameters;
           internalDependents = <TypeBuilder>[declaration.type];
-        case NominalVariableBuilder():
-          foundTypeVariables = <NominalVariableBuilder>[declaration];
-        case StructuralVariableBuilder():
-          foundTypeVariables = <StructuralVariableBuilder>[declaration];
+        case NominalParameterBuilder():
+          foundTypeParameters = <NominalParameterBuilder>[declaration];
+        case StructuralParameterBuilder():
+          foundTypeParameters = <StructuralParameterBuilder>[declaration];
         case ExtensionTypeDeclarationBuilder():
         // TODO(johnniwinther):: Handle this case.
         case ExtensionBuilder():
@@ -505,11 +489,11 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
         case null:
       }
     case FunctionTypeBuilder(
-        :List<StructuralVariableBuilder>? typeVariables,
+        typeParameters: List<StructuralParameterBuilder>? typeParameters,
         :List<ParameterBuilder>? formals,
         :TypeBuilder returnType
       ):
-      foundTypeVariables = typeVariables;
+      foundTypeParameters = typeParameters;
       if (formals != null) {
         internalDependents = <TypeBuilder>[];
         for (ParameterBuilder formal in formals) {
@@ -541,35 +525,35 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
     case InvalidTypeBuilder():
   }
 
-  if (foundTypeVariables != null && foundTypeVariables.isNotEmpty) {
-    for (Object variable in foundTypeVariables) {
-      if (unhandled.contains(variable)) {
-        unhandled.remove(variable);
+  if (foundTypeParameters != null && foundTypeParameters.isNotEmpty) {
+    for (TypeParameterBuilder parameterBuilder in foundTypeParameters) {
+      if (unhandled.contains(parameterBuilder)) {
+        unhandled.remove(parameterBuilder);
 
-        TypeBuilder? variableBound;
-        if (variable is NominalVariableBuilder) {
-          variableBound = variable.bound;
+        TypeBuilder? parameterBound;
+        if (parameterBuilder is NominalParameterBuilder) {
+          parameterBound = parameterBuilder.bound;
         } else {
-          variable as StructuralVariableBuilder;
-          variableBound = variable.bound;
+          parameterBuilder as StructuralParameterBuilder;
+          parameterBound = parameterBuilder.bound;
         }
 
-        if (variableBound != null) {
-          _sortAllTypeVariablesTopologicallyFromRoot(
-              variableBound, unhandled, result);
+        if (parameterBound != null) {
+          _sortAllTypeParametersTopologicallyFromRoot(
+              parameterBound, unhandled, result);
         }
-        result.add(variable);
+        result.add(parameterBuilder);
       }
     }
   }
   if (internalDependents != null && internalDependents.isNotEmpty) {
     for (TypeBuilder type in internalDependents) {
-      _sortAllTypeVariablesTopologicallyFromRoot(type, unhandled, result);
+      _sortAllTypeParametersTopologicallyFromRoot(type, unhandled, result);
     }
   }
 }
 
-class StructuralVariableBuilder extends TypeVariableBuilder {
+class StructuralParameterBuilder extends TypeParameterBuilder {
   /// Sentinel value used to indicate that the variable has no name. This is
   /// used for error recovery.
   static const String noNameSentinel = 'no name sentinel';
@@ -577,36 +561,36 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
   final StructuralParameter actualParameter;
 
   @override
-  StructuralVariableBuilder? actualOrigin;
+  StructuralParameterBuilder? actualOrigin;
 
-  StructuralVariableBuilder(String name, int charOffset, Uri? fileUri,
+  StructuralParameterBuilder(String name, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
-      Variance? variableVariance,
+      Variance? parameterVariance,
       List<MetadataBuilder>? metadata,
       super.isWildcard = false})
       : actualParameter =
             new StructuralParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
-              ..variance = variableVariance,
+              ..variance = parameterVariance,
         super(name, charOffset, fileUri,
             bound: bound,
-            kind: TypeVariableKind.function,
-            variableVariance: variableVariance,
+            kind: TypeParameterKind.function,
+            variableVariance: parameterVariance,
             metadata: metadata);
 
-  StructuralVariableBuilder.fromKernel(StructuralParameter parameter,
+  StructuralParameterBuilder.fromKernel(StructuralParameter parameter,
       {super.isWildcard = false})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
         super(parameter.name ?? "", parameter.fileOffset, null,
-            kind: TypeVariableKind.fromKernel) {
+            kind: TypeParameterKind.fromKernel) {
     _nullabilityFromParameterBound =
         StructuralParameterType.computeNullabilityFromBound(parameter);
   }
 
   @override
-  bool get isTypeVariable => true;
+  bool get isTypeParameter => true;
 
   @override
   Variance get variance => parameter.variance;
@@ -645,14 +629,14 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
 
   @override
   bool operator ==(Object other) {
-    return other is StructuralVariableBuilder && parameter == other.parameter;
+    return other is StructuralParameterBuilder && parameter == other.parameter;
   }
 
   @override
   int get hashCode => parameter.hashCode;
 
   @override
-  StructuralVariableBuilder get origin => actualOrigin ?? this;
+  StructuralParameterBuilder get origin => actualOrigin ?? this;
 
   /// The [StructuralParameter] built by this builder.
   StructuralParameter get parameter => origin.actualParameter;
@@ -746,7 +730,7 @@ class StructuralVariableBuilder extends TypeVariableBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void applyAugmentation(covariant StructuralVariableBuilder augmentation) {
+  void applyAugmentation(covariant StructuralParameterBuilder augmentation) {
     augmentation.actualOrigin = this;
   }
 }
@@ -764,7 +748,7 @@ enum TraversalState {
   visited;
 }
 
-/// Represents a cyclic dependency of a type variable on itself.
+/// Represents a cyclic dependency of a type parameter on itself.
 ///
 /// An examples of such dependencies are X  in the following cases.
 ///
@@ -775,23 +759,23 @@ enum TraversalState {
 ///   class B<X extends Y, Y extends X> {} // Error.
 ///   class C<X extends F<Y>, Y extends X> {} // Error.
 ///   class D<X extends E<Y>, Y extends X> {} // Error.
-class TypeVariableCyclicDependency {
-  /// Type variable that's the bound of itself.
-  final TypeVariableBuilder typeVariableBoundOfItself;
+class TypeParameterCyclicDependency {
+  /// Type parameter that's the bound of itself.
+  final TypeParameterBuilder typeParameterBoundOfItself;
 
   /// The elements in a non-trivial self-dependency cycle.
   ///
   /// The loop is considered non-trivial if it includes more than one type
   /// variable.
-  final List<TypeVariableBuilder>? viaTypeVariables;
+  final List<TypeParameterBuilder>? viaTypeParameters;
 
-  TypeVariableCyclicDependency(this.typeVariableBoundOfItself,
-      {this.viaTypeVariables});
+  TypeParameterCyclicDependency(this.typeParameterBoundOfItself,
+      {this.viaTypeParameters});
 
   @override
   String toString() {
-    return "TypeVariableCyclicDependency("
-        "typeVariableBoundOfItself=${typeVariableBoundOfItself}, "
-        "viaTypeVariable=${viaTypeVariables})";
+    return "TypeParameterCyclicDependency("
+        "typeParameterBoundOfItself=${typeParameterBoundOfItself}, "
+        "viaTypeParameters=${viaTypeParameters})";
   }
 }

@@ -229,7 +229,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type
-  /// inference.  The method returns the number of distinct type variables
+  /// inference.  The method returns the number of distinct type parameters
   /// that were instantiated in this library.
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass);
@@ -240,16 +240,17 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// use of the parameters in the right-hand side of the typedef definition.
   int computeVariances();
 
-  /// Adds all unbound nominal variables to [nominalVariables] and unbound
-  /// structural variables to [structuralVariables], mapping them to
+  /// Adds all unbound nominal parameters to [nominalParameters] and unbound
+  /// structural parameters to [structuralParameters], mapping them to
   /// [libraryBuilder].
   ///
-  /// This is used to compute the bounds of type variable while taking the
+  /// This is used to compute the bounds of type parameters while taking the
   /// bound dependencies, which might span multiple libraries, into account.
-  void collectUnboundTypeVariables(
+  void collectUnboundTypeParameters(
       SourceLibraryBuilder libraryBuilder,
-      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
+      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalParameters,
+      Map<StructuralParameterBuilder, SourceLibraryBuilder>
+          structuralParameters);
 
   /// Adds [prefixFragment] to library name space.
   ///

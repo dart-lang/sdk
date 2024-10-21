@@ -1042,7 +1042,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   ///
   /// If [needsPromotion] is `true`, the field will be read through a `let`
   /// expression that promotes the expression to [_type]. This is needed for a
-  /// sound encoding of fields with type variable type of undetermined
+  /// sound encoding of fields with type parameter type of undetermined
   /// nullability.
   Expression _createFieldRead({bool needsPromotion = false}) {
     assert(_type != null, "Type has not been computed for field $name.");
@@ -1063,7 +1063,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     if (field.isStatic) {
       return new StaticGet(field)..fileOffset = fileOffset;
     } else {
-      // No substitution needed for the result type, since any type variables
+      // No substitution needed for the result type, since any type parameters
       // in there are also in scope at the access site.
       return new InstanceGet(InstanceAccessKind.Instance,
           new ThisExpression()..fileOffset = fileOffset, field.name,

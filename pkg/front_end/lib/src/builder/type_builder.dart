@@ -337,45 +337,46 @@ sealed class TypeBuilder {
   @override
   String toString() => "$debugName(${printOn(new StringBuffer())})";
 
-  /// Returns the [TypeBuilder] for this type in which [TypeVariableBuilder]s
+  /// Returns the [TypeBuilder] for this type in which [TypeParameterBuilder]s
   /// in [substitution] have been replaced by the corresponding [TypeBuilder]s.
   ///
   /// If [unboundTypes] is provided, created type builders that are not bound
   /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
   /// results in an assertion error.
   ///
-  /// If [unboundTypeVariables] is provided, created type variable builders are
-  /// added to [unboundTypeVariables]. Otherwise, creating a
-  /// type variable builder result in an assertion error.
+  /// If [unboundTypeParameters] is provided, created type parameter builders
+  /// are added to [unboundTypeParameters]. Otherwise, creating a
+  /// type parameter builder result in an assertion error.
   ///
-  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
-  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// The [unboundTypes] and [unboundTypeParameters] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeParameterBuilder]s are
   /// not part of the generated AST.
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<NominalVariableBuilder, TypeBuilder> substitution,
-      {List<StructuralVariableBuilder>? unboundTypeVariables}) {
+  TypeBuilder subst(Map<NominalParameterBuilder, TypeBuilder> substitution,
+      {List<StructuralParameterBuilder>? unboundTypeParameters}) {
     if (substitution.isEmpty) {
       return this;
     }
-    List<StructuralVariableBuilder> unboundTypeVariablesInternal =
-        unboundTypeVariables ?? [];
+    List<StructuralParameterBuilder> unboundTypeParametersInternal =
+        unboundTypeParameters ?? [];
     TypeBuilder result = substituteRange(
-            substitution, substitution, unboundTypeVariablesInternal,
+            substitution, substitution, unboundTypeParametersInternal,
             variance: Variance.covariant) ??
         this;
-    assert(unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
-        "Non-empty unbound type variables: $unboundTypeVariables.");
+    assert(
+        unboundTypeParameters != null || unboundTypeParametersInternal.isEmpty,
+        "Non-empty unbound type parameters: $unboundTypeParameters.");
     return result;
   }
 
   // Coverage-ignore(suite): Not run.
   TypeBuilder substitute(
-      TypeBuilder type, Map<NominalVariableBuilder, TypeBuilder> substitution,
-      {required List<StructuralVariableBuilder> unboundTypeVariables}) {
+      TypeBuilder type, Map<NominalParameterBuilder, TypeBuilder> substitution,
+      {required List<StructuralParameterBuilder> unboundTypeParameters}) {
     return type.substituteRange(
-            substitution, substitution, unboundTypeVariables,
+            substitution, substitution, unboundTypeParameters,
             variance: Variance.covariant) ??
         type;
   }
@@ -450,53 +451,53 @@ sealed class TypeBuilder {
   /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
   /// results in an assertion error.
   ///
-  /// If [unboundTypeVariables] is provided, created type variable builders are
-  /// added to [unboundTypeVariables]. Otherwise, creating a
-  /// type variable builder result in an assertion error.
+  /// If [unboundTypeParameters] is provided, created type parameter builders
+  /// are added to [unboundTypeParameters]. Otherwise, creating a
+  /// type parameter builder result in an assertion error.
   ///
-  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
-  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// The [unboundTypes] and [unboundTypeParameters] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeParameterBuilder]s are
   /// not part of the generated AST.
   TypeBuilder? unalias(
           {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-          List<StructuralVariableBuilder>? unboundTypeVariables}) =>
+          List<StructuralParameterBuilder>? unboundTypeParameters}) =>
       this;
 
   /// Computes the nullability of this type.
   ///
-  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
-  /// between type variables,
+  /// [typeParametersTraversalState] is passed to handle cyclic dependencies
+  /// between type parameters,
   Nullability computeNullability(
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState});
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState});
 
   /// Computes the variance of a variable in a type.  The function can be run
   /// before the types are resolved to compute variances of typedefs' type
   /// variables.  For that case if the type has its declaration set to null and
   /// its name matches that of the variable, it's interpreted as an occurrence
-  /// of a type variable.
-  VarianceCalculationValue computeTypeVariableBuilderVariance(
-      NominalVariableBuilder variable,
+  /// of a type parameter.
+  VarianceCalculationValue computeTypeParameterBuilderVariance(
+      NominalParameterBuilder nominalParameterBuilder,
       {required SourceLoader sourceLoader});
 
   /// Computes the unaliased [TypeDeclarationBuilder] for this type, if any.
   TypeDeclarationBuilder? computeUnaliasedDeclaration(
       {required bool isUsedAsClass});
 
-  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
       List<List<int>> edges, int index);
 
   TypeBuilder? substituteRange(
-      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralVariableBuilder> unboundTypeVariables,
+      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralParameterBuilder> unboundTypeParameters,
       {final Variance variance = Variance.covariant});
 
   TypeBuilder? unaliasAndErase();
 
-  /// Helper function that returns `true` if a type variable with a name
-  /// from [typeVariableNames] is referenced in this type.
-  bool usesTypeVariables(Set<String> typeVariableNames);
+  /// Helper function that returns `true` if a type parameter with a name
+  /// from [typeParameterNames] is referenced in this type.
+  bool usesTypeParameters(Set<String> typeParameterNames);
 
   /// Finds raw generic types in this type with inbound references in type
   /// variables.
@@ -516,7 +517,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   int get charOffset;
   TypeBuilder get returnType;
   List<ParameterBuilder>? get formals;
-  List<StructuralVariableBuilder>? get typeVariables;
+  List<StructuralParameterBuilder>? get typeParameters;
 
   /// If `true`, this function type was created using function formal parameter
   /// syntax, like `f` in `method(int f()) { ... }`.
@@ -526,8 +527,8 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
 // Coverage-ignore(suite): Not run.
 abstract class InvalidTypeBuilder extends TypeBuilder {
   @override
-  VarianceCalculationValue computeTypeVariableBuilderVariance(
-      NominalVariableBuilder variable,
+  VarianceCalculationValue computeTypeParameterBuilderVariance(
+      NominalParameterBuilder variable,
       {required SourceLoader sourceLoader}) {
     return VarianceCalculationValue.calculatedUnrelated;
   }

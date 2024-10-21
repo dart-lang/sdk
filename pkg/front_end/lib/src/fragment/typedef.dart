@@ -7,7 +7,7 @@ part of 'fragment.dart';
 class TypedefFragment implements Fragment {
   final List<MetadataBuilder>? metadata;
   final String name;
-  final List<NominalVariableBuilder>? typeVariables;
+  final List<NominalParameterBuilder>? typeParameters;
   final TypeBuilder type;
   final Uri fileUri;
   final int fileOffset;
@@ -17,7 +17,7 @@ class TypedefFragment implements Fragment {
   TypedefFragment(
       {required this.metadata,
       required this.name,
-      required this.typeVariables,
+      required this.typeParameters,
       required this.type,
       required this.fileUri,
       required this.fileOffset});

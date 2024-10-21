@@ -4,7 +4,7 @@
 
 const String wildcardPrefix = '_#wc';
 const String wildcardFormalSuffix = '#formal';
-const String wildcardTypeVariableSuffix = '#type';
+const String wildcardTypeParameterSuffix = '#type';
 const String wildcardVariableSuffix = '#var';
 
 /// Returns the named used for a wildcard formal parameter using [index].
@@ -12,9 +12,9 @@ String createWildcardFormalParameterName(int index) {
   return '$wildcardPrefix$index$wildcardFormalSuffix';
 }
 
-/// Returns the named used for a wildcard type variable using [index].
-String createWildcardTypeVariableName(int index) {
-  return '$wildcardPrefix$index$wildcardTypeVariableSuffix';
+/// Returns the named used for a wildcard type parameter using [index].
+String createWildcardTypeParameterName(int index) {
+  return '$wildcardPrefix$index$wildcardTypeParameterSuffix';
 }
 
 /// Returns the named used for a wildcard variable using [index].
@@ -28,10 +28,10 @@ bool isWildcardLoweredFormalParameter(String name) {
 }
 
 // Coverage-ignore(suite): Not run.
-/// Whether the given [name] is a wildcard type variable.
-bool isWildcardLoweredTypeVariable(String name) {
+/// Whether the given [name] is a wildcard type parameter.
+bool isWildcardLoweredTypeParameter(String name) {
   return name.startsWith(wildcardPrefix) &&
-      name.endsWith(wildcardTypeVariableSuffix);
+      name.endsWith(wildcardTypeParameterSuffix);
 }
 
 // Coverage-ignore(suite): Not run.

@@ -8,7 +8,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Type parameters declared on the extension.
   ///
   /// This is `null` if the extension is not generic.
-  List<NominalVariableBuilder>? get typeParameters;
+  List<NominalParameterBuilder>? get typeParameters;
 
   /// The type of the on-clause of the extension declaration.
   TypeBuilder get onType;
@@ -55,7 +55,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-          {required Map<TypeVariableBuilder, TraversalState>
-              typeVariablesTraversalState}) =>
+          {required Map<TypeParameterBuilder, TraversalState>
+              typeParametersTraversalState}) =>
       Nullability.nonNullable;
 }

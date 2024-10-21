@@ -50,15 +50,16 @@ abstract class BuilderFactoryResult {
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
 
-  void collectUnboundTypeVariables(
+  void collectUnboundTypeParameters(
       SourceLibraryBuilder libraryBuilder,
-      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
+      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalParameters,
+      Map<StructuralParameterBuilder, SourceLibraryBuilder>
+          structuralParameters);
 
   int finishNativeMethods();
 
-  void registerUnresolvedStructuralVariables(
-      List<StructuralVariableBuilder> unboundTypeVariables);
+  void registerUnresolvedStructuralParameters(
+      List<StructuralParameterBuilder> unboundTypeParameters);
 
   List<LibraryPart> get libraryParts;
 }
@@ -67,68 +68,68 @@ abstract class BuilderFactory {
   void beginClassOrNamedMixinApplicationHeader();
 
   /// Registers that this builder is preparing for a class declaration with the
-  /// given [name] and [typeVariables] located at [nameOffset].
-  void beginClassDeclaration(
-      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
+  /// given [name] and [typeParameters] located at [nameOffset].
+  void beginClassDeclaration(String name, int nameOffset,
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginClassBody();
 
   void endClassDeclaration(String name);
 
   void endClassDeclarationForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   /// Registers that this builder is preparing for a mixin declaration with the
-  /// given [name] and [typeVariables] located at [nameOffset].
-  void beginMixinDeclaration(
-      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
+  /// given [name] and [typeParameters] located at [nameOffset].
+  void beginMixinDeclaration(String name, int nameOffset,
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginMixinBody();
 
   void endMixinDeclaration(String name);
 
   void endMixinDeclarationForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   /// Registers that this builder is preparing for a named mixin application
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void beginNamedMixinApplication(
-      String name, int charOffset, List<NominalVariableBuilder>? typeVariables);
+  /// with the given [name] and [typeParameters] located [charOffset].
+  void beginNamedMixinApplication(String name, int charOffset,
+      List<NominalParameterBuilder>? typeParameters);
 
   void endNamedMixinApplication(String name);
 
   void endNamedMixinApplicationForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginEnumDeclarationHeader(String name);
 
   /// Registers that this builder is preparing for an enum declaration with
-  /// the given [name] and [typeVariables] located at [nameOffset].
-  void beginEnumDeclaration(
-      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
+  /// the given [name] and [typeParameters] located at [nameOffset].
+  void beginEnumDeclaration(String name, int nameOffset,
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginEnumBody();
 
   void endEnumDeclaration(String name);
 
   void endEnumDeclarationForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginExtensionOrExtensionTypeHeader();
 
   /// Registers that this builder is preparing for an extension declaration with
-  /// the given [name] and [typeVariables] located [charOffset].
+  /// the given [name] and [typeParameters] located [charOffset].
   void beginExtensionDeclaration(String? name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginExtensionBody(TypeBuilder? extensionThisType);
 
   void endExtensionDeclaration(String? name);
 
   /// Registers that this builder is preparing for an extension type declaration
-  /// with the given [name] and [typeVariables] located at [nameOffset].
-  void beginExtensionTypeDeclaration(
-      String name, int nameOffset, List<NominalVariableBuilder>? typeVariables);
+  /// with the given [name] and [typeParameters] located at [nameOffset].
+  void beginExtensionTypeDeclaration(String name, int nameOffset,
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginExtensionTypeBody();
 
@@ -149,34 +150,35 @@ abstract class BuilderFactory {
   void endConstructor();
 
   void endConstructorForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginStaticMethod();
 
   void endStaticMethod();
 
   void endStaticMethodForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginInstanceMethod();
 
   void endInstanceMethod();
 
   void endInstanceMethodForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginTopLevelMethod();
 
   void endTopLevelMethod();
 
   void endTopLevelMethodForParserRecovery(
-      List<NominalVariableBuilder>? typeVariables);
+      List<NominalParameterBuilder>? typeParameters);
 
   void beginTypedef();
 
   void endTypedef();
 
-  void endTypedefForParserRecovery(List<NominalVariableBuilder>? typeVariables);
+  void endTypedefForParserRecovery(
+      List<NominalParameterBuilder>? typeParameters);
 
   void checkStacks();
 
@@ -222,7 +224,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder? supertype,
       required MixinApplicationBuilder? mixins,
       required List<TypeBuilder>? interfaces,
@@ -235,7 +237,7 @@ abstract class BuilderFactory {
       {required OffsetMap offsetMap,
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required MixinApplicationBuilder? supertypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
       required List<EnumConstantInfo?>? enumConstantInfos,
@@ -248,7 +250,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier? identifier,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required TypeBuilder onType,
       required int startOffset,
       required int nameOrExtensionOffset,
@@ -259,7 +261,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset});
@@ -269,7 +271,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<TypeBuilder>? supertypeConstraints,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
@@ -279,7 +281,7 @@ abstract class BuilderFactory {
   void addNamedMixinApplication(
       {required List<MetadataBuilder>? metadata,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
       required MixinApplicationBuilder mixinApplication,
@@ -294,7 +296,7 @@ abstract class BuilderFactory {
   void addFunctionTypeAlias(
       List<MetadataBuilder>? metadata,
       String name,
-      List<NominalVariableBuilder>? typeVariables,
+      List<NominalParameterBuilder>? typeParameters,
       TypeBuilder type,
       int charOffset);
 
@@ -305,7 +307,7 @@ abstract class BuilderFactory {
       required String name,
       required TypeBuilder? returnType,
       required List<FormalParameterBuilder>? formals,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required Token? beginInitializers,
       required int startOffset,
       required int endOffset,
@@ -328,7 +330,7 @@ abstract class BuilderFactory {
       required Modifiers modifiers,
       required Identifier identifier,
       required String constructorName,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -379,7 +381,7 @@ abstract class BuilderFactory {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required ProcedureKind kind,
       required int startOffset,
@@ -399,7 +401,7 @@ abstract class BuilderFactory {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -418,7 +420,7 @@ abstract class BuilderFactory {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -461,11 +463,11 @@ abstract class BuilderFactory {
       NullabilityBuilder nullabilityBuilder,
       List<TypeBuilder>? arguments,
       int charOffset,
-      {required InstanceTypeVariableAccessState instanceTypeVariableAccess});
+      {required InstanceTypeParameterAccessState instanceTypeParameterAccess});
 
   FunctionTypeBuilder addFunctionType(
       TypeBuilder returnType,
-      List<StructuralVariableBuilder>? structuralVariableBuilders,
+      List<StructuralParameterBuilder>? structuralParameterBuilders,
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
@@ -476,29 +478,30 @@ abstract class BuilderFactory {
 
   InferableTypeBuilder addInferableType();
 
-  NominalVariableBuilder addNominalTypeVariable(List<MetadataBuilder>? metadata,
+  NominalParameterBuilder addNominalParameter(List<MetadataBuilder>? metadata,
       String name, TypeBuilder? bound, int charOffset, Uri fileUri,
-      {required TypeVariableKind kind});
+      {required TypeParameterKind kind});
 
-  StructuralVariableBuilder addStructuralTypeVariable(
+  StructuralParameterBuilder addStructuralParameter(
       List<MetadataBuilder>? metadata,
       String name,
       TypeBuilder? bound,
       int charOffset,
       Uri fileUri);
 
-  void registerUnboundStructuralVariables(
-      List<StructuralVariableBuilder> variableBuilders);
+  void registerUnboundStructuralParameters(
+      List<StructuralParameterBuilder> parameterBuilders);
 }
 
-class NominalVariableCopy {
-  final List<NominalVariableBuilder> newVariableBuilders;
+class NominalParameterCopy {
+  final List<NominalParameterBuilder> newParameterBuilders;
   final List<TypeBuilder> newTypeArguments;
-  final Map<NominalVariableBuilder, TypeBuilder> substitutionMap;
-  final Map<NominalVariableBuilder, NominalVariableBuilder> newToOldVariableMap;
+  final Map<NominalParameterBuilder, TypeBuilder> substitutionMap;
+  final Map<NominalParameterBuilder, NominalParameterBuilder>
+      newToOldParameterMap;
 
-  NominalVariableCopy(this.newVariableBuilders, this.newTypeArguments,
-      this.substitutionMap, this.newToOldVariableMap);
+  NominalParameterCopy(this.newParameterBuilders, this.newTypeArguments,
+      this.substitutionMap, this.newToOldParameterMap);
 }
 
 class FieldInfo {

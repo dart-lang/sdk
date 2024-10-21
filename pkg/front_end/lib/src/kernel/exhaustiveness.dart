@@ -238,7 +238,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType overapproximate(DartType type) {
-    return TypeParameterReplacer.replaceTypeVariables(type);
+    return TypeParameterReplacer.replaceTypeParameters(type);
   }
 
   @override
@@ -258,7 +258,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getListElementType(DartType type) {
-    type = type.nonTypeVariableBound;
+    type = type.nonTypeParameterBound;
     if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           _classHierarchy.getTypeArgumentsAsInstanceOf(
@@ -272,7 +272,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getListType(DartType type) {
-    type = type.nonTypeVariableBound;
+    type = type.nonTypeParameterBound;
     if (type is TypeDeclarationType) {
       return _classHierarchy.getTypeAsInstanceOf(
           type, _typeEnvironment.coreTypes.listClass);
@@ -282,7 +282,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getMapValueType(DartType type) {
-    type = type.nonTypeVariableBound;
+    type = type.nonTypeParameterBound;
     if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           _classHierarchy.getTypeArgumentsAsInstanceOf(
@@ -512,7 +512,7 @@ class CfeSealedClassOperations
       return new InterfaceType(
           subClass, Nullability.nonNullable, sealedClassType.typeArguments);
     } else {
-      return TypeParameterReplacer.replaceTypeVariables(thisType);
+      return TypeParameterReplacer.replaceTypeParameters(thisType);
     }
   }
 }
@@ -878,7 +878,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
     return type.accept1(this, variance) ?? type;
   }
 
-  static DartType replaceTypeVariables(DartType type) {
+  static DartType replaceTypeParameters(DartType type) {
     return const TypeParameterReplacer()
         ._replaceTypeParameterTypes(type, Variance.covariant);
   }

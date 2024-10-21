@@ -102,7 +102,7 @@ abstract class IncrementalKernelGenerator {
   /// expression is compiled.
   ///
   /// [expression] may use the variables supplied in [definitions] as free
-  /// variables and [typeDefinitions] as free type variables. These will become
+  /// variables and [typeDefinitions] as free type parameters. These will become
   /// required parameters to the compiled function. All elements of
   /// [definitions] and [typeDefinitions] will become parameters/type
   /// parameters, whether or not they appear free in [expression]. The type

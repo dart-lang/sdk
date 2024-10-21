@@ -65,8 +65,8 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
     return Nullability.nullable;

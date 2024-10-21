@@ -101,7 +101,7 @@ class DelayedDefaultValueCloner {
   void cloneDefaultValues(TypeEnvironment typeEnvironment) {
     if (_hasCloned) return;
 
-    // TODO(ahe): It is unclear if it is legal to use type variables in
+    // TODO(ahe): It is unclear if it is legal to use type parameters in
     // default values, but Fasta is currently allowing it, and the VM
     // accepts it. If it isn't legal, the we can speed this up by using a
     // single cloner without substitution.

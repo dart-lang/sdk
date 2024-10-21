@@ -777,12 +777,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void collectUnboundTypeVariables(
+  void collectUnboundTypeParameters(
       SourceLibraryBuilder libraryBuilder,
-      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralVariableBuilder, SourceLibraryBuilder>
+      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalVariables,
+      Map<StructuralParameterBuilder, SourceLibraryBuilder>
           structuralVariables) {
-    _builderFactoryResult.collectUnboundTypeVariables(
+    _builderFactoryResult.collectUnboundTypeParameters(
         libraryBuilder, nominalVariables, structuralVariables);
   }
 
@@ -918,14 +918,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
 
-    int computeDefaultTypesForVariables(List<NominalVariableBuilder>? variables,
+    int computeDefaultTypesForVariables(
+        List<NominalParameterBuilder>? variables,
         {required bool inErrorRecovery}) {
       if (variables == null) return 0;
 
       bool haveErroneousBounds = false;
       if (!inErrorRecovery) {
         if (!libraryFeatures.genericMetadata.isEnabled) {
-          for (NominalVariableBuilder variable in variables) {
+          for (NominalParameterBuilder variable in variables) {
             haveErroneousBounds =
                 _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
                         variable) ||
@@ -934,12 +935,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         }
 
         if (!haveErroneousBounds) {
-          List<StructuralVariableBuilder> unboundTypeVariables = [];
+          List<StructuralParameterBuilder> unboundTypeParameters = [];
           List<TypeBuilder> calculatedBounds = calculateBounds(
               variables, dynamicType, bottomType,
-              unboundTypeVariables: unboundTypeVariables);
+              unboundTypeParameters: unboundTypeParameters);
           _builderFactoryResult
-              .registerUnresolvedStructuralVariables(unboundTypeVariables);
+              .registerUnresolvedStructuralParameters(unboundTypeParameters);
 
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
@@ -967,7 +968,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     void processSourceProcedureBuilder(SourceProcedureBuilder member) {
       List<NonSimplicityIssue> issues =
-          getNonSimplicityIssuesForTypeVariables(member.typeVariables);
+          getNonSimplicityIssuesForTypeParameters(member.typeParameters);
       if (member.formals != null && member.formals!.isNotEmpty) {
         for (FormalParameterBuilder formal in member.formals!) {
           issues.addAll(getInboundReferenceIssuesInType(formal.type));
@@ -980,7 +981,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             member.returnType);
       }
       reportIssues(issues);
-      count += computeDefaultTypesForVariables(member.typeVariables,
+      count += computeDefaultTypesForVariables(member.typeParameters,
           inErrorRecovery: issues.isNotEmpty);
     }
 
@@ -996,8 +997,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     void processSourceConstructorBuilder(SourceFunctionBuilder member,
         {required bool inErrorRecovery}) {
-      count += computeDefaultTypesForVariables(member.typeVariables,
-          // Type variables are inherited from the enclosing declaration, so if
+      count += computeDefaultTypesForVariables(member.typeParameters,
+          // Type parameters are inherited from the enclosing declaration, so if
           // it has issues, so do the constructors.
           inErrorRecovery: inErrorRecovery);
       List<FormalParameterBuilder>? formals = member.formals;
@@ -1031,7 +1032,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             declaration,
             performErrorRecovery: true);
         reportIssues(issues);
-        count += computeDefaultTypesForVariables(declaration.typeVariables,
+        count += computeDefaultTypesForVariables(declaration.typeParameters,
             inErrorRecovery: issues.isNotEmpty);
 
         Iterator<SourceMemberBuilder> iterator = declaration.nameSpace
@@ -1057,7 +1058,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             performErrorRecovery: true);
         issues.addAll(getInboundReferenceIssuesInType(declaration.type));
         reportIssues(issues);
-        count += computeDefaultTypesForVariables(declaration.typeVariables,
+        count += computeDefaultTypesForVariables(declaration.typeParameters,
             inErrorRecovery: issues.isNotEmpty);
         _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
       } else if (declaration is SourceMemberBuilder) {
@@ -1131,23 +1132,23 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   /// Reports an error on generic function types used as bounds
   ///
   /// The function recursively searches for all generic function types in
-  /// [typeVariable.bound] and checks the bounds of type variables of the found
-  /// types for being generic function types.  Additionally, the function checks
-  /// [typeVariable.bound] for being a generic function type.  Returns `true` if
-  /// any errors were reported.
+  /// [typeParameter.bound] and checks the bounds of type parameters of the
+  /// found types for being generic function types.  Additionally, the function
+  /// checks [typeParameter.bound] for being a generic function type.  Returns
+  /// `true` if any errors were reported.
   bool _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
-      NominalVariableBuilder typeVariable) {
+      NominalParameterBuilder typeParameter) {
     if (libraryFeatures.genericMetadata.isEnabled) return false;
 
     bool hasReportedErrors = false;
     hasReportedErrors = _reportGenericFunctionTypeAsBoundIfNeeded(
-            typeVariable.bound,
-            typeVariableName: typeVariable.name,
-            fileUri: typeVariable.fileUri,
-            charOffset: typeVariable.fileOffset) ||
+            typeParameter.bound,
+            typeParameterName: typeParameter.name,
+            fileUri: typeParameter.fileUri,
+            charOffset: typeParameter.fileOffset) ||
         hasReportedErrors;
     hasReportedErrors = _recursivelyReportGenericFunctionTypesAsBoundsForType(
-            typeVariable.bound) ||
+            typeParameter.bound) ||
         hasReportedErrors;
     return hasReportedErrors;
   }
@@ -1155,7 +1156,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   /// Reports an error on generic function types used as bounds
   ///
   /// The function recursively searches for all generic function types in
-  /// [typeBuilder] and checks the bounds of type variables of the found types
+  /// [typeBuilder] and checks the bounds of type parameters of the found types
   /// for being generic function types.  Returns `true` if any errors were
   /// reported.
   bool _recursivelyReportGenericFunctionTypesAsBoundsForType(
@@ -1170,16 +1171,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (FunctionTypeBuilder genericFunctionTypeBuilder
         in genericFunctionTypeBuilders) {
       assert(
-          genericFunctionTypeBuilder.typeVariables != null,
+          genericFunctionTypeBuilder.typeParameters != null,
           "Function 'findUnaliasedGenericFunctionTypes' "
-          "returned a function type without type variables.");
-      for (StructuralVariableBuilder typeVariable
-          in genericFunctionTypeBuilder.typeVariables!) {
+          "returned a function type without type parameters.");
+      for (StructuralParameterBuilder typeParameter
+          in genericFunctionTypeBuilder.typeParameters!) {
         hasReportedErrors = _reportGenericFunctionTypeAsBoundIfNeeded(
-                typeVariable.bound,
-                typeVariableName: typeVariable.name,
-                fileUri: typeVariable.fileUri,
-                charOffset: typeVariable.fileOffset) ||
+                typeParameter.bound,
+                typeParameterName: typeParameter.name,
+                fileUri: typeParameter.fileUri,
+                charOffset: typeParameter.fileOffset) ||
             hasReportedErrors;
       }
     }
@@ -1190,14 +1191,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   ///
   /// Returns `true` if any errors were reported.
   bool _reportGenericFunctionTypeAsBoundIfNeeded(TypeBuilder? bound,
-      {required String typeVariableName,
+      {required String typeParameterName,
       Uri? fileUri,
       required int charOffset}) {
     if (libraryFeatures.genericMetadata.isEnabled) return false;
 
     bool isUnaliasedGenericFunctionType = bound is FunctionTypeBuilder &&
-        bound.typeVariables != null &&
-        bound.typeVariables!.isNotEmpty;
+        bound.typeParameters != null &&
+        bound.typeParameters!.isNotEmpty;
     bool isAliasedGenericFunctionType = false;
     TypeDeclarationBuilder? declaration = bound?.declaration;
     // TODO(cstefantsova): Unalias beyond the first layer for the check.
@@ -1205,15 +1206,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // Coverage-ignore-block(suite): Not run.
       TypeBuilder? rhsType = declaration.type;
       if (rhsType is FunctionTypeBuilder &&
-          rhsType.typeVariables != null &&
-          rhsType.typeVariables!.isNotEmpty) {
+          rhsType.typeParameters != null &&
+          rhsType.typeParameters!.isNotEmpty) {
         isAliasedGenericFunctionType = true;
       }
     }
 
     if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
       addProblem(messageGenericFunctionTypeInBound, charOffset,
-          typeVariableName.length, fileUri);
+          typeParameterName.length, fileUri);
       return true;
     }
     return false;
@@ -1228,11 +1229,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       Builder? declaration = iterator.current;
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
-            declaration.typeVariablesCount > 0) {
-          for (NominalVariableBuilder typeParameter
-              in declaration.typeVariables!) {
+            declaration.typeParametersCount > 0) {
+          for (NominalParameterBuilder typeParameter
+              in declaration.typeParameters!) {
             typeParameter.variance = declaration.type
-                .computeTypeVariableBuilderVariance(typeParameter,
+                .computeTypeParameterBuilderVariance(typeParameter,
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             ++count;

@@ -224,8 +224,8 @@ class _MixinInferenceSolution {
   Map<TypeParameter, DartType>? _solveForEquality(
       DartType type1, DartType type2,
       {required BuilderMixinInferrer unsupportedErrorReporter}) {
-    assert(!(containsTypeVariable(type1, {...typeParametersToSolveFor}) &&
-        containsTypeVariable(type2, {...typeParametersToSolveFor})));
+    assert(!(containsTypeParameter(type1, {...typeParametersToSolveFor}) &&
+        containsTypeParameter(type2, {...typeParametersToSolveFor})));
     assert(type1 is! TypedefType);
     assert(type2 is! TypedefType);
     if (type1 is TypeParameterType &&

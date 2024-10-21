@@ -102,31 +102,31 @@ class KernelTarget {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
   final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Null"), const NullabilityBuilder.inherent(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Never"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Enum"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   bool get excludeSource => !context.options.embedSourceText;
 
@@ -433,7 +433,7 @@ class KernelTarget {
     benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
     loader.computeVariances(augmentationLibraries);
 
-    loader.finishTypeVariables(
+    loader.finishTypeParameters(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       augmentationLibrary.buildOutlineNodes(loader.coreLibrary);
@@ -555,8 +555,8 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
-      loader.finishTypeVariables(
+          ?.enterPhase(BenchmarkPhases.outline_finishTypeParameters);
+      loader.finishTypeParameters(
           loader.sourceLibraryBuilders, objectClassBuilder, dynamicType);
 
       benchmarker
@@ -1146,8 +1146,8 @@ class KernelTarget {
               builder, constructorReference, tearOffReference));
         }
       case TypeAliasBuilder():
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():

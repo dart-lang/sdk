@@ -41,7 +41,7 @@ class _Added {
       required SourceLoader loader,
       required SourceLibraryBuilder enclosingLibraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      required List<NominalVariableBuilder> unboundNominalVariables,
+      required List<NominalParameterBuilder> unboundNominalVariables,
       required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
       required List<_AddBuilder> builders,
       required IndexedLibrary? indexedLibrary,
@@ -71,7 +71,7 @@ class _Added {
             metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             name: fragment.name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             supertypeBuilder: BuilderFactoryImpl.applyMixins(
                 unboundNominalVariables: unboundNominalVariables,
                 compilationUnitScope: fragment.compilationUnitScope,
@@ -88,7 +88,7 @@ class _Added {
                 endOffset: fragment.endOffset,
                 subclassName: fragment.name,
                 isMixinDeclaration: false,
-                typeVariables: fragment.typeParameters,
+                typeParameters: fragment.typeParameters,
                 modifiers: Modifiers.empty,
                 addBuilder: (String name, Builder declaration, int charOffset,
                     {Reference? getterReference}) {
@@ -126,7 +126,7 @@ class _Added {
             metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             name: fragment.name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             supertypeBuilder: BuilderFactoryImpl.applyMixins(
                 unboundNominalVariables: unboundNominalVariables,
                 compilationUnitScope: fragment.compilationUnitScope,
@@ -143,7 +143,7 @@ class _Added {
                 endOffset: fragment.endOffset,
                 subclassName: fragment.name,
                 isMixinDeclaration: true,
-                typeVariables: fragment.typeParameters,
+                typeParameters: fragment.typeParameters,
                 modifiers: Modifiers.empty,
                 addBuilder: (String name, Builder declaration, int charOffset,
                     {Reference? getterReference}) {
@@ -195,7 +195,7 @@ class _Added {
             isMixinDeclaration: false,
             metadata: fragment.metadata,
             name: fragment.name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             modifiers: fragment.modifiers,
             interfaces: fragment.interfaces,
             addBuilder: (String name, Builder declaration, int charOffset,
@@ -214,7 +214,7 @@ class _Added {
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             metadata: fragment.metadata,
             name: fragment.name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             underscoreEnumTypeBuilder: loader.target.underscoreEnumType,
             supertypeBuilder: BuilderFactoryImpl.applyMixins(
                 unboundNominalVariables: unboundNominalVariables,
@@ -232,7 +232,7 @@ class _Added {
                 endOffset: fragment.endOffset,
                 subclassName: fragment.name,
                 isMixinDeclaration: false,
-                typeVariables: fragment.typeParameters,
+                typeParameters: fragment.typeParameters,
                 modifiers: Modifiers.empty,
                 addBuilder: (String name, Builder declaration, int charOffset,
                     {Reference? getterReference}) {
@@ -468,7 +468,7 @@ class _Added {
             modifiers: fragment.modifiers,
             returnType: fragment.returnType,
             name: name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             formals: fragment.formals,
             kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
@@ -534,7 +534,7 @@ class _Added {
             modifiers: fragment.modifiers,
             returnType: fragment.returnType,
             name: name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             formals: fragment.formals,
             kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
@@ -599,7 +599,7 @@ class _Added {
             modifiers: fragment.modifiers,
             returnType: fragment.returnType,
             name: name,
-            typeVariables: fragment.typeParameters,
+            typeParameters: fragment.typeParameters,
             formals: fragment.formals,
             kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
@@ -649,7 +649,7 @@ class _Added {
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: name,
-              typeVariables: fragment.typeParameters,
+              typeParameters: fragment.typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder,
@@ -670,7 +670,7 @@ class _Added {
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: fragment.name,
-              typeVariables: fragment.typeParameters,
+              typeParameters: fragment.typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder!,
@@ -724,7 +724,7 @@ class _Added {
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: name,
-              typeVariables: fragment.typeParameters,
+              typeParameters: fragment.typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder,
@@ -746,7 +746,7 @@ class _Added {
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: fragment.name,
-              typeVariables: fragment.typeParameters,
+              typeParameters: fragment.typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder!,
@@ -806,7 +806,7 @@ class _Added {
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: name,
-              typeVariables: fragment.typeParameters,
+              typeParameters: fragment.typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder!,
@@ -828,7 +828,7 @@ class _Added {
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: name,
-              typeVariables: fragment.typeParameters,
+              typeParameters: fragment.typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder!,
@@ -875,7 +875,7 @@ class LibraryNameSpaceBuilder {
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
-    required List<NominalVariableBuilder> unboundNominalVariables,
+    required List<NominalParameterBuilder> unboundNominalVariables,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
   }) {
     Map<String, Builder> getables = {};
@@ -991,29 +991,29 @@ class NominalParameterScope extends AbstractTypeParameterScope {
 }
 
 class NominalParameterNameSpace {
-  Map<String, NominalVariableBuilder> _typeParametersByName = {};
+  Map<String, NominalParameterBuilder> _typeParametersByName = {};
 
-  NominalVariableBuilder? getTypeParameter(String name) =>
+  NominalParameterBuilder? getTypeParameter(String name) =>
       _typeParametersByName[name];
 
-  void addTypeVariables(ProblemReporting _problemReporting,
-      List<NominalVariableBuilder>? typeVariables,
+  void addTypeParameters(ProblemReporting _problemReporting,
+      List<NominalParameterBuilder>? typeParameters,
       {required String? ownerName, required bool allowNameConflict}) {
-    if (typeVariables == null || typeVariables.isEmpty) return;
-    for (NominalVariableBuilder tv in typeVariables) {
-      NominalVariableBuilder? existing = _typeParametersByName[tv.name];
+    if (typeParameters == null || typeParameters.isEmpty) return;
+    for (NominalParameterBuilder tv in typeParameters) {
+      NominalParameterBuilder? existing = _typeParametersByName[tv.name];
       if (tv.isWildcard) continue;
       if (existing != null) {
-        if (existing.kind == TypeVariableKind.extensionSynthesized) {
+        if (existing.kind == TypeParameterKind.extensionSynthesized) {
           // The type parameter from the extension is shadowed by the type
           // parameter from the member. Rename the shadowed type parameter.
           existing.parameter.name = '#${existing.name}';
           _typeParametersByName[tv.name] = tv;
         } else {
-          _problemReporting.addProblem(messageTypeVariableDuplicatedName,
+          _problemReporting.addProblem(messageTypeParameterDuplicatedName,
               tv.fileOffset, tv.name.length, tv.fileUri,
               context: [
-                templateTypeVariableDuplicatedNameCause
+                templateTypeParameterDuplicatedNameCause
                     .withArguments(tv.name)
                     .withLocation(existing.fileUri!, existing.fileOffset,
                         existing.name.length)
@@ -1021,12 +1021,12 @@ class NominalParameterNameSpace {
         }
       } else {
         _typeParametersByName[tv.name] = tv;
-        // Only classes and extension types and type variables can't have the
+        // Only classes and extension types and type parameters can't have the
         // same name. See
         // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
         // [#54602](https://github.com/dart-lang/sdk/issues/54602).
         if (tv.name == ownerName && !allowNameConflict) {
-          _problemReporting.addProblem(messageTypeVariableSameNameAsEnclosing,
+          _problemReporting.addProblem(messageTypeParameterSameNameAsEnclosing,
               tv.fileOffset, tv.name.length, tv.fileUri);
         }
       }
@@ -1050,7 +1050,7 @@ abstract class DeclarationFragment {
 
   List<FieldFragment>? primaryConstructorFields;
 
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
 
   final NominalParameterNameSpace _nominalParameterNameSpace;
 
@@ -1173,19 +1173,19 @@ class DeclarationNameSpaceBuilder {
     members[name] = declaration;
   }
 
-  void checkTypeVariableConflict(ProblemReporting _problemReporting,
+  void checkTypeParameterConflict(ProblemReporting _problemReporting,
       String name, Builder member, Uri fileUri) {
     if (_nominalParameterNameSpace != null) {
-      NominalVariableBuilder? tv =
+      NominalParameterBuilder? tv =
           _nominalParameterNameSpace.getTypeParameter(name);
       if (tv != null) {
         _problemReporting.addProblem(
-            templateConflictsWithTypeVariable.withArguments(name),
+            templateConflictsWithTypeParameter.withArguments(name),
             member.fileOffset,
             name.length,
             fileUri,
             context: [
-              messageConflictsWithTypeVariableCause.withLocation(
+              messageConflictsWithTypeParameterCause.withLocation(
                   tv.fileUri!, tv.fileOffset, name.length)
             ]);
       }
@@ -1228,7 +1228,7 @@ class DeclarationNameSpaceBuilder {
     }
 
     void checkConflicts(String name, Builder member) {
-      checkTypeVariableConflict(
+      checkTypeParameterConflict(
           problemReporting, name, member, member.fileUri!);
     }
 

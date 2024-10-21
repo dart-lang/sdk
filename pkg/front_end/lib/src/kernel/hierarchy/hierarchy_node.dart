@@ -57,15 +57,15 @@ abstract class HierarchyNodeBuilder {
 
   List<Supertype> _substSupertypes(
       TypeDeclarationType supertype, List<Supertype> supertypes) {
-    List<TypeParameter> typeVariables =
+    List<TypeParameter> typeParameters =
         supertype.typeDeclaration.typeParameters;
-    if (typeVariables.isEmpty) {
+    if (typeParameters.isEmpty) {
       return supertypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
     List<DartType> arguments = supertype.typeArguments;
-    for (int i = 0; i < typeVariables.length; i++) {
-      map[typeVariables[i]] = arguments[i];
+    for (int i = 0; i < typeParameters.length; i++) {
+      map[typeParameters[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
     List<Supertype>? result;
@@ -528,15 +528,15 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   List<ExtensionType> _substSuperExtensionTypes(
       ExtensionType superExtensionType,
       List<ExtensionType> superExtensionTypes) {
-    List<TypeParameter> typeVariables =
+    List<TypeParameter> typeParameters =
         superExtensionType.extensionTypeDeclaration.typeParameters;
-    if (typeVariables.isEmpty) {
+    if (typeParameters.isEmpty) {
       return superExtensionTypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
     List<DartType> arguments = superExtensionType.typeArguments;
-    for (int i = 0; i < typeVariables.length; i++) {
-      map[typeVariables[i]] = arguments[i];
+    for (int i = 0; i < typeParameters.length; i++) {
+      map[typeParameters[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
     List<ExtensionType>? result;

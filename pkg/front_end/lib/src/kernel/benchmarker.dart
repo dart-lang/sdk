@@ -174,7 +174,7 @@ enum BenchmarkPhases {
   outline_applyTypeMacros,
   outline_buildMacroTypesForPhase1,
   outline_checkSemantics,
-  outline_finishTypeVariables,
+  outline_finishTypeParameters,
   outline_createTypeInferenceEngine,
   outline_buildComponent,
   outline_installDefaultSupertypes,

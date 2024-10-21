@@ -65,7 +65,8 @@ enum MethodBody {
 
 /// Enum for the context in which declarations occur.
 ///
-/// This is used to determine whether instance type variables access is allowed.
+/// This is used to determine whether instance type parameters access is
+/// allowed.
 enum DeclarationContext {
   /// In the context of the enclosing library.
   ///
@@ -361,13 +362,13 @@ enum DeclarationContext {
 }
 
 extension on DeclarationContext {
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
     switch (this) {
       case DeclarationContext.Library:
       case DeclarationContext.Typedef:
       case DeclarationContext.TopLevelMethod:
       case DeclarationContext.TopLevelField:
-        return InstanceTypeVariableAccessState.Unexpected;
+        return InstanceTypeParameterAccessState.Unexpected;
       case DeclarationContext.ClassOrMixinOrNamedMixinApplication:
       case DeclarationContext.NamedMixinApplication:
       case DeclarationContext.Class:
@@ -391,7 +392,7 @@ extension on DeclarationContext {
       case DeclarationContext.ExtensionTypeFactory:
       case DeclarationContext.ExtensionTypeInstanceMethod:
       case DeclarationContext.ExtensionTypeInstanceField:
-        return InstanceTypeVariableAccessState.Allowed;
+        return InstanceTypeParameterAccessState.Allowed;
       case DeclarationContext.ClassBody:
       case DeclarationContext.ClassStaticMethod:
       case DeclarationContext.ClassStaticField:
@@ -407,31 +408,31 @@ extension on DeclarationContext {
       case DeclarationContext.ExtensionTypeBody:
       case DeclarationContext.ExtensionTypeStaticMethod:
       case DeclarationContext.ExtensionTypeStaticField:
-        return InstanceTypeVariableAccessState.Disallowed;
+        return InstanceTypeParameterAccessState.Disallowed;
       case DeclarationContext.MixinConstructor:
       case DeclarationContext.MixinFactory:
       case DeclarationContext.ExtensionConstructor:
       case DeclarationContext.ExtensionFactory:
       case DeclarationContext.ExtensionInstanceField:
       case DeclarationContext.EnumFactory:
-        return InstanceTypeVariableAccessState.Invalid;
+        return InstanceTypeParameterAccessState.Invalid;
     }
   }
 
-  /// Returns the kind of type variable created in the current context.
-  TypeVariableKind get typeVariableKind {
+  /// Returns the kind of type parameter created in the current context.
+  TypeParameterKind get typeParameterKind {
     switch (this) {
       case DeclarationContext.Class:
       case DeclarationContext.ClassOrMixinOrNamedMixinApplication:
       case DeclarationContext.Mixin:
       case DeclarationContext.NamedMixinApplication:
-        return TypeVariableKind.classMixinOrEnum;
+        return TypeParameterKind.classMixinOrEnum;
       case DeclarationContext.ExtensionOrExtensionType:
       case DeclarationContext.Extension:
       case DeclarationContext.ExtensionBody:
       case DeclarationContext.ExtensionType:
       case DeclarationContext.ExtensionTypeBody:
-        return TypeVariableKind.extensionOrExtensionType;
+        return TypeParameterKind.extensionOrExtensionType;
       case DeclarationContext.ClassBody:
       case DeclarationContext.ClassConstructor:
       case DeclarationContext.ClassFactory:
@@ -471,7 +472,7 @@ extension on DeclarationContext {
       case DeclarationContext.TopLevelField:
       case DeclarationContext.TopLevelMethod:
       case DeclarationContext.Typedef:
-        return TypeVariableKind.function;
+        return TypeParameterKind.function;
     }
   }
 }
@@ -506,7 +507,7 @@ class OutlineBuilder extends StackListenerImpl {
   ///
   /// This variable is needed to distinguish between the type of a formal
   /// parameter and its initializer because in those two regions of code the
-  /// type variables should be interpreted differently: as structural and
+  /// type parameters should be interpreted differently: as structural and
   /// nominal correspondingly.
   bool _insideOfFormalParameterType = false;
 
@@ -1011,9 +1012,9 @@ class OutlineBuilder extends StackListenerImpl {
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Class);
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
-    push(typeVariables ?? NullValues.NominalVariables);
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
+    push(typeParameters ?? NullValues.NominalParameters);
     if (macroToken != null) {
       if (reportIfNotEnabled(
           libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
@@ -1051,7 +1052,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     _builderFactory.beginClassDeclaration(
-        name.lexeme, name.charOffset, typeVariables);
+        name.lexeme, name.charOffset, typeParameters);
     Modifiers modifiers = Modifiers.from(
         abstractToken: abstractToken,
         macroToken: macroToken,
@@ -1073,8 +1074,8 @@ class OutlineBuilder extends StackListenerImpl {
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Mixin);
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     if (baseToken != null) {
       if (reportIfNotEnabled(libraryFeatures.classModifiers,
           baseToken.charOffset, baseToken.length)) {
@@ -1084,9 +1085,9 @@ class OutlineBuilder extends StackListenerImpl {
     Modifiers modifiers =
         Modifiers.from(augmentToken: augmentToken, baseToken: baseToken);
     push(modifiers);
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     _builderFactory.beginMixinDeclaration(
-        name.lexeme, name.charOffset, typeVariables);
+        name.lexeme, name.charOffset, typeParameters);
   }
 
   @override
@@ -1145,11 +1146,11 @@ class OutlineBuilder extends StackListenerImpl {
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.NamedMixinApplication);
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
-    push(typeVariables ?? NullValues.NominalVariables);
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
+    push(typeParameters ?? NullValues.NominalParameters);
     _builderFactory.beginNamedMixinApplication(
-        name.lexeme, name.charOffset, typeVariables);
+        name.lexeme, name.charOffset, typeParameters);
     if (macroToken != null) {
       if (reportIfNotEnabled(
           libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
@@ -1279,7 +1280,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
       /* modifiers */ ValueKinds.Modifiers,
-      /* type variables */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.NominalVariableListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
@@ -1292,18 +1293,18 @@ class OutlineBuilder extends StackListenerImpl {
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     Object? name = pop();
-    if (typeVariables != null && mixinApplication != null) {
-      mixinApplication.typeVariables = typeVariables;
+    if (typeParameters != null && mixinApplication != null) {
+      mixinApplication.typeParameters = typeParameters;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     inAbstractOrSealedClass = false;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       // Coverage-ignore-block(suite): Not run.
-      _builderFactory.endClassDeclarationForParserRecovery(typeVariables);
+      _builderFactory.endClassDeclarationForParserRecovery(typeParameters);
     } else {
       Identifier identifier = name as Identifier;
       final int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
@@ -1353,7 +1354,7 @@ class OutlineBuilder extends StackListenerImpl {
           metadata: metadata,
           modifiers: modifiers,
           identifier: identifier,
-          typeVariables: typeVariables,
+          typeParameters: typeParameters,
           supertype: supertype,
           mixins: mixinApplication,
           interfaces: interfaces,
@@ -1378,7 +1379,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilderListOrNull,
         ValueKinds.ParserRecovery,
       ]),
-      /* type variables */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.NominalVariableListOrNull,
       /* modifiers */ ValueKinds.Modifiers,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
@@ -1388,8 +1389,8 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     List<TypeBuilder>? supertypeConstraints =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
-    List<NominalVariableBuilder>? typeVariables =
-        pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
     Modifiers modifiers = pop() as Modifiers;
     Object? name = pop();
     List<MetadataBuilder>? metadata =
@@ -1397,7 +1398,7 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       // Coverage-ignore-block(suite): Not run.
-      _builderFactory.endMixinDeclarationForParserRecovery(typeVariables);
+      _builderFactory.endMixinDeclarationForParserRecovery(typeParameters);
     } else {
       Identifier identifier = name as Identifier;
       int startOffset = metadata
@@ -1436,7 +1437,7 @@ class OutlineBuilder extends StackListenerImpl {
           metadata: metadata,
           modifiers: modifiers,
           identifier: identifier,
-          typeVariables: typeVariables,
+          typeParameters: typeParameters,
           supertypeConstraints: supertypeConstraints,
           interfaces: interfaces,
           startOffset: startOffset,
@@ -1462,15 +1463,15 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("beginExtensionDeclaration");
     popDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
     pushDeclarationContext(DeclarationContext.Extension);
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
     push(nameToken != null
         ? new SimpleIdentifier(nameToken)
         : NullValues.Identifier);
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     _builderFactory.beginExtensionDeclaration(
-        nameToken?.lexeme, offset, typeVariables);
+        nameToken?.lexeme, offset, typeParameters);
   }
 
   @override
@@ -1490,8 +1491,8 @@ class OutlineBuilder extends StackListenerImpl {
       onType = new FixedTypeBuilderImpl(
           const InvalidType(), uri, parserRecovery.charOffset);
     }
-    List<NominalVariableBuilder>? typeVariables =
-        pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
     int nameOrExtensionOffset = name?.nameOffset ?? extensionKeyword.charOffset;
     List<MetadataBuilder>? metadata =
@@ -1505,7 +1506,7 @@ class OutlineBuilder extends StackListenerImpl {
         // TODO(johnniwinther): Support modifiers on extensions?
         modifiers: Modifiers.empty,
         identifier: name,
-        typeVariables: typeVariables,
+        typeParameters: typeParameters,
         onType: onType as TypeBuilder,
         startOffset: startOffset,
         nameOrExtensionOffset: nameOrExtensionOffset,
@@ -1521,14 +1522,14 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("beginExtensionTypeDeclaration");
     popDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
     pushDeclarationContext(DeclarationContext.ExtensionType);
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     String name = nameToken.lexeme;
     int nameOffset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     _builderFactory.beginExtensionTypeDeclaration(
-        name, nameOffset, typeVariables);
+        name, nameOffset, typeParameters);
   }
 
   @override
@@ -1545,8 +1546,8 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    List<NominalVariableBuilder>? typeVariables =
-        pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
     Identifier identifier = pop() as Identifier;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
@@ -1561,7 +1562,7 @@ class OutlineBuilder extends StackListenerImpl {
         // TODO(johnniwinther): Support modifiers on extension types?
         modifiers: Modifiers.empty,
         identifier: identifier,
-        typeVariables: typeVariables,
+        typeParameters: typeParameters,
         interfaces: interfaces,
         startOffset: startOffset,
         endOffset: endToken.charOffset);
@@ -1722,8 +1723,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     Object? identifier = pop();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool isAbstract = kind == MethodBody.Abstract;
@@ -1764,7 +1765,7 @@ class OutlineBuilder extends StackListenerImpl {
               returnType: returnType,
               identifier: identifier,
               name: identifier.name,
-              typeVariables: typeVariables,
+              typeParameters: typeParameters,
               formals: formals,
               kind: kind,
               startOffset: startOffset,
@@ -1784,7 +1785,7 @@ class OutlineBuilder extends StackListenerImpl {
               returnType: returnType,
               identifier: identifier,
               name: identifier.name,
-              typeVariables: typeVariables,
+              typeParameters: typeParameters,
               formals: formals,
               startOffset: startOffset,
               nameOffset: nameOffset,
@@ -1803,7 +1804,7 @@ class OutlineBuilder extends StackListenerImpl {
               returnType: returnType,
               identifier: identifier,
               name: identifier.name,
-              typeVariables: typeVariables,
+              typeParameters: typeParameters,
               formals: formals,
               startOffset: startOffset,
               nameOffset: nameOffset,
@@ -1820,7 +1821,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       nativeMethodName = null;
     } else {
-      _builderFactory.endTopLevelMethodForParserRecovery(typeVariables);
+      _builderFactory.endTopLevelMethodForParserRecovery(typeParameters);
     }
     popDeclarationContext(DeclarationContext.TopLevelMethod);
   }
@@ -2042,8 +2043,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     Object? identifier = pop();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
@@ -2055,12 +2056,12 @@ class OutlineBuilder extends StackListenerImpl {
           "Unexpected identifier $identifier (${identifier.runtimeType})");
 
       if (inConstructor) {
-        _builderFactory.endConstructorForParserRecovery(typeVariables);
+        _builderFactory.endConstructorForParserRecovery(typeParameters);
       } else if (modifiers.isStatic) {
         // Coverage-ignore-block(suite): Not run.
-        _builderFactory.endStaticMethodForParserRecovery(typeVariables);
+        _builderFactory.endStaticMethodForParserRecovery(typeParameters);
       } else {
-        _builderFactory.endInstanceMethodForParserRecovery(typeVariables);
+        _builderFactory.endInstanceMethodForParserRecovery(typeParameters);
       }
 
       nativeMethodName = null;
@@ -2118,10 +2119,10 @@ class OutlineBuilder extends StackListenerImpl {
           }
         }
       }
-      if (typeVariables != null) {
-        NominalVariableBuilder typeVariableBuilder = typeVariables.first;
+      if (typeParameters != null) {
+        NominalParameterBuilder typeParameterBuilder = typeParameters.first;
         addProblem(messageOperatorWithTypeParameters,
-            typeVariableBuilder.fileOffset, typeVariableBuilder.name.length);
+            typeParameterBuilder.fileOffset, typeParameterBuilder.name.length);
       }
     } else {
       name = identifier.name;
@@ -2224,7 +2225,7 @@ class OutlineBuilder extends StackListenerImpl {
         name: name,
         returnType: returnType,
         formals: formals,
-        typeVariables: typeVariables,
+        typeParameters: typeParameters,
         beginInitializers: beginInitializers,
         startOffset: startOffset,
         endOffset: endOffset,
@@ -2318,7 +2319,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilder,
       ]),
       /* modifiers */ ValueKinds.Modifiers,
-      /* type variables */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.NominalVariableListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
@@ -2329,15 +2330,15 @@ class OutlineBuilder extends StackListenerImpl {
     Object? mixinApplication = pop();
     Object? supertype = pop();
     Modifiers modifiers = pop() as Modifiers;
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery ||
         supertype is ParserRecovery ||
         mixinApplication is ParserRecovery) {
-      _builderFactory.endNamedMixinApplicationForParserRecovery(typeVariables);
+      _builderFactory.endNamedMixinApplicationForParserRecovery(typeParameters);
     } else {
       Identifier identifier = name as Identifier;
       String classNameForErrors = identifier.name;
@@ -2385,7 +2386,7 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.addNamedMixinApplication(
           metadata: metadata,
           name: identifier.name,
-          typeVariables: typeVariables,
+          typeParameters: typeParameters,
           modifiers: modifiers,
           supertype: supertype as TypeBuilder?,
           mixinApplication: mixinApplication,
@@ -2449,8 +2450,8 @@ class OutlineBuilder extends StackListenerImpl {
               : const NullabilityBuilder.omitted(),
           arguments,
           identifier.qualifierOffset,
-          instanceTypeVariableAccess:
-              declarationContext.instanceTypeVariableAccessState));
+          instanceTypeParameterAccess:
+              declarationContext.instanceTypeParameterAccessState));
     }
   }
 
@@ -2787,30 +2788,30 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.MixinApplicationBuilderOrNull,
         ValueKinds.ParserRecovery,
       ]),
-      /* type variables */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.NominalVariableListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
     ]));
     debugEvent("EnumHeader");
 
-    // We pop more values than needed to reach typeVariables, offset and name.
+    // We pop more values than needed to reach type parameters, offset and name.
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     Object? mixins = pop(NullValues.MixinApplicationBuilder);
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
 
     Object? identifier = peek();
     if (identifier is Identifier) {
       _builderFactory.beginEnumDeclaration(
-          identifier.name, identifier.nameOffset, typeVariables);
+          identifier.name, identifier.nameOffset, typeParameters);
     } else {
       identifier as ParserRecovery;
       _builderFactory.beginEnumDeclaration(
-          "<syntax-error>", identifier.charOffset, typeVariables);
+          "<syntax-error>", identifier.charOffset, typeParameters);
     }
     _builderFactory.beginEnumBody();
 
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     push(mixins ?? NullValues.MixinApplicationBuilder);
     push(interfaces ?? NullValues.TypeBuilderList);
 
@@ -2842,7 +2843,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.MixinApplicationBuilderOrNull,
         ValueKinds.ParserRecovery,
       ]),
-      /* type variables */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.NominalVariableListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
@@ -2877,8 +2878,8 @@ class OutlineBuilder extends StackListenerImpl {
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     MixinApplicationBuilder? mixinBuilder =
         nullIfParserRecovery(pop()) as MixinApplicationBuilder?;
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     Object? identifier = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
@@ -2909,14 +2910,14 @@ class OutlineBuilder extends StackListenerImpl {
           offsetMap: _offsetMap,
           metadata: metadata,
           identifier: identifier,
-          typeVariables: typeVariables,
+          typeParameters: typeParameters,
           supertypeBuilder: mixinBuilder,
           interfaceBuilders: interfaces,
           enumConstantInfos: enumConstantInfos,
           startOffset: startOffset,
           endOffset: endOffset);
     } else {
-      _builderFactory.endEnumDeclarationForParserRecovery(typeVariables);
+      _builderFactory.endEnumDeclarationForParserRecovery(typeParameters);
     }
 
     checkEmpty(enumKeyword.charOffset);
@@ -3030,11 +3031,11 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<FormalParameterBuilder>?;
     pop(); // formals offset
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralVariableBuilder>? typeVariables =
-        pop() as List<StructuralVariableBuilder>?;
+    List<StructuralParameterBuilder>? typeParameters =
+        pop() as List<StructuralParameterBuilder>?;
     push(_builderFactory.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
-        typeVariables,
+        typeParameters,
         formals,
         questionMark != null
             ? const NullabilityBuilder.nullable()
@@ -3051,11 +3052,11 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralVariableBuilder>? typeVariables =
-        pop() as List<StructuralVariableBuilder>?;
+    List<StructuralParameterBuilder>? typeParameters =
+        pop() as List<StructuralParameterBuilder>?;
     push(_builderFactory.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
-        typeVariables,
+        typeParameters,
         formals,
         question != null
             ? const NullabilityBuilder.nullable()
@@ -3075,7 +3076,7 @@ class OutlineBuilder extends StackListenerImpl {
             ? [
                 /* formals */ ValueKinds.FormalListOrNull,
                 /* formals offset */ ValueKinds.Integer,
-                /* type variables */ ValueKinds.NominalVariableListOrNull,
+                /* type parameters */ ValueKinds.NominalVariableListOrNull,
                 /* name */ ValueKinds.IdentifierOrParserRecovery,
                 /* return type */ ValueKinds.TypeBuilderOrNull,
                 /* metadata */ ValueKinds.MetadataListOrNull,
@@ -3085,12 +3086,12 @@ class OutlineBuilder extends StackListenerImpl {
                   ValueKinds.TypeBuilderOrNull,
                   ValueKinds.ParserRecovery,
                 ]),
-                /* type variables */ ValueKinds.NominalVariableListOrNull,
+                /* type parameters */ ValueKinds.NominalVariableListOrNull,
                 /* name */ ValueKinds.IdentifierOrParserRecovery,
                 /* metadata */ ValueKinds.MetadataListOrNull,
               ]));
 
-    List<NominalVariableBuilder>? typeVariables;
+    List<NominalParameterBuilder>? typeParameters;
     Object? name;
     Identifier identifier;
     TypeBuilder aliasedType;
@@ -3098,8 +3099,8 @@ class OutlineBuilder extends StackListenerImpl {
       List<FormalParameterBuilder>? formals =
           pop(NullValues.FormalParameters) as List<FormalParameterBuilder>?;
       pop(); // formals offset
-      typeVariables =
-          pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
+      typeParameters =
+          pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
       name = pop();
       TypeBuilder? returnType = pop(NullValues.TypeBuilder) as TypeBuilder?;
       // Create a nested declaration that is ended below by
@@ -3107,7 +3108,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (name is ParserRecovery) {
         // Coverage-ignore-block(suite): Not run.
         pop(NullValues.Metadata); // Metadata.
-        _builderFactory.endTypedefForParserRecovery(typeVariables);
+        _builderFactory.endTypedefForParserRecovery(typeParameters);
         popDeclarationContext(DeclarationContext.Typedef);
         return;
       }
@@ -3124,13 +3125,13 @@ class OutlineBuilder extends StackListenerImpl {
           hasFunctionFormalParameterSyntax: true);
     } else {
       Object? type = pop(NullValues.TypeBuilder);
-      typeVariables =
-          pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
+      typeParameters =
+          pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
       name = pop();
       if (name is ParserRecovery) {
         // Coverage-ignore-block(suite): Not run.
         pop(NullValues.Metadata); // Metadata.
-        _builderFactory.endTypedefForParserRecovery(typeVariables);
+        _builderFactory.endTypedefForParserRecovery(typeParameters);
         popDeclarationContext(DeclarationContext.Typedef);
         return;
       }
@@ -3146,14 +3147,14 @@ class OutlineBuilder extends StackListenerImpl {
                   messageTypedefNullableType.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
-              instanceTypeVariableAccess:
-                  InstanceTypeVariableAccessState.Allowed);
+              instanceTypeParameterAccess:
+                  InstanceTypeParameterAccessState.Allowed);
         } else {
           // TODO(ahe): We need to start a nested declaration when parsing the
           // formals and return type so we can correctly bind
-          // `type.typeVariables`. A typedef can have type variables, and a new
-          // function type can also have type variables (representing the type
-          // of a generic function).
+          // `type.typeParameters`. A typedef can have type parameters, and a
+          // new function type can also have type parameters (representing the
+          // type of a generic function).
           aliasedType = type;
         }
       } else if (libraryFeatures.nonfunctionTypeAliases.isEnabled) {
@@ -3167,8 +3168,8 @@ class OutlineBuilder extends StackListenerImpl {
                   messageTypedefNotType.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
-              instanceTypeVariableAccess:
-                  InstanceTypeVariableAccessState.Allowed);
+              instanceTypeParameterAccess:
+                  InstanceTypeParameterAccessState.Allowed);
         }
       } else {
         assert(type is! FunctionTypeBuilder);
@@ -3182,8 +3183,8 @@ class OutlineBuilder extends StackListenerImpl {
                   messageTypedefNotFunction.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
-              instanceTypeVariableAccess:
-                  InstanceTypeVariableAccessState.Allowed);
+              instanceTypeParameterAccess:
+                  InstanceTypeParameterAccessState.Allowed);
         } else {
           addProblem(messageTypedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
@@ -3192,8 +3193,8 @@ class OutlineBuilder extends StackListenerImpl {
                   messageTypedefNotType.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
-              instanceTypeVariableAccess:
-                  InstanceTypeVariableAccessState.Allowed);
+              instanceTypeParameterAccess:
+                  InstanceTypeParameterAccessState.Allowed);
         }
       }
     }
@@ -3202,7 +3203,7 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(typedefKeyword.charOffset);
 
     _builderFactory.addFunctionTypeAlias(metadata, identifier.name,
-        typeVariables, aliasedType, identifier.nameOffset);
+        typeParameters, aliasedType, identifier.nameOffset);
     popDeclarationContext(DeclarationContext.Typedef);
   }
 
@@ -3422,12 +3423,12 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       Identifier identifier = name as Identifier;
       if (inFunctionType) {
-        push(_builderFactory.addStructuralTypeVariable(
+        push(_builderFactory.addStructuralParameter(
             metadata, identifier.name, null, identifier.nameOffset, uri));
       } else {
-        push(_builderFactory.addNominalTypeVariable(
+        push(_builderFactory.addNominalParameter(
             metadata, identifier.name, null, identifier.nameOffset, uri,
-            kind: declarationContext.typeVariableKind));
+            kind: declarationContext.typeParameterKind));
       }
     }
   }
@@ -3437,13 +3438,13 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("TypeVariablesDefined");
     assert(count > 0);
     if (inFunctionType) {
-      push(const FixedNullableList<StructuralVariableBuilder>()
+      push(const FixedNullableList<StructuralParameterBuilder>()
               .popNonNullable(stack, count, dummyStructuralVariableBuilder) ??
-          NullValues.StructuralVariables);
+          NullValues.StructuralParameters);
     } else {
-      push(const FixedNullableList<NominalVariableBuilder>()
+      push(const FixedNullableList<NominalParameterBuilder>()
               .popNonNullable(stack, count, dummyNominalVariableBuilder) ??
-          NullValues.NominalVariables);
+          NullValues.NominalParameters);
     }
   }
 
@@ -3453,8 +3454,8 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTypeVariable");
     TypeBuilder? bound = nullIfParserRecovery(pop()) as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder>? typeParameters =
-        peek() as List<TypeVariableBuilder>?;
+    List<TypeParameterBuilder>? typeParameters =
+        peek() as List<TypeParameterBuilder>?;
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
@@ -3613,7 +3614,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
-    pop(); // type variables
+    pop(); // type parameters
     Object name = pop()!;
     Modifiers modifiers = pop() as Modifiers;
     if (nativeMethodName != null) {

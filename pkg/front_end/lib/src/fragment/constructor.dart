@@ -14,7 +14,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final OmittedTypeBuilder returnType;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
   final bool forAbstractClassOrMixin;

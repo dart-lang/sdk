@@ -81,7 +81,7 @@ class SourceExtensionTypeDeclarationBuilder
   late final ConstructorScope _constructorScope;
 
   @override
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
 
   @override
   final LookupScope typeParameterScope;
@@ -127,7 +127,7 @@ class SourceExtensionTypeDeclarationBuilder
     _extensionTypeDeclaration = new ExtensionTypeDeclaration(
         name: name,
         fileUri: fileUri,
-        typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+        typeParameters: NominalParameterBuilder.typeParametersFromBuilders(
             fragment.typeParameters),
         reference: indexedContainer?.reference)
       ..fileOffset = nameOffset;
@@ -246,9 +246,9 @@ class SourceExtensionTypeDeclarationBuilder
         List<LocatedMessage>? errorContext;
 
         if (typeParameters?.isNotEmpty ?? false) {
-          for (NominalVariableBuilder variable in typeParameters!) {
+          for (NominalParameterBuilder variable in typeParameters!) {
             Variance variance = typeBuilder
-                .computeTypeVariableBuilderVariance(variable,
+                .computeTypeParameterBuilderVariance(variable,
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
@@ -259,7 +259,7 @@ class SourceExtensionTypeDeclarationBuilder
               } else {
                 // Coverage-ignore-block(suite): Not run.
                 errorMessage =
-                    templateInvalidTypeVariableInSupertypeWithVariance
+                    templateInvalidTypeParameterInSupertypeWithVariance
                         .withArguments(variable.variance.keyword, variable.name,
                             variance.keyword, typeBuilder.typeName!.name);
               }
@@ -322,7 +322,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
           }
         } else if (interface is TypeParameterType) {
-          errorMessage = templateSuperExtensionTypeIsTypeVariable
+          errorMessage = templateSuperExtensionTypeIsTypeParameter
               .withArguments(typeBuilder.fullNameForErrors);
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
@@ -413,9 +413,9 @@ class SourceExtensionTypeDeclarationBuilder
           libraryBuilder, TypeUse.extensionTypeRepresentationType);
       unaliased = typeBuilder.unalias(
           usedTypeAliasBuilders: usedTypeAliasBuilders,
-          // We allow creating new type variables during unaliasing. This type
+          // We allow creating new type parameters during unaliasing. This type
           // variables are short-lived and therefore don't need to be bound.
-          unboundTypeVariables: []);
+          unboundTypeParameters: []);
     }
     switch (unaliased) {
       case NamedTypeBuilder(
@@ -473,14 +473,14 @@ class SourceExtensionTypeDeclarationBuilder
               return true;
             }
           }
-        } else if (declaration != null && declaration.typeVariablesCount > 0) {
-          List<TypeVariableBuilder>? typeParameters;
+        } else if (declaration != null && declaration.typeParametersCount > 0) {
+          List<TypeParameterBuilder>? typeParameters;
           switch (declaration) {
             case ClassBuilder():
-              typeParameters = declaration.typeVariables;
+              typeParameters = declaration.typeParameters;
             case TypeAliasBuilder():
               // Coverage-ignore(suite): Not run.
-              typeParameters = declaration.typeVariables;
+              typeParameters = declaration.typeParameters;
             case ExtensionTypeDeclarationBuilder():
               typeParameters = declaration.typeParameters;
             // Coverage-ignore(suite): Not run.
@@ -488,11 +488,11 @@ class SourceExtensionTypeDeclarationBuilder
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
             case ExtensionBuilder():
-            case TypeVariableBuilder():
+            case TypeParameterBuilder():
           }
           if (typeParameters != null) {
             for (int i = 0; i < typeParameters.length; i++) {
-              TypeVariableBuilder typeParameter = typeParameters[i];
+              TypeParameterBuilder typeParameter = typeParameters[i];
               if (_checkRepresentationDependency(
                   typeParameter.defaultType!,
                   rootExtensionTypeDeclaration,
@@ -504,7 +504,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
       case FunctionTypeBuilder(
-          :List<StructuralVariableBuilder>? typeVariables,
+          typeParameters: List<StructuralParameterBuilder>? typeParameters,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
@@ -526,9 +526,9 @@ class SourceExtensionTypeDeclarationBuilder
             }
           }
         }
-        if (typeVariables != null) {
-          for (StructuralVariableBuilder typeVariable in typeVariables) {
-            TypeBuilder? bound = typeVariable.bound;
+        if (typeParameters != null) {
+          for (StructuralParameterBuilder typeParameter in typeParameters) {
+            TypeBuilder? bound = typeParameter.bound;
             if (_checkRepresentationDependency(
                 bound,
                 rootExtensionTypeDeclaration,
@@ -665,7 +665,7 @@ class SourceExtensionTypeDeclarationBuilder
         return combineNullabilitiesForSubstitution(
             inner: _computeNullabilityFromType(
                 declaration.unalias(typeBuilder.typeArguments,
-                    unboundTypeVariables: [])!,
+                    unboundTypeParameters: [])!,
                 traversalState: traversalState),
             outer: nullability);
       case ExtensionTypeDeclarationBuilder():
@@ -675,9 +675,9 @@ class SourceExtensionTypeDeclarationBuilder
             outer: nullability);
       case ClassBuilder():
       // Coverage-ignore(suite): Not run.
-      case NominalVariableBuilder():
+      case NominalParameterBuilder():
       // Coverage-ignore(suite): Not run.
-      case StructuralVariableBuilder():
+      case StructuralParameterBuilder():
       // Coverage-ignore(suite): Not run.
       case ExtensionBuilder():
       // Coverage-ignore(suite): Not run.

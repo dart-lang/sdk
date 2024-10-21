@@ -83,7 +83,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       required Modifiers modifiers,
       required this.returnType,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required this.libraryBuilder,
       required this.declarationBuilder,
@@ -98,7 +98,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       required NameScheme nameScheme,
       String? nativeMethodName})
       : _memberName = nameScheme.getDeclaredName(name),
-        super(metadata, modifiers, name, typeVariables, formals,
+        super(metadata, modifiers, name, typeParameters, formals,
             nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
@@ -377,7 +377,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       required Modifiers modifiers,
       required TypeBuilder returnType,
       required String name,
-      required List<NominalVariableBuilder>? typeVariables,
+      required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
@@ -396,7 +396,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             modifiers: modifiers,
             returnType: returnType,
             name: name,
-            typeVariables: typeVariables,
+            typeParameters: typeParameters,
             formals: formals,
             libraryBuilder: libraryBuilder,
             declarationBuilder: declarationBuilder,
@@ -577,7 +577,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             expectedPhase: CompilationPhaseForProblemReporting.outline));
         // Use 'dynamic' for recovery.
         typeArguments = new List<DartType>.filled(
-            declarationBuilder.typeVariablesCount, const DynamicType(),
+            declarationBuilder.typeParametersCount, const DynamicType(),
             growable: true);
       }
 

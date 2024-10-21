@@ -192,7 +192,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // Y  <=>  !X || Y.
     assert(
         !constrainSupertype ||
-            !containsStructuralTypeVariable(p, _parametersToConstrain.toSet(),
+            !containsStructuralParameter(p, _parametersToConstrain.toSet(),
                 unhandledTypeHandler: (DartType type, ignored) =>
                     type is UnknownType
                         ? false
@@ -201,7 +201,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                         throw new UnsupportedError(
                             "Unsupported type '${type.runtimeType}'.")),
         "Failed implication check: "
-        "constrainSupertype -> !containsTypeVariable(q)");
+        "constrainSupertype -> !containsStructuralParameter(q)");
 
     // If the type parameters being constrained occur in the supertype (that is,
     // [q]), the supertype is not allowed to contain [UnknownType] as its part,
@@ -227,7 +227,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // Y  <=>  !X || Y.
     assert(
         constrainSupertype ||
-            !containsStructuralTypeVariable(q, _parametersToConstrain.toSet(),
+            !containsStructuralParameter(q, _parametersToConstrain.toSet(),
                 unhandledTypeHandler: (DartType type, ignored) =>
                     type is UnknownType
                         ? false
@@ -236,7 +236,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                         throw new UnsupportedError(
                             "Unsupported type '${type.runtimeType}'.")),
         "Failed implication check: "
-        "!constrainSupertype -> !containsTypeVariable(q)");
+        "!constrainSupertype -> !containsStructuralParameter(q)");
 
     if (p is InvalidType || q is InvalidType) return false;
 
@@ -246,7 +246,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // If Q is _ then the match holds with no constraints.
     if (q is SharedUnknownTypeStructure) return true;
 
-    // If P is a type variable X in L, then the match holds:
+    // If P is a type parameter X in L, then the match holds:
     //
     // Under constraint _ <: X <: Q.
     NullabilitySuffix pNullability = p.nullabilitySuffix;
@@ -259,7 +259,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    // If Q is a type variable X in L, then the match holds:
+    // If Q is a type parameter X in L, then the match holds:
     //
     // Under constraint P <: X <: _.
     NullabilitySuffix qNullability = q.nullabilitySuffix;
@@ -410,7 +410,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return q.nullability == Nullability.nullable;
     }
 
-    // If P is a type variable X with bound B (or a promoted type variable X &
+    // If P is a type parameter X with bound B (or a promoted type parameter X &
     // B), the match holds with constraint set C:
     //
     // If B is a subtype match for Q with constraint set C.  Note that we have
@@ -504,8 +504,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
           List<GeneratedTypeConstraint> constraints =
               _protoConstraints.sublist(baseConstraintCount);
           _protoConstraints.length = baseConstraintCount;
-          NullabilityAwareTypeVariableEliminator eliminator =
-              new NullabilityAwareTypeVariableEliminator(
+          NullabilityAwareTypeParameterEliminator eliminator =
+              new NullabilityAwareTypeParameterEliminator(
                   structuralEliminationTargets: p.typeParameters.toSet(),
                   nominalEliminationTargets: {},
                   bottomType: typeOperations.neverType.unwrapTypeView(),

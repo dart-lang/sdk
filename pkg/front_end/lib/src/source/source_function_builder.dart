@@ -43,7 +43,7 @@ abstract class SourceFunctionBuilder
 
   TypeBuilder get returnType;
 
-  List<NominalVariableBuilder>? get typeVariables;
+  List<NominalParameterBuilder>? get typeParameters;
 
   List<FormalParameterBuilder>? get formals;
 
@@ -133,7 +133,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   final String name;
 
   @override
-  final List<NominalVariableBuilder>? typeVariables;
+  final List<NominalParameterBuilder>? typeParameters;
 
   @override
   final List<FormalParameterBuilder>? formals;
@@ -149,7 +149,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   List<TypeParameter>? _thisTypeParameters;
 
   SourceFunctionBuilderImpl(this.metadata, this.modifiers, this.name,
-      this.typeVariables, this.formals, this.nativeMethodName) {
+      this.typeParameters, this.formals, this.nativeMethodName) {
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (int i = 0; i < formals!.length; i++) {
@@ -242,9 +242,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   LookupScope computeTypeParameterScope(LookupScope parent) {
-    if (typeVariables == null) return parent;
+    if (typeParameters == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (NominalVariableBuilder variable in typeVariables!) {
+    for (NominalParameterBuilder variable in typeParameters!) {
       if (variable.isWildcard) continue;
       local[variable.name] = variable;
     }
@@ -319,8 +319,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             initialVariance: Variance.contravariant);
       }
     }
-    if (typeVariables != null) {
-      for (NominalVariableBuilder t in typeVariables!) {
+    if (typeParameters != null) {
+      for (NominalParameterBuilder t in typeParameters!) {
         TypeParameter parameter = t.parameter;
         function.typeParameters.add(parameter);
         if (needsCheckVisitor != null) {
@@ -478,9 +478,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             parentScope,
             createFileUriExpression: isAugmented);
       }
-      if (typeVariables != null) {
-        for (int i = 0; i < typeVariables!.length; i++) {
-          typeVariables![i].buildOutlineExpressions(
+      if (typeParameters != null) {
+        for (int i = 0; i < typeParameters!.length; i++) {
+          typeParameters![i].buildOutlineExpressions(
               libraryBuilder,
               createBodyBuilderContext(
                   inOutlineBuildingPhase: true,

@@ -759,12 +759,12 @@ String typeBuilderToText(TypeBuilder type) {
   return sb.toString();
 }
 
-/// Returns a textual representation of the [typeVariable] to be used in
+/// Returns a textual representation of the [typeParameter] to be used in
 /// testing.
-String typeVariableBuilderToText(NominalVariableBuilder typeVariable) {
-  String name = typeVariable.name;
-  if (typeVariable.bound != null) {
-    return '$name extends ${typeBuilderToText(typeVariable.bound!)}';
+String typeVariableBuilderToText(NominalParameterBuilder typeParameter) {
+  String name = typeParameter.name;
+  if (typeParameter.bound != null) {
+    return '$name extends ${typeBuilderToText(typeParameter.bound!)}';
   }
   return name;
 }

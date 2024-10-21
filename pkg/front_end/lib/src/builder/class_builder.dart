@@ -89,8 +89,8 @@ abstract class ClassMemberAccess {
 }
 
 abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
-  /// The type variables declared on a class, extension or mixin declaration.
-  List<NominalVariableBuilder>? get typeVariables;
+  /// The type parameters declared on a class, extension or mixin declaration.
+  List<NominalParameterBuilder>? get typeParameters;
 
   /// The type in the `extends` clause of a class declaration.
   ///
@@ -259,19 +259,19 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   // Coverage-ignore(suite): Not run.
   InterfaceType get legacyRawType {
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
+        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType get nullableRawType {
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
+        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType get nonNullableRawType {
     return _nonNullableRawType ??= new InterfaceType(
         cls,
         Nullability.nonNullable,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
+        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType rawType(Nullability nullability) {
@@ -343,7 +343,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     InterfaceType type = new InterfaceType(cls, nullability, arguments);
     if (arguments.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeVariablesCount == 0);
+      assert(typeParametersCount == 0);
       if (nullability == Nullability.nonNullable) {
         aliasedTypeWithBuiltArgumentsCacheNonNullable = type;
       } else if (nullability == Nullability.nullable) {
@@ -351,7 +351,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       }
     }
 
-    if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
+    if (typeParametersCount != 0 && library is SourceLibraryBuilder) {
       library.registerBoundsCheck(type, fileUri, charOffset, typeUse,
           inferred: !hasExplicitTypeArguments);
     }
@@ -462,14 +462,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     if (isNullClass) {
       return Nullability.nullable;
     } else if (isFutureOr) {
       if (typeArguments != null && typeArguments.length == 1) {
         return typeArguments.single.computeNullability(
-            typeVariablesTraversalState: typeVariablesTraversalState);
+            typeParametersTraversalState: typeParametersTraversalState);
       } else {
         // This is `FutureOr<dynamic>`.
         return Nullability.nullable;

@@ -37,7 +37,7 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
+import '../kernel/type_algorithms.dart' show hasAnyTypeParameters;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'
@@ -62,7 +62,7 @@ import 'type_schema_environment.dart'
     show
         getNamedParameterType,
         getPositionalParameterType,
-        TypeVariableEliminator,
+        TypeParameterEliminator,
         TypeSchemaEnvironment;
 
 /// Given a [FunctionExpression], computes a set whose elements consist of (a)
@@ -701,10 +701,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         expression,
         // TODO(johnniwinther): Fix this.
         // TODO(ahe): The outline phase doesn't correctly remove invalid
-        // uses of type variables, for example, on static members. Once
+        // uses of type parameters, for example, on static members. Once
         // that has been fixed, we should always be able to use
         // [contextType] directly here.
-        hasAnyTypeVariables(contextType)
+        hasAnyTypeParameters(contextType)
             ? const NeverType.nonNullable()
             : contextType)
       ..isTypeError = true
@@ -726,10 +726,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         expression,
         // TODO(johnniwinther): Fix this.
         // TODO(ahe): The outline phase doesn't correctly remove invalid
-        // uses of type variables, for example, on static members. Once
+        // uses of type parameters, for example, on static members. Once
         // that has been fixed, we should always be able to use
         // [contextType] directly here.
-        hasAnyTypeVariables(contextType)
+        hasAnyTypeParameters(contextType)
             ? const NeverType.nonNullable()
             : contextType)
       ..isTypeError = true
@@ -1197,7 +1197,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       bool includeExtensionMethods = false}) {
     assert(isKnown(receiverType));
 
-    DartType receiverBound = receiverType.nonTypeVariableBound;
+    DartType receiverBound = receiverType.nonTypeParameterBound;
 
     bool hasNonObjectMemberAccess = receiverType.hasNonObjectMemberAccess ||
         // Calls to `==` are always on a non-null receiver.
@@ -1293,7 +1293,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       return helper.buildProblem(
           errorTemplate.withArguments(
-              name.text, receiverType.nonTypeVariableBound),
+              name.text, receiverType.nonTypeParameterBound),
           fileOffset,
           length);
     }
@@ -1351,7 +1351,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeDeclaration enclosingTypeDeclaration =
         interfaceMember.enclosingTypeDeclaration!;
     if (enclosingTypeDeclaration.typeParameters.isNotEmpty) {
-      receiverType = receiverType.nonTypeVariableBound;
+      receiverType = receiverType.nonTypeParameterBound;
       if (receiverType is TypeDeclarationType) {
         List<DartType> castedTypeArguments =
             hierarchyBuilder.getTypeArgumentsAsInstanceOf(
@@ -1637,7 +1637,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeConstraintGatherer? gatherer;
     if (inferenceNeeded) {
       if (isConst) {
-        typeContext = new TypeVariableEliminator(
+        typeContext = new TypeParameterEliminator(
                 bottomType, coreTypes.objectNullableRawType)
             .substituteType(typeContext);
       }
@@ -2031,8 +2031,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           treeNodeForTesting: arguments);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
-      assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
-          "Promoted type variable(s) in inferred types: $inferredTypes.");
+      assert(inferredTypes.every((type) => !hasPromotedTypeParameter(type)),
+          "Promoted type parameter(s) in inferred types: $inferredTypes.");
       instantiator = new FunctionTypeInstantiator.fromIterables(
           calleeTypeParameters, inferredTypes);
       instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
@@ -2104,7 +2104,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     inferredType = calleeType.returnType;
     assert(
-        !containsFreeFunctionTypeVariables(inferredType),
+        !containsFreeStructuralParameters(inferredType),
         "Inferred return type $inferredType contains free variables. "
         "Inferred function type: $calleeType.");
 
@@ -3984,13 +3984,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (wrappedExpression != null) {
       return helper.wrapInProblem(
           wrappedExpression,
-          template.withArguments(name.text, receiverType.nonTypeVariableBound),
+          template.withArguments(name.text, receiverType.nonTypeParameterBound),
           fileOffset,
           length,
           context: context);
     } else {
       return helper.buildProblem(
-          template.withArguments(name.text, receiverType.nonTypeVariableBound),
+          template.withArguments(name.text, receiverType.nonTypeParameterBound),
           fileOffset,
           length,
           context: context);
@@ -4655,9 +4655,9 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
     StructuralParameter, _ParamInfo, _DeferredParamInfo> {
   _FunctionLiteralDependencies(
       Iterable<_DeferredParamInfo> deferredParamInfo,
-      Iterable<StructuralParameter> typeVariables,
+      Iterable<StructuralParameter> typeParameters,
       List<_ParamInfo> undeferredParamInfo)
-      : super(deferredParamInfo, typeVariables, undeferredParamInfo);
+      : super(deferredParamInfo, typeParameters, undeferredParamInfo);
 
   @override
   Iterable<StructuralParameter> typeVarsFreeInParamParams(
@@ -4671,7 +4671,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       Set<StructuralParameter> result = {};
       for (MapEntry<Object, DartType> entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
-        result.addAll(allFreeTypeVariables(entry.value));
+        result.addAll(allFreeTypeParameters(entry.value));
       }
       return result;
     } else {
@@ -4684,9 +4684,9 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       _ParamInfo paramInfo) {
     DartType type = paramInfo.formalType;
     if (type is FunctionType) {
-      return allFreeTypeVariables(type.returnType);
+      return allFreeTypeParameters(type.returnType);
     } else {
-      return allFreeTypeVariables(type);
+      return allFreeTypeParameters(type);
     }
   }
 }

@@ -15,7 +15,7 @@ class GetterFragment implements Fragment, FunctionFragment {
   final List<MetadataBuilder>? metadata;
   final Modifiers modifiers;
   final TypeBuilder returnType;
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
   final List<FormalParameterBuilder>? formals;
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;

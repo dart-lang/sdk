@@ -251,7 +251,7 @@ abstract class Builder {
 
   bool get isTypeDeclaration;
 
-  bool get isTypeVariable;
+  bool get isTypeParameter;
 
   /// Applies [augmentation] to this declaration.
   void applyAugmentation(Builder augmentation);
@@ -362,7 +362,7 @@ abstract class BuilderImpl implements Builder {
   bool get isTypeDeclaration => false;
 
   @override
-  bool get isTypeVariable => false;
+  bool get isTypeParameter => false;
 
   @override
   // Coverage-ignore(suite): Not run.

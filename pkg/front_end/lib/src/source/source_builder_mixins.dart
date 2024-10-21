@@ -232,7 +232,7 @@ mixin SourceDeclarationBuilderMixin
   /// Type parameters declared.
   ///
   /// This is `null` if the declaration is not generic.
-  List<NominalVariableBuilder>? get typeParameters;
+  List<NominalParameterBuilder>? get typeParameters;
 
   /// The scope in which the [typeParameters] are declared.
   LookupScope get typeParameterScope;
@@ -256,7 +256,7 @@ mixin SourceDeclarationBuilderMixin
       return result;
     }
 
-    if (arguments != null && arguments.length != typeVariablesCount) {
+    if (arguments != null && arguments.length != typeParametersCount) {
       // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceDeclarationBuilderMixin.buildAliasedTypeArguments: "
@@ -264,14 +264,14 @@ mixin SourceDeclarationBuilderMixin
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(typeVariablesCount)
+              .withArguments(typeParametersCount)
               .problemMessage,
           "buildTypeArguments",
           -1,
           null);
     }
 
-    assert(arguments!.length == typeVariablesCount);
+    assert(arguments!.length == typeParametersCount);
     List<DartType> result =
         new List<DartType>.generate(arguments!.length, (int i) {
       return arguments[i]
@@ -281,7 +281,7 @@ mixin SourceDeclarationBuilderMixin
   }
 
   @override
-  int get typeVariablesCount => typeParameters?.length ?? 0;
+  int get typeParametersCount => typeParameters?.length ?? 0;
 }
 
 mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {

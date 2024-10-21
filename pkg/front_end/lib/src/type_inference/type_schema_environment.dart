@@ -167,7 +167,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         parameter.defaultType is DynamicType;
   }
 
-  /// Use the given [constraints] to substitute for type variables.
+  /// Use the given [constraints] to substitute for type parameters.
   ///
   /// [typeParametersToInfer] is the set of type parameters that should be
   /// substituted for.  [previouslyInferredTypes], if present, should be the set
@@ -365,7 +365,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        returnContextType = new NullabilityAwareFreeTypeVariableEliminator(
+        returnContextType = new NullabilityAwareFreeTypeParameterEliminator(
                 bottomType: const NeverType.nonNullable(),
                 topType: objectNullableRawType,
                 topFunctionType: functionRawType(Nullability.nonNullable))
@@ -377,7 +377,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return gatherer;
   }
 
-  /// Computes the constraint solution for a type variable based on a given set
+  /// Computes the constraint solution for a type parameter based on a given set
   /// of constraints.
   ///
   /// If [grounded] is `true`, then the returned type is guaranteed to be a
@@ -608,11 +608,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 }
 
-class TypeVariableEliminator extends Substitution {
+class TypeParameterEliminator extends Substitution {
   final DartType bottomType;
   final DartType topType;
 
-  TypeVariableEliminator(this.bottomType, this.topType);
+  TypeParameterEliminator(this.bottomType, this.topType);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {

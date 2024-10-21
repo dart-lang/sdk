@@ -3032,7 +3032,7 @@ class DeferredAccessGenerator extends Generator {
 }
 
 /// [TypeUseGenerator] represents the subexpression whose prefix is the name of
-/// a class, enum, type variable, typedef, mixin declaration, extension
+/// a class, enum, type parameter, typedef, mixin declaration, extension
 /// declaration or built-in type, like dynamic and void.
 ///
 /// For instance:
@@ -3093,7 +3093,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         arguments: arguments,
         fileUri: _uri,
         charOffset: fileOffset,
-        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState)
+        instanceTypeParameterAccess: _helper.instanceTypeParameterAccessState)
       ..bind(_helper.libraryBuilder, declaration);
   }
 
@@ -3178,9 +3178,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 // Coverage-ignore(suite): Not run.
                 TypeAliasBuilder() => false,
                 // Coverage-ignore(suite): Not run.
-                NominalVariableBuilder() => false,
+                NominalParameterBuilder() => false,
                 // Coverage-ignore(suite): Not run.
-                StructuralVariableBuilder() => false,
+                StructuralParameterBuilder() => false,
                 // Coverage-ignore(suite): Not run.
                 InvalidTypeDeclarationBuilder() => false,
                 // Coverage-ignore(suite): Not run.
@@ -3193,15 +3193,15 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       bool isConstructorTearOff =
           send is PropertySelector && supportsConstructorTearOff;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
-          ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
+          ?.map((unknownType) => _helper.validateTypeParameterUse(unknownType,
               allowPotentiallyConstantType: isConstructorTearOff))
           .toList();
       if (aliasedTypeArguments != null &&
-          aliasedTypeArguments.length != aliasBuilder.typeVariablesCount) {
+          aliasedTypeArguments.length != aliasBuilder.typeParametersCount) {
         // Coverage-ignore-block(suite): Not run.
         _helper.libraryBuilder.addProblem(
             templateTypeArgumentMismatch
-                .withArguments(aliasBuilder.typeVariablesCount),
+                .withArguments(aliasBuilder.typeParametersCount),
             fileOffset,
             noLength,
             _uri);
@@ -3213,8 +3213,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 arguments: aliasedTypeArguments,
                 fileUri: _uri,
                 charOffset: fileOffset,
-                instanceTypeVariableAccess:
-                    _helper.instanceTypeVariableAccessState)
+                instanceTypeParameterAccess:
+                    _helper.instanceTypeParameterAccessState)
               ..bind(_helper.libraryBuilder, aliasBuilder)
               ..build(_helper.libraryBuilder, TypeUse.instantiation);
           }
@@ -3223,19 +3223,19 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           // generic, and the aliased type arguments match type parameters of
           // the type alias.
           if (aliasedTypeArguments == null &&
-              aliasBuilder.typeVariablesCount != 0) {
+              aliasBuilder.typeParametersCount != 0) {
             isGenericTypedefTearOff = true;
             aliasedTypeArguments = <TypeBuilder>[];
-            for (NominalVariableBuilder typeVariable
-                in aliasBuilder.typeVariables!) {
+            for (NominalParameterBuilder typeParameter
+                in aliasBuilder.typeParameters!) {
               aliasedTypeArguments.add(new NamedTypeBuilderImpl(
-                  new SyntheticTypeName(typeVariable.name, fileOffset),
+                  new SyntheticTypeName(typeParameter.name, fileOffset),
                   const NullabilityBuilder.omitted(),
                   fileUri: _uri,
                   charOffset: fileOffset,
-                  instanceTypeVariableAccess:
-                      _helper.instanceTypeVariableAccessState)
-                ..bind(_helper.libraryBuilder, typeVariable));
+                  instanceTypeParameterAccess:
+                      _helper.instanceTypeParameterAccessState)
+                ..bind(_helper.libraryBuilder, typeParameter));
             }
           }
           unaliasedTypeArguments =
@@ -3300,9 +3300,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               List<DartType>? builtTypeArguments;
               if (unaliasedTypeArguments != null) {
                 if (unaliasedTypeArguments.length !=
-                    declarationBuilder.typeVariablesCount) {
+                    declarationBuilder.typeParametersCount) {
                   // The type arguments are either aren't provided or mismatch
-                  // in number with the type variables of the RHS declaration.
+                  // in number with the type parameters of the RHS declaration.
                   // We substitute them with the default types here: in the
                   // first case that would be exactly what type inference fills
                   // in for the RHS, and in the second case it's a reasonable

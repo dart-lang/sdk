@@ -39,7 +39,7 @@ part 'invalid_type_declaration_builder.dart';
 part 'omitted_type_declaration_builder.dart';
 part 'type_alias_builder.dart';
 part 'type_declaration_builder.dart';
-part 'type_variable_builder.dart';
+part 'type_parameter_builder.dart';
 
 sealed class TypeDeclarationBuilder implements ITypeDeclarationBuilder {}
 
