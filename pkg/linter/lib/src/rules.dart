@@ -122,6 +122,7 @@ import 'rules/null_check_on_nullable_type_parameter.dart';
 import 'rules/null_closures.dart';
 import 'rules/omit_local_variable_types.dart';
 import 'rules/omit_obvious_local_variable_types.dart';
+import 'rules/omit_obvious_property_types.dart';
 import 'rules/one_member_abstracts.dart';
 import 'rules/only_throw_errors.dart';
 import 'rules/overridden_fields.dart';
@@ -184,6 +185,7 @@ import 'rules/sort_child_properties_last.dart';
 import 'rules/sort_constructors_first.dart';
 import 'rules/sort_unnamed_constructors_first.dart';
 import 'rules/specify_nonobvious_local_variable_types.dart';
+import 'rules/specify_nonobvious_property_types.dart';
 import 'rules/super_goes_last.dart';
 import 'rules/test_types_in_equals.dart';
 import 'rules/throw_in_finally.dart';
@@ -366,6 +368,7 @@ void registerLintRules() {
     ..register(NullClosures())
     ..register(OmitLocalVariableTypes())
     ..register(OmitObviousLocalVariableTypes())
+    ..register(OmitObviousPropertyTypes())
     ..register(OneMemberAbstracts())
     ..register(OnlyThrowErrors())
     ..register(OverriddenFields())
@@ -428,6 +431,7 @@ void registerLintRules() {
     ..register(SortUnnamedConstructorsFirst())
     ..register(SuperGoesLast())
     ..register(SpecifyNonObviousLocalVariableTypes())
+    ..register(SpecifyNonObviousPropertyTypes())
     ..register(TestTypesInEquals())
     ..register(ThrowInFinally())
     ..register(TightenTypeOfInitializingFormals())

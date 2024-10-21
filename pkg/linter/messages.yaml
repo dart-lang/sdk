@@ -6965,6 +6965,56 @@ LintCode:
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/linter/issues/3480.
+  omit_obvious_property_types:
+    problemMessage: "The type annotation isn't needed because it is obvious."
+    correctionMessage: "Try removing the type annotation."
+    addedIn: "3.6-wip"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Don't type annotate initialized top-level or static variables when the type is
+      obvious.
+
+      **BAD:**
+      ```dart
+      final int myTopLevelVariable = 7;
+
+      class A {
+        static String myStaticVariable = 'Hello';
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      final myTopLevelVariable = 7;
+
+      class A {
+        static myStaticVariable = 'Hello';
+      }
+      ```
+
+      Sometimes the inferred type is not the type you want the variable to have. For
+      example, you may intend to assign values of other types later. You may also
+      wish to write a type annotation explicitly because the type of the initializing
+      expression is non-obvious and it will be helpful for future readers of the
+      code to document this type. Or you may wish to commit to a specific type such
+      that future updates of dependencies (in nearby code, in imports, anywhere)
+      will not silently change the type of that variable, thus introducing
+      compile-time errors or run-time bugs in locations where this variable is used.
+      In those cases, go ahead and annotate the variable with the type you want.
+
+      **GOOD:**
+      ```dart
+      final num myTopLevelVariable = 7;
+
+      class A {
+        static String? myStaticVariable = 'Hello';
+      }
+      ```
+
+      **This rule is experimental.** It is being evaluated, and it may be changed
+      or removed. Feedback on its behavior is welcome! The main issue is here:
+      https://github.com/dart-lang/linter/issues/5101.
   one_member_abstracts:
     problemMessage: "Unnecessary use of an abstract class."
     correctionMessage: "Try making '{0}' a top-level function and removing the class."
@@ -10394,6 +10444,7 @@ LintCode:
     correctionMessage: "Try adding a type annotation."
     addedIn: "3.6-wip"
     categories: [style]
+    hasPublishedDocs: false
     deprecatedDetails: |-
       Do type annotate initialized local variables when the type is non-obvious.
 
@@ -10469,6 +10520,75 @@ LintCode:
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/linter/issues/3480.
+  specify_nonobvious_property_types:
+    problemMessage: "A type annotation is needed because it isn't obvious."
+    correctionMessage: "Try adding a type annotation."
+    addedIn: "3.6-wip"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Do type annotate initialized top-level or static variables when the type is
+      non-obvious.
+
+      Type annotations on top-level or static variables can serve as a request for
+      type inference, documenting the expected outcome of the type inference step,
+      and declaratively allowing the compiler and analyzer to solve the possibly 
+      complex task of finding type arguments and annotations in the initializing 
+      expression that yield the desired result.
+
+      Type annotations on top-level or static variables can also inform readers about
+      the type of the initializing expression, which will allow them to proceed
+      reading the locations in code where this variable is used with known good
+      information about the type of the given variable (which may not be immediately
+      evident by looking at the initializing expression).
+
+      An expression is considered to have a non-obvious type when it does not
+      have an obvious type.
+
+      An expression e has an obvious type in the following cases:
+
+      - e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.
+      - e is a collection literal with actual type arguments. For instance,
+        <int, bool>{}.
+      - e is a list literal or a set literal where at least one element has an
+        obvious type, and all elements have the same type. For instance, [1, 2] and
+        { [true, false], [] }, but not [1, 1.5].
+      - e is a map literal where all key-value pair have a key with an obvious type
+        and a value with an obvious type, and all keys have the same type, and all
+        values have the same type. For instance, { #a: <int>[] }, but not
+        {1: 1, 2: true}.
+      - e is an instance creation expression whose class part is not raw. For
+        instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one
+        type argument, but not C(14) if C accepts one or more type arguments.
+      - e is a cascade whose target has an obvious type. For instance,
+        1..isEven..isEven has an obvious type because 1 has an obvious type.
+      - e is a type cast. For instance, myComplexpression as int.
+
+      **BAD:**
+      ```dart
+      final myTopLevelVariable =
+          genericFunctionWrittenByOtherFolks(with, args);
+
+      class A {
+        static var myStaticVariable =
+            myTopLevelVariable.update('foo', null);
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      final Map<String, Widget?> myTopLevelVariable =
+          genericFunctionWrittenByOtherFolks(with, args);
+
+      class A {
+        static Map<String, Widget?> myStaticVariable =
+            myTopLevelVariable.update('foo', null);
+      }
+      ```
+
+      **This rule is experimental.** It is being evaluated, and it may be changed
+      or removed. Feedback on its behavior is welcome! The main issue is here:
+      https://github.com/dart-lang/linter/issues/5101.
   super_goes_last:
     addedIn: "2.0"
     removedIn: "3.0"

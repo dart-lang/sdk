@@ -986,6 +986,12 @@ class LinterLintCode extends LintCode {
     correctionMessage: "Try removing the type annotation.",
   );
 
+  static const LintCode omit_obvious_property_types = LinterLintCode(
+    LintNames.omit_obvious_property_types,
+    "The type annotation isn't needed because it is obvious.",
+    correctionMessage: "Try removing the type annotation.",
+  );
+
   static const LintCode one_member_abstracts = LinterLintCode(
     LintNames.one_member_abstracts,
     "Unnecessary use of an abstract class.",
@@ -1478,6 +1484,12 @@ class LinterLintCode extends LintCode {
       LinterLintCode(
     LintNames.specify_nonobvious_local_variable_types,
     "Specify the type of a local variable when the type is non-obvious.",
+    correctionMessage: "Try adding a type annotation.",
+  );
+
+  static const LintCode specify_nonobvious_property_types = LinterLintCode(
+    LintNames.specify_nonobvious_property_types,
+    "A type annotation is needed because it isn't obvious.",
     correctionMessage: "Try adding a type annotation.",
   );
 
