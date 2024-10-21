@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -50,15 +50,15 @@ class AnalyzerImpl {
       this.options, this.stats, this.startTime);
 
   void addCompilationUnitSource(
-      CompilationUnitElement unit, Set<CompilationUnitElement> units) {
+      LibraryFragment unit, Set<LibraryFragment> units) {
     if (!units.add(unit)) {
       return;
     }
     files.add(unit.source.fullName);
   }
 
-  void addLibrarySources(LibraryElement library, Set<LibraryElement> libraries,
-      Set<CompilationUnitElement> units) {
+  void addLibrarySources(LibraryElement2 library,
+      Set<LibraryElement2> libraries, Set<LibraryFragment> units) {
     if (!libraries.add(library)) {
       return;
     }
@@ -67,18 +67,24 @@ class AnalyzerImpl {
       return;
     }
     // Add compilation units.
-    for (final unitElement in library.units) {
-      addCompilationUnitSource(unitElement, units);
-    }
-    // Add imported libraries.
-    var importedLibraries = library.importedLibraries;
-    for (var child in importedLibraries) {
-      addLibrarySources(child, libraries, units);
-    }
-    // Add exported libraries.
-    var exportedLibraries = library.exportedLibraries;
-    for (var child in exportedLibraries) {
-      addLibrarySources(child, libraries, units);
+    for (final fragment in library.fragments) {
+      addCompilationUnitSource(fragment, units);
+      // Add imported libraries.
+      var importedLibraries = fragment.libraryImports2;
+      for (var child in importedLibraries) {
+        var importedLibrary = child.importedLibrary2;
+        if (importedLibrary != null) {
+          addLibrarySources(importedLibrary, libraries, units);
+        }
+      }
+      // Add exported libraries.
+      var exportedLibraries = fragment.libraryExports2;
+      for (var child in exportedLibraries) {
+        var exportedLibrary = child.exportedLibrary2;
+        if (exportedLibrary != null) {
+          addLibrarySources(exportedLibrary, libraries, units);
+        }
+      }
     }
   }
 
@@ -118,9 +124,9 @@ class AnalyzerImpl {
   }
 
   /// Fills [files].
-  void prepareSources(LibraryElement library) {
-    var units = <CompilationUnitElement>{};
-    var libraries = <LibraryElement>{};
+  void prepareSources(LibraryElement2 library) {
+    var units = <LibraryFragment>{};
+    var libraries = <LibraryElement2>{};
     addLibrarySources(library, libraries, units);
   }
 
@@ -163,8 +169,8 @@ class AnalyzerImpl {
       determineProcessedSeverity(error, options, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
-  bool _isAnalyzedLibrary(LibraryElement library) {
-    var source = library.source;
+  bool _isAnalyzedLibrary(LibraryElement2 library) {
+    var source = library.firstFragment.source;
     if (source.uri.isScheme('dart')) {
       return false;
     } else if (source.uri.isScheme('package')) {
@@ -197,12 +203,12 @@ class AnalyzerImpl {
     outSink.writeln('total-cold:$totalTime');
   }
 
-  Future<LibraryElement> _resolveLibrary() async {
+  Future<LibraryElement2> _resolveLibrary() async {
     var libraryPath = libraryFile.path;
     analysisDriver.priorityFiles = [libraryPath];
     var elementResult =
         await analysisDriver.getUnitElement(libraryPath) as UnitElementResult;
-    return elementResult.element.library;
+    return elementResult.fragment.element;
   }
 
   /// Return `true` if the given [pathName] is in the Pub cache.

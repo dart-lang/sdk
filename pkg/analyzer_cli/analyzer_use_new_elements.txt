@@ -1,4 +1,5 @@
 bin/analyzer.dart
+lib/src/analyzer_impl.dart
 lib/src/ansi.dart
 lib/src/batch_mode.dart
 lib/src/driver.dart
