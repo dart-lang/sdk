@@ -9,13 +9,14 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart' as util;
 
 export 'package:analyzer/dart/element/type_system.dart';
+export 'package:analyzer/source/line_info.dart';
+export 'package:analyzer/source/source.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/resolver/exit_detector.dart';
 export 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
-export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/lint_rule_timers.dart';
 export 'package:analyzer/src/lint/linter.dart'
     show
