@@ -73,6 +73,20 @@ class C {
     ]);
   }
 
+  test_nullableParameter_eqeqNull_not_parens() async {
+    await assertDiagnostics(r'''
+class C {
+  String foo = '';
+  @override
+  operator ==(Object? other) =>
+          !((other) == null) && (other) is C && foo == (other.foo);
+}
+''', [
+      error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
+      lint(85, 15),
+    ]);
+  }
+
   test_nullableParameter_fieldComparisonOnLocal() async {
     await assertDiagnostics(r'''
 class C {

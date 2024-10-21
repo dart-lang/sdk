@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
@@ -16,18 +16,19 @@ const _desc = r"Don't check for `null` in custom `==` operators.";
 bool _isComparingEquality(TokenType tokenType) =>
     tokenType == TokenType.BANG_EQ || tokenType == TokenType.EQ_EQ;
 
-bool _isComparingParameterWithNull(BinaryExpression node, Element? parameter) =>
+bool _isComparingParameterWithNull(
+        BinaryExpression node, Element2? parameter) =>
     _isComparingEquality(node.operator.type) &&
     ((node.leftOperand.isNullLiteral &&
             _isParameter(node.rightOperand, parameter)) ||
         (node.rightOperand.isNullLiteral &&
             _isParameter(node.leftOperand, parameter)));
 
-bool _isParameter(Expression expression, Element? parameter) =>
-    expression.canonicalElement == parameter;
+bool _isParameter(Expression expression, Element2? parameter) =>
+    expression.canonicalElement2 == parameter;
 
 bool _isParameterWithQuestionQuestion(
-        BinaryExpression node, Element? parameter) =>
+        BinaryExpression node, Element2? parameter) =>
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
 
@@ -51,7 +52,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
 }
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
-  final Element? parameter;
+  final Element2? parameter;
   final LintRule rule;
 
   _BodyVisitor(this.parameter, this.rule);
@@ -68,7 +69,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     if (node.operator?.type == TokenType.QUESTION_PERIOD &&
-        node.target.canonicalElement == parameter) {
+        node.target.canonicalElement2 == parameter) {
       rule.reportLint(node);
     }
     super.visitMethodInvocation(node);
@@ -77,7 +78,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   @override
   visitPropertyAccess(PropertyAccess node) {
     if (node.operator.type == TokenType.QUESTION_PERIOD &&
-        node.target.canonicalElement == parameter) {
+        node.target.canonicalElement2 == parameter) {
       rule.reportLint(node);
     }
     super.visitPropertyAccess(node);
@@ -100,11 +101,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parameter = parameters.first.declaredElement?.canonicalElement;
+    var parameter = parameters.first.declaredFragment?.element;
 
     // Analyzer will produce UNNECESSARY_NULL_COMPARISON_FALSE|TRUE
     // See: https://github.com/dart-lang/linter/issues/2864
-    if (parameter is VariableElement &&
+    if (parameter is FormalParameterElement &&
         parameter.type.nullabilitySuffix != NullabilitySuffix.question) {
       return;
     }
