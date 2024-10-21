@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -31,7 +31,7 @@ class PreferForeach extends LintRule {
 
 class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  LocalVariableElement? element;
+  LocalVariableElement2? element;
   ForStatement? forEachStatement;
 
   _PreferForEachVisitor(this.rule);
@@ -52,7 +52,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitForStatement(ForStatement node) {
     var loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
-      var element = loopParts.loopVariable.declaredElement;
+      var element = loopParts.loopVariable.declaredElement2;
       if (element != null) {
         forEachStatement = node;
         this.element = element;
@@ -64,7 +64,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var arguments = node.argumentList.arguments;
-    if (arguments.length == 1 && arguments.first.canonicalElement == element) {
+    if (arguments.length == 1 && arguments.first.canonicalElement2 == element) {
       rule.reportLint(forEachStatement);
     }
   }
@@ -74,7 +74,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
     var arguments = node.argumentList.arguments;
     var target = node.target;
     if (arguments.length == 1 &&
-        arguments.first.canonicalElement == element &&
+        arguments.first.canonicalElement2 == element &&
         (target == null || !_ReferenceFinder(element).references(target))) {
       rule.reportLint(forEachStatement);
     }
@@ -88,11 +88,11 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
 
 class _ReferenceFinder extends UnifyingAstVisitor<void> {
   bool found = false;
-  final LocalVariableElement? element;
+  final LocalVariableElement2? element;
   _ReferenceFinder(this.element);
 
   bool references(Expression target) {
-    if (target.canonicalElement == element) return true;
+    if (target.canonicalElement2 == element) return true;
 
     target.accept(this);
     return found;
@@ -102,7 +102,7 @@ class _ReferenceFinder extends UnifyingAstVisitor<void> {
   visitNode(AstNode node) {
     if (found) return;
 
-    found = node.canonicalElement == element;
+    found = node.canonicalElement2 == element;
     if (!found) {
       super.visitNode(node);
     }

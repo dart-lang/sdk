@@ -26,6 +26,7 @@ lib/src/rules/avoid_function_literals_in_foreach_calls.dart
 lib/src/rules/avoid_implementing_value_types.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
+lib/src/rules/avoid_null_checks_in_equality_operators.dart
 lib/src/rules/avoid_print.dart
 lib/src/rules/avoid_private_typedef_functions.dart
 lib/src/rules/avoid_redundant_argument_values.dart
@@ -102,6 +103,7 @@ lib/src/rules/null_check_on_nullable_type_parameter.dart
 lib/src/rules/null_closures.dart
 lib/src/rules/omit_local_variable_types.dart
 lib/src/rules/omit_obvious_local_variable_types.dart
+lib/src/rules/omit_obvious_property_types.dart
 lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
 lib/src/rules/package_api_docs.dart
@@ -122,6 +124,7 @@ lib/src/rules/prefer_equal_for_default_values.dart
 lib/src/rules/prefer_expression_function_bodies.dart
 lib/src/rules/prefer_final_in_for_each.dart
 lib/src/rules/prefer_for_elements_to_map_fromIterable.dart
+lib/src/rules/prefer_foreach.dart
 lib/src/rules/prefer_function_declarations_over_variables.dart
 lib/src/rules/prefer_generic_function_type_aliases.dart
 lib/src/rules/prefer_if_elements_to_conditional_expressions.dart
@@ -329,6 +332,7 @@ test/rules/null_check_on_nullable_type_parameter_test.dart
 test/rules/null_closures_test.dart
 test/rules/omit_local_variable_types_test.dart
 test/rules/omit_obvious_local_variable_types_test.dart
+test/rules/omit_obvious_property_types_test.dart
 test/rules/one_member_abstracts_test.dart
 test/rules/only_throw_errors_test.dart
 test/rules/overridden_fields_test.dart
@@ -387,6 +391,7 @@ test/rules/sort_constructors_first_test.dart
 test/rules/sort_pub_dependencies_test.dart
 test/rules/sort_unnamed_constructors_first_test.dart
 test/rules/specify_nonobvious_local_variable_types_test.dart
+test/rules/specify_nonobvious_property_types_test.dart
 test/rules/test_types_in_equals_test.dart
 test/rules/throw_in_finally_test.dart
 test/rules/tighten_type_of_initializing_formals_test.dart
