@@ -1,0 +1,7 @@
+isInt(bool b) {}
+
+isInt_late(bool b) {}
+
+notEqNull(bool b) {}
+
+notEqNull_late(bool b) {}

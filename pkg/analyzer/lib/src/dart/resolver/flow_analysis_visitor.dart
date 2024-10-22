@@ -544,6 +544,11 @@ class TypeSystemOperations
   }
 
   @override
+  bool isFinal(PromotableElement variable) {
+    return variable.isFinal;
+  }
+
+  @override
   bool isInterfaceType(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     return unwrappedType is InterfaceType &&

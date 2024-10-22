@@ -557,6 +557,11 @@ class OperationsCfe
   }
 
   @override
+  bool isFinal(VariableDeclaration variable) {
+    return variable.isFinal;
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   bool isInterfaceType(SharedTypeView<DartType> type) {
     return type.unwrapTypeView() is InterfaceType;
