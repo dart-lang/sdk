@@ -146,11 +146,16 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Stored stack traces leading to the instructions for watch points.
   final Map<ir.Instruction, StackTrace>? _stackTraces;
 
+  /// Whether the instruction block is for a Wasm constant expression.
+  final bool _constantExpression;
+
   /// Create a new instruction sequence.
   InstructionsBuilder(
-      this.module, List<ir.ValueType> inputs, List<ir.ValueType> outputs)
+      this.module, List<ir.ValueType> inputs, List<ir.ValueType> outputs,
+      {bool constantExpression = false})
       : _stackTraces = module.watchPoints.isNotEmpty ? {} : null,
-        _sourceMappings = module.sourceMapUrl == null ? null : [] {
+        _sourceMappings = module.sourceMapUrl == null ? null : [],
+        _constantExpression = constantExpression {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
@@ -184,6 +189,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       locals, _instructions, _stackTraces, _traceLines, _sourceMappings);
 
   void _add(ir.Instruction i) {
+    assert(!_constantExpression || i.isConstant,
+        "Non-constant instruction $i added to constant expression");
     if (!_reachable) return;
     _instructions.add(i);
     if (module.watchPoints.isNotEmpty) {
