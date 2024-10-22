@@ -635,6 +635,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   /// the canary and null safety modes.
   final String buildOptionsDir;
 
+  bool get _isIA32 => _configuration.architecture == Architecture.ia32;
+
   DevCompilerConfiguration(super.configuration)
       : _soundNullSafety = configuration.nnbdMode == NnbdMode.strong,
         buildOptionsDir = [
@@ -650,7 +652,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   @override
   String computeCompilerPath() {
     if (_enableHostAsserts && _useSdk) {
-      // When [_useSdk] is true, ddc is compiled into a snapshot that was
+      // When [_useSdk] is true, ddc is compiled into an AOT snapshot that was
       // built without assertions enabled. The VM cannot make such snapshot run
       // with assertions later. These two flags could be used together if we
       // also build sdk snapshots with assertions enabled.
@@ -660,9 +662,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // spawn as a subprocess is a Dart VM.
     // Internally the [DevCompilerCompilationCommand] will prepend the snapshot
     // or Dart library entrypoint that is executed by the VM.
-    // This will change once we update the DDC to use AOT instead of a snapshot.
     var dir = _useSdk ? '${_configuration.buildDirectory}/dart-sdk' : 'sdk';
-    return '$dir/bin/dart$executableExtension';
+    var executable = _useSdk && !_isIA32 ? 'dartaotruntime' : 'dart';
+    return '$dir/bin/$executable$executableExtension';
   }
 
   @override
@@ -741,8 +743,11 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       args.add("$summary=$package");
     }
 
+    final snapshotName =
+        !_isIA32 ? 'dartdevc_aot.dart.snapshot' : 'dartdevc.dart.snapshot';
     var compilerPath = _useSdk && !_enableHostAsserts
-        ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
+        ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/'
+            '$snapshotName'
         : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
     var command = DevCompilerCompilationCommand(outputFile,
         bootstrapDependencies(), computeCompilerPath(), args, environment,

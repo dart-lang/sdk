@@ -47,14 +47,16 @@ declare_args() {
 # ........dart2js.dart.snapshot (JIT snapshot only on ia32)
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
-# ........dartdevc.dart.snapshot
+# ........dartdevc_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dartdevc.dart.snapshot (JIT snapshot only on ia32)
 # ........dds.dart.snapshot
 # ........dart_tooling_daemon.dart.snapshot
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot (JIT snapshot only on ia32)
 # ........gen_kernel_aot.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
-# ........kernel_worker.dart.snapshot
+# ........kernel_worker_aot.dart.snapshot (JIT snapshot only on ia32)
+# ........kernel_worker.dart.snapshot (AOT snapshot, it not ia32)
 # ......resources/
 # ........dartdoc/
 # ..........resources/
@@ -152,26 +154,51 @@ if (dart_dynamic_modules) {
       ] ]
 }
 
-_full_sdk_snapshots = _platform_sdk_snapshots + [
-                        [
-                          "dartdevc",
-                          "../utils/ddc:dartdevc",
-                        ],
-                        [
-                          "kernel_worker",
-                          "../utils/bazel:kernel_worker",
-                        ],
-                      ]
+# AOT snapshots are not supported on the ia32 architecture, we continue
+# to use JIT snapshots on that architecture, the conditional code below
+# accounts for this.
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _full_sdk_snapshots += [ [
-        "dart2js_aot",
-        "../utils/compiler:dart2js_sdk_aot",
-      ] ]
+  _full_sdk_snapshots =
+      _platform_sdk_snapshots + [
+        [
+          "dart2js_aot",
+          "../utils/compiler:dart2js_sdk_aot",
+        ],
+        [
+          "dartdevc_aot",
+          "../utils/ddc:dartdevc_aot",
+        ],
+        [
+          "kernel_worker_aot",
+          "../utils/bazel:kernel_worker_aot",
+        ],
+
+        # Remove these JIT snapshot in Dart SDK version 3.7
+        # Please see https://github.com/dart-lang/build/pull/3742 for details.
+        [
+          "dartdevc",
+          "../utils/ddc:dartdevc",
+        ],
+        [
+          "kernel_worker",
+          "../utils/bazel:kernel_worker",
+        ],
+      ]
 } else {
-  _full_sdk_snapshots += [ [
-        "dart2js",
-        "../utils/compiler:dart2js",
-      ] ]
+  _full_sdk_snapshots = _platform_sdk_snapshots + [
+                          [
+                            "dart2js",
+                            "../utils/compiler:dart2js",
+                          ],
+                          [
+                            "dartdevc",
+                            "../utils/ddc:dartdevc",
+                          ],
+                          [
+                            "kernel_worker",
+                            "../utils/bazel:kernel_worker",
+                          ],
+                        ]
 }
 
 # Libraries that go under lib/

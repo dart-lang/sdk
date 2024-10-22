@@ -65,9 +65,11 @@ String _d8Path = (() {
 
 Uri d8Uri = repoRoot.resolve(_d8Path);
 Uri _dartBin = Uri.file(Platform.resolvedExecutable);
-Uri ddcSnapshot = _dartBin.resolve('snapshots/dartdevc.dart.snapshot');
-Uri kernelWOrkerSnapshot =
-    _dartBin.resolve('snapshots/kernel_worker.dart.snapshot');
+Uri dartAotBin = _dartBin
+    .resolve(Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+Uri ddcAotSnapshot = _dartBin.resolve('snapshots/dartdevc_aot.dart.snapshot');
+Uri kernelWOrkerAotSnapshot =
+    _dartBin.resolve('snapshots/kernel_worker_aot.dart.snapshot');
 Uri buildRootUri = repoRoot.resolve(buildFolder);
 Uri ddcSdkOutline = buildRootUri.resolve('ddc_outline.dill');
 Uri ddcSdkJs = buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
