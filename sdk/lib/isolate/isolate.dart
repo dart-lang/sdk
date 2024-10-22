@@ -73,6 +73,7 @@ class IsolateSpawnException implements Exception {
 /// An `Isolate` object cannot be sent over a `SendPort`, but the control port
 /// and capabilities can be sent, and can be used to create a new functioning
 /// `Isolate` object in the receiving port's isolate.
+@pragma('vm:entry-point')
 final class Isolate {
   /// Argument to `ping` and `kill`: Ask for immediate action.
   static const int immediate = 0;

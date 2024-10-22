@@ -459,7 +459,7 @@ class RunServiceTask : public ThreadPool::Task {
       return Utils::StrDup("Service isolate is not supported by embedder.");
     }
     ASSERT(!root_library.IsNull());
-    const String& entry_name = String::Handle(Z, String::New("main"));
+    const String& entry_name = Symbols::main();
     ASSERT(!entry_name.IsNull());
     const Function& entry = Function::Handle(
         Z, root_library.LookupFunctionAllowPrivate(entry_name));

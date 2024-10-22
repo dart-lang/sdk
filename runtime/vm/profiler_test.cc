@@ -6,6 +6,7 @@
 
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
@@ -242,8 +243,11 @@ static void Invoke(const Library& lib,
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   TransitionVMToNative transition(thread);
-  Dart_Handle result = Dart_Invoke(api_lib, NewString(name), argc, argv);
-  EXPECT_VALID(result);
+  {
+    SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+    Dart_Handle result = Dart_Invoke(api_lib, NewString(name), argc, argv);
+    EXPECT_VALID(result);
+  }
 }
 
 class AllocationFilter : public SampleFilter {
