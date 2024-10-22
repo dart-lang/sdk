@@ -64,9 +64,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     DartType? returnType;
     if (parent is FunctionExpression) {
-      returnType = parent.declaredElement?.returnType;
+      returnType = parent.declaredFragment?.element.returnType;
     } else if (parent is MethodDeclaration) {
-      returnType = parent.declaredElement?.returnType;
+      returnType = parent.declaredFragment?.element.returnType;
     } else if (parent is Block) {
       // removing await in try block changes the behaviour
       return;
