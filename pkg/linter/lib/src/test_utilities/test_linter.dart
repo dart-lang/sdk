@@ -8,10 +8,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/analysis.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
 // ignore: implementation_imports
@@ -19,11 +19,15 @@ import 'package:analyzer/src/lint/linter.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 
-export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-export 'package:analyzer/src/lint/state.dart'
-    show dart2_12, dart3, dart3_3, State;
+import 'lint_driver.dart';
+
+Source createSource(Uri uri) {
+  var filePath = uri.toFilePath();
+  var file = file_system.PhysicalResourceProvider.INSTANCE.getFile(filePath);
+  return FileSource(file, uri);
+}
 
 /// Dart source linter, only for package:linter's tools and tests.
 class TestLinter implements AnalysisErrorListener {
@@ -31,11 +35,6 @@ class TestLinter implements AnalysisErrorListener {
 
   final LinterOptions options;
   final file_system.ResourceProvider _resourceProvider;
-
-  /// The total number of sources that were analyzed.
-  ///
-  /// Only valid after [lintFiles] has been called.
-  int numSourcesAnalyzed = 0;
 
   TestLinter(
     this.options, {
@@ -47,9 +46,7 @@ class TestLinter implements AnalysisErrorListener {
     var errors = <AnalysisErrorInfo>[];
     var lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where(isDartFile)));
-    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where(isPubspecFile).forEach((file) {
-      numSourcesAnalyzed++;
       var errorsForFile = lintPubspecSource(
         contents: file.readAsStringSync(),
         sourcePath: _resourceProvider.pathContext.normalize(file.absolute.path),
@@ -63,7 +60,7 @@ class TestLinter implements AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> lintPubspecSource(
       {required String contents, String? sourcePath}) {
     var results = <AnalysisErrorInfo>[];
-    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
+    var sourceUrl = sourcePath == null ? null : path.toUri(sourcePath);
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (var rule in options.enabledRules) {

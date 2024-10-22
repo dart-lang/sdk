@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -184,8 +183,14 @@ final class LinterContextWithResolvedResults implements LinterContext {
   LibraryElement2 get libraryElement2 => libraryElement as LibraryElement2;
 }
 
-class LinterOptions extends DriverOptions {
+class LinterOptions {
   final Iterable<LintRule> enabledRules;
+
+  /// The path to the Dart SDK.
+  String? dartSdkPath;
+
+  /// Whether to gather timing data during analysis.
+  bool enableTiming = false;
 
   LinterOptions({
     Iterable<LintRule>? enabledRules,

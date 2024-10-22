@@ -1,55 +1,21 @@
-// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-/// @docImport 'package:linter/src/test_utilities/test_linter.dart';
-library;
 
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/generated/engine.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/lint/linter.dart';
 
-Source createSource(Uri uri) {
-  var filePath = uri.toFilePath();
-  var file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
-  return FileSource(file, uri);
-}
-
-/// Print the given message and exit with the given [exitCode]
-void printAndFail(String message, {int exitCode = 15}) {
-  print(message);
-  io.exit(exitCode);
-}
-
-class DriverOptions {
-  /// The maximum number of sources for which AST structures should be kept
-  /// in the cache.  The default is 512.
-  int cacheSize = 512;
-
-  /// The path to the dart SDK.
-  String? dartSdkPath;
-
-  /// Whether to show lint warnings.
-  bool enableLints = true;
-
-  /// Whether to gather timing data during analysis.
-  bool enableTiming = false;
-
-  /// The path to a `.packages` configuration file
-  String? packageConfigPath;
-}
-
-/// A driver _only used_ by [TestLinter], which is only used by package:linter
-/// tests and tools.
 class LintDriver {
   /// The files which have been analyzed so far.  This is used to compute the
   /// total number of files analyzed for statistics.
@@ -61,19 +27,11 @@ class LintDriver {
 
   LintDriver(this.options, this._resourceProvider);
 
-  /// Return the number of sources that have been analyzed so far.
-  int get numSourcesAnalyzed => _filesAnalyzed.length;
-
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
-    AnalysisEngine.instance.instrumentationService = StdInstrumentation();
-
-    // TODO(scheglov): Enforce normalized absolute paths in the config.
-    var packageConfigPath = options.packageConfigPath;
-    packageConfigPath = _absoluteNormalizedPath.ifNotNull(packageConfigPath);
+    AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
 
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
-      packagesFile: packageConfigPath,
       sdkPath: options.dartSdkPath,
       includedPaths:
           files.map((file) => _absoluteNormalizedPath(file.path)).toList(),
@@ -82,7 +40,7 @@ class LintDriver {
         required contextRoot,
         required sdk,
       }) {
-        analysisOptions.lint = options.enableLints;
+        analysisOptions.lint = true;
         analysisOptions.warning = false;
         analysisOptions.enableTiming = options.enableTiming;
         analysisOptions.lintRules =
@@ -114,15 +72,13 @@ class LintDriver {
 
   String _absoluteNormalizedPath(String path) {
     var pathContext = _resourceProvider.pathContext;
-    path = pathContext.absolute(path);
-    path = pathContext.normalize(path);
-    return path;
+    return pathContext.normalize(pathContext.absolute(path));
   }
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
 /// [errorSink].
-class StdInstrumentation extends NoopInstrumentationService {
+class _StdInstrumentation extends NoopInstrumentationService {
   @override
   void logError(String message, [Object? exception]) {
     errorSink.writeln(message);
@@ -132,9 +88,11 @@ class StdInstrumentation extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception,
-      [StackTrace? stackTrace,
-      List<InstrumentationServiceAttachment>? attachments]) {
+  void logException(
+    exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     errorSink.writeln(exception);
     errorSink.writeln(stackTrace);
   }
@@ -144,17 +102,6 @@ class StdInstrumentation extends NoopInstrumentationService {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);
-    }
-  }
-}
-
-extension _UnaryFunctionExtension<T, R> on R Function(T) {
-  /// Invoke this function if [t] is not `null`, otherwise return `null`.
-  R? ifNotNull(T? t) {
-    if (t != null) {
-      return this(t);
-    } else {
-      return null;
     }
   }
 }
