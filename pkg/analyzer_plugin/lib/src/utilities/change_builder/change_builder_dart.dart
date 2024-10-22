@@ -292,10 +292,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ExecutableElement2? methodBeingCopied,
       bool includeDefaultValues = true,
       bool requiredTypes = false}) {
-    var parameterNames = {
-      for (var parameter in parameters.where((p) => p.name.isNotEmpty))
-        parameter.name,
-    };
+    var parameterNames = parameters.map((e) => e.name).nonNulls.toSet();
 
     write('(');
     var sawNamed = false;
@@ -319,7 +316,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       // Parameter.
       var name = parameter.name;
-      if (name.isEmpty) {
+      if (name == null || name == '') {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
@@ -1060,7 +1057,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeTypeParameter2(TypeParameterElement2 typeParameter,
       {ExecutableElement2? methodBeingCopied}) {
-    write(typeParameter.name);
+    write(typeParameter.name ?? '');
     if (typeParameter.bound != null) {
       write(' extends ');
       _writeType2(typeParameter.bound, methodBeingCopied: methodBeingCopied);
@@ -1577,10 +1574,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(', ');
       }
       if (parameters[i].isNamed) {
-        write(parameters[i].name);
+        write(parameters[i].name ?? '');
         write(': ');
       }
-      write(parameters[i].name);
+      write(parameters[i].name ?? '');
     }
     write(isOperator ? ';' : ');');
   }

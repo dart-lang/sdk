@@ -40,6 +40,11 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
+    var variableName = variable.name;
+    if (variableName == null) {
+      return;
+    }
+
     var declaration = NodeLocator(variable.nameOffset).searchWithin(unit);
     var declarationList = declaration?.parent;
 
@@ -59,7 +64,7 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
             builder.addSimpleReplacement(range.token(keywordToken), 'var');
           }
         });
-        _variableName = variable.name;
+        _variableName = variableName;
       }
     }
   }

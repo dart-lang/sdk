@@ -1645,15 +1645,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     for (var param in override.formalParameters) {
       if (param.isPositional) {
         positionalInOverride.add(param);
-      } else {
-        namedInOverride[param.name] = param;
+      } else if (param.name case var name?) {
+        namedInOverride[name] = param;
       }
     }
     for (var param in overridden.formalParameters) {
       if (param.isPositional) {
         positionalInOverridden.add(param);
-      } else {
-        namedInOverridden[param.name] = param;
+      } else if (param.name case var name?) {
+        namedInOverridden[name] = param;
       }
     }
 

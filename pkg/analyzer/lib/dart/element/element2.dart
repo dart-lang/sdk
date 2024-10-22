@@ -249,6 +249,9 @@ abstract class ConstructorElement2
   /// Whether the constructor represents a generative constructor.
   bool get isGenerative;
 
+  /// The name of this constructor.
+  ///
+  /// The name of the unnamed constructor is `new`.
   @override
   String get name;
 
@@ -1639,9 +1642,6 @@ abstract class MethodElement2 implements ExecutableElement2, FragmentedElement {
   /// The test might be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator;
-
-  @override
-  String get name;
 }
 
 /// The portion of a [MethodElement2] contributed by a single declaration.
@@ -1785,10 +1785,7 @@ abstract class PrefixFragment implements Fragment {
 /// variable or a parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PromotableElement2 implements VariableElement2 {
-  @override
-  String get name;
-}
+abstract class PromotableElement2 implements VariableElement2 {}
 
 /// The portion of a [PromotableElement2] contributed by a single declaration.
 ///
@@ -1825,9 +1822,6 @@ abstract class PropertyInducingElement2
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
   GetterElement? get getter2;
-
-  @override
-  String get name;
 
   /// The setter associated with this variable.
   ///
@@ -2058,9 +2052,6 @@ abstract class TypeAliasElement2
   @override
   TypeAliasFragment get firstFragment;
 
-  @override
-  String get name;
-
   /// Returns the type resulting from instantiating this typedef with the given
   /// [typeArguments] and [nullabilitySuffix].
   ///
@@ -2131,9 +2122,6 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
 
   @override
   LibraryElement2 get library2;
-
-  @override
-  String get name;
 
   /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
