@@ -3,7 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/dart_action.gni")
+import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -14,6 +17,20 @@ sdk_full_unsound_dill = "$root_out_dir/ddc_platform_unsound.dill"
 
 sdk_root = "../../sdk"
 pkg_root = "../../pkg"
+
+aot_snapshot("dartdevc_aot") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+  name = "dartdevc_aot"
+  output = "$root_gen_dir/dartdevc_aot.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and dartdevc_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -346,19 +363,31 @@ template("package_kernel_outline") {
 
 package_kernel_outline("expect_outline") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   sound_null_safety = true
 }
 
 package_kernel_outline("expect_outline_unsound") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   sound_null_safety = false
 }
 
 ddc_compile("expect_stable_js") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   canary = false
   modules = [
     "amd",
@@ -369,7 +398,11 @@ ddc_compile("expect_stable_js") {
 
 ddc_compile("expect_canary_js") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   canary = true
   modules = [ "amd" ]
   sound_null_safety = true
@@ -377,7 +410,11 @@ ddc_compile("expect_canary_js") {
 
 ddc_compile("expect_canary_ddc_js") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   canary = true
   modules = [ "ddc" ]
   sound_null_safety = true
@@ -385,7 +422,11 @@ ddc_compile("expect_canary_ddc_js") {
 
 ddc_compile("expect_stable_unsound_js") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   canary = false
   modules = [
     "amd",
@@ -396,7 +437,11 @@ ddc_compile("expect_stable_unsound_js") {
 
 ddc_compile("expect_canary_unsound_js") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   canary = true
   modules = [ "amd" ]
   sound_null_safety = false
@@ -404,7 +449,11 @@ ddc_compile("expect_canary_unsound_js") {
 
 ddc_compile("expect_canary_unsound_ddc_js") {
   package = "expect"
-  extra_libraries = [ "async_helper", "legacy/minitest", "legacy/async_minitest" ]
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
   canary = true
   modules = [ "ddc" ]
   sound_null_safety = false

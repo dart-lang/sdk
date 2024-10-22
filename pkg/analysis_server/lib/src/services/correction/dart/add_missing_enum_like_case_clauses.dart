@@ -111,7 +111,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (field.type != type) {
         continue;
       }
-      constantNames.add(field.name);
+      constantNames.addIfNotNull(field.name);
     }
     return constantNames;
   }

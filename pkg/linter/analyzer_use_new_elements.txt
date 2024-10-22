@@ -71,6 +71,7 @@ lib/src/rules/exhaustive_cases.dart
 lib/src/rules/file_names.dart
 lib/src/rules/flutter_style_todos.dart
 lib/src/rules/hash_and_equals.dart
+lib/src/rules/implementation_imports.dart
 lib/src/rules/implicit_call_tearoffs.dart
 lib/src/rules/implicit_reopen.dart
 lib/src/rules/invalid_case_patterns.dart
@@ -163,6 +164,7 @@ lib/src/rules/tighten_type_of_initializing_formals.dart
 lib/src/rules/type_annotate_public_apis.dart
 lib/src/rules/type_literal_in_constant_pattern.dart
 lib/src/rules/unintended_html_in_doc_comment.dart
+lib/src/rules/unnecessary_await_in_return.dart
 lib/src/rules/unnecessary_brace_in_string_interps.dart
 lib/src/rules/unnecessary_breaks.dart
 lib/src/rules/unnecessary_const.dart

@@ -2,19 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
+// VMOptions=--verify-entry-points=true
 // SharedObjects=entrypoints_verification_test
 
 import 'dart:ffi';
 import './dylib_utils.dart';
 
-main(List<String> args) {
+main() {
   final helper = dlopenPlatformSpecific('entrypoints_verification_test');
   final runTest =
       helper.lookupFunction<Void Function(), void Function()>('RunTests');
   runTest();
-}
 
-final void Function() noop = () {};
+  new C();
+  new D();
+}
 
 class C {}
 
@@ -50,16 +52,16 @@ class D {
   @pragma("vm:entry-point", "get")
   static void fn3_get() {}
 
-  void Function()? fld0 = noop;
+  void Function()? fld0;
 
   @pragma("vm:entry-point")
-  void Function()? fld1 = noop;
+  void Function()? fld1;
 
   @pragma("vm:entry-point", "get")
-  void Function()? fld2 = noop;
+  void Function()? fld2;
 
   @pragma("vm:entry-point", "set")
-  void Function()? fld3 = noop;
+  void Function()? fld3;
 }
 
 void fn0() {}
@@ -79,25 +81,25 @@ class E extends D {
 
 @pragma("vm:entry-point")
 class F {
-  static void Function()? fld0 = noop;
+  static void Function()? fld0;
 
   @pragma("vm:entry-point")
-  static void Function()? fld1 = noop;
+  static void Function()? fld1;
 
   @pragma("vm:entry-point", "get")
-  static void Function()? fld2 = noop;
+  static void Function()? fld2;
 
   @pragma("vm:entry-point", "set")
-  static void Function()? fld3 = noop;
+  static void Function()? fld3;
 }
 
-void Function()? fld0 = noop;
+void Function()? fld0;
 
 @pragma("vm:entry-point")
-void Function()? fld1 = noop;
+void Function()? fld1;
 
 @pragma("vm:entry-point", "get")
-void Function()? fld2 = noop;
+void Function()? fld2;
 
 @pragma("vm:entry-point", "set")
-void Function()? fld3 = noop;
+void Function()? fld3;

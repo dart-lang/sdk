@@ -11,6 +11,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:meta/meta.dart';
 
 /// Represents a message from DTD (Dart Tooling Daemon).
@@ -35,8 +36,9 @@ final class LegacyMessage extends MessageObject {
 /// Represents a message in the LSP protocol format.
 final class LspMessage extends MessageObject {
   final lsp.Message message;
+  CancelableToken? cancellationToken;
 
-  LspMessage({required this.message});
+  LspMessage({required this.message, this.cancellationToken});
 }
 
 /// Represents a message from a client, can be an IDE, DTD etc.
@@ -75,7 +77,8 @@ final class MessageScheduler {
     switch (message) {
       case LspMessage():
         var lspMessage = message.message;
-        (server as LspAnalysisServer).handleMessage(lspMessage);
+        (server as LspAnalysisServer).handleMessage(lspMessage,
+            cancellationToken: message.cancellationToken);
       case LegacyMessage():
         var request = message.request;
         (server as LegacyAnalysisServer).handleRequest(request);

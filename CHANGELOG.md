@@ -31,7 +31,7 @@ main() {
 }
 ```
 
-###### Dart to Javascript Compiler (dart2js)
+#### Dart to Javascript Compiler (dart2js)
 
 - The dart2js compiler which is invoked when the command
   'dart compile js' is used has been switched to use an AOT snapshot
@@ -39,6 +39,15 @@ main() {
 
 [#53576]: https://github.com/dart-lang/sdk/issues/53576
 
+#### Dart Development Compiler (dartdevc)
+
+- The dartdevc compiler and kernel_worker utility have been switched to use
+  an AOT snapshot instead of a JIT snapshot, the SDK build still includes a
+  JIT snapshot of these tools as package build/build_web_compiler depends
+  on it. The AOT snapshot can be used as follows to run DDC
+  <dart-sdk>/bin/dartaotruntime <dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
+
+[#53576]: https://github.com/dart-lang/sdk/issues/53576
 
 ## 3.6.0
 

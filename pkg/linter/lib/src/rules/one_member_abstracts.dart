@@ -53,8 +53,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methods.length != 1) return;
 
     var method = methods.first;
-    if (method.isAbstract) {
-      rule.reportLintForToken(node.name, arguments: [method.name]);
-    }
+    if (!method.isAbstract) return;
+
+    var name = method.name;
+    if (name == null) return;
+
+    rule.reportLintForToken(node.name, arguments: [name]);
   }
 }

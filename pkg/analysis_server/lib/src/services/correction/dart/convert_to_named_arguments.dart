@@ -69,9 +69,11 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         if (argument is! NamedExpression) {
           FormalParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
+            var namedParameterName = namedParameter.name;
             if (typeSystem.isSubtypeOf(
                     argument.typeOrThrow, namedParameter.type) &&
-                !_namedArgumentExists(extraArguments, namedParameter.name)) {
+                namedParameterName != null &&
+                !_namedArgumentExists(extraArguments, namedParameterName)) {
               if (uniqueNamedParameter == null) {
                 uniqueNamedParameter = namedParameter;
               } else {

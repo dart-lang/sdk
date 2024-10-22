@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -48,7 +49,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
         enumName = enumElement.name;
         for (var field in enumElement.fields2) {
           if (field.isEnumConstant) {
-            unhandledEnumCases.add(field.name);
+            unhandledEnumCases.addIfNotNull(field.name);
           }
         }
         prefix = _importPrefix(enumElement);

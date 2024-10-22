@@ -227,9 +227,10 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// the [newName]. The [offset] is the offset of the first character of the
   /// [source] relative to the start of the file.
   String replaceName(String source, String newName, int offset) {
-    var oldLength = parameter.name.length;
     for (var i = references.length - 1; i >= 0; i--) {
       var oldOffset = references[i].offset - offset;
+      // SAFETY: we cannot reference a formal parameter without a name.
+      var oldLength = parameter.name!.length;
       source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
     }
     return source;

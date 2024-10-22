@@ -208,37 +208,6 @@ bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
 
 typedef AstNodePredicate = bool Function(AstNode node);
 
-class DartTypeUtilities {
-  @Deprecated('Replace with `type.extendsClass`')
-  static bool extendsClass(
-          DartType? type, String? className, String? library) =>
-      type.extendsClass(className, library!);
-
-  @Deprecated('Replace with `rawNode.canonicalElement`')
-  static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) =>
-      rawNode.canonicalElement;
-
-  @Deprecated('Replace with `type.implementsInterface`')
-  static bool implementsInterface(
-          DartType? type, String interface, String library) =>
-      type.implementsInterface(interface, library);
-
-  // TODO(pq): remove and replace w/ an extension (pending internal migration)
-  @Deprecated('Slated for removal')
-  static bool isClass(DartType? type, String? className, String? library) =>
-      type is InterfaceType &&
-      type.element.name == className &&
-      type.element.library.name == library;
-
-  @Deprecated('Replace with `expression.isNullLiteral`')
-  static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;
-
-  @Deprecated('Use `argumentsMatchParameters`')
-  static bool matchesArgumentsWithParameters(NodeList<Expression> arguments,
-          NodeList<FormalParameter> parameters) =>
-      argumentsMatchParameters(arguments, parameters);
-}
-
 class InterfaceTypeDefinition {
   final String name;
   final String library;

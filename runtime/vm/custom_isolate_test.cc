@@ -29,7 +29,6 @@ static const char* kCustomIsolateScriptChars =
     import 'dart:isolate';
 
     final RawReceivePort mainPort = new RawReceivePort();
-    @pragma('vm:entry-point', 'get')
     final SendPort mainSendPort = mainPort.sendPort;
 
     @pragma('vm:external-name', 'native_echo')
@@ -56,7 +55,6 @@ static const char* kCustomIsolateScriptChars =
       SendPort spawn();
     }
 
-    @pragma('vm:entry-point', 'call')
     isolateMain() {
        echo('Running isolateMain');
        mainPort.handler = (message) {

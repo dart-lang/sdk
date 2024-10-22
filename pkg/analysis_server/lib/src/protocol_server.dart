@@ -283,7 +283,7 @@ Location? newLocation_fromElement2(engine.Element2? element) {
     return _locationForArgs2(fragment, range);
   } else if (element is engine.LocalVariableElement2) {
     var offset = element.nameOffset;
-    var length = element.name.length;
+    var length = element.name?.length ?? 0;
     var range = engine.SourceRange(offset, length);
     var fragment = element.enclosingFunction;
     return _locationForArgs2(fragment, range);

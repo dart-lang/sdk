@@ -2,9 +2,28 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
+aot_snapshot("kernel_worker_aot") {
+  main_dart = "kernel_worker.dart"
+  name = "kernel_worker_aot"
+  output = "$root_gen_dir/kernel_worker_aot.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and frontend_server_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
+
+# Generation of this JIT snapshot can be removed in Dart SDK version 3.7
+# Please see https://github.com/dart-lang/build/pull/3742 for more details
 application_snapshot("kernel_worker") {
   main_dart = "kernel_worker.dart"
   training_args = [ "--help" ]

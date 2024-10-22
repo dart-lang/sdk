@@ -4,8 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r"Don't import implementation files from another package.";
 
@@ -46,30 +48,32 @@ class ImplementationImports extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var libraryUri = context.libraryElement2?.uri;
+    if (libraryUri == null) return;
+
+    // If the source URI is not a `package` URI bail out.
+    if (!isPackage(libraryUri)) return;
+
+    var visitor = _Visitor(this, libraryUri);
     registry.addImportDirective(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final Uri sourceUri;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.sourceUri);
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importUri = node.element?.importedLibrary?.source.uri;
-    var sourceUri = node.element?.source.uri;
+    Uri? importUri;
+    if (node.libraryImport?.uri case DirectiveUriWithSource importedLibrary) {
+      importUri = importedLibrary.source.uri;
+    }
 
     // Test for 'package:*/src/'.
-    if (!isImplementation(importUri)) {
-      return;
-    }
-
-    // If the source URI is not a `package` URI bail out.
-    if (!isPackage(sourceUri)) {
-      return;
-    }
+    if (!isImplementation(importUri)) return;
 
     if (!samePackage(importUri, sourceUri)) {
       rule.reportLint(node.uri);

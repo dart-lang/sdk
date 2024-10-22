@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -139,7 +140,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
       }
     });
     var libraries = <LibraryElement, Set<Element>>{};
-    for (var element in analyzer.movingDeclarations) {
+    for (var element2 in analyzer.movingDeclarations) {
+      var element = element2.asElement!;
       var matches = await searchEngine.searchReferences(element);
       for (var match in matches) {
         if (match.isResolved) {
@@ -190,15 +192,15 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var element = entry.key;
       var imports = entry.value;
       for (var import in imports) {
-        var library = import.importedLibrary;
+        var library = import.importedLibrary2;
         if (library == null || library.isDartCore) {
           continue;
         }
         var hasShowCombinator =
             import.combinators.whereType<ShowElementCombinator>().isNotEmpty;
         builder.importLibrary(
-          library.source.uri,
-          prefix: import.prefix?.element.name,
+          library.firstFragment.source.uri,
+          prefix: import.prefix2?.element.name,
           showName: element.name,
           useShow: hasShowCombinator,
         );

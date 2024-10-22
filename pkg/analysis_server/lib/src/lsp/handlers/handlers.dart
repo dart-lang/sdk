@@ -417,12 +417,12 @@ abstract class ServerStateMessageHandler {
   final AnalysisServer server;
   final Map<Method, MessageHandler<Object?, Object?, AnalysisServer>>
       messageHandlers = {};
-  final CancelRequestHandler _cancelHandler;
+  final CancelRequestHandler cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
   ServerStateMessageHandler(this.server)
-      : _cancelHandler = CancelRequestHandler(server) {
-    registerHandler(_cancelHandler);
+      : cancelHandler = CancelRequestHandler(server) {
+    registerHandler(cancelHandler);
   }
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
@@ -446,7 +446,7 @@ abstract class ServerStateMessageHandler {
     // server), create a new cancellation token that will allow us to cancel
     // this request if requested. This saves some processing but the handler
     // will need to specifically check the token after `await`s.
-    cancellationToken ??= _cancelHandler.createToken(message);
+    cancellationToken ??= cancelHandler.createToken(message);
     try {
       var result =
           await handler.handleMessage(message, messageInfo, cancellationToken);
@@ -458,7 +458,7 @@ abstract class ServerStateMessageHandler {
       await Future.delayed(Duration.zero);
       return cancellationToken.isCancellationRequested ? cancelled() : result;
     } finally {
-      _cancelHandler.clearToken(message);
+      cancelHandler.clearToken(message);
     }
   }
 

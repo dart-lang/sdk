@@ -658,58 +658,6 @@ class FieldMember extends VariableMember
   }
 }
 
-@Deprecated('There is no way to create an instance of this class')
-class FunctionMember extends ExecutableMember implements FunctionElement {
-  FunctionMember(FunctionElement declaration)
-      : super(
-          declaration,
-          Substitution.empty,
-          Substitution.empty,
-          declaration.typeParameters,
-        );
-
-  @override
-  FunctionElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  FunctionElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  ExecutableElement2 get baseElement => throw UnimplementedError();
-
-  @override
-  FunctionElement get declaration => super.declaration as FunctionElement;
-
-  @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
-
-  @override
-  bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
-
-  @override
-  bool get isEntryPoint => declaration.isEntryPoint;
-
-  @override
-  String get name => declaration.name;
-
-  @override
-  Source get source => _declaration.source!;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitFunctionElement(this);
-  }
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    throw UnimplementedError('Never created');
-  }
-}
-
 /// A getter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class GetterMember extends PropertyAccessorMember implements GetterElement {

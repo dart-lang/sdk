@@ -84,11 +84,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         var preferredElement = elements.firstWhere(
             (element) => !element.metadata2.hasDeprecated,
             orElse: () => elements.first);
-        rule.reportLintForOffset(
-          offset,
-          end - offset,
-          arguments: [preferredElement.name],
-        );
+        if (preferredElement.name case var name?) {
+          rule.reportLintForOffset(
+            offset,
+            end - offset,
+            arguments: [name],
+          );
+        }
       }
     }
   }

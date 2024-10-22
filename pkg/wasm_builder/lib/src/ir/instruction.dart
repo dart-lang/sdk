@@ -16,6 +16,13 @@ abstract class Instruction implements Serializable {
   List<DefType> get usedDefTypes => const [];
 
   const Instruction();
+
+  /// Whether the instruction is a "constant instruction", as defined by the
+  /// Wasm spec.
+  ///
+  /// Constant instructions can be used in global initializers, element
+  /// segments, data segments.
+  bool get isConstant => false;
 }
 
 abstract class SingleByteInstruction extends Instruction {
@@ -226,6 +233,9 @@ class Rethrow extends Instruction {
 
 class End extends SingleByteInstruction {
   const End() : super(0x0B);
+
+  @override
+  bool get isConstant => true;
 }
 
 class Br extends Instruction {
@@ -381,6 +391,9 @@ class GlobalGet extends Instruction {
   final Global global;
 
   GlobalGet(this.global);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -598,6 +611,9 @@ class RefNull extends Instruction {
   RefNull(this.heapType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0xD0);
     s.write(heapType);
@@ -612,6 +628,9 @@ class RefFunc extends Instruction {
   final BaseFunction function;
 
   RefFunc(this.function);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -729,6 +748,9 @@ class StructNew extends Instruction {
   StructNew(this.structType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x00]);
     s.write(structType);
@@ -742,6 +764,9 @@ class StructNewDefault extends Instruction {
   List<DefType> get usedDefTypes => [structType];
 
   StructNewDefault(this.structType);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -824,6 +849,9 @@ class ArrayNewFixed extends Instruction {
   ArrayNewFixed(this.arrayType, this.length);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x08]);
     s.write(arrayType);
@@ -840,6 +868,9 @@ class ArrayNew extends Instruction {
   ArrayNew(this.arrayType);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeBytes(const [0xFB, 0x06]);
     s.write(arrayType);
@@ -853,6 +884,9 @@ class ArrayNewDefault extends Instruction {
   List<DefType> get usedDefTypes => [arrayType];
 
   ArrayNewDefault(this.arrayType);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -995,16 +1029,25 @@ class BrOnCastFail extends Instruction {
 
 class ExternInternalize extends MultiByteInstruction {
   const ExternInternalize() : super(const [0xFB, 0x1A]);
+
+  @override
+  bool get isConstant => true;
 }
 
 class ExternExternalize extends MultiByteInstruction {
   const ExternExternalize() : super(const [0xFB, 0x1B]);
+
+  @override
+  bool get isConstant => true;
 }
 
 class I32Const extends Instruction {
   final int value;
 
   I32Const(this.value);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {
@@ -1019,6 +1062,9 @@ class I64Const extends Instruction {
   I64Const(this.value);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0x42);
     s.writeSigned(value);
@@ -1031,6 +1077,9 @@ class F32Const extends Instruction {
   F32Const(this.value);
 
   @override
+  bool get isConstant => true;
+
+  @override
   void serialize(Serializer s) {
     s.writeByte(0x43);
     s.writeF32(value);
@@ -1041,6 +1090,9 @@ class F64Const extends Instruction {
   final double value;
 
   F64Const(this.value);
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {

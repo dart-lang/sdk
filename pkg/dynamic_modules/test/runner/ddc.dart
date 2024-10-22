@@ -63,7 +63,7 @@ class DdcExecutor implements TargetExecutor {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
-      ddcSnapshot.toFilePath(),
+      ddcAotSnapshot.toFilePath(),
       '--modules=ddc',
       '--no-summarize',
       '--no-source-map',
@@ -85,7 +85,7 @@ class DdcExecutor implements TargetExecutor {
       '-o',
       '$source.js',
     ];
-    await runProcess(Platform.resolvedExecutable, args, testDir, _logger,
+    await runProcess(dartAotBin.toFilePath(), args, testDir, _logger,
         'compile $testName/$source');
   }
 
@@ -95,7 +95,7 @@ class DdcExecutor implements TargetExecutor {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
-      kernelWOrkerSnapshot.toFilePath(),
+      kernelWOrkerAotSnapshot.toFilePath(),
       '--summary-only',
       '--target',
       'ddc',
@@ -112,7 +112,7 @@ class DdcExecutor implements TargetExecutor {
       '$source.dill',
     ];
 
-    await runProcess(Platform.resolvedExecutable, args, testDir, _logger,
+    await runProcess(dartAotBin.toFilePath(), args, testDir, _logger,
         'sumarize $testName/$source');
   }
 

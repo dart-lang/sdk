@@ -1163,7 +1163,6 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "main() {\n"
       "  return importedFunc();\n"
       "}\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "mainInt() {\n"
       "  return importedIntFunc();\n"
       "}\n";
@@ -1183,7 +1182,6 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "main() {\n"
       "  return importedFunc();\n"
       "}\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "mainInt() {\n"
       "  return importedIntFunc();\n"
       "}\n";
@@ -6407,7 +6405,6 @@ TEST_CASE(IsolateReload_ImplicitGetterWithLoadGuard) {
 
     A a = A(3);
 
-    @pragma('vm:entry-point', 'call')
     main() {
       int sum = 0;
       // Trigger OSR and optimize this function.
@@ -6484,7 +6481,6 @@ TEST_CASE(IsolateReload_KeepPragma1) {
   // Old version of closure function bar() has a pragma.
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  @pragma('vm:prefer-inline')\n"
       "  void bar() {}\n"
@@ -6500,7 +6496,6 @@ TEST_CASE(IsolateReload_KeepPragma1) {
   // New version of closure function bar() doesn't have a pragma.
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  void bar() {}\n"
       "  return bar;\n"
@@ -6611,7 +6606,6 @@ TEST_CASE(IsolateReload_KeepPragma2) {
   // Old version of closure function bar() has a pragma.
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  @pragma('vm:prefer-inline')\n"
       "  void bar() {}\n"
@@ -6627,7 +6621,6 @@ TEST_CASE(IsolateReload_KeepPragma2) {
   // New version of closure function bar() has a different pragma.
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  @pragma('vm:never-inline')\n"
       "  void bar() {}\n"
@@ -6668,7 +6661,6 @@ TEST_CASE(IsolateReload_KeepPragma3) {
   // Old version of closure function bar() doesn't have a pragma.
   const char* kScript =
       "import 'file:///test:isolate_reload_helper';\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  void bar() {}\n"
       "  return bar;\n"
@@ -6683,7 +6675,6 @@ TEST_CASE(IsolateReload_KeepPragma3) {
   // New version of closure function bar() has a pragma.
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
-      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  @pragma('vm:never-inline')\n"
       "  void bar() {}\n"

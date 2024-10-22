@@ -20,12 +20,14 @@ import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
+import 'package:path/path.dart' as p;
 
 String packageConfigJsonPath = ".dart_tool/package_config.json";
 Uri sdkRoot = Platform.script.resolve("../../../");
 Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 late Options _options;
 late String _dart2jsScript;
+late String _kernelWorkerAotScript;
 late String _kernelWorkerScript;
 
 const dillSummaryId = DataId("summary.dill");
@@ -118,8 +120,22 @@ abstract class CFEStep extends IOModularStep {
       sources = getSources(module);
     }
 
+    var isAot = File(_kernelWorkerAotScript).existsSync();
+    var script = _kernelWorkerAotScript;
+    var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
+    var executable = p.absolute(
+      sdkPath,
+      'bin',
+      Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+    );
+    if (!isAot) {
+      // This can be removed once we stop supporting ia32 architecture.
+      script = _kernelWorkerScript;
+      executable = Platform.resolvedExecutable;
+    }
+
     List<String> args = [
-      _kernelWorkerScript,
+      script,
       '--sound-null-safety',
       ...stepArguments,
       '--exclude-non-sources',
@@ -140,8 +156,8 @@ abstract class CFEStep extends IOModularStep {
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
 
-    var result = await runProcess(
-        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+    var result =
+        await runProcess(executable, args, root.toFilePath(), _options.verbose);
     checkExitCode(result, this, module, _options.verbose);
   }
 
@@ -635,6 +651,8 @@ Future<void> resolveScripts(Options options) async {
   _options = options;
   _dart2jsScript = await resolve(
       'package:compiler/src/dart2js.dart', 'snapshots/dart2js.dart.snapshot');
+  _kernelWorkerAotScript = await resolve('utils/bazel/kernel_worker.dart',
+      'snapshots/kernel_worker_aot.dart.snapshot');
   _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
       'snapshots/kernel_worker.dart.snapshot');
 }

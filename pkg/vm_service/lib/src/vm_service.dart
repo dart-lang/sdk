@@ -2023,6 +2023,10 @@ class VmService {
   Future _processRequest(Map<String, dynamic> json) async {
     final result = await _routeRequest(
         json['method'], json['params'] ?? <String, dynamic>{});
+    if (_disposed) {
+      // The service has disappeared. Don't try to send the response.
+      return;
+    }
     result['id'] = json['id'];
     result['jsonrpc'] = '2.0';
     String message = jsonEncode(result);

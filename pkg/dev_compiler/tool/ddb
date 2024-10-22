@@ -170,6 +170,12 @@ void main(List<String> args) async {
   // your path.
   var dartBinary = Platform.resolvedExecutable;
   var dartSdk = p.dirname(p.dirname(dartBinary));
+  var dartAotBinary = p.absolute(
+          dartSdk,
+          'bin',
+          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime'
+        );
+   var execBinary = debug ? dartBinary : dartAotBinary;
 
   // In debug mode (`-d`), we run from the `pkg/dev_compiler` sources.  We
   // determine the location via this actual script (i.e., `-d` assumes
@@ -216,10 +222,10 @@ void main(List<String> args) async {
         p.join(ddcPath, 'bin', 'dartdevc.dart'),
       ] else
         // Use built snapshot.
-        p.join(dartSdk, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+        p.join(dartSdk, 'bin', 'snapshots', 'dartdevc_aot.dart.snapshot'),
       ...ddcArgs,
     ];
-    var process = await startProcess('DDC', dartBinary, args);
+    var process = await startProcess('DDC', execBinary, args);
     if (await process.exitCode != 0) exit(await process.exitCode);
   }
 

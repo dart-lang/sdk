@@ -1218,7 +1218,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 /// and one writing.  All updates to start and end are done by Dart code.
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "set")
   List<int>? data;
 
   @pragma("vm:entry-point")
@@ -1367,7 +1367,6 @@ abstract class _SecureFilter {
 
 /// A secure networking exception caused by a failure in the
 /// TLS/SSL protocol.
-@pragma("vm:entry-point")
 class TlsException implements IOException {
   final String type;
   final String message;

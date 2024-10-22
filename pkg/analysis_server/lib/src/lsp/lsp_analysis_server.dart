@@ -477,7 +477,7 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   /// Handle a [message] that was read from the communication channel.
-  void handleMessage(Message message) {
+  void handleMessage(Message message, {CancelableToken? cancellationToken}) {
     var startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
@@ -506,7 +506,8 @@ class LspAnalysisServer extends AnalysisServer {
             if (message is RequestMessage) {
               analyticsManager.startedRequestMessage(
                   request: message, startTime: startTime);
-              await _handleRequestMessage(message, messageInfo);
+              await _handleRequestMessage(message, messageInfo,
+                  cancellationToken: cancellationToken);
             } else if (message is NotificationMessage) {
               await _handleNotificationMessage(message, messageInfo);
               analyticsManager.handledNotificationMessage(
@@ -760,7 +761,14 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void scheduleMessage(Message message) {
-    messageScheduler.add(LspMessage(message: message));
+    CancelableToken? cancellationToken;
+    // Create a  cancellation token that will allow us to cancel
+    // this request if requested.
+    if (message is RequestMessage) {
+      cancellationToken = messageHandler.cancelHandler.createToken(message);
+    }
+    messageScheduler.add(
+        LspMessage(message: message, cancellationToken: cancellationToken));
     messageScheduler.notify();
   }
 
@@ -1062,10 +1070,10 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   Future<void> _handleRequestMessage(
-    RequestMessage message,
-    MessageInfo messageInfo,
-  ) async {
-    var result = await messageHandler.handleMessage(message, messageInfo);
+      RequestMessage message, MessageInfo messageInfo,
+      {CancelableToken? cancellationToken}) async {
+    var result = await messageHandler.handleMessage(message, messageInfo,
+        cancellationToken: cancellationToken);
     result.ifError((error) => sendErrorResponse(message, error));
     result.ifResult(
       (result) => sendResponse(ResponseMessage(

@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:bazel_worker/testing.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
@@ -20,8 +21,21 @@ String _resolvePath(String executableRelativePath) {
 
 void main() {
   var baseArgs = <String>[];
+  var sdkPath = p.dirname(Platform.executable);
+  var dartAotRuntime = p.absolute(
+      sdkPath,
+      Platform.isWindows
+          ? 'dart_precompiled_runtime_product.exe'
+          : 'dart_precompiled_runtime_product');
+  if (!File(dartAotRuntime).existsSync()) {
+    dartAotRuntime = p.absolute(
+        sdkPath,
+        Platform.isWindows
+            ? 'dart_precompiled_runtime.exe'
+            : 'dart_precompiled_runtime');
+  }
   final executableArgs = <String>[
-    _resolvePath('gen/dartdevc.dart.snapshot'),
+    _resolvePath('gen/dartdevc_aot.dart.snapshot'),
     '--sound-null-safety',
     '--dart-sdk-summary',
     _resolvePath('ddc_outline.dill'),
@@ -54,7 +68,7 @@ void main() {
 
     test('can compile in worker mode', () async {
       var args = executableArgs.toList()..add('--persistent_worker');
-      var process = await Process.start(Platform.executable, args);
+      var process = await Process.start(dartAotRuntime, args);
       var messageGrouper = AsyncMessageGrouper(process.stdout);
 
       var request = WorkRequest();
@@ -97,7 +111,7 @@ void main() {
 
     test('can compile in basic mode', () {
       var args = executableArgs.toList()..addAll(compilerArgs);
-      var result = Process.runSync(Platform.executable, args);
+      var result = Process.runSync(dartAotRuntime, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -109,7 +123,7 @@ void main() {
       var args = List<String>.from(executableArgs)
         ..add('--does-not-exist')
         ..addAll(compilerArgs);
-      var result = Process.runSync(Platform.executable, args);
+      var result = Process.runSync(dartAotRuntime, args);
 
       expect(result.exitCode, 64);
       expect(result.stdout,
@@ -123,7 +137,7 @@ void main() {
         ..add('--does-not-exist')
         ..add('--ignore-unrecognized-flags')
         ..addAll(compilerArgs);
-      var result = Process.runSync(Platform.executable, args);
+      var result = Process.runSync(dartAotRuntime, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -135,7 +149,7 @@ void main() {
       argsFile.createSync();
       argsFile.writeAsStringSync(compilerArgs.join('\n'));
       var args = executableArgs.toList()..add('@${argsFile.path}');
-      var process = await Process.start(Platform.executable, args);
+      var process = await Process.start(dartAotRuntime, args);
       await stderr.addStream(process.stderr);
       var futureProcessOutput = process.stdout.map(utf8.decode).toList();
 
@@ -149,7 +163,7 @@ void main() {
         ..add('--modules')
         ..add('ddc')
         ..addAll(compilerArgs);
-      var result = Process.runSync(Platform.executable, args);
+      var result = Process.runSync(dartAotRuntime, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -187,7 +201,7 @@ void main() {
 
     test('can compile in basic mode', () {
       var result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -203,7 +217,7 @@ void main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -223,7 +237,7 @@ void main() {
 
     test('reports error on overlapping summaries', () {
       var result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -239,7 +253,7 @@ void main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -255,7 +269,7 @@ void main() {
       expect(greeting2Summary.existsSync(), isTrue);
 
       result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -289,7 +303,7 @@ void main() {
 
     test('incorrect usage', () {
       var result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -304,7 +318,7 @@ void main() {
     test('compile errors', () {
       badFileDart.writeAsStringSync('main() => "hello world"');
       var result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -340,7 +354,7 @@ void main() {
 
     test('works if part and library supplied', () {
       var result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [
@@ -359,7 +373,7 @@ void main() {
 
     test('works if part is not supplied', () {
       var result = Process.runSync(
-          Platform.executable,
+          dartAotRuntime,
           executableArgs +
               baseArgs +
               [

@@ -81,15 +81,12 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index) {
   return param.ptr();
 }
 
-ObjectPtr Invoke(const Library& lib,
-                 const char* name,
-                 bool check_is_entrypoint) {
+ObjectPtr Invoke(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
-    SetFlagScope<bool> sfs(&FLAG_verify_entry_points, check_is_entrypoint);
     result =
         Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
     EXPECT_VALID(result);
