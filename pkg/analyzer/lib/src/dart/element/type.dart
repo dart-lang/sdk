@@ -554,7 +554,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<ConstructorElement2> get constructors2 => constructors
-      .map((fragment) => (fragment as ConstructorFragment).element)
+      .map((fragment) => switch (fragment) {
+            ConstructorFragment(:var element) => element,
+            ConstructorMember() => fragment,
+            _ => throw StateError(
+                'unexpected fragment type: ${fragment.runtimeType}',
+              )
+          })
       .toList();
 
   @override
