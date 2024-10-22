@@ -70,7 +70,12 @@ class IOService {
 
   static Dart_Port GetServicePort();
 
+  static intptr_t max_concurrency() { return max_concurrency_; }
+  static void set_max_concurrency(intptr_t value) { max_concurrency_ = value; }
+
  private:
+  static intptr_t max_concurrency_;
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(IOService);
 };

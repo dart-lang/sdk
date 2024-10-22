@@ -11,6 +11,11 @@
 #include "bin/dartdev_isolate.h"
 #include "bin/error_exit.h"
 #include "bin/file_system_watcher.h"
+#if defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service_no_ssl.h"
+#else  // defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service.h"
+#endif  // defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include "bin/options.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
@@ -605,6 +610,10 @@ bool Options::ParseArguments(int argc,
 
   FileSystemWatcher::set_delayed_filewatch_callback(
       Options::delayed_filewatch_callback());
+
+  if (Options::deterministic()) {
+    IOService::set_max_concurrency(1);
+  }
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
