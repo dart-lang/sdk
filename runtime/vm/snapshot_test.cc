@@ -723,7 +723,9 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
           "    if (x != y) throw new ArgumentError('not equal');\n"
           "  }\n"
           "}\n"
+          "@pragma('vm:entry-point')\n"
           "class FieldsTest {\n"
+          "  @pragma('vm:entry-point', 'call')\n"
           "  static Fields testMain() {\n"
           "    Expect.equals(true, Fields.bigint_sfld == 0xfffffffffff);\n"
           "    Fields obj = new Fields(10, 20);\n"
@@ -795,8 +797,11 @@ static std::unique_ptr<Message> GetSerialized(Dart_Handle lib,
   Dart_Handle result;
   {
     TransitionVMToNative transition(Thread::Current());
-    result = Dart_Invoke(lib, NewString(dart_function), 0, nullptr);
-    EXPECT_VALID(result);
+    {
+      SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+      result = Dart_Invoke(lib, NewString(dart_function), 0, nullptr);
+      EXPECT_VALID(result);
+    }
   }
   Object& obj = Object::Handle(Api::UnwrapHandle(result));
 
@@ -838,30 +843,39 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
 VM_UNIT_TEST_CASE(DartGeneratedMessages) {
   static const char* kCustomIsolateScriptChars =
       "final int kArrayLength = 10;\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getSmi() {\n"
       "  return 42;\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getAsciiString() {\n"
       "  return \"Hello, world!\";\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getNonAsciiString() {\n"
       "  return \"Blåbærgrød\";\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getNonBMPString() {\n"
       "  return \"\\u{10000}\\u{1F601}\\u{1F637}\\u{20000}\";\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getLeadSurrogateString() {\n"
       "  return String.fromCharCodes([0xd800]);\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getTrailSurrogateString() {\n"
       "  return \"\\u{10000}\".substring(1);\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getSurrogatesString() {\n"
       "  return String.fromCharCodes([0xdc00, 0xdc00, 0xd800, 0xd800]);\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getCrappyString() {\n"
       "  return String.fromCharCodes([0xd800, 32, 0xdc00, 32]);\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "getList() {\n"
       "  return List.filled(kArrayLength, null);\n"
       "}\n";

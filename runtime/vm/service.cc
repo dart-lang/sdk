@@ -2815,18 +2815,20 @@ static void Invoke(Thread* thread, JSONStream* js) {
   const Array& args =
       Array::Handle(zone, Array::MakeFixedLength(growable_args));
   const Array& arg_names = Object::empty_array();
+  // For debugging calls via vm-service, don't require entry point annotations.
+  const bool check_is_entrypoint = false;
 
   if (receiver.IsLibrary()) {
     const Library& lib = Library::Cast(receiver);
-    const Object& result =
-        Object::Handle(zone, lib.Invoke(selector, args, arg_names));
+    const Object& result = Object::Handle(
+        zone, lib.Invoke(selector, args, arg_names, check_is_entrypoint));
     result.PrintJSON(js, true);
     return;
   }
   if (receiver.IsClass()) {
     const Class& cls = Class::Cast(receiver);
-    const Object& result =
-        Object::Handle(zone, cls.Invoke(selector, args, arg_names));
+    const Object& result = Object::Handle(
+        zone, cls.Invoke(selector, args, arg_names, check_is_entrypoint));
     result.PrintJSON(js, true);
     return;
   }
@@ -2834,8 +2836,8 @@ static void Invoke(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= receiver.ptr();
-    const Object& result =
-        Object::Handle(zone, instance.Invoke(selector, args, arg_names));
+    const Object& result = Object::Handle(
+        zone, instance.Invoke(selector, args, arg_names, check_is_entrypoint));
     result.PrintJSON(js, true);
     return;
   }

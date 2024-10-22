@@ -1940,6 +1940,7 @@ ISOLATE_UNIT_TEST_CASE(Ffi_StructSinking) {
         external int a;
       }
 
+      @pragma('vm:entry-point')
       int test(int addr) =>
         Pointer<S>.fromAddress(addr)[0].a;
       )";

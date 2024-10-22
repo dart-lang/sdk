@@ -334,7 +334,7 @@ bool ParsedFunction::IsGenericCovariantImplParameter(intptr_t i) const {
 
 ParsedFunction::DynamicClosureCallVars*
 ParsedFunction::EnsureDynamicClosureCallVars() {
-  ASSERT(function().IsDynamicClosureCallDispatcher(thread()));
+  ASSERT(function().IsDynamicClosureCallDispatcher());
   if (dynamic_closure_call_vars_ != nullptr) return dynamic_closure_call_vars_;
   const auto& saved_args_desc =
       Array::Handle(zone(), function().saved_args_desc());

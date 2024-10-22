@@ -165,8 +165,7 @@ class RunKernelTask : public ThreadPool::Task {
       return false;
     }
     ASSERT(!root_library.IsNull());
-    const String& entry_name = String::Handle(Z, String::New("main"));
-    ASSERT(!entry_name.IsNull());
+    const String& entry_name = Symbols::main();
     const Function& entry = Function::Handle(
         Z, root_library.LookupFunctionAllowPrivate(entry_name));
     if (entry.IsNull()) {
