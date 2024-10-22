@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/utils.dart';
+import 'package:yaml/yaml.dart';
 
 Future<List<String>> get dartCoreLints =>
     _fetchRulesFromGitHub('/dart-lang/lints/blob/main/lib/core.yaml');
@@ -23,10 +24,17 @@ Future<List<String>> get flutterUserLints => _fetchRulesFromGitHub(
 Future<List<String>> _fetchRulesFromGitHub(String optionsPath) async {
   var optionsUrl = Uri.https('raw.githubusercontent.com', optionsPath);
   var req = await http.get(optionsUrl);
-  var config = processAnalysisOptionsFile(req.body);
-  if (config == null) {
+
+  var optionsYaml = loadYamlNode(req.body);
+  if (optionsYaml is! YamlMap) {
+    printToConsole('No YAML map found for: $optionsUrl (SKIPPED)');
+    return [];
+  }
+
+  var ruleConfigs = parseLintRuleConfigs(optionsYaml);
+  if (ruleConfigs == null) {
     printToConsole('No config found for: $optionsUrl (SKIPPED)');
     return [];
   }
-  return config.ruleConfigs.map((r) => r.name).nonNulls.toList(growable: false);
+  return ruleConfigs.map((r) => r.name).nonNulls.toList(growable: false);
 }

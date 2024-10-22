@@ -15,6 +15,7 @@ import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:linter/src/test_utilities/test_linter.dart';
+import 'package:yaml/yaml.dart';
 
 import 'lint_sets.dart';
 
@@ -93,7 +94,8 @@ Future<void> runLinter(List<String> args) async {
 
   LinterOptions linterOptions;
   if (configFile is String) {
-    var config = LintConfig.parse(readFile(configFile));
+    var optionsContent = readFile(configFile);
+    var config = LintConfig.parseMap(loadYamlNode(optionsContent) as YamlMap);
     var enabledRules = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
 

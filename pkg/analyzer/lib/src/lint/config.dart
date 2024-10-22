@@ -8,44 +8,19 @@ import 'package:yaml/yaml.dart';
 
 /// Parses [optionsMap] into a [LintConfig], returning the config, or `null` if
 /// [optionsMap] does not have `linter` map.
-LintConfig? parseLintConfig(YamlMap optionsMap) {
+List<RuleConfig>? parseLintRuleConfigs(YamlMap optionsMap) {
   var options = optionsMap.valueAt('linter');
   // Quick check of basic contract.
   if (options is YamlMap) {
-    return LintConfig.parseMap(options);
+    return LintConfig.parseMap(options).ruleConfigs;
   }
 
-  return null;
-}
-
-/// Process the given option [fileContents] and produce a corresponding
-/// [LintConfig]. Return `null` if [fileContents] is not a YAML map, or
-/// does not have the `linter` child map.
-LintConfig? processAnalysisOptionsFile(String fileContents, {String? fileUrl}) {
-  var yaml = loadYamlNode(fileContents,
-      sourceUrl: fileUrl != null ? Uri.parse(fileUrl) : null);
-  if (yaml is YamlMap) {
-    return parseLintConfig(yaml);
-  }
   return null;
 }
 
 /// The configuration of lint rules within an analysis options file.
 class LintConfig {
   final List<RuleConfig> ruleConfigs;
-
-  LintConfig(this.ruleConfigs);
-
-  factory LintConfig.parse(String source, {String? sourceUrl}) {
-    var yaml = loadYamlNode(source,
-        sourceUrl: sourceUrl != null ? Uri.parse(sourceUrl) : null);
-    if (yaml is! YamlMap) {
-      throw StateError("Expected YAML at '$source' to be a Map, but is "
-          '${yaml.runtimeType}.');
-    }
-
-    return LintConfig.parseMap(yaml);
-  }
 
   factory LintConfig.parseMap(YamlMap yaml) {
     var ruleConfigs = <RuleConfig>[];
@@ -54,8 +29,10 @@ class LintConfig {
       ruleConfigs.addAll(_ruleConfigs(rulesNode));
     }
 
-    return LintConfig(ruleConfigs);
+    return LintConfig._(ruleConfigs);
   }
+
+  LintConfig._(this.ruleConfigs);
 
   static bool? _asBool(YamlNode scalar) {
     var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
@@ -135,8 +112,10 @@ class RuleConfig {
 
   RuleConfig({required this.name, required this.args, this.group});
 
+  /// Returns whether [ruleName] is disabled in this configuration.
   bool disables(String ruleName) =>
       ruleName == name && args['enabled'] == false;
 
+  /// Returns whether [ruleName] is enabled in this configuration.
   bool enables(String ruleName) => ruleName == name && args['enabled'] == true;
 }

@@ -13,7 +13,28 @@ main() {
 }
 
 defineTests() {
-  const src = """
+  /// Process the given option [fileContents] and produce a corresponding
+  /// [LintConfig]. Return `null` if [fileContents] is not a YAML map, or
+  /// does not have the `linter` child map.
+  List<RuleConfig>? processAnalysisOptionsFile(String fileContents) {
+    var yaml = loadYamlNode(fileContents);
+    if (yaml is YamlMap) {
+      return parseLintRuleConfigs(yaml);
+    }
+    return null;
+  }
+
+  // In the future, options might be marshaled in maps and passed to rules.
+  //  acme:
+  //    some_rule:
+  //      some_option: # Note this nesting might be arbitrarily complex?
+  //        - param1
+  //        - param2
+
+  group('lint config', () {
+    group('rule', () {
+      test('configs', () {
+        var optionsYaml = loadYamlNode('''
 files:
   include: foo # un-quoted
   exclude:
@@ -25,28 +46,16 @@ rules:
     camel_case_types: true #enable
   pub:
     package_names: false
-""";
-
-// In the future, options might be marshaled in maps and passed to rules.
-//  acme:
-//    some_rule:
-//      some_option: # Note this nesting might be arbitrarily complex?
-//        - param1
-//        - param2
-
-  var config = LintConfig.parse(src);
-
-  group('lint config', () {
-    group('rule', () {
-      test('configs', () {
+''');
+        var config = LintConfig.parseMap(optionsYaml as YamlMap);
         expect(config.ruleConfigs, hasLength(3));
       });
 
       test('config', () {
-        config = LintConfig.parse('''
+        var config = LintConfig.parseMap(loadYamlNode('''
 rules:
   style_guide:
-    unnecessary_getters: false''');
+    unnecessary_getters: false''') as YamlMap);
         expect(config.ruleConfigs, hasLength(1));
         var ruleConfig = config.ruleConfigs[0];
         expect(ruleConfig.group, 'style_guide');
@@ -72,8 +81,8 @@ linter:
       unnecessary_getters: false #disable
       camel_case_types: true #enable
 ''';
-          var config = processAnalysisOptionsFile(src)!;
-          var ruleNames = config.ruleConfigs.map((rc) => rc.name);
+          var ruleConfigs = processAnalysisOptionsFile(src)!;
+          var ruleNames = ruleConfigs.map((rc) => rc.name);
           expect(ruleNames, hasLength(2));
           expect(ruleNames, contains('unnecessary_getters'));
           expect(ruleNames, contains('camel_case_types'));
@@ -91,10 +100,10 @@ linter:
   rules:
     - camel_case_types
 ''';
-          var config = processAnalysisOptionsFile(src)!;
-          expect(config.ruleConfigs.length, 1);
+          var ruleConfigs = processAnalysisOptionsFile(src)!;
+          expect(ruleConfigs, hasLength(1));
           // Verify that defaults are enabled.
-          expect(config.ruleConfigs[0].args['enabled'], isTrue);
+          expect(ruleConfigs[0].args['enabled'], isTrue);
         });
 
         test('rule map (bools)', () {
@@ -108,8 +117,7 @@ linter:
     camel_case_types: true #enable
     unnecessary_getters: false #disable
 ''';
-          var config = processAnalysisOptionsFile(src)!;
-          var ruleConfigs = config.ruleConfigs.toList();
+          var ruleConfigs = processAnalysisOptionsFile(src)!;
           ruleConfigs.sort((RuleConfig rc1, RuleConfig rc2) =>
               rc1.name!.compareTo(rc2.name!));
           expect(ruleConfigs, hasLength(2));
@@ -132,8 +140,8 @@ linter:
 
   group('options processing', () {
     group('raw maps', () {
-      LintConfig parseMap(Map<Object, Object?> map) {
-        return parseLintConfig(wrap(map) as YamlMap)!;
+      List<RuleConfig> parseMap(Map<Object, Object?> map) {
+        return parseLintRuleConfigs(wrap(map) as YamlMap)!;
       }
 
       test('rule list', () {
@@ -143,9 +151,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('rule map (bool)', () {
@@ -155,9 +163,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('rule map (string)', () {
@@ -167,9 +175,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('nested rule map (bool)', () {
@@ -181,9 +189,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('nested rule map (string)', () {
@@ -195,9 +203,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
     });
   });

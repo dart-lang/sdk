@@ -100,6 +100,21 @@ extension AstNodeNullableExtension on AstNode? {
     return null;
   }
 
+  Element2? get canonicalElement2 {
+    // TODO(pq): can this be replaced w/ a use of an `ElementLocator2`?
+    var self = this;
+    if (self is Expression) {
+      var node = self.unParenthesized;
+      if (node is Identifier) {
+        return node.element;
+      } else if (node is PropertyAccess) {
+        // TODO(pq): implement.
+        return null;
+      }
+    }
+    return null;
+  }
+
   /// Whether the expression is null-aware, or if one of its recursive targets
   /// is null-aware.
   bool get containsNullAwareInvocationInChain {

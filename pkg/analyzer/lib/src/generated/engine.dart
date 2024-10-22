@@ -506,9 +506,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     var formatter = optionsMap.valueAt(AnalyzerOptions.formatter);
     builder._applyFormatterOptions(formatter);
 
-    var lintConfig = parseLintConfig(optionsMap);
-    if (lintConfig != null) {
-      var enabledRules = Registry.ruleRegistry.enabled(lintConfig);
+    var ruleConfigs = parseLintRuleConfigs(optionsMap);
+    if (ruleConfigs != null) {
+      var enabledRules = Registry.ruleRegistry.enabled(ruleConfigs);
       if (enabledRules.isNotEmpty) {
         builder.lint = true;
         builder.lintRules = enabledRules.toList();
