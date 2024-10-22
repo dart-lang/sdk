@@ -18,10 +18,15 @@ class ImportAddHide extends MultiCorrectionProducer {
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var node = this.node;
     Element? element;
+    String? prefix;
     if (node is NamedType) {
       element = node.element;
+      prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.staticElement;
+      if (node.parent case PrefixedIdentifier(prefix: var currentPrefix)) {
+        prefix = currentPrefix.name;
+      }
     }
     if (element is! MultiplyDefinedElement) {
       return const [];
@@ -37,18 +42,20 @@ class ImportAddHide extends MultiCorrectionProducer {
 
       var directives = <ImportDirective>[];
       // find all ImportDirective that import this library in this unit
+      // and have the same prefix
       for (var directive in unit.directives.whereType<ImportDirective>()) {
         // Get import directive that
         var imported = directive.element?.importedLibrary;
         if (imported == null) {
           continue;
         }
-        if (imported == library) {
+        if (imported == library && directive.prefix?.name == prefix) {
           directives.add(directive);
         }
         // If the directive exports the library, then the library is also
         // imported.
-        if (imported.exportedLibraries.contains(library)) {
+        if (imported.exportedLibraries.contains(library) &&
+            directive.prefix?.name == prefix) {
           directives.add(directive);
         }
       }

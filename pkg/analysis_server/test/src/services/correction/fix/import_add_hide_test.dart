@@ -154,6 +154,56 @@ void f() {
 ''', matchFixMessage: "Use 'foo' from 'lib1.dart'");
   }
 
+  Future<void> test_tripleImports_oneAliased() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const foo = 0;''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+const foo = 0;''');
+    await resolveTestCode('''
+import 'lib1.dart' as lib;
+import 'lib1.dart';
+import 'lib2.dart';
+
+void f() {
+  print(foo);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart' as lib;
+import 'lib1.dart';
+import 'lib2.dart' hide foo;
+
+void f() {
+  print(foo);
+}
+''', matchFixMessage: "Use 'foo' from 'lib1.dart'");
+  }
+
+  Future<void> test_tripleImports_twoAliased() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const foo = 0;''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+const foo = 0;''');
+    await resolveTestCode('''
+import 'lib1.dart';
+import 'lib1.dart' as lib;
+import 'lib2.dart' as lib;
+
+void f() {
+  print(lib.foo);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart';
+import 'lib1.dart' as lib;
+import 'lib2.dart' as lib hide foo;
+
+void f() {
+  print(lib.foo);
+}
+''', matchFixMessage: "Use 'foo' from 'lib1.dart' as lib");
+  }
+
   Future<void> test_doubleImports_exportedByImport() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 export 'lib3.dart';''');
