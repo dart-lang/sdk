@@ -10710,29 +10710,32 @@ class _Sentinel {
 }
 
 extension on Fragment {
+  /// The content of the documentation comment (including delimiters) for this
+  /// element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the comment will be a
+  /// concatenation of the comments from all of the fragments.
+  ///
+  /// Returns `null` if the receiver does not have or does not support
+  /// documentation.
   String? get documentationCommentOrNull {
-    // TODO(brianwilkerson): I think that all fragments are annotatable. If
-    //  that's true then this getter isn't necessary and should be removed.
     return switch (this) {
-      LibraryFragment(:var documentationComment) => documentationComment,
-      TypeDefiningFragment(:var documentationComment) => documentationComment,
-      TypeParameterizedFragment(:var documentationComment) =>
-        documentationComment,
-      FormalParameterFragment(:var documentationComment) =>
-        documentationComment,
+      Annotatable(:var documentationComment) => documentationComment,
       _ => null,
     };
   }
 
+  /// The metadata associated with the element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the list will include
+  /// all of the metadata from all of the fragments.
+  ///
+  /// The list will be empty if the receiver does not have any metadata, does
+  /// not support metadata, or if the library containing this element has not
+  /// yet been fully resolved.
   Metadata get metadataOrEmpty {
-    // TODO(brianwilkerson): I think that all fragments are annotatable. If
-    //  that's true then this getter isn't necessary and should be removed.
     return switch (this) {
-      LibraryFragment(:var metadata2) => metadata2,
-      PropertyInducingFragment(:var metadata2) => metadata2,
-      TypeDefiningFragment(:var metadata2) => metadata2,
-      TypeParameterizedFragment(:var metadata2) => metadata2,
-      FormalParameterFragment(:var metadata2) => metadata2,
+      Annotatable(:var metadata2) => metadata2,
       _ => MetadataImpl(-1, const [], () => null),
     };
   }

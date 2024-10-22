@@ -4078,11 +4078,13 @@ library
   topLevelVariables
     hasDocComment
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment
+      documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibraryFragment>::@getter::hasDocComment#element
       setter: <testLibraryFragment>::@setter::hasDocComment#element
     hasDocComment2
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment2
+      documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibraryFragment>::@getter::hasDocComment2#element
       setter: <testLibraryFragment>::@setter::hasDocComment2#element
@@ -4124,6 +4126,7 @@ library
       setter: <testLibraryFragment>::@setter::hasAnnotation2#element
     annotationThenComment
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment
+      documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
           atSign: @ @112
@@ -4142,6 +4145,7 @@ library
       setter: <testLibraryFragment>::@setter::annotationThenComment#element
     annotationThenComment2
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
+      documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
           atSign: @ @112
@@ -4160,6 +4164,7 @@ library
       setter: <testLibraryFragment>::@setter::annotationThenComment2#element
     commentThenAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
+      documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
           atSign: @ @234
@@ -4178,6 +4183,7 @@ library
       setter: <testLibraryFragment>::@setter::commentThenAnnotation#element
     commentThenAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
+      documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
         Annotation
           atSign: @ @234
@@ -4196,6 +4202,7 @@ library
       setter: <testLibraryFragment>::@setter::commentThenAnnotation2#element
     commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
+      documentationComment: /// Comment 2.
       metadata
         Annotation
           atSign: @ @311
@@ -4214,6 +4221,7 @@ library
       setter: <testLibraryFragment>::@setter::commentAroundAnnotation#element
     commentAroundAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
+      documentationComment: /// Comment 2.
       metadata
         Annotation
           atSign: @ @311
