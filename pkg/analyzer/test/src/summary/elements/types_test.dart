@@ -122,9 +122,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -201,9 +198,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -271,9 +265,6 @@ var y = x.then((z) => z.asDouble());
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -812,9 +803,6 @@ var v = (Future<Future<Future<int>>> f) async => await f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -891,9 +879,6 @@ var v = (Future<int> f) async => await f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -970,9 +955,6 @@ var v = (Future f) async => await f;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1198,9 +1180,6 @@ class X3 extends NullSafeInt {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/nullSafe.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1809,9 +1788,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2454,13 +2430,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as ppp @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    ppp @23
-      reference: <testLibraryFragment>::@prefix::ppp
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2568,11 +2537,6 @@ foo([p = V]) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2636,9 +2600,6 @@ foo([p = V]) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/c.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2807,9 +2768,6 @@ C v = null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/c.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2892,9 +2850,6 @@ C v = null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/d.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2981,9 +2936,6 @@ C v = null;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/c.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4267,13 +4219,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:core as core @22
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    core @22
-      reference: <testLibraryFragment>::@prefix::core
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>

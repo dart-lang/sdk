@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_element_2.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

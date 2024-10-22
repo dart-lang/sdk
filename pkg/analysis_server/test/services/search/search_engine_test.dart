@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_element_2.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart';

@@ -7,8 +7,6 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -103,10 +101,6 @@ class PhysicalResourceProvider implements ResourceProvider {
 class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File super.file);
 
-  @Deprecated('Use watch() instead')
-  @override
-  Stream<WatchEvent> get changes => watch().changes;
-
   @override
   int get lengthSync {
     try {
@@ -134,12 +128,6 @@ class _PhysicalFile extends _PhysicalResource implements File {
     File destination = parentFolder.getChildAssumingFile(shortName);
     destination.writeAsBytesSync(readAsBytesSync());
     return destination;
-  }
-
-  @Deprecated('Get Source instances from analysis results')
-  @override
-  Source createSource([Uri? uri]) {
-    return FileSource(this, uri ?? pathContext.toUri(path));
   }
 
   @override
@@ -219,10 +207,6 @@ class _PhysicalFile extends _PhysicalResource implements File {
 /// A `dart:io` based implementation of [Folder].
 class _PhysicalFolder extends _PhysicalResource implements Folder {
   _PhysicalFolder(io.Directory super.directory);
-
-  @Deprecated('Use watch() instead')
-  @override
-  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get isRoot {
@@ -392,9 +376,6 @@ abstract class _PhysicalResource implements Resource {
     String parentPath = pathContext.dirname(path);
     return _PhysicalFolder(io.Directory(parentPath));
   }
-
-  @override
-  Folder get parent2 => parent;
 
   @override
   String get path => _entry.path;

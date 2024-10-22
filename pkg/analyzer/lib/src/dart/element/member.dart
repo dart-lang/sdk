@@ -50,10 +50,6 @@ class ConstructorMember extends ExecutableMember
   @override
   String get displayName => declaration.displayName;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  InterfaceElement get enclosingElement => declaration.enclosingElement;
-
   @override
   InterfaceElement2 get enclosingElement2 => _element2.enclosingElement2;
 
@@ -497,10 +493,6 @@ class FieldMember extends VariableMember
   @override
   String get displayName => declaration.displayName;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement => declaration.enclosingElement;
-
   @override
   Element2? get enclosingElement2 => _element2.enclosingElement2;
 
@@ -692,10 +684,6 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   FunctionElement get declaration => super.declaration as FunctionElement;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement => declaration.enclosingElement;
-
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -794,10 +782,6 @@ abstract class Member implements Element {
 
   @override
   String? get documentationComment => _declaration.documentationComment;
-
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element? get enclosingElement => _declaration.enclosingElement;
 
   @override
   Element? get enclosingElement3 => _declaration.enclosingElement3;
@@ -1041,10 +1025,6 @@ class MethodMember extends ExecutableMember
   @override
   MethodElement get declaration => super.declaration as MethodElement;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement => declaration.enclosingElement;
-
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1151,10 +1131,6 @@ class ParameterMember extends VariableMember
   @override
   // TODO(scheglov): we lose types
   FormalParameterElement get element => declaration.element;
-
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element? get enclosingElement => declaration.enclosingElement;
 
   @override
   Element? get enclosingElement3 => declaration.enclosingElement3;
@@ -1301,10 +1277,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorElement get declaration =>
       super.declaration as PropertyAccessorElement;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement => declaration.enclosingElement;
-
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -1319,11 +1291,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @override
   Source get source => _declaration.source!;
-
-  @override
-  PropertyInducingElement get variable {
-    return variable2!;
-  }
 
   @override
   PropertyInducingElement? get variable2 {
@@ -1346,7 +1313,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
       this,
-      (isGetter ? 'get ' : 'set ') + variable.displayName,
+      (isGetter ? 'get ' : 'set ') + name,
     );
   }
 

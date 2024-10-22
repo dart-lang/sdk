@@ -61,11 +61,7 @@ class ErrorReporter {
   /// Initialize a newly created error reporter that will report errors to the
   /// given [_errorListener]. Errors will be reported against the
   /// [_defaultSource] unless another source is provided later.
-  ErrorReporter(
-    this._errorListener,
-    this._source, {
-    @Deprecated('Will be removed') bool isNonNullableByDefault = true,
-  });
+  ErrorReporter(this._errorListener, this._source);
 
   Source get source => _source;
 
@@ -241,117 +237,10 @@ class ErrorReporter {
     _errorListener.onError(error);
   }
 
-  /// Report an error with the given [errorCode] and [arguments]. The [element]
-  /// is used to compute the location of the error.
-  @Deprecated('Use atElement() instead')
-  void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
-    atElement(
-      element,
-      errorCode,
-      arguments: arguments,
-      contextMessages: messages,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [node] is used to compute the location of the error.
-  @Deprecated('Use atNode() instead')
-  void reportErrorForNode(
-    ErrorCode errorCode,
-    AstNode node, [
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  ]) {
-    atNode(
-      node,
-      errorCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-      data: data,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments]. The location
-  /// of the error is specified by the given [offset] and [length].
-  @Deprecated('Use atOffset() instead')
-  void reportErrorForOffset(
-    ErrorCode errorCode,
-    int offset,
-    int length, [
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  ]) {
-    atOffset(
-      offset: offset,
-      length: length,
-      errorCode: errorCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-      data: data,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments]. The location
-  /// of the error is specified by the given [span].
-  @Deprecated('Use atSourceSpan() instead')
-  void reportErrorForSpan(
-    ErrorCode errorCode,
-    SourceSpan span, [
-    List<Object>? arguments,
-  ]) {
-    atSourceSpan(
-      span,
-      errorCode,
-      arguments: arguments,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments]. The [token] is
-  /// used to compute the location of the error.
-  @Deprecated('Use atToken() instead')
-  void reportErrorForToken(
-    ErrorCode errorCode,
-    Token token, [
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  ]) {
-    atToken(
-      token,
-      errorCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-      data: data,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments]. The [node] is
-  /// used to compute the location of the error. The arguments are expected to
-  /// contain two or more types. Convert the types into strings by using the
-  /// display names of the types, unless there are two or more types with the
-  /// same names, in which case the extended display names of the types will be
-  /// used in order to clarify the message.
-  ///
-  /// If there are not two or more types in the argument list, the method
-  /// [atNode] should be used instead.
-  @Deprecated('Use reportErrorForNode(), it will convert types as well')
-  void reportTypeErrorForNode(
-      ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    atOffset(
-      offset: node.offset,
-      length: node.length,
-      errorCode: errorCode,
-      arguments: arguments,
-    );
-  }
-
-  /// Given an array of [arguments] that may contain [DartType]s and [Element]s,
-  /// converts the types and elements into strings by using the display names of
-  /// each, unless there are two or more types or elements with the same display
-  /// names, in which case the extended display names will be used in order to
+  /// Given an array of [arguments] that is expected to contain two or more
+  /// types, convert the types into strings by using the display names of the
+  /// types, unless there are two or more types with the same names, in which
+  /// case the extended display names of the types will be used in order to
   /// clarify the message.
   List<DiagnosticMessage> _convertTypeNames(List<Object?>? arguments) {
     if (arguments == null) {

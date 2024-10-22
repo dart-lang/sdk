@@ -27,9 +27,6 @@ Future f() async {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -69,9 +66,6 @@ Stream f() async* {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -179,9 +173,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -204,11 +195,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      combinators
-        hide: main
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -236,8 +222,6 @@ library
   nameOffset: 8
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -1540,9 +1524,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1565,9 +1546,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1635,9 +1613,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1692,9 +1667,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1784,9 +1756,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryExports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1893,9 +1862,6 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
-    part_1
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2067,8 +2033,6 @@ class foo {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2144,8 +2108,6 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2217,8 +2179,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2289,8 +2249,6 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2372,8 +2330,6 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2464,8 +2420,6 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2572,8 +2526,6 @@ class foo {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2650,8 +2602,6 @@ void foo() {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2729,8 +2679,6 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2825,8 +2773,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2887,8 +2833,6 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -2993,8 +2937,6 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -3120,8 +3062,6 @@ class foo {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -3217,8 +3157,6 @@ int get foo => 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -3322,8 +3260,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -3392,8 +3328,6 @@ set foo(int _) {}
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -3504,8 +3438,6 @@ int foo = 0;
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>

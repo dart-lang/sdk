@@ -48,35 +48,6 @@ HashMap<String, ErrorCode> _computeUniqueNameToCodeMap() {
 ///
 /// See `AnalysisErrorListener`.
 class AnalysisError implements Diagnostic {
-  /// An empty array of errors used when no errors are expected.
-  @Deprecated('Not used')
-  static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
-
-  /// A [Comparator] that sorts by the name of the file that the [AnalysisError]
-  /// was found.
-  @Deprecated('Not used')
-  static Comparator<AnalysisError> FILE_COMPARATOR =
-      (AnalysisError o1, AnalysisError o2) =>
-          o1.source.shortName.compareTo(o2.source.shortName);
-
-  /// A [Comparator] that sorts error codes first by their severity (errors
-  /// first, warnings second), and then by the error code type.
-  @Deprecated('Not used')
-  static Comparator<AnalysisError> ERROR_CODE_COMPARATOR =
-      (AnalysisError o1, AnalysisError o2) {
-    ErrorCode errorCode1 = o1.errorCode;
-    ErrorCode errorCode2 = o2.errorCode;
-    ErrorSeverity errorSeverity1 = errorCode1.errorSeverity;
-    ErrorSeverity errorSeverity2 = errorCode2.errorSeverity;
-    if (errorSeverity1 == errorSeverity2) {
-      ErrorType errorType1 = errorCode1.type;
-      ErrorType errorType2 = errorCode2.type;
-      return errorType1.compareTo(errorType2);
-    } else {
-      return errorSeverity2.compareTo(errorSeverity1);
-    }
-  };
-
   /// The error code associated with the error.
   final ErrorCode errorCode;
 
@@ -96,32 +67,6 @@ class AnalysisError implements Diagnostic {
 
   /// The source in which the error occurred, or `null` if unknown.
   final Source source;
-
-  /// Initialize a newly created analysis error. The error is associated with
-  /// the given [source] and is located at the given [offset] with the given
-  /// [length]. The error will have the given [errorCode] and the list of
-  /// [arguments] will be used to complete the message and correction. If any
-  /// [contextMessages] are provided, they will be recorded with the error.
-  @Deprecated('Use tmp constructor instead')
-  factory AnalysisError(
-    Source source,
-    int offset,
-    int length,
-    ErrorCode errorCode, [
-    List<Object?>? arguments,
-    List<DiagnosticMessage> contextMessages = const [],
-    Object? data,
-  ]) {
-    return AnalysisError.tmp(
-      source: source,
-      offset: offset,
-      length: length,
-      errorCode: errorCode,
-      arguments: arguments ?? const [],
-      contextMessages: contextMessages,
-      data: data,
-    );
-  }
 
   /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues({
@@ -267,16 +212,5 @@ class AnalysisError implements Diagnostic {
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
     buffer.write(message);
     return buffer.toString();
-  }
-
-  /// Merge all of the errors in the lists in the given list of [errorLists]
-  /// into a single list of errors.
-  @Deprecated('Not used')
-  static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
-    Set<AnalysisError> errors = HashSet<AnalysisError>();
-    for (List<AnalysisError> errorList in errorLists) {
-      errors.addAll(errorList);
-    }
-    return errors.toList();
   }
 }

@@ -131,7 +131,7 @@ class BundleWriter {
 
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
-    _writeLibraryOrAugmentationElement(libraryElement);
+    _resolutionSink._writeAnnotationList(libraryElement.metadata);
     _resolutionSink.writeMacroDiagnostics(libraryElement.macroDiagnostics);
     _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
@@ -508,12 +508,6 @@ class BundleWriter {
       _writeReference2(fragment.element.reference);
       _sink.writeBool(fragment.isDeferred);
     });
-  }
-
-  void _writeLibraryOrAugmentationElement(
-    LibraryOrAugmentationElementImpl container,
-  ) {
-    _resolutionSink._writeAnnotationList(container.metadata);
   }
 
   void _writeList<T>(List<T> elements, void Function(T) writeElement) {

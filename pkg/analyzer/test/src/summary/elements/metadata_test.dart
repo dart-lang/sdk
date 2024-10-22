@@ -236,13 +236,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as a @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    a @19
-      reference: <testLibraryFragment>::@prefix::a
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -330,9 +323,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1464,13 +1454,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1565,13 +1548,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1670,13 +1646,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2244,13 +2213,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2339,13 +2301,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2436,13 +2391,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2985,19 +2933,6 @@ library
         staticType: null
       element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
-  libraryExports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: a @1
-            staticElement: <testLibraryFragment>::@getter::a
-            element: <testLibraryFragment>::@getter::a#element
-            staticType: null
-          element: <testLibraryFragment>::@getter::a
-          element2: <testLibraryFragment>::@getter::a#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4630,8 +4565,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -4675,8 +4608,6 @@ part 'dart:math';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7825,9 +7756,6 @@ library
   nameOffset: 8
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
-    part_1
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8550,8 +8478,6 @@ library
   nameOffset: 8
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8648,8 +8574,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8718,8 +8642,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8769,8 +8691,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8838,8 +8758,6 @@ part 'b.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8890,13 +8808,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as a @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    a @19
-      reference: <testLibraryFragment>::@prefix::a
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -10801,13 +10712,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11257,13 +11161,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11406,13 +11303,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11495,13 +11385,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11647,13 +11530,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11787,11 +11663,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>

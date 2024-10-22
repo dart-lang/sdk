@@ -44,11 +44,6 @@ abstract class DartType implements SharedTypeStructure<DartType> {
 
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
-  /// Return the element representing the declaration of this type, or `null`
-  /// if the type is not associated with an element.
   @experimental
   Element2? get element3;
 
@@ -142,14 +137,6 @@ abstract class DartType implements SharedTypeStructure<DartType> {
   /// dart:core library.
   bool get isDartCoreType;
 
-  /// Return `true` if this type represents the type 'dynamic'.
-  @Deprecated('Use `is DynamicType` instead')
-  bool get isDynamic;
-
-  /// Return `true` if this type represents the type 'void'.
-  @Deprecated('Use `is VoidType` instead')
-  bool get isVoid;
-
   /// Return the name of this type, or `null` if the type does not have a name,
   /// such as when the type represents the type of an unnamed function.
   @Deprecated('Check element, or use getDisplayString()')
@@ -219,14 +206,6 @@ abstract class DartType implements SharedTypeStructure<DartType> {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
   });
-
-  /// If this type is a [TypeParameterType], returns its bound if it has one, or
-  /// [objectType] otherwise.
-  ///
-  /// For any other type, returns `this`. Applies recursively -- if the bound is
-  /// itself a type parameter, that is resolved too.
-  @Deprecated('Use TypeSystem.resolveToBound() instead')
-  DartType resolveToBound(DartType objectType);
 }
 
 /// The type `dynamic` is a type which is a supertype of all other types, just
@@ -255,10 +234,6 @@ abstract class FunctionType
             ParameterElement> {
   @override
   Null get element;
-
-  @Deprecated('Use element instead')
-  @override
-  Null get element2;
 
   /// The formal parameters.
   @experimental
@@ -363,10 +338,6 @@ abstract class InterfaceType implements ParameterizedType {
 
   @override
   InterfaceElement get element;
-
-  @Deprecated('Use element instead')
-  @override
-  InterfaceElement get element2;
 
   @experimental
   @override
@@ -541,10 +512,6 @@ abstract class RecordType
   @override
   Null get element;
 
-  @Deprecated('Use element instead')
-  @override
-  Null get element2;
-
   /// The named fields (might be empty).
   List<RecordTypeNamedField> get namedFields;
 
@@ -593,10 +560,6 @@ abstract class TypeParameterType implements DartType {
   @override
   TypeParameterElement get element;
 
-  @Deprecated('Use element instead')
-  @override
-  TypeParameterElement get element2;
-
   @experimental
   @override
   TypeParameterElement2 get element3;
@@ -607,8 +570,4 @@ abstract class TypeParameterType implements DartType {
 abstract class VoidType implements DartType {
   @override
   Null get element;
-
-  @Deprecated('Use element instead')
-  @override
-  Null get element2;
 }

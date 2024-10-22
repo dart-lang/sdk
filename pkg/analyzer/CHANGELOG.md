@@ -1,3 +1,38 @@
+## 7.0.0 (Not yet released - breaking changes)
+* Remove deprecated `DartType.element2`.
+* Remove deprecated `DartType.isDynamic`.
+* Remove deprecated `DartType.isVoid`.
+* Remove deprecated `DartType.resolveToBound`.
+* Remove deprecated `IfElement.condition`.
+* Remove deprecated `IfStatement.condition`.
+* Remove deprecated `AstNode.getProperty` and `AstNode.setProperty`.
+* Remove `File.createSource()`, it violates levels of abstraction.
+  You can get `Source` instances from `AnalysisResult`s.
+* Remove deprecated `LibraryElement.toLegacyTypeIfOptOut`.
+* Remove deprecated `LibraryElement.toLegacyElementIfOptOut`.
+* Remove deprecated `LibraryElement.isNonNullableByDefault`.
+* Remove deprecated `File.changes` and `Folder.changes`.
+* Remove deprecated `Resource.parent2`.
+* Remove deprecated `OnClause`.
+* Remove deprecated `ContextBuilder`, use `AnalysisContextCollection`.
+* Remove deprecated `ContextLocator`, use `AnalysisContextCollection`.
+* Remove deprecated `ClassOrAugmentationDeclaration.`.
+* Remove deprecated `MixinOrAugmentationDeclaration.`.
+* Remove deprecated members of `AnalysisError`.
+* Remove deprecated `TypeSystem.instantiateToBounds2`.
+* Remove deprecated `buildSdkSummary2()`.
+* Remove deprecated `FileSource.fileReadMode`.
+* Remove deprecated members of `ErrorReporter`.
+* Remove deprecated `Comment.isBlock`, `isDocumentation`, `isEndOfLine`.
+* Remove deprecated `Element.enclosingElement`.
+* Remove deprecated `PropertyAccessor.variable`.
+* Remove experimental `LibraryOrAugmentationElement`.
+* Remove deprecated `LibraryElement` properties.
+* Remove deprecated `enabledPluginNames` and `hint` from `AnalysisOptions`.
+* Remove deprecated `source_io.dart`.
+* Remove deprecated `lint/Spelunker`.
+* Remove deprecated `source_resource.dart`.
+
 ## 6.11.0
 * Un-deprecated `LibraryElement.exportedLibraries`.
 * Un-deprecated `LibraryElement.importedLibraries`.

@@ -47,7 +47,6 @@ class DefiningLinkingUnit extends LinkingUnit {
     required super.reference,
     required super.node,
     required super.element,
-    required super.container,
   });
 }
 
@@ -202,7 +201,6 @@ class LibraryBuilder with MacroApplicationsContainer {
   void buildElements() {
     _buildDirectives(
       kind: kind,
-      containerLibrary: element,
       containerUnit: element.definingCompilationUnit,
     );
 
@@ -599,7 +597,6 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     _buildDirectives(
       kind: includedPart,
-      containerLibrary: element,
       containerUnit: unitElement,
     );
 
@@ -976,7 +973,6 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// augmentations.
   void _buildDirectives({
     required FileKind kind,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     containerUnit.libraryExports = kind.libraryExports.map((state) {
@@ -985,7 +981,6 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     containerUnit.libraryImports = kind.libraryImports.map((state) {
       return _buildLibraryImport(
-        containerLibrary: containerLibrary,
         containerUnit: containerUnit,
         state: state,
       );
@@ -1071,7 +1066,6 @@ class LibraryBuilder with MacroApplicationsContainer {
   }
 
   LibraryImportElementImpl _buildLibraryImport({
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
     required LibraryImportState state,
   }) {
@@ -1079,7 +1073,6 @@ class LibraryBuilder with MacroApplicationsContainer {
       var prefix = _buildLibraryImportPrefix(
         nameOffset: unlinked.nameOffset,
         name: unlinked.name,
-        containerLibrary: containerLibrary,
         containerUnit: containerUnit,
       );
       if (unlinked.deferredOffset != null) {
@@ -1175,7 +1168,6 @@ class LibraryBuilder with MacroApplicationsContainer {
   PrefixElementImpl _buildLibraryImportPrefix({
     required int nameOffset,
     required UnlinkedLibraryImportPrefixName? name,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     // TODO(scheglov): Make reference required.
@@ -1191,7 +1183,6 @@ class LibraryBuilder with MacroApplicationsContainer {
         nameOffset,
         reference: reference,
       );
-      result.enclosingElement = containerLibrary;
       result.enclosingElement3 = containerUnit;
       return result;
     }
@@ -1266,14 +1257,12 @@ class LibraryBuilder with MacroApplicationsContainer {
             LinkingUnit(
               reference: unitReference,
               node: partUnitNode,
-              container: containerLibrary,
               element: unitElement,
             ),
           );
 
           _buildDirectives(
             kind: includedPart,
-            containerLibrary: element,
             containerUnit: unitElement,
           );
 
@@ -1398,7 +1387,6 @@ class LibraryBuilder with MacroApplicationsContainer {
           reference: unitReference,
           node: libraryUnitNode,
           element: unitElement,
-          container: libraryElement,
         ),
       );
 
@@ -1435,13 +1423,11 @@ class LibraryBuilder with MacroApplicationsContainer {
 class LinkingUnit {
   final Reference reference;
   final ast.CompilationUnitImpl node;
-  final LibraryOrAugmentationElementImpl container;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
     required this.reference,
     required this.node,
-    required this.container,
     required this.element,
   });
 }

@@ -2073,19 +2073,7 @@ class _ElementWriter extends _AbstractElementWriter {
         _sink.writelnWithIndent('nameOffset: $nameOffset');
       }
 
-      _writeLibraryOrAugmentationElement(e);
-
-      // ignore:deprecated_member_use_from_same_package
-      for (var part in e.parts) {
-        if (part.uri case DirectiveUriWithUnitImpl uri) {
-          expect(uri.unit.libraryOrAugmentationElement, same(e));
-        }
-      }
-
-      // ignore:deprecated_member_use_from_same_package
-      _writeElements('parts', e.parts, (part) {
-        _sink.writelnWithIndent(_idMap[part]);
-      });
+      _writeLibraryElement(e);
 
       _writeElements('units', e.units, (unit) {
         _sink.writeIndent();
@@ -2600,6 +2588,20 @@ class _ElementWriter extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
+  void _writeLibraryElement(LibraryElementImpl e) {
+    _writeReference(e);
+
+    _writeDocumentation(e);
+    _writeMetadata(e);
+    _writeSinceSdkVersion(e);
+
+    var definingUnit = e.definingCompilationUnit;
+    expect(definingUnit.enclosingFragment, isNull);
+    if (configuration.filter(definingUnit)) {
+      _elementPrinter.writeNamedElement('definingUnit', definingUnit);
+    }
+  }
+
   void _writeLibraryExportElement(LibraryExportElementImpl e) {
     e.location;
 
@@ -2632,41 +2634,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
-  }
-
-  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
-    _writeReference(e);
-
-    _writeDocumentation(e);
-    _writeMetadata(e);
-    _writeSinceSdkVersion(e);
-
-    if (configuration.withImports) {
-      // ignore:deprecated_member_use_from_same_package
-      var imports = e.libraryImports.where((import) {
-        return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
-      }).toList();
-      _writeElements(
-        'libraryImports',
-        imports,
-        _writeLibraryImportElement,
-      );
-      // ignore:deprecated_member_use_from_same_package
-      _writeElements('prefixes', e.prefixes, _writePrefixElement);
-    }
-
-    _writeElements(
-      'libraryExports',
-      // ignore:deprecated_member_use_from_same_package
-      e.libraryExports,
-      _writeLibraryExportElement,
-    );
-
-    var definingUnit = e.definingCompilationUnit;
-    expect(definingUnit.libraryOrAugmentationElement, same(e));
-    if (configuration.filter(definingUnit)) {
-      _elementPrinter.writeNamedElement('definingUnit', definingUnit);
-    }
   }
 
   void _writeMacroDiagnostics(Element e) {

@@ -28,19 +28,11 @@ class UnknownInferredType extends TypeImpl
   @override
   Element? get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
-
   @override
   Element2? get element3 => null;
 
   @override
   int get hashCode => 1;
-
-  @Deprecated('Use `is UnknownInferredType` instead')
-  @override
-  bool get isDynamic => true;
 
   @Deprecated('Check element, or use getDisplayString()')
   @override

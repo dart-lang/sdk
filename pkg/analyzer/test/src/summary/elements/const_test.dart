@@ -2645,9 +2645,6 @@ const V = const C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2752,13 +2749,6 @@ const V = const p.C<int, String>.named(1, '222');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -3235,9 +3225,6 @@ const V = const C<int, String>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -3328,13 +3315,6 @@ const V = const p.C<int, String>();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -3605,9 +3585,6 @@ const V = const C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -3688,13 +3665,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -3946,13 +3916,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4041,13 +4004,6 @@ const V = const p.C.named();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4402,9 +4358,6 @@ const V = const C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4479,13 +4432,6 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -4631,13 +4577,6 @@ const V = const p.C();
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -5009,9 +4948,6 @@ const int v = C.F.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -5095,13 +5031,6 @@ const int v = p.C.F.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -5347,9 +5276,6 @@ const v = S.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -5423,13 +5349,6 @@ const v = p.S.length;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -7240,9 +7159,6 @@ const b = -a;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -7725,9 +7641,6 @@ const V = C.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -7803,13 +7716,6 @@ const V = p.C.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8016,9 +7922,6 @@ const V = C.m;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8094,13 +7997,6 @@ const V = p.C.m;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8461,9 +8357,6 @@ const V = foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8527,13 +8420,6 @@ const V = p.foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8704,9 +8590,6 @@ const B = A + 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8779,13 +8662,6 @@ const B = p.A + 2;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -9446,9 +9322,6 @@ const vFunctionTypeAlias = F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -9572,13 +9445,6 @@ const vFunctionTypeAlias = p.F;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -9956,13 +9822,6 @@ const V = p.C.foo;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as p @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @21
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -12721,9 +12580,6 @@ const v = const <C>[];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -12794,13 +12650,6 @@ const v = const <p.C>[];
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as p @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    p @19
-      reference: <testLibraryFragment>::@prefix::p
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>

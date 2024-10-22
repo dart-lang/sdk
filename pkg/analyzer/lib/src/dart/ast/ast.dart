@@ -33,13 +33,6 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-/// The "on" clause in a mixin declaration.
-///
-///    onClause ::=
-///        'on' [NamedType] (',' [NamedType])*
-@Deprecated('Use MixinOnClause instead')
-typedef OnClause = MixinOnClause;
-
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
@@ -1036,17 +1029,6 @@ abstract final class AstNode implements SyntacticEntity {
   /// Returns the token before [target], or `null` if it can't be found.
   Token? findPrevious(Token target);
 
-  /// Returns the value of the property with the given [name], or `null` if this
-  /// node doesn't have a property with the given name.
-  @Deprecated('Use Expando instead')
-  E? getProperty<E>(String name);
-
-  /// Set the value of the property with the given [name] to the given [value].
-  ///
-  /// If the value is `null`, the property is removed.
-  @Deprecated('Use Expando instead')
-  void setProperty(String name, Object? value);
-
   /// Returns either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there's no such node.
   E? thisOrAncestorMatching<E extends AstNode>(
@@ -1086,10 +1068,6 @@ abstract final class AstNode implements SyntacticEntity {
 
 sealed class AstNodeImpl implements AstNode {
   AstNode? _parent;
-
-  /// A table mapping the names of properties to their values, or `null` if this
-  /// node doesn't have any properties associated with it.
-  Map<String, Object>? _propertyMap;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -1142,28 +1120,6 @@ sealed class AstNodeImpl implements AstNode {
   @override
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
-
-  @Deprecated('Use Expando instead')
-  @override
-  E? getProperty<E>(String name) {
-    return _propertyMap?[name] as E?;
-  }
-
-  @Deprecated('Use Expando instead')
-  @override
-  void setProperty(String name, Object? value) {
-    if (value == null) {
-      var propertyMap = _propertyMap;
-      if (propertyMap != null) {
-        propertyMap.remove(name);
-        if (propertyMap.isEmpty) {
-          _propertyMap = null;
-        }
-      }
-    } else {
-      (_propertyMap ??= HashMap<String, Object>())[name] = value;
-    }
-  }
 
   @override
   E? thisOrAncestorMatching<E extends AstNode>(
@@ -1445,9 +1401,6 @@ abstract class AstVisitor<R> {
   R? visitNullLiteral(NullLiteral node);
 
   R? visitObjectPattern(ObjectPattern node);
-
-  @Deprecated('Use visitMixinOnClause() instead')
-  R? visitOnClause(OnClause node);
 
   R? visitParenthesizedExpression(ParenthesizedExpression node);
 
@@ -3236,18 +3189,6 @@ abstract final class Comment implements AstNode {
   @experimental
   bool get hasNodoc;
 
-  /// Whether this is a block comment.
-  @Deprecated("Do not use; this value is always 'false'")
-  bool get isBlock;
-
-  /// Whether this is a documentation comment.
-  @Deprecated("Do not use; this value is always 'true'")
-  bool get isDocumentation;
-
-  /// Whether this is an end-of-line comment.
-  @Deprecated("Do not use; this value is always 'false'")
-  bool get isEndOfLine;
-
   /// The references embedded within the documentation comment.
   ///
   /// If there are no references in the comment then the list will be empty.
@@ -3301,15 +3242,6 @@ final class CommentImpl extends AstNodeImpl
 
   @override
   Token get endToken => tokens[tokens.length - 1];
-
-  @override
-  bool get isBlock => false;
-
-  @override
-  bool get isDocumentation => true;
-
-  @override
-  bool get isEndOfLine => false;
 
   @override
   NodeListImpl<CommentReferenceImpl> get references => _references;
@@ -6439,10 +6371,6 @@ abstract final class ExtensionDeclaration
   @override
   ExtensionFragment? get declaredFragment;
 
-  /// The type that is being extended.
-  @Deprecated('Use onClause instead')
-  TypeAnnotation get extendedType;
-
   /// The token representing the `extension` keyword.
   Token get extensionKeyword;
 
@@ -6457,10 +6385,6 @@ abstract final class ExtensionDeclaration
 
   /// The `on` clause, `null` if an augmentation.
   ExtensionOnClause? get onClause;
-
-  /// The token representing the 'on' keyword.
-  @Deprecated('Use onClause instead')
-  Token get onKeyword;
 
   /// The right curly bracket.
   Token get rightBracket;
@@ -6530,22 +6454,12 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Token get endToken => rightBracket;
 
-  @Deprecated('Use onClause instead')
-  @override
-  TypeAnnotationImpl get extendedType {
-    return onClause!.extendedType;
-  }
-
   @override
   Token get firstTokenAfterCommentAndMetadata =>
       augmentKeyword ?? extensionKeyword;
 
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
-
-  @Deprecated('Use onClause instead')
-  @override
-  Token get onKeyword => onClause!.onKeyword;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -9436,10 +9350,6 @@ abstract final class IfElement implements CollectionElement {
   /// The `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
-  /// The condition used to determine which of the statements is executed next.
-  @Deprecated('Use expression instead')
-  Expression get condition;
-
   /// The statement that is executed if the condition evaluates to `false`, or
   /// `null` if there's no else statement.
   CollectionElement? get elseElement;
@@ -9510,10 +9420,6 @@ final class IfElementImpl extends CollectionElementImpl
 
   @override
   Token get beginToken => ifKeyword;
-
-  @Deprecated('Use expression instead')
-  @override
-  ExpressionImpl get condition => _expression;
 
   set condition(ExpressionImpl condition) {
     _expression = _becomeParentOf(condition);
@@ -9601,10 +9507,6 @@ abstract final class IfStatement implements Statement {
   /// The `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
-  /// The condition used to determine which of the statements is executed next.
-  @Deprecated('Use expression instead')
-  Expression get condition;
-
   /// The token representing the `else` keyword, or `null` if there's no else
   /// statement.
   Token? get elseKeyword;
@@ -9679,10 +9581,6 @@ final class IfStatementImpl extends StatementImpl
 
   @override
   Token get beginToken => ifKeyword;
-
-  @Deprecated('Use expression instead')
-  @override
-  ExpressionImpl get condition => _expression;
 
   set condition(ExpressionImpl condition) {
     _expression = _becomeParentOf(condition);

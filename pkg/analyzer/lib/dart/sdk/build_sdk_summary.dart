@@ -74,19 +74,3 @@ Future<Uint8List> buildSdkSummary({
     ),
   );
 }
-
-/// Build summary for SDK at the given [sdkPath].
-///
-/// If [embedderYamlPath] is provided, then libraries from this file are
-/// appended to the libraries of the specified SDK.
-@Deprecated('Use buildSdkSummary() instead')
-Future<Uint8List> buildSdkSummary2({
-  required ResourceProvider resourceProvider,
-  required String sdkPath,
-  String? embedderYamlPath,
-}) async {
-  return buildSdkSummary(
-    resourceProvider: resourceProvider,
-    sdkPath: sdkPath,
-  );
-}

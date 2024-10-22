@@ -48,14 +48,6 @@ class FileSpelunker extends _AbstractSpelunker {
   String getSource() => File(path).readAsStringSync();
 }
 
-@Deprecated('Prefer FileSpelunker')
-class Spelunker extends _AbstractSpelunker {
-  final String path;
-  Spelunker(this.path, {super.sink, super.featureSet});
-  @override
-  String getSource() => File(path).readAsStringSync();
-}
-
 class StringSpelunker extends _AbstractSpelunker {
   final String source;
   StringSpelunker(this.source, {super.sink, super.featureSet});
