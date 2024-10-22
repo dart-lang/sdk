@@ -7,7 +7,7 @@
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,10 +37,10 @@ class C {}
 class D {}
 !]
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'A'),
-      element<ClassElement>(name: 'B'),
-      element<ClassElement>(name: 'C'),
-      element<ClassElement>(name: 'D'),
+      element<ClassElement2>(name: 'A'),
+      element<ClassElement2>(name: 'B'),
+      element<ClassElement2>(name: 'C'),
+      element<ClassElement2>(name: 'D'),
     ], expectedStayingDeclarations: []);
   }
 
@@ -53,11 +53,11 @@ class B {}
 class C {}
 class D {}
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'A'),
-      element<ClassElement>(name: 'B'),
+      element<ClassElement2>(name: 'A'),
+      element<ClassElement2>(name: 'B'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'C'),
-      element<ClassElement>(name: 'D'),
+      element<ClassElement2>(name: 'C'),
+      element<ClassElement2>(name: 'D'),
     ]);
   }
 
@@ -70,11 +70,11 @@ class C {}
 class D {}
 !]
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'C'),
-      element<ClassElement>(name: 'D'),
+      element<ClassElement2>(name: 'C'),
+      element<ClassElement2>(name: 'D'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'A'),
-      element<ClassElement>(name: 'B'),
+      element<ClassElement2>(name: 'A'),
+      element<ClassElement2>(name: 'B'),
     ]);
   }
 
@@ -87,11 +87,11 @@ class C {}
 !]
 class D {}
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'B'),
-      element<ClassElement>(name: 'C'),
+      element<ClassElement2>(name: 'B'),
+      element<ClassElement2>(name: 'C'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'A'),
-      element<ClassElement>(name: 'D'),
+      element<ClassElement2>(name: 'A'),
+      element<ClassElement2>(name: 'D'),
     ]);
   }
 
@@ -102,9 +102,9 @@ class C {}
 !]
 class D {}
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'C'),
+      element<ClassElement2>(name: 'C'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'D'),
+      element<ClassElement2>(name: 'D'),
     ]);
   }
 
@@ -115,9 +115,9 @@ class B {}
 class C {}
 !]
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'C'),
+      element<ClassElement2>(name: 'C'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'B'),
+      element<ClassElement2>(name: 'B'),
     ]);
   }
 
@@ -129,10 +129,10 @@ class C {}
 !]
 class D {}
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'C'),
+      element<ClassElement2>(name: 'C'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'B'),
-      element<ClassElement>(name: 'D'),
+      element<ClassElement2>(name: 'B'),
+      element<ClassElement2>(name: 'D'),
     ]);
   }
 
@@ -142,7 +142,7 @@ class D {}
 class C {}
 !]
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'C'),
+      element<ClassElement2>(name: 'C'),
     ], expectedStayingDeclarations: []);
   }
 }
@@ -179,31 +179,31 @@ int get g2 => 0;
 int set s2(x) {}
 int v2 = 0;
 ''', expectedMovingDeclarations: [
-      element<ClassElement>(name: 'C1'),
-      element<ClassElement>(name: 'D1'),
-      element<EnumElement>(name: 'E1'),
-      element<TypeAliasElement>(name: 'F1'),
-      element<TypeAliasElement>(name: 'G1'),
-      element<MixinElement>(name: 'M1'),
-      element<TypeAliasElement>(name: 'T1'),
-      element<ExtensionElement>(name: 'X1'),
-      element<FunctionElement>(name: 'f1'),
-      element<PropertyAccessorElement>(name: 'g1'),
-      element<PropertyAccessorElement>(name: 's1='),
-      element<TopLevelVariableElement>(name: 'v1'),
+      element<ClassElement2>(name: 'C1'),
+      element<ClassElement2>(name: 'D1'),
+      element<EnumElement2>(name: 'E1'),
+      element<TypeAliasElement2>(name: 'F1'),
+      element<TypeAliasElement2>(name: 'G1'),
+      element<MixinElement2>(name: 'M1'),
+      element<TypeAliasElement2>(name: 'T1'),
+      element<ExtensionElement2>(name: 'X1'),
+      element<TopLevelFunctionElement>(name: 'f1'),
+      element<GetterElement>(name: 'g1'),
+      element<SetterElement>(name: 's1='),
+      element<TopLevelVariableElement2>(name: 'v1'),
     ], expectedStayingDeclarations: [
-      element<ClassElement>(name: 'C2'),
-      element<ClassElement>(name: 'D2'),
-      element<EnumElement>(name: 'E2'),
-      element<TypeAliasElement>(name: 'F2'),
-      element<TypeAliasElement>(name: 'G2'),
-      element<MixinElement>(name: 'M2'),
-      element<TypeAliasElement>(name: 'T2'),
-      element<ExtensionElement>(name: 'X2'),
-      element<FunctionElement>(name: 'f2'),
-      element<PropertyAccessorElement>(name: 'g2'),
-      element<PropertyAccessorElement>(name: 's2='),
-      element<TopLevelVariableElement>(name: 'v2'),
+      element<ClassElement2>(name: 'C2'),
+      element<ClassElement2>(name: 'D2'),
+      element<EnumElement2>(name: 'E2'),
+      element<TypeAliasElement2>(name: 'F2'),
+      element<TypeAliasElement2>(name: 'G2'),
+      element<MixinElement2>(name: 'M2'),
+      element<TypeAliasElement2>(name: 'T2'),
+      element<ExtensionElement2>(name: 'X2'),
+      element<TopLevelFunctionElement>(name: 'f2'),
+      element<GetterElement>(name: 'g2'),
+      element<SetterElement>(name: 's2='),
+      element<TopLevelVariableElement2>(name: 'v2'),
     ]);
   }
 }
@@ -222,7 +222,7 @@ class C {
 }
 !]
 ''', expectedStayingReferences: {}, expectedMovingReferences: {
-      element<ClassElement>(name: 'File'): [''],
+      element<ClassElement2>(name: 'File'): [''],
     });
   }
 
@@ -243,7 +243,7 @@ class A {}
 class C extends A {}
 !]
 ''', expectedStayingReferences: {}, expectedMovingReferences: {
-      element<ClassElement>(name: 'A'): [''],
+      element<ClassElement2>(name: 'A'): [''],
     });
   }
 
@@ -258,7 +258,7 @@ class A {
 class C {}
 !]
 ''', expectedStayingReferences: {
-      element<ClassElement>(name: 'File'): [''],
+      element<ClassElement2>(name: 'File'): [''],
     }, expectedMovingReferences: {});
   }
 
@@ -269,7 +269,7 @@ class A extends C {}
 class C {}
 !]
 ''', expectedStayingReferences: {
-      element<ClassElement>(name: 'C'): [''],
+      element<ClassElement2>(name: 'C'): [''],
     }, expectedMovingReferences: {});
   }
 
@@ -296,7 +296,7 @@ C? c;
 class C {}
 !]
 ''', expectedStayingReferences: {
-      element<ClassElement>(name: 'C'): [''],
+      element<ClassElement2>(name: 'C'): [''],
     });
   }
 
@@ -307,7 +307,7 @@ class C {}
 C? c;
 !]
 ''', expectedMovingReferences: {
-      element<ClassElement>(name: 'C'): [''],
+      element<ClassElement2>(name: 'C'): [''],
     });
   }
 
@@ -318,7 +318,7 @@ E? e;
 enum E {}
 !]
 ''', expectedStayingReferences: {
-      element<EnumElement>(name: 'E'): [''],
+      element<EnumElement2>(name: 'E'): [''],
     });
   }
 
@@ -329,7 +329,7 @@ enum E {}
 E? e;
 !]
 ''', expectedMovingReferences: {
-      element<EnumElement>(name: 'E'): [''],
+      element<EnumElement2>(name: 'E'): [''],
     });
   }
 
@@ -342,7 +342,7 @@ extension X on int {
 }
 !]
 ''', expectedStayingReferences: {
-      element<ExtensionElement>(name: 'X'): [''],
+      element<ExtensionElement2>(name: 'X'): [''],
     });
   }
 
@@ -355,7 +355,7 @@ extension X on int {
 var x = 2.g;
 !]
 ''', expectedMovingReferences: {
-      element<ExtensionElement>(name: 'X'): [''],
+      element<ExtensionElement2>(name: 'X'): [''],
     });
   }
 
@@ -369,7 +369,7 @@ extension X on A {
 }
 !]
 ''', expectedStayingReferences: {
-      element<ExtensionElement>(name: 'X'): [''],
+      element<ExtensionElement2>(name: 'X'): [''],
     });
   }
 
@@ -383,8 +383,8 @@ extension X on A {
 var x = A() + A();
 !]
 ''', expectedMovingReferences: {
-      element<ExtensionElement>(name: 'X'): [''],
-      element<ClassElement>(name: 'A'): [''],
+      element<ExtensionElement2>(name: 'X'): [''],
+      element<ClassElement2>(name: 'A'): [''],
     });
   }
 
@@ -397,7 +397,7 @@ extension X on int {
 }
 !]
 ''', expectedStayingReferences: {
-      element<ExtensionElement>(name: 'X'): [''],
+      element<ExtensionElement2>(name: 'X'): [''],
     });
   }
 
@@ -410,7 +410,7 @@ extension X on int {
 var x = X(2).g;
 !]
 ''', expectedMovingReferences: {
-      element<ExtensionElement>(name: 'X'): [''],
+      element<ExtensionElement2>(name: 'X'): [''],
     });
   }
 
@@ -421,7 +421,7 @@ F? f;
 typedef void F();
 !]
 ''', expectedStayingReferences: {
-      element<TypeAliasElement>(name: 'F'): [''],
+      element<TypeAliasElement2>(name: 'F'): [''],
     });
   }
 
@@ -432,7 +432,7 @@ typedef void F();
 F? f;
 !]
 ''', expectedMovingReferences: {
-      element<TypeAliasElement>(name: 'F'): [''],
+      element<TypeAliasElement2>(name: 'F'): [''],
     });
   }
 
@@ -443,7 +443,7 @@ G? g;
 typedef G = void Function();
 !]
 ''', expectedStayingReferences: {
-      element<TypeAliasElement>(name: 'G'): [''],
+      element<TypeAliasElement2>(name: 'G'): [''],
     });
   }
 
@@ -454,7 +454,7 @@ typedef G = void Function();
 G? g;
 !]
 ''', expectedMovingReferences: {
-      element<TypeAliasElement>(name: 'G'): [''],
+      element<TypeAliasElement2>(name: 'G'): [''],
     });
   }
 
@@ -465,7 +465,7 @@ M? m;
 mixin M {}
 !]
 ''', expectedStayingReferences: {
-      element<MixinElement>(name: 'M'): [''],
+      element<MixinElement2>(name: 'M'): [''],
     });
   }
 
@@ -476,7 +476,7 @@ mixin M {}
 M? m;
 !]
 ''', expectedMovingReferences: {
-      element<MixinElement>(name: 'M'): [''],
+      element<MixinElement2>(name: 'M'): [''],
     });
   }
 
@@ -489,7 +489,7 @@ class C {}
 mixin M {}
 !]
 ''', expectedStayingReferences: {
-      element<ClassElement>(name: 'D'): [''],
+      element<ClassElement2>(name: 'D'): [''],
     });
   }
 
@@ -502,7 +502,7 @@ mixin M {}
 D? d;
 !]
 ''', expectedMovingReferences: {
-      element<ClassElement>(name: 'D'): [''],
+      element<ClassElement2>(name: 'D'): [''],
     });
   }
 
@@ -513,7 +513,7 @@ var x = f();
 void f() {}
 !]
 ''', expectedStayingReferences: {
-      element<FunctionElement>(name: 'f'): [''],
+      element<TopLevelFunctionElement>(name: 'f'): [''],
     });
   }
 
@@ -524,7 +524,7 @@ void f() {}
 var x = f();
 !]
 ''', expectedMovingReferences: {
-      element<FunctionElement>(name: 'f'): [''],
+      element<TopLevelFunctionElement>(name: 'f'): [''],
     });
   }
 
@@ -535,7 +535,7 @@ var x = g;
 int get g => 0;
 !]
 ''', expectedStayingReferences: {
-      element<PropertyAccessorElement>(name: 'g'): [''],
+      element<GetterElement>(name: 'g'): [''],
     });
   }
 
@@ -546,7 +546,7 @@ int get g => 0;
 var x = g;
 !]
 ''', expectedMovingReferences: {
-      element<PropertyAccessorElement>(name: 'g'): [''],
+      element<GetterElement>(name: 'g'): [''],
     });
   }
 
@@ -559,7 +559,7 @@ void f() {
 int set s(x) {}
 !]
 ''', expectedStayingReferences: {
-      element<PropertyAccessorElement>(name: 's='): [''],
+      element<SetterElement>(name: 's='): [''],
     });
   }
 
@@ -572,7 +572,7 @@ void f() {
 }
 !]
 ''', expectedMovingReferences: {
-      element<PropertyAccessorElement>(name: 's='): [''],
+      element<SetterElement>(name: 's='): [''],
     });
   }
 
@@ -585,8 +585,8 @@ int get v => 0;
 set v(num _) {}
 !]
 ''', expectedStayingReferences: {
-      element<PropertyAccessorElement>(name: 'v='): [''],
-      element<PropertyAccessorElement>(name: 'v'): [''],
+      element<SetterElement>(name: 'v='): [''],
+      element<GetterElement>(name: 'v'): [''],
     });
   }
 
@@ -599,8 +599,8 @@ set v(num _) {}
 void f() => v += 1;
 !]
 ''', expectedMovingReferences: {
-      element<PropertyAccessorElement>(name: 'v='): [''],
-      element<PropertyAccessorElement>(name: 'v'): [''],
+      element<SetterElement>(name: 'v='): [''],
+      element<GetterElement>(name: 'v'): [''],
     });
   }
 
@@ -612,7 +612,7 @@ void f() => v += 1;
 int v = 0;
 !]
 ''', expectedStayingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -624,7 +624,7 @@ int v = 0;
 void f() => v += 1;
 !]
 ''', expectedMovingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -635,7 +635,7 @@ var x = v;
 int v = 0;
 !]
 ''', expectedStayingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -646,7 +646,7 @@ int v = 0;
 var x = v;
 !]
 ''', expectedMovingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -659,8 +659,8 @@ int get v => 0;
 set v(num _) {}
 !]
 ''', expectedStayingReferences: {
-      element<PropertyAccessorElement>(name: 'v='): [''],
-      element<PropertyAccessorElement>(name: 'v'): [''],
+      element<SetterElement>(name: 'v='): [''],
+      element<GetterElement>(name: 'v'): [''],
     });
   }
 
@@ -673,8 +673,8 @@ set v(num _) {}
 void f() => v++;
 !]
 ''', expectedMovingReferences: {
-      element<PropertyAccessorElement>(name: 'v='): [''],
-      element<PropertyAccessorElement>(name: 'v'): [''],
+      element<SetterElement>(name: 'v='): [''],
+      element<GetterElement>(name: 'v'): [''],
     });
   }
 
@@ -686,7 +686,7 @@ void f() => v++;
 int v = 0;
 !]
 ''', expectedStayingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -698,7 +698,7 @@ int v = 0;
 void f() => v++;
 !]
 ''', expectedMovingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -711,8 +711,8 @@ int get v => 0;
 set v(num _) {}
 !]
 ''', expectedStayingReferences: {
-      element<PropertyAccessorElement>(name: 'v='): [''],
-      element<PropertyAccessorElement>(name: 'v'): [''],
+      element<SetterElement>(name: 'v='): [''],
+      element<GetterElement>(name: 'v'): [''],
     });
   }
 
@@ -725,8 +725,8 @@ set v(num _) {}
 void f() => ++v;
 !]
 ''', expectedMovingReferences: {
-      element<PropertyAccessorElement>(name: 'v='): [''],
-      element<PropertyAccessorElement>(name: 'v'): [''],
+      element<SetterElement>(name: 'v='): [''],
+      element<GetterElement>(name: 'v'): [''],
     });
   }
 
@@ -738,7 +738,7 @@ void f() => ++v;
 int v = 0;
 !]
 ''', expectedStayingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -750,7 +750,7 @@ int v = 0;
 void f() => ++v;
 !]
 ''', expectedMovingReferences: {
-      element<TopLevelVariableElement>(name: 'v'): [''],
+      element<TopLevelVariableElement2>(name: 'v'): [''],
     });
   }
 
@@ -762,7 +762,7 @@ typedef T = C;
 class C {}
 !]
 ''', expectedStayingReferences: {
-      element<TypeAliasElement>(name: 'T'): [''],
+      element<TypeAliasElement2>(name: 'T'): [''],
     });
   }
 
@@ -774,7 +774,7 @@ class C {}
 T? t;
 !]
 ''', expectedMovingReferences: {
-      element<TypeAliasElement>(name: 'T'): [''],
+      element<TypeAliasElement2>(name: 'T'): [''],
     });
   }
 }
@@ -798,9 +798,9 @@ Directory? d1;
 c.Directory? d2;
 d.Directory? d3;
 ''', expectedMovingReferences: {
-      element<ClassElement>(name: 'File'): ['', 'a', 'b'],
+      element<ClassElement2>(name: 'File'): ['', 'a', 'b'],
     }, expectedStayingReferences: {
-      element<ClassElement>(name: 'Directory'): ['', 'c', 'd'],
+      element<ClassElement2>(name: 'Directory'): ['', 'c', 'd'],
     });
   }
 }
@@ -865,16 +865,16 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
     }
   }
 
-  _ExpectedElement<T> element<T extends Element>({required String name}) =>
+  _ExpectedElement<T> element<T extends Element2>({required String name}) =>
       _ExpectedElement<T>(name: name);
 }
 
-class _ExpectedElement<T extends Element> {
+class _ExpectedElement<T extends Element2> {
   final String name;
 
   _ExpectedElement({required this.name});
 
-  void assertMatches(Element element) {
+  void assertMatches(Element2 element) {
     expect(element, isA<T>());
     expect(element.name, name);
   }

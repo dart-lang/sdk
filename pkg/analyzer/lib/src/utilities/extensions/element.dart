@@ -44,6 +44,8 @@ extension Element2OrNullExtension on Element2? {
         return self;
       case TopLevelFunctionElementImpl():
         return self.firstFragment as Element;
+      case TopLevelVariableElementImpl2():
+        return self.firstFragment as Element;
       case TypeDefiningElement2():
         return self.firstFragment as Element;
       default:

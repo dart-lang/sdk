@@ -574,6 +574,7 @@ lib/src/utilities/extensions/range_factory.dart
 lib/src/utilities/extensions/string.dart
 lib/src/utilities/extensions/yaml.dart
 lib/src/utilities/file_string_sink.dart
+lib/src/utilities/import_analyzer.dart
 lib/src/utilities/index_range.dart
 lib/src/utilities/mocks.dart
 lib/src/utilities/null_string_sink.dart
@@ -1454,6 +1455,7 @@ test/src/utilities/extensions/ast_test.dart
 test/src/utilities/extensions/range_factory_test.dart
 test/src/utilities/extensions/string_test.dart
 test/src/utilities/extensions/test_all.dart
+test/src/utilities/import_analyzer_test.dart
 test/src/utilities/json_test.dart
 test/src/utilities/profiling_test.dart
 test/src/utilities/selection_test.dart
