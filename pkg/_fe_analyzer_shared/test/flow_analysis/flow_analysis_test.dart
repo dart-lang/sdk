@@ -7408,16 +7408,10 @@ main() {
     });
 
     group('and equality:', () {
-      test('promoted type ignored on LHS', () {
-        // Normally flow analysis understands when an `if` test is guaranteed to
-        // succeed (or fail) based on the static types of the LHS and RHS. But
-        // due to https://github.com/dart-lang/language/issues/4127, this
-        // doesn't fully work when the LHS or RHS is a property reference; in
-        // that case, the unpromoted type is used.
-
-        // This test is here to make sure we don't change the existing behavior
-        // by accident; if/when we fix #4127, this test should be changed
-        // accordingly.
+      test('promoted type accounted for on LHS', () {
+        // Flow analysis understands when an `if` test is guaranteed to succeed
+        // (or fail) based on the static types of the LHS and RHS. Make sure
+        // this works when the LHS or RHS is a property reference.
         h.addMember('C', 'f', 'Object?', promotable: true);
         h.thisType = 'C';
         h.run([
@@ -7426,21 +7420,15 @@ main() {
           if_(thisProperty('f').eq(nullLiteral), [
             checkReachable(true),
           ], [
-            checkReachable(true),
+            checkReachable(false),
           ]),
         ]);
       });
 
-      test('promoted type ignored on RHS', () {
-        // Normally flow analysis understands when an `if` test is guaranteed to
-        // succeed (or fail) based on the static types of the LHS and RHS. But
-        // due to https://github.com/dart-lang/language/issues/4127, this
-        // doesn't fully work when the LHS or RHS is a property reference; in
-        // that case, the unpromoted type is used.
-
-        // This test is here to make sure we don't change the existing behavior
-        // by accident; if/when we fix #4127, this test should be changed
-        // accordingly.
+      test('promoted type accounted for on RHS', () {
+        // Flow analysis understands when an `if` test is guaranteed to succeed
+        // (or fail) based on the static types of the LHS and RHS. Make sure
+        // this works when the LHS or RHS is a property reference.
         h.addMember('C', 'f', 'Object?', promotable: true);
         h.thisType = 'C';
         h.run([
@@ -7449,7 +7437,7 @@ main() {
           if_(nullLiteral.eq(thisProperty('f')), [
             checkReachable(true),
           ], [
-            checkReachable(true),
+            checkReachable(false),
           ]),
         ]);
       });

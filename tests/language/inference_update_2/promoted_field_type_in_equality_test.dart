@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests the behavior described in
-// https://github.com/dart-lang/language/issues/4127, namely the fact that when
-// deciding whether an `==` or `!=` comparison is guaranteed to evaluate to
-// `true` or `false`, flow analysis considers promoted fields to have their base
-// type rather than their promoted type.
+// Tests that the behavior described in
+// https://github.com/dart-lang/language/issues/4127 has been fixed. That is,
+// when deciding whether an `==` or `!=` comparison is guaranteed to evaluate to
+// `true` or `false`, flow analysis considers promoted fields to have their
+// promoted type.
 
-// This test is here to make sure we don't change the existing behavior by
-// accident; if/when we fix #4127, this test should be changed accordingly.
+// This test acts as a regression test for #4127.
 
 import '../static_type_helper.dart';
 
@@ -30,10 +29,10 @@ class C {
       y = null;
     }
     // In analyzing the `==` check, flow analysis assumes that `_f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
+    // promoted type (`Null`), so only the `x = null` branch is
+    // reachable. Therefore only `x` should be demoted here.
     x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void testImplicitThisReferenceOnRhsOfEquals() {
@@ -49,10 +48,10 @@ class C {
       y = null;
     }
     // In analyzing the `==` check, flow analysis assumes that `_f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
+    // promoted type (`Null`), so only the `x = null` branch is
+    // reachable. Therefore only `x` should be demoted here.
     x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void testImplicitThisReferenceOnLhsOfNotEquals() {
@@ -68,9 +67,9 @@ class C {
       y = null;
     }
     // In analyzing the `!=` check, flow analysis assumes that `_f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
-    x.expectStaticType<Exactly<int?>>();
+    // promoted type (`Null`), so only the `y = null` branch is
+    // reachable. Therefore only `y` should be demoted here.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -87,9 +86,9 @@ class C {
       y = null;
     }
     // In analyzing the `!=` check, flow analysis assumes that `_f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
-    x.expectStaticType<Exactly<int?>>();
+    // promoted type (`Null`), so only the `y = null` branch is
+    // reachable. Therefore only `y` should be demoted here.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -106,10 +105,10 @@ class C {
       y = null;
     }
     // In analyzing the `==` check, flow analysis assumes that `this._f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
+    // promoted type (`Null`), so only the `x = null` branch is
+    // reachable. Therefore only `x` should be demoted here.
     x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void testExplicitThisReferenceOnRhsOfEquals() {
@@ -125,10 +124,10 @@ class C {
       y = null;
     }
     // In analyzing the `==` check, flow analysis assumes that `this._f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
+    // promoted type (`Null`), so only the `x = null` branch is
+    // reachable. Therefore only `x` should be demoted here.
     x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void testExplicitThisReferenceOnLhsOfNotEquals() {
@@ -144,9 +143,9 @@ class C {
       y = null;
     }
     // In analyzing the `!=` check, flow analysis assumes that `this._f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
-    x.expectStaticType<Exactly<int?>>();
+    // promoted type (`Null`), so only the `y = null` branch is
+    // reachable. Therefore only `y` should be demoted here.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -163,9 +162,9 @@ class C {
       y = null;
     }
     // In analyzing the `!=` check, flow analysis assumes that `this._f` has its
-    // unpromoted type (`Object?`), so both branches of the `if` are
-    // reachable. Therefore both `x` and `y` should both be demoted here.
-    x.expectStaticType<Exactly<int?>>();
+    // promoted type (`Null`), so only the `y = null` branch is
+    // reachable. Therefore only `y` should be demoted here.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 }
@@ -183,10 +182,10 @@ void testExplicitPropertyReferenceOnLhsOfEquals(C c) {
     y = null;
   }
   // In analyzing the `==` check, flow analysis assumes that `c._f` has its
-  // unpromoted type (`Object?`), so both branches of the `if` are
-  // reachable. Therefore both `x` and `y` should both be demoted here.
+  // promoted type (`Null`), so only the `x = null` branch is
+  // reachable. Therefore only `x` should be demoted here.
   x.expectStaticType<Exactly<int?>>();
-  y.expectStaticType<Exactly<int?>>();
+  y.expectStaticType<Exactly<int>>();
 }
 
 void testExplicitPropertyReferenceOnRhsOfEquals(C c) {
@@ -202,10 +201,10 @@ void testExplicitPropertyReferenceOnRhsOfEquals(C c) {
     y = null;
   }
   // In analyzing the `==` check, flow analysis assumes that `c._f` has its
-  // unpromoted type (`Object?`), so both branches of the `if` are
-  // reachable. Therefore both `x` and `y` should both be demoted here.
+  // promoted type (`Null`), so only the `x = null` branch is
+  // reachable. Therefore only `x` should be demoted here.
   x.expectStaticType<Exactly<int?>>();
-  y.expectStaticType<Exactly<int?>>();
+  y.expectStaticType<Exactly<int>>();
 }
 
 void testExplicitPropertyReferenceOnLhsOfNotEquals(C c) {
@@ -221,9 +220,9 @@ void testExplicitPropertyReferenceOnLhsOfNotEquals(C c) {
     y = null;
   }
   // In analyzing the `!=` check, flow analysis assumes that `c._f` has its
-  // unpromoted type (`Object?`), so both branches of the `if` are
-  // reachable. Therefore both `x` and `y` should both be demoted here.
-  x.expectStaticType<Exactly<int?>>();
+  // promoted type (`Null`), so only the `y = null` branch is
+  // reachable. Therefore only `y` should be demoted here.
+  x.expectStaticType<Exactly<int>>();
   y.expectStaticType<Exactly<int?>>();
 }
 
@@ -240,9 +239,9 @@ void testExplicitPropertyReferenceOnRhsOfNotEquals(C c) {
     y = null;
   }
   // In analyzing the `!=` check, flow analysis assumes that `c._f` has its
-  // unpromoted type (`Object?`), so both branches of the `if` are
-  // reachable. Therefore both `x` and `y` should both be demoted here.
-  x.expectStaticType<Exactly<int?>>();
+  // promoted type (`Null`), so only the `y = null` branch is
+  // reachable. Therefore only `y` should be demoted here.
+  x.expectStaticType<Exactly<int>>();
   y.expectStaticType<Exactly<int?>>();
 }
 

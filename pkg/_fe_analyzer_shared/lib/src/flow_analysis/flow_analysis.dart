@@ -5396,7 +5396,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         model: _current,
-        type: unpromotedType,
+        type: promotedType ?? unpromotedType,
         ssaNode: propertySsaNode);
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
@@ -5418,7 +5418,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         model: _current,
-        type: unpromotedType,
+        type: promotedType ?? unpromotedType,
         ssaNode: propertySsaNode);
     _stack.add(new _PropertyPatternContext<Type>(
         _makeTemporaryReference(
