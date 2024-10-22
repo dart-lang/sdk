@@ -108,7 +108,6 @@ class _TypeError extends Error implements TypeError {
   final String _message;
 }
 
-@pragma("vm:entry-point")
 class _InternalError {
   @pragma("vm:entry-point")
   const _InternalError(this._msg);

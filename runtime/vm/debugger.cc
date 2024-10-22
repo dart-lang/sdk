@@ -714,7 +714,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       const auto variable_index = VariableIndex(var_info.index());
       obj = GetStackVar(variable_index);
       if (obj.IsClosure()) {
-        ASSERT(function().IsClosureCallDispatcher());
+        ASSERT(function().name() == Symbols::call().ptr());
+        ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
         ctx_ = Closure::Cast(obj).GetContext();
       } else if (obj.IsContext()) {

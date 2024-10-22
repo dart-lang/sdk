@@ -104,7 +104,6 @@ TEST_CASE(UnhandledExceptions) {
           UnhandledExceptions.invoke();
           return 2;
         }
-        @pragma('vm:entry-point', 'call')
         static int method2() {
           throw new Second();
         }
@@ -122,7 +121,6 @@ TEST_CASE(UnhandledExceptions) {
         UnhandledExceptions.equals(3, Second.method3(1));
       }
       )";
-  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
   EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, nullptr));
 }

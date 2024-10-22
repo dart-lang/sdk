@@ -65,9 +65,7 @@ ClassPtr GetClass(const Library& lib, const char* name);
 TypeParameterPtr GetClassTypeParameter(const Class& klass, intptr_t index);
 TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index);
 
-ObjectPtr Invoke(const Library& lib,
-                 const char* name,
-                 bool check_is_entrypoint = false);
+ObjectPtr Invoke(const Library& lib, const char* name);
 
 InstructionsPtr BuildInstructions(
     std::function<void(compiler::Assembler* assembler)> fun);
