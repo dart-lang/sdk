@@ -1,3 +1,9 @@
+## 14.3.1
+- Fix crash that could occur when trying to send a service extension response
+  after the service connection had already been disposed of ([flutter/flutter #157296]).
+
+[flutter/flutter #157296]: https://github.com/flutter/flutter/issues/157296
+
 ## 14.3.0
 - Update to version `4.16` of the spec.
 - Add `reloadFailureReason` property to `Event`.
