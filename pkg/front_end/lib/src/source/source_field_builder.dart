@@ -467,14 +467,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember);
   }
 
   @override
@@ -487,10 +481,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       MetadataBuilder.buildAnnotations(
           annotatable,
           metadata,
-          createBodyBuilderContext(
-              inOutlineBuildingPhase: true,
-              inMetadata: true,
-              inConstFields: false),
+          createBodyBuilderContext(),
           libraryBuilder,
           fileUri,
           declarationBuilder?.scope ?? libraryBuilder.scope);
@@ -508,13 +499,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              scope,
-              fileUri);
+              libraryBuilder, createBodyBuilderContext(), scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer

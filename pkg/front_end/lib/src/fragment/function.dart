@@ -18,10 +18,7 @@ abstract class FunctionBodyBuildingContext {
   // TODO(johnniwinther): Avoid the need for this.
   bool get shouldBuild;
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields});
+  BodyBuilderContext createBodyBuilderContext();
 
   LookupScope get typeParameterScope;
 

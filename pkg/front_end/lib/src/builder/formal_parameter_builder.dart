@@ -276,11 +276,8 @@ class FormalParameterBuilder extends BuilderImpl
         final DeclarationBuilder declarationBuilder =
             parent.declarationBuilder!;
         LookupScope scope = declarationBuilder.scope;
-        BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
-            this,
-            inOutlineBuildingPhase: true,
-            inMetadata: false,
-            inConstFields: false);
+        BodyBuilderContext bodyBuilderContext =
+            new ParameterBodyBuilderContext(this);
         BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(
                 libraryBuilder, bodyBuilderContext, scope, fileUri);

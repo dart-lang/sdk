@@ -345,14 +345,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {}
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new FactoryBodyBuilderContext(this, _procedure,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new FactoryBodyBuilderContext(this, _procedure);
   }
 
   @override
@@ -535,14 +529,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           .createLocalTypeInferrer(
               fileUri, declarationBuilder.thisType, libraryBuilder, null);
       InferenceHelper helper = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              declarationBuilder.scope,
-              fileUri);
+          .createBodyBuilderForOutlineExpression(libraryBuilder,
+              createBodyBuilderContext(), declarationBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -905,13 +893,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new RedirectingFactoryBodyBuilderContext(this, _procedure,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new RedirectingFactoryBodyBuilderContext(this, _procedure);
   }
 }

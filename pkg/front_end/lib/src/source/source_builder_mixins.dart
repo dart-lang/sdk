@@ -187,23 +187,14 @@ mixin SourceDeclarationBuilderMixin
     });
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields});
+  BodyBuilderContext createBodyBuilderContext();
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            classHierarchy,
-            typeParameterScope);
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            createBodyBuilderContext(), classHierarchy, typeParameterScope);
       }
     }
 

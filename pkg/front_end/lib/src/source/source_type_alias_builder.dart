@@ -363,14 +363,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         growable: true);
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new TypedefBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new TypedefBodyBuilderContext(this);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -378,10 +372,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     MetadataBuilder.buildAnnotations(
         typedef,
         _introductory.metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
+        createBodyBuilderContext(),
         libraryBuilder,
         fileUri,
         libraryBuilder.scope);
@@ -389,10 +380,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
             libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
+            createBodyBuilderContext(),
             classHierarchy,
             computeTypeParameterScope(libraryBuilder.scope));
       }

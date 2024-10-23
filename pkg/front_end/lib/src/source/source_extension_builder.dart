@@ -184,14 +184,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ExtensionBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ExtensionBodyBuilderContext(this);
   }
 
   @override
@@ -219,10 +213,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     MetadataBuilder.buildAnnotations(
         annotatable,
         _introductory.metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
+        createBodyBuilderContext(),
         libraryBuilder,
         _introductory.fileUri,
         libraryBuilder.scope);

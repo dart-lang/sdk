@@ -476,26 +476,15 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       LookupScope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
-        MetadataBuilder.buildAnnotations(
-            annotatable,
-            metadata,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            libraryBuilder,
-            fileUri,
-            parentScope,
+        MetadataBuilder.buildAnnotations(annotatable, metadata,
+            createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,
             createFileUriExpression: isAugmented);
       }
       if (typeParameters != null) {
         for (int i = 0; i < typeParameters!.length; i++) {
           typeParameters![i].buildOutlineExpressions(
               libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: true,
-                  inConstFields: false),
+              createBodyBuilderContext(),
               classHierarchy,
               computeTypeParameterScope(parentScope));
         }
