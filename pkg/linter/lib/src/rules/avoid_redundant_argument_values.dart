@@ -133,7 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       FormalParameterElement? param;
       if (arg is NamedExpression) {
         param = parameters.firstWhereOrNull(
-            (p) => p.isNamed && p.name == arg.name.label.name);
+            (p) => p.isNamed && p.name3 == arg.name.label.name);
       } else {
         // Count which positional argument we're at.
         var positionalCount =

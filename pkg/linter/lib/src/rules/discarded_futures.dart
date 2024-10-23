@@ -130,7 +130,7 @@ extension ElementExtension on Element2? {
   bool get isDartAsyncUnawaited {
     var self = this;
     return self is TopLevelFunctionElement &&
-        self.name == 'unawaited' &&
+        self.name3 == 'unawaited' &&
         (self.library2?.isDartAsync ?? false);
   }
 }

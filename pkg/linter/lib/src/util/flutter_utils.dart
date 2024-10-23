@@ -114,7 +114,7 @@ class _Flutter {
 
   /// Whether [element] is exactly the element named [type], from Flutter.
   bool isExactly2(InterfaceElement2 element, String type, Uri uri) =>
-      element.name == type &&
+      element.name3 == type &&
       element.firstFragment.libraryFragment.source.uri == uri;
 
   bool isExactWidget(ClassElement element) =>
@@ -130,7 +130,7 @@ class _Flutter {
 
   bool isKDebugMode(Element2? element) =>
       element != null &&
-      element.name == 'kDebugMode' &&
+      element.name3 == 'kDebugMode' &&
       element.library2.uri == _uriFoundation;
 
   bool isState(InterfaceElement element) =>

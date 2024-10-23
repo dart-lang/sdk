@@ -47,14 +47,14 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     // Unifying and Generalizing visitors are doing the right thing.)
     // For now we flag methods inherited from SimpleAstVisitor since they
     // surely don't do anything.
-    return member?.enclosingElement2?.name != 'SimpleAstVisitor';
+    return member?.enclosingElement2?.name3 != 'SimpleAstVisitor';
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var targetType = node.target?.staticType;
     if (targetType is! InterfaceType) return;
-    if (targetType.element3.name != 'NodeLintRegistry') return;
+    if (targetType.element3.name3 != 'NodeLintRegistry') return;
     var methodName = node.methodName.name;
     if (!methodName.startsWith('add')) return;
     var nodeType = methodName.substring(3);

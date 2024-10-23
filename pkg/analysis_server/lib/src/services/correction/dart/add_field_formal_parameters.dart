@@ -56,7 +56,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
           if (typeSystem.isPotentiallyNonNullable(field.type)) {
             prefix = 'required ';
           }
-          return '${prefix}this.${field.name}';
+          return '${prefix}this.${field.name3}';
         }
 
         var fieldParametersCode = fields.map(parameterForField).join(', ');
@@ -79,7 +79,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
 
     var fieldParametersCode =
-        fields.map((field) => 'this.${field.name}').join(', ');
+        fields.map((field) => 'this.${field.name3}').join(', ');
     await builder.addDartFileEdit(file, (builder) {
       if (lastRequiredParameter != null) {
         builder.addSimpleInsertion(

@@ -111,7 +111,7 @@ DartType? getExpectedType(PostfixExpression node) {
       var constructor = grandParent.constructorName.element;
       if (constructor != null) {
         if (constructor.returnType.isDartAsyncFuture &&
-            constructor.name == 'value') {
+            constructor.name3 == 'value') {
           return null;
         }
       }
@@ -121,7 +121,7 @@ DartType? getExpectedType(PostfixExpression node) {
         var targetClass = targetType.element3;
 
         if (targetClass.library2.isDartAsync &&
-            targetClass.name == 'Completer' &&
+            targetClass.name3 == 'Completer' &&
             grandParent.methodName.name == 'complete') {
           return null;
         }

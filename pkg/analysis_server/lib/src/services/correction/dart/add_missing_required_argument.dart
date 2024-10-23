@@ -67,7 +67,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       _missingParameterName = messageParts[1];
 
       var missingParameter = targetElement.formalParameters.firstWhereOrNull(
-        (p) => p.name == _missingParameterName,
+        (p) => p.name3 == _missingParameterName,
       );
       if (missingParameter == null) {
         return;

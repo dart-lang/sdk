@@ -301,9 +301,9 @@ extension ConstructorElementExtension2 on ConstructorElement2 {
     required String className,
     required String constructorName,
   }) =>
-      library2?.name == uri &&
-      enclosingElement2.name == className &&
-      name == constructorName;
+      library2?.name3 == uri &&
+      enclosingElement2.name3 == className &&
+      name3 == constructorName;
 }
 
 extension DartTypeExtension on DartType? {
@@ -394,7 +394,7 @@ extension ElementExtension2 on Element2? {
   bool get isDartCorePrint {
     var self = this;
     return self is TopLevelFunctionElement &&
-        self.name == 'print' &&
+        self.name3 == 'print' &&
         self.firstFragment.libraryFragment.element.isDartCore;
   }
 
@@ -567,7 +567,7 @@ extension InhertanceManager3Extension on InheritanceManager3 {
     if (interfaceElement == null) {
       return null;
     }
-    var name = member.name;
+    var name = member.name3;
     if (name == null) {
       return null;
     }

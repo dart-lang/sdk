@@ -40,7 +40,7 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var variableName = variable.name;
+    var variableName = variable.name3;
     if (variableName == null) {
       return;
     }

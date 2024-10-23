@@ -41,7 +41,7 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
     }
     var element = creation.constructorName.element;
     if (element == null ||
-        element.name != 'fromIterable' ||
+        element.name3 != 'fromIterable' ||
         element.enclosingElement2 != typeProvider.mapElement2) {
       return;
     }
@@ -230,7 +230,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
     for (var i = references.length - 1; i >= 0; i--) {
       var oldOffset = references[i].offset - offset;
       // SAFETY: we cannot reference a formal parameter without a name.
-      var oldLength = parameter.name!.length;
+      var oldLength = parameter.name3!.length;
       source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
     }
     return source;

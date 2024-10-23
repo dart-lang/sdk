@@ -134,7 +134,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addImplicitExtensionName(Element2? enclosingElement) {
     if (enclosingElement is ExtensionElement2) {
-      if (namespace[enclosingElement.name] == enclosingElement) {
+      if (namespace[enclosingElement.name3] == enclosingElement) {
         referencedNames.add(enclosingElement.displayName);
       }
     }
@@ -144,7 +144,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     if (element != null) {
       var name = nameToken.lexeme;
       if (namespace[name] == element ||
-          (name != element.name && namespace[element.name] == element)) {
+          (name != element.name3 && namespace[element.name3] == element)) {
         referencedNames.add(element.displayName);
       }
     }

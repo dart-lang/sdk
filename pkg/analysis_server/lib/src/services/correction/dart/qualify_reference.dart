@@ -57,7 +57,7 @@ class QualifyReference extends ResolvedCorrectionProducer {
       return;
     }
 
-    var containerName = enclosingElement.name;
+    var containerName = enclosingElement.name3;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, '$containerName.');
     });

@@ -54,7 +54,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     var superPositionalParameters = <FormalParameterElement>[];
     for (var superParameter in superParameters) {
       if (superParameter.isRequired) {
-        var name = superParameter.name;
+        var name = superParameter.name3;
         if (superParameter.isNamed) {
           if (!parameters.any((parameter) => parameter.name?.lexeme == name)) {
             missingNamedParameters.add(superParameter);
@@ -72,7 +72,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       if (parameter.isRequiredPositional) {
         if (parameter is! SuperFormalParameter ||
             i >= superPositionalParameters.length ||
-            parameter.name.lexeme != superPositionalParameters[i].name) {
+            parameter.name.lexeme != superPositionalParameters[i].name3) {
           arePositionalOrdered = false;
           break;
         }

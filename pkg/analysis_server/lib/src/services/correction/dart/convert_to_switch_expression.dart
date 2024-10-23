@@ -116,7 +116,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${functionElement!.name}(');
+      builder.addSimpleInsertion(node.offset, '${functionElement!.name3}(');
 
       var groupCount = switchType.groups.length;
       for (var i = 0; i < groupCount; ++i) {
@@ -200,7 +200,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-          node.offset, '${writeElement!.name} ${assignmentOperator!.lexeme} ');
+          node.offset, '${writeElement!.name3} ${assignmentOperator!.lexeme} ');
 
       var groupCount = switchType.groups.length;
       for (var i = 0; i < groupCount; ++i) {

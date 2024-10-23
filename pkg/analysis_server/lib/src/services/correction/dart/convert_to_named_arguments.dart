@@ -69,7 +69,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         if (argument is! NamedExpression) {
           FormalParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
-            var namedParameterName = namedParameter.name;
+            var namedParameterName = namedParameter.name3;
             if (typeSystem.isSubtypeOf(
                     argument.typeOrThrow, namedParameter.type) &&
                 namedParameterName != null &&
@@ -96,7 +96,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         for (var entry in argumentToParameter.entries) {
           var argument = entry.key;
           var parameter = entry.value;
-          builder.addSimpleInsertion(argument.offset, '${parameter.name}: ');
+          builder.addSimpleInsertion(argument.offset, '${parameter.name3}: ');
         }
       });
     }

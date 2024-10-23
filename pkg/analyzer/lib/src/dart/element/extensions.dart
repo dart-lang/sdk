@@ -20,7 +20,7 @@ extension DartTypeExtension on DartType {
 extension Element2Extension on Element2 {
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
-    return name == '_' &&
+    return name3 == '_' &&
         (this is LocalVariableElement2 ||
             this is PrefixElement2 ||
             this is TypeParameterElement2 ||

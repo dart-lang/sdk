@@ -38,7 +38,7 @@ class ExecutableParameters {
 
   /// Return the names of the named parameters.
   List<String> get namedNames {
-    return named.map((parameter) => parameter.name).nonNulls.toList();
+    return named.map((parameter) => parameter.name3).nonNulls.toList();
   }
 
   /// Return the [FormalParameterList] of the [executable], or `null` if it

@@ -60,7 +60,7 @@ extension on Annotation {
   bool get isSoloTest {
     var element = element2;
     return element is GetterElement &&
-        element.name == 'soloTest' &&
-        element.library2?.name == 'test_reflective_loader';
+        element.name3 == 'soloTest' &&
+        element.library2?.name3 == 'test_reflective_loader';
   }
 }

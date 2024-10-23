@@ -41,7 +41,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var nameObj = Name.forLibrary(classElement.library2, name);
     var overridden = InheritanceManager3().getInherited4(classElement, nameObj);
     if (overridden == null) return;
-    var overriddenParameters = overridden.formalParameters.map((p) => p.name);
+    var overriddenParameters = overridden.formalParameters.map((p) => p.name3);
 
     var body = methodDeclaration.body;
     var parameters = methodDeclaration.parameters?.parameters;

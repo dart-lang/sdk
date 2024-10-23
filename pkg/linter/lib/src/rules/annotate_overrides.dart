@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var member = context.inheritanceManager.overriddenMember2(element);
     if (member != null) {
-      rule.reportLintForToken(target, arguments: [member.name!]);
+      rule.reportLintForToken(target, arguments: [member.name3!]);
     }
   }
 

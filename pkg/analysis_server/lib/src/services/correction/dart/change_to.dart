@@ -88,7 +88,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     return element.formalParameters.where((superParam) =>
         superParam.isNamed &&
         !formalParameters
-            .any((param) => superParam.name == param.name?.lexeme));
+            .any((param) => superParam.name3 == param.name?.lexeme));
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
@@ -130,13 +130,13 @@ class ChangeTo extends ResolvedCorrectionProducer {
       // Check elements from imports.
       for (var importElement
           in unitResult.libraryElement2.firstFragment.libraryImports2) {
-        if (importElement.prefix2?.element.name == prefixName) {
+        if (importElement.prefix2?.element.name3 == prefixName) {
           var namespace = getImportNamespace2(importElement);
           finder._updateList(namespace.values);
         }
       }
       // If we have a close enough element, suggest to use it.
-      await _suggest(builder, nameToken, finder._element?.name);
+      await _suggest(builder, nameToken, finder._element?.name3);
     }
   }
 
@@ -193,7 +193,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     var type = node.type?.type;
     await _proposeClassOrMixinMember(builder, node.name, null, (element) {
       return element is FieldElement2 &&
-          !exclusions.contains(element.name) &&
+          !exclusions.contains(element.name3) &&
           !element.isSynthetic &&
           !element.isExternal &&
           (type == null ||
@@ -228,13 +228,13 @@ class ChangeTo extends ResolvedCorrectionProducer {
       // Check unprefixed imports.
       for (var importElement
           in unitResult.libraryElement2.firstFragment.libraryImports2) {
-        if (importElement.prefix2?.element.name == prefixName) {
+        if (importElement.prefix2?.element.name3 == prefixName) {
           var namespace = getImportNamespace2(importElement);
           finder._updateList(namespace.values);
         }
       }
       // If we have a close enough element, suggest to use it.
-      await _suggest(builder, node, finder._element?.name);
+      await _suggest(builder, node, finder._element?.name3);
     }
   }
 
@@ -306,7 +306,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       if (superType == null) return;
 
       for (var constructor in superType.constructors2) {
-        if (constructor.name.isEmpty) {
+        if (constructor.name3.isEmpty) {
           var list = _formalParameterSuggestions(constructor, formalParameters);
           finder._updateList(list);
           break;
@@ -315,7 +315,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     }
 
     // If we have a close enough element, suggest to use it.
-    await _suggest(builder, superParameter.name, finder._element?.name);
+    await _suggest(builder, superParameter.name, finder._element?.name3);
   }
 
   Future<void> _suggest(
@@ -363,7 +363,7 @@ class _ClosestElementFinder {
 
   void _update(Element2 element) {
     if (_predicate(element)) {
-      var name = element.name;
+      var name = element.name3;
       if (name != null) {
         var memberDistance = levenshtein(name, _targetName, _distance);
         if (memberDistance < _distance) {

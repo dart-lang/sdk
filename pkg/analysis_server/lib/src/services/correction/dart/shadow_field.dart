@@ -35,7 +35,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var fieldName = accessor.name;
+    var fieldName = accessor.name3;
     if (fieldName == null) {
       return;
     }

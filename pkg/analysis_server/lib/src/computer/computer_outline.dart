@@ -465,7 +465,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
       return true;
     }
     return element is engine.TopLevelFunctionElement &&
-        element.name == 'group' &&
+        element.name3 == 'group' &&
         _isInsideTestPackage(element);
   }
 
@@ -476,7 +476,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
       return true;
     }
     return element is engine.TopLevelFunctionElement &&
-        element.name == 'test' &&
+        element.name3 == 'test' &&
         _isInsideTestPackage(element);
   }
 

@@ -87,7 +87,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
       var target = node.realTarget;
       var targetElement = target is Identifier ? target.element : null;
       if (targetElement is ClassElement2 &&
-          targetElement.name == 'FlutterError') {
+          targetElement.name3 == 'FlutterError') {
         _checkUseInArgument(node.argumentList);
       }
     } else if (node.methodName.name == 'completeError') {

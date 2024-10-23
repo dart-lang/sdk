@@ -524,7 +524,7 @@ extension InterfaceElementExtension2 on InterfaceElement2? {
   bool _isExactly(String type, Uri uri) {
     var self = this;
     return self is ClassElement2 &&
-        self.name == type &&
+        self.name3 == type &&
         self.firstFragment.libraryFragment.source.uri == uri;
   }
 }
