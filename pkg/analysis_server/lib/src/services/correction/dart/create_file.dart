@@ -51,8 +51,9 @@ class CreateFile extends ResolvedCorrectionProducer {
         if (source != null) {
           var pathContext = resourceProvider.pathContext;
           var relativePath = pathContext.relative(
-              unitResult.libraryElement.source.fullName,
-              from: pathContext.dirname(source.fullName));
+            unitResult.libraryElement2.firstFragment.source.fullName,
+            from: pathContext.dirname(source.fullName),
+          );
 
           // URIs always use forward slashes regardless of platform.
           var relativeUri = pathContext.split(relativePath).join('/');

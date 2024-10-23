@@ -314,6 +314,7 @@ lib/src/services/correction/dart/create_class.dart
 lib/src/services/correction/dart/create_constructor.dart
 lib/src/services/correction/dart/create_constructor_for_final_fields.dart
 lib/src/services/correction/dart/create_field.dart
+lib/src/services/correction/dart/create_file.dart
 lib/src/services/correction/dart/create_function.dart
 lib/src/services/correction/dart/create_getter.dart
 lib/src/services/correction/dart/create_local_variable.dart
