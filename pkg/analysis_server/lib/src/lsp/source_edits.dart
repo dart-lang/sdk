@@ -13,10 +13,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Checks whether a string contains only characters that are allowed to differ
 /// between unformattedformatted code (such as whitespace, commas, semicolons).
@@ -97,17 +99,20 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   var effectivePageWidth =
       result.analysisOptions.formatterOptions.pageWidth ?? defaultPageWidth;
 
+  var effectiveLanguageVersion = switch (result.unit.languageVersionToken) {
+    var token? => Version(token.major, token.minor, 0),
+    _ => (result as ParsedUnitResultImpl).fileState.packageLanguageVersion,
+  };
+
   var code = SourceCode(unformattedSource);
   SourceCode formattedResult;
   try {
     // Create a new formatter on every request because it may contain state that
     // affects repeated formats.
     // https://github.com/dart-lang/dart_style/issues/1337
-    var languageVersion =
-        result.unit.declaredElement?.library.languageVersion.effective ??
-            DartFormatter.latestLanguageVersion;
     var formatter = DartFormatter(
-        pageWidth: effectivePageWidth, languageVersion: languageVersion);
+        pageWidth: effectivePageWidth,
+        languageVersion: effectiveLanguageVersion);
     formattedResult = formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the

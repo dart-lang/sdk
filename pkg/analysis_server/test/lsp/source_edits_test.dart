@@ -21,6 +21,52 @@ void main() {
 
 @reflectiveTest
 class SourceEditsTest extends AbstractSingleUnitTest with LspEditHelpersMixin {
+  Future<void> test_format_version_defaultsToLatest() async {
+    // Latest version should parse and format records.
+    const startContent = '''
+var    a = (1, 2);
+''';
+    const endContent = '''
+var a = (1, 2);
+''';
+    const expectedEdits = r'''
+Delete 1:5-1:8
+''';
+
+    await _assertFormatEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_format_version_languageVersionToken() async {
+    // 2.19 will not parse/format records.
+    const content = '''
+// @dart = 2.19
+var    a = (1, 2);
+''';
+
+    await _assertNoFormatEdits(content);
+  }
+
+  Future<void> test_format_version_packageConfig() async {
+    // 2.19 will not parse/format records.
+    writeTestPackageConfig(languageVersion: '2.19');
+    const content = '''
+var    a = (1, 2);
+''';
+
+    await _assertNoFormatEdits(content);
+  }
+
+  Future<void> test_format_version_versionToken_overridesPackageConfig() async {
+    // 2.19 will not parse/format records.
+    writeTestPackageConfig(languageVersion: '3.0');
+    const content = '''
+// @dart = 2.19
+var    a = (1, 2);
+''';
+
+    await _assertNoFormatEdits(content);
+  }
+
   Future<void> test_minimalEdits_comma_delete() async {
     const startContent = '''
 void f(int a,) {}
@@ -572,6 +618,26 @@ void g() {
     );
   }
 
+  /// Assert that generating edits to format [start] match those described
+  /// in [expected] and when applied, result in [end].
+  ///
+  /// Edits will be automatically applied and verified. [expected] is to ensure
+  /// the edits are minimal and we didn't accidentally produces a single edit
+  /// replacing the entire file.
+  Future<void> _assertFormatEdits(
+    String start,
+    String end,
+    String expected, {
+    String? expectedFormatResult,
+    Range? range,
+  }) async {
+    await parseTestCode(start);
+    var edits =
+        generateEditsForFormatting(testParsedResult, range: range).result!;
+    expect(edits.toText().trim(), expected.trim());
+    expect(applyTextEdits(start, edits), expectedFormatResult ?? end);
+  }
+
   /// Assert that computing minimal edits to convert [start] to [end] produces
   /// the set of edits described in [expected].
   ///
@@ -594,6 +660,13 @@ void g() {
     var edits = generateMinimalEdits(testParsedResult, end, range: range);
     expect(edits.toText().trim(), expected);
     expect(applyTextEdits(start, edits.result), expectedFormatResult ?? end);
+  }
+
+  /// Assert that formatting [content] produces no edits.
+  Future<void> _assertNoFormatEdits(String content) async {
+    await parseTestCode(content);
+    var edits = generateEditsForFormatting(testParsedResult).result;
+    expect(edits, isNull);
   }
 }
 
