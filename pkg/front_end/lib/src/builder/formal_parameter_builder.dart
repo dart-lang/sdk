@@ -148,9 +148,6 @@ class FormalParameterBuilder extends BuilderImpl
   @override
   bool get isConst => modifiers.isConst;
 
-  @override
-  bool get isFinal => modifiers.isFinal;
-
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
   // [ProcedureBuilder.computeFormalParameterInitializerScope]..
@@ -173,7 +170,7 @@ class FormalParameterBuilder extends BuilderImpl
           // `null` is used in [VariableDeclarationImpl] to signal an omitted
           // type.
           type: isTypeOmitted ? null : builtType,
-          isFinal: isFinal,
+          isFinal: modifiers.isFinal,
           isConst: false,
           isInitializingFormal: isInitializingFormal,
           isCovariantByDeclaration: isCovariantByDeclaration,

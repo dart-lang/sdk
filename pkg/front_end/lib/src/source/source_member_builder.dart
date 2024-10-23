@@ -9,7 +9,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
-import '../base/modifiers.dart';
 import '../base/problems.dart' show unsupported;
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -122,29 +121,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
             : null;
-
-  Modifiers get modifiers;
-
-  @override
-  bool get isAugmentation => modifiers.isAugment;
-
-  @override
-  bool get isExternal => modifiers.isExternal;
-
-  @override
-  bool get isAbstract => modifiers.isAbstract;
-
-  @override
-  bool get isConst => modifiers.isConst;
-
-  @override
-  bool get isFinal => modifiers.isFinal;
-
-  @override
-  bool get isStatic => modifiers.isStatic;
-
-  @override
-  bool get isAugment => modifiers.isAugment;
 
   bool? _isConflictingSetter;
 

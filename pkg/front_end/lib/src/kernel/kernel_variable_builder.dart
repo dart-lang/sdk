@@ -32,10 +32,6 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   bool get isConst => variable.isConst;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => variable.isFinal;
-
-  @override
   bool get isAssignable => variable.isAssignable;
 
   @override

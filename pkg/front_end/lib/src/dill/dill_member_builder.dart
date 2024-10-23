@@ -157,10 +157,6 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
   bool get isConst => field.isConst;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => field.isFinal;
-
-  @override
   bool get isStatic => field.isStatic;
 }
 

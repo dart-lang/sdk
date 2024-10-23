@@ -52,7 +52,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final MemberName _memberName;
 
-  @override
   final Modifiers modifiers;
 
   late FieldEncoding _fieldEncoding;
@@ -319,6 +318,26 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
+  @override
+  bool get isAugmentation => modifiers.isAugment;
+
+  @override
+  bool get isExternal => modifiers.isExternal;
+
+  @override
+  bool get isAbstract => modifiers.isAbstract;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  bool get isFinal => modifiers.isFinal;
+
+  @override
+  bool get isStatic => modifiers.isStatic;
+
+  @override
+  bool get isAugment => modifiers.isAugment;
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;

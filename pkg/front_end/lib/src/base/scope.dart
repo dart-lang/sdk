@@ -566,10 +566,6 @@ class AccessErrorBuilder extends ProblemBuilder {
   Builder? get parent => builder.parent;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => builder.isFinal;
-
-  @override
   bool get isField => builder.isField;
 
   @override

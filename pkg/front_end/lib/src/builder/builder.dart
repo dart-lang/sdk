@@ -32,8 +32,6 @@ abstract class Builder {
 
   bool get isField;
 
-  bool get isFinal;
-
   bool get isGetter;
 
   bool get isExternal;
@@ -286,10 +284,6 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isField => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => false;
 
   @override
   bool get isGetter => false;
