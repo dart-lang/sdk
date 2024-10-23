@@ -4,10 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
@@ -31,34 +32,35 @@ class PreferRelativeImports extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     if (!context.isInLibDir) return;
 
-    var visitor = _Visitor(this, context);
+    var sourceUri = context.libraryElement2?.uri;
+    if (sourceUri == null) return;
+
+    var visitor = _Visitor(this, sourceUri, context);
     registry.addImportDirective(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final PreferRelativeImports rule;
+  final Uri sourceUri;
   final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.sourceUri, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
-    var uri = node.element?.uri;
-    if (uri is! DirectiveUriWithSource) {
-      return false;
+    if (node.libraryImport?.uri case DirectiveUriWithSource importedLibrary) {
+      var importUri = importedLibrary.relativeUri;
+      if (!importUri.isScheme('package')) return false;
+
+      if (!samePackage(importUri, sourceUri)) return false;
+
+      // TODO(pq): context.package.contains(source) should work (but does not)
+      var packageRoot = context.package?.root;
+      return packageRoot != null &&
+          path.isWithin(packageRoot, importedLibrary.source.fullName);
     }
 
-    // Is it a package: import?
-    var importUri = uri.relativeUri;
-    if (!importUri.isScheme('package')) return false;
-
-    var sourceUri = node.element?.source.uri;
-    if (!samePackage(importUri, sourceUri)) return false;
-
-    // TODO(pq): context.package.contains(source) should work (but does not)
-    var packageRoot = context.package?.root;
-    return packageRoot != null &&
-        path.isWithin(packageRoot, uri.source.fullName);
+    return false;
   }
 
   @override

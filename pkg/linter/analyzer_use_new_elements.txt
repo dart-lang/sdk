@@ -139,6 +139,7 @@ lib/src/rules/prefer_iterable_whereType.dart
 lib/src/rules/prefer_mixin.dart
 lib/src/rules/prefer_null_aware_method_calls.dart
 lib/src/rules/prefer_null_aware_operators.dart
+lib/src/rules/prefer_relative_imports.dart
 lib/src/rules/prefer_single_quotes.dart
 lib/src/rules/prefer_spread_collections.dart
 lib/src/rules/prefer_typing_uninitialized_variables.dart
@@ -203,6 +204,7 @@ lib/src/rules/valid_regexps.dart
 lib/src/test_utilities/analyzer_utils.dart
 lib/src/test_utilities/annotation.dart
 lib/src/test_utilities/formatter.dart
+lib/src/test_utilities/lint_driver.dart
 lib/src/test_utilities/test_linter.dart
 lib/src/test_utilities/test_resource_provider.dart
 lib/src/util/ascii_utils.dart
