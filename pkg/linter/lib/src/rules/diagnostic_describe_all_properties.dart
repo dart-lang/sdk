@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var classElement = member.thisOrAncestorOfType2<InterfaceElement2>();
     if (classElement == null) return false;
 
-    var name = member.name;
+    var name = member.name3;
     if (name == null) return false;
 
     return inheritanceManager.getInherited4(classElement, Name(null, name)) !=

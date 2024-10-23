@@ -37,11 +37,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitThrowExpression(ThrowExpression node) {
     if (node.parent is! ExpressionStatement) return;
 
-    var element = node.expression.canonicalElement;
+    var element = node.expression.canonicalElement2;
     if (element != null) {
       var catchClause = node.thisOrAncestorOfType<CatchClause>();
       var exceptionParameter =
-          catchClause?.exceptionParameter?.declaredElement?.canonicalElement;
+          catchClause?.exceptionParameter?.declaredElement2;
       if (element == exceptionParameter) {
         rule.reportLint(node);
       }

@@ -876,6 +876,6 @@ class _ExpectedElement<T extends Element2> {
 
   void assertMatches(Element2 element) {
     expect(element, isA<T>());
-    expect(element.name, name);
+    expect(element.name3, name);
   }
 }

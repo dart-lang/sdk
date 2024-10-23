@@ -253,7 +253,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   String _elementName(Element2 e) {
-    var name = e.name ?? '<null>';
+    var name = e.name3 ?? '<null>';
     if (e is SetterElement) {
       expect(name, endsWith('='));
     }
@@ -1584,7 +1584,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write(e.fragments.map((f) {
           expect(f.element, same(e));
           if (f.name2 case var name?) {
-            expect(name.name, e.name);
+            expect(name.name, e.name3);
             return '@${name.nameOffset}';
           } else {
             return '<null-name>';

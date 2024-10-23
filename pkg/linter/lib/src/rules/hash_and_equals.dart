@@ -75,5 +75,5 @@ extension on ClassDeclaration {
 }
 
 extension<E extends Element2> on List<E> {
-  E? namedOrNull(String name) => firstWhereOrNull((e) => e.name == name);
+  E? namedOrNull(String name) => firstWhereOrNull((e) => e.name3 == name);
 }

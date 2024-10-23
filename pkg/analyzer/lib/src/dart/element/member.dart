@@ -72,6 +72,9 @@ class ConstructorMember extends ExecutableMember
   String get name => declaration.name;
 
   @override
+  String get name3 => declaration.name;
+
+  @override
   int? get nameEnd => declaration.nameEnd;
 
   @override
@@ -553,6 +556,9 @@ class FieldMember extends VariableMember
   String get name => declaration.name;
 
   @override
+  String get name3 => declaration.name;
+
+  @override
   Element2 get nonSynthetic2 => _element2.nonSynthetic2;
 
   @override
@@ -983,6 +989,9 @@ class MethodMember extends ExecutableMember
   String get name => declaration.name;
 
   @override
+  String get name3 => declaration.name;
+
+  @override
   Source get source => _declaration.source!;
 
   @override
@@ -1236,6 +1245,9 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @override
   String get name => declaration.name;
+
+  @override
+  String get name3 => declaration.name;
 
   @override
   Source get source => _declaration.source!;

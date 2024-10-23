@@ -63,7 +63,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
 
     var i = parameters.indexOf(parameter);
     if (0 <= i && i < parentParameters.length) {
-      var newName = parentParameters[i].name;
+      var newName = parentParameters[i].name3;
       if (newName == null) return;
 
       var collector = _Collector(newName, parameter.declaredFragment!.element);

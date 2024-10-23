@@ -973,7 +973,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (!element.isStatic && enclosingElement is InterfaceElement2) {
       var overriddenMembers = inheritanceManager.getOverridden4(
           enclosingElement,
-          Name(fragment.libraryFragment.source.uri, element.name!));
+          Name(fragment.libraryFragment.source.uri, element.name3!));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
         // signature of a method is changed by one of the overrides, then it
@@ -1645,14 +1645,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     for (var param in override.formalParameters) {
       if (param.isPositional) {
         positionalInOverride.add(param);
-      } else if (param.name case var name?) {
+      } else if (param.name3 case var name?) {
         namedInOverride[name] = param;
       }
     }
     for (var param in overridden.formalParameters) {
       if (param.isPositional) {
         positionalInOverridden.add(param);
-      } else if (param.name case var name?) {
+      } else if (param.name3 case var name?) {
         namedInOverridden[name] = param;
       }
     }

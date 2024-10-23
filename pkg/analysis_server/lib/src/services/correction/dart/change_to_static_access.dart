@@ -53,7 +53,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
     var declaringElement = invokedElement.enclosingElement2;
 
     if (declaringElement is InterfaceElement2) {
-      var declaringElementName = declaringElement.name;
+      var declaringElementName = declaringElement.name3;
       if (declaringElementName != null) {
         _className = declaringElementName;
         await builder.addDartFileEdit(file, (builder) {
@@ -63,7 +63,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
         });
       }
     } else if (declaringElement is ExtensionElement2) {
-      var extensionName = declaringElement.name;
+      var extensionName = declaringElement.name3;
       if (extensionName != null) {
         _className = extensionName;
         await builder.addDartFileEdit(file, (builder) {

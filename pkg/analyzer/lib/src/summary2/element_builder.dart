@@ -601,10 +601,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.implementsClause?.accept(this);
 
-    // TODO(scheglov): We cannot do this anymore.
-    // Not for class augmentations, not for classes.
-    _resolveConstructorFieldFormals(element);
-
     if (element.augmentationTarget != null) {
       var builder = _libraryBuilder.getAugmentedBuilder(name);
       if (builder is AugmentedExtensionTypeDeclarationBuilder) {
@@ -1572,16 +1568,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     representation.fieldType.accept(this);
-  }
-
-  void _resolveConstructorFieldFormals(InterfaceElementImpl element) {
-    for (var constructor in element.constructors) {
-      for (var parameter in constructor.parameters) {
-        if (parameter is FieldFormalParameterElementImpl) {
-          parameter.field = element.getField(parameter.name);
-        }
-      }
-    }
   }
 
   void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {

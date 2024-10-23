@@ -75,7 +75,7 @@ class ColorComputer {
     var constructor = expression.constructorName;
     var staticElement = constructor.element;
     var classElement = staticElement?.enclosingElement2;
-    var className = classElement?.name;
+    var className = classElement?.name3;
     var constructorName = constructor.name?.name;
     var constructorArgs = expression.argumentList.arguments.toList();
 
@@ -219,7 +219,7 @@ class ColorComputer {
   }
 
   /// Checks whether this elements library is dart:ui.
-  bool _isDartUi(Element2? element) => element?.library2?.name == 'dart.ui';
+  bool _isDartUi(Element2? element) => element?.library2?.name3 == 'dart.ui';
 
   /// Checks whether this elements library is Flutter Material colors.
   bool _isFlutterMaterial(Element2? element) =>

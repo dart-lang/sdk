@@ -94,7 +94,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
       return;
     }
 
-    var propertyName = targetProperty.name;
+    var propertyName = targetProperty.name3;
     if (propertyName == null) {
       return;
     }

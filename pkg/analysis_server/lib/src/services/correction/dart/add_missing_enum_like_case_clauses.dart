@@ -35,7 +35,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         return;
       }
       var classElement = expressionType.element3;
-      var className = classElement.name;
+      var className = classElement.name3;
       if (className == null) {
         return;
       }
@@ -88,7 +88,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         if (expression is Identifier) {
           var element = expression.element;
           if (element is GetterElement) {
-            caseNames.addIfNotNull(element.name);
+            caseNames.addIfNotNull(element.name3);
           }
         } else if (expression is PropertyAccess) {
           caseNames.add(expression.propertyName.name);
@@ -111,7 +111,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (field.type != type) {
         continue;
       }
-      constantNames.addIfNotNull(field.name);
+      constantNames.addIfNotNull(field.name3);
     }
     return constantNames;
   }

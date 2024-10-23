@@ -819,6 +819,11 @@ abstract final class DartFixKind {
     49,
     "Import 'dart:async'",
   );
+  static const IMPORT_LIBRARY_COMBINATOR = FixKind(
+    'dart.fix.import.libraryCombinator',
+    DartFixKindPriority.standard + 5,
+    "Update library '{0}' import",
+  );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
     DartFixKindPriority.standard + 5,
@@ -843,11 +848,6 @@ abstract final class DartFixKind {
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
     "Import library '{0}'",
-  );
-  static const IMPORT_LIBRARY_SHOW = FixKind(
-    'dart.fix.import.libraryShow',
-    DartFixKindPriority.standard + 5,
-    "Update library '{0}' import",
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',

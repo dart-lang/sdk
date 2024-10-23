@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var preferredElement = elements.firstWhere(
             (element) => !element.metadata2.hasDeprecated,
             orElse: () => elements.first);
-        if (preferredElement.name case var name?) {
+        if (preferredElement.name3 case var name?) {
           rule.reportLintForOffset(
             offset,
             end - offset,

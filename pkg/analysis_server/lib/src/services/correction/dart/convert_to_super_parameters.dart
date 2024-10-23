@@ -79,7 +79,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
         var parameter = _parameterFor(parameterMap, argument.expression);
         if (parameter != null &&
             parameter.isNamed &&
-            parameter.element.name == argument.name.label.name &&
+            parameter.element.name3 == argument.name.label.name &&
             !referencedParameters.contains(parameter.element)) {
           var data = _dataForParameter(
             parameter,
