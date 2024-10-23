@@ -152,10 +152,7 @@ Future<void> main() async {
 
     BodyBuilder helper = new BodyBuilder(
         libraryBuilder: libraryBuilder,
-        context: new LibraryBodyBuilderContext(libraryBuilder,
-            inOutlineBuildingPhase: false,
-            inMetadata: false,
-            inConstFields: false),
+        context: new LibraryBodyBuilderContext(libraryBuilder),
         uri: uri,
         enclosingScope:
             new FixedLocalScope(kind: ScopeKind.library, debugName: "dummy"),

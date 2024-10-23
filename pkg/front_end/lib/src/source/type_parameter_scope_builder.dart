@@ -1326,7 +1326,6 @@ class DeclarationBuilderScope implements LookupScope {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     return _declarationBuilder?.scope.lookupSetable(name, charOffset, fileUri);
   }

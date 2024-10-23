@@ -24,6 +24,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
 
@@ -362,14 +363,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         growable: true);
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new TypedefBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new TypedefBodyBuilderContext(this);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -377,10 +372,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     MetadataBuilder.buildAnnotations(
         typedef,
         _introductory.metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
+        createBodyBuilderContext(),
         libraryBuilder,
         fileUri,
         libraryBuilder.scope);
@@ -388,10 +380,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
             libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
+            createBodyBuilderContext(),
             classHierarchy,
             computeTypeParameterScope(libraryBuilder.scope));
       }
@@ -401,6 +390,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           target, tearOff,
           libraryBuilder: libraryBuilder));
     });
+  }
+
+  int computeDefaultType(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
+    hasErrors |= context.reportInboundReferenceIssuesForType(type);
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+    context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
+    return count;
   }
 
   LookupScope computeTypeParameterScope(LookupScope parent) {

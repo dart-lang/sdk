@@ -772,6 +772,7 @@ class GenericInferrer {
         typeSystem: _typeSystem,
         typeSystemOperations: _typeSystemOperations,
         typeParameters: _typeFormals,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         dataForTesting: null);
     typeConstraintGatherer.trySubtypeMatch(
         lower, typeParameterToInferBound, /* leftSchema */ true,
@@ -889,6 +890,7 @@ class GenericInferrer {
         typeSystem: _typeSystem,
         typeParameters: _typeParameters,
         typeSystemOperations: _typeSystemOperations,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         dataForTesting: dataForTesting);
     var success = gatherer.trySubtypeMatch(t1, t2, !covariant,
         nodeForTesting: nodeForTesting);

@@ -42,6 +42,7 @@ import '../kernel/kernel_helper.dart'
         TypeDependency,
         finishConstructorAugmentation,
         finishProcedureAugmentation;
+import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import 'constructor_declaration.dart';
@@ -313,14 +314,8 @@ abstract class AbstractSourceConstructorBuilder
         formalParameterScope = null;
       }
       BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              declarationScope,
-              fileUri,
+          .createBodyBuilderForOutlineExpression(libraryBuilder,
+              createBodyBuilderContext(), declarationScope, fileUri,
               formalParameterScope: formalParameterScope);
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
@@ -348,6 +343,17 @@ abstract class AbstractSourceConstructorBuilder
       }
     }
     return null;
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        // Type parameters are inherited from the enclosing declaration, so if
+        // it has issues, so do the constructors.
+        inErrorRecovery: inErrorRecovery);
+    context.reportGenericFunctionTypesForFormals(formals);
+    return count;
   }
 
   @override
@@ -652,14 +658,8 @@ class DeclaredSourceConstructorBuilder
       List<Initializer>? initializers;
       if (beginInitializers != null) {
         BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-                libraryBuilder,
-                createBodyBuilderContext(
-                    inOutlineBuildingPhase: false,
-                    inMetadata: false,
-                    inConstFields: false),
-                declarationBuilder.scope,
-                fileUri);
+            .createBodyBuilderForOutlineExpression(libraryBuilder,
+                createBodyBuilderContext(), declarationBuilder.scope, fileUri);
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }
@@ -1002,14 +1002,8 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ConstructorBodyBuilderContext(this, constructor,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ConstructorBodyBuilderContext(this, constructor);
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
@@ -1060,6 +1054,10 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
         _typeDependency = typeDependency,
         _constructor = constructor,
         _constructorTearOff = constructorTearOff;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1197,6 +1195,14 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
           .add(_delayedDefaultValueCloner!..isOutlineNode = true);
       _delayedDefaultValueCloner = null;
     }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    assert(false, "Unexpected call to $runtimeType.computeDefaultType");
+    return 0;
   }
 
   @override
@@ -1507,14 +1513,8 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ExtensionTypeConstructorBodyBuilderContext(this, _constructor,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ExtensionTypeConstructorBodyBuilderContext(this, _constructor);
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.

@@ -42,6 +42,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'class_declaration.dart';
 import 'name_scheme.dart';
@@ -410,14 +411,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     return cls;
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ClassBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ClassBodyBuilderContext(this);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -431,24 +426,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     MetadataBuilder.buildAnnotations(
         isAugmenting ? origin.cls : cls,
         metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
+        createBodyBuilderContext(),
         libraryBuilder,
         fileUri,
         libraryBuilder.scope,
         createFileUriExpression: isAugmenting);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            classHierarchy,
-            typeParameterScope);
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            createBodyBuilderContext(), classHierarchy, typeParameterScope);
       }
     }
 
@@ -1145,6 +1131,29 @@ class SourceClassBuilder extends ClassBuilderImpl
       library.reportTypeArgumentIssue(message, fileUri, fileOffset,
           typeParameter: typeParameter);
     }
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+
+    Iterator<SourceMemberBuilder> iterator =
+        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      count += iterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+
+    Iterator<SourceMemberBuilder> memberIterator =
+        fullMemberIterator<SourceMemberBuilder>();
+    while (memberIterator.moveNext()) {
+      count += memberIterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+    return count;
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {

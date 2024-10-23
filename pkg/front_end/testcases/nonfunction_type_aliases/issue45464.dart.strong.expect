@@ -22,37 +22,67 @@ library;
 // typedef C<X extends A<X>> = A<X>;
 //           ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:34:7: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:34:8: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     f1(() => captureTypeArgument());
+//        ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:34:7: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     f1(() => captureTypeArgument());
 //       ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:35:7: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:35:8: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     f2(() => captureTypeArgument());
+//        ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:35:7: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     f2(() => captureTypeArgument());
 //       ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:36:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'local1'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:36:12: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     local1(() => captureTypeArgument());
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:36:11: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'local1'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     local1(() => captureTypeArgument());
 //           ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:37:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'local2'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:37:12: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     local2(() => captureTypeArgument());
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:37:11: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'local2'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     local2(() => captureTypeArgument());
 //           ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:38:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'topLevel1'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:38:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     topLevel1(() => captureTypeArgument());
+//               ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:38:5: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'topLevel1'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     topLevel1(() => captureTypeArgument());
 //     ^
@@ -60,9 +90,15 @@ library;
 // void topLevel1<X extends A<X>>(A<X> Function() g) => g();
 //                ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:39:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'topLevel2'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:39:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     topLevel2(() => captureTypeArgument());
+//               ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:39:5: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'topLevel2'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     topLevel2(() => captureTypeArgument());
 //     ^
@@ -70,33 +106,57 @@ library;
 // void topLevel2<X extends C<X>>(C<X> Function() g) => g();
 //                ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:40:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Class.instance1'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:40:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     instance1(() => captureTypeArgument());
+//               ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:40:5: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Class.instance1'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     instance1(() => captureTypeArgument());
 //     ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:41:5: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Class.instance2'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:41:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     instance2(() => captureTypeArgument());
+//               ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:41:5: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Class.instance2'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     instance2(() => captureTypeArgument());
 //     ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:47:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance1'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:47:21: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     super.instance1(() => captureTypeArgument());
+//                     ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:47:11: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance1'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 //  - 'Subclass' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     super.instance1(() => captureTypeArgument());
 //           ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:48:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance2'.
-//  - 'Object' is from 'dart:core'.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:48:21: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+//     super.instance2(() => captureTypeArgument());
+//                     ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:48:11: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance2'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
 //  - 'Subclass' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     super.instance2(() => captureTypeArgument());
@@ -128,14 +188,46 @@ class Class extends core::Object {
     <X extends self::A<X> = self::A<dynamic>>(() → self::A<X>) → void f2 = local2;
     new self::A::•<self::A<core::Object?>>();
     new self::A::•<self::A<core::Object?>>();
-    f1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
-    f2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
-    local1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
-    local2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
-    self::topLevel1<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    self::topLevel2<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    this.{self::Class::instance1}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
-    this.{self::Class::instance2}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()){(() → self::A<core::Object?>) → void};
+    f1<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:34:8: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    f1(() => captureTypeArgument());
+       ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>){(() → self::A<self::A<core::Object?>>) → void};
+    f2<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:35:8: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    f2(() => captureTypeArgument());
+       ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>){(() → self::A<self::A<core::Object?>>) → void};
+    local1<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:36:12: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    local1(() => captureTypeArgument());
+           ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>){(() → self::A<self::A<core::Object?>>) → void};
+    local2<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:37:12: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    local2(() => captureTypeArgument());
+           ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>){(() → self::A<self::A<core::Object?>>) → void};
+    self::topLevel1<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:38:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    topLevel1(() => captureTypeArgument());
+              ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>);
+    self::topLevel2<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:39:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    topLevel2(() => captureTypeArgument());
+              ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>);
+    this.{self::Class::instance1}<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:40:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    instance1(() => captureTypeArgument());
+              ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>){(() → self::A<self::A<core::Object?>>) → void};
+    this.{self::Class::instance2}<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:41:15: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    instance2(() => captureTypeArgument());
+              ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>){(() → self::A<self::A<core::Object?>>) → void};
   }
 }
 class Subclass extends self::Class {
@@ -143,8 +235,16 @@ class Subclass extends self::Class {
     : super self::Class::•()
     ;
   method test() → void {
-    super.{self::Class::instance1}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
-    super.{self::Class::instance2}<core::Object?>(() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>());
+    super.{self::Class::instance1}<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:47:21: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    super.instance1(() => captureTypeArgument());
+                    ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>);
+    super.{self::Class::instance2}<self::A<core::Object?>>(invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:48:21: Error: The argument type 'A<Object?> Function()' can't be assigned to the parameter type 'A<A<Object?>> Function()'.
+ - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+ - 'Object' is from 'dart:core'.
+    super.instance2(() => captureTypeArgument());
+                    ^" in (() → self::A<core::Object?> => self::captureTypeArgument<self::A<core::Object?>>()) as{TypeError} () → self::A<self::A<core::Object?>>);
   }
 }
 static field core::Type? _capturedTypeArgument;

@@ -150,10 +150,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
                   // Coverage-ignore(suite): Not run.
                   ?.inferenceData);
       BodyBuilderContext bodyBuilderContext =
-          fieldBuilder.createBodyBuilderContext(
-              inOutlineBuildingPhase: false,
-              inMetadata: false,
-              inConstFields: false);
+          fieldBuilder.createBodyBuilderContext();
       BodyBuilder bodyBuilder = fieldBuilder.libraryBuilder.loader
           .createBodyBuilderForField(
               fieldBuilder.libraryBuilder,

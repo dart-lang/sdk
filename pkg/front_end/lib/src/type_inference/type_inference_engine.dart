@@ -985,6 +985,17 @@ class OperationsCfe
     return type.unwrapTypeView() ==
         typeEnvironment.coreTypes.functionNonNullableRawType;
   }
+
+  @override
+  DartType greatestClosureOfTypeInternal(DartType type,
+      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+    return new NullabilityAwareFreeTypeParameterEliminator(
+            bottomType: const NeverType.nonNullable(),
+            topType: typeEnvironment.coreTypes.objectNullableRawType,
+            topFunctionType: typeEnvironment.coreTypes
+                .functionRawType(Nullability.nonNullable))
+        .eliminateToGreatest(type);
+  }
 }
 
 /// Type inference results used for testing.

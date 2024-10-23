@@ -50,7 +50,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   TypeConstraintGatherer(
       this._environment, Iterable<StructuralParameter> typeParameters,
       {required OperationsCfe typeOperations,
-      required TypeInferenceResultForTesting? inferenceResultForTesting})
+      required TypeInferenceResultForTesting? inferenceResultForTesting,
+      required super.inferenceUsingBoundsIsEnabled})
       : typeOperations = typeOperations,
         _parametersToConstrain =
             new List<StructuralParameter>.of(typeParameters),
@@ -266,7 +267,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (typeOperations.matchInferableParameter(new SharedTypeView(q))
         case StructuralParameter qParameter?
         when qNullability == NullabilitySuffix.none &&
-            _parametersToConstrain.contains(qParameter)) {
+            _parametersToConstrain.contains(qParameter) &&
+            (!inferenceUsingBoundsIsEnabled ||
+                typeOperations.isSubtypeOfInternal(
+                    p,
+                    typeOperations.greatestClosureOfTypeInternal(
+                        qParameter.bound, _parametersToConstrain)))) {
       _constrainParameterLower(qParameter, p,
           treeNodeForTesting: treeNodeForTesting);
       return true;

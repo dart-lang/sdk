@@ -33,6 +33,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/name_scheme.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -52,7 +53,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final MemberName _memberName;
 
-  @override
   final Modifiers modifiers;
 
   late FieldEncoding _fieldEncoding;
@@ -317,6 +317,30 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
+  @override
+  bool get isAugmentation => modifiers.isAugment;
+
+  @override
+  bool get isExternal => modifiers.isExternal;
+
+  @override
+  bool get isAbstract => modifiers.isAbstract;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  bool get isFinal => modifiers.isFinal;
+
+  @override
+  bool get isStatic => modifiers.isStatic;
+
+  @override
+  bool get isAugment => modifiers.isAugment;
+
+  @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
@@ -443,14 +467,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new FieldBodyBuilderContext(this, _fieldEncoding.builtMember);
   }
 
   @override
@@ -463,10 +481,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       MetadataBuilder.buildAnnotations(
           annotatable,
           metadata,
-          createBodyBuilderContext(
-              inOutlineBuildingPhase: true,
-              inMetadata: true,
-              inConstFields: false),
+          createBodyBuilderContext(),
           libraryBuilder,
           fileUri,
           declarationBuilder?.scope ?? libraryBuilder.scope);
@@ -484,13 +499,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              scope,
-              fileUri);
+              libraryBuilder, createBodyBuilderContext(), scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer
@@ -586,6 +595,17 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   List<ClassMember> get localSetters =>
       _localSetters ??= _fieldEncoding.getLocalSetters(this);
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    TypeBuilder? fieldType = type;
+    if (fieldType is! OmittedTypeBuilder) {
+      context.reportInboundReferenceIssuesForType(fieldType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
+    }
+    return 0;
+  }
 
   @override
   void checkVariance(

@@ -41,24 +41,14 @@ import 'internal_ast.dart';
 abstract class BodyBuilderContext {
   final BodyBuilderDeclarationContext _declarationContext;
 
-  final bool isDeclarationInstanceMember;
-
-  final bool inOutlineBuildingPhase;
-
-  final bool inMetadata;
-
-  final bool inConstFields;
+  final bool _isDeclarationInstanceMember;
 
   BodyBuilderContext(
       LibraryBuilder libraryBuilder, DeclarationBuilder? declarationBuilder,
-      {required this.isDeclarationInstanceMember,
-      required this.inOutlineBuildingPhase,
-      required this.inMetadata,
-      required this.inConstFields})
-      : _declarationContext = new BodyBuilderDeclarationContext(
+      {required bool isDeclarationInstanceMember})
+      : _isDeclarationInstanceMember = isDeclarationInstanceMember,
+        _declarationContext = new BodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
-
-  bool get hasFormalParameters;
 
   String get memberName {
     throw new UnsupportedError('${runtimeType}.memberName');
@@ -128,7 +118,7 @@ abstract class BodyBuilderContext {
   bool get isNativeMethod => false;
 
   bool get isDeclarationInstanceContext {
-    return isDeclarationInstanceMember || isConstructor;
+    return _isDeclarationInstanceMember || isConstructor;
   }
 
   bool get isRedirectingFactory => false;
@@ -510,19 +500,8 @@ class _TopLevelBodyBuilderDeclarationContext
 }
 
 class LibraryBodyBuilderContext extends BodyBuilderContext {
-  LibraryBodyBuilderContext(SourceLibraryBuilder libraryBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
-      : super(libraryBuilder, null,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+  LibraryBodyBuilderContext(SourceLibraryBuilder libraryBuilder)
+      : super(libraryBuilder, null, isDeclarationInstanceMember: false);
 }
 
 mixin _DeclarationBodyBuilderContext<T extends DeclarationBuilder>
@@ -535,89 +514,39 @@ mixin _DeclarationBodyBuilderContext<T extends DeclarationBuilder>
 
 class ClassBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceClassBuilder> {
-  ClassBodyBuilderContext(SourceClassBuilder sourceClassBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ClassBodyBuilderContext(SourceClassBuilder sourceClassBuilder)
       : super(sourceClassBuilder.libraryBuilder, sourceClassBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+            isDeclarationInstanceMember: false);
 }
 
 class EnumBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceEnumBuilder> {
-  EnumBodyBuilderContext(SourceEnumBuilder sourceEnumBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  EnumBodyBuilderContext(SourceEnumBuilder sourceEnumBuilder)
       : super(sourceEnumBuilder.libraryBuilder, sourceEnumBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+            isDeclarationInstanceMember: false);
 }
 
 class ExtensionBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceExtensionBuilder> {
-  ExtensionBodyBuilderContext(SourceExtensionBuilder sourceExtensionBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ExtensionBodyBuilderContext(SourceExtensionBuilder sourceExtensionBuilder)
       : super(sourceExtensionBuilder.libraryBuilder, sourceExtensionBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+            isDeclarationInstanceMember: false);
 }
 
 class ExtensionTypeBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceExtensionTypeDeclarationBuilder> {
   ExtensionTypeBodyBuilderContext(
       SourceExtensionTypeDeclarationBuilder
-          sourceExtensionTypeDeclarationBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+          sourceExtensionTypeDeclarationBuilder)
       : super(sourceExtensionTypeDeclarationBuilder.libraryBuilder,
             sourceExtensionTypeDeclarationBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+            isDeclarationInstanceMember: false);
 }
 
 class TypedefBodyBuilderContext extends BodyBuilderContext {
-  TypedefBodyBuilderContext(SourceTypeAliasBuilder sourceTypeAliasBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  TypedefBodyBuilderContext(SourceTypeAliasBuilder sourceTypeAliasBuilder)
       : super(sourceTypeAliasBuilder.libraryBuilder, null,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+            isDeclarationInstanceMember: false);
 }
 
 mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
@@ -651,15 +580,9 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   @override
   final Member _builtMember;
 
-  FieldBodyBuilderContext(this._member, this._builtMember,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  FieldBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool get isLateField => _member.isLate;
@@ -687,10 +610,6 @@ class FieldBodyBuilderContext extends BodyBuilderContext
             ? ConstantContext.required
             : ConstantContext.none;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
 }
 
 mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
@@ -788,19 +707,9 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
   @override
   final Member _builtMember;
 
-  ProcedureBodyBuilderContext(this._member, this._builtMember,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ProcedureBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => true;
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 }
 
 mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
@@ -872,15 +781,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   final Member _builtMember;
 
-  ConstructorBodyBuilderContext(this._member, this._builtMember,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ConstructorBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool isConstructorCyclic(String name) {
@@ -892,10 +795,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
     return !_declarationContext.isObjectClass(coreTypes) &&
         !isExternalConstructor;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => true;
 
   @override
   TreeNode get _initializerParent => _member.invokeTarget;
@@ -912,24 +811,14 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   final Member _builtMember;
 
-  ExtensionTypeConstructorBodyBuilderContext(this._member, this._builtMember,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ExtensionTypeConstructorBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool isConstructorCyclic(String name) {
     return _declarationContext.isConstructorCyclic(_member.name, name);
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => true;
 
   @override
   TreeNode get _initializerParent => _member.invokeTarget;
@@ -945,15 +834,9 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   @override
   final Member _builtMember;
 
-  FactoryBodyBuilderContext(this._member, this._builtMember,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  FactoryBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   void setAsyncModifier(AsyncMarker asyncModifier) {
@@ -964,10 +847,6 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   DartType get returnTypeContext {
     return _member.function.returnType;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => true;
 }
 
 class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
@@ -980,15 +859,9 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   @override
   final Member _builtMember;
 
-  RedirectingFactoryBodyBuilderContext(this._member, this._builtMember,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  RedirectingFactoryBodyBuilderContext(this._member, this._builtMember)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool get isRedirectingFactory => true;
@@ -997,44 +870,24 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   String get redirectingFactoryTargetName {
     return _member.redirectionTarget.fullNameForErrors;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => true;
 }
 
 class ParameterBodyBuilderContext extends BodyBuilderContext {
   factory ParameterBodyBuilderContext(
-      FormalParameterBuilder formalParameterBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
+      FormalParameterBuilder formalParameterBuilder) {
     final DeclarationBuilder declarationBuilder =
         formalParameterBuilder.parent.declarationBuilder!;
     return new ParameterBodyBuilderContext._(declarationBuilder.libraryBuilder,
-        declarationBuilder, formalParameterBuilder,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+        declarationBuilder, formalParameterBuilder);
   }
 
   ParameterBodyBuilderContext._(
       LibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      FormalParameterBuilder formalParameterBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+      FormalParameterBuilder formalParameterBuilder)
       : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember:
-                formalParameterBuilder.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasFormalParameters => false;
+                formalParameterBuilder.isDeclarationInstanceMember);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -1048,16 +901,7 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
 
   ExpressionCompilerProcedureBodyBuildContext(
       DietListener listener, this._member, this._builtMember,
-      {required bool isDeclarationInstanceMember,
-      required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+      {required bool isDeclarationInstanceMember})
       : super(listener.libraryBuilder, listener.currentDeclaration,
-            isDeclarationInstanceMember: isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
-
-  @override
-  bool get hasFormalParameters => false;
+            isDeclarationInstanceMember: isDeclarationInstanceMember);
 }

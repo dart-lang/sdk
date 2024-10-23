@@ -190,7 +190,6 @@ extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/await_in_non_async: RuntimeError
-general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError

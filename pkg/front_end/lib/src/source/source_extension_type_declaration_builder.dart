@@ -153,10 +153,6 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isFinal => _modifiers.isFinal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
 
   @override
@@ -734,10 +730,7 @@ class SourceExtensionTypeDeclarationBuilder
     MetadataBuilder.buildAnnotations(
         annotatable,
         _introductory.metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
+        createBodyBuilderContext(),
         libraryBuilder,
         _introductory.fileUri,
         libraryBuilder.scope);
@@ -936,14 +929,8 @@ class SourceExtensionTypeDeclarationBuilder
   bool get isMixinDeclaration => false;
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ExtensionTypeBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ExtensionTypeBodyBuilderContext(this);
   }
 
   /// Return a map whose keys are the supertypes of this

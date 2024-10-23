@@ -9,11 +9,12 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
-import '../base/modifiers.dart';
 import '../base/problems.dart' show unsupported;
 import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
 import 'source_class_builder.dart';
@@ -24,6 +25,8 @@ typedef BuildNodesCallback = void Function(
 
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
+
+  Iterable<MetadataBuilder>? get metadataForTesting;
 
   @override
   SourceLibraryBuilder get libraryBuilder;
@@ -38,6 +41,9 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   ///
   /// This includes adding augmented bodies and augmented members.
   int buildBodyNodes(BuildNodesCallback f);
+
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery});
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
@@ -58,10 +64,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
 
   AugmentSuperTarget? get augmentSuperTarget;
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields});
+  BodyBuilderContext createBodyBuilderContext();
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -100,10 +103,7 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
+  BodyBuilderContext createBodyBuilderContext() {
     throw new UnimplementedError('$runtimeType.bodyBuilderContext');
   }
 }
@@ -119,29 +119,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
             // Coverage-ignore(suite): Not run.
             new MemberDataForTesting()
             : null;
-
-  Modifiers get modifiers;
-
-  @override
-  bool get isAugmentation => modifiers.isAugment;
-
-  @override
-  bool get isExternal => modifiers.isExternal;
-
-  @override
-  bool get isAbstract => modifiers.isAbstract;
-
-  @override
-  bool get isConst => modifiers.isConst;
-
-  @override
-  bool get isFinal => modifiers.isFinal;
-
-  @override
-  bool get isStatic => modifiers.isStatic;
-
-  @override
-  bool get isAugment => modifiers.isAugment;
 
   bool? _isConflictingSetter;
 

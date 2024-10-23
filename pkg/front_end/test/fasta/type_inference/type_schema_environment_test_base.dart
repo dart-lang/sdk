@@ -173,6 +173,7 @@ abstract class TypeSchemaEnvironmentTestBase {
               declaredReturnTypeNode,
               typeParameterNodesToInfer,
               returnContextTypeNode,
+              inferenceUsingBoundsIsEnabled: false,
               typeOperations: new OperationsCfe(typeSchemaEnvironment,
                   fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                       fieldNameInfo: {}, individualPropertyReasons: {}),

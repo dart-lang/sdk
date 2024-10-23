@@ -121,7 +121,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   final List<MetadataBuilder>? metadata;
 
-  @override
   final Modifiers modifiers;
 
   @override
@@ -153,13 +152,32 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
   AsyncMarker get asyncModifier;
 
   @override
-  bool get isConstructor => false;
+  bool get isAugmentation => modifiers.isAugment;
+
+  @override
+  bool get isExternal => modifiers.isExternal;
 
   @override
   bool get isAbstract => modifiers.isAbstract;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  @override
+  bool get isStatic => modifiers.isStatic;
+
+  @override
+  bool get isAugment => modifiers.isAugment;
+
+  @override
+  bool get isConstructor => false;
 
   @override
   bool get isRegularMethod => identical(ProcedureKind.Method, kind);
@@ -175,9 +193,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isFactory => identical(ProcedureKind.Factory, kind);
-
-  @override
-  bool get isExternal => modifiers.isExternal;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -461,26 +476,15 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       LookupScope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
-        MetadataBuilder.buildAnnotations(
-            annotatable,
-            metadata,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            libraryBuilder,
-            fileUri,
-            parentScope,
+        MetadataBuilder.buildAnnotations(annotatable, metadata,
+            createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,
             createFileUriExpression: isAugmented);
       }
       if (typeParameters != null) {
         for (int i = 0; i < typeParameters!.length; i++) {
           typeParameters![i].buildOutlineExpressions(
               libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: true,
-                  inConstFields: false),
+              createBodyBuilderContext(),
               classHierarchy,
               computeTypeParameterScope(parentScope));
         }

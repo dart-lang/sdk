@@ -55,14 +55,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/macro/macro.dart';
-import '../kernel/type_algorithms.dart'
-    show
-        NonSimplicityIssue,
-        calculateBounds,
-        findUnaliasedGenericFunctionTypes,
-        getInboundReferenceIssuesInType,
-        getNonSimplicityIssuesForDeclaration,
-        getNonSimplicityIssuesForTypeParameters;
+import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
 import '../kernel/utils.dart'
     show
         compareProcedures,
@@ -1237,14 +1230,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new LibraryBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new LibraryBodyBuilderContext(this);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -1259,15 +1246,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library,
-        metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
-        this,
-        fileUri,
-        scope,
+        library, metadata, createBodyBuilderContext(), this, fileUri, scope,
         createFileUriExpression: isAugmenting);
 
     Iterator<Builder> iterator = localMembersIterator;
@@ -1725,6 +1704,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           } else {
             if (issueInferred) {
+              // Coverage-ignore-block(suite): Not run.
               message = templateIncorrectTypeArgumentInstantiationInferred
                   .withArguments(argument, typeParameter.bound,
                       typeParameter.name!, targetReceiver);

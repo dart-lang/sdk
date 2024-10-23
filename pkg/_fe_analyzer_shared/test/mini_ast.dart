@@ -3271,6 +3271,13 @@ class MiniAstOperations
       SharedTypeView<Type> type, NullabilitySuffix modifier) {
     return SharedTypeView(type.unwrapTypeView().withNullability(modifier));
   }
+
+  @override
+  Type greatestClosureOfTypeInternal(Type type,
+      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
+    // TODO(paulberry): Implement greatest closure of types in mini ast.
+    throw UnimplementedError();
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

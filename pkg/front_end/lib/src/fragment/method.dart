@@ -88,14 +88,8 @@ class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return _fragment.builder.createBodyBuilderContext(
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return _fragment.builder.createBodyBuilderContext();
   }
 
   @override

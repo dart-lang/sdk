@@ -9,15 +9,11 @@ import 'dart:math';
 
 // T max<T extends num>(T x, T y);
 f(num x, dynamic y) {
-  num a = /*@typeArgs=num*/ max(
-      x,
-      /*info:DYNAMIC_CAST*/ y);
-  Object b = /*@typeArgs=num*/ max(
-      x,
-      /*info:DYNAMIC_CAST*/ y);
-  dynamic c = /*error:COULD_NOT_INFER*/ /*@ typeArgs=dynamic */ max(x, y);
-  var /*@ type=dynamic */ d = /*error:COULD_NOT_INFER*/ /*@ typeArgs=dynamic */ max(
-      x, y);
+  num a = /*@typeArgs=num*/ max(x, /*info:DYNAMIC_CAST*/ y);
+  Object b = /*@typeArgs=num*/ max(x, /*info:DYNAMIC_CAST*/ y);
+  dynamic c = /*@ typeArgs=num */ max(x, y);
+  var /*@ type=num */ d = /*@ typeArgs=num */
+      max(x, y);
 }
 
 main() {}

@@ -117,7 +117,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isInterface;
 
-  @override
   bool get isFinal;
 
   bool get declaresConstConstructor;

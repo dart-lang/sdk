@@ -6,21 +6,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/messages.dart';
 import '../base/problems.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        templateBoundIssueViaCycleNonSimplicity,
-        templateBoundIssueViaLoopNonSimplicity,
-        templateBoundIssueViaRawTypeWithNonSimpleBounds,
-        templateNonSimpleBoundViaReference,
-        templateNonSimpleBoundViaVariable;
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -252,7 +245,7 @@ class TypeWithInBoundReferences {
 
 /// Finds issues by raw generic types with inbound references in type
 /// parameters.
-List<NonSimplicityIssue> getInboundReferenceIssues(
+List<NonSimplicityIssue> _getInboundReferenceIssues(
     List<TypeParameterBuilder>? parameters) {
   if (parameters == null) return <NonSimplicityIssue>[];
 
@@ -299,18 +292,18 @@ List<NonSimplicityIssue> getInboundReferenceIssues(
 }
 
 /// Finds raw non-simple types in bounds of type parameters in [typeBuilder].
-List<NonSimplicityIssue> getInboundReferenceIssuesInType(
+List<NonSimplicityIssue> _getInboundReferenceIssuesInType(
     TypeBuilder? typeBuilder) {
   List<FunctionTypeBuilder> genericFunctionTypeBuilders =
       <FunctionTypeBuilder>[];
-  findUnaliasedGenericFunctionTypes(typeBuilder,
+  _findUnaliasedGenericFunctionTypes(typeBuilder,
       result: genericFunctionTypeBuilders);
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   for (FunctionTypeBuilder genericFunctionTypeBuilder
       in genericFunctionTypeBuilders) {
     List<StructuralParameterBuilder> typeParameters =
         genericFunctionTypeBuilder.typeParameters!;
-    issues.addAll(getInboundReferenceIssues(typeParameters));
+    issues.addAll(_getInboundReferenceIssues(typeParameters));
   }
   return issues;
 }
@@ -323,7 +316,7 @@ List<NonSimplicityIssue> getInboundReferenceIssuesInType(
 /// The reason for putting the type parameters into the paths as well as for
 /// using type for [start], and not the corresponding type declaration,
 /// is better error reporting.
-List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
+List<List<RawTypeCycleElement>> _findRawTypePathsToDeclaration(
     TypeBuilder? start, TypeDeclarationBuilder end,
     [Set<TypeDeclarationBuilder>? visited]) {
   visited ??= new Set<TypeDeclarationBuilder>.identity();
@@ -341,7 +334,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
           TypeBuilder? parameterBound = typeParameter.bound;
           if (parameterBound != null) {
             for (List<RawTypeCycleElement> path
-                in findRawTypePathsToDeclaration(
+                in _findRawTypePathsToDeclaration(
                     parameterBound, end, visited)) {
               if (path.isNotEmpty) {
                 paths.add(<RawTypeCycleElement>[
@@ -397,7 +390,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
         }
       } else {
         for (TypeBuilder argument in arguments) {
-          paths.addAll(findRawTypePathsToDeclaration(argument, end, visited));
+          paths.addAll(_findRawTypePathsToDeclaration(argument, end, visited));
         }
       }
     case FunctionTypeBuilder(
@@ -405,24 +398,24 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
         :List<ParameterBuilder>? formals,
         :TypeBuilder returnType
       ):
-      paths.addAll(findRawTypePathsToDeclaration(returnType, end, visited));
+      paths.addAll(_findRawTypePathsToDeclaration(returnType, end, visited));
       if (typeParameters != null) {
         for (StructuralParameterBuilder parameter in typeParameters) {
           if (parameter.bound != null) {
             paths.addAll(
-                findRawTypePathsToDeclaration(parameter.bound, end, visited));
+                _findRawTypePathsToDeclaration(parameter.bound, end, visited));
           }
           if (parameter.defaultType != null) {
             // Coverage-ignore-block(suite): Not run.
-            paths.addAll(findRawTypePathsToDeclaration(
+            paths.addAll(_findRawTypePathsToDeclaration(
                 parameter.defaultType, end, visited));
           }
         }
       }
       if (formals != null) {
         for (ParameterBuilder formal in formals) {
-          paths
-              .addAll(findRawTypePathsToDeclaration(formal.type, end, visited));
+          paths.addAll(
+              _findRawTypePathsToDeclaration(formal.type, end, visited));
         }
       }
     case RecordTypeBuilder(
@@ -431,12 +424,14 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
       ):
       if (positionalFields != null) {
         for (RecordTypeFieldBuilder field in positionalFields) {
-          paths.addAll(findRawTypePathsToDeclaration(field.type, end, visited));
+          paths
+              .addAll(_findRawTypePathsToDeclaration(field.type, end, visited));
         }
       }
       if (namedFields != null) {
         for (RecordTypeFieldBuilder field in namedFields) {
-          paths.addAll(findRawTypePathsToDeclaration(field.type, end, visited));
+          paths
+              .addAll(_findRawTypePathsToDeclaration(field.type, end, visited));
         }
       }
     case FixedTypeBuilder():
@@ -459,7 +454,7 @@ List<List<RawTypeCycleElement>> _findRawTypeCyclesFromTypeParameters(
     TypeBuilder? parameterBound = parameter.bound;
     if (parameterBound != null) {
       for (List<RawTypeCycleElement> dependencyPath
-          in findRawTypePathsToDeclaration(parameterBound, declaration)) {
+          in _findRawTypePathsToDeclaration(parameterBound, declaration)) {
         if (dependencyPath.isNotEmpty) {
           dependencyPath.first.typeParameterBuilder = parameter;
           cycles.add(dependencyPath);
@@ -478,15 +473,15 @@ List<List<RawTypeCycleElement>> _findRawTypeCyclesFromTypeParameters(
 ///
 /// The reason for putting the type parameters into the cycles is better error
 /// reporting.
-List<List<RawTypeCycleElement>> findRawTypeCycles(
-    TypeDeclarationBuilder declaration) {
+List<List<RawTypeCycleElement>> _findRawTypeCycles(
+    ITypeDeclarationBuilder declaration,
+    List<TypeParameterBuilder>? typeParameters) {
   if (declaration is SourceClassBuilder) {
-    return _findRawTypeCyclesFromTypeParameters(
-        declaration, declaration.typeParameters);
+    return _findRawTypeCyclesFromTypeParameters(declaration, typeParameters);
   } else if (declaration is SourceTypeAliasBuilder) {
     List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
-    cycles.addAll(_findRawTypeCyclesFromTypeParameters(
-        declaration, declaration.typeParameters));
+    cycles.addAll(
+        _findRawTypeCyclesFromTypeParameters(declaration, typeParameters));
     if (declaration.type is FunctionTypeBuilder) {
       FunctionTypeBuilder type = declaration.type as FunctionTypeBuilder;
       cycles.addAll(_findRawTypeCyclesFromTypeParameters(
@@ -494,11 +489,9 @@ List<List<RawTypeCycleElement>> findRawTypeCycles(
       return cycles;
     }
   } else if (declaration is SourceExtensionBuilder) {
-    return _findRawTypeCyclesFromTypeParameters(
-        declaration, declaration.typeParameters);
+    return _findRawTypeCyclesFromTypeParameters(declaration, typeParameters);
   } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-    return _findRawTypeCyclesFromTypeParameters(
-        declaration, declaration.typeParameters);
+    return _findRawTypeCyclesFromTypeParameters(declaration, typeParameters);
   } else {
     unhandled('$declaration (${declaration.runtimeType})', 'findRawTypeCycles',
         declaration.fileOffset, declaration.fileUri);
@@ -509,9 +502,9 @@ List<List<RawTypeCycleElement>> findRawTypeCycles(
 /// Converts raw generic type [cycles] for [declaration] into reportable issues.
 ///
 /// The [cycles] are expected to be in the format specified for the return value
-/// of [findRawTypeCycles].
-List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
-    TypeDeclarationBuilder declaration,
+/// of [_findRawTypeCycles].
+List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
+    ITypeDeclarationBuilder declaration,
     List<List<RawTypeCycleElement>> cycles) {
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   for (List<RawTypeCycleElement> cycle in cycles) {
@@ -548,10 +541,10 @@ List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
 ///
 /// The issues are those caused by raw types with inbound references in the
 /// bounds of their type parameters.
-List<NonSimplicityIssue> getNonSimplicityIssuesForTypeParameters(
+List<NonSimplicityIssue> _getNonSimplicityIssuesForTypeParameters(
     List<NominalParameterBuilder>? parameters) {
   if (parameters == null) return <NonSimplicityIssue>[];
-  return getInboundReferenceIssues(parameters);
+  return _getInboundReferenceIssues(parameters);
 }
 
 /// Finds non-simplicity issues for the given [declaration].
@@ -564,28 +557,16 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForTypeParameters(
 /// first element in the triplet is the type declaration that has the issue.
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
-List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
-    TypeDeclarationBuilder declaration,
-    {bool performErrorRecovery = true}) {
+List<NonSimplicityIssue> _getNonSimplicityIssuesForDeclaration(
+    ITypeDeclarationBuilder declaration,
+    List<TypeParameterBuilder>? typeParameters) {
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
-  if (declaration is SourceClassBuilder) {
-    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
-  } else if (declaration is SourceTypeAliasBuilder) {
-    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
-  } else if (declaration is SourceExtensionBuilder) {
-    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
-  } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-    issues.addAll(getInboundReferenceIssues(declaration.typeParameters));
-  } else {
-    unhandled(
-        '$declaration (${declaration.runtimeType})',
-        'getNonSimplicityIssuesForDeclaration',
-        declaration.fileOffset,
-        declaration.fileUri);
-  }
+  issues.addAll(_getInboundReferenceIssues(typeParameters));
+
   List<List<RawTypeCycleElement>> cyclesToReport =
       <List<RawTypeCycleElement>>[];
-  for (List<RawTypeCycleElement> cycle in findRawTypeCycles(declaration)) {
+  for (List<RawTypeCycleElement> cycle
+      in _findRawTypeCycles(declaration, typeParameters)) {
     // To avoid reporting the same error for each element of the cycle, we only
     // do so if it comes the first in the lexicographical order.  Note that
     // one-element cycles shouldn't be checked, as they are loops.
@@ -609,12 +590,10 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     }
   }
   List<NonSimplicityIssue> rawTypeCyclesAsIssues =
-      convertRawTypeCyclesIntoIssues(declaration, cyclesToReport);
+      _convertRawTypeCyclesIntoIssues(declaration, cyclesToReport);
   issues.addAll(rawTypeCyclesAsIssues);
 
-  if (performErrorRecovery) {
-    breakCycles(cyclesToReport);
-  }
+  _breakCycles(cyclesToReport);
 
   return issues;
 }
@@ -622,8 +601,8 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
 /// Break raw generic type [cycles] as error recovery.
 ///
 /// The [cycles] are expected to be in the format specified for the return value
-/// of [findRawTypeCycles].
-void breakCycles(List<List<RawTypeCycleElement>> cycles) {
+/// of [_findRawTypeCycles].
+void _breakCycles(List<List<RawTypeCycleElement>> cycles) {
   for (List<RawTypeCycleElement> cycle in cycles) {
     if (cycle.isNotEmpty) {
       cycle.first.typeParameterBuilder?.bound = null;
@@ -632,7 +611,7 @@ void breakCycles(List<List<RawTypeCycleElement>> cycles) {
 }
 
 /// Finds generic function type sub-terms in [type].
-void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
+void _findUnaliasedGenericFunctionTypes(TypeBuilder? type,
     {required List<FunctionTypeBuilder> result}) {
   switch (type) {
     case FunctionTypeBuilder(
@@ -644,22 +623,22 @@ void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
         result.add(type);
 
         for (StructuralParameterBuilder typeParameter in typeParameters) {
-          findUnaliasedGenericFunctionTypes(typeParameter.bound,
+          _findUnaliasedGenericFunctionTypes(typeParameter.bound,
               result: result);
-          findUnaliasedGenericFunctionTypes(typeParameter.defaultType,
+          _findUnaliasedGenericFunctionTypes(typeParameter.defaultType,
               result: result);
         }
       }
-      findUnaliasedGenericFunctionTypes(returnType, result: result);
+      _findUnaliasedGenericFunctionTypes(returnType, result: result);
       if (formals != null) {
         for (ParameterBuilder formal in formals) {
-          findUnaliasedGenericFunctionTypes(formal.type, result: result);
+          _findUnaliasedGenericFunctionTypes(formal.type, result: result);
         }
       }
     case NamedTypeBuilder(typeArguments: List<TypeBuilder>? arguments):
       if (arguments != null) {
         for (TypeBuilder argument in arguments) {
-          findUnaliasedGenericFunctionTypes(argument, result: result);
+          _findUnaliasedGenericFunctionTypes(argument, result: result);
         }
       }
     case RecordTypeBuilder(
@@ -668,12 +647,12 @@ void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
       ):
       if (positionalFields != null) {
         for (RecordTypeFieldBuilder field in positionalFields) {
-          findUnaliasedGenericFunctionTypes(field.type, result: result);
+          _findUnaliasedGenericFunctionTypes(field.type, result: result);
         }
       }
       if (namedFields != null) {
         for (RecordTypeFieldBuilder field in namedFields) {
-          findUnaliasedGenericFunctionTypes(field.type, result: result);
+          _findUnaliasedGenericFunctionTypes(field.type, result: result);
         }
       }
     case FixedTypeBuilder():
@@ -725,7 +704,7 @@ class TypeParameterSearch extends FindTypeVisitor {
 /// See section 15.3.1 Auxiliary Concepts for Instantiation to Bound.
 class NonSimplicityIssue {
   /// The generic declaration that has a non-simplicity issue.
-  final TypeDeclarationBuilder declaration;
+  final ITypeDeclarationBuilder declaration;
 
   /// The non-simplicity error message.
   final Message message;
@@ -760,4 +739,186 @@ class RawTypeCycleElement {
   TypeParameterBuilder? typeParameterBuilder;
 
   RawTypeCycleElement(this.type, this.typeParameterBuilder);
+}
+
+class ComputeDefaultTypeContext {
+  final ProblemReporting _problemReporting;
+  final LibraryFeatures libraryFeatures;
+  final TypeBuilder dynamicType;
+  final TypeBuilder bottomType;
+  final List<StructuralParameterBuilder> unboundTypeParameters;
+
+  ComputeDefaultTypeContext(
+      this._problemReporting, this.libraryFeatures, this.unboundTypeParameters,
+      {required TypeBuilder dynamicType, required TypeBuilder bottomType})
+      : dynamicType = dynamicType,
+        bottomType = bottomType;
+
+  void _reportIssues(List<NonSimplicityIssue> issues) {
+    for (NonSimplicityIssue issue in issues) {
+      _problemReporting.addProblem(issue.message, issue.declaration.fileOffset,
+          issue.declaration.name.length, issue.declaration.fileUri,
+          context: issue.context);
+    }
+  }
+
+  /// Reports an error on generic function types used as bounds
+  ///
+  /// The function recursively searches for all generic function types in
+  /// [typeBuilder] and checks the bounds of type parameters of the found types
+  /// for being generic function types.  Returns `true` if any errors were
+  /// reported.
+  bool recursivelyReportGenericFunctionTypesAsBoundsForType(
+      TypeBuilder? typeBuilder) {
+    if (libraryFeatures.genericMetadata.isEnabled) return false;
+
+    List<FunctionTypeBuilder> genericFunctionTypeBuilders =
+        <FunctionTypeBuilder>[];
+    _findUnaliasedGenericFunctionTypes(typeBuilder,
+        result: genericFunctionTypeBuilders);
+    bool hasReportedErrors = false;
+    for (FunctionTypeBuilder genericFunctionTypeBuilder
+        in genericFunctionTypeBuilders) {
+      assert(
+          genericFunctionTypeBuilder.typeParameters != null,
+          "Function 'findUnaliasedGenericFunctionTypes' "
+          "returned a function type without type parameters.");
+      for (StructuralParameterBuilder typeParameter
+          in genericFunctionTypeBuilder.typeParameters!) {
+        hasReportedErrors = _reportGenericFunctionTypeAsBoundIfNeeded(
+                typeParameter.bound,
+                typeParameterName: typeParameter.name,
+                fileUri: typeParameter.fileUri,
+                charOffset: typeParameter.fileOffset) ||
+            hasReportedErrors;
+      }
+    }
+    return hasReportedErrors;
+  }
+
+  /// Reports an error if [bound] is a generic function type
+  ///
+  /// Returns `true` if any errors were reported.
+  bool _reportGenericFunctionTypeAsBoundIfNeeded(TypeBuilder? bound,
+      {required String typeParameterName,
+      Uri? fileUri,
+      required int charOffset}) {
+    if (libraryFeatures.genericMetadata.isEnabled) return false;
+
+    bool isUnaliasedGenericFunctionType = bound is FunctionTypeBuilder &&
+        bound.typeParameters != null &&
+        bound.typeParameters!.isNotEmpty;
+    bool isAliasedGenericFunctionType = false;
+    TypeDeclarationBuilder? declaration = bound?.declaration;
+    // TODO(cstefantsova): Unalias beyond the first layer for the check.
+    if (declaration is TypeAliasBuilder) {
+      // Coverage-ignore-block(suite): Not run.
+      TypeBuilder? rhsType = declaration.type;
+      if (rhsType is FunctionTypeBuilder &&
+          rhsType.typeParameters != null &&
+          rhsType.typeParameters!.isNotEmpty) {
+        isAliasedGenericFunctionType = true;
+      }
+    }
+
+    if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
+      _problemReporting.addProblem(messageGenericFunctionTypeInBound,
+          charOffset, typeParameterName.length, fileUri);
+      return true;
+    }
+    return false;
+  }
+
+  /// Reports an error on generic function types used as bounds
+  ///
+  /// The function recursively searches for all generic function types in
+  /// [typeParameter.bound] and checks the bounds of type parameters of the
+  /// found types for being generic function types.  Additionally, the function
+  /// checks [typeParameter.bound] for being a generic function type.  Returns
+  /// `true` if any errors were reported.
+  bool _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
+      NominalParameterBuilder typeParameter) {
+    if (libraryFeatures.genericMetadata.isEnabled) return false;
+
+    bool hasReportedErrors = false;
+    hasReportedErrors = _reportGenericFunctionTypeAsBoundIfNeeded(
+            typeParameter.bound,
+            typeParameterName: typeParameter.name,
+            fileUri: typeParameter.fileUri,
+            charOffset: typeParameter.fileOffset) ||
+        hasReportedErrors;
+    hasReportedErrors = recursivelyReportGenericFunctionTypesAsBoundsForType(
+            typeParameter.bound) ||
+        hasReportedErrors;
+    return hasReportedErrors;
+  }
+
+  int computeDefaultTypesForVariables(List<NominalParameterBuilder>? variables,
+      {required bool inErrorRecovery}) {
+    if (variables == null) return 0;
+
+    bool haveErroneousBounds = false;
+    if (!inErrorRecovery) {
+      if (!libraryFeatures.genericMetadata.isEnabled) {
+        for (NominalParameterBuilder variable in variables) {
+          haveErroneousBounds =
+              _recursivelyReportGenericFunctionTypesAsBoundsForVariable(
+                      variable) ||
+                  haveErroneousBounds;
+        }
+      }
+
+      if (!haveErroneousBounds) {
+        List<TypeBuilder> calculatedBounds = calculateBounds(
+            variables, dynamicType, bottomType,
+            unboundTypeParameters: unboundTypeParameters);
+        for (int i = 0; i < variables.length; ++i) {
+          variables[i].defaultType = calculatedBounds[i];
+        }
+      }
+    }
+
+    if (inErrorRecovery || haveErroneousBounds) {
+      // Use dynamic in case of errors.
+      for (int i = 0; i < variables.length; ++i) {
+        variables[i].defaultType = dynamicType;
+      }
+    }
+
+    return variables.length;
+  }
+
+  void reportGenericFunctionTypesForFormals(
+      List<FormalParameterBuilder>? formals) {
+    if (formals != null && formals.isNotEmpty) {
+      for (FormalParameterBuilder formal in formals) {
+        List<NonSimplicityIssue> issues =
+            _getInboundReferenceIssuesInType(formal.type);
+        _reportIssues(issues);
+        recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
+      }
+    }
+  }
+
+  bool reportNonSimplicityIssues(ITypeDeclarationBuilder declaration,
+      List<TypeParameterBuilder>? typeParameters) {
+    List<NonSimplicityIssue> issues =
+        _getNonSimplicityIssuesForDeclaration(declaration, typeParameters);
+    _reportIssues(issues);
+    return issues.isNotEmpty;
+  }
+
+  bool reportInboundReferenceIssuesForType(TypeBuilder type) {
+    List<NonSimplicityIssue> issues = _getInboundReferenceIssuesInType(type);
+    _reportIssues(issues);
+    return issues.isNotEmpty;
+  }
+
+  bool reportSimplicityIssuesForTypeParameters(
+      List<NominalParameterBuilder>? typeParameters) {
+    List<NonSimplicityIssue> issues =
+        _getNonSimplicityIssuesForTypeParameters(typeParameters);
+    _reportIssues(issues);
+    return issues.isNotEmpty;
+  }
 }

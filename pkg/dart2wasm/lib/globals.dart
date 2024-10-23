@@ -14,7 +14,6 @@ class Globals {
 
   final Map<Field, w.GlobalBuilder> _globals = {};
   final Map<w.Global, w.BaseFunction> _globalGetters = {};
-  final Map<w.Global, w.BaseFunction> _globalSetters = {};
   final Map<Field, w.BaseFunction> _globalInitializers = {};
   final Map<Field, w.Global> _globalInitializedFlag = {};
   late final WasmGlobalImporter _globalsModuleMap =
@@ -61,39 +60,6 @@ class Globals {
       translator.callFunction(getter, b);
     }
     return global.type.type;
-  }
-
-  /// Sets the value of [w.Global] in [b].
-  ///
-  /// Takes into account the calling module and the module the global belongs
-  /// to. If they are not the same then sets the global indirectly, either
-  /// through an import or a setter call.
-  void updateGlobal(w.InstructionsBuilder b,
-      void Function(w.InstructionsBuilder b) pushValue, w.Global global) {
-    final owningModule = global.enclosingModule;
-    final callingModule = b.module;
-    if (owningModule == callingModule) {
-      pushValue(b);
-      b.global_set(global);
-    } else if (translator.isMainModule(owningModule)) {
-      final importedGlobal = _globalsModuleMap.get(global, callingModule);
-      pushValue(b);
-      b.global_set(importedGlobal);
-    } else {
-      final setter = _globalSetters.putIfAbsent(global, () {
-        final setterType =
-            owningModule.types.defineFunction([global.type.type], const []);
-        final setterFunction = owningModule.functions.define(setterType);
-        final setterBody = setterFunction.body;
-        setterBody.local_get(setterBody.locals.single);
-        setterBody.global_set(global);
-        setterBody.end();
-        return setterFunction;
-      });
-
-      pushValue(b);
-      translator.callFunction(setter, b);
-    }
   }
 
   /// Return (and if needed create) the Wasm global corresponding to a static

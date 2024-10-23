@@ -233,6 +233,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             TypeConstraintGatherer extendsConstraintGatherer =
                 new TypeConstraintGatherer(this, typeParametersToInfer,
                     typeOperations: operations,
+                    inferenceUsingBoundsIsEnabled:
+                        inferenceUsingBoundsIsEnabled,
                     inferenceResultForTesting: null);
             extendsConstraintGatherer.tryConstrainLower(typeParamBound,
                 mergedTypeConstraint.lower.unwrapTypeSchemaView(),
@@ -350,6 +352,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType? returnContextType,
       {bool isConst = false,
       required OperationsCfe typeOperations,
+      required bool inferenceUsingBoundsIsEnabled,
       required TypeInferenceResultForTesting? inferenceResultForTesting,
       required TreeNode? treeNodeForTesting}) {
     assert(typeParametersToInfer.isNotEmpty);
@@ -361,6 +364,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
         this, typeParametersToInfer,
         typeOperations: typeOperations,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         inferenceResultForTesting: inferenceResultForTesting);
 
     if (!isEmptyContext(returnContextType)) {

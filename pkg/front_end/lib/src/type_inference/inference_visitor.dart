@@ -2864,6 +2864,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           listType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -5294,6 +5296,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           mapType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -5376,6 +5380,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             typeSchemaEnvironment.setupGenericTypeInference(
                 setType, typeParametersToInfer, typeContext,
                 isConst: node.isConst,
+                inferenceUsingBoundsIsEnabled:
+                    libraryFeatures.inferenceUsingBounds.isEnabled,
                 typeOperations: operations,
                 inferenceResultForTesting: dataForTesting
                     // Coverage-ignore(suite): Not run.
@@ -8670,6 +8676,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           setType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -11796,6 +11804,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer =
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
+            inferenceUsingBoundsIsEnabled:
+                libraryFeatures.inferenceUsingBounds.isEnabled,
             typeOperations: operations,
             inferenceResultForTesting: dataForTesting
                 // Coverage-ignore(suite): Not run.
