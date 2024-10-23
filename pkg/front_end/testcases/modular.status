@@ -22,7 +22,6 @@ extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 extensions/extension_setter_error: TypeCheckError
 general/abstract_members: TypeCheckError
-general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError
 general/crashes/crash_02/main: Crash

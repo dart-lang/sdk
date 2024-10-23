@@ -2,15 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:22:56: Error: Inferred type argument 'NotA' doesn't conform to the bound 'A' of the type variable 'T' on 'C'.
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:74: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
 //  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER*/ /*@typeArgs=NotA*/ C(myF);
-//                                                        ^
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:12:9: Context: This is the type variable whose bound isn't conformed to.
-// class C<T extends A> {
-//         ^
+//   var /*@type=C<A>*/ x = new /*error:COULD_NOT_INFER*/ /*@typeArgs=A*/ C(myF);
+//                                                                          ^
 //
 import self as self;
 import "dart:core" as core;
@@ -34,7 +30,11 @@ class NotA extends core::Object {
 static method myF() → self::NotA
   return throw "";
 static method test() → dynamic {
-  self::C<self::NotA> x = new self::C::•<self::NotA>(#C1);
+  self::C<self::A> x = new self::C::•<self::A>(invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:21:74: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
+ - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+ - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+  var /*@type=C<A>*/ x = new /*error:COULD_NOT_INFER*/ /*@typeArgs=A*/ C(myF);
+                                                                         ^" in #C1 as{TypeError} () → self::A);
 }
 
 constants  {

@@ -28,6 +28,8 @@ class TypeConstraintGathererTest {
     'UNKNOWN': () => new UnknownType()
   };
 
+  final bool inferenceUsingBoundsIsEnabled = false;
+
   late Library _coreLibrary;
 
   late Library _testLibrary;
@@ -308,7 +310,8 @@ class TypeConstraintGathererTest {
           env.parseType(bound, additionalTypes: additionalTypes),
           testLibrary,
           expected,
-          typeParameterNodesToConstrain);
+          typeParameterNodesToConstrain,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
     });
   }
 
@@ -317,7 +320,8 @@ class TypeConstraintGathererTest {
       DartType bound,
       Library clientLibrary,
       List<String> expectedConstraints,
-      List<StructuralParameter> typeParameterNodesToConstrain) {
+      List<StructuralParameter> typeParameterNodesToConstrain,
+      {required bool inferenceUsingBoundsIsEnabled}) {
     _checkConstraintsHelper(
         type,
         bound,
@@ -325,7 +329,8 @@ class TypeConstraintGathererTest {
         expectedConstraints,
         (gatherer, type, bound) =>
             gatherer.tryConstrainLower(type, bound, treeNodeForTesting: null),
-        typeParameterNodesToConstrain);
+        typeParameterNodesToConstrain,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
   }
 
   void checkConstraintsUpper(String type, String bound, List<String>? expected,
@@ -347,7 +352,8 @@ class TypeConstraintGathererTest {
           env.parseType(bound, additionalTypes: additionalTypes),
           testLibrary,
           expected,
-          typeParameterNodesToConstrain);
+          typeParameterNodesToConstrain,
+          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
     });
   }
 
@@ -356,7 +362,8 @@ class TypeConstraintGathererTest {
       DartType bound,
       Library clientLibrary,
       List<String>? expectedConstraints,
-      List<StructuralParameter> typeParameterNodesToConstrain) {
+      List<StructuralParameter> typeParameterNodesToConstrain,
+      {required bool inferenceUsingBoundsIsEnabled}) {
     _checkConstraintsHelper(
         type,
         bound,
@@ -364,7 +371,8 @@ class TypeConstraintGathererTest {
         expectedConstraints,
         (gatherer, type, bound) =>
             gatherer.tryConstrainUpper(type, bound, treeNodeForTesting: null),
-        typeParameterNodesToConstrain);
+        typeParameterNodesToConstrain,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
   }
 
   void _checkConstraintsHelper(
@@ -373,7 +381,8 @@ class TypeConstraintGathererTest {
       Library clientLibrary,
       List<String>? expectedConstraints,
       bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain,
-      List<StructuralParameter> typeParameterNodesToConstrain) {
+      List<StructuralParameter> typeParameterNodesToConstrain,
+      {required bool inferenceUsingBoundsIsEnabled}) {
     var typeSchemaEnvironment = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(
@@ -384,7 +393,8 @@ class TypeConstraintGathererTest {
             typeCacheNonNullable: {},
             typeCacheNullable: {},
             typeCacheLegacy: {}),
-        inferenceResultForTesting: null);
+        inferenceResultForTesting: null,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints()
         : null;

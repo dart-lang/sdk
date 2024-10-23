@@ -2,23 +2,19 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/top_level_vs_local_inference.dart:16:14: Error: Inferred type argument 'dynamic' doesn't conform to the bound 'Column' of the type variable 'F' on 'TableSchema'.
+// pkg/front_end/testcases/general/top_level_vs_local_inference.dart:16:34: Error: The argument type 'List<dynamic>' can't be assigned to the parameter type 'Iterable<Column>'.
+//  - 'List' is from 'dart:core'.
+//  - 'Iterable' is from 'dart:core'.
 //  - 'Column' is from 'pkg/front_end/testcases/general/top_level_vs_local_inference.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
 // var schema = TableSchema(fields: []);
-//              ^
-// pkg/front_end/testcases/general/top_level_vs_local_inference.dart:9:19: Context: This is the type variable whose bound isn't conformed to.
-// class TableSchema<F extends Column, C extends TableContext> {
-//                   ^
+//                                  ^
 //
-// pkg/front_end/testcases/general/top_level_vs_local_inference.dart:19:16: Error: Inferred type argument 'dynamic' doesn't conform to the bound 'Column' of the type variable 'F' on 'TableSchema'.
+// pkg/front_end/testcases/general/top_level_vs_local_inference.dart:19:36: Error: The argument type 'List<dynamic>' can't be assigned to the parameter type 'Iterable<Column>'.
+//  - 'List' is from 'dart:core'.
+//  - 'Iterable' is from 'dart:core'.
 //  - 'Column' is from 'pkg/front_end/testcases/general/top_level_vs_local_inference.dart'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
 //   var schema = TableSchema(fields: []);
-//                ^
-// pkg/front_end/testcases/general/top_level_vs_local_inference.dart:9:19: Context: This is the type variable whose bound isn't conformed to.
-// class TableSchema<F extends Column, C extends TableContext> {
-//                   ^
+//                                    ^
 //
 import self as self;
 import "dart:core" as core;
@@ -40,9 +36,14 @@ class TableSchema<F extends self::Column, C extends self::TableContext> extends 
   static factory •<F extends self::Column, C extends self::TableContext>({required core::Iterable<self::TableSchema::•::F> fields, self::TableSchema::•::C? context = #C1}) → self::TableSchema<self::TableSchema::•::F, self::TableSchema::•::C>
     return new self::TableSchema::_<self::TableSchema::•::F, self::TableSchema::•::C>();
 }
-static field self::TableSchema<dynamic, self::TableContext> schema = self::TableSchema::•<self::Column, self::TableContext>(fields: <self::Column>[]);
+static field self::TableSchema<self::Column, self::TableContext> schema = self::TableSchema::•<self::Column, self::TableContext>(fields: <self::Column>[]);
 static method method() → void {
-  self::TableSchema<dynamic, self::TableContext> schema = self::TableSchema::•<dynamic, self::TableContext>(fields: <dynamic>[]);
+  self::TableSchema<self::Column, self::TableContext> schema = self::TableSchema::•<self::Column, self::TableContext>(fields: invalid-expression "pkg/front_end/testcases/general/top_level_vs_local_inference.dart:19:36: Error: The argument type 'List<dynamic>' can't be assigned to the parameter type 'Iterable<Column>'.
+ - 'List' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+ - 'Column' is from 'pkg/front_end/testcases/general/top_level_vs_local_inference.dart'.
+  var schema = TableSchema(fields: []);
+                                   ^" in <dynamic>[] as{TypeError} core::Iterable<self::Column>);
 }
 
 constants  {

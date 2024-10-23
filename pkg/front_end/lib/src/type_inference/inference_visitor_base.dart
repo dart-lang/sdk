@@ -961,6 +961,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(null, typeParameters, null,
             typeOperations: cfeOperations,
+            inferenceUsingBoundsIsEnabled:
+                libraryFeatures.inferenceUsingBounds.isEnabled,
             inferenceResultForTesting: dataForTesting
                 // Coverage-ignore(suite): Not run.
                 ?.typeInferenceResult,
@@ -1643,6 +1645,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           calleeType.returnType, calleeTypeParameters, typeContext,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: cfeOperations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -3614,6 +3618,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
                 instantiatedType, typeParameters, context,
+                inferenceUsingBoundsIsEnabled:
+                    libraryFeatures.inferenceUsingBounds.isEnabled,
                 typeOperations: cfeOperations,
                 inferenceResultForTesting: dataForTesting
                     // Coverage-ignore(suite): Not run.

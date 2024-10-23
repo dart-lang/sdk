@@ -658,6 +658,15 @@ abstract interface class TypeAnalyzerOperations<
       SharedTypeSchemaView<TypeStructure> typeSchema1,
       SharedTypeSchemaView<TypeStructure> typeSchema2);
 
+  /// Computes the greatest closure of a type.
+  ///
+  /// Computing the greatest closure of a type is described here:
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#type-variable-elimination-least-and-greatest-closure-of-a-type
+  TypeStructure greatestClosureOfTypeInternal(
+      TypeStructure type,
+      List<SharedTypeParameterStructure<TypeStructure>>
+          typeParametersToEliminate);
+
   /// Converts a type into a corresponding type schema.
   SharedTypeSchemaView<TypeStructure> typeToSchema(
       SharedTypeView<TypeStructure> type);
@@ -888,9 +897,14 @@ abstract class TypeConstraintGenerator<
   /// https://github.com/dart-lang/sdk/issues/51156#issuecomment-2158825417.
   bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
 
+  /// True if the language feature inference-using-bounds is enabled.
+  final bool inferenceUsingBoundsIsEnabled;
+
   /// Abstract type operations to be used in the matching methods.
   TypeAnalyzerOperations<TypeStructure, Variable, TypeParameterStructure,
       TypeDeclarationType, TypeDeclaration> get typeAnalyzerOperations;
+
+  TypeConstraintGenerator({required this.inferenceUsingBoundsIsEnabled});
 
   /// Returns the type arguments of the supertype of [type] that is an
   /// instantiation of [typeDeclaration]. If none of the supertypes of [type]

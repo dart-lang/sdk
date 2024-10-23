@@ -189,7 +189,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Something invalid...
     _assertTypes(
       _inferCall(clone, [stringNone, numNone], expectError: true),
-      [objectNone],
+      [
+        interfaceTypeNone(A, typeArguments: [objectQuestion]),
+      ],
     );
   }
 

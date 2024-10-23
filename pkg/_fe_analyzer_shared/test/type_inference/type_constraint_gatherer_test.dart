@@ -544,8 +544,8 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   final _constraints = <String>[];
 
   _TypeConstraintGatherer(Set<String> typeVariablesBeingConstrained,
-      {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr =
-          false}) {
+      {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false})
+      : super(inferenceUsingBoundsIsEnabled: false) {
     for (var typeVariableName in typeVariablesBeingConstrained) {
       _typeVariablesBeingConstrained
           .add(TypeRegistry.addTypeParameter(typeVariableName));

@@ -518,6 +518,14 @@ class TypeSystemOperations
   }
 
   @override
+  DartType greatestClosureOfTypeInternal(DartType type,
+      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+    typeParametersToEliminate.first;
+    return typeSystem.greatestClosure(
+        type, typeParametersToEliminate.cast<TypeParameterElement>());
+  }
+
+  @override
   bool isAlwaysExhaustiveType(SharedTypeView<DartType> type) {
     return typeSystem.isAlwaysExhaustive(type.unwrapTypeView());
   }

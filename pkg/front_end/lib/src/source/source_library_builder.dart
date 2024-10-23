@@ -1725,6 +1725,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           } else {
             if (issueInferred) {
+              // Coverage-ignore-block(suite): Not run.
               message = templateIncorrectTypeArgumentInstantiationInferred
                   .withArguments(argument, typeParameter.bound,
                       typeParameter.name!, targetReceiver);

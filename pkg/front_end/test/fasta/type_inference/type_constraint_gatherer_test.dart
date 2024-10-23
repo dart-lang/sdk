@@ -361,7 +361,8 @@ class TypeConstraintGathererTest {
             typeCacheNonNullable: {},
             typeCacheNullable: {},
             typeCacheLegacy: {}),
-        inferenceResultForTesting: null);
+        inferenceResultForTesting: null,
+        inferenceUsingBoundsIsEnabled: false);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints()
         : null;

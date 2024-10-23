@@ -1271,6 +1271,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      inferenceUsingBoundsIsEnabled: false,
       dataForTesting: null,
     );
 
@@ -1299,6 +1300,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      inferenceUsingBoundsIsEnabled: false,
       dataForTesting: null,
     );
 
