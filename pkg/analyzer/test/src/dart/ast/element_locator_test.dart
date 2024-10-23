@@ -586,7 +586,18 @@ enum E {
     expect(element, findElement2.extensionType('A'));
   }
 
-  test_locate_FunctionDeclaration() async {
+  test_locate_FunctionDeclaration_local() async {
+    await resolveTestCode(r'''
+void f() {
+  int g() => 3;
+}
+''');
+    var node = findNode.functionDeclaration('g');
+    var element = ElementLocator.locate2(node);
+    expect(element, isLocalFunctionElement);
+  }
+
+  test_locate_FunctionDeclaration_topLevel() async {
     await resolveTestCode('int f() => 3;');
     var node = findNode.functionDeclaration('f');
     var element = ElementLocator.locate2(node);
