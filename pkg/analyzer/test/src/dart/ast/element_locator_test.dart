@@ -884,7 +884,18 @@ void f(int a) {
     expect(element, isLibraryElement2);
   }
 
-  test_locate_VariableDeclaration() async {
+  test_locate_VariableDeclaration_Local() async {
+    await resolveTestCode(r'''
+f() {
+  var x = 42;
+}
+''');
+    var node = findNode.variableDeclaration('x =');
+    var element = ElementLocator.locate2(node);
+    expect(element, isLocalVariableElement2);
+  }
+
+  test_locate_VariableDeclaration_TopLevel() async {
     await resolveTestCode('var x = 42;');
     var node = findNode.variableDeclaration('x =');
     var element = ElementLocator.locate2(node);
