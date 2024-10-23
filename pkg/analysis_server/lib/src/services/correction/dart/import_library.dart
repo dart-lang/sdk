@@ -101,10 +101,14 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (combinators.length == 1) {
           var combinator = combinators[0];
           if (combinator is HideElementCombinator) {
-            // TODO(brianwilkerson): Support removing the extension name from a
-            //  hide combinator.
+            producers.add(_ImportLibraryCombinator(
+              libraryToImport.source.uri.toString(),
+              combinator,
+              instantiatedExtension.extension.name!,
+              context: context,
+            ));
           } else if (combinator is ShowElementCombinator) {
-            producers.add(_ImportLibraryShow(
+            producers.add(_ImportLibraryCombinator(
               libraryToImport.source.uri.toString(),
               combinator,
               instantiatedExtension.extension.name!,
@@ -197,23 +201,25 @@ class ImportLibrary extends MultiCorrectionProducer {
             _ImportLibraryPrefix(libraryElement, prefix, context: context));
         continue;
       }
-      // Maybe update a "show" directive.
+      // Maybe update a "show"/"hide" directive.
       var combinators = import.combinators;
       if (combinators.length == 1) {
-        var combinator = combinators[0];
+        // Prepare library name - unit name or 'dart:name' for SDK library.
+        var libraryName =
+            libraryElement.definingCompilationUnit.source.uri.toString();
+        if (libraryElement.isInSdk) {
+          libraryName = libraryElement.source.shortName;
+        }
+        var combinator = combinators.first;
         if (combinator is HideElementCombinator) {
-          // TODO(brianwilkerson): Support removing the element name from a
-          //  hide combinator.
-        } else if (combinator is ShowElementCombinator) {
-          // Prepare library name - unit name or 'dart:name' for SDK library.
-          var libraryName =
-              libraryElement.definingCompilationUnit.source.uri.toString();
-          if (libraryElement.isInSdk) {
-            libraryName = libraryElement.source.shortName;
-          }
           // Don't add this library again.
           alreadyImportedWithPrefix.add(libraryElement);
-          producers.add(_ImportLibraryShow(libraryName, combinator, name,
+          producers.add(_ImportLibraryCombinator(libraryName, combinator, name,
+              context: context));
+        } else if (combinator is ShowElementCombinator) {
+          // Don't add this library again.
+          alreadyImportedWithPrefix.add(libraryElement);
+          producers.add(_ImportLibraryCombinator(libraryName, combinator, name,
               context: context));
         }
       }
@@ -447,6 +453,66 @@ enum _ImportKind {
   forType
 }
 
+/// A correction processor that can add/remove a name to/from the show/hide
+/// combinator of an existing import.
+class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
+  final String _libraryName;
+
+  final NamespaceCombinator _combinator;
+
+  final String _updatedName;
+
+  _ImportLibraryCombinator(
+    this._libraryName,
+    this._combinator,
+    this._updatedName, {
+    required super.context,
+  });
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_libraryName];
+
+  @override
+  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    Set<String> finalNames = SplayTreeSet<String>();
+    int offset;
+    int length;
+    Keyword keyword;
+    if (_combinator case ShowElementCombinator(shownNames: var names)) {
+      finalNames.addAll(names);
+      offset = _combinator.offset;
+      length = _combinator.end - offset;
+      finalNames.add(_updatedName);
+      keyword = Keyword.SHOW;
+    } else if (_combinator case HideElementCombinator(hiddenNames: var names)) {
+      finalNames.addAll(names);
+      offset = _combinator.offset;
+      length = _combinator.end - offset;
+      finalNames.remove(_updatedName);
+      keyword = Keyword.HIDE;
+    } else {
+      return;
+    }
+    var newCombinatorCode = '';
+    if (finalNames.isNotEmpty) {
+      newCombinatorCode = ' ${keyword.lexeme} ${finalNames.join(', ')}';
+    }
+    var libraryFile = unitResult.libraryElement.source.fullName;
+    await builder.addDartFileEdit(libraryFile, (builder) {
+      builder.addSimpleReplacement(
+          SourceRange(offset - 1, length + 1), newCombinatorCode);
+    });
+  }
+}
+
 /// A correction processor that can add an import of a library containing an
 /// extension, but which does so only if the extension applies to a given type.
 class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
@@ -531,48 +597,6 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');
-    });
-  }
-}
-
-/// A correction processor that can add a name to the show combinator of an
-/// existing import.
-class _ImportLibraryShow extends ResolvedCorrectionProducer {
-  final String _libraryName;
-
-  final ShowElementCombinator _showCombinator;
-
-  final String _addedName;
-
-  _ImportLibraryShow(
-    this._libraryName,
-    this._showCombinator,
-    this._addedName, {
-    required super.context,
-  });
-
-  @override
-  CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
-
-  @override
-  List<String> get fixArguments => [_libraryName];
-
-  @override
-  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_SHOW;
-
-  @override
-  Future<void> compute(ChangeBuilder builder) async {
-    Set<String> showNames = SplayTreeSet<String>();
-    showNames.addAll(_showCombinator.shownNames);
-    showNames.add(_addedName);
-    var newShowCode = 'show ${showNames.join(', ')}';
-    var offset = _showCombinator.offset;
-    var length = _showCombinator.end - offset;
-    var libraryFile = unitResult.libraryElement.source.fullName;
-    await builder.addDartFileEdit(libraryFile, (builder) {
-      builder.addSimpleReplacement(SourceRange(offset, length), newShowCode);
     });
   }
 }
