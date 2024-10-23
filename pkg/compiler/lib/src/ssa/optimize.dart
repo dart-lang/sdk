@@ -132,7 +132,7 @@ class SsaOptimizerTask extends CompilerTask {
         SsaTypeConversionInserter(closedWorld),
         SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
             closedWorld, log),
-        SsaValueRangeAnalyzer(closedWorld, this),
+        SsaValueRangeAnalyzer(closedWorld, this, codegen.tracer),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
@@ -156,7 +156,7 @@ class SsaOptimizerTask extends CompilerTask {
               closedWorld, log),
           SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           SsaCodeMotion(closedWorld.abstractValueDomain),
-          SsaValueRangeAnalyzer(closedWorld, this),
+          SsaValueRangeAnalyzer(closedWorld, this, codegen.tracer),
           SsaInstructionSimplifier(globalInferenceResults, _options,
               closedWorld, typeRecipeDomain, registry, log, metrics),
           SsaSimplifyInterceptors(closedWorld, member.enclosingClass),

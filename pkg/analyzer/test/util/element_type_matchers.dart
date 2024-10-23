@@ -53,6 +53,8 @@ const isLocalFunctionElement = TypeMatcher<LocalFunctionElement>();
 
 const isLocalVariableElement = TypeMatcher<LocalVariableElement>();
 
+const isLocalVariableElement2 = TypeMatcher<LocalVariableElement2>();
+
 const isMethodElement = TypeMatcher<MethodElement>();
 
 const isMethodElement2 = TypeMatcher<MethodElement2>();

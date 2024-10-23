@@ -8,6 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -32,6 +33,8 @@ class FunctionExpressionInvocationResolver {
   NullableDereferenceVerifier get _nullableDereferenceVerifier =>
       _resolver.nullableDereferenceVerifier;
 
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+
   void resolve(FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType contextType}) {
@@ -50,6 +53,7 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
+    receiverType = _typeSystem.resolveToBound(receiverType);
     if (receiverType is FunctionType) {
       _nullableDereferenceVerifier.expression(
         CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
