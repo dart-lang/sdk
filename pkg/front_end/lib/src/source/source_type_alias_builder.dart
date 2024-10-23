@@ -24,6 +24,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
 
@@ -401,6 +402,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           target, tearOff,
           libraryBuilder: libraryBuilder));
     });
+  }
+
+  int computeDefaultType(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
+    hasErrors |= context.reportInboundReferenceIssuesForType(type);
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+    context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
+    return count;
   }
 
   LookupScope computeTypeParameterScope(LookupScope parent) {

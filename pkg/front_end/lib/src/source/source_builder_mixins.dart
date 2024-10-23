@@ -19,6 +19,7 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
@@ -28,6 +29,8 @@ import 'source_procedure_builder.dart';
 
 abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
   void buildScopes(LibraryBuilder coreLibrary);
+
+  int computeDefaultTypes(ComputeDefaultTypeContext context);
 }
 
 mixin SourceDeclarationBuilderMixin
@@ -123,6 +126,35 @@ mixin SourceDeclarationBuilderMixin
             addMembersToLibrary: addMembersToLibrary);
       });
     }
+    return count;
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+
+    Iterator<SourceMemberBuilder> iterator =
+        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      count += iterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+
+    forEach((String name, Builder member) {
+      if (member is SourceMemberBuilder) {
+        count +=
+            member.computeDefaultTypes(context, inErrorRecovery: hasErrors);
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        assert(
+            false,
+            "Unexpected extension type member "
+            "$member (${member.runtimeType}).");
+      }
+    });
     return count;
   }
 

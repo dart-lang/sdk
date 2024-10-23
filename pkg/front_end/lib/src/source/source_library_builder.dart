@@ -55,14 +55,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/macro/macro.dart';
-import '../kernel/type_algorithms.dart'
-    show
-        NonSimplicityIssue,
-        calculateBounds,
-        findUnaliasedGenericFunctionTypes,
-        getInboundReferenceIssuesInType,
-        getNonSimplicityIssuesForDeclaration,
-        getNonSimplicityIssuesForTypeParameters;
+import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
 import '../kernel/utils.dart'
     show
         compareProcedures,

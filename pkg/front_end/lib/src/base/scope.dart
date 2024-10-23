@@ -20,6 +20,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -719,6 +720,14 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   // Coverage-ignore(suite): Not run.
   int buildBodyNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildBodyNodes.");
+    return 0;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    assert(false, "Unexpected call to $runtimeType.computeDefaultTypes.");
     return 0;
   }
 

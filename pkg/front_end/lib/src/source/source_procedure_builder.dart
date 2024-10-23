@@ -20,6 +20,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
+import '../kernel/type_algorithms.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
@@ -680,6 +681,20 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         augmentation.checkTypes(library, typeEnvironment);
       }
     }
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    bool hasErrors =
+        context.reportSimplicityIssuesForTypeParameters(typeParameters);
+    context.reportGenericFunctionTypesForFormals(formals);
+    if (returnType is! OmittedTypeBuilder) {
+      hasErrors |= context.reportInboundReferenceIssuesForType(returnType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(returnType);
+    }
+    return context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
   }
 
   @override

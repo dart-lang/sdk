@@ -42,6 +42,7 @@ import '../kernel/kernel_helper.dart'
         TypeDependency,
         finishConstructorAugmentation,
         finishProcedureAugmentation;
+import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import 'constructor_declaration.dart';
@@ -348,6 +349,17 @@ abstract class AbstractSourceConstructorBuilder
       }
     }
     return null;
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        // Type parameters are inherited from the enclosing declaration, so if
+        // it has issues, so do the constructors.
+        inErrorRecovery: inErrorRecovery);
+    context.reportGenericFunctionTypesForFormals(formals);
+    return count;
   }
 
   @override
@@ -1201,6 +1213,14 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
           .add(_delayedDefaultValueCloner!..isOutlineNode = true);
       _delayedDefaultValueCloner = null;
     }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    assert(false, "Unexpected call to $runtimeType.computeDefaultType");
+    return 0;
   }
 
   @override

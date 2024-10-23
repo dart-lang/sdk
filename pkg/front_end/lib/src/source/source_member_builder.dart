@@ -14,6 +14,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
 import 'source_class_builder.dart';
@@ -40,6 +41,9 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   ///
   /// This includes adding augmented bodies and augmented members.
   int buildBodyNodes(BuildNodesCallback f);
+
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery});
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.

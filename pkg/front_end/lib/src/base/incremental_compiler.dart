@@ -1985,6 +1985,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               isAugmenting: false,
               indexedLibrary: null,
               mayImplementRestrictedTypes: false);
+      debugCompilationUnit.markLanguageVersionFinal();
+
       SourceLibraryBuilder debugLibrary = debugCompilationUnit.createLibrary();
       debugLibrary.buildNameSpace();
       libraryBuilder.libraryNameSpace.forEachLocalMember((name, member) {
@@ -2047,6 +2049,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           isAugmenting: false,
           indexedLibrary: null,
           mayImplementRestrictedTypes: false);
+      debugCompilationUnit.markLanguageVersionFinal();
 
       SourceLibraryBuilder? orgDebugLibrary = debugLibrary;
       debugLibrary = debugCompilationUnit.createLibrary();

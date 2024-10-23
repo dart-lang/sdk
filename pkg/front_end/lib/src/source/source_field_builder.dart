@@ -33,6 +33,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/name_scheme.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -609,6 +610,17 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   List<ClassMember> get localSetters =>
       _localSetters ??= _fieldEncoding.getLocalSetters(this);
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    TypeBuilder? fieldType = type;
+    if (fieldType is! OmittedTypeBuilder) {
+      context.reportInboundReferenceIssuesForType(fieldType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
+    }
+    return 0;
+  }
 
   @override
   void checkVariance(
