@@ -488,8 +488,11 @@ class PropertyElementResolver with ScopeHelpers {
 
     DartType? getType;
     if (hasRead) {
-      var unpromotedType =
-          result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
+      var unpromotedType = switch (result.getter) {
+        MethodElement(:var type) => type,
+        PropertyAccessorElement(:var returnType) => returnType,
+        _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType
+      };
       getType = _resolver.flowAnalysis.flow
               ?.propertyGet(
                   node,
