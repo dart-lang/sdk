@@ -153,7 +153,6 @@ vars = {
   "html_rev": "6d3bc86cf2ab530ef3fa5f84b5980dc318a02af4",
   "http_rev": "5e2281edd25f9addbf26242a0658d8f2dfa1134b",
   "http_multi_server_rev": "e7515b5896b83d522189802a1e14e103e19426c0",
-  "http_parser_rev": "23d775898ee90be9daf3297e298a8869bc755d84",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "c9b616bded8cdb5bfdc836ba7648afa6aba40062",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -434,8 +433,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       "@" + Var("http_multi_server_rev"),
-  Var("dart_root") + "/third_party/pkg/http_parser":
-      Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
       Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
@@ -491,7 +488,7 @@ deps = {
       "@" + Var("string_scanner_rev"),
   Var("dart_root") + "/third_party/pkg/sync_http":
       Var("dart_git") + "sync_http.git" + "@" + Var("sync_http_rev"),
-Var("dart_root") + "/third_party/pkg/tar":
+  Var("dart_root") + "/third_party/pkg/tar":
       Var("dart_git") + "external/github.com/simolus3/tar.git" +
       "@" + Var("tar_rev"),
   Var("dart_root") + "/third_party/pkg/term_glyph":
