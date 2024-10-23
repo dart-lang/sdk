@@ -569,7 +569,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<GetterElement> get getters => accessors
       .where((accessor) => accessor.isGetter)
-      .map((fragment) => (fragment as GetterFragment).element as GetterElement)
+      .map((fragment) => switch (fragment) {
+            GetterFragment(:var element) => element as GetterElement,
+            GetterMember() => fragment,
+            _ => throw StateError(
+                'unexpected fragment type: ${fragment.runtimeType}',
+              )
+          })
       .toList();
 
   @override
@@ -718,7 +724,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<SetterElement> get setters => accessors
       .where((accessor) => accessor.isSetter)
-      .map((fragment) => (fragment as SetterFragment).element as SetterElement)
+      .map((fragment) => switch (fragment) {
+            SetterFragment(:var element) => element as SetterElement,
+            SetterMember() => fragment,
+            _ => throw StateError(
+                'unexpected fragment type: ${fragment.runtimeType}',
+              )
+          })
       .toList();
 
   @override

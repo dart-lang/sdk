@@ -4,9 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/obvious_types.dart';
 
 const _desc = r'Specify non-obvious type annotations for local variables.';
@@ -63,20 +64,23 @@ class _Visitor extends SimpleAstVisitor<void> {
         bool ignoreThisVariable = false;
         AstNode? owningDeclaration = node;
         while (owningDeclaration != null) {
-          InterfaceElement? owningElement = switch (owningDeclaration) {
-            ClassDeclaration(:var declaredElement) => declaredElement,
-            MixinDeclaration(:var declaredElement) => declaredElement,
-            EnumDeclaration(:var declaredElement) => declaredElement,
-            ExtensionTypeDeclaration(:var declaredElement) => declaredElement,
+          InterfaceElement2? owningElement = switch (owningDeclaration) {
+            ClassDeclaration(:var declaredFragment?) =>
+              declaredFragment.element,
+            MixinDeclaration(:var declaredFragment?) =>
+              declaredFragment.element,
+            EnumDeclaration(:var declaredFragment?) => declaredFragment.element,
+            ExtensionTypeDeclaration(:var declaredFragment?) =>
+              declaredFragment.element,
             _ => null,
           };
           if (owningElement != null) {
             var variableName = child.name.lexeme;
             for (var superInterface in owningElement.allSupertypes) {
-              if (superInterface.getGetter(variableName) != null) {
+              if (superInterface.getGetter2(variableName) != null) {
                 ignoreThisVariable = true;
               }
-              if (superInterface.getSetter(variableName) != null) {
+              if (superInterface.getSetter2(variableName) != null) {
                 ignoreThisVariable = true;
               }
             }
