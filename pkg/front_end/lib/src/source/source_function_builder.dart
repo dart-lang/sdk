@@ -153,6 +153,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
   AsyncMarker get asyncModifier;
 
   @override

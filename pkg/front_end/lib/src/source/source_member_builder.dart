@@ -12,6 +12,7 @@ import '../base/common.dart';
 import '../base/modifiers.dart';
 import '../base/problems.dart' show unsupported;
 import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -24,6 +25,8 @@ typedef BuildNodesCallback = void Function(
 
 abstract class SourceMemberBuilder implements MemberBuilder {
   MemberDataForTesting? get dataForTesting;
+
+  Iterable<MetadataBuilder>? get metadataForTesting;
 
   @override
   SourceLibraryBuilder get libraryBuilder;

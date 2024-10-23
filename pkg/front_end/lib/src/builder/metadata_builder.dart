@@ -5,13 +5,18 @@
 library fasta.metadata_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
+import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
+import '../kernel/macro/metadata.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+bool computeSharedExpressionForTesting = false;
 
 class MetadataBuilder {
   /// Token for `@` for annotations that have not yet been parsed.
@@ -34,6 +39,11 @@ class MetadataBuilder {
 
   // Coverage-ignore(suite): Not run.
   Token? get beginToken => _atToken;
+
+  shared.Expression? _sharedExpression;
+
+  // Coverage-ignore(suite): Not run.
+  shared.Expression? get expression => _sharedExpression;
 
   static void buildAnnotations(
       Annotatable parent,
@@ -61,6 +71,12 @@ class MetadataBuilder {
       MetadataBuilder annotationBuilder = metadata[i];
       Token? beginToken = annotationBuilder._atToken;
       if (beginToken != null) {
+        if (computeSharedExpressionForTesting) {
+          // Coverage-ignore-block(suite): Not run.
+          annotationBuilder._sharedExpression = _parseSharedExpression(
+              library.loader, beginToken, library.importUri, fileUri, scope);
+        }
+
         bodyBuilder ??= library.loader.createBodyBuilderForOutlineExpression(
             library, bodyBuilderContext, scope, fileUri);
         Expression annotation = bodyBuilder.parseAnnotation(beginToken);
@@ -116,4 +132,10 @@ class MetadataBuilder {
       }
     }
   }
+}
+
+// Coverage-ignore(suite): Not run.
+shared.Expression _parseSharedExpression(Loader loader, Token atToken,
+    Uri importUri, Uri fileUri, LookupScope scope) {
+  return parseAnnotation(loader, atToken, importUri, fileUri, scope);
 }

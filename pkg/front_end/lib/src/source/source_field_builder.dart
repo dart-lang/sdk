@@ -317,6 +317,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+
+  @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override

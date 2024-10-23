@@ -642,6 +642,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Name get memberName => throw new UnsupportedError('$runtimeType.memberName');
 
   @override

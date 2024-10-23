@@ -1063,6 +1063,10 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   int get fileOffset => _constructor.fileOffset;
 
   @override

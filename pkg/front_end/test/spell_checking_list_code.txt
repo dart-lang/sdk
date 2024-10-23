@@ -273,6 +273,7 @@ clil
 clock
 closurizing
 cls
+clutter
 cm
 cmdline
 cmdlines
@@ -533,6 +534,7 @@ dyn
 dynamically
 e
 eager
+ease
 easy
 eb
 ecma
@@ -1735,6 +1737,7 @@ stringify
 strip
 structs
 structurally
+structured
 structures
 stub
 stubs
@@ -1955,6 +1958,7 @@ unfiltered
 unfinalized
 unfold
 unfolds
+unfortunately
 unfuture
 unfutured
 unguarded
