@@ -306,7 +306,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       if (superType == null) return;
 
       for (var constructor in superType.constructors2) {
-        if (constructor.name3.isEmpty) {
+        if (constructor.name3 == 'new') {
           var list = _formalParameterSuggestions(constructor, formalParameters);
           finder._updateList(list);
           break;

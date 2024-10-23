@@ -253,7 +253,7 @@ abstract class ConstructorElement2
   ///
   /// The name of the unnamed constructor is `new`.
   @override
-  String get name3;
+  String? get name3;
 
   /// The constructor to which this constructor is redirecting.
   ///
@@ -977,9 +977,6 @@ abstract class GetterElement implements ExecutableElement2, FragmentedElement {
   @override
   GetterFragment? get firstFragment;
 
-  @override
-  String? get name3;
-
   /// The field or top-level variable associated with this getter.
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
@@ -1195,9 +1192,6 @@ abstract class LabelElement2 implements Element2 {
 
   @override
   LibraryElement2 get library2;
-
-  @override
-  String get name3;
 
   /// The offset of the name in this element.
   int get nameOffset;
@@ -1750,9 +1744,6 @@ abstract class PrefixElement2 implements Element2, FragmentedElement {
   @override
   LibraryElement2 get library2;
 
-  @override
-  String? get name3;
-
   /// The name lookup scope for this import prefix.
   ///
   /// It consists of elements imported into the enclosing library with this
@@ -1909,9 +1900,6 @@ abstract class SetterElement implements ExecutableElement2, FragmentedElement {
 
   @override
   SetterFragment? get firstFragment;
-
-  @override
-  String? get name3;
 
   /// The field or top-level variable associated with this setter.
   ///

@@ -7348,7 +7348,7 @@ library
             <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   extensions
-    extension <null>
+    extension <null-name>
       firstFragment: <testLibraryFragment>::@extension::0
       fields
         synthetic foo

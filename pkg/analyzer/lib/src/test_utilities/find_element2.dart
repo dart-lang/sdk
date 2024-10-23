@@ -503,7 +503,7 @@ abstract class _FindElementBase {
     return _findInClassesLike(
       className: name,
       fromClass: (e) => e.constructors2.firstWhereOrNull((element) {
-        return element.name3.isEmpty;
+        return element.name3 == 'new';
       }),
       fromExtension: (_) => null,
     );

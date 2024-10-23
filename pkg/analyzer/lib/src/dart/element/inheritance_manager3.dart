@@ -1130,6 +1130,7 @@ class InheritanceManager3 {
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
+      result.element = MethodElementImpl2(firstMethod.name, result);
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElement;
