@@ -2049,8 +2049,7 @@ FunctionExpressionInvocation
     token: foo
     staticElement: <testLibraryFragment>::@class::C::@getter::foo
     element: <testLibraryFragment>::@class::C::@getter::foo#element
-    staticType: double Function(int)
-      alias: <testLibraryFragment>::@typeAlias::MyFunction
+    staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -8117,6 +8116,70 @@ FunctionExpressionInvocation
   element: <null>
   staticInvokeType: String Function()
   staticType: String?
+''');
+  }
+
+  test_rewrite_with_target() async {
+    await assertNoErrorsInCode(r'''
+test<T extends Function>(List<T> x) {
+  x.first();
+}
+''');
+
+    var node = findNode.functionExpressionInvocation('x.first()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: x
+      staticElement: <testLibraryFragment>::@function::test::@parameter::x
+      element: <testLibraryFragment>::@function::test::@parameter::x#element
+      staticType: List<T>
+    operator: .
+    propertyName: SimpleIdentifier
+      token: first
+      staticElement: GetterMember
+        base: dart:core::<fragment>::@class::Iterable::@getter::first
+        substitution: {E: T, E: T}
+      element: dart:core::<fragment>::@class::Iterable::@getter::first#element
+      staticType: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_rewrite_without_target() async {
+    await assertNoErrorsInCode(r'''
+extension E<T extends Function> on List<T> {
+  test() {
+    first();
+  }
+}
+''');
+
+    var node = findNode.functionExpressionInvocation('first()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: first
+    staticElement: GetterMember
+      base: dart:core::<fragment>::@class::Iterable::@getter::first
+      substitution: {E: T, E: T}
+    element: dart:core::<fragment>::@class::Iterable::@getter::first#element
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
 ''');
   }
 

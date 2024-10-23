@@ -949,7 +949,7 @@ class MethodInvocationResolver with ScopeHelpers {
   FunctionExpressionInvocationImpl _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
       {bool isSuperAccess = false}) {
-    var targetType = _typeSystem.resolveToBound(getterReturnType);
+    var targetType = getterReturnType;
 
     ExpressionImpl functionExpression;
     var target = node.target;
