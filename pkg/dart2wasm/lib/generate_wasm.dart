@@ -16,15 +16,45 @@ typedef PrintError = void Function(String error);
 
 Future<int> generateWasm(WasmCompilerOptions options,
     {PrintError errorPrinter = print}) async {
-  if (options.translatorOptions.verbose) {
+  final translatorOptions = options.translatorOptions;
+  if (translatorOptions.verbose) {
     print('Running dart compile wasm...');
     print('  - input file name   = ${options.mainUri}');
     print('  - output file name  = ${options.outputFile}');
     print('  - librariesSpecPath = ${options.librariesSpecPath}');
     print('  - packagesPath file = ${options.packagesPath}');
     print('  - platformPath file = ${options.platformPath}');
+    print('');
+    print('Translator options:');
+    print('  - enable asserts = ${translatorOptions.enableAsserts}');
+    print('  - import shared memory = ${translatorOptions.importSharedMemory}');
+    print('  - inlining = ${translatorOptions.inlining}');
+    print('  - js compatibility = ${translatorOptions.jsCompatibility}');
     print(
-        '  - generate source maps = ${options.translatorOptions.generateSourceMaps}');
+        '  - omit implicit type checks = ${translatorOptions.omitImplicitTypeChecks}');
+    print(
+        '  - omit explicit type checks = ${translatorOptions.omitExplicitTypeChecks}');
+    print('  - omit bounds checks = ${translatorOptions.omitBoundsChecks}');
+    print(
+        '  - polymorphic specialization = ${translatorOptions.polymorphicSpecialization}');
+    print('  - print kernel = ${translatorOptions.printKernel}');
+    print('  - print wasm = ${translatorOptions.printWasm}');
+    print('  - minify = ${translatorOptions.minify}');
+    print('  - verity type checks = ${translatorOptions.verifyTypeChecks}');
+    print(
+        '  - enable experimental ffi = ${translatorOptions.enableExperimentalFfi}');
+    print(
+        '  - enable experimental wasm interop = ${translatorOptions.enableExperimentalWasmInterop}');
+    print('  - generate source maps = ${translatorOptions.generateSourceMaps}');
+    print(
+        '  - enable deferred loading = ${translatorOptions.enableDeferredLoading}');
+    print(
+        '  - enable multi module stress test mode = ${translatorOptions.enableMultiModuleStressTestMode}');
+    print('  - inlining limit = ${translatorOptions.inliningLimit}');
+    print(
+        '  - shared memory max pages = ${translatorOptions.sharedMemoryMaxPages}');
+    print(
+        '  - watch points = [${translatorOptions.watchPoints.map((p) => p.toString()).join(',')}]');
   }
 
   String moduleNameToWasmOutputFile(String moduleName) {
@@ -42,10 +72,9 @@ Future<int> generateWasm(WasmCompilerOptions options,
     return Uri.file(path.basename(moduleNameToSourceMapFile(moduleName)));
   }
 
-  final relativeSourceMapUrlMapper =
-      options.translatorOptions.generateSourceMaps
-          ? moduleNameToRelativeSourceMapUri
-          : null;
+  final relativeSourceMapUrlMapper = translatorOptions.generateSourceMaps
+      ? moduleNameToRelativeSourceMapUri
+      : null;
 
   CompilationResult result =
       await compileToModule(options, relativeSourceMapUrlMapper, (message) {
