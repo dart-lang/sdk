@@ -124,19 +124,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.declare(name, reference);
     }
 
-    var holder = _EnclosingContext(reference, element);
+    var holder = _EnclosingContext(reference, element,
+        constFieldsForFinalInstance: true);
     _withEnclosing(holder, () {
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
-      }
+      node.typeParameters?.accept(this);
+      _visitPropertyFirst<FieldDeclaration>(node.members);
     });
+    element.typeParameters = holder.typeParameters;
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
 
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
-    _buildClass(node);
 
     _libraryBuilder.updateAugmentationTarget(name, element);
 
@@ -512,23 +514,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
-      }
+      node.typeParameters?.accept(this);
+      _visitPropertyFirst<FieldDeclaration>(node.members);
     });
-
-    // TODO(scheglov): don't create a duplicate
-    {
-      var holder = _EnclosingContext(reference, element);
-      _withEnclosing(holder, () {
-        _visitPropertyFirst<FieldDeclaration>(node.members);
-      });
-      element.accessors = holder.propertyAccessors;
-      element.fields = holder.fields;
-      element.methods = holder.methods;
-    }
+    element.typeParameters = holder.typeParameters;
+    element.accessors = holder.propertyAccessors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
 
     node.onClause?.accept(this);
 
@@ -1111,16 +1103,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
-      }
+      node.typeParameters?.accept(this);
+      _visitPropertyFirst<FieldDeclaration>(node.members);
     });
+    element.typeParameters = holder.typeParameters;
+    element.accessors = holder.propertyAccessors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
 
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
-    _buildMixin(node);
 
     _libraryBuilder.updateAugmentationTarget(name, element);
 
@@ -1387,21 +1379,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
-  void _buildClass(ClassDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
-    // TODO(scheglov): don't create a duplicate
-    var holder = _EnclosingContext(element.reference!, element,
-        constFieldsForFinalInstance: true);
-    _withEnclosing(holder, () {
-      _visitPropertyFirst<FieldDeclaration>(node.members);
-    });
-
-    element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-  }
-
   void _buildExecutableElementChildren({
     required Reference reference,
     required ExecutableElementImpl element,
@@ -1434,19 +1411,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       name: nameToken.lexeme,
       nameOffset: nameToken.offset,
     );
-  }
-
-  void _buildMixin(MixinDeclaration node) {
-    var element = node.declaredElement as MixinElementImpl;
-    // TODO(scheglov): don't create a duplicate
-    var holder = _EnclosingContext(element.reference!, element);
-    _withEnclosing(holder, () {
-      _visitPropertyFirst<FieldDeclaration>(node.members);
-    });
-
-    element.accessors = holder.propertyAccessors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
   }
 
   void _buildSyntheticVariable({
