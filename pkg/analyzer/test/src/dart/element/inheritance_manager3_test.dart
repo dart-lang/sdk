@@ -25,6 +25,7 @@ main() {
     defineReflectiveTests(InheritanceManager3Test);
     defineReflectiveTests(InheritanceManager3Test_elements);
     defineReflectiveTests(InheritanceManager3Test_ExtensionType);
+    defineReflectiveTests(InheritanceManager3NameTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -1410,6 +1411,47 @@ class B extends A {
       forSuper: true,
       expected: 'A.foo: void Function()',
     );
+  }
+}
+
+@reflectiveTest
+class InheritanceManager3NameTest {
+  test_equals() {
+    expect(Name(null, 'foo'), Name(null, 'foo'));
+    expect(Name(null, 'foo'), Name(null, 'foo=').forGetter);
+    expect(Name(null, 'foo='), Name(null, 'foo='));
+    expect(Name(null, 'foo='), Name(null, 'foo').forSetter);
+    expect(Name(null, 'foo='), Name(null, 'foo').forSetter.forSetter.forSetter);
+  }
+
+  test_forGetter() {
+    var name = Name(null, 'foo');
+    expect(name.forGetter.name, 'foo');
+    expect(name, name.forGetter);
+  }
+
+  test_forGetter_fromSetter() {
+    var name = Name(null, 'foo=');
+    expect(name.forGetter.name, 'foo');
+  }
+
+  test_forSetter() {
+    var name = Name(null, 'foo=');
+    expect(name.forSetter.name, 'foo=');
+    expect(name, name.forSetter);
+  }
+
+  test_forSetter_fromGetter() {
+    var name = Name(null, 'foo');
+    expect(name.forSetter.name, 'foo=');
+  }
+
+  test_name_getter() {
+    expect(Name(null, 'foo').name, 'foo');
+  }
+
+  test_name_setter() {
+    expect(Name(null, 'foo=').name, 'foo=');
   }
 }
 

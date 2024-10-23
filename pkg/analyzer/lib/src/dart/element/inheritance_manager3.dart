@@ -1314,7 +1314,11 @@ class Name {
   }
 
   Name get forSetter {
-    return Name(libraryUri, '$name=');
+    if (name.endsWith('=')) {
+      return this;
+    } else {
+      return Name(libraryUri, '$name=');
+    }
   }
 
   @override

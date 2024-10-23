@@ -2313,6 +2313,11 @@ class FlowModel<Type extends Object> {
       PromotionModel<Type>? info =
           result.promotionInfo?.get(helper, variableKey);
       if (info == null) continue;
+
+      // We don't need to discard promotions for final variables. They are
+      // guaranteed to be already assigned and won't be assigned again.
+      if (helper.isFinal(variableKey)) continue;
+
       PromotionModel<Type> newInfo =
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
@@ -2823,6 +2828,10 @@ mixin FlowModelHelper<Type extends Object> {
   /// subtyping.
   @visibleForTesting
   FlowAnalysisTypeOperations<Type> get typeOperations;
+
+  /// Whether the variable of [variableKey] was declared with the `final`
+  /// modifier and the `inference-update-4` feature flag is enabled.
+  bool isFinal(int variableKey);
 }
 
 /// Documentation links that might be presented to the user to accompany a "why
@@ -4994,6 +5003,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  bool isFinal(int variableKey) {
+    if (!inferenceUpdate4Enabled) return false;
+    Variable? variable = promotionKeyStore.variableForKey(variableKey);
+    if (variable != null && operations.isFinal(variable)) return true;
+    return false;
+  }
+
+  @override
   bool isUnassigned(Variable variable) {
     return _current.promotionInfo
             ?.get(this, promotionKeyStore.keyForVariable(variable))
@@ -5379,7 +5396,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         model: _current,
-        type: unpromotedType,
+        type: promotedType ?? unpromotedType,
         ssaNode: propertySsaNode);
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
@@ -5401,7 +5418,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         model: _current,
-        type: unpromotedType,
+        type: promotedType ?? unpromotedType,
         ssaNode: propertySsaNode);
     _stack.add(new _PropertyPatternContext<Type>(
         _makeTemporaryReference(

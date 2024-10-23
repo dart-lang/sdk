@@ -31,6 +31,16 @@ main() {
 }
 ```
 
+#### Other Language Changes
+
+- **Breaking Change** [#56893][]: If a field is promoted to the type `Null`
+  using `is` or `as`, this type promotion is now properly accounted for in
+  reachability analysis. This makes the type system more self-consistent,
+  because it mirrors the behavior of promoted local variables. This change is
+  not expected to make any difference in practice.
+
+[#56893]: https://github.com/dart-lang/sdk/issues/56893
+
 #### Dart to Javascript Compiler (dart2js)
 
 - The dart2js compiler which is invoked when the command

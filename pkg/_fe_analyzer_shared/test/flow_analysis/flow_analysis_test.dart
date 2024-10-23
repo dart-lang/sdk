@@ -1018,6 +1018,99 @@ main() {
       ]);
     });
 
+    test(
+        'functionExpression_begin() cancels promotions of final vars'
+        ' with inference-update-4 disabled', () {
+      // See test for "functionExpression_begin() preserves promotions of final
+      // variables" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'num'),
+        if_(expr('bool'), [
+          x.write(expr('int')),
+        ], [
+          x.write(expr('double')),
+        ]),
+        if_(x.is_('int'), [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ], [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ]),
+      ]);
+    });
+
+    test('functionExpression_begin() cancels promotions of non-final vars', () {
+      // num x;
+      // if (<bool>) {
+      //   x = <int>;
+      // } else {
+      //   x = <double>;
+      // }
+      // if (x is int) {
+      //   () => x is not promoted
+      // } else {
+      //   () => x is not promoted
+      // }
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num'),
+        if_(expr('bool'), [
+          x.write(expr('int')),
+        ], [
+          x.write(expr('double')),
+        ]),
+        if_(x.is_('int'), [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ], [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ]),
+      ]);
+    });
+
+    test('functionExpression_begin() preserves promotions of final variables',
+        () {
+      // final num x;
+      // if (<bool>) {
+      //   x = <int>;
+      // } else {
+      //   x = <double>;
+      // }
+      // if (x is int) {
+      //   () => x is promoted to int
+      // } else {
+      //   () => x is not promoted
+      // }
+
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, type: 'num'),
+        if_(expr('bool'), [
+          x.write(expr('int')),
+        ], [
+          x.write(expr('double')),
+        ]),
+        if_(x.is_('int'), [
+          localFunction([
+            checkPromoted(x, 'int'),
+          ]),
+        ], [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ]),
+      ]);
+    });
+
     test('functionExpression_begin() preserves promotions of initialized vars',
         () {
       var x = Var('x');
@@ -7315,16 +7408,10 @@ main() {
     });
 
     group('and equality:', () {
-      test('promoted type ignored on LHS', () {
-        // Normally flow analysis understands when an `if` test is guaranteed to
-        // succeed (or fail) based on the static types of the LHS and RHS. But
-        // due to https://github.com/dart-lang/language/issues/4127, this
-        // doesn't fully work when the LHS or RHS is a property reference; in
-        // that case, the unpromoted type is used.
-
-        // This test is here to make sure we don't change the existing behavior
-        // by accident; if/when we fix #4127, this test should be changed
-        // accordingly.
+      test('promoted type accounted for on LHS', () {
+        // Flow analysis understands when an `if` test is guaranteed to succeed
+        // (or fail) based on the static types of the LHS and RHS. Make sure
+        // this works when the LHS or RHS is a property reference.
         h.addMember('C', 'f', 'Object?', promotable: true);
         h.thisType = 'C';
         h.run([
@@ -7333,21 +7420,15 @@ main() {
           if_(thisProperty('f').eq(nullLiteral), [
             checkReachable(true),
           ], [
-            checkReachable(true),
+            checkReachable(false),
           ]),
         ]);
       });
 
-      test('promoted type ignored on RHS', () {
-        // Normally flow analysis understands when an `if` test is guaranteed to
-        // succeed (or fail) based on the static types of the LHS and RHS. But
-        // due to https://github.com/dart-lang/language/issues/4127, this
-        // doesn't fully work when the LHS or RHS is a property reference; in
-        // that case, the unpromoted type is used.
-
-        // This test is here to make sure we don't change the existing behavior
-        // by accident; if/when we fix #4127, this test should be changed
-        // accordingly.
+      test('promoted type accounted for on RHS', () {
+        // Flow analysis understands when an `if` test is guaranteed to succeed
+        // (or fail) based on the static types of the LHS and RHS. Make sure
+        // this works when the LHS or RHS is a property reference.
         h.addMember('C', 'f', 'Object?', promotable: true);
         h.thisType = 'C';
         h.run([
@@ -7356,7 +7437,7 @@ main() {
           if_(nullLiteral.eq(thisProperty('f')), [
             checkReachable(true),
           ], [
-            checkReachable(true),
+            checkReachable(false),
           ]),
         ]);
       });

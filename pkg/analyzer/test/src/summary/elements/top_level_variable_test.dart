@@ -1583,6 +1583,7 @@ library
   topLevelVariables
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      documentationComment: /**\n * Docs\n */
       type: dynamic
       getter: <testLibraryFragment>::@getter::x#element
       setter: <testLibraryFragment>::@setter::x#element

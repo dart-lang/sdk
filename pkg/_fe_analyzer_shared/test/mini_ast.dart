@@ -2964,6 +2964,11 @@ class MiniAstOperations
   }
 
   @override
+  bool isFinal(Var variable) {
+    return variable.isFinal;
+  }
+
+  @override
   bool isInterfaceType(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType && unwrappedType.isInterfaceType;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,6 +12,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfStatementResolutionTest);
+    defineReflectiveTests(InferenceUpdate4Test);
   });
 }
 
@@ -1403,5 +1405,296 @@ IfStatement
     leftBracket: {
     rightBracket: }
 ''');
+  }
+}
+
+@reflectiveTest
+class InferenceUpdate4Test extends PubPackageResolutionTest {
+  @override
+  List<String> get experiments {
+    return [
+      ...super.experiments,
+      Feature.inference_update_4.enableString,
+    ];
+  }
+
+  test_finalPromotionKept_isExpression() async {
+    await assertNoErrorsInCode('''
+f(bool b) {
+  final num x;
+  if (b) {
+    x = 1;
+  } else {
+    x = 0.1;
+  }
+  if (x is int) {
+    () => x.isEven;
+  }
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.ifStatement('if (x is int) {'),
+      r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: IsExpression
+    expression: SimpleIdentifier
+      token: x
+      staticElement: x@24
+      element: x@24
+      staticType: num
+    isOperator: is
+    type: NamedType
+      name: int
+      element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
+      type: int
+    staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: x
+                staticElement: x@24
+                element: x@24
+                staticType: int
+              period: .
+              identifier: SimpleIdentifier
+                token: isEven
+                staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+                element: dart:core::<fragment>::@class::int::@getter::isEven#element
+                staticType: bool
+              staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+              element: dart:core::<fragment>::@class::int::@getter::isEven#element
+              staticType: bool
+          declaredElement: @99
+            type: bool Function()
+          staticType: bool Function()
+        semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
+  test_finalPromotionKept_isExpression_late() async {
+    await assertNoErrorsInCode('''
+f(bool b) {
+  late final num x;
+  if (b) {
+    x = 1;
+  } else {
+    x = 0.1;
+  }
+  if (x is int) {
+    () => x.isEven;
+  }
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.ifStatement('if (x is int) {'),
+      r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: IsExpression
+    expression: SimpleIdentifier
+      token: x
+      staticElement: x@29
+      element: x@29
+      staticType: num
+    isOperator: is
+    type: NamedType
+      name: int
+      element: dart:core::<fragment>::@class::int
+      element2: dart:core::<fragment>::@class::int#element
+      type: int
+    staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: x
+                staticElement: x@29
+                element: x@29
+                staticType: int
+              period: .
+              identifier: SimpleIdentifier
+                token: isEven
+                staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+                element: dart:core::<fragment>::@class::int::@getter::isEven#element
+                staticType: bool
+              staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+              element: dart:core::<fragment>::@class::int::@getter::isEven#element
+              staticType: bool
+          declaredElement: @104
+            type: bool Function()
+          staticType: bool Function()
+        semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
+  test_finalPromotionKept_notEqNull() async {
+    await assertNoErrorsInCode('''
+f(bool b) {
+  final int? x;
+  if (b) {
+    x = 1;
+  } else {
+    x = null;
+  }
+  if (x != null) {
+    () => x.isEven;
+  }
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.ifStatement('if (x != null) {'),
+      r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+      staticElement: x@25
+      element: x@25
+      staticType: int?
+    operator: !=
+    rightOperand: NullLiteral
+      literal: null
+      parameter: dart:core::<fragment>::@class::num::@method::==::@parameter::other
+      staticType: Null
+    staticElement: dart:core::<fragment>::@class::num::@method::==
+    element: dart:core::<fragment>::@class::num::@method::==#element
+    staticInvokeType: bool Function(Object)
+    staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: x
+                staticElement: x@25
+                element: x@25
+                staticType: int
+              period: .
+              identifier: SimpleIdentifier
+                token: isEven
+                staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+                element: dart:core::<fragment>::@class::int::@getter::isEven#element
+                staticType: bool
+              staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+              element: dart:core::<fragment>::@class::int::@getter::isEven#element
+              staticType: bool
+          declaredElement: @102
+            type: bool Function()
+          staticType: bool Function()
+        semicolon: ;
+    rightBracket: }
+''',
+    );
+  }
+
+  test_finalPromotionKept_notEqNull_late() async {
+    await assertNoErrorsInCode('''
+f(bool b) {
+  late final int? x;
+  if (b) {
+    x = 1;
+  } else {
+    x = null;
+  }
+  if (x != null) {
+    () => x.isEven;
+  }
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.ifStatement('if (x != null) {'),
+      r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  expression: BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: x
+      staticElement: x@30
+      element: x@30
+      staticType: int?
+    operator: !=
+    rightOperand: NullLiteral
+      literal: null
+      parameter: dart:core::<fragment>::@class::num::@method::==::@parameter::other
+      staticType: Null
+    staticElement: dart:core::<fragment>::@class::num::@method::==
+    element: dart:core::<fragment>::@class::num::@method::==#element
+    staticInvokeType: bool Function(Object)
+    staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: x
+                staticElement: x@30
+                element: x@30
+                staticType: int
+              period: .
+              identifier: SimpleIdentifier
+                token: isEven
+                staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+                element: dart:core::<fragment>::@class::int::@getter::isEven#element
+                staticType: bool
+              staticElement: dart:core::<fragment>::@class::int::@getter::isEven
+              element: dart:core::<fragment>::@class::int::@getter::isEven#element
+              staticType: bool
+          declaredElement: @107
+            type: bool Function()
+          staticType: bool Function()
+        semicolon: ;
+    rightBracket: }
+''',
+    );
   }
 }

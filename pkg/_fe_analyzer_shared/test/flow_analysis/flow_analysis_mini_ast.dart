@@ -39,6 +39,13 @@ class FlowAnalysisTestHarness extends Harness
   @override
   FlowAnalysisOperations<Var, SharedTypeView<Type>> get typeOperations =>
       typeAnalyzer.operations;
+
+  @override
+  bool isFinal(int variableKey) {
+    Var? variable = promotionKeyStore.variableForKey(variableKey);
+    if (variable != null && operations.isFinal(variable)) return true;
+    return false;
+  }
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
