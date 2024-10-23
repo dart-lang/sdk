@@ -59,8 +59,13 @@ shared.Proto builderToProto(Builder builder, String name) {
     shared.TypedefReference typedefReference = new TypedefReference(builder);
     return new shared.TypedefProto(
         typedefReference, new TypedefScope(builder, typedefReference));
+  } else if (builder is ExtensionBuilder) {
+    shared.ExtensionReference extensionReference =
+        new ExtensionReference(builder);
+    return new shared.ExtensionProto(
+        extensionReference, new ExtensionScope(builder, extensionReference));
   } else {
-    // TODO(johnniwinther): Support extension and extension types.
+    // TODO(johnniwinther): Support extension types.
     throw new UnsupportedError("Unsupported builder $builder for $name");
   }
 }
@@ -134,6 +139,22 @@ final class ClassScope extends shared.BaseClassScope {
       return createConstructorProto(
           typeArguments, new ConstructorReference(constructor));
     }
+    Builder? member = builder.lookupLocalMember(name, setter: false);
+    return createMemberProto(typeArguments, name, member, builderToProto);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+final class ExtensionScope extends shared.BaseExtensionScope {
+  final ExtensionBuilder builder;
+  @override
+  final shared.ExtensionReference extensionReference;
+
+  ExtensionScope(this.builder, this.extensionReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
     Builder? member = builder.lookupLocalMember(name, setter: false);
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
@@ -238,6 +259,16 @@ class ClassReference extends shared.ClassReference {
   final ClassBuilder builder;
 
   ClassReference(this.builder);
+
+  @override
+  String get name => builder.name;
+}
+
+// Coverage-ignore(suite): Not run.
+class ExtensionReference extends shared.ExtensionReference {
+  final ExtensionBuilder builder;
+
+  ExtensionReference(this.builder);
 
   @override
   String get name => builder.name;

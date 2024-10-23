@@ -410,6 +410,56 @@ class ClassProto extends Proto {
   Proto? resolve() => null;
 }
 
+/// A [reference] to an extension
+///
+/// The [Proto] includes the [scope] of the extension, which is used to resolve
+/// access to static members on the extension.
+class ExtensionProto extends Proto {
+  final ExtensionReference reference;
+  final TypeDeclarationScope scope;
+
+  ExtensionProto(this.reference, this.scope);
+
+  @override
+  String toString() => 'ExtensionProto($reference)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? new InvalidInstantiationProto(this, typeArguments)
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null
+        ? new InvalidInvocationProto(this, const [], arguments)
+        : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new InvalidExpression();
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() => new InvalidTypeAnnotation();
+
+  @override
+  Proto? resolve() => null;
+}
+
 /// A [reference] to a class instantiated with [typeArguments].
 ///
 /// The [Proto] includes the [scope] of the class, which is used to resolve

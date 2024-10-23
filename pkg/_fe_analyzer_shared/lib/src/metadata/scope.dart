@@ -55,6 +55,26 @@ abstract base class BaseClassScope implements TypeDeclarationScope {
   }
 }
 
+/// Base implementation for creating a [TypeDeclarationScope] for an extension.
+abstract base class BaseExtensionScope implements TypeDeclarationScope {
+  ExtensionReference get extensionReference;
+
+  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
+      T? member, Proto Function(T, String) memberToProto) {
+    if (typeArguments != null) {
+      return new UnresolvedAccess(
+          new InvalidInstantiationProto(
+              new ExtensionProto(extensionReference, this), typeArguments),
+          name);
+    } else if (member == null) {
+      return new UnresolvedAccess(
+          new ExtensionProto(extensionReference, this), name);
+    } else {
+      return memberToProto(member, name);
+    }
+  }
+}
+
 /// Base implementation for creating a [TypeDeclarationScope] for a typedef.
 abstract base class BaseTypedefScope implements TypeDeclarationScope {
   TypedefReference get typedefReference;

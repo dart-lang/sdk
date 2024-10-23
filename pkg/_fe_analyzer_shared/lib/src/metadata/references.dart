@@ -52,6 +52,13 @@ abstract class TypedefReference extends Reference {
   String toString() => 'TypedefReference(${name})';
 }
 
+abstract class ExtensionReference extends Reference {
+  String get name;
+
+  @override
+  String toString() => 'ExtensionReference(${name})';
+}
+
 abstract class FunctionTypeParameterReference extends Reference {
   String get name;
 

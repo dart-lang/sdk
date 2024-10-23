@@ -52,9 +52,13 @@ shared.Proto _elementToProto(Element element, String name) {
   } else if (element is TypeAliasElement) {
     var reference = _TypedefReference(element);
     return shared.TypedefProto(reference, _TypedefScope(element, reference));
+  } else if (element is ExtensionElement) {
+    var reference = _ExtensionReference(element);
+    return shared.ExtensionProto(
+        reference, _ExtensionScope(element, reference));
   }
 
-  // TODO(johnniwinther): Support extension and extension types.
+  // TODO(johnniwinther): Support extension types.
   throw UnsupportedError(
       "Unsupported element $element (${element.runtimeType}) for '$name'.");
 }
@@ -104,6 +108,32 @@ class _DynamicReference extends shared.TypeReference {
 
   @override
   String get name => 'dynamic';
+}
+
+class _ExtensionReference extends shared.ExtensionReference {
+  final ExtensionElement _element;
+
+  _ExtensionReference(this._element);
+
+  @override
+  String get name => _element.name!;
+}
+
+final class _ExtensionScope extends shared.BaseExtensionScope {
+  final ExtensionElement _extensionElement;
+
+  @override
+  final _ExtensionReference extensionReference;
+
+  _ExtensionScope(this._extensionElement, this.extensionReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    Element? member = _extensionElement.augmented.getField(name);
+    member ??= _extensionElement.augmented.getMethod(name);
+    return createMemberProto(typeArguments, name, member, _elementToProto);
+  }
 }
 
 class _FunctionReference extends shared.FunctionReference {

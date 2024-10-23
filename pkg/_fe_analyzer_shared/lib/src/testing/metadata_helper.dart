@@ -284,6 +284,8 @@ class Writer {
         _write(reference.name);
       case TypedefReference():
         _write(reference.name);
+      case ExtensionReference():
+        _write(reference.name);
       case FunctionTypeParameterReference():
         _write(reference.name);
     }
@@ -615,6 +617,10 @@ class Writer {
         _write('GenericClassProto(');
         _referenceToText(proto.reference);
         _typeArgumentsToText(proto.typeArguments);
+        _write(')');
+      case ExtensionProto():
+        _write('ExtensionProto(');
+        _referenceToText(proto.reference);
         _write(')');
       case TypedefProto():
         _write('TypedefProto(');
