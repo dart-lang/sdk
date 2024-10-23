@@ -86,6 +86,7 @@ lib/src/rules/library_private_types_in_public_api.dart
 lib/src/rules/lines_longer_than_80_chars.dart
 lib/src/rules/list_remove_unrelated_type.dart
 lib/src/rules/literal_only_boolean_expressions.dart
+lib/src/rules/matching_super_parameters.dart
 lib/src/rules/missing_code_block_language_in_doc_comment.dart
 lib/src/rules/missing_whitespace_between_adjacent_strings.dart
 lib/src/rules/no_adjacent_strings_in_list.dart

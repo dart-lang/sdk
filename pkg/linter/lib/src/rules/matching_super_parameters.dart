@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 
@@ -47,19 +47,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var superInvocation =
         node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
-    var superConstructor = superInvocation?.staticElement;
+    var superConstructor = superInvocation?.element;
     if (superConstructor == null) {
       var class_ = node.parent;
       if (class_ is ClassDeclaration) {
-        superConstructor =
-            class_.declaredElement?.supertype?.element.unnamedConstructor;
+        superConstructor = class_
+            .declaredFragment?.element.supertype?.element3.unnamedConstructor2;
       }
     }
-    if (superConstructor is! ConstructorElement) {
-      return;
-    }
+    if (superConstructor is! ConstructorElement2) return;
+
     var positionalParametersOfSuper =
-        superConstructor.parameters.where((p) => p.isPositional).toList();
+        superConstructor.formalParameters.where((p) => p.isPositional).toList();
     if (positionalParametersOfSuper.length < positionalSuperParameters.length) {
       // More positional parameters are passed to super constructor than it
       // has positional parameters, an error.
@@ -68,8 +67,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < positionalSuperParameters.length; i++) {
       var superParameter = positionalSuperParameters[i];
       var superParameterName = superParameter.name.lexeme;
-      var parameterOfSuperName = positionalParametersOfSuper[i].name;
-      if (superParameterName != parameterOfSuperName) {
+      var parameterOfSuperName = positionalParametersOfSuper[i].name3;
+      if (parameterOfSuperName != null &&
+          superParameterName != parameterOfSuperName) {
         rule.reportLint(superParameter,
             arguments: [superParameterName, parameterOfSuperName]);
       }
