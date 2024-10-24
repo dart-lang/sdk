@@ -23,21 +23,9 @@ import 'utils.dart';
 final List<String> reservedWords = _collectReservedWords();
 
 /// Returns direct children of [parent].
-List<Element> getChildren(Element parent, [String? name]) {
-  var children = <Element>[];
-  visitChildren(parent, (Element element) {
-    if (name == null || element.displayName == name) {
-      children.add(element);
-    }
-    return false;
-  });
-  return children;
-}
-
-/// Returns direct children of [parent].
-List<Element2> getChildren2(Element2 parent, [String? name]) {
+List<Element2> getChildren(Element2 parent, [String? name]) {
   var children = <Element2>[];
-  visitChildren2(parent, (Element2 element) {
+  visitChildren(parent, (Element2 element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
@@ -317,14 +305,8 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren(_ElementVisitorAdapter(processor));
-}
-
-/// Uses [processor] to visit all of the children of [element].
-/// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren2(Element2 element, ElementProcessor2 processor) {
-  element.visitChildren2(_ElementVisitorAdapter2(processor));
+void visitChildren(Element2 element, ElementProcessor processor) {
+  element.visitChildren2(_ElementVisitorAdapter(processor));
 }
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
@@ -434,34 +416,15 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is MethodDeclaration && element.name.lexeme == name) ||
     (element is FieldDeclaration && getFieldName(element, name) != null);
 
-/// An [Element] processor function type.
+/// An [Element2] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef ElementProcessor = bool Function(Element element);
-
-/// An [Element] processor function type.
-/// If `true` is returned, children of [element] will be visited.
-typedef ElementProcessor2 = bool Function(Element2 element);
+typedef ElementProcessor = bool Function(Element2 element);
 
 /// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
-class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
+class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   final ElementProcessor processor;
 
   _ElementVisitorAdapter(this.processor);
-
-  @override
-  void visitElement(Element element) {
-    var visitChildren = processor(element);
-    if (visitChildren) {
-      element.visitChildren(this);
-    }
-  }
-}
-
-/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
-class _ElementVisitorAdapter2 extends GeneralizingElementVisitor2<void> {
-  final ElementProcessor2 processor;
-
-  _ElementVisitorAdapter2(this.processor);
 
   @override
   void visitElement(Element2 element) {
@@ -478,15 +441,5 @@ extension AstNodeExtension on AstNode {
     return self is MethodInvocation &&
         self.methodName.name == 'toString' &&
         self.argumentList.arguments.isNotEmpty;
-  }
-}
-
-extension ElementExtension on Element? {
-  // TODO(srawlins): Move to extensions.dart.
-  bool get isDartCorePrint {
-    var self = this;
-    return self is FunctionElement &&
-        self.name == 'print' &&
-        self.library.isDartCore;
   }
 }
