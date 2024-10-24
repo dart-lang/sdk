@@ -153,7 +153,7 @@ class InvocationInferenceHelper {
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
-    required List<WhyNotPromotedGetter> whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required DartType contextType,
   }) {
     var returnType = MethodInvocationInferrer(
@@ -161,7 +161,7 @@ class InvocationInferenceHelper {
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
-      whyNotPromotedList: whyNotPromotedList,
+      whyNotPromotedArguments: whyNotPromotedArguments,
     ).resolveInvocation(rawType: rawType);
 
     node.recordStaticType(returnType, resolver: _resolver);

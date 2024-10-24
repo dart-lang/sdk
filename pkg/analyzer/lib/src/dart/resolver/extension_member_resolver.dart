@@ -178,8 +178,8 @@ class ExtensionMemberResolver {
   }
 
   /// Perform upward inference for the override.
-  void resolveOverride(
-      ExtensionOverride node, List<WhyNotPromotedGetter> whyNotPromotedList) {
+  void resolveOverride(ExtensionOverride node,
+      List<WhyNotPromotedGetter> whyNotPromotedArguments) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.element;
     var typeParameters = element.typeParameters;
@@ -240,7 +240,7 @@ class ExtensionMemberResolver {
     } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
       var whyNotPromoted =
-          whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
+          whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
       _errorReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,

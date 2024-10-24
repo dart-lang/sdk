@@ -65,7 +65,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList,
+      required super.whyNotPromotedArguments,
       required this.constructorName})
       : super._();
 
@@ -110,7 +110,7 @@ class AugmentedInvocationInferrer
     required super.node,
     required super.argumentList,
     required super.contextType,
-    required super.whyNotPromotedList,
+    required super.whyNotPromotedArguments,
   }) : super._();
 
   @override
@@ -138,7 +138,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList});
+      required super.whyNotPromotedArguments});
 
   SyntacticEntity get _errorEntity => node;
 
@@ -341,7 +341,7 @@ class FunctionExpressionInvocationInferrer
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -357,7 +357,7 @@ class InstanceCreationInferrer
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -409,7 +409,7 @@ abstract class InvocationExpressionInferrer<
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override
@@ -437,7 +437,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final Node node;
   final ArgumentListImpl argumentList;
   final DartType contextType;
-  final List<WhyNotPromotedGetter> whyNotPromotedList;
+  final List<WhyNotPromotedGetter> whyNotPromotedArguments;
 
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
@@ -446,7 +446,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       required this.node,
       required this.argumentList,
       required this.contextType,
-      required this.whyNotPromotedList});
+      required this.whyNotPromotedArguments});
 
   /// Determines whether [node] is an invocation of the core function
   /// `identical` (which needs special flow analysis treatment).
@@ -532,7 +532,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
-    assert(whyNotPromotedList.isEmpty);
+    assert(whyNotPromotedArguments.isEmpty);
     List<_DeferredParamInfo>? deferredFunctionLiterals;
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
@@ -557,10 +557,10 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         (deferredFunctionLiterals ??= [])
             .add(_DeferredParamInfo(parameter, value, i, parameterKey));
         identicalArgumentInfo?.add(null);
-        // The "why not promoted" list isn't really relevant for function
-        // literals because promoting a function literal doesn't even make
-        // sense.  So we store an innocuous value in the list.
-        whyNotPromotedList.add(() => const {});
+        // The "why not promoted" arguments list isn't really relevant for
+        // function literals because promoting a function literal doesn't even
+        // make sense.  So we store an innocuous value in the list.
+        whyNotPromotedArguments.add(() => const {});
       } else {
         DartType parameterContextType;
         if (parameter != null) {
@@ -579,7 +579,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           identicalArgumentInfo?.add(_IdenticalArgumentInfo(
               expressionInfo: flow.equalityOperand_end(argument),
               staticType: argument.typeOrThrow));
-          whyNotPromotedList.add(flow.whyNotPromoted(argument));
+          whyNotPromotedArguments.add(flow.whyNotPromoted(argument));
         }
         if (parameter != null) {
           inferrer?.constrainArgument(
@@ -611,7 +611,7 @@ class MethodInvocationInferrer
       required super.node,
       required super.argumentList,
       required super.contextType,
-      required super.whyNotPromotedList})
+      required super.whyNotPromotedArguments})
       : super._();
 
   @override

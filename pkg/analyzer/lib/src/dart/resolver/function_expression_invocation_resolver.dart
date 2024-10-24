@@ -36,19 +36,19 @@ class FunctionExpressionInvocationResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(FunctionExpressionInvocationImpl node,
-      List<WhyNotPromotedGetter> whyNotPromotedList,
+      List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required DartType contextType}) {
     var function = node.function;
 
     if (function is ExtensionOverrideImpl) {
-      _resolveReceiverExtensionOverride(node, function, whyNotPromotedList,
+      _resolveReceiverExtensionOverride(node, function, whyNotPromotedArguments,
           contextType: contextType);
       return;
     }
 
     var receiverType = function.typeOrThrow;
     if (_checkForUseOfVoidResult(function, receiverType)) {
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
+      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedArguments,
           contextType: contextType);
       return;
     }
@@ -59,7 +59,7 @@ class FunctionExpressionInvocationResolver {
         CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
         function,
       );
-      _resolve(node, receiverType, whyNotPromotedList,
+      _resolve(node, receiverType, whyNotPromotedArguments,
           contextType: contextType);
       return;
     }
@@ -69,7 +69,7 @@ class FunctionExpressionInvocationResolver {
         function,
         WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
-      _unresolved(node, NeverTypeImpl.instance, whyNotPromotedList,
+      _unresolved(node, NeverTypeImpl.instance, whyNotPromotedArguments,
           contextType: contextType);
       return;
     }
@@ -93,7 +93,8 @@ class FunctionExpressionInvocationResolver {
       var type = result.isGetterInvalid
           ? InvalidTypeImpl.instance
           : DynamicTypeImpl.instance;
-      _unresolved(node, type, whyNotPromotedList, contextType: contextType);
+      _unresolved(node, type, whyNotPromotedArguments,
+          contextType: contextType);
       return;
     }
 
@@ -102,14 +103,14 @@ class FunctionExpressionInvocationResolver {
         function,
         CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
       );
-      _unresolved(node, InvalidTypeImpl.instance, whyNotPromotedList,
+      _unresolved(node, InvalidTypeImpl.instance, whyNotPromotedArguments,
           contextType: contextType);
       return;
     }
 
     node.staticElement = callElement;
     var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedList, contextType: contextType);
+    _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -141,21 +142,23 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
-      List<WhyNotPromotedGetter> whyNotPromotedList,
+      List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required DartType contextType}) {
     var returnType = FunctionExpressionInvocationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
-      whyNotPromotedList: whyNotPromotedList,
+      whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
     ).resolveInvocation(rawType: rawType);
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
 
-  void _resolveReceiverExtensionOverride(FunctionExpressionInvocationImpl node,
-      ExtensionOverride function, List<WhyNotPromotedGetter> whyNotPromotedList,
+  void _resolveReceiverExtensionOverride(
+      FunctionExpressionInvocationImpl node,
+      ExtensionOverride function,
+      List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required DartType contextType}) {
     var result = _extensionResolver.getOverrideMember(
       function,
@@ -170,7 +173,8 @@ class FunctionExpressionInvocationResolver {
         CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
         arguments: [function.name.lexeme],
       );
-      return _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList,
+      return _unresolved(
+          node, DynamicTypeImpl.instance, whyNotPromotedArguments,
           contextType: contextType);
     }
 
@@ -182,11 +186,11 @@ class FunctionExpressionInvocationResolver {
     }
 
     var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedList, contextType: contextType);
+    _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
   }
 
   void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
-      List<WhyNotPromotedGetter> whyNotPromotedList,
+      List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required DartType contextType}) {
     _setExplicitTypeArgumentTypes(node);
     FunctionExpressionInvocationInferrer(
@@ -194,7 +198,7 @@ class FunctionExpressionInvocationResolver {
             node: node,
             argumentList: node.argumentList,
             contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList)
+            whyNotPromotedArguments: whyNotPromotedArguments)
         .resolveInvocation(rawType: null);
     node.staticInvokeType = type;
     node.recordStaticType(type, resolver: _resolver);
