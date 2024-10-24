@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -16,21 +16,14 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
-  String get lintRule => LintNames.deprecated_member_use_from_same_package;
+  List<AnalyzerErrorCode> get ignoredErrorCodes => [
+        HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE,
+        HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
+        WarningCode.UNUSED_LOCAL_VARIABLE,
+      ];
 
   @override
-  Future<void> assertDiagnostics(
-      String code, List<ExpectedDiagnostic> expectedDiagnostics) async {
-    addTestFile(code);
-    await resolveTestFile();
-    var filteredErrors = errors
-        .whereNot((e) =>
-            e.errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE ||
-            e.errorCode ==
-                HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE)
-        .toList();
-    await assertDiagnosticsIn(filteredErrors, expectedDiagnostics);
-  }
+  String get lintRule => LintNames.deprecated_member_use_from_same_package;
 
   test_deprecatedCallMethod() async {
     await assertDiagnostics(r'''

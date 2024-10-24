@@ -26,7 +26,6 @@ class AsyncStateTest extends PubPackageResolutionTest {
   Element get contextElement =>
       findNode.simple('context /* ref */').staticElement!;
 
-  @override
   FindNode get findNode => FindNode(result.content, result.unit);
 
   Future<void> resolveCode(String code) async {

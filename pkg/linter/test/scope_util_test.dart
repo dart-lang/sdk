@@ -5,8 +5,12 @@
 // The test method names do not conform to this rule.
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:linter/src/util/scope.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,6 +25,22 @@ main() {
 
 @reflectiveTest
 class ResolveNameInScopeTest extends PubPackageResolutionTest {
+  late FindElement findElement;
+
+  late FindElement2 findElement2;
+
+  late FindNode findNode;
+
+  @override
+  Future<ResolvedUnitResult> resolveFile(String path) async {
+    var result = await super.resolveFile(path);
+
+    findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    return result;
+  }
+
   test_class_getter_different_fromExtends_thisClassSetter() async {
     await assertNoDiagnostics('''
 class A {
