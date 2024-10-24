@@ -87,7 +87,7 @@ main() {
 
         expect(adapter.executable, equals('/custom/dart'));
         // a standard built-in arg should be present.
-        expect(adapter.processArgs, contains('--disable-dart-dev'));
+        expect(adapter.processArgs, contains('--no-serve-devtools'));
       });
 
       test('with all args replaced', () async {
@@ -109,7 +109,9 @@ main() {
         expect(adapter.executable, equals('/custom/dart'));
         // normal built-in args are replaced by customToolReplacesArgs, but
         // user-provided toolArgs are not.
-        expect(adapter.processArgs, isNot(contains('--disable-dart-dev')));
+        // The argument here should match the one verified in the test above to
+        // ensure it's real.
+        expect(adapter.processArgs, isNot(contains('--no-serve-devtools')));
         expect(adapter.processArgs, contains('tool_args'));
       });
     });

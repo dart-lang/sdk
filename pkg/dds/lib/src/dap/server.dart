@@ -20,8 +20,6 @@ class DapServer {
   final ByteStreamServerChannel channel;
   late final DartDebugAdapter adapter;
   final bool ipv6;
-  final bool enableDds;
-  final bool enableAuthCodes;
   final bool test;
   final Logger? logger;
 
@@ -29,8 +27,6 @@ class DapServer {
     Stream<List<int>> input,
     StreamSink<List<int>> output, {
     this.ipv6 = false,
-    this.enableDds = true,
-    this.enableAuthCodes = true,
     this.test = false,
     this.logger,
     Function? onError,
@@ -39,16 +35,12 @@ class DapServer {
         ? DartTestDebugAdapter(
             channel,
             ipv6: ipv6,
-            enableDds: enableDds,
-            enableAuthCodes: enableAuthCodes,
             logger: logger,
             onError: onError,
           )
         : DartCliDebugAdapter(
             channel,
             ipv6: ipv6,
-            enableDds: enableDds,
-            enableAuthCodes: enableAuthCodes,
             logger: logger,
             onError: onError,
           );

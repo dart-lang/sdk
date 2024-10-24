@@ -15,7 +15,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
-import '../../../dds_launcher.dart';
 import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
@@ -354,12 +353,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// value should contain trailing slashes.
   final orgDartlangSdkMappings = <String, Uri>{};
 
-  /// The DDS instance that was started and that [vmService] is connected to.
-  ///
-  /// `null` if the session is running in noDebug mode of the connection has not
-  /// yet been made or has been shut down.
-  DartDevelopmentServiceLauncher? _dds;
-
   /// The [DartInitializeRequestArguments] provided by the client in the
   /// `initialize` request.
   ///
@@ -368,12 +361,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Whether to use IPv6 for DAP/Debugger services.
   final bool ipv6;
-
-  /// Whether to enable DDS for launched applications.
-  final bool enableDds;
-
-  /// Whether to enable authentication codes for the VM Service/DDS.
-  final bool enableAuthCodes;
 
   /// A logger for printing diagnostic information.
   final Logger? logger;
@@ -491,8 +478,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,
-    this.enableDds = true,
-    this.enableAuthCodes = true,
+    @Deprecated('DAP never spawns DDS now, this `enableDds` does nothing')
+    bool enableDds = true,
+    @Deprecated('DAP never spawns DDS now, this `enableAuthCodes` does nothing')
+    bool enableAuthCodes = true,
     this.logger,
     Function? onError,
   }) : super(channel, onError: onError) {
@@ -649,59 +638,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Attempts to start a DDS instance to connect to the VM Service at [uri].
-  ///
-  /// Returns the URI to connect the debugger to (whether it's a newly spawned
-  /// DDS or there was an existing one).
-  ///
-  /// If we failed to start DDS for a reason other than one already existed for
-  /// that VM Service we will return `null` and initiate a shutdown with the
-  /// exception printed to the user.
-  ///
-  /// If a new DDS instance was started, it is assigned to [_dds].
-  Future<Uri?> _startOrReuseDds(Uri uri) async {
-    try {
-      final dds = await startDds(uri);
-      _dds = dds;
-      return dds.wsUri;
-    } catch (error, stack) {
-      if (error is DartDevelopmentServiceException &&
-          error.errorCode ==
-              DartDevelopmentServiceException.existingDdsInstanceError) {
-        // If there's an existing DDS instance, we will just continue
-        // but need to map the URI to the ws: version.
-        return vmServiceUriToWebSocket(uri);
-      } else {
-        // Otherwise, we failed to start DDS for an unknown reason and
-        // consider this a fatal error. Handle terminating here (so we can
-        // print this error/stack)...
-        _handleDebuggerInitializationError(
-            'Failed to start DDS for $uri', error, stack);
-        // ... and return no URI as a signal to the caller.
-        return null;
-      }
-    }
-  }
-
   /// Connects to the VM Service at [uri] and initializes debugging.
   ///
   /// This is the implementation for [connectDebugger] which is executed in a
   /// try/catch.
   Future<void> _connectDebuggerImpl(Uri uri) async {
-    if (enableDds) {
-      // Start up a DDS instance for this VM.
-      logger?.call('Starting a DDS instance for $uri');
-      final targetUri = await _startOrReuseDds(uri);
-      if (targetUri == null) {
-        // If we got no URI, this is a fatal error and we can skip everything
-        // else. The detailed error would have been printed from
-        // [_startOrReuseDds].
-        return;
-      }
-      uri = targetUri;
-    } else {
-      uri = vmServiceUriToWebSocket(uri);
-    }
+    uri = vmServiceUriToWebSocket(uri);
 
     logger?.call('Connecting to debugger at $uri');
     sendConsoleOutput('Connecting to VM Service at $uri');
@@ -769,31 +711,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     );
 
     _debuggerInitializedCompleter.complete();
-  }
-
-  /// Handlers an error during debugger initialization (such as exceptions
-  /// trying to call `getSupportedProtocols` or `getVM`) by sending it to the
-  /// client and shutting down.
-  ///
-  /// Without this, the exceptions may go unhandled and just terminate the debug
-  /// adapter, which may not be visible to the user. For example VS Code does
-  /// not expose stderr of a debug adapter process. With this change, the
-  /// exception will show up in the Debug Console before the debug session
-  /// terminates.
-  void _handleDebuggerInitializationError(
-      String reason, Object? error, StackTrace stack) {
-    final message = '$reason\n$error\n$stack';
-    logger?.call(message);
-    isTerminating = true;
-    sendConsoleOutput(message);
-    shutdown();
-  }
-
-  Future<DartDevelopmentServiceLauncher> startDds(Uri uri) {
-    return DartDevelopmentServiceLauncher.start(
-      remoteVmServiceUri: vmServiceUriToHttp(uri),
-      enableAuthCodes: enableAuthCodes,
-    );
   }
 
   // This is intended for subclasses to override to provide a URI converter to
@@ -1070,7 +987,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await disconnectImpl();
-    await shutdownDebugee();
     sendResponse();
 
     await shutdown();
@@ -1688,25 +1604,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down/detaches from the debugee and cleans up.
-  ///
-  /// This is called by [disconnectRequest] and [terminateRequest] but may also
-  /// be called if the client just disconnects from the server without calling
-  /// either.
-  ///
-  /// This method must tolerate being called multiple times.
-  @nonVirtual
-  Future<void> shutdownDebugee() async {
-    await _dds?.shutdown();
-    _dds = null;
-  }
-
   /// Shuts down the debug adapter, including terminating/detaching from the
   /// debugee if required.
   @override
   @nonVirtual
   Future<void> shutdown() async {
-    await shutdownDebugee();
     await _waitForPendingOutputEvents();
     handleSessionTerminate();
 
@@ -2008,7 +1910,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await terminateImpl();
-    await shutdownDebugee();
     sendResponse();
 
     await shutdown();

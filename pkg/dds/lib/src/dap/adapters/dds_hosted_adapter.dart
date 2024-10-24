@@ -37,7 +37,6 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
             (message) {},
           ),
           ipv6: true,
-          enableDds: false,
         );
 
   /// Whether the VM Service closing should be used as a signal to terminate the

@@ -320,6 +320,7 @@ class DapTestClient {
   Future<Response> launch(
     String program, {
     List<String>? args,
+    List<String>? vmAdditionalArgs,
     List<String>? toolArgs,
     String? cwd,
     bool? noDebug,
@@ -341,6 +342,7 @@ class DapTestClient {
         program: _normalizePath(program),
         cwd: cwd != null ? _normalizePath(cwd) : null,
         args: args,
+        vmAdditionalArgs: vmAdditionalArgs,
         toolArgs: toolArgs,
         additionalProjectPaths:
             additionalProjectPaths?.map(_normalizePath).toList(),
@@ -693,6 +695,7 @@ extension DapTestClientExtension on DapTestClient {
     String? condition,
     String? cwd,
     List<String>? args,
+    List<String>? vmAdditionalArgs,
     List<String>? toolArgs,
     bool? evaluateToStringInDebugViews,
     Future<Response> Function()? launch,
@@ -713,6 +716,7 @@ extension DapTestClientExtension on DapTestClient {
             entryFile.path,
             cwd: cwd,
             args: args,
+            vmAdditionalArgs: vmAdditionalArgs,
             toolArgs: toolArgs,
             evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           ),

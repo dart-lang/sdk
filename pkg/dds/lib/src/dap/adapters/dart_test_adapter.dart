@@ -29,8 +29,6 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   DartTestDebugAdapter(
     super.channel, {
     super.ipv6,
-    super.enableDds,
-    super.enableAuthCodes,
     super.logger,
     super.onError,
   });
@@ -83,7 +81,6 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ...?args.vmAdditionalArgs,
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
-        if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
       if (debug && vmServiceInfoFile != null) ...[
         '-DSILENT_VM_SERVICE=true',
@@ -113,7 +110,6 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       // We should also ensure DDS is disabled (this may need a new flag since
       // we can't disable-dart-dev to get "dart test") and devtools is not
       // served.
-      // '--disable-dart-dev',
       'run',
       '--no-serve-devtools',
       'test:test',

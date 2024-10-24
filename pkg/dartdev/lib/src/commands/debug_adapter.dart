@@ -34,14 +34,22 @@ class DebugAdapterCommand extends DartdevCommand {
         help: 'Whether to bind DAP/VM Service/DDS to IPv6 addresses.',
       )
       ..addFlag(
+        // Deprecated - DAP never spawns DDS now, but this flag is left
+        // temporarily to not crash clients passing it.
+        // TODO(dantup): Remove this after verifying nobody uses it.
         argDds,
         defaultsTo: true,
         help: 'Whether to enable DDS for debug sessions.',
+        hide: true,
       )
       ..addFlag(
+        // Deprecated - DAP never spawns DDS now, but this flag is left
+        // temporarily to not crash clients passing it.
+        // TODO(dantup): Remove this after verifying nobody uses it.
         argAuthCodes,
         defaultsTo: true,
         help: 'Whether to enable authentication codes for VM Services.',
+        hide: true,
       )
       ..addFlag(
         argTest,
@@ -60,8 +68,6 @@ class DebugAdapterCommand extends DartdevCommand {
       stdin,
       stdout.nonBlocking,
       ipv6: ipv6,
-      enableDds: args.flag(argDds),
-      enableAuthCodes: args.flag(argAuthCodes),
       test: args.flag(argTest),
       // Protocol errors should be written to stderr to help debug (or in the
       // case of a user running this command to explain it's for tools).

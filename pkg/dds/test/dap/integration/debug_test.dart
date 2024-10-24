@@ -851,34 +851,34 @@ main() {
   }, timeout: Timeout.none);
 
   group('debug mode', () {
-    test(
-      'can run without DDS',
-      () async {
-        final dap = await DapTestSession.setUp(additionalArgs: ['--no-dds']);
-        addTearDown(dap.tearDown);
+    test('can be run without DDS using vmAdditionalArgs', () async {
+      final dap = await DapTestSession.setUp();
+      addTearDown(dap.tearDown);
 
-        final client = dap.client;
-        final testFile = dap.createTestFile(simpleBreakpointProgram);
-        final breakpointLine = lineWith(testFile, breakpointMarker);
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
-        await client.hitBreakpoint(testFile, breakpointLine);
+      await client.hitBreakpoint(testFile, breakpointLine,
+          vmAdditionalArgs: ['--no-dds']);
 
-        expect(await client.ddsAvailable, isFalse);
-      },
-    );
+      expect(await client.ddsAvailable, isFalse);
+    });
 
-    test('can run without auth codes', () async {
-      final dap =
-          await DapTestSession.setUp(additionalArgs: ['--no-auth-codes']);
+    test('can run without auth codes using vmAdditionalArgs', () async {
+      final dap = await DapTestSession.setUp();
       addTearDown(dap.tearDown);
 
       final testFile = dap.createTestFile(emptyProgram);
-      final outputEvents = await dap.client.collectOutput(file: testFile);
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(testFile.path,
+            vmAdditionalArgs: ['--disable-service-auth-codes']),
+      );
       final vmServiceUri = _extractVmServiceUri(outputEvents.first);
       expect(vmServiceUri.path, isNot(matches(vmServiceAuthCodePathPattern)));
     });
 
-    test('can run with ipv6', () async {
+    test('can run with ipv6 with a DAP flag', () async {
       final dap = await DapTestSession.setUp(additionalArgs: ['--ipv6']);
       addTearDown(dap.tearDown);
 
