@@ -1490,8 +1490,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    StringJuxtapositionHandle data = new StringJuxtapositionHandle(
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    AdjacentStringLiteralsHandle data = new AdjacentStringLiteralsHandle(
         ParserAstType.HANDLE,
         startToken: startToken,
         literalCount: literalCount);
@@ -6356,13 +6356,13 @@ class LiteralStringEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralStringEnd(this);
 }
 
-class StringJuxtapositionHandle extends ParserAstNode {
+class AdjacentStringLiteralsHandle extends ParserAstNode {
   final Token startToken;
   final int literalCount;
 
-  StringJuxtapositionHandle(ParserAstType type,
+  AdjacentStringLiteralsHandle(ParserAstType type,
       {required this.startToken, required this.literalCount})
-      : super("StringJuxtaposition", type);
+      : super("AdjacentStringLiterals", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6371,7 +6371,8 @@ class StringJuxtapositionHandle extends ParserAstNode {
       };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitStringJuxtapositionHandle(this);
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitAdjacentStringLiteralsHandle(this);
 }
 
 class MemberBegin extends ParserAstNode {
@@ -10254,7 +10255,7 @@ abstract class ParserAstVisitor<R> {
   R visitLiteralStringBegin(LiteralStringBegin node);
   R visitInterpolationExpressionHandle(InterpolationExpressionHandle node);
   R visitLiteralStringEnd(LiteralStringEnd node);
-  R visitStringJuxtapositionHandle(StringJuxtapositionHandle node);
+  R visitAdjacentStringLiteralsHandle(AdjacentStringLiteralsHandle node);
   R visitMemberBegin(MemberBegin node);
   R visitInvalidMemberHandle(InvalidMemberHandle node);
   R visitMemberEnd(MemberEnd node);
@@ -11101,7 +11102,7 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
   void visitLiteralStringEnd(LiteralStringEnd node) => node.visitChildren(this);
 
   @override
-  void visitStringJuxtapositionHandle(StringJuxtapositionHandle node) =>
+  void visitAdjacentStringLiteralsHandle(AdjacentStringLiteralsHandle node) =>
       node.visitChildren(this);
 
   @override

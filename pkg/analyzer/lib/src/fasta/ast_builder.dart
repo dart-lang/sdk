@@ -3710,6 +3710,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
+
+    var strings = popTypedList2<StringLiteralImpl>(literalCount);
+    push(AdjacentStringsImpl(strings: strings));
+  }
+
+  @override
   void handleAsOperator(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
@@ -5533,14 +5541,6 @@ class AstBuilder extends StackListener {
         expression: expression,
       ),
     );
-  }
-
-  @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
-
-    var strings = popTypedList2<StringLiteralImpl>(literalCount);
-    push(AdjacentStringsImpl(strings: strings));
   }
 
   @override

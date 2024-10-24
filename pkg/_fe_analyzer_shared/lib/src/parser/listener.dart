@@ -1141,8 +1141,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralString");
   }
 
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    logEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    logEvent("AdjacentStringLiterals");
   }
 
   /// Called for class-like members (class, mixin, extension), but each member

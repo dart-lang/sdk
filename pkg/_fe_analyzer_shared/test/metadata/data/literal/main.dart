@@ -84,10 +84,10 @@ void literal9() {}
 /*member: literal10:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
-  (StringJuxtaposition(
+  (AdjacentStringLiterals(
       StringLiteral('a')
       StringLiteral('b')))))
-resolved=StringJuxtaposition(
+resolved=AdjacentStringLiterals(
     StringLiteral('a')
     StringLiteral('b'))*/
 void literal10() {}
@@ -96,11 +96,11 @@ void literal10() {}
 /*member: literal11:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
-  (StringJuxtaposition(
+  (AdjacentStringLiterals(
       StringLiteral('a')
       StringLiteral('b')
       StringLiteral('c')))))
-resolved=StringJuxtaposition(
+resolved=AdjacentStringLiterals(
     StringLiteral('a')
     StringLiteral('b')
     StringLiteral('c'))*/

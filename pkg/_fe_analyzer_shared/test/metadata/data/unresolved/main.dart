@@ -388,11 +388,11 @@ void literals2() {}
 /*member: literals3:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)
-  (StringJuxtaposition(
+  (AdjacentStringLiterals(
       StringLiteral('a')
       StringLiteral('b${UnresolvedExpression(UnresolvedIdentifier(constInt))}')
       StringLiteral('c')))))
-resolved=StringJuxtaposition(
+resolved=AdjacentStringLiterals(
     StringLiteral('a')
     StringLiteral('b${UnresolvedExpression(UnresolvedIdentifier(constInt))}')
     StringLiteral('c'))*/

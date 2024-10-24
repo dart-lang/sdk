@@ -3499,8 +3499,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
     List<Expression> parts = popListForValue(literalCount);
     List<Expression>? expressions;
     // Flatten string juxtapositions of string interpolation.

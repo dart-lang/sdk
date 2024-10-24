@@ -900,8 +900,8 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
     List<String> list =
         new List<String>.filled(literalCount, /* dummyValue = */ '');
     int charOffset = -1;

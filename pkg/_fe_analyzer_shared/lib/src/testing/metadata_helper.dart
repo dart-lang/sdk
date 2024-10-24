@@ -144,8 +144,8 @@ class Writer {
         _write('StringLiteral(');
         _stringPartsToText(expression.parts);
         _write(')');
-      case StringJuxtaposition():
-        _write('StringJuxtaposition(');
+      case AdjacentStringLiterals():
+        _write('AdjacentStringLiterals(');
         _incIndent(addNewLine: false);
         _expressionsToText(expression.expressions, delimiter: '');
         _decIndent();
