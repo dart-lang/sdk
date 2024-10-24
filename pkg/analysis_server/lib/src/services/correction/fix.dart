@@ -417,6 +417,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert the quotes and remove escapes everywhere in file',
   );
+  static const CONVERT_RELATED_TO_CASCADE = FixKind(
+    'dart.fix.convert.relatedToCascade',
+    DartFixKindPriority.standard + 1,
+    'Convert this and related to cascade notation',
+  );
   static const CONVERT_TO_BOOL_EXPRESSION = FixKind(
     'dart.fix.convert.toBoolExpression',
     DartFixKindPriority.standard,
