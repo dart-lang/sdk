@@ -34,30 +34,34 @@ defineTests() {
   group('lint config', () {
     group('rule', () {
       test('configs', () {
-        var optionsYaml = loadYamlNode('''
-files:
-  include: foo # un-quoted
-  exclude:
-    - 'test/**'       # file globs can be scalars or lists
-    - '**/_data.dart' # unquoted stars treated by YAML as aliases
-rules:
-  style_guide:
-    unnecessary_getters: false #disable
-    camel_case_types: true #enable
-  pub:
-    package_names: false
-''');
-        var config = LintConfig.parseMap(optionsYaml as YamlMap);
-        expect(config.ruleConfigs, hasLength(3));
+        var ruleConfigs = parseLintRuleConfigs(loadYamlNode('''
+linter:
+  # Unsupported sections here to check that no exceptions are thrown when
+  # YAML includes unknown sections.
+  files:
+    include: foo # un-quoted
+    exclude:
+      - 'test/**'       # file globs can be scalars or lists
+      - '**/_data.dart' # unquoted stars treated by YAML as aliases
+  rules:
+    style_guide:
+      unnecessary_getters: false #disable
+      camel_case_types: true #enable
+    pub:
+      package_names: false
+''') as YamlMap);
+        expect(ruleConfigs, hasLength(3));
       });
 
       test('config', () {
-        var config = LintConfig.parseMap(loadYamlNode('''
-rules:
-  style_guide:
-    unnecessary_getters: false''') as YamlMap);
-        expect(config.ruleConfigs, hasLength(1));
-        var ruleConfig = config.ruleConfigs[0];
+        var ruleConfigs = parseLintRuleConfigs(loadYamlNode('''
+linter:
+  rules:
+    style_guide:
+      unnecessary_getters: false
+''') as YamlMap)!;
+        expect(ruleConfigs, hasLength(1));
+        var ruleConfig = ruleConfigs[0];
         expect(ruleConfig.group, 'style_guide');
         expect(ruleConfig.name, 'unnecessary_getters');
         expect(ruleConfig.args, {'enabled': false});

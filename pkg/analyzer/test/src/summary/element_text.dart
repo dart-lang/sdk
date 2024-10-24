@@ -253,12 +253,9 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   String _elementName(Element2 e) {
-    var name = e.name3 ?? '<null>';
+    var name = e.name3 ?? '<null-name>';
     if (e is SetterElement) {
       expect(name, endsWith('='));
-    }
-    if (name.isEmpty && e is ConstructorElement2) {
-      return 'new';
     }
     return name;
   }

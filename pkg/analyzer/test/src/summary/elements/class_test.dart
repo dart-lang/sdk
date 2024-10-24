@@ -18252,7 +18252,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
-        
+        <null-name>
           firstFragment: <testLibraryFragment>::@class::A::@method::0
 ''');
   }

@@ -43,7 +43,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.constructorName.element;
     if (element != null &&
         element.isSameAs(
-            uri: 'dart.ui', className: 'Color', constructorName: '')) {
+          uri: 'dart.ui',
+          className: 'Color',
+          constructorName: 'new',
+        )) {
       var arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         var argument = arguments.first;

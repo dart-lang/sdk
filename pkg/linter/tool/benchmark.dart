@@ -95,9 +95,10 @@ Future<void> runLinter(List<String> args) async {
   LinterOptions linterOptions;
   if (configFile is String) {
     var optionsContent = readFile(configFile);
-    var config = LintConfig.parseMap(loadYamlNode(optionsContent) as YamlMap);
-    var enabledRules = Registry.ruleRegistry.where((LintRule rule) =>
-        !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
+    var ruleConfigs =
+        parseLintRuleConfigs(loadYamlNode(optionsContent) as YamlMap)!;
+    var enabledRules = Registry.ruleRegistry.where(
+        (LintRule rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)));
 
     linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {

@@ -28,6 +28,16 @@ class EnumLikeClassDescription {
   Map<DartObject, Set<FieldElement2>> get enumConstants => {..._enumConstants};
 }
 
+extension on SetterElement {
+  /// Return name in a format suitable for string comparison.
+  String? get canonicalName {
+    var name = name3;
+    if (name == null) return null;
+    // TODO(pq): remove when `name3` consistently does not include a trailing `=`.
+    return name.endsWith('=') ? name.substring(0, name.length - 1) : name;
+  }
+}
+
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
 
@@ -609,6 +619,12 @@ extension InterfaceTypeExtension on InterfaceType {
     searchSupertypes(this, {}, interfaceTypes);
     return interfaceTypes;
   }
+
+  GetterElement? getGetter2(String name) =>
+      getters.firstWhereOrNull((s) => s.name3 == name);
+
+  SetterElement? getSetter2(String name) =>
+      setters.firstWhereOrNull((s) => s.canonicalName == name);
 }
 
 extension LibraryElementExtension2 on LibraryElement2? {

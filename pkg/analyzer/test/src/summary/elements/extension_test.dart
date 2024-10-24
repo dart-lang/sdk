@@ -670,7 +670,7 @@ library
           reference: <testLibraryFragment>::@extension::0
           element: <testLibraryFragment>::@extension::0#element
   extensions
-    extension <null>
+    extension <null-name>
       firstFragment: <testLibraryFragment>::@extension::0
 ''');
   }
