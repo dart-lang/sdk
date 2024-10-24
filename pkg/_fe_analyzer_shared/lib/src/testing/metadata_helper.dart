@@ -168,7 +168,7 @@ class Writer {
         _write(expression.name);
         _write(')');
       case TypeLiteral():
-        _write('NullAwarePropertyGet(');
+        _write('TypeLiteral(');
         _typeAnnotationToText(expression.typeAnnotation);
         _write(')');
       case ParenthesizedExpression():
@@ -285,6 +285,8 @@ class Writer {
       case TypedefReference():
         _write(reference.name);
       case ExtensionReference():
+        _write(reference.name);
+      case ExtensionTypeReference():
         _write(reference.name);
       case FunctionTypeParameterReference():
         _write(reference.name);
@@ -621,6 +623,15 @@ class Writer {
       case ExtensionProto():
         _write('ExtensionProto(');
         _referenceToText(proto.reference);
+        _write(')');
+      case ExtensionTypeProto():
+        _write('ExtensionTypeProto(');
+        _referenceToText(proto.reference);
+        _write(')');
+      case GenericExtensionTypeProto():
+        _write('GenericExtensionTypeProto(');
+        _referenceToText(proto.reference);
+        _typeArgumentsToText(proto.typeArguments);
         _write(')');
       case TypedefProto():
         _write('TypedefProto(');

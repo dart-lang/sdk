@@ -56,6 +56,10 @@ shared.Proto _elementToProto(Element element, String name) {
     var reference = _ExtensionReference(element);
     return shared.ExtensionProto(
         reference, _ExtensionScope(element, reference));
+  } else if (element is ExtensionTypeElement) {
+    var reference = _ExtensionTypeReference(element);
+    return shared.ExtensionTypeProto(
+        reference, _ExtensionTypeScope(element, reference));
   }
 
   // TODO(johnniwinther): Support extension types.
@@ -132,6 +136,37 @@ final class _ExtensionScope extends shared.BaseExtensionScope {
       [List<shared.TypeAnnotation>? typeArguments]) {
     Element? member = _extensionElement.augmented.getField(name);
     member ??= _extensionElement.augmented.getMethod(name);
+    return createMemberProto(typeArguments, name, member, _elementToProto);
+  }
+}
+
+class _ExtensionTypeReference extends shared.ExtensionTypeReference {
+  final ExtensionTypeElement _element;
+
+  _ExtensionTypeReference(this._element);
+
+  @override
+  String get name => _element.name;
+}
+
+final class _ExtensionTypeScope extends shared.BaseExtensionTypeScope {
+  final ExtensionTypeElement _extensionTypeElement;
+
+  @override
+  final _ExtensionTypeReference extensionTypeReference;
+
+  _ExtensionTypeScope(this._extensionTypeElement, this.extensionTypeReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    var constructor = _extensionTypeElement.getNamedConstructor(name);
+    if (constructor != null) {
+      return createConstructorProto(
+          typeArguments, _ConstructorReference(constructor));
+    }
+    Element? member = _extensionTypeElement.augmented.getField(name);
+    member ??= _extensionTypeElement.augmented.getMethod(name);
     return createMemberProto(typeArguments, name, member, _elementToProto);
   }
 }

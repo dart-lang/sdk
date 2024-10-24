@@ -64,6 +64,11 @@ shared.Proto builderToProto(Builder builder, String name) {
         new ExtensionReference(builder);
     return new shared.ExtensionProto(
         extensionReference, new ExtensionScope(builder, extensionReference));
+  } else if (builder is ExtensionTypeDeclarationBuilder) {
+    shared.ExtensionTypeReference extensionReference =
+        new ExtensionTypeReference(builder);
+    return new shared.ExtensionTypeProto(extensionReference,
+        new ExtensionTypeScope(builder, extensionReference));
   } else {
     // TODO(johnniwinther): Support extension types.
     throw new UnsupportedError("Unsupported builder $builder for $name");
@@ -155,6 +160,30 @@ final class ExtensionScope extends shared.BaseExtensionScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
+    Builder? member = builder.lookupLocalMember(name, setter: false);
+    return createMemberProto(typeArguments, name, member, builderToProto);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+final class ExtensionTypeScope extends shared.BaseExtensionTypeScope {
+  final ExtensionTypeDeclarationBuilder builder;
+  @override
+  final shared.ExtensionTypeReference extensionTypeReference;
+
+  ExtensionTypeScope(this.builder, this.extensionTypeReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    int fileOffset = -1;
+    Uri fileUri = dummyUri;
+    MemberBuilder? constructor =
+        builder.constructorScope.lookup(name, fileOffset, fileUri);
+    if (constructor != null) {
+      return createConstructorProto(
+          typeArguments, new ConstructorReference(constructor));
+    }
     Builder? member = builder.lookupLocalMember(name, setter: false);
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
@@ -269,6 +298,16 @@ class ExtensionReference extends shared.ExtensionReference {
   final ExtensionBuilder builder;
 
   ExtensionReference(this.builder);
+
+  @override
+  String get name => builder.name;
+}
+
+// Coverage-ignore(suite): Not run.
+class ExtensionTypeReference extends shared.ExtensionTypeReference {
+  final ExtensionTypeDeclarationBuilder builder;
+
+  ExtensionTypeReference(this.builder);
 
   @override
   String get name => builder.name;

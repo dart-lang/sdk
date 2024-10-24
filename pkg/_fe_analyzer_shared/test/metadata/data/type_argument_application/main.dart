@@ -39,7 +39,7 @@ void typeArgumentApplications2() {}
 
 @Helper(GenericClass<Class, Class?>)
 /*member: typeArgumentApplications3:
-NullAwarePropertyGet(GenericClass<Class,Class?>)*/
+TypeLiteral(GenericClass<Class,Class?>)*/
 void typeArgumentApplications3() {}
 
 @Helper(GenericClass<Class, Class?>.new)
@@ -74,7 +74,7 @@ void typeArgumentApplications9() {}
 
 @Helper(self.GenericClass<Class, Class?>)
 /*member: typeArgumentApplications10:
-NullAwarePropertyGet(GenericClass<Class,Class?>)*/
+TypeLiteral(GenericClass<Class,Class?>)*/
 void typeArgumentApplications10() {}
 
 @Helper(self.GenericClass<Class, Class?>.new)

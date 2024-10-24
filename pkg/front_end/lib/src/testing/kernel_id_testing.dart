@@ -295,6 +295,18 @@ Future<TestResult<T>> processCompiledResult<T, C extends TestConfig, R,
         return;
       }
     }
+    if (member.isExtensionTypeMember) {
+      for (ExtensionTypeDeclaration extension
+          in member.enclosingLibrary.extensionTypeDeclarations) {
+        for (ExtensionTypeMemberDescriptor descriptor
+            in extension.memberDescriptors) {
+          if (descriptor.tearOffReference == member.reference) {
+            return;
+          }
+        }
+      }
+    }
+
     dataComputer.computeMemberData(testResultData, member, actualMap,
         verbose: verbose);
   }

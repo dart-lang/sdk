@@ -48,7 +48,7 @@ void access3() {}
 
 @Helper(Class)
 /*member: access4:
-NullAwarePropertyGet(Class)*/
+TypeLiteral(Class)*/
 void access4() {}
 
 @Helper(Class.new)
@@ -93,7 +93,7 @@ void access12() {}
 
 @Helper(self.Class)
 /*member: access13:
-NullAwarePropertyGet(Class)*/
+TypeLiteral(Class)*/
 void access13() {}
 
 @Helper(self.Class.new)
@@ -123,7 +123,7 @@ void access18() {}
 
 @Helper(dynamic)
 /*member: access19:
-NullAwarePropertyGet(dynamic)*/
+TypeLiteral(dynamic)*/
 void access19() {}
 
 @Helper(Alias.new)
@@ -178,7 +178,7 @@ void access29() {}
 
 @Helper(dynamic)
 /*member: access30:
-NullAwarePropertyGet(dynamic)*/
+TypeLiteral(dynamic)*/
 void access30() {}
 
 @Helper(self.Alias.new)
