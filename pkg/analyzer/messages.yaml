@@ -788,7 +788,7 @@ CompileTimeErrorCode:
       }
       ```
   ASSIGNMENT_TO_CONST:
-    problemMessage: "Constant variables can't be assigned a value."
+    problemMessage: "Constant variables can't be re-assigned a value."
     correctionMessage: "Try removing the assignment, or remove the modifier 'const' from the variable."
     hasPublishedDocs: true
     comment: No parameters.
