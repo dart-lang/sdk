@@ -11,6 +11,8 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
+cc/MutatorMarkerRace_Relaxed: Pass, Fail # Comparison to demonstrate race, failure seen on Mac M1.
+cc/MutatorMarkerRace_ReleaseHeader: Pass, Fail # Comparison to demonstrate race, failure seen on Windows Snapdragon.
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 cc/TypeArguments_Cache_ManyInstantiations: Pass, Slow
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.

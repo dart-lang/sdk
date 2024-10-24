@@ -10,6 +10,7 @@
 #include "platform/globals.h"
 
 #include "platform/assert.h"
+#include "platform/no_tsan.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/globals.h"
@@ -1365,6 +1366,337 @@ ISOLATE_UNIT_TEST_CASE(CardRememberedImmutableArray) {
 ISOLATE_UNIT_TEST_CASE(CardRememberedWeakArray) {
   TestCardRememberedWeakArray(true);
   TestCardRememberedWeakArray(false);
+}
+
+struct ExistingObject;
+
+static constexpr uword kMarkBit = 1;
+static constexpr uword kCidBit = 2;
+static constexpr size_t kNewObjectSlotCount = 3;
+struct NewObject {
+  std::atomic<uword> header;
+  std::atomic<ExistingObject*> slots[kNewObjectSlotCount];
+};
+
+static constexpr size_t kExistingObjectSlotCount = 64 * KB;
+struct ExistingObject {
+  std::atomic<NewObject*> slots[kExistingObjectSlotCount];
+};
+
+struct NewPage {
+  std::atomic<uword> top;
+  std::atomic<uword> end;
+  NewObject objects[kExistingObjectSlotCount];
+};
+static constexpr size_t kNewPageAlignment =
+    Utils::RoundUpToPowerOfTwo(sizeof(NewPage));
+static constexpr size_t kNewPageMask = kNewPageAlignment - 1;
+
+typedef void (*MutatorFunction)(NewPage*, ExistingObject*);
+typedef void (*MarkerFunction)(ExistingObject*);
+
+struct MarkerArguments {
+  ExistingObject* existing_object;
+  MarkerFunction function;
+  Monitor* monitor;
+  ThreadJoinId join_id;
+};
+
+static void MutatorMarkerRace(MutatorFunction mutator, MarkerFunction marker) {
+  VirtualMemory* existing_vm = VirtualMemory::Allocate(
+      Utils::RoundUp(sizeof(ExistingObject), VirtualMemory::PageSize()), false,
+      false, "dart-heap");
+  ExistingObject* existing_object =
+      reinterpret_cast<ExistingObject*>(existing_vm->address());
+
+  Monitor monitor;
+  MarkerArguments arguments;
+  arguments.existing_object = existing_object;
+  arguments.function = marker;
+  arguments.monitor = &monitor;
+
+  for (intptr_t k = 0; k < 1000; k++) {
+    for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+      existing_object->slots[i] = nullptr;
+    }
+    arguments.join_id = OSThread::kInvalidThreadJoinId;
+
+    OSThread::Start(
+        "FakeMarker",
+        [](uword parameter) {
+          MarkerArguments* arguments =
+              reinterpret_cast<MarkerArguments*>(parameter);
+
+          arguments->function(arguments->existing_object);
+
+          MonitorLocker ml(arguments->monitor);
+          arguments->join_id =
+              OSThread::GetCurrentThreadJoinId(OSThread::Current());
+          ml.Notify();
+        },
+        reinterpret_cast<uword>(&arguments));
+
+    VirtualMemory* new_vm = VirtualMemory::AllocateAligned(
+        kNewPageAlignment, kNewPageAlignment, false, false, "dart-heap");
+    NewPage* new_page = reinterpret_cast<NewPage*>(new_vm->address());
+    new_page->end = new_vm->end();
+    new_page->top.store(reinterpret_cast<uword>(new_page->objects),
+                        std::memory_order_release);
+
+    mutator(new_page, existing_object);
+
+    for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+      NewObject* new_object = &new_page->objects[i];
+      uword header = new_object->header.load(std::memory_order_relaxed);
+      EXPECT_EQ(kCidBit, header & kCidBit);
+    }
+
+    {
+      MonitorLocker ml(&monitor);
+      while (arguments.join_id == OSThread::kInvalidThreadJoinId) {
+        ml.Wait();
+      }
+    }
+    OSThread::Join(arguments.join_id);
+
+    for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+      NewObject* new_object = &new_page->objects[i];
+      uword header = new_object->header.load(std::memory_order_relaxed);
+      EXPECT_EQ(kCidBit | kMarkBit, header);
+    }
+
+    delete new_vm;
+  }
+
+  delete existing_vm;
+}
+
+// Skip tests with races on weak-memory model architecture to avoid meta-flaking
+// the test status.
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+
+// This has a race: the initializing store of the header and the publishing
+// store of the new object's pointers might get reordered as seen by the marker.
+// Seen in practice on an M1.
+VM_UNIT_TEST_CASE(MutatorMarkerRace_Relaxed) {
+  MutatorMarkerRace(
+      [](NewPage* new_page, ExistingObject* existing_object) {
+        // Mutator:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* new_object = &new_page->objects[i];
+          new_object->header.store(2u, std::memory_order_relaxed);
+          for (size_t j = 0; j < kNewObjectSlotCount; j++) {
+            new_object->slots[j].store(existing_object,
+                                       std::memory_order_relaxed);
+          }
+          existing_object->slots[i].store(new_object,
+                                          std::memory_order_relaxed);
+        }
+      },
+      [](ExistingObject* existing_object) {
+        // Marker:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* target;
+          do {
+            target = existing_object->slots[i].load(std::memory_order_relaxed);
+          } while (target == nullptr);
+
+          uword header = FetchOrRelaxedIgnoreRace(&target->header, kMarkBit);
+          EXPECT_EQ(kCidBit, header);
+        }
+      });
+}
+
+// This has a race: the release orders stores before the header initialization
+// with the header initialization, but still lets the header initialization and
+// publishing store get reordered.
+// Seen in practice on Windows ARM64 Snapdragon.
+VM_UNIT_TEST_CASE(MutatorMarkerRace_ReleaseHeader) {
+  MutatorMarkerRace(
+      [](NewPage* new_page, ExistingObject* existing_object) {
+        // Mutator:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* new_object = &new_page->objects[i];
+          new_object->header.store(2u, std::memory_order_release);
+          for (size_t j = 0; j < kNewObjectSlotCount; j++) {
+            new_object->slots[j].store(existing_object,
+                                       std::memory_order_relaxed);
+          }
+          existing_object->slots[i].store(new_object,
+                                          std::memory_order_relaxed);
+        }
+      },
+      [](ExistingObject* existing_object) {
+        // Marker:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* target;
+          do {
+            target = existing_object->slots[i].load(std::memory_order_relaxed);
+          } while (target == nullptr);
+
+          uword header = FetchOrRelaxedIgnoreRace(&target->header, kMarkBit);
+          EXPECT_EQ(kCidBit, header);
+        }
+      });
+}
+
+#endif  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+
+VM_UNIT_TEST_CASE(MutatorMarkerRace_ReleasePublish) {
+  MutatorMarkerRace(
+      [](NewPage* new_page, ExistingObject* existing_object) {
+        // Mutator:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* new_object = &new_page->objects[i];
+          new_object->header.store(2u, std::memory_order_relaxed);
+          for (size_t j = 0; j < kNewObjectSlotCount; j++) {
+            new_object->slots[j].store(existing_object,
+                                       std::memory_order_relaxed);
+          }
+          existing_object->slots[i].store(new_object,
+                                          std::memory_order_release);
+        }
+      },
+      [](ExistingObject* existing_object) {
+        // Marker:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* target;
+          do {
+            target = existing_object->slots[i].load(std::memory_order_relaxed);
+          } while (target == nullptr);
+
+          uword header = FetchOrRelaxedIgnoreRace(&target->header, kMarkBit);
+          EXPECT_EQ(kCidBit, header);
+        }
+      });
+}
+
+// TSAN doesn't support std::atomic_thread_fence.
+#if !defined(USING_THREAD_SANITIZER)
+VM_UNIT_TEST_CASE(MutatorMarkerRace_Fence) {
+  MutatorMarkerRace(
+      [](NewPage* new_page, ExistingObject* existing_object) {
+        // Mutator:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* new_object = &new_page->objects[i];
+          new_object->header.store(2u, std::memory_order_relaxed);
+          std::atomic_thread_fence(std::memory_order_release);
+          for (size_t j = 0; j < kNewObjectSlotCount; j++) {
+            new_object->slots[j].store(existing_object,
+                                       std::memory_order_relaxed);
+          }
+          existing_object->slots[i].store(new_object,
+                                          std::memory_order_relaxed);
+        }
+      },
+      [](ExistingObject* existing_object) {
+        // Marker:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* target;
+          do {
+            target = existing_object->slots[i].load(std::memory_order_relaxed);
+          } while (target == nullptr);
+
+          uword header = FetchOrRelaxedIgnoreRace(&target->header, kMarkBit);
+          EXPECT_EQ(kCidBit, header);
+        }
+      });
+}
+#endif  // !defined(USING_THREAD_SANITIZER)
+
+VM_UNIT_TEST_CASE(MutatorMarkerRace_DetectPreviousValue) {
+  MutatorMarkerRace(
+      [](NewPage* new_page, ExistingObject* existing_object) {
+        // Mutator:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* new_object = &new_page->objects[i];
+          new_object->header.store(2u, std::memory_order_relaxed);
+          for (size_t j = 0; j < kNewObjectSlotCount; j++) {
+            new_object->slots[j].store(existing_object,
+                                       std::memory_order_relaxed);
+          }
+          existing_object->slots[i].store(new_object,
+                                          std::memory_order_relaxed);
+        }
+      },
+      [](ExistingObject* existing_object) {
+        // Marker:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* target;
+          do {
+            target = existing_object->slots[i].load(std::memory_order_relaxed);
+          } while (target == nullptr);
+
+          while (LoadRelaxedIgnoreRace(&target->header) == 0) {
+            // Wait.
+          }
+
+          uword header = FetchOrRelaxedIgnoreRace(&target->header, kMarkBit);
+          EXPECT_EQ(kCidBit, header);
+        }
+      });
+}
+
+VM_UNIT_TEST_CASE(MutatorMarkerRace_DetectInTLAB) {
+  MutatorMarkerRace(
+      [](NewPage* new_page, ExistingObject* existing_object) {
+        // Mutator:
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* new_object = &new_page->objects[i];
+          new_object->header.store(2u, std::memory_order_relaxed);
+          for (size_t j = 0; j < kNewObjectSlotCount; j++) {
+            new_object->slots[j].store(existing_object,
+                                       std::memory_order_relaxed);
+          }
+          existing_object->slots[i].store(new_object,
+                                          std::memory_order_relaxed);
+
+          if ((i % 8) == 0) {
+            new_page->top.store(
+                reinterpret_cast<uword>(&new_page->objects[i + 1]),
+                std::memory_order_release);
+          }
+        }
+
+        new_page->top.store(
+            reinterpret_cast<uword>(
+                &new_page->objects[kExistingObjectSlotCount + 1]),
+            std::memory_order_release);
+      },
+      [](ExistingObject* existing_object) {
+        // Marker:
+        MallocGrowableArray<NewObject*> deferred(kExistingObjectSlotCount);
+
+        for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
+          NewObject* target;
+          do {
+            target = existing_object->slots[i].load(std::memory_order_relaxed);
+          } while (target == nullptr);
+
+          uword addr = reinterpret_cast<uword>(target);
+          NewPage* new_page = reinterpret_cast<NewPage*>(addr & ~kNewPageMask);
+          if (addr < new_page->top.load(std::memory_order_acquire)) {
+            uword header =
+                target->header.fetch_or(kMarkBit, std::memory_order_relaxed);
+            EXPECT_EQ(kCidBit, header);
+          } else {
+            deferred.Add(target);
+          }
+        }
+
+        for (intptr_t i = 0; i < deferred.length(); i++) {
+          NewObject* target = deferred[i];
+
+          uword addr = reinterpret_cast<uword>(target);
+          NewPage* new_page = reinterpret_cast<NewPage*>(addr & ~kNewPageMask);
+          while (addr >= new_page->top.load(std::memory_order_acquire)) {
+            // Wait. Would be a STW phase in the full thing.
+          }
+          uword header =
+              target->header.fetch_or(kMarkBit, std::memory_order_relaxed);
+          EXPECT_EQ(kCidBit, header);
+        }
+      });
 }
 
 }  // namespace dart
