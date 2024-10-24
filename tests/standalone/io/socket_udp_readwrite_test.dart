@@ -4,25 +4,26 @@
 
 // Test writing to unreachable udp socket doesn't cause problems.
 
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:io';
 
 import "package:expect/expect.dart";
 
 main() async {
-  var _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 9099);
+  final _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+  final port = _socket.port;
+  final allDone = Completer<bool>()
+      ..future.whenComplete(() { _socket.close(); });
   _socket.listen((RawSocketEvent event) {
     print("event: $event");
     switch (event) {
       case RawSocketEvent.read:
-        Datagram? d = _socket.receive();
-        if (d != null) {
-          print("recv: $d, all done");
-          _socket.close();
-        }
+        _socket.receive();
         break;
       case RawSocketEvent.write:
         print('received write event $event');
+        allDone.complete(true);
         break;
     }
   }, onError: (e) {
@@ -30,7 +31,9 @@ main() async {
   });
 
   for (int i = 0; i < 100; i++) {
-    _socket.send(Uint8List(10), InternetAddress("127.0.0.1"), 9100);
+    // Sending data to some non-existent reserved port to trigger
+    // the condition.
+    _socket.send(Uint8List(10), InternetAddress("127.0.0.1"), 1024);
   }
-  _socket.send(Uint8List(10), InternetAddress("127.0.0.1"), 9099);
+  _socket.send(Uint8List(10), InternetAddress("127.0.0.1"), port);
 }
