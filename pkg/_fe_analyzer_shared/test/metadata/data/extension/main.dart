@@ -19,59 +19,103 @@ extension Extension on int {
 
 @Extension.variable
 /*member: extensionConstant1:
-StaticGet(variable)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedIdentifier(Extension).variable))
+resolved=StaticGet(variable)*/
 void extensionConstant1() {}
 
 @self.Extension.variable
 /*member: extensionConstant2:
-StaticGet(variable)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedAccess(
+    UnresolvedIdentifier(self).Extension).variable))
+resolved=StaticGet(variable)*/
 void extensionConstant2() {}
 
 @Extension.unresolved
 /*member: extensionConstant3:
-UnresolvedExpression(UnresolvedAccess(
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedIdentifier(Extension).unresolved))
+resolved=UnresolvedExpression(UnresolvedAccess(
   ExtensionProto(Extension).unresolved))*/
 void extensionConstant3() {}
 
 @self.Extension.unresolved
 /*member: extensionConstant4:
-UnresolvedExpression(UnresolvedAccess(
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedAccess(
+    UnresolvedIdentifier(self).Extension).unresolved))
+resolved=UnresolvedExpression(UnresolvedAccess(
   ExtensionProto(Extension).unresolved))*/
 void extensionConstant4() {}
 
 @Helper(Extension.method)
 /*member: extensionConstant5:
-FunctionTearOff(method)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(Extension).method)))))
+resolved=FunctionTearOff(method)*/
 void extensionConstant5() {}
 
 @Helper(self.Extension.method)
 /*member: extensionConstant6:
-FunctionTearOff(method)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedAccess(
+      UnresolvedIdentifier(self).Extension).method)))))
+resolved=FunctionTearOff(method)*/
 void extensionConstant6() {}
 
 @Helper(Extension.genericMethod)
 /*member: extensionConstant7:
-FunctionTearOff(genericMethod)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(Extension).genericMethod)))))
+resolved=FunctionTearOff(genericMethod)*/
 void extensionConstant7() {}
 
 @Helper(self.Extension.genericMethod)
 /*member: extensionConstant8:
-FunctionTearOff(genericMethod)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedAccess(
+      UnresolvedIdentifier(self).Extension).genericMethod)))))
+resolved=FunctionTearOff(genericMethod)*/
 void extensionConstant8() {}
 
 @Helper(Extension.genericMethod<int>)
 /*member: extensionConstant9:
-Instantiation(FunctionTearOff(genericMethod)<int>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedIdentifier(Extension).genericMethod)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=Instantiation(FunctionTearOff(genericMethod)<int>)*/
 void extensionConstant9() {}
 
 @Helper(self.Extension.genericMethod<int>)
 /*member: extensionConstant10:
-Instantiation(FunctionTearOff(genericMethod)<int>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedAccess(
+        UnresolvedIdentifier(self).Extension).genericMethod)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=Instantiation(FunctionTearOff(genericMethod)<int>)*/
 void extensionConstant10() {}
 
 @Helper(Extension.unresolved<int>)
 /*member: extensionConstant11:
-UnresolvedExpression(UnresolvedInstantiate(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedIdentifier(Extension).unresolved)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=UnresolvedExpression(UnresolvedInstantiate(
   UnresolvedAccess(
     ExtensionProto(Extension).unresolved)<int>))*/
 void extensionConstant11() {}

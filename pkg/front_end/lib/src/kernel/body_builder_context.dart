@@ -38,6 +38,8 @@ import '../type_inference/type_schema.dart' show UnknownType;
 import 'expression_generator_helper.dart';
 import 'internal_ast.dart';
 
+/// Interface that defines the interface between the [BodyBuilder] and the
+/// member/declaration whose AST is being built.
 abstract class BodyBuilderContext {
   final BodyBuilderDeclarationContext _declarationContext;
 
@@ -50,16 +52,37 @@ abstract class BodyBuilderContext {
         _declarationContext = new BodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
 
-  String get memberName {
-    throw new UnsupportedError('${runtimeType}.memberName');
+  /// Returns the file offset of the name of the member whose body is being
+  /// built.
+  ///
+  /// For an unnamed constructor this is offset of the class name.
+  ///
+  /// This is used for error reporting.
+  int get memberNameOffset {
+    throw new UnsupportedError("${runtimeType}.memberNameOffset");
   }
 
+  /// Returns the length of the name of the member whose body is being built.
+  ///
+  /// For an unnamed constructor this is 0.
+  ///
+  /// This is used for error reporting.
+  int get memberNameLength {
+    throw new UnsupportedError('${runtimeType}.memberNameLength');
+  }
+
+  /// Looks up the member by the given [name] in the superclass of the enclosing
+  /// class.
+  ///
+  /// If [isSetter] is `true`, a setable is returned, otherwise a getable is
+  /// returned.
   Member? lookupSuperMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false}) {
     return _declarationContext.lookupSuperMember(hierarchy, name,
         isSetter: isSetter);
   }
 
+  /// Looks up the constructor by the given [name] in the enclosing declaration.
   Builder? lookupConstructor(Name name) {
     return _declarationContext.lookupConstructor(name);
   }
@@ -75,58 +98,100 @@ abstract class BodyBuilderContext {
         fileOffset: fileOffset);
   }
 
+  /// Looks up the constructor by the given [name] in the superclass of the
+  /// enclosing class.
   Constructor? lookupSuperConstructor(Name name) {
     return _declarationContext.lookupSuperConstructor(name);
   }
 
+  /// Looks up the member by the given [name] declared in the enclosing
+  /// declaration or library.
+  ///
+  /// If [required] is `true`, an error is thrown if the member is not found.
   Builder? lookupLocalMember(String name, {bool required = false}) {
     return _declarationContext.lookupLocalMember(name, required: required);
   }
 
+  /// Returns `true` if the enclosing class in an augmenting class.
   bool get isAugmentationClass => _declarationContext.isAugmentationClass;
 
-  Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
-    return _declarationContext.lookupStaticOriginMember(name, charOffset, uri);
+  /// Looks up the static member by the given [name] in the origin of the
+  /// enclosing declaration.
+  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
+    return _declarationContext.lookupStaticOriginMember(
+        name, fileOffset, fileUri);
   }
 
+  /// Returns the [FormalParameterBuilder] by the given [name] declared in the
+  /// member whose body is being built.
   FormalParameterBuilder? getFormalParameterByName(Identifier name) {
     throw new UnsupportedError('${runtimeType}.getFormalParameterByName');
   }
 
+  /// Returns the [FunctionNode] for the function body currently being built.
   FunctionNode get function {
     throw new UnsupportedError('${runtimeType}.function');
   }
 
+  /// Returns `true` if the member whose body is being built is a non-factory
+  /// constructor declaration.
   bool get isConstructor => false;
 
+  /// Returns `true` if the member whose body is being built is a non-factory
+  /// constructor declaration marked as `external`.
   // Coverage-ignore(suite): Not run.
   bool get isExternalConstructor => false;
 
+  /// Returns `true` if the member whose body is being built is a constructor,
+  /// factory, method, getter, or setter marked as `external`.
   // Coverage-ignore(suite): Not run.
   bool get isExternalFunction => false;
 
+  /// Returns `true` if the member whose body is being built is a setter
+  /// declaration.
   // Coverage-ignore(suite): Not run.
   bool get isSetter => false;
 
+  /// Returns `true` if the member whose body is being built is a non-factory
+  /// constructor declaration marked as `const`.
   // Coverage-ignore(suite): Not run.
   bool get isConstConstructor => false;
 
+  /// Returns `true` if the member whose body is being built is a (redirecting)
+  /// factory declaration.
   // Coverage-ignore(suite): Not run.
   bool get isFactory => false;
 
+  /// Returns `true` if the member whose body is being built is marked as
+  /// native.
   // Coverage-ignore(suite): Not run.
   bool get isNativeMethod => false;
 
+  /// Returns `true` if the member whose body is built is an instance member
+  /// or a non-factory constructor.
   bool get isDeclarationInstanceContext {
     return _isDeclarationInstanceMember || isConstructor;
   }
 
+  /// Returns `true` if the member whose body is being built is a redirecting
+  /// factory declaration.
   bool get isRedirectingFactory => false;
 
+  /// Returns the constructor name, including the class name, of the immediate
+  /// target of a redirecting factory constructor.
+  ///
+  /// This is only supported if [isRedirectingFactory] is `true`.
+  ///
+  /// This is used for error reporting.
   String get redirectingFactoryTargetName {
     throw new UnsupportedError('${runtimeType}.redirectingFactoryTargetName');
   }
 
+  /// Returns the [InstanceTypeParameterAccessState] for the member whose body
+  /// is begin built.
+  ///
+  /// This is used to determine whether access to instance type parameters is
+  /// allowed.
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
     if (isDeclarationInstanceContext) {
       return InstanceTypeParameterAccessState.Allowed;
@@ -135,102 +200,165 @@ abstract class BodyBuilderContext {
     }
   }
 
+  /// Returns `true` if the constructor whose initializers is being built, needs
+  /// to include an implicit super initializer.
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) => false;
 
+  /// Registers that a `super` call has occurred in the body currently being
+  /// built.
+  ///
+  /// This is used to mark the enclosing member node as having a super call.
   void registerSuperCall() {
     throw new UnsupportedError('${runtimeType}.registerSuperCall');
   }
 
+  /// Returns `true` if the constructor by the given [name] is a cyclic
+  /// redirecting generative constructor in the enclosing class or extension
+  /// type.
   bool isConstructorCyclic(String name) {
     throw new UnsupportedError('${runtimeType}.isConstructorCyclic');
   }
 
+  /// Returns the [ConstantContext] for the body currently being built.
   ConstantContext get constantContext => ConstantContext.none;
 
+  /// Returns `true` if the member whose body is being built is a late field
+  /// declaration.
   // Coverage-ignore(suite): Not run.
   bool get isLateField => false;
 
+  /// Returns `true` if the member whose body is being built is an abstract
+  /// field declaration.
   // Coverage-ignore(suite): Not run.
   bool get isAbstractField => false;
 
+  /// Returns `true` if the member whose body is being built is an external
+  /// field declaration.
   // Coverage-ignore(suite): Not run.
   bool get isExternalField => false;
 
+  /// Returns `true` if the enclosing class of the member whose body is being
+  /// built is marked as a `mixin` class.
   bool get isMixinClass => _declarationContext.isMixinClass;
 
+  /// Returns `true` if the enclosing class of the member whose body is being
+  /// built is marked as an enum.
   bool get isEnumClass => _declarationContext.isEnumClass;
 
+  /// Returns the name of the enclosing class or extension type declaration.
   String get className => _declarationContext.className;
 
+  /// Returns the name of the superclass of the enclosing class.
   String get superClassName => _declarationContext.superClassName;
 
+  /// Substitute [fieldType] from the context of the enclosing class or
+  /// extension type declaration of a generative constructor.
+  ///
+  /// This is used for generic extension type constructors where the type
+  /// variable referring to the class type parameters must be substituted for
+  /// the synthesized constructor type parameters.
   DartType substituteFieldType(DartType fieldType) {
     throw new UnsupportedError('${runtimeType}.substituteFieldType');
   }
 
+  /// Registers that the field [builder] has been initialized in generative
+  /// constructor whose body is being built.
   void registerInitializedField(SourceFieldBuilder builder) {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
+  /// Returns the [VariableDeclaration] for the [index]th formal parameter
+  /// declared in the constructor, factory, method, or setter currently being
+  /// built.
   VariableDeclaration getFormalParameter(int index) {
     throw new UnsupportedError('${runtimeType}.getFormalParameter');
   }
 
+  /// Returns the [VariableDeclaration] for the [index]th formal parameter
+  /// declared in the constructor, factory, or method tear-off currently being
+  /// built.
   VariableDeclaration? getTearOffParameter(int index) {
     throw new UnsupportedError('${runtimeType}.getTearOffParameter');
   }
 
+  /// Returns the type context that should be used for return statement in body
+  /// currently being built.
   DartType get returnTypeContext {
     throw new UnsupportedError('${runtimeType}.returnTypeContext');
   }
 
+  /// Returns the return type of the constructor, factory, method, getter or
+  /// setter currently being built.
   TypeBuilder get returnType {
     throw new UnsupportedError('${runtimeType}.returnType');
   }
 
+  /// Returns the [FormalParameterBuilder]s for the formals of the member whose
+  /// body is currently being built, including synthetically added formal
+  /// parameters.
   List<FormalParameterBuilder>? get formals {
     throw new UnsupportedError('${runtimeType}.formals');
   }
 
+  /// Computes the scope containing the initializing formals or super
+  /// parameters of the constructor currently being built, using [parent] as
+  /// the parent scope.
+  ///
+  /// If a constructor is not currently being built, [parent] is returned.
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     throw new UnsupportedError(
         '${runtimeType}.computeFormalParameterInitializerScope');
   }
 
+  /// This is called before parsing constructor initializers.
+  ///
+  /// The constructor initializers are parsed both in the outline and in the
+  /// body building phases, so this clears the initializer parsed during the
+  /// outline phases to avoid duplication.
   void prepareInitializers() {
     throw new UnsupportedError('${runtimeType}.prepareInitializers');
   }
 
+  /// Adds [initializer] to generative constructor currently being built.
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult}) {
     throw new UnsupportedError('${runtimeType}.addInitializer');
   }
 
+  /// Infers the [initializer].
   InitializerInferenceResult inferInitializer(Initializer initializer,
       ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
   }
 
-  int get memberCharOffset {
-    throw new UnsupportedError("${runtimeType}.memberCharOffset");
-  }
-
+  /// Returns the target for using the `augmented` expression in an augmenting
+  /// member.
   // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     return null;
   }
 
+  /// Sets the [asyncModifier] of the function currently being built.
+  // TODO(johnniwinther): Do we need this? Isn't this already available from the
+  // outline?
   void setAsyncModifier(AsyncMarker asyncModifier) {
     throw new UnsupportedError("${runtimeType}.setAsyncModifier");
   }
 
+  /// Registers [body] as the result of the body building.
   void setBody(Statement body) {
     throw new UnsupportedError("${runtimeType}.setBody");
   }
 
+  /// Returns the type of `this` in the body being built.
+  ///
+  /// This is only used for classes. For extensions and extension types, `this`
+  /// is handled via a synthetic this variable.
   InterfaceType? get thisType => _declarationContext.thisType;
 }
 
+/// Interface that provides information for a [BodyBuilderContext] from the
+/// enclosing class-like declaration or library.
 abstract class BodyBuilderDeclarationContext {
   final LibraryBuilder _libraryBuilder;
 
@@ -281,7 +409,7 @@ abstract class BodyBuilderDeclarationContext {
 
   bool get isAugmentationClass => false;
 
-  Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
+  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
     throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
   }
 
@@ -380,10 +508,10 @@ class _SourceClassBodyBuilderDeclarationContext
   bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
 
   @override
-  Builder? lookupStaticOriginMember(String name, int charOffset, Uri uri) {
+  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
     // The scope of an augmented method includes the origin class.
     return _sourceClassBuilder.origin
-        .findStaticBuilder(name, charOffset, uri, _libraryBuilder);
+        .findStaticBuilder(name, fileOffset, fileUri, _libraryBuilder);
   }
 
   @override
@@ -441,18 +569,21 @@ class _DillClassBodyBuilderDeclarationContext
 class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
     extends BodyBuilderDeclarationContext
     with _DeclarationBodyBuilderDeclarationContextMixin {
-  final SourceExtensionTypeDeclarationBuilder _sourceClassBuilder;
+  final SourceExtensionTypeDeclarationBuilder
+      _sourceExtensionTypeDeclarationBuilder;
 
   _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext(
-      LibraryBuilder libraryBuilder, this._sourceClassBuilder)
+      LibraryBuilder libraryBuilder,
+      this._sourceExtensionTypeDeclarationBuilder)
       : super._(libraryBuilder);
 
   @override
-  DeclarationBuilder get _declarationBuilder => _sourceClassBuilder;
+  DeclarationBuilder get _declarationBuilder =>
+      _sourceExtensionTypeDeclarationBuilder;
 
   @override
   SourceConstructorBuilder? lookupConstructor(Name name) {
-    return _sourceClassBuilder.lookupConstructor(name);
+    return _sourceExtensionTypeDeclarationBuilder.lookupConstructor(name);
   }
 
   @override
@@ -473,7 +604,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
 
   @override
   String get className {
-    return _sourceClassBuilder.fullNameForErrors;
+    return _sourceExtensionTypeDeclarationBuilder.fullNameForErrors;
   }
 }
 
@@ -564,7 +695,7 @@ mixin _MemberBodyBuilderContext<T extends SourceMemberBuilder>
   }
 
   @override
-  int get memberCharOffset => _member.fileOffset;
+  int get memberNameOffset => _member.fileOffset;
 
   @override
   void registerSuperCall() {
@@ -648,7 +779,7 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
-  String get memberName => _member.name;
+  int get memberNameLength => _member.name.length;
 
   @override
   FunctionNode get function {

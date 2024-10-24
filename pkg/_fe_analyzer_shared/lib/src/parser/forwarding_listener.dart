@@ -1991,8 +1991,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    listener?.handleStringJuxtaposition(startToken, literalCount);
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    listener?.handleAdjacentStringLiterals(startToken, literalCount);
   }
 
   @override

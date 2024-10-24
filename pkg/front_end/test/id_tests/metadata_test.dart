@@ -7,6 +7,7 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/metadata_helper.dart';
+import 'package:_fe_analyzer_shared/src/metadata/ast.dart' as shared;
 import 'package:front_end/src/base/common.dart';
 import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
@@ -18,6 +19,7 @@ import 'package:front_end/src/builder/metadata_builder.dart';
 Future<void> main(List<String> args) async {
   retainDataForTesting = true;
   computeSharedExpressionForTesting = true;
+  delaySharedExpressionLookupForTesting = true;
 
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/metadata/data'));
@@ -63,7 +65,11 @@ class MetadataDataExtractor extends CfeDataExtractor<String> {
       if (metadata != null) {
         List<String> list = [];
         for (MetadataBuilder metadataBuilder in metadata) {
-          list.add(expressionToText(unwrap(metadataBuilder.expression!)));
+          shared.Expression unresolved =
+              metadataBuilder.unresolvedExpressionForTesting!;
+          shared.Expression resolved = metadataBuilder.expression!;
+          list.addAll(
+              expressionsToText(unresolved: unresolved, resolved: resolved));
         }
         return '\n${list.join('\n')}';
       }

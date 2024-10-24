@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../base/messages.dart';
+import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -71,9 +72,9 @@ Class? lookupClass(Library library, String className, {bool required = true}) {
   return null;
 }
 
-/// Finds the first [Extension] in [library] with the given [className].
+/// Finds the first [Extension] in [library] with the given [extensionName].
 ///
-/// If [required] is `true` an error is thrown if no class was found.
+/// If [required] is `true` an error is thrown if no extension was found.
 Extension? lookupExtension(Library library, String extensionName,
     {bool required = true}) {
   for (Extension extension in library.extensions) {
@@ -84,6 +85,26 @@ Extension? lookupExtension(Library library, String extensionName,
   if (required) {
     throw new ArgumentError(
         "Extension '$extensionName' not found in '${library.importUri}'.");
+  }
+  return null;
+}
+
+/// Finds the first [ExtensionTypeDeclaration] in [library] with the given
+/// [extensionTypeName].
+///
+/// If [required] is `true` an error is thrown if no extension type was found.
+ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(
+    Library library, String extensionTypeName,
+    {bool required = true}) {
+  for (ExtensionTypeDeclaration extensionTypeDeclaration
+      in library.extensionTypeDeclarations) {
+    if (extensionTypeDeclaration.name == extensionTypeName) {
+      return extensionTypeDeclaration;
+    }
+  }
+  if (required) {
+    throw new ArgumentError("Extension type '$extensionTypeName' not found in "
+        "'${library.importUri}'.");
   }
   return null;
 }
@@ -167,6 +188,28 @@ ExtensionBuilder? lookupExtensionBuilder(
   return extensionBuilder;
 }
 
+ExtensionTypeDeclarationBuilder? lookupExtensionTypeDeclarationBuilder(
+    InternalCompilerResult compilerResult,
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+    {bool required = true}) {
+  LibraryBuilder libraryBuilder = lookupLibraryBuilder(
+      compilerResult, extensionTypeDeclaration.enclosingLibrary,
+      required: required)!;
+  ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder;
+  for (Builder builder in libraryBuilder.libraryNameSpace.localMembers) {
+    if (builder is ExtensionTypeDeclarationBuilder &&
+        builder.extensionTypeDeclaration == extensionTypeDeclaration) {
+      extensionTypeDeclarationBuilder = builder;
+    }
+  }
+  if (extensionTypeDeclarationBuilder == null && required) {
+    throw new ArgumentError(
+        "ExtensionTypeDeclarationBuilder for $extensionTypeDeclaration "
+        "not found.");
+  }
+  return extensionTypeDeclarationBuilder;
+}
+
 /// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
 /// [cls] using [memberName] as its name.
 MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
@@ -210,6 +253,27 @@ MemberBuilder? lookupMemberBuilder(
     memberBuilder = lookupExtensionMemberBuilder(
         compilerResult, extension, member, memberName,
         isSetter: isSetter, required: required);
+  } else if (member.isExtensionTypeMember) {
+    String memberName = member.name.text;
+    String extensionTypeName = memberName.substring(0, memberName.indexOf('|'));
+    memberName = memberName.substring(extensionTypeName.length + 1);
+    bool isConstructor = false;
+    bool isSetter = member is Procedure && member.isSetter;
+    if (memberName.startsWith('set#')) {
+      memberName = memberName.substring(4);
+      isSetter = true;
+    } else if (memberName.startsWith('get#')) {
+      memberName = memberName.substring(4);
+    } else if (memberName.startsWith('constructor#')) {
+      memberName = memberName.substring(12);
+      isConstructor = true;
+    }
+    ExtensionTypeDeclaration extensionType = lookupExtensionTypeDeclaration(
+        member.enclosingLibrary, extensionTypeName,
+        required: true)!;
+    memberBuilder = lookupExtensionTypeMemberBuilder(
+        compilerResult, extensionType, member, memberName,
+        isConstructor: isConstructor, isSetter: isSetter, required: required);
   } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
         compilerResult, member.enclosingClass!, member, member.name.text,
@@ -243,6 +307,35 @@ MemberBuilder? lookupExtensionMemberBuilder(
   if (extensionBuilder != null) {
     memberBuilder = extensionBuilder.nameSpace
         .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
+  }
+  if (memberBuilder == null && required) {
+    throw new ArgumentError("MemberBuilder for $member not found.");
+  }
+  return memberBuilder;
+}
+
+/// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
+/// [extensionType] using [memberName] as its name.
+MemberBuilder? lookupExtensionTypeMemberBuilder(
+    InternalCompilerResult compilerResult,
+    ExtensionTypeDeclaration extensionType,
+    Member member,
+    String memberName,
+    {bool isConstructor = false,
+    bool isSetter = false,
+    bool required = true}) {
+  ExtensionTypeDeclarationBuilder? extensionTypeBuilder =
+      lookupExtensionTypeDeclarationBuilder(compilerResult, extensionType,
+          required: required);
+  MemberBuilder? memberBuilder;
+  if (extensionTypeBuilder != null) {
+    if (isConstructor) {
+      memberBuilder =
+          extensionTypeBuilder.nameSpace.lookupConstructor(memberName);
+    } else {
+      memberBuilder = extensionTypeBuilder.nameSpace
+          .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
+    }
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");

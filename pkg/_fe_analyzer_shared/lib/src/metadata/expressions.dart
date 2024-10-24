@@ -162,20 +162,20 @@ class StringLiteral extends Expression {
   }
 }
 
-class StringJuxtaposition extends Expression {
+class AdjacentStringLiterals extends Expression {
   final List<Expression> expressions;
 
-  StringJuxtaposition(this.expressions);
+  AdjacentStringLiterals(this.expressions);
 
   @override
-  String toString() => 'StringJuxtaposition($expressions)';
+  String toString() => 'AdjacentStringLiterals($expressions)';
 
   @override
   Expression? resolve() {
     List<Expression>? newExpressions = expressions.resolve((e) => e.resolve());
     return newExpressions == null
         ? null
-        : new StringJuxtaposition(newExpressions);
+        : new AdjacentStringLiterals(newExpressions);
   }
 }
 

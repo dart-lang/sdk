@@ -60,7 +60,11 @@ class _MetadataDataExtractor extends AstDataExtractor<String> {
         List<String> list = [];
         for (ElementAnnotation annotation in element.metadata) {
           if (annotation is ElementAnnotationImpl) {
-            list.add(expressionToText(unwrap(parseAnnotation(annotation))));
+            var unresolved =
+                parseAnnotation(annotation, delayLookupForTesting: true);
+            var resolved = parseAnnotation(annotation);
+            list.addAll(
+                expressionsToText(unresolved: unresolved, resolved: resolved));
           }
         }
         if (list.isNotEmpty) {

@@ -515,8 +515,8 @@ class DietListener extends StackListenerImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
   }
 
   @override

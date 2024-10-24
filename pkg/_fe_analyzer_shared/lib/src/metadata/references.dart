@@ -59,6 +59,20 @@ abstract class ExtensionReference extends Reference {
   String toString() => 'ExtensionReference(${name})';
 }
 
+abstract class ExtensionTypeReference extends Reference {
+  String get name;
+
+  @override
+  String toString() => 'ExtensionTypeReference(${name})';
+}
+
+abstract class EnumReference extends Reference {
+  String get name;
+
+  @override
+  String toString() => 'EnumReference(${name})';
+}
+
 abstract class FunctionTypeParameterReference extends Reference {
   String get name;
 

@@ -666,7 +666,7 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
     assert(
         checkState(startToken, repeatedKind(_ValueKinds._Proto, literalCount)));
     List<Expression> expressions =
@@ -674,7 +674,7 @@ class AnnotationsListener extends StackListener {
     while (--literalCount >= 0) {
       expressions[literalCount] = _popExpression();
     }
-    push(new ExpressionProto(new StringJuxtaposition(expressions)));
+    push(new ExpressionProto(new AdjacentStringLiterals(expressions)));
   }
 
   @override

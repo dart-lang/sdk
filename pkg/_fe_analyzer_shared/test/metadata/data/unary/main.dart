@@ -12,15 +12,24 @@ const int constInt = 42;
 
 @Helper(-constInt)
 /*member: unary1:
-UnaryExpression(-StaticGet(constInt))*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnaryExpression(-UnresolvedExpression(UnresolvedIdentifier(constInt))))))
+resolved=UnaryExpression(-StaticGet(constInt))*/
 void unary1() {}
 
 @Helper(!constBool)
 /*member: unary2:
-UnaryExpression(!StaticGet(constBool))*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnaryExpression(!UnresolvedExpression(UnresolvedIdentifier(constBool))))))
+resolved=UnaryExpression(!StaticGet(constBool))*/
 void unary2() {}
 
 @Helper(~constInt)
 /*member: unary3:
-UnaryExpression(~StaticGet(constInt))*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnaryExpression(~UnresolvedExpression(UnresolvedIdentifier(constInt))))))
+resolved=UnaryExpression(~StaticGet(constInt))*/
 void unary3() {}

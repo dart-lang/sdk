@@ -13,7 +13,15 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 
 /// Creates a [shared.Expression] for the [annotation].
-shared.Expression parseAnnotation(ElementAnnotationImpl annotation) {
+///
+/// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
+/// corresponding scopes. This means that the return expression will contain
+/// [shared.UnresolvedIdentifier] nodes, as if the identifier wasn't in scope.
+/// A subsequent call to [shared.Expression.resolve] will perform the lookup
+/// a create the resolved expression. This is used in testing to mimic the
+/// scenario in which the declaration is added to the scope via macros.
+shared.Expression parseAnnotation(ElementAnnotationImpl annotation,
+    {bool delayLookupForTesting = false}) {
   var compilationUnit = annotation.compilationUnit;
   var annotationImpl = annotation.annotationAst;
   var uri = compilationUnit.source.uri;
@@ -25,7 +33,8 @@ shared.Expression parseAnnotation(ElementAnnotationImpl annotation) {
   annotationImpl.endToken.next ??= Token.eof(-1);
   var expression = shared.parseAnnotation(
       annotationImpl.atSign, uri, scope, references,
-      isDartLibrary: uri.isScheme("dart") || uri.isScheme("org-dartlang-sdk"));
+      isDartLibrary: uri.isScheme("dart") || uri.isScheme("org-dartlang-sdk"),
+      delayLookupForTesting: delayLookupForTesting);
   annotationImpl.endToken.next = endTokenNext;
   return expression;
 }
@@ -56,6 +65,13 @@ shared.Proto _elementToProto(Element element, String name) {
     var reference = _ExtensionReference(element);
     return shared.ExtensionProto(
         reference, _ExtensionScope(element, reference));
+  } else if (element is ExtensionTypeElement) {
+    var reference = _ExtensionTypeReference(element);
+    return shared.ExtensionTypeProto(
+        reference, _ExtensionTypeScope(element, reference));
+  } else if (element is EnumElement) {
+    var reference = _EnumReference(element);
+    return shared.EnumProto(reference, _EnumScope(element, reference));
   }
 
   // TODO(johnniwinther): Support extension types.
@@ -110,6 +126,32 @@ class _DynamicReference extends shared.TypeReference {
   String get name => 'dynamic';
 }
 
+class _EnumReference extends shared.EnumReference {
+  final EnumElement _element;
+
+  _EnumReference(this._element);
+
+  @override
+  String get name => _element.name;
+}
+
+final class _EnumScope extends shared.BaseEnumScope {
+  final EnumElement _enumElement;
+
+  @override
+  final _EnumReference enumReference;
+
+  _EnumScope(this._enumElement, this.enumReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    Element? member = _enumElement.augmented.getField(name);
+    member ??= _enumElement.augmented.getMethod(name);
+    return createMemberProto(typeArguments, name, member, _elementToProto);
+  }
+}
+
 class _ExtensionReference extends shared.ExtensionReference {
   final ExtensionElement _element;
 
@@ -132,6 +174,37 @@ final class _ExtensionScope extends shared.BaseExtensionScope {
       [List<shared.TypeAnnotation>? typeArguments]) {
     Element? member = _extensionElement.augmented.getField(name);
     member ??= _extensionElement.augmented.getMethod(name);
+    return createMemberProto(typeArguments, name, member, _elementToProto);
+  }
+}
+
+class _ExtensionTypeReference extends shared.ExtensionTypeReference {
+  final ExtensionTypeElement _element;
+
+  _ExtensionTypeReference(this._element);
+
+  @override
+  String get name => _element.name;
+}
+
+final class _ExtensionTypeScope extends shared.BaseExtensionTypeScope {
+  final ExtensionTypeElement _extensionTypeElement;
+
+  @override
+  final _ExtensionTypeReference extensionTypeReference;
+
+  _ExtensionTypeScope(this._extensionTypeElement, this.extensionTypeReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    var constructor = _extensionTypeElement.getNamedConstructor(name);
+    if (constructor != null) {
+      return createConstructorProto(
+          typeArguments, _ConstructorReference(constructor));
+    }
+    Element? member = _extensionTypeElement.augmented.getField(name);
+    member ??= _extensionTypeElement.augmented.getMethod(name);
     return createMemberProto(typeArguments, name, member, _elementToProto);
   }
 }

@@ -471,7 +471,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
     if (unrecognized) {
       pushUnsupported();
     } else {

@@ -11,7 +11,14 @@ class Helper {
 
 @Helper(identical(0, 1))
 /*member: invocation1:
-StaticInvocation(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInvoke(
+    UnresolvedIdentifier(identical)
+    (
+      IntegerLiteral(0), 
+      IntegerLiteral(1)))))))
+resolved=StaticInvocation(
   identical(
     IntegerLiteral(0), 
     IntegerLiteral(1)))*/
@@ -19,7 +26,15 @@ void invocation1() {}
 
 @Helper(core.identical(0, 1))
 /*member: invocation2:
-StaticInvocation(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInvoke(
+    UnresolvedAccess(
+      UnresolvedIdentifier(core).identical)
+    (
+      IntegerLiteral(0), 
+      IntegerLiteral(1)))))))
+resolved=StaticInvocation(
   identical(
     IntegerLiteral(0), 
     IntegerLiteral(1)))*/

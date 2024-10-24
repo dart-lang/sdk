@@ -1256,7 +1256,7 @@ class BodyBuilder extends StackListenerImpl
     if (body != null) {
       inferredFunctionBody = typeInferrer.inferFunctionBody(
           this,
-          _context.memberCharOffset,
+          _context.memberNameOffset,
           _context.returnTypeContext,
           asyncModifier,
           body);
@@ -1268,7 +1268,7 @@ class BodyBuilder extends StackListenerImpl
 
     if (_context.returnType is! OmittedTypeBuilder) {
       checkAsyncReturnType(asyncModifier, function.returnType,
-          _context.memberCharOffset, _context.memberName.length);
+          _context.memberNameOffset, _context.memberNameLength);
     }
 
     if (_context.isSetter) {
@@ -1279,7 +1279,7 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             body?.fileOffset ??
             // Coverage-ignore(suite): Not run.
-            _context.memberCharOffset;
+            _context.memberNameOffset;
         if (body == null) {
           body = new EmptyStatement()..fileOffset = charOffset;
         }
@@ -1844,7 +1844,7 @@ class BodyBuilder extends StackListenerImpl
         buildProblem(
             fasta.templateIllegalMixinDueToConstructors
                 .withArguments(_context.className),
-            _context.memberCharOffset,
+            _context.memberNameOffset,
             noLength);
       }
       if (initializers.last is SuperInitializer) {
@@ -1979,7 +1979,7 @@ class BodyBuilder extends StackListenerImpl
         explicitSuperInitializer = superInitializer;
       }
       if (argumentsOffset == -1) {
-        argumentsOffset = _context.memberCharOffset;
+        argumentsOffset = _context.memberNameOffset;
       }
 
       if (positionalArguments != null || namedArguments != null) {
@@ -1996,7 +1996,7 @@ class BodyBuilder extends StackListenerImpl
 
       if (superTarget == null) {
         String superclass = _context.superClassName;
-        int length = _context.memberName.length;
+        int length = _context.memberNameLength;
         if (length == 0) {
           length = _context.className.length;
         }
@@ -2004,11 +2004,11 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(
                 fasta.templateSuperclassHasNoDefaultConstructor
                     .withArguments(superclass),
-                _context.memberCharOffset,
+                _context.memberNameOffset,
                 length),
-            _context.memberCharOffset);
+            _context.memberNameOffset);
       } else if (checkArgumentsForFunction(superTarget.function, arguments,
-              _context.memberCharOffset, const <TypeParameter>[])
+              _context.memberNameOffset, const <TypeParameter>[])
           case LocatedMessage argumentIssue) {
         List<int>? positionalSuperParametersIssueOffsets;
         if (positionalSuperParametersAsArguments != null) {
@@ -2081,7 +2081,7 @@ class BodyBuilder extends StackListenerImpl
         initializer = errorMessageInitializer;
       } else {
         initializer = buildSuperInitializer(
-            true, superTarget, arguments, _context.memberCharOffset);
+            true, superTarget, arguments, _context.memberNameOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult =
@@ -2103,7 +2103,7 @@ class BodyBuilder extends StackListenerImpl
       buildProblem(
           fasta.templateIllegalMixinDueToConstructors
               .withArguments(_context.className),
-          _context.memberCharOffset,
+          _context.memberNameOffset,
           noLength);
     }
   }
@@ -3499,8 +3499,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
     List<Expression> parts = popListForValue(literalCount);
     List<Expression>? expressions;
     // Flatten string juxtapositions of string interpolation.

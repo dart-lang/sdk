@@ -410,56 +410,6 @@ class ClassProto extends Proto {
   Proto? resolve() => null;
 }
 
-/// A [reference] to an extension
-///
-/// The [Proto] includes the [scope] of the extension, which is used to resolve
-/// access to static members on the extension.
-class ExtensionProto extends Proto {
-  final ExtensionReference reference;
-  final TypeDeclarationScope scope;
-
-  ExtensionProto(this.reference, this.scope);
-
-  @override
-  String toString() => 'ExtensionProto($reference)';
-
-  @override
-  Proto access(String? name) {
-    if (name == null) {
-      return this;
-    }
-    if (name == 'new') {
-      name = '';
-    }
-    return scope.lookup(name);
-  }
-
-  @override
-  Proto instantiate(List<TypeAnnotation>? typeArguments) {
-    return typeArguments != null
-        ? new InvalidInstantiationProto(this, typeArguments)
-        : this;
-  }
-
-  @override
-  Proto invoke(List<Argument>? arguments) {
-    return arguments != null
-        ? new InvalidInvocationProto(this, const [], arguments)
-        : this;
-  }
-
-  @override
-  Expression toExpression() {
-    return new InvalidExpression();
-  }
-
-  @override
-  TypeAnnotation toTypeAnnotation() => new InvalidTypeAnnotation();
-
-  @override
-  Proto? resolve() => null;
-}
-
 /// A [reference] to a class instantiated with [typeArguments].
 ///
 /// The [Proto] includes the [scope] of the class, which is used to resolve
@@ -513,6 +463,266 @@ class GenericClassProto extends Proto {
     return newTypeArguments == null
         ? null
         : new GenericClassProto(reference, scope, newTypeArguments);
+  }
+}
+
+/// A [reference] to an extension
+///
+/// The [Proto] includes the [scope] of the extension, which is used to resolve
+/// access to static members on the extension.
+class ExtensionProto extends Proto {
+  final ExtensionReference reference;
+  final TypeDeclarationScope scope;
+
+  ExtensionProto(this.reference, this.scope);
+
+  @override
+  String toString() => 'ExtensionProto($reference)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? new InvalidInstantiationProto(this, typeArguments)
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null
+        ? new InvalidInvocationProto(this, const [], arguments)
+        : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new InvalidExpression();
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() => new InvalidTypeAnnotation();
+
+  @override
+  Proto? resolve() => null;
+}
+
+/// A [reference] to an enum
+///
+/// The [Proto] includes the [scope] of the enum, which is used to resolve
+/// access to static members on the enum.
+class EnumProto extends Proto {
+  final EnumReference reference;
+  final TypeDeclarationScope scope;
+
+  EnumProto(this.reference, this.scope);
+
+  @override
+  String toString() => 'EnumProto($reference)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? new GenericEnumProto(reference, scope, typeArguments)
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null
+        ? new InvalidInvocationProto(this, const [], arguments)
+        : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new TypeLiteral(toTypeAnnotation());
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() => new NamedTypeAnnotation(reference);
+
+  @override
+  Proto? resolve() => null;
+}
+
+/// A [reference] to an enum instantiated with [typeArguments].
+///
+/// The [Proto] includes the [scope] of the enum, which is used to resolve
+/// access to constructors on the enum.
+class GenericEnumProto extends Proto {
+  final EnumReference reference;
+  final TypeDeclarationScope scope;
+  final List<TypeAnnotation> typeArguments;
+
+  GenericEnumProto(this.reference, this.scope, this.typeArguments);
+
+  @override
+  String toString() => 'GenericEnumProto($reference,$typeArguments)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name, typeArguments);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? throw new UnimplementedError('$this.instantiate')
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null ? access('new').invoke(arguments) : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new TypeLiteral(toTypeAnnotation());
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() =>
+      new NamedTypeAnnotation(reference, typeArguments);
+
+  @override
+  Proto? resolve() {
+    List<TypeAnnotation>? newTypeArguments =
+        typeArguments.resolve((a) => a.resolve());
+    return newTypeArguments == null
+        ? null
+        : new GenericEnumProto(reference, scope, newTypeArguments);
+  }
+}
+
+/// A [reference] to an extension type.
+///
+/// The [Proto] includes the [scope] of the extension type, which is used to
+/// resolve access to constructors and static members on the extension type.
+class ExtensionTypeProto extends Proto {
+  final ExtensionTypeReference reference;
+  final TypeDeclarationScope scope;
+
+  ExtensionTypeProto(this.reference, this.scope);
+
+  @override
+  String toString() => 'ExtensionTypeProto($reference)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? new GenericExtensionTypeProto(reference, scope, typeArguments)
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null ? access('new').invoke(arguments) : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new TypeLiteral(toTypeAnnotation());
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() => new NamedTypeAnnotation(reference);
+
+  @override
+  Proto? resolve() => null;
+}
+
+/// A [reference] to an extension type instantiated with [typeArguments].
+///
+/// The [Proto] includes the [scope] of the extension type, which is used to
+/// resolve access to constructors on the class.
+class GenericExtensionTypeProto extends Proto {
+  final ExtensionTypeReference reference;
+  final TypeDeclarationScope scope;
+  final List<TypeAnnotation> typeArguments;
+
+  GenericExtensionTypeProto(this.reference, this.scope, this.typeArguments);
+
+  @override
+  String toString() => 'GenericExtensionTypeProto($reference,$typeArguments)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name, typeArguments);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? throw new UnimplementedError('GenericExtensionTypeProto.instantiate')
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null ? access('new').invoke(arguments) : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new TypeLiteral(toTypeAnnotation());
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() =>
+      new NamedTypeAnnotation(reference, typeArguments);
+
+  @override
+  Proto? resolve() {
+    List<TypeAnnotation>? newTypeArguments =
+        typeArguments.resolve((a) => a.resolve());
+    return newTypeArguments == null
+        ? null
+        : new GenericExtensionTypeProto(reference, scope, newTypeArguments);
   }
 }
 
@@ -990,7 +1200,7 @@ class InstanceAccessProto extends Proto {
     if (name == null) {
       return this;
     }
-    throw new UnimplementedError('InstanceAccessProto.access');
+    throw new UnimplementedError('$this.access');
   }
 
   @override
@@ -998,7 +1208,7 @@ class InstanceAccessProto extends Proto {
     if (typeArguments == null) {
       return this;
     }
-    throw new UnimplementedError('InstanceAccessProto.instantiate');
+    throw new UnimplementedError('$this.instantiate');
   }
 
   @override
@@ -1006,7 +1216,7 @@ class InstanceAccessProto extends Proto {
     if (arguments == null) {
       return this;
     }
-    throw new UnimplementedError('InstanceAccessProto.invoke');
+    throw new UnimplementedError('$this.invoke');
   }
 
   @override

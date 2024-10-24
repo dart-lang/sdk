@@ -7564,7 +7564,7 @@ class Parser {
       count++;
     }
     if (count > 1) {
-      listener.handleStringJuxtaposition(startToken, count);
+      listener.handleAdjacentStringLiterals(startToken, count);
     }
     mayParseFunctionExpressions = old;
     return token;

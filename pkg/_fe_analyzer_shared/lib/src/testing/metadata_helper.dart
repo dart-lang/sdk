@@ -23,6 +23,32 @@ Expression unwrap(Expression expression) {
   return expression;
 }
 
+/// Creates a list containing structured and readable textual representation of
+/// the [unresolved] and [resolved] expressions.
+List<String> expressionsToText(
+    {required Expression unresolved, required Expression resolved}) {
+  List<String> list = [];
+  list.add('unresolved=${expressionToText(unwrap(unresolved))}');
+
+  // The identifiers in [expression] haven't been resolved, so
+  // we call [Expression.resolve] to convert the expression into
+  // its resolved equivalent.
+  Expression lateResolved = unresolved.resolve() ?? unresolved;
+
+  String earlyResolvedText = expressionToText(unwrap(resolved));
+  String lateResolvedText = expressionToText(unwrap(lateResolved));
+
+  // These should always be the same. If not we include both to
+  // signal the error.
+  if (earlyResolvedText == lateResolvedText) {
+    list.add('resolved=${earlyResolvedText}');
+  } else {
+    list.add('early-resolved=${earlyResolvedText}');
+    list.add('late-resolved=${lateResolvedText}');
+  }
+  return list;
+}
+
 /// Creates a structured and readable textual representation of [expression].
 String expressionToText(Expression expression) {
   Writer writer = new Writer();
@@ -118,8 +144,8 @@ class Writer {
         _write('StringLiteral(');
         _stringPartsToText(expression.parts);
         _write(')');
-      case StringJuxtaposition():
-        _write('StringJuxtaposition(');
+      case AdjacentStringLiterals():
+        _write('AdjacentStringLiterals(');
         _incIndent(addNewLine: false);
         _expressionsToText(expression.expressions, delimiter: '');
         _decIndent();
@@ -168,7 +194,7 @@ class Writer {
         _write(expression.name);
         _write(')');
       case TypeLiteral():
-        _write('NullAwarePropertyGet(');
+        _write('TypeLiteral(');
         _typeAnnotationToText(expression.typeAnnotation);
         _write(')');
       case ParenthesizedExpression():
@@ -286,6 +312,10 @@ class Writer {
         _write(reference.name);
       case ExtensionReference():
         _write(reference.name);
+      case ExtensionTypeReference():
+        _write(reference.name);
+      case EnumReference():
+        _write(reference.name);
       case FunctionTypeParameterReference():
         _write(reference.name);
     }
@@ -304,10 +334,11 @@ class Writer {
       case DynamicTypeAnnotation():
         _write('dynamic');
       case InvalidTypeAnnotation():
-        _write('<<invalid-type-annotation>>');
+        _write('{invalid-type-annotation}');
       case UnresolvedTypeAnnotation():
-        _write('<<unresolved-type-annotation:');
+        _write('{unresolved-type-annotation:');
         _unresolvedToText(typeAnnotation.unresolved);
+        _write('}');
       case FunctionTypeAnnotation(:TypeAnnotation? returnType):
         if (returnType != null) {
           _typeAnnotationToText(returnType);
@@ -618,9 +649,27 @@ class Writer {
         _referenceToText(proto.reference);
         _typeArgumentsToText(proto.typeArguments);
         _write(')');
+      case EnumProto():
+        _write('EnumProto(');
+        _referenceToText(proto.reference);
+        _write(')');
+      case GenericEnumProto():
+        _write('GenericEnumProto(');
+        _referenceToText(proto.reference);
+        _typeArgumentsToText(proto.typeArguments);
+        _write(')');
       case ExtensionProto():
         _write('ExtensionProto(');
         _referenceToText(proto.reference);
+        _write(')');
+      case ExtensionTypeProto():
+        _write('ExtensionTypeProto(');
+        _referenceToText(proto.reference);
+        _write(')');
+      case GenericExtensionTypeProto():
+        _write('GenericExtensionTypeProto(');
+        _referenceToText(proto.reference);
+        _typeArgumentsToText(proto.typeArguments);
         _write(')');
       case TypedefProto():
         _write('TypedefProto(');
