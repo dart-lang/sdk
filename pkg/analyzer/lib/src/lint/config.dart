@@ -6,8 +6,8 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/// Parses [optionsMap] into a [LintConfig], returning the config, or `null` if
-/// [optionsMap] does not have `linter` map.
+/// Parses [optionsMap] into a list of [RuleConfig]s, returning them, or `null`
+/// if [optionsMap] does not have `linter` map.
 List<RuleConfig>? parseLintRuleConfigs(YamlMap optionsMap) {
   var options = optionsMap.valueAt('linter');
   // Quick check of basic contract.
@@ -24,29 +24,16 @@ List<RuleConfig>? parseLintRuleConfigs(YamlMap optionsMap) {
   return null;
 }
 
-/// Returns [scalar] as a [bool], if it can be parsed as one.
-bool? _asBool(YamlNode scalar) {
-  var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
-  return switch (value) {
-    bool() => value,
-    'true' => true,
-    'false' => false,
-    _ => null,
-  };
-}
-
-/// Returns [scalar] as a [String], if it can be parsed as one.
-String? _asString(Object scalar) {
-  var value = scalar is YamlScalar ? scalar.value : scalar;
-  return value is String ? value : null;
-}
-
-Map<String, bool> _parseArgs(YamlNode args) {
-  var enabled = _asBool(args);
-  if (enabled != null) {
-    return {'enabled': enabled};
+RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
+    {String? group}) {
+  // For example: `{unnecessary_getters: false}`.
+  if (configKey case YamlScalar(value: String ruleName)) {
+    if (configNode case YamlScalar(value: bool isEnabled)) {
+      return RuleConfig._(name: ruleName, isEnabled: isEnabled, group: group);
+    }
   }
-  return {};
+
+  return null;
 }
 
 /// Returns the [RuleConfig]s that are parsed from [value], which can be either
@@ -59,56 +46,65 @@ List<RuleConfig> _ruleConfigs(YamlNode value) {
   // - camel_case_types
   // ```
   if (value is YamlList) {
-    return [
-      for (var rule in value.nodes)
-        RuleConfig(name: _asString(rule), args: {'enabled': true}),
-    ];
-  }
-
-  // style_guide: {unnecessary_getters: false, camel_case_types: true}
-  if (value is YamlMap) {
     var ruleConfigs = <RuleConfig>[];
-    value.nodes.cast<Object, YamlNode>().forEach((key, value) {
-      // For example: `{unnecessary_getters: false}`.
-      var valueAsBool = _asBool(value);
-      if (valueAsBool != null) {
-        ruleConfigs.add(RuleConfig(
-          name: _asString(key),
-          args: {'enabled': valueAsBool},
-        ));
+    for (var ruleNode in value.nodes) {
+      if (ruleNode case YamlScalar(value: String ruleName)) {
+        ruleConfigs.add(RuleConfig._(name: ruleName, isEnabled: true));
       }
-
-      // style_guide: {unnecessary_getters: false, camel_case_types: true}
-      if (value is YamlMap) {
-        value.nodes.cast<Object, YamlNode>().forEach((rule, args) {
-          // TODO(brianwilkerson): verify format.
-          // For example: `unnecessary_getters: false`.
-          ruleConfigs.add(RuleConfig(
-            name: _asString(rule),
-            args: _parseArgs(args),
-            group: _asString(key),
-          ));
-        });
-      }
-    });
+    }
     return ruleConfigs;
   }
 
-  return const [];
+  if (value is! YamlMap) {
+    return const [];
+  }
+
+  var ruleConfigs = <RuleConfig>[];
+  value.nodes.forEach((configKey, configValue) {
+    if (configKey case YamlScalar(value: String configName)) {
+      var ruleConfig = _parseRuleConfig(configKey, configValue);
+      if (ruleConfig != null) {
+        ruleConfigs.add(ruleConfig);
+        return;
+      }
+
+      if (configValue is! YamlMap) {
+        return;
+      }
+      // For example:
+      //
+      // ```yaml
+      // style_guide: {unnecessary_getters: false, camel_case_types: true}
+      // ```
+      configValue.nodes.forEach((ruleName, ruleValue) {
+        var ruleConfig =
+            _parseRuleConfig(ruleName, ruleValue, group: configName);
+        if (ruleConfig != null) {
+          ruleConfigs.add(ruleConfig);
+          return;
+        }
+      });
+    }
+  });
+  return ruleConfigs;
 }
 
 /// The configuration of a single lint rule within an analysis options file.
 class RuleConfig {
-  final Map<String, bool> args;
-  final String? group;
-  final String? name;
+  /// Whether this rule is enabled or disabled in this configuration.
+  final bool isEnabled;
 
-  RuleConfig({required this.name, required this.args, this.group});
+  /// The name of the group under which this configuration is found.
+  final String? group;
+
+  /// The name of the rule.
+  final String name;
+
+  RuleConfig._({required this.name, required this.isEnabled, this.group});
 
   /// Returns whether [ruleName] is disabled in this configuration.
-  bool disables(String ruleName) =>
-      ruleName == name && args['enabled'] == false;
+  bool disables(String ruleName) => ruleName == name && !isEnabled;
 
   /// Returns whether [ruleName] is enabled in this configuration.
-  bool enables(String ruleName) => ruleName == name && args['enabled'] == true;
+  bool enables(String ruleName) => ruleName == name && isEnabled;
 }

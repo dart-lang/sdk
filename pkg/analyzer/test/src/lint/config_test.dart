@@ -64,7 +64,7 @@ linter:
         var ruleConfig = ruleConfigs[0];
         expect(ruleConfig.group, 'style_guide');
         expect(ruleConfig.name, 'unnecessary_getters');
-        expect(ruleConfig.args, {'enabled': false});
+        expect(ruleConfig.isEnabled, isFalse);
         expect(ruleConfig.disables('unnecessary_getters'), isTrue);
       });
     });
@@ -107,7 +107,7 @@ linter:
           var ruleConfigs = processAnalysisOptionsFile(src)!;
           expect(ruleConfigs, hasLength(1));
           // Verify that defaults are enabled.
-          expect(ruleConfigs[0].args['enabled'], isTrue);
+          expect(ruleConfigs[0].isEnabled, isTrue);
         });
 
         test('rule map (bools)', () {
@@ -122,13 +122,13 @@ linter:
     unnecessary_getters: false #disable
 ''';
           var ruleConfigs = processAnalysisOptionsFile(src)!;
-          ruleConfigs.sort((RuleConfig rc1, RuleConfig rc2) =>
-              rc1.name!.compareTo(rc2.name!));
+          ruleConfigs.sort(
+              (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
           expect(ruleConfigs, hasLength(2));
           expect(ruleConfigs[0].name, 'camel_case_types');
-          expect(ruleConfigs[0].args['enabled'], isTrue);
+          expect(ruleConfigs[0].isEnabled, isTrue);
           expect(ruleConfigs[1].name, 'unnecessary_getters');
-          expect(ruleConfigs[1].args['enabled'], isFalse);
+          expect(ruleConfigs[1].isEnabled, isFalse);
         });
       });
     });
@@ -164,18 +164,6 @@ linter:
         var options = <Object, Object?>{};
         var lintOptions = {
           'rules': {'camel_case_types': true}
-        };
-        options['linter'] = lintOptions;
-
-        var ruleConfigs = parseMap(options);
-        expect(ruleConfigs, isNotNull);
-        expect(ruleConfigs, hasLength(1));
-      });
-
-      test('rule map (string)', () {
-        var options = <Object, Object?>{};
-        var lintOptions = {
-          'rules': {'camel_case_types': 'true'}
         };
         options['linter'] = lintOptions;
 
