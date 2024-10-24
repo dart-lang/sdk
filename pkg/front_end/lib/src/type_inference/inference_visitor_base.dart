@@ -1802,8 +1802,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         }
         Expression expression =
             _hoist(result.expression, inferredType, hoistedExpressions);
-        identicalInfo?.add(flowAnalysis.equalityOperand_end(
-            expression, new SharedTypeView(inferredType)));
+        identicalInfo?.add(flowAnalysis.equalityOperand_end(expression));
         if (isExpression) {
           arguments.positional[index] = expression..parent = arguments;
         } else {
@@ -1843,8 +1842,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           DartType inferredType = _computeInferredType(result);
           Expression expression = result.expression;
           identicalInfo?[deferredArgument.evaluationOrderIndex] =
-              flowAnalysis.equalityOperand_end(
-                  expression, new SharedTypeView(inferredType));
+              flowAnalysis.equalityOperand_end(expression);
           if (deferredArgument.isNamed) {
             NamedExpression namedArgument =
                 arguments.named[deferredArgument.index];
@@ -1862,7 +1860,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (identicalInfo != null) {
       flowAnalysis.equalityOperation_end(
-          arguments.parent as Expression, identicalInfo[0], identicalInfo[1]);
+          arguments.parent as Expression,
+          identicalInfo[0],
+          new SharedTypeView(actualTypes[0]),
+          identicalInfo[1],
+          new SharedTypeView(actualTypes[1]));
     }
     assert(
         positionalIndex == arguments.positional.length,

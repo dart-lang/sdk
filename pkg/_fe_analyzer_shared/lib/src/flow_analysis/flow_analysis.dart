@@ -405,20 +405,21 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// Returns information about the expression that will later be needed by
   /// [equalityOperation_end].
-  ///
-  /// Note: the return type is nullable because legacy type promotion doesn't
-  /// need to record information about equality operands.
-  ExpressionInfo<Type>? equalityOperand_end(Expression operand, Type type);
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand);
 
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
   /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [equalityOperand_end].
+  /// [equalityOperand_end] for the left and right operands. [leftOperandType]
+  /// and [rightOperandType] should be the static types of the left and right
+  /// operands.
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false});
 
   /// Call this method after processing a relational pattern that uses an
@@ -1412,22 +1413,25 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  ExpressionInfo<Type>? equalityOperand_end(Expression operand, Type type) =>
-      _wrap('equalityOperand_end($operand, $type)',
-          () => _wrapped.equalityOperand_end(operand, type),
-          isQuery: true);
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand) => _wrap(
+      'equalityOperand_end($operand)',
+      () => _wrapped.equalityOperand_end(operand),
+      isQuery: true);
 
   @override
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false}) {
     _wrap(
         'equalityOperation_end($wholeExpression, $leftOperandInfo, '
-        '$rightOperandInfo, notEqual: $notEqual)',
-        () => _wrapped.equalityOperation_end(
-            wholeExpression, leftOperandInfo, rightOperandInfo,
+        '$leftOperandType, $rightOperandInfo, $rightOperandType, notEqual: '
+        '$notEqual)',
+        () => _wrapped.equalityOperation_end(wholeExpression, leftOperandInfo,
+            leftOperandType, rightOperandInfo, rightOperandType,
             notEqual: notEqual));
   }
 
@@ -4689,23 +4693,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  ExpressionInfo<Type> equalityOperand_end(Expression operand, Type type) =>
-      _getExpressionInfo(operand) ??
-      new ExpressionInfo<Type>.trivial(model: _current, type: type);
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand) =>
+      _getExpressionInfo(operand);
 
   @override
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false}) {
     // Note: leftOperandInfo and rightOperandInfo are nullable in the base class
     // to account for the fact that legacy type promotion doesn't record
     // information about legacy operands.  But since we are currently in full
     // (post null safety) flow analysis logic, we can safely assume that they
     // are not null.
-    _EqualityCheckResult equalityCheckResult =
-        _equalityCheck(leftOperandInfo!, rightOperandInfo!);
+    _EqualityCheckResult equalityCheckResult = _equalityCheck(
+        leftOperandInfo, leftOperandType, rightOperandInfo, rightOperandType);
     if (equalityCheckResult is _GuaranteedEqual) {
       // Both operands are known by flow analysis to compare equal, so the whole
       // expression behaves equivalently to a boolean (either `true` or `false`
@@ -5760,13 +5765,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   /// Analyzes an equality check between the operands described by
-  /// [lhsInfo] and [rhsInfo].
-  _EqualityCheckResult _equalityCheck(
-      ExpressionInfo<Type> lhsInfo, ExpressionInfo<Type> rhsInfo) {
+  /// [lhsInfo] and [rhsInfo], having static types [lhsType] and [rhsType].
+  _EqualityCheckResult _equalityCheck(ExpressionInfo<Type>? lhsInfo,
+      Type lhsType, ExpressionInfo<Type>? rhsInfo, Type rhsType) {
     TypeClassification leftOperandTypeClassification =
-        operations.classifyType(lhsInfo._type);
+        operations.classifyType(lhsType);
     TypeClassification rightOperandTypeClassification =
-        operations.classifyType(rhsInfo._type);
+        operations.classifyType(rhsType);
     if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
         rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
       return const _GuaranteedEqual();
@@ -5781,11 +5786,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // analysis behavior to depend on mode, so we conservatively assume that
       // either result is possible.
       return const _NoEqualityInformation();
-    } else if (lhsInfo.isNull) {
+    } else if (lhsInfo != null && lhsInfo.isNull) {
       return new _EqualityCheckIsNullCheck(
           rhsInfo is _Reference<Type> ? rhsInfo : null,
           isReferenceOnRight: true);
-    } else if (rhsInfo.isNull) {
+    } else if (rhsInfo != null && rhsInfo.isNull) {
       return new _EqualityCheckIsNullCheck(
           lhsInfo is _Reference<Type> ? lhsInfo : null,
           isReferenceOnRight: false);
@@ -5967,8 +5972,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _Reference<Type> newReference = context
         .createReference(matchedValueType, _current)
         .addPreviousInfo(context._matchedValueInfo, this, _current);
-    _EqualityCheckResult equalityCheckResult =
-        _equalityCheck(newReference, equalityOperand_end(operand, operandType));
+    _EqualityCheckResult equalityCheckResult = _equalityCheck(newReference,
+        matchedValueType, _getExpressionInfo(operand), operandType);
     if (equalityCheckResult is _NoEqualityInformation) {
       // We have no information so we have to assume the pattern might or
       // might not match.
@@ -6560,14 +6565,15 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void doStatement_end(Expression condition) {}
 
   @override
-  ExpressionInfo<Type>? equalityOperand_end(Expression operand, Type type) =>
-      null;
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand) => null;
 
   @override
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false}) {}
 
   @override

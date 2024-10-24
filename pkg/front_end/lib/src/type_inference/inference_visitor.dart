@@ -6744,7 +6744,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       int fileOffset, Expression left, DartType leftType, Expression right,
       {required bool isNot}) {
     ExpressionInfo<SharedTypeView<DartType>>? equalityInfo =
-        flowAnalysis.equalityOperand_end(left, new SharedTypeView(leftType));
+        flowAnalysis.equalityOperand_end(left);
 
     Expression? equals;
     ExpressionInferenceResult rightResult =
@@ -6762,8 +6762,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.equalityOperation_end(
           equals,
           equalityInfo,
-          flowAnalysis.equalityOperand_end(rightResult.expression,
-              new SharedTypeView(rightResult.inferredType)),
+          new SharedTypeView(leftType),
+          flowAnalysis.equalityOperand_end(rightResult.expression),
+          new SharedTypeView(rightResult.inferredType),
           notEqual: isNot);
       return new ExpressionInferenceResult(
           coreTypes.boolRawType(Nullability.nonNullable), equals);
@@ -6811,8 +6812,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.equalityOperation_end(
         equals,
         equalityInfo,
-        flowAnalysis.equalityOperand_end(
-            right, new SharedTypeView(rightResult.inferredType)),
+        new SharedTypeView(leftType),
+        flowAnalysis.equalityOperand_end(right),
+        new SharedTypeView(rightResult.inferredType),
         notEqual: isNot);
     return new ExpressionInferenceResult(
         equalsTarget.isNever
