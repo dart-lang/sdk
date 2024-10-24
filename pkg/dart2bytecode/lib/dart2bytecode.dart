@@ -79,13 +79,17 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('invocation-modes',
       help: 'Provides information to the front end about how it is invoked.',
       defaultsTo: '')
+  ..addOption('validate',
+      help:
+          'Validate dynamic module against specified dynamic interface YAML file',
+      defaultsTo: null)
   ..addOption('verbosity',
       help: 'Sets the verbosity level used for filtering messages during '
           'compilation.',
       defaultsTo: Verbosity.defaultValue);
 
 final String _usage = '''
-Usage: dart2bytecode --platform vm_platform_strong.dill [--import-dill host_app.dill] [options] input.dart
+Usage: dart2bytecode --platform vm_platform_strong.dill [--import-dill host_app.dill] [--validate dynamic_interface.yaml] [options] input.dart
 Compiles Dart sources to Dart bytecode.
 
 Options:
@@ -140,6 +144,10 @@ Future<int> runCompiler(ArgResults options) async {
     additionalDills.add(Uri.base.resolveUri(new Uri.file(importDill)));
   }
 
+  final String? validate = options['validate'];
+  final Uri? dynamicInterfaceSpecificationUri =
+      (validate != null) ? resolveInputUri(validate) : null;
+
   final verbosity = Verbosity.parseArgument(options['verbosity']);
   final errorPrinter = ErrorPrinter(verbosity);
   final errorDetector = ErrorDetector(previousErrorHandler: errorPrinter.call);
@@ -154,6 +162,7 @@ Future<int> runCompiler(ArgResults options) async {
     ..fileSystem = fileSystem
     ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
+    ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)

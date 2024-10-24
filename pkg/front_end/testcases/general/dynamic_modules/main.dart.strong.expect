@@ -1,0 +1,492 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:11:7: Error: Cannot extend, implement or mix-in class 'C3' in a dynamic module.
+// Try removing the reference to class 'C3' or update the dynamic interface to list class 'C3' as extendable.
+// class D3 extends C3 {}
+//       ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot invoke constructor 'C3' from a dynamic module.
+// Try removing the call or update the dynamic interface to list constructor 'C3' as callable.
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:20:12: Error: Cannot override member 'C4.field1' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'C4.field1' as can-be-overridden.
+//   int? get field1 => null;
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:16:8: Error: Cannot override member 'C4.method1' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'C4.method1' as can-be-overridden.
+//   void method1() {}
+//        ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:21:7: Error: Cannot override member 'C4.field1' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'C4.field1' as can-be-overridden.
+//   set field1(int? value) {}
+//       ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:28:7: Error: Cannot extend, implement or mix-in class 'C3' in a dynamic module.
+// Try removing the reference to class 'C3' or update the dynamic interface to list class 'C3' as extendable.
+// class E3 implements C3 {}
+//       ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:37:8: Error: Cannot override member 'C4.field1' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'C4.field1' as can-be-overridden.
+//   int? field1;
+//        ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:33:8: Error: Cannot override member 'C4.method1' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'C4.method1' as can-be-overridden.
+//   void method1() {}
+//        ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:43:7: Error: Cannot extend, implement or mix-in class 'M1' in a dynamic module.
+// Try removing the reference to class 'M1' or update the dynamic interface to list class 'M1' as extendable.
+// class F1 with M1 {}
+//       ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main_lib1.dart:48:8: Error: Cannot override member 'Interface.foo' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'Interface.foo' as can-be-overridden.
+//   void foo() {}
+//        ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main_lib1.dart:56:8: Error: Cannot override member 'Interface.foo' in a dynamic module.
+// Try removing the override or update the dynamic interface to list member 'Interface.foo' as can-be-overridden.
+//   void foo() {}
+//        ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot use class '_ConstForC6' in a dynamic module.
+// Try removing the reference to class '_ConstForC6' or update the dynamic interface to list class '_ConstForC6' as callable.
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot invoke member '_privateMethodForC6' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member '_privateMethodForC6' as callable.
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:68:15: Error: Dynamic calls are not allowed in a dynamic module.
+//   x.foo().bar.baz = 42;
+//               ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:68:11: Error: Dynamic calls are not allowed in a dynamic module.
+//   x.foo().bar.baz = 42;
+//           ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:68:5: Error: Dynamic calls are not allowed in a dynamic module.
+//   x.foo().bar.baz = 42;
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:69:14: Error: Dynamic calls are not allowed in a dynamic module.
+//   if (x case < 3) {
+//              ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:73:21: Error: Dynamic calls are not allowed in a dynamic module.
+//     case dynamic(foo: 42):
+//                     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:79:6: Error: Cannot use class 'C1' in a dynamic module.
+// Try removing the reference to class 'C1' or update the dynamic interface to list class 'C1' as callable.
+//   C1 o1 = C1();
+//      ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:79:11: Error: Cannot invoke constructor 'C1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list constructor 'C1' as callable.
+//   C1 o1 = C1();
+//           ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:80:6: Error: Cannot invoke member 'C1.method1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.method1' as callable.
+//   o1.method1();
+//      ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:81:12: Error: Cannot invoke member 'C1.method1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.method1' as callable.
+//   print(o1.method1);
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:82:12: Error: Cannot invoke member 'C1.getter1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.getter1' as callable.
+//   print(o1.getter1);
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:83:6: Error: Cannot invoke member 'C1.setter1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.setter1' as callable.
+//   o1.setter1 = 42;
+//      ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:84:6: Error: Cannot invoke member 'C1.method2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.method2' as callable.
+//   C1.method2();
+//      ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:85:12: Error: Cannot invoke member 'C1.method2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.method2' as callable.
+//   print(C1.method2);
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:86:12: Error: Cannot invoke member 'C1.getter2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.getter2' as callable.
+//   print(C1.getter2);
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:87:6: Error: Cannot invoke member 'C1.setter2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.setter2' as callable.
+//   C1.setter2 = 42;
+//      ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:88:9: Error: Cannot invoke constructor 'C1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list constructor 'C1' as callable.
+//   print(C1.new);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:89:12: Error: Cannot invoke member 'C1.field1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.field1' as callable.
+//   print(o1.field1);
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:90:12: Error: Cannot invoke member 'C1.field2' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'C1.field2' as callable.
+//   print(C1.field2);
+//            ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:107:3: Error: Cannot invoke member 'method1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'method1' as callable.
+//   method1();
+//   ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:108:9: Error: Cannot invoke member 'method1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'method1' as callable.
+//   print(method1);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:115:9: Error: Cannot invoke member 'field1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'field1' as callable.
+//   print(field1);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:116:3: Error: Cannot invoke member 'field1' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'field1' as callable.
+//   field1 = 42;
+//   ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:123:9: Error: Cannot invoke constructor 'C8._' from a dynamic module.
+// Try removing the call or update the dynamic interface to list constructor 'C8._' as callable.
+//   print(C8());
+//         ^
+//
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+import "dart:core" as core;
+import "main_lib3.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+class D3 extends mai::C3 {
+  synthetic constructor •() → self::D3
+    : super mai::C3::•()
+    ;
+}
+class D4 extends mai::C4 {
+  synthetic constructor •() → self::D4
+    : super mai::C4::•()
+    ;
+  method method1() → void {}
+  method method2() → void {}
+  get field1() → core::int?
+    return null;
+  set field1(core::int? value) → void {}
+  get field2() → core::int?
+    return null;
+  set field2(core::int? value) → void {}
+}
+class E3 extends core::Object implements mai::C3 {
+  synthetic constructor •() → self::E3
+    : super core::Object::•()
+    ;
+}
+class E4 extends core::Object implements mai::C4 {
+  field core::int? field1 = null;
+  field core::int? field2 = null;
+  synthetic constructor •() → self::E4
+    : super core::Object::•()
+    ;
+  method method1() → void {}
+  method method2() → void {}
+}
+abstract class _F1&Object&M1 = core::Object with mai::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F1&Object&M1
+    : super core::Object::•()
+    ;
+}
+class F1 extends self::_F1&Object&M1 {
+  synthetic constructor •() → self::F1
+    : super self::_F1&Object&M1::•()
+    ;
+}
+abstract class _F2&Object&M2 = core::Object with mai::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F2&Object&M2
+    : super core::Object::•()
+    ;
+}
+class F2 extends self::_F2&Object&M2 {
+  synthetic constructor •() → self::F2
+    : super self::_F2&Object&M2::•()
+    ;
+}
+class Impl1 extends mai::Base implements mai::Interface {
+  synthetic constructor •() → self::Impl1
+    : super mai::Base::•()
+    ;
+}
+abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Impl2&Object&Mixin
+    : super core::Object::•()
+    ;
+  mixin-super-stub method foo() → void
+    return super.{mai::Mixin::foo}();
+}
+class Impl2 extends self::_Impl2&Object&Mixin implements mai::Interface {
+  synthetic constructor •() → self::Impl2
+    : super self::_Impl2&Object&Mixin::•()
+    ;
+}
+class C6Ext extends mai::C6 {
+  constructor •({core::Object param = #C2}) → self::C6Ext
+    : super mai::C6::•(param: param)
+    ;
+}
+class C7Ext extends mai::C7 {
+  constructor •({core::Object param = #C4}) → self::C7Ext
+    : super mai::C7::•(param: param)
+    ;
+}
+static field dynamic x;
+static method test() → void {
+  self::x{dynamic}.foo(){dynamic}.bar.{dynamic}baz = 42;
+  {
+    final synthesized dynamic #0#0 = self::x;
+    if(#0#0{dynamic}.<(#C5) as core::bool) {
+      core::print("<3");
+    }
+  }
+  #L1:
+  {
+    final synthesized dynamic #1#0 = self::x;
+    {
+      if(#1#0 is dynamic && #C6 =={core::num::==}{(core::Object) → core::bool} #1#0{dynamic}.foo) {
+        {
+          core::print("dyn");
+          break #L1;
+        }
+      }
+    }
+    {
+      if(true) {
+      }
+    }
+  }
+  mai::C1 o1 = new mai::C1::•();
+  o1.{mai::C1::method1}(){() → void};
+  core::print(o1.{mai::C1::method1}{() → void});
+  core::print(o1.{mai::C1::getter1}{core::int});
+  o1.{mai::C1::setter1} = 42;
+  mai::C1::method2();
+  core::print(#C7);
+  core::print(mai::C1::getter2);
+  mai::C1::setter2 = 42;
+  core::print(#C8);
+  core::print(o1.{mai::C1::field1}{core::int});
+  core::print(mai::C1::field2);
+  mai::C2 o2 = new mai::C2::•();
+  o2.{mai::C2::method1}(){() → void};
+  core::print(o2.{mai::C2::method1}{() → void});
+  core::print(o2.{mai::C2::getter1}{core::int});
+  o2.{mai::C2::setter1} = 42;
+  mai::C2::method2();
+  core::print(#C9);
+  core::print(mai::C2::getter2);
+  mai::C2::setter2 = 42;
+  core::print(#C10);
+  core::print(o2.{mai::C2::field1}{core::int});
+  core::print(mai::C2::field2);
+  mai::method1();
+  core::print(#C11);
+  mai::method2();
+  core::print(#C12);
+  core::print(mai::field1);
+  mai::field1 = 42;
+  core::print(mai::field2);
+  mai::field2 = 42;
+  core::print(new mai::C8::_());
+  core::print(new mai::C9::_());
+  core::print(new mai2::Lib3Class::•());
+  mai2::lib3Method();
+  mai2::lib3Field = 42;
+}
+static method main() → void {}
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int field1 = 2;
+  static field core::int field2 = 3;
+  constructor •() → mai::C1
+    : super core::Object::•()
+    ;
+  method method1() → void {}
+  get getter1() → core::int
+    return 1;
+  set setter1(core::int value) → void {}
+  static method method2() → void {}
+  static get getter2() → core::int
+    return 1;
+  static set setter2(core::int value) → void {}
+}
+class C2 extends core::Object {
+  field core::int field1 = 2;
+  static field core::int field2 = 3;
+  constructor •() → mai::C2
+    : super core::Object::•()
+    ;
+  method method1() → void {}
+  get getter1() → core::int
+    return 1;
+  set setter1(core::int value) → void {}
+  static method method2() → void {}
+  static get getter2() → core::int
+    return 1;
+  static set setter2(core::int value) → void {}
+}
+class C3 extends core::Object {
+  synthetic constructor •() → mai::C3
+    : super core::Object::•()
+    ;
+}
+abstract class C4 extends core::Object {
+  field core::int? field1 = null;
+  field core::int? field2 = null;
+  synthetic constructor •() → mai::C4
+    : super core::Object::•()
+    ;
+  abstract method method1() → void;
+  abstract method method2() → void;
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+}
+class Base extends core::Object {
+  synthetic constructor •() → mai::Base
+    : super core::Object::•()
+    ;
+  method foo() → void {}
+}
+abstract class Interface extends core::Object {
+  synthetic constructor •() → mai::Interface
+    : super core::Object::•()
+    ;
+  abstract method foo() → void;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  method foo() → void {}
+}
+class _C5 extends core::Object /*hasConstConstructor*/  {
+  final field core::Function func;
+  const constructor •(core::Function func) → mai::_C5
+    : mai::_C5::func = func, super core::Object::•()
+    ;
+}
+class _ConstForC6 extends core::Object /*hasConstConstructor*/  {
+  final field core::Function _f;
+  const constructor •(core::Function _f) → mai::_ConstForC6
+    : mai::_ConstForC6::_f = _f, super core::Object::•()
+    ;
+}
+class C6 extends core::Object {
+  constructor •({core::Object param = #C2}) → mai::C6
+    : super core::Object::•()
+    ;
+}
+class _ConstForC7 extends core::Object /*hasConstConstructor*/  {
+  final field core::Function _f;
+  const constructor •(core::Function _f) → mai::_ConstForC7
+    : mai::_ConstForC7::_f = _f, super core::Object::•()
+    ;
+}
+class C7 extends core::Object {
+  constructor •({core::Object param = #C4}) → mai::C7
+    : super core::Object::•()
+    ;
+}
+class C8 extends core::Object {
+  constructor _() → mai::C8
+    : super core::Object::•() {}
+  static factory •() → mai::C8 /* redirection-target: mai::C8::_ */
+    return new mai::C8::_();
+}
+class C9 extends core::Object {
+  constructor _() → mai::C9
+    : super core::Object::•() {}
+  static factory •() → mai::C9 /* redirection-target: mai::C9::_ */
+    return new mai::C9::_();
+}
+static field core::int field1 = 4;
+static field core::int field2 = 4;
+static const field mai::_C5 const1 = #C14;
+static const field mai::_C5 const2 = #C16;
+static method method1() → void {}
+static method method2() → void {}
+static method _privateMethod1() → void {}
+static method _privateMethod2() → void {}
+static method _privateMethodForC6() → void {}
+static method _privateMethodForC7() → void {}
+
+library;
+import self as self2;
+import "main_lib3.dart" as mai2;
+additionalExports = (mai2::Lib3Class,
+  mai2::lib3Method,
+  mai2::lib3Field,
+  mai2::lib3Field)
+
+export "org-dartlang-testcase:///main_lib3.dart";
+
+
+library;
+import self as mai2;
+import "dart:core" as core;
+
+class Lib3Class extends core::Object {
+  synthetic constructor •() → mai2::Lib3Class
+    : super core::Object::•()
+    ;
+}
+static field core::int? lib3Field;
+static method lib3Method() → void {}
+
+constants  {
+  #C1 = static-tearoff mai::_privateMethodForC6
+  #C2 = mai::_ConstForC6 {_f:#C1}
+  #C3 = static-tearoff mai::_privateMethodForC7
+  #C4 = mai::_ConstForC7 {_f:#C3}
+  #C5 = 3
+  #C6 = 42
+  #C7 = static-tearoff mai::C1::method2
+  #C8 = constructor-tearoff mai::C1::•
+  #C9 = static-tearoff mai::C2::method2
+  #C10 = constructor-tearoff mai::C2::•
+  #C11 = static-tearoff mai::method1
+  #C12 = static-tearoff mai::method2
+  #C13 = static-tearoff mai::_privateMethod1
+  #C14 = mai::_C5 {func:#C13}
+  #C15 = static-tearoff mai::_privateMethod2
+  #C16 = mai::_C5 {func:#C15}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main_lib1.dart:
+- _ConstForC6. (from org-dartlang-testcase:///main_lib1.dart:71:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- _ConstForC7. (from org-dartlang-testcase:///main_lib1.dart:82:9)
+- _C5. (from org-dartlang-testcase:///main_lib1.dart:60:9)

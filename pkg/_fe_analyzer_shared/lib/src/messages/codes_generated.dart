@@ -1371,6 +1371,77 @@ const MessageCode messageClassInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateClassShouldBeListedAsCallableInDynamicInterface =
+    const Template<Message Function(String name)>(
+  "ClassShouldBeListedAsCallableInDynamicInterface",
+  problemMessageTemplate: r"""Cannot use class '#name' in a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable.""",
+  withArguments: _withArgumentsClassShouldBeListedAsCallableInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeClassShouldBeListedAsCallableInDynamicInterface =
+    const Code<Message Function(String name)>(
+  "ClassShouldBeListedAsCallableInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassShouldBeListedAsCallableInDynamicInterface(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeClassShouldBeListedAsCallableInDynamicInterface,
+    problemMessage: """Cannot use class '${name}' in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to class '${name}' or update the dynamic interface to list class '${name}' as callable.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateClassShouldBeListedAsExtendableInDynamicInterface =
+    const Template<Message Function(String name)>(
+  "ClassShouldBeListedAsExtendableInDynamicInterface",
+  problemMessageTemplate:
+      r"""Cannot extend, implement or mix-in class '#name' in a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as extendable.""",
+  withArguments:
+      _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeClassShouldBeListedAsExtendableInDynamicInterface =
+    const Code<Message Function(String name)>(
+  "ClassShouldBeListedAsExtendableInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeClassShouldBeListedAsExtendableInDynamicInterface,
+    problemMessage:
+        """Cannot extend, implement or mix-in class '${name}' in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to class '${name}' or update the dynamic interface to list class '${name}' as extendable.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2369,6 +2440,43 @@ const MessageCode messageConstructorNotSync = const MessageCode(
   problemMessage:
       r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateConstructorShouldBeListedAsCallableInDynamicInterface =
+    const Template<Message Function(String name)>(
+  "ConstructorShouldBeListedAsCallableInDynamicInterface",
+  problemMessageTemplate:
+      r"""Cannot invoke constructor '#name' from a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the call or update the dynamic interface to list constructor '#name' as callable.""",
+  withArguments:
+      _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeConstructorShouldBeListedAsCallableInDynamicInterface =
+    const Code<Message Function(String name)>(
+  "ConstructorShouldBeListedAsCallableInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeConstructorShouldBeListedAsCallableInDynamicInterface,
+    problemMessage:
+        """Cannot invoke constructor '${name}' from a dynamic module.""",
+    correctionMessage:
+        """Try removing the call or update the dynamic interface to list constructor '${name}' as callable.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorTearOffWithTypeArguments =
@@ -3654,6 +3762,17 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDynamicCallsAreNotAllowedInDynamicModule =
+    messageDynamicCallsAreNotAllowedInDynamicModule;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDynamicCallsAreNotAllowedInDynamicModule =
+    const MessageCode(
+  "DynamicCallsAreNotAllowedInDynamicModule",
+  problemMessage: r"""Dynamic calls are not allowed in a dynamic module.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyMapPattern = messageEmptyMapPattern;
@@ -11861,6 +11980,81 @@ Message _withArgumentsMemberNotFound(String name) {
     problemMessage: """Member not found: '${name}'.""",
     arguments: {
       'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateMemberShouldBeListedAsCallableInDynamicInterface =
+    const Template<Message Function(String name)>(
+  "MemberShouldBeListedAsCallableInDynamicInterface",
+  problemMessageTemplate:
+      r"""Cannot invoke member '#name' from a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the call or update the dynamic interface to list member '#name' as callable.""",
+  withArguments: _withArgumentsMemberShouldBeListedAsCallableInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeMemberShouldBeListedAsCallableInDynamicInterface =
+    const Code<Message Function(String name)>(
+  "MemberShouldBeListedAsCallableInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberShouldBeListedAsCallableInDynamicInterface(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMemberShouldBeListedAsCallableInDynamicInterface,
+    problemMessage: """Cannot invoke member '${name}' from a dynamic module.""",
+    correctionMessage:
+        """Try removing the call or update the dynamic interface to list member '${name}' as callable.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface =
+    const Template<Message Function(String name, String name2)>(
+  "MemberShouldBeListedAsCanBeOverriddenInDynamicInterface",
+  problemMessageTemplate:
+      r"""Cannot override member '#name.#name2' in a dynamic module.""",
+  correctionMessageTemplate:
+      r"""Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden.""",
+  withArguments:
+      _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface =
+    const Code<Message Function(String name, String name2)>(
+  "MemberShouldBeListedAsCanBeOverriddenInDynamicInterface",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(
+    codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
+    problemMessage:
+        """Cannot override member '${name}.${name2}' in a dynamic module.""",
+    correctionMessage:
+        """Try removing the override or update the dynamic interface to list member '${name}.${name2}' as can-be-overridden.""",
+    arguments: {
+      'name': name,
+      'name2': name2,
     },
   );
 }

@@ -9,6 +9,7 @@ front_end/lib/src/api_prototype/codes/Exports: Fail
 front_end/lib/src/api_prototype/compiler_options/Exports: Fail
 front_end/lib/src/api_prototype/const_conditional_simplifier/Exports: Fail
 front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
+front_end/lib/src/api_prototype/dynamic_module_validator/Exports: Fail
 front_end/lib/src/api_prototype/front_end/Exports: Fail
 front_end/lib/src/api_prototype/incremental_kernel_generator/Exports: Fail
 front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail

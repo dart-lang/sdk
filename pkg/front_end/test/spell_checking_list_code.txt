@@ -1278,6 +1278,7 @@ pids
 pieces
 pipe
 pkg
+pkgs
 play
 player
 plugin

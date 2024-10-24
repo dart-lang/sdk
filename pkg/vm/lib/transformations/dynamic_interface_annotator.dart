@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
+    show DynamicInterfaceSpecification;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:yaml/yaml.dart';
 
 import 'pragma.dart'
     show
@@ -16,34 +16,21 @@ import 'pragma.dart'
 
 void annotateComponent(String dynamicInterfaceSpecification, Uri baseUri,
     Component component, CoreTypes coreTypes) {
-  final spec = loadYamlNode(dynamicInterfaceSpecification);
-  // If the spec is empty, the result is a scalar and not a map.
-  if (spec is! YamlMap) return;
-  verifyKeys(spec, const {'extendable', 'can-be-overridden', 'callable'});
-  final LibraryIndex libraryIndex = LibraryIndex.all(component);
+  final spec = DynamicInterfaceSpecification(
+      dynamicInterfaceSpecification, baseUri, component);
 
-  final extendableAnnotator = parseAndAnnotate(
-      spec['extendable'],
-      kDynModuleExtendablePragmaName,
-      baseUri,
-      component,
-      coreTypes,
-      libraryIndex,
+  final extendableAnnotator = annotateNodes(
+      spec.extendable, kDynModuleExtendablePragmaName, baseUri, coreTypes,
       annotateClasses: true,
       annotateStaticMembers: false,
       annotateInstanceMembers: false);
-  parseAndAnnotate(
-      spec['can-be-overridden'],
-      kDynModuleCanBeOverriddenPragmaName,
-      baseUri,
-      component,
-      coreTypes,
-      libraryIndex,
+  annotateNodes(spec.canBeOverridden, kDynModuleCanBeOverriddenPragmaName,
+      baseUri, coreTypes,
       annotateClasses: false,
       annotateStaticMembers: false,
       annotateInstanceMembers: true);
-  final callableAnnotator = parseAndAnnotate(spec['callable'],
-      kDynModuleCallablePragmaName, baseUri, component, coreTypes, libraryIndex,
+  final callableAnnotator = annotateNodes(
+      spec.callable, kDynModuleCallablePragmaName, baseUri, coreTypes,
       annotateClasses: true,
       annotateStaticMembers: true,
       annotateInstanceMembers: true);
@@ -65,13 +52,11 @@ InstanceConstant pragmaConstant(CoreTypes coreTypes, String pragmaName) {
   });
 }
 
-_Annotator parseAndAnnotate(
-  YamlList? items,
+_Annotator annotateNodes(
+  Set<TreeNode> nodes,
   String pragmaName,
   Uri baseUri,
-  Component component,
-  CoreTypes coreTypes,
-  LibraryIndex libraryIndex, {
+  CoreTypes coreTypes, {
   required bool annotateClasses,
   required bool annotateStaticMembers,
   required bool annotateInstanceMembers,
@@ -81,101 +66,10 @@ _Annotator parseAndAnnotate(
       annotateClasses: annotateClasses,
       annotateStaticMembers: annotateStaticMembers,
       annotateInstanceMembers: annotateInstanceMembers);
-  if (items != null) {
-    for (final item in items) {
-      final nodes = findNodes(item, baseUri, libraryIndex, component,
-          allowStaticMembers: annotateStaticMembers,
-          allowInstanceMembers: annotateInstanceMembers);
-      for (final node in nodes) {
-        node.accept(annotator);
-      }
-    }
+  for (final node in nodes) {
+    node.accept(annotator);
   }
   return annotator;
-}
-
-void verifyKeys(YamlMap map, Set<String> allowedKeys) {
-  for (final k in map.keys) {
-    if (!allowedKeys.contains(k.toString())) {
-      throw 'Unexpected key "$k" in dynamic interface specification';
-    }
-  }
-}
-
-List<TreeNode> findNodes(YamlNode yamlNode, Uri baseUri,
-    LibraryIndex libraryIndex, Component component,
-    {required bool allowStaticMembers, required bool allowInstanceMembers}) {
-  final yamlMap = yamlNode as YamlMap;
-  final allowMembers = allowStaticMembers || allowInstanceMembers;
-  if (allowMembers) {
-    verifyKeys(yamlMap, const {'library', 'class', 'member'});
-  } else {
-    verifyKeys(yamlMap, const {'library', 'class'});
-  }
-
-  final librarySpec = yamlMap['library'] as String;
-  if (librarySpec.endsWith('*')) {
-    verifyKeys(yamlMap, const {'library'});
-    final prefix = baseUri
-        .resolve(librarySpec.substring(0, librarySpec.length - 1))
-        .toString();
-    final libs = component.libraries
-        .where((lib) => lib.importUri.toString().startsWith(prefix))
-        .toList();
-    if (libs.isEmpty) {
-      throw 'No libraries found for pattern "$librarySpec"';
-    }
-    return libs;
-  }
-  final libraryUri = baseUri.resolve(librarySpec).toString();
-
-  if (yamlMap.containsKey('class')) {
-    final yamlClassNode = yamlMap['class'];
-    if (yamlClassNode is YamlList) {
-      verifyKeys(yamlMap, const {'library', 'class'});
-      return [
-        for (final c in yamlClassNode)
-          libraryIndex.getClass(libraryUri, c as String)
-      ];
-    }
-
-    final classSpec = yamlClassNode as String;
-
-    if (allowMembers && yamlMap.containsKey('member')) {
-      final memberSpec = yamlMap['member'] as String;
-      final member = libraryIndex.getMember(libraryUri, classSpec, memberSpec);
-      _validateSpecifiedMember(member,
-          allowStaticMembers: allowStaticMembers,
-          allowInstanceMembers: allowInstanceMembers);
-      return [member];
-    }
-
-    return [libraryIndex.getClass(libraryUri, classSpec)];
-  }
-
-  if (allowMembers && yamlMap.containsKey('member')) {
-    final memberSpec = yamlMap['member'] as String;
-    final member = libraryIndex.getMember(libraryUri, '::', memberSpec);
-    _validateSpecifiedMember(member,
-        allowStaticMembers: allowStaticMembers,
-        allowInstanceMembers: allowInstanceMembers);
-    return [member];
-  }
-
-  return [libraryIndex.getLibrary(libraryUri)];
-}
-
-void _validateSpecifiedMember(Member member,
-    {required bool allowStaticMembers, required bool allowInstanceMembers}) {
-  if (member.isInstanceMember) {
-    if (!allowInstanceMembers) {
-      throw 'Expected non-instance member $member';
-    }
-  } else {
-    if (!allowStaticMembers) {
-      throw 'Expected instance member $member';
-    }
-  }
 }
 
 class _Annotator extends RecursiveVisitor {

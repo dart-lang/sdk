@@ -15,3 +15,13 @@ callable:
   - library: 'shared/shared.dart'
     class: 'Base'
     member: ''
+    # TODO(sigmund): This should be included by default
+  - library: 'dart:core'
+    class: 'Object'
+  - library: 'dart:core'
+    class: 'int'
+  - library: 'dart:core'
+    class: 'pragma'
+    member: '_'
+  - library: 'dart:core'
+    member: 'override'
