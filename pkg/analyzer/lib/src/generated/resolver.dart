@@ -1198,8 +1198,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
-      inferenceUsingBoundsIsEnabled:
-          _featureSet.isEnabled(Feature.inference_using_bounds),
+      inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       typeSystemOperations: flowAnalysis.typeOperations,
@@ -4128,8 +4127,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
-        inferenceUsingBoundsIsEnabled:
-            _featureSet.isEnabled(Feature.inference_using_bounds),
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         strictInference: analysisOptions.strictInference,
         strictCasts: analysisOptions.strictCasts,
         typeSystemOperations: flowAnalysis.typeOperations,
