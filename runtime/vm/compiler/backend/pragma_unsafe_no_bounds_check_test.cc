@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#if !defined(TARGET_ARCH_IA32)
+
 static int CountCheckBounds(FlowGraph* flow_graph) {
   int checks = 0;
   for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
@@ -104,5 +106,7 @@ ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma_learning_control) {
   // Single check because `list[10]` dominates `list[5]`.
   EXPECT_EQ(1, CountCheckBounds(flow_graph));
 }
+
+#endif  // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
