@@ -95,6 +95,7 @@ namespace bin {
   V(Namespace_GetPointer, 1)                                                   \
   V(OSError_inProgressErrorCode, 0)                                            \
   V(Platform_NumberOfProcessors, 0)                                            \
+  V(Platform_Architecture, 0)                                                  \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_OperatingSystemVersion, 0)                                        \
   V(Platform_PathSeparator, 0)                                                 \

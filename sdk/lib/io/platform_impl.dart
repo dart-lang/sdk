@@ -6,6 +6,7 @@ part of dart.io;
 
 class _Platform {
   external static int _numberOfProcessors();
+  external static String _architecture();
   external static String _pathSeparator();
   external static String _operatingSystem();
   external static _operatingSystemVersion();
@@ -52,6 +53,7 @@ class _Platform {
   static var /*OSError?|Map<String,String>?*/ _environmentCache;
 
   static int get numberOfProcessors => _numberOfProcessors();
+  static String get architecture => _architecture();
   static String get pathSeparator => _pathSeparator();
   static String get operatingSystem => _operatingSystem();
   static Uri get script => _script();

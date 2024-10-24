@@ -11,6 +11,9 @@ class _Platform {
   @pragma("vm:external-name", "Platform_NumberOfProcessors")
   external static int _numberOfProcessors();
   @patch
+  @pragma("vm:external-name", "Platform_Architecture")
+  external static String _architecture();
+  @patch
   @pragma("vm:external-name", "Platform_PathSeparator")
   external static String _pathSeparator();
   @patch
