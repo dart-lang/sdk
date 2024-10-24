@@ -110,6 +110,7 @@ lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
 lib/src/rules/package_api_docs.dart
 lib/src/rules/package_prefixed_library_names.dart
+lib/src/rules/parameter_assignments.dart
 lib/src/rules/prefer_adjacent_string_concatenation.dart
 lib/src/rules/prefer_asserts_with_message.dart
 lib/src/rules/prefer_bool_in_asserts.dart
