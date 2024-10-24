@@ -21,7 +21,7 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   /// Lookup a member accessed statically through this declaration.
   Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false});
 
   MemberBuilder? findConstructorOrFactory(

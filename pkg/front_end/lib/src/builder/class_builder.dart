@@ -190,7 +190,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Builder? findStaticBuilder(
-      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
             libraryBuilder.nameOriginBuilder.origin &&
@@ -201,14 +201,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         getable: nameSpace.lookupLocalMember(name, setter: false),
         setable: nameSpace.lookupLocalMember(name, setter: true),
         name: name,
-        charOffset: charOffset,
+        charOffset: fileOffset,
         fileUri: fileUri,
         classNameOrDebugName: this.name,
         isSetter: isSetter,
         forStaticAccess: true);
     if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
-          name, charOffset, fileUri, accessingLibrary,
+          name, fileOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
     }
     return declaration;
