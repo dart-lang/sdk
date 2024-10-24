@@ -32,6 +32,7 @@ import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
+import 'package:vm/target_arch.dart'; // For possible --target-arch values.
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import 'src/javascript_bundle.dart';
@@ -50,6 +51,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
+  ..addOption('target-arch',
+      help: 'Compile to a specific target CPU architecture.',
+      allowed: TargetArch.names)
   ..addOption('target-os',
       help: 'Compile to a specific target operating system.',
       allowed: TargetOS.names)
@@ -572,6 +576,13 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['target-arch'] != null) {
+      if (!options['aot']) {
+        print('Error: --target-arch option must be used with --aot');
+        return false;
+      }
+    }
+
     if (options['target-os'] != null) {
       if (!options['aot']) {
         print('Error: --target-os option must be used with --aot');
@@ -673,6 +684,7 @@ class FrontendCompiler implements CompilerInterface {
                   options['keep-class-names-implementing'],
               dynamicInterface: dynamicInterfaceUri,
               aot: options['aot'],
+              targetArch: options['target-arch'],
               targetOS: options['target-os'],
               useGlobalTypeFlowAnalysis: options['tfa'],
               useRapidTypeAnalysis: options['rta'],

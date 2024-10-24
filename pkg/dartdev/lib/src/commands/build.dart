@@ -15,6 +15,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:path/path.dart' as path;
+import 'package:vm/target_arch.dart'; // For possible --target-arch values.
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
@@ -48,6 +49,9 @@ class BuildCommand extends DartdevCommand {
         allowed: ['exe', 'aot'],
         defaultsTo: 'exe',
       )
+      ..addOption('target-arch',
+          help: 'Compile to a specific target CPU architecture.',
+          allowed: TargetArch.names)
       ..addOption('target-os',
           help: 'Compile to a specific target operating system.',
           allowed: TargetOS.names)
@@ -108,6 +112,22 @@ class BuildCommand extends DartdevCommand {
         sourceUri.pathSegments.last.split('.').first,
       ),
     );
+    String? targetArch = args['target-arch'];
+    if (format != Kind.exe) {
+      assert(format == Kind.aot);
+      // If we're generating an AOT snapshot and not an executable, then
+      // targetArch is allowed to be null for a platform-independent snapshot
+      // or a different platform than the host.
+    } else if (targetArch == null) {
+      targetArch = Platform.architecture;
+    } else if (targetArch != Platform.architecture) {
+      stderr.writeln(
+          "'dart build -f ${format.name}' does not support cross-arch compilation.");
+      stderr.writeln('Host arch: ${Platform.architecture}');
+      stderr.writeln('Target arch: $targetArch');
+      return 128;
+    }
+
     String? targetOS = args['target-os'];
     if (format != Kind.exe) {
       assert(format == Kind.aot);
@@ -181,6 +201,7 @@ class BuildCommand extends DartdevCommand {
         verbosity: args.option('verbosity')!,
         defines: [],
         packages: packageConfig?.toFilePath(),
+        targetArch: targetArch,
         targetOS: targetOS,
         enableExperiment: args.enabledExperiments.join(','),
         tempDir: tempDir,

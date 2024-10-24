@@ -10,6 +10,7 @@ import 'package:dart2native/generate.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:path/path.dart' as path;
+import 'package:vm/target_arch.dart'; // For possible --target-arch values.
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import '../core.dart';
@@ -455,6 +456,9 @@ Remove debugging information from the output and save it separately to the speci
         hide: true,
         valueHelp: 'opt1,opt2,...',
       )
+      ..addOption('target-arch',
+          help: 'Compile to a specific target CPU architecture.',
+          allowed: TargetArch.names)
       ..addOption('target-os',
           help: 'Compile to a specific target operating system.',
           allowed: TargetOS.names)
@@ -512,6 +516,22 @@ Remove debugging information from the output and save it separately to the speci
       }
     }
 
+    String? targetArch = args.option('target-arch');
+    if (format != Kind.exe) {
+      assert(format == Kind.aot);
+      // If we're generating an AOT snapshot and not an executable, then
+      // targetOS is allowed to be null for a platform-independent snapshot
+      // or a different platform than the host.
+    } else if (targetArch == null) {
+      targetArch = Platform.architecture;
+    } else if (targetArch != Platform.architecture) {
+      stderr.writeln(
+          "'dart compile $commandName' does not support cross-arch compilation.");
+      stderr.writeln('Host arch: ${Platform.architecture}');
+      stderr.writeln('Target arch: $targetArch');
+      return 128;
+    }
+
     String? targetOS = args.option('target-os');
     if (format != Kind.exe) {
       assert(format == Kind.aot);
@@ -527,6 +547,7 @@ Remove debugging information from the output and save it separately to the speci
       stderr.writeln('Target OS: $targetOS');
       return 128;
     }
+
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final kernelGenerator = KernelGenerator(
@@ -540,6 +561,7 @@ Remove debugging information from the output and save it separately to the speci
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
+        targetArch: targetArch,
         targetOS: targetOS,
         tempDir: tempDir,
         depFile: args.option('depfile'),
