@@ -17,6 +17,7 @@ import '../kernel/macro/metadata.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 bool computeSharedExpressionForTesting = false;
+bool delaySharedExpressionLookupForTesting = false;
 
 class MetadataBuilder {
   /// Token for `@` for annotations that have not yet been parsed.
@@ -42,8 +43,14 @@ class MetadataBuilder {
 
   shared.Expression? _sharedExpression;
 
+  shared.Expression? _unresolvedSharedExpressionForTesting;
+
   // Coverage-ignore(suite): Not run.
   shared.Expression? get expression => _sharedExpression;
+
+  // Coverage-ignore(suite): Not run.
+  shared.Expression? get unresolvedExpressionForTesting =>
+      _unresolvedSharedExpressionForTesting;
 
   static void buildAnnotations(
       Annotatable parent,
@@ -75,6 +82,12 @@ class MetadataBuilder {
           // Coverage-ignore-block(suite): Not run.
           annotationBuilder._sharedExpression = _parseSharedExpression(
               library.loader, beginToken, library.importUri, fileUri, scope);
+          if (delaySharedExpressionLookupForTesting) {
+            annotationBuilder._unresolvedSharedExpressionForTesting =
+                _parseSharedExpression(library.loader, beginToken,
+                    library.importUri, fileUri, scope,
+                    delayLookupForTesting: true);
+          }
         }
 
         bodyBuilder ??= library.loader.createBodyBuilderForOutlineExpression(
@@ -135,7 +148,9 @@ class MetadataBuilder {
 }
 
 // Coverage-ignore(suite): Not run.
-shared.Expression _parseSharedExpression(Loader loader, Token atToken,
-    Uri importUri, Uri fileUri, LookupScope scope) {
-  return parseAnnotation(loader, atToken, importUri, fileUri, scope);
+shared.Expression _parseSharedExpression(
+    Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
+    {bool delayLookupForTesting = false}) {
+  return parseAnnotation(loader, atToken, importUri, fileUri, scope,
+      delayLookupForTesting: delayLookupForTesting);
 }

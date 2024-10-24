@@ -8,15 +8,24 @@ class Helper {
 
 @Helper(0 is int)
 /*member: isAs1:
-IsTest(IntegerLiteral(0) is int)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (IsTest(IntegerLiteral(0) is {unresolved-type-annotation:UnresolvedIdentifier(int)}))))
+resolved=IsTest(IntegerLiteral(0) is int)*/
 void isAs1() {}
 
 @Helper(0 is! String)
 /*member: isAs2:
-IsTest(IntegerLiteral(0) is! String)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (IsTest(IntegerLiteral(0) is! {unresolved-type-annotation:UnresolvedIdentifier(String)}))))
+resolved=IsTest(IntegerLiteral(0) is! String)*/
 void isAs2() {}
 
 @Helper(0 as int)
 /*member: isAs3:
-AsExpression(IntegerLiteral(0) as int)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (AsExpression(IntegerLiteral(0) as {unresolved-type-annotation:UnresolvedIdentifier(int)}))))
+resolved=AsExpression(IntegerLiteral(0) as int)*/
 void isAs3() {}

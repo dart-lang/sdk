@@ -33,12 +33,23 @@ bool _isDartLibrary(Uri importUri, Uri fileUri) {
   return importUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 }
 
+
+/// Creates a [shared.Expression] for the annotation at [atToken].
+///
+/// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
+/// corresponding scopes. This means that the return expression will contain
+/// [shared.UnresolvedIdentifier] nodes, as if the identifier wasn't in scope.
+/// A subsequent call to [shared.Expression.resolve] will perform the lookup
+/// a create the resolved expression. This is used in testing to mimic the
+/// scenario in which the declaration is added to the scope via macros.
 // Coverage-ignore(suite): Not run.
-shared.Expression parseAnnotation(Loader loader, Token atToken, Uri importUri,
-    Uri fileUri, LookupScope scope) {
+shared.Expression parseAnnotation(
+    Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
+    {bool delayLookupForTesting = false}) {
   return shared.parseAnnotation(
       atToken, fileUri, new AnnotationScope(scope), new References(loader),
-      isDartLibrary: _isDartLibrary(importUri, fileUri));
+      isDartLibrary: _isDartLibrary(importUri, fileUri),
+      delayLookupForTesting: delayLookupForTesting);
 }
 
 // Coverage-ignore(suite): Not run.

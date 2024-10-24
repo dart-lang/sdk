@@ -13,7 +13,15 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 
 /// Creates a [shared.Expression] for the [annotation].
-shared.Expression parseAnnotation(ElementAnnotationImpl annotation) {
+///
+/// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
+/// corresponding scopes. This means that the return expression will contain
+/// [shared.UnresolvedIdentifier] nodes, as if the identifier wasn't in scope.
+/// A subsequent call to [shared.Expression.resolve] will perform the lookup
+/// a create the resolved expression. This is used in testing to mimic the
+/// scenario in which the declaration is added to the scope via macros.
+shared.Expression parseAnnotation(ElementAnnotationImpl annotation,
+    {bool delayLookupForTesting = false}) {
   var compilationUnit = annotation.compilationUnit;
   var annotationImpl = annotation.annotationAst;
   var uri = compilationUnit.source.uri;
@@ -25,7 +33,8 @@ shared.Expression parseAnnotation(ElementAnnotationImpl annotation) {
   annotationImpl.endToken.next ??= Token.eof(-1);
   var expression = shared.parseAnnotation(
       annotationImpl.atSign, uri, scope, references,
-      isDartLibrary: uri.isScheme("dart") || uri.isScheme("org-dartlang-sdk"));
+      isDartLibrary: uri.isScheme("dart") || uri.isScheme("org-dartlang-sdk"),
+      delayLookupForTesting: delayLookupForTesting);
   annotationImpl.endToken.next = endTokenNext;
   return expression;
 }

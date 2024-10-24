@@ -10,7 +10,13 @@ const bool constBool = true;
 
 @Helper(constBool ? 0 : 1)
 /*member: conditional1:
-ConditionalExpression(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (ConditionalExpression(
+    UnresolvedExpression(UnresolvedIdentifier(constBool))
+      ? IntegerLiteral(0)
+      : IntegerLiteral(1)))))
+resolved=ConditionalExpression(
   StaticGet(constBool)
     ? IntegerLiteral(0)
     : IntegerLiteral(1))*/
@@ -20,7 +26,28 @@ void conditional1() {}
     ? const String.fromEnvironment('bar', defaultValue: 'baz')
     : int.fromEnvironment('boz', defaultValue: 42))
 /*member: conditional2:
-ConditionalExpression(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (ConditionalExpression(
+    UnresolvedExpression(UnresolvedInvoke(
+      UnresolvedAccess(
+        UnresolvedIdentifier(bool).fromEnvironment)
+      (
+        StringLiteral('foo'), 
+        defaultValue: BooleanLiteral(true))))
+      ? UnresolvedExpression(UnresolvedInvoke(
+          UnresolvedAccess(
+            UnresolvedIdentifier(String).fromEnvironment)
+          (
+            StringLiteral('bar'), 
+            defaultValue: StringLiteral('baz'))))
+      : UnresolvedExpression(UnresolvedInvoke(
+          UnresolvedAccess(
+            UnresolvedIdentifier(int).fromEnvironment)
+          (
+            StringLiteral('boz'), 
+            defaultValue: IntegerLiteral(42))))))))
+resolved=ConditionalExpression(
   ConstructorInvocation(
     bool.fromEnvironment(
       StringLiteral('foo'), 

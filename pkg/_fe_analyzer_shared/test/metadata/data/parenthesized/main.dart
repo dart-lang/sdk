@@ -10,15 +10,24 @@ T genericFunction<T>(T t) => t;
 
 @Helper((0))
 /*member: parenthesized1:
-ParenthesizedExpression(IntegerLiteral(0))*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (ParenthesizedExpression(IntegerLiteral(0)))))
+resolved=ParenthesizedExpression(IntegerLiteral(0))*/
 void parenthesized1() {}
 
 @Helper(('').length)
 /*member: parenthesized2:
-PropertyGet(ParenthesizedExpression(StringLiteral('')).length)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (PropertyGet(ParenthesizedExpression(StringLiteral('')).length))))
+resolved=PropertyGet(ParenthesizedExpression(StringLiteral('')).length)*/
 void parenthesized2() {}
 
 @Helper((genericFunction)<int>)
 /*member: parenthesized3:
-Instantiation(ParenthesizedExpression(FunctionTearOff(genericFunction))<int>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (Instantiation(ParenthesizedExpression(UnresolvedExpression(UnresolvedIdentifier(genericFunction)))<{unresolved-type-annotation:UnresolvedIdentifier(int)}>))))
+resolved=Instantiation(ParenthesizedExpression(FunctionTearOff(genericFunction))<int>)*/
 void parenthesized3() {}

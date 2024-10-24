@@ -25,126 +25,218 @@ enum GenericEnum<T> {
 
 @Enum.a
 /*member: enumConstant1:
-StaticGet(a)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedIdentifier(Enum).a))
+resolved=StaticGet(a)*/
 void enumConstant1() {}
 
 @self.Enum.b
 /*member: enumConstant2:
-StaticGet(b)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedAccess(
+    UnresolvedIdentifier(self).Enum).b))
+resolved=StaticGet(b)*/
 void enumConstant2() {}
 
 @Enum.variable
 /*member: enumConstant3:
-StaticGet(variable)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedIdentifier(Enum).variable))
+resolved=StaticGet(variable)*/
 void enumConstant3() {}
 
 @self.Enum.variable
 /*member: enumConstant4:
-StaticGet(variable)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedAccess(
+    UnresolvedIdentifier(self).Enum).variable))
+resolved=StaticGet(variable)*/
 void enumConstant4() {}
 
 @Enum.values
 /*member: enumConstant5:
-StaticGet(values)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedIdentifier(Enum).values))
+resolved=StaticGet(values)*/
 void enumConstant5() {}
 
 @self.Enum.values
 /*member: enumConstant6:
-StaticGet(values)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedAccess(
+    UnresolvedIdentifier(self).Enum).values))
+resolved=StaticGet(values)*/
 void enumConstant6() {}
 
 @GenericEnum.a
 /*member: enumConstant7:
-StaticGet(a)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedIdentifier(GenericEnum).a))
+resolved=StaticGet(a)*/
 void enumConstant7() {}
 
 @self.GenericEnum.b
 /*member: enumConstant8:
-StaticGet(b)*/
+unresolved=UnresolvedExpression(UnresolvedAccess(
+  UnresolvedAccess(
+    UnresolvedIdentifier(self).GenericEnum).b))
+resolved=StaticGet(b)*/
 void enumConstant8() {}
 
 @Helper(Enum)
 /*member: enumConstant9:
-TypeLiteral(Enum)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedIdentifier(Enum)))))
+resolved=TypeLiteral(Enum)*/
 void enumConstant9() {}
 
 @Helper(self.Enum)
 /*member: enumConstant10:
-TypeLiteral(Enum)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(self).Enum)))))
+resolved=TypeLiteral(Enum)*/
 void enumConstant10() {}
 
 @Helper(Enum.method)
 /*member: enumConstant11:
-FunctionTearOff(method)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(Enum).method)))))
+resolved=FunctionTearOff(method)*/
 void enumConstant11() {}
 
 @Helper(self.Enum.method)
 /*member: enumConstant12:
-FunctionTearOff(method)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedAccess(
+      UnresolvedIdentifier(self).Enum).method)))))
+resolved=FunctionTearOff(method)*/
 void enumConstant12() {}
 
 @Helper(Enum.genericMethod)
 /*member: enumConstant13:
-FunctionTearOff(genericMethod)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(Enum).genericMethod)))))
+resolved=FunctionTearOff(genericMethod)*/
 void enumConstant13() {}
 
 @Helper(self.Enum.genericMethod)
 /*member: enumConstant14:
-FunctionTearOff(genericMethod)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedAccess(
+      UnresolvedIdentifier(self).Enum).genericMethod)))))
+resolved=FunctionTearOff(genericMethod)*/
 void enumConstant14() {}
 
 @Helper(Enum.genericMethod<int>)
 /*member: enumConstant15:
-Instantiation(FunctionTearOff(genericMethod)<int>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedIdentifier(Enum).genericMethod)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=Instantiation(FunctionTearOff(genericMethod)<int>)*/
 void enumConstant15() {}
 
 @Helper(self.Enum.genericMethod<int>)
 /*member: enumConstant16:
-Instantiation(FunctionTearOff(genericMethod)<int>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedAccess(
+        UnresolvedIdentifier(self).Enum).genericMethod)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=Instantiation(FunctionTearOff(genericMethod)<int>)*/
 void enumConstant16() {}
 
 @Helper(GenericEnum)
 /*member: enumConstant17:
-TypeLiteral(GenericEnum)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedIdentifier(GenericEnum)))))
+resolved=TypeLiteral(GenericEnum)*/
 void enumConstant17() {}
 
 @Helper(self.GenericEnum)
 /*member: enumConstant18:
-TypeLiteral(GenericEnum)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(self).GenericEnum)))))
+resolved=TypeLiteral(GenericEnum)*/
 void enumConstant18() {}
 
 @Helper(GenericEnum<bool>)
 /*member: enumConstant19:
-TypeLiteral(GenericEnum<bool>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedIdentifier(GenericEnum)<{unresolved-type-annotation:UnresolvedIdentifier(bool)}>)))))
+resolved=TypeLiteral(GenericEnum<bool>)*/
 void enumConstant19() {}
 
 @Helper(self.GenericEnum<double>)
 /*member: enumConstant20:
-TypeLiteral(GenericEnum<double>)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedIdentifier(self).GenericEnum)<{unresolved-type-annotation:UnresolvedIdentifier(double)}>)))))
+resolved=TypeLiteral(GenericEnum<double>)*/
 void enumConstant20() {}
 
 @Helper(Enum.unresolved)
 /*member: enumConstant21:
-UnresolvedExpression(UnresolvedAccess(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedIdentifier(Enum).unresolved)))))
+resolved=UnresolvedExpression(UnresolvedAccess(
   EnumProto(Enum).unresolved))*/
 void enumConstant21() {}
 
 @Helper(self.Enum.unresolved)
 /*member: enumConstant22:
-UnresolvedExpression(UnresolvedAccess(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedAccess(
+    UnresolvedAccess(
+      UnresolvedIdentifier(self).Enum).unresolved)))))
+resolved=UnresolvedExpression(UnresolvedAccess(
   EnumProto(Enum).unresolved))*/
 void enumConstant22() {}
 
 @Helper(Enum.unresolved<int>)
 /*member: enumConstant23:
-UnresolvedExpression(UnresolvedInstantiate(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedIdentifier(Enum).unresolved)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=UnresolvedExpression(UnresolvedInstantiate(
   UnresolvedAccess(
     EnumProto(Enum).unresolved)<int>))*/
 void enumConstant23() {}
 
 @Helper(self.Enum.unresolved<int>)
 /*member: enumConstant24:
-UnresolvedExpression(UnresolvedInstantiate(
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (UnresolvedExpression(UnresolvedInstantiate(
+    UnresolvedAccess(
+      UnresolvedAccess(
+        UnresolvedIdentifier(self).Enum).unresolved)<{unresolved-type-annotation:UnresolvedIdentifier(int)}>)))))
+resolved=UnresolvedExpression(UnresolvedInstantiate(
   UnresolvedAccess(
     EnumProto(Enum).unresolved)<int>))*/
 void enumConstant24() {}

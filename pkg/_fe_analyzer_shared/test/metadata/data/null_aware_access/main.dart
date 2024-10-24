@@ -10,5 +10,8 @@ const String? constNullableString = '';
 
 @Helper(constNullableString?.length)
 /*member: nullAwareAccess1:
-NullAwarePropertyGet(StaticGet(constNullableString)?.length)*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (NullAwarePropertyGet(UnresolvedExpression(UnresolvedIdentifier(constNullableString))?.length))))
+resolved=NullAwarePropertyGet(StaticGet(constNullableString)?.length)*/
 void nullAwareAccess1() {}

@@ -10,5 +10,8 @@ const List<int>? constNullableList = [];
 
 @Helper(constNullableList!)
 /*member: nullCheck1:
-NullCheck(StaticGet(constNullableList))*/
+unresolved=UnresolvedExpression(UnresolvedInvoke(
+  UnresolvedIdentifier(Helper)
+  (NullCheck(UnresolvedExpression(UnresolvedIdentifier(constNullableList))))))
+resolved=NullCheck(StaticGet(constNullableList))*/
 void nullCheck1() {}
