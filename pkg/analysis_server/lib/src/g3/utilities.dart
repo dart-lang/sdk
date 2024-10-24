@@ -34,15 +34,15 @@ String format(String content, {Version? languageVersion}) {
 /// cause of the failure, a list of [AnalysisError]'s.
 ParseStringResult sortDirectives(String contents, {String? fileName}) {
   var (unit, errors) = _parse(contents, fullName: fileName);
-  var hasParseErrors = errors.any((error) =>
+  var parseErrors = errors.where((error) =>
       error.errorCode is ScannerErrorCode ||
-      error.errorCode is ParserErrorCode);
-  if (hasParseErrors) {
-    return ParseStringResultImpl(contents, unit, errors);
+      error.errorCode is ParserErrorCode).toList();
+  if (parseErrors.isNotEmpty) {
+    return ParseStringResultImpl(contents, unit, parseErrors);
   }
-  var sorter = ImportOrganizer(contents, unit, errors);
+  var sorter = ImportOrganizer(contents, unit, parseErrors);
   sorter.organize();
-  return ParseStringResultImpl(sorter.code, unit, errors);
+  return ParseStringResultImpl(sorter.code, unit, parseErrors);
 }
 
 (CompilationUnit, List<AnalysisError>) _parse(String contents,
