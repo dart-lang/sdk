@@ -754,11 +754,11 @@ class CompilationSetup {
   final ProcessedOptions options;
   final List<Iterable<String>> errors;
   final CompilerOptions Function(
-          NnbdMode nnbdMode,
-          AllowedExperimentalFlags? allowedExperimentalFlags,
-          Map<ExperimentalFlag, Version>? experimentEnabledVersion,
-          Map<ExperimentalFlag, Version>? experimentReleasedVersion)
-      createCompilerOptions;
+      NnbdMode nnbdMode,
+      AllowedExperimentalFlags? allowedExperimentalFlags,
+      Map<ExperimentalFlag, Version>? experimentEnabledVersion,
+      Map<ExperimentalFlag, Version>? experimentReleasedVersion,
+      Uri? dynamicInterfaceSpecificationUri) createCompilerOptions;
 
   final ProcessedOptions Function(CompilerOptions compilerOptions)
       createProcessedOptions;
@@ -799,7 +799,8 @@ CompilationSetup createCompilationSetup(
       NnbdMode nnbdMode,
       AllowedExperimentalFlags? allowedExperimentalFlags,
       Map<ExperimentalFlag, Version>? experimentEnabledVersion,
-      Map<ExperimentalFlag, Version>? experimentReleasedVersion) {
+      Map<ExperimentalFlag, Version>? experimentReleasedVersion,
+      Uri? dynamicInterfaceSpecificationUri) {
     CompilerOptions compilerOptions = new CompilerOptions()
       ..onDiagnostic = (DiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
@@ -817,6 +818,7 @@ CompilationSetup createCompilationSetup(
       ..omitPlatform = true
       ..omitOsMessageForTesting = true
       ..packagesFileUri = packagesFileUri
+      ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
       ..target = createTarget(folderOptions, context)
       ..verify =
           // TODO(johnniwinther): Enable verification in outline and modular
@@ -848,7 +850,8 @@ CompilationSetup createCompilationSetup(
       nnbdMode,
       testOptions.allowedExperimentalFlags,
       testOptions.experimentEnabledVersion,
-      testOptions.experimentReleasedVersion);
+      testOptions.experimentReleasedVersion,
+      testOptions.dynamicInterfaceSpecificationUri);
   ProcessedOptions options = createProcessedOptions(compilerOptions);
   options.sdkSummaryComponent =
       context.loadPlatform(options.target, options.nnbdMode);
@@ -2033,7 +2036,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                 compilationSetup.testOptions.nnbdMode!,
                 compilationSetup.testOptions.allowedExperimentalFlags,
                 compilationSetup.testOptions.experimentEnabledVersion,
-                compilationSetup.testOptions.experimentReleasedVersion));
+                compilationSetup.testOptions.experimentReleasedVersion,
+                compilationSetup.testOptions.dynamicInterfaceSpecificationUri));
         linkOptions.sdkSummaryComponent =
             context.loadPlatform(linkOptions.target, linkOptions.nnbdMode);
       }

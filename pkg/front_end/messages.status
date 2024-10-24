@@ -72,6 +72,10 @@ CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (no
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ClassImplementsDeferredClass/part_wrapped_script: Fail # Uses imports
+ClassShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+ClassShouldBeListedAsCallableInDynamicInterface/example: Fail
+ClassShouldBeListedAsExtendableInDynamicInterface/analyzerCode: Fail
+ClassShouldBeListedAsExtendableInDynamicInterface/example: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
 CompilingWithoutSoundNullSafety/analyzerCode: Fail
@@ -85,6 +89,8 @@ ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithTypeParameter/example: Fail
+ConstructorShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+ConstructorShouldBeListedAsCallableInDynamicInterface/example: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
 ConstAndFinal/part_wrapped_declaration3: Fail
@@ -221,6 +227,8 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 DuplicatedRecordLiteralFieldName/analyzerCode: Fail
 DuplicatedRecordTypeFieldName/analyzerCode: Fail
+DynamicCallsAreNotAllowedInDynamicModule/analyzerCode: Fail
+DynamicCallsAreNotAllowedInDynamicModule/example: Fail
 Encoding/analyzerCode: Fail
 EnumAbstractMember/analyzerCode: Fail
 EnumAbstractMember/example: Fail
@@ -739,6 +747,10 @@ MainWrongParameterType/analyzerCode: Fail
 MainWrongParameterTypeExported/analyzerCode: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
 MemberNotFound/example: Fail
+MemberShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+MemberShouldBeListedAsCallableInDynamicInterface/example: Fail
+MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/analyzerCode: Fail
+MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/example: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/example: Fail
 MissingArgumentList/analyzerCode: Fail

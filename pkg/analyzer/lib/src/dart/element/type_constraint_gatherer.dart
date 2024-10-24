@@ -322,9 +322,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     if (P is FunctionType && Q is FunctionType) {
-      return _functionType(P, Q, leftSchema,
-          nodeForTesting: nodeForTesting,
-          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
+      return _functionType(P, Q, leftSchema, nodeForTesting: nodeForTesting);
     }
 
     // A type `P` is a subtype match for `Record` with respect to `L` under no
@@ -339,7 +337,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     if (P is SharedRecordTypeStructure<DartType> &&
         Q is SharedRecordTypeStructure<DartType>) {
       return _recordType(P as RecordTypeImpl, Q as RecordTypeImpl, leftSchema,
-          inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           nodeForTesting: nodeForTesting);
     }
 
@@ -381,8 +378,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
   /// and `false` is returned.
   bool _functionType(FunctionType P, FunctionType Q, bool leftSchema,
-      {required bool inferenceUsingBoundsIsEnabled,
-      required AstNode? nodeForTesting}) {
+      {required AstNode? nodeForTesting}) {
     if (P.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
     }
@@ -472,8 +468,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
   /// and `false` is returned.
   bool _recordType(RecordTypeImpl P, RecordTypeImpl Q, bool leftSchema,
-      {required bool inferenceUsingBoundsIsEnabled,
-      required AstNode? nodeForTesting}) {
+      {required AstNode? nodeForTesting}) {
     // If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match
     // holds under constraints `C0 + ... + Ck`:
     //   If `Mi` is a subtype match for `Ni` with respect to L under

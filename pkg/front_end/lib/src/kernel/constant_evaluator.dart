@@ -3694,7 +3694,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return _handleEquals(node, receiver, right);
     }
 
-    // This is a white-listed set of methods we need to support on constants.
+    // This is an allow-listed set of methods we need to support on constants.
     if (receiver is StringConstant) {
       if (positionalArguments.length == 1) {
         final Constant other = positionalArguments[0];

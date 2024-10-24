@@ -1,0 +1,44 @@
+import 'main_lib1.dart';
+import 'main_lib2.dart';
+
+class C6Ext extends C6 {
+  C6Ext({super.param});
+}
+
+class C7Ext extends C7 {
+  C7Ext({super.param});
+}
+
+class D3 extends C3 {}
+
+class D4 extends C4 {
+  int? get field1 => null;
+  int? get field2 => null;
+  set field1(int? value) {}
+  set field2(int? value) {}
+  void method1() {}
+  void method2() {}
+}
+
+class E3 implements C3 {}
+
+class E4 implements C4 {
+  int? field1;
+  int? field2;
+  void method1() {}
+  void method2() {}
+}
+
+class F1 with M1 {}
+
+class F2 with M2 {}
+
+class Impl1 extends Base implements Interface {}
+
+class Impl2 with Mixin implements Interface {}
+
+dynamic x;
+
+void main() {}
+
+void test() {}

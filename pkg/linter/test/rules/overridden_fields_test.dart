@@ -36,11 +36,8 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(45, 1),
     ]);
   }
@@ -67,13 +64,10 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(85, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   /// https://github.com/dart-lang/linter/issues/2874

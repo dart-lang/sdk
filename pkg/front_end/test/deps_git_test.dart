@@ -46,6 +46,16 @@ Set<String> allowlistedExternalDartFiles = {
   "pkg/meta/lib/meta_meta.dart",
 };
 
+Set<String> allowlistedThirdPartyPackages = {
+  "yaml",
+  // package:yaml dependencies
+  "core/pkgs/collection",
+  "core/pkgs/path",
+  "source_span",
+  "string_scanner",
+  "term_glyph",
+};
+
 /// Returns true on no errors and false if errors was found.
 Future<bool> main() async {
   Ticker ticker = new Ticker(isVerbose: false);
@@ -93,61 +103,56 @@ Future<bool> main() async {
 
   Set<Uri> otherDartUris = new Set<Uri>();
   Set<Uri> otherNonDartUris = new Set<Uri>();
-  Set<Uri> frontEndUris = new Set<Uri>();
-  Set<Uri> kernelUris = new Set<Uri>();
-  Set<Uri> vmModularUris = new Set<Uri>();
-  Set<Uri> feAnalyzerSharedUris = new Set<Uri>();
-  Set<Uri> dartPlatformUris = new Set<Uri>();
-  Set<Uri> macrosUris = new Set<Uri>();
-  Uri kernelUri = repoDir.resolve("pkg/kernel/");
-  Uri vmModularUri = repoDir.resolve("pkg/vm/lib/modular/");
-  Uri feAnalyzerSharedUri = repoDir.resolve("pkg/_fe_analyzer_shared/");
-  Uri platformUri1 = repoDir.resolve("sdk/lib/");
-  Uri platformUri2 = repoDir.resolve("runtime/lib/");
-  Uri platformUri3 = repoDir.resolve("runtime/bin/");
-  Uri macrosUri = repoDir.resolve("pkg/macros");
-  Uri _macrosUri = repoDir.resolve("pkg/_macros");
+  List<String> allowedRelativePaths = [
+    // Front-end.
+    "pkg/kernel/",
+    "pkg/_fe_analyzer_shared/",
+    // For VmTarget for macros.
+    "pkg/vm/lib/modular/",
+    // Platform.
+    "sdk/lib/",
+    "runtime/lib/",
+    "runtime/bin/",
+    // Macros.
+    "pkg/macros",
+    "pkg/_macros",
+    for (String package in allowlistedThirdPartyPackages)
+      "third_party/pkg/$package/",
+  ];
+  List<String> allowedUriPrefixes = [
+    frontendLibUri.toString(),
+    for (String relativePath in allowedRelativePaths)
+      repoDir.resolve(relativePath).toString()
+  ];
   for (Uri uri in result) {
-    if (uri.toString().startsWith(frontendLibUri.toString())) {
-      frontEndUris.add(uri);
-    } else if (uri.toString().startsWith(kernelUri.toString())) {
-      kernelUris.add(uri);
-    } else if (uri.toString().startsWith(vmModularUri.toString())) {
-      // For VmTarget for macros.
-      vmModularUris.add(uri);
-    } else if (uri.toString().startsWith(feAnalyzerSharedUri.toString())) {
-      feAnalyzerSharedUris.add(uri);
-    } else if (uri.toString().startsWith(platformUri1.toString()) ||
-        uri.toString().startsWith(platformUri2.toString()) ||
-        uri.toString().startsWith(platformUri3.toString())) {
-      dartPlatformUris.add(uri);
-    } else if (uri.toString().startsWith(_macrosUri.toString()) ||
-        uri.toString().startsWith(macrosUri.toString())) {
-      macrosUris.add(uri);
-    } else if (uri.toString().endsWith(".dart")) {
-      otherDartUris.add(uri);
-    } else {
-      otherNonDartUris.add(uri);
+    final String uriAsString = uri.toString();
+    bool allowed = false;
+    for (String prefix in allowedUriPrefixes) {
+      if (uriAsString.startsWith(prefix)) {
+        allowed = true;
+        break;
+      }
+    }
+    if (!allowed) {
+      if (uri.toString().endsWith(".dart")) {
+        otherDartUris.add(uri);
+      } else {
+        otherNonDartUris.add(uri);
+      }
     }
   }
 
-  // * Everything in frontEndUris is okay --- the frontend can import itself.
-  // * Everything in kernel is okay --- the frontend is allowed to
-  //   import package:kernel.
-  // * Everything in vm/modular is okay, it's specifically for the CFE.
-  // * For other entries, remove allowlisted entries.
-  // * Everything else is an error.
-
-  // Remove white-listed non-dart files.
+  // Remove allow-listed non-dart files.
   otherNonDartUris.remove(packageConfigUri);
   otherNonDartUris.remove(repoDir.resolve("sdk/lib/libraries.json"));
   otherNonDartUris.remove(repoDir.resolve(".dart_tool/package_config.json"));
 
-  // Remove white-listed dart files.
+  // Remove allow-listed dart files.
   for (String s in allowlistedExternalDartFiles) {
     otherDartUris.remove(repoDir.resolve(s));
   }
 
+  // Everything else is an error.
   if (otherNonDartUris.isNotEmpty || otherDartUris.isNotEmpty) {
     print("The following files was imported without being allowlisted:");
     for (Uri uri in otherNonDartUris) {

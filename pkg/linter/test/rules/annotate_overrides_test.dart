@@ -40,11 +40,8 @@ augment class C implements HasLength {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(a.path);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentationClass_methodWithoutAnnotation() async {

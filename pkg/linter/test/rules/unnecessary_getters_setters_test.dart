@@ -97,14 +97,11 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       // TODO(pq): in the absence of accessors in the augmented class, report on the class decl?
       lint(33, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4935')
@@ -129,13 +126,10 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(52, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_unnecessary_getterAndSetter_extensionType() async {

@@ -298,6 +298,29 @@ MissingExplicitConst:
       const A(): x = [];
     }
 
+DynamicCallsAreNotAllowedInDynamicModule:
+  problemMessage: "Dynamic calls are not allowed in a dynamic module."
+
+ConstructorShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot invoke constructor '#name' from a dynamic module."
+  correctionMessage: "Try removing the call or update the dynamic interface to list constructor '#name' as callable."
+
+MemberShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot invoke member '#name' from a dynamic module."
+  correctionMessage: "Try removing the call or update the dynamic interface to list member '#name' as callable."
+
+ClassShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot use class '#name' in a dynamic module."
+  correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable."
+
+ClassShouldBeListedAsExtendableInDynamicInterface:
+  problemMessage: "Cannot extend, implement or mix-in class '#name' in a dynamic module."
+  correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as extendable."
+
+MemberShouldBeListedAsCanBeOverriddenInDynamicInterface:
+  problemMessage: "Cannot override member '#name.#name2' in a dynamic module."
+  correctionMessage: "Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden."
+
 NonAsciiIdentifier:
   problemMessage: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   correctionMessage: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."

@@ -78,6 +78,7 @@ import 'constant_evaluator.dart' as constants
         ConstantCoverage,
         ConstantEvaluationData;
 import 'constructor_tearoff_lowering.dart';
+import 'dynamic_module_validator.dart' as dynamic_module_validator;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'macro/macro.dart';
@@ -803,6 +804,11 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
       finishAllConstructors(sourceClasses, extensionTypeDeclarations);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_validateDynamicModule);
+      await validateDynamicModule();
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -1682,6 +1688,24 @@ class KernelTarget {
                 ]);
           }
         }
+      }
+    }
+  }
+
+  Future<void> validateDynamicModule() async {
+    final Uri? dynamicInterfaceSpecificationUri =
+        _options.dynamicInterfaceSpecificationUri;
+    if (dynamicInterfaceSpecificationUri != null) {
+      final String? dynamicInterfaceSpecification =
+          await _options.loadDynamicInterfaceSpecification();
+      if (dynamicInterfaceSpecification != null) {
+        dynamic_module_validator.validateDynamicModule(
+            dynamicInterfaceSpecification,
+            dynamicInterfaceSpecificationUri,
+            component!,
+            loader.hierarchy,
+            loader.libraries,
+            loader);
       }
     }
   }

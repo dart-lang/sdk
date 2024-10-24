@@ -84,7 +84,7 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
 }
 
 class _TargetAndOperator {
-  AstNode? target;
-  Token? operator;
+  final AstNode? target;
+  final Token? operator;
   _TargetAndOperator(this.target, this.operator);
 }

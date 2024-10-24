@@ -59,7 +59,6 @@ class InvocationInferenceHelper {
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
-  final bool _inferenceUsingBoundsIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
@@ -71,9 +70,7 @@ class InvocationInferenceHelper {
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
         _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
-            .isEnabled(Feature.generic_metadata),
-        _inferenceUsingBoundsIsEnabled = resolver.definingLibrary.featureSet
-            .isEnabled(Feature.inference_using_bounds);
+            .isEnabled(Feature.generic_metadata);
 
   /// If the constructor referenced by the [constructorName] is generic,
   /// and the [constructorName] does not have explicit type arguments,
@@ -133,7 +130,7 @@ class InvocationInferenceHelper {
         errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
+        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         strictCasts: _resolver.analysisOptions.strictCasts,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
@@ -156,7 +153,7 @@ class InvocationInferenceHelper {
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
-    required List<WhyNotPromotedGetter> whyNotPromotedList,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required DartType contextType,
   }) {
     var returnType = MethodInvocationInferrer(
@@ -164,7 +161,7 @@ class InvocationInferenceHelper {
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
-      whyNotPromotedList: whyNotPromotedList,
+      whyNotPromotedArguments: whyNotPromotedArguments,
     ).resolveInvocation(rawType: rawType);
 
     node.recordStaticType(returnType, resolver: _resolver);

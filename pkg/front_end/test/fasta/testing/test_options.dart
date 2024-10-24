@@ -18,10 +18,14 @@ import 'package:testing/testing.dart' show TestDescription;
 const Option<bool> fixNnbdReleaseVersion =
     const Option('--fix-nnbd-release-version', const BoolValue(false));
 
+const Option<Uri?> dynamicInterface =
+    const Option('--dynamic-interface', const UriValue());
+
 const List<Option> testOptionsSpecification = [
   Options.nnbdStrongMode,
   Options.nnbdWeakMode,
   fixNnbdReleaseVersion,
+  dynamicInterface,
 ];
 
 class SuiteTestOptions {
@@ -39,6 +43,7 @@ class SuiteTestOptions {
       AllowedExperimentalFlags? allowedExperimentalFlags;
       Map<ExperimentalFlag, Version>? experimentEnabledVersion;
       Map<ExperimentalFlag, Version>? experimentReleasedVersion;
+      Uri? dynamicInterfaceSpecificationUri;
       if (optionsFile.existsSync()) {
         List<String> arguments =
             ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
@@ -73,6 +78,7 @@ class SuiteTestOptions {
             ExperimentalFlag.nonNullable: const Version(2, 9)
           };
         }
+        dynamicInterfaceSpecificationUri = dynamicInterface.read(parsedOptions);
         for (String argument in parsedOptions.arguments) {
           Uri uri = description.uri.resolve(argument);
           if (!uri.isScheme('package')) {
@@ -89,7 +95,8 @@ class SuiteTestOptions {
           nnbdMode: nnbdMode,
           allowedExperimentalFlags: allowedExperimentalFlags,
           experimentEnabledVersion: experimentEnabledVersion,
-          experimentReleasedVersion: experimentReleasedVersion);
+          experimentReleasedVersion: experimentReleasedVersion,
+          dynamicInterfaceSpecificationUri: dynamicInterfaceSpecificationUri);
       _testOptions[directory.uri] = testOptions;
     }
     return testOptions;
@@ -106,6 +113,7 @@ class TestOptions {
   final AllowedExperimentalFlags? allowedExperimentalFlags;
   final Map<ExperimentalFlag, Version>? experimentEnabledVersion;
   final Map<ExperimentalFlag, Version>? experimentReleasedVersion;
+  final Uri? dynamicInterfaceSpecificationUri;
   Component? component;
   List<Iterable<String>>? errors;
 
@@ -113,5 +121,6 @@ class TestOptions {
       {required this.nnbdMode,
       required this.allowedExperimentalFlags,
       required this.experimentEnabledVersion,
-      required this.experimentReleasedVersion});
+      required this.experimentReleasedVersion,
+      required this.dynamicInterfaceSpecificationUri});
 }

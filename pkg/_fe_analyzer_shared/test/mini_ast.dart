@@ -5529,14 +5529,14 @@ class _MiniAstTypeAnalyzer
     var leftType = analyzeExpression(lhs, operations.unknownType);
     ExpressionInfo<SharedTypeView<Type>>? leftInfo;
     if (isEquals) {
-      leftInfo = flow.equalityOperand_end(lhs, leftType);
+      leftInfo = flow.equalityOperand_end(lhs);
     } else if (isLogical) {
       flow.logicalBinaryOp_rightBegin(lhs, node, isAnd: isAnd);
     }
     var rightType = analyzeExpression(rhs, operations.unknownType);
     if (isEquals) {
       flow.equalityOperation_end(
-          node, leftInfo, flow.equalityOperand_end(rhs, rightType),
+          node, leftInfo, leftType, flow.equalityOperand_end(rhs), rightType,
           notEqual: isNot);
     } else if (isLogical) {
       flow.logicalBinaryOp_end(node, rhs, isAnd: isAnd);

@@ -54,6 +54,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_into_block_
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_related_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
@@ -367,6 +368,7 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.cascade_invocations: [
     ConvertToCascade.new,
+    ConvertRelatedToCascade.new,
   ],
   LinterLintCode.cast_nullable_to_non_nullable: [
     AddNullCheck.withoutAssignabilityCheck,

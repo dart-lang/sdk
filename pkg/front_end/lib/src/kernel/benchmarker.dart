@@ -216,6 +216,7 @@ enum BenchmarkPhases {
   body_finishNativeMethods,
   body_finishAugmentationMethods,
   body_finishAllConstructors,
+  body_validateDynamicModule,
   body_runBuildTransformations,
   body_verify,
   body_installAllComponentProblems,

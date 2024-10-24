@@ -51,7 +51,7 @@ class InstanceCreationExpressionResolver {
 
   void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
       {required DartType contextType}) {
-    var whyNotPromotedList = <WhyNotPromotedGetter>[];
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
     constructorName.accept(_resolver);
     // Re-assign constructorName in case the node got replaced.
@@ -66,11 +66,11 @@ class InstanceCreationExpressionResolver {
             node: node,
             argumentList: node.argumentList,
             contextType: contextType,
-            whyNotPromotedList: whyNotPromotedList)
+            whyNotPromotedArguments: whyNotPromotedArguments)
         .resolveInvocation(rawType: elementToInfer?.asType);
     node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedList);
+        node.argumentList, whyNotPromotedArguments);
   }
 
   /// Resolve [node] which has a [NamedType] with type arguments (given as

@@ -164,6 +164,26 @@ class ProcessedOptions {
     return _librariesSpecificationUri;
   }
 
+  Uri? get dynamicInterfaceSpecificationUri =>
+      _raw.dynamicInterfaceSpecificationUri;
+
+  String? _dynamicInterfaceSpecificationContents;
+  bool _triedLoadingDynamicInterfaceSpecification = false;
+
+  Future<String?> loadDynamicInterfaceSpecification() async {
+    final Uri? dynamicInterfaceSpecificationUri =
+        this.dynamicInterfaceSpecificationUri;
+    if (dynamicInterfaceSpecificationUri == null) return null;
+    if (_dynamicInterfaceSpecificationContents == null &&
+        !_triedLoadingDynamicInterfaceSpecification) {
+      FileSystemEntity entry =
+          fileSystem.entityForUri(dynamicInterfaceSpecificationUri);
+      _dynamicInterfaceSpecificationContents = await _readAsString(entry);
+      _triedLoadingDynamicInterfaceSpecification = true;
+    }
+    return _dynamicInterfaceSpecificationContents;
+  }
+
   Ticker ticker;
 
   bool get verbose => _raw.verbose;
@@ -933,6 +953,19 @@ class ProcessedOptions {
   Future<List<int>?> _readAsBytes(FileSystemEntity file) async {
     try {
       return await file.readAsBytes();
+    } on FileSystemException catch (error) {
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(
+              error.uri, osErrorMessage(error.message)),
+          Severity.error);
+      return null;
+    }
+  }
+
+  // Coverage-ignore(suite): Not run.
+  Future<String?> _readAsString(FileSystemEntity file) async {
+    try {
+      return await file.readAsString();
     } on FileSystemException catch (error) {
       reportWithoutLocation(
           templateCantReadFile.withArguments(

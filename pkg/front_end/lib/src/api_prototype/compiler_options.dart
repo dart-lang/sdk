@@ -88,6 +88,16 @@ class CompilerOptions {
   /// at a default location within [sdkRoot].
   Uri? sdkSummary;
 
+  /// Uri to a dynamic interface specification file.
+  ///
+  /// A dynamic interface specification file is a YAML file that lists
+  /// Dart APIs (libraries, classes and members) available for a dynamic module.
+  ///
+  /// If value is specified, the compiled Dart libraries are validated
+  /// to conform to the dynamic module interface and other dynamic module
+  /// restrictions.
+  Uri? dynamicInterfaceSpecificationUri;
+
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
   Map<String, String>? declaredVariables;
@@ -345,6 +355,10 @@ class CompilerOptions {
     if (packagesFileUri != other.packagesFileUri) return false;
     if (!equalLists(additionalDills, other.additionalDills)) return false;
     if (sdkSummary != other.sdkSummary) return false;
+    if (dynamicInterfaceSpecificationUri !=
+        other.dynamicInterfaceSpecificationUri) {
+      return false;
+    }
     if (!equalMaps(declaredVariables, other.declaredVariables)) return false;
     if (fileSystem != other.fileSystem) return false;
     if (compileSdk != other.compileSdk) return false;

@@ -16,9 +16,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -66,9 +63,9 @@ String analysisOptionsContent({
   return buffer.toString();
 }
 
-ExpectedError error(ErrorCode code, int offset, int length,
+ExpectedDiagnostic error(ErrorCode code, int offset, int length,
         {Pattern? messageContains}) =>
-    ExpectedError(code, offset, length, messageContains: messageContains);
+    _ExpectedError(code, offset, length, messageContains: messageContains);
 
 // TODO(srawlins): This is duplicate with
 // pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart.
@@ -118,25 +115,6 @@ class ExpectedDiagnostic {
   }
 }
 
-/// A description of an expected error.
-class ExpectedError extends ExpectedDiagnostic {
-  final ErrorCode _code;
-
-  ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
-      : super((error) => error.errorCode == _code, offset, length,
-            messageContains: messageContains);
-}
-
-/// A description of an expected lint rule violation.
-class ExpectedLint extends ExpectedDiagnostic {
-  final String _lintName;
-
-  ExpectedLint(this._lintName, int offset, int length,
-      {Pattern? messageContains})
-      : super((error) => error.errorCode.name == _lintName, offset, length,
-            messageContains: messageContains);
-}
-
 mixin LanguageVersion219Mixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.19';
@@ -154,8 +132,8 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     return [ruleName];
   }
 
-  ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
-      ExpectedLint(lintRule, offset, length, messageContains: messageContains);
+  ExpectedDiagnostic lint(int offset, int length, {Pattern? messageContains}) =>
+      _ExpectedLint(lintRule, offset, length, messageContains: messageContains);
 }
 
 class PubPackageResolutionTest extends _ContextResolutionTest {
@@ -174,8 +152,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   bool get dumpAstOnFailures => true;
 
   List<String> get experiments => experimentsForTests;
-
-  List<String> get lintRules => _lintRules;
 
   String get testFileName => 'test.dart';
 
@@ -204,117 +180,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       String content, List<ExpectedDiagnostic> expectedDiagnostics) async {
     addTestFile(content);
     await resolveTestFile();
-    await assertDiagnosticsIn(errors, expectedDiagnostics);
-  }
-
-  /// Asserts that the diagnostics in [errors] match [expectedDiagnostics].
-  Future<void> assertDiagnosticsIn(List<AnalysisError> errors,
-      List<ExpectedDiagnostic> expectedDiagnostics) async {
-    //
-    // Match actual diagnostics to expected diagnostics.
-    //
-    var unmatchedActual = errors.toList();
-    var unmatchedExpected = expectedDiagnostics.toList();
-    var actualIndex = 0;
-    while (actualIndex < unmatchedActual.length) {
-      var matchFound = false;
-      var expectedIndex = 0;
-      while (expectedIndex < unmatchedExpected.length) {
-        if (unmatchedExpected[expectedIndex]
-            .matches(unmatchedActual[actualIndex])) {
-          matchFound = true;
-          unmatchedActual.removeAt(actualIndex);
-          unmatchedExpected.removeAt(expectedIndex);
-          break;
-        }
-        expectedIndex++;
-      }
-      if (!matchFound) {
-        actualIndex++;
-      }
-    }
-    //
-    // Write the results.
-    //
-    var buffer = StringBuffer();
-    if (unmatchedExpected.isNotEmpty) {
-      buffer.writeln('Expected but did not find:');
-      for (var expected in unmatchedExpected) {
-        buffer.write('  ');
-        if (expected is ExpectedError) {
-          buffer.write(expected._code);
-        }
-        if (expected is ExpectedLint) {
-          buffer.write(expected._lintName);
-        }
-        buffer.write(' [');
-        buffer.write(expected._offset);
-        buffer.write(', ');
-        buffer.write(expected._length);
-        buffer.writeln(']');
-      }
-    }
-    if (unmatchedActual.isNotEmpty) {
-      if (buffer.isNotEmpty) {
-        buffer.writeln();
-      }
-      buffer.writeln('Found but did not expect:');
-      for (var actual in unmatchedActual) {
-        buffer.write('  ');
-        buffer.write(actual.errorCode);
-        buffer.write(' [');
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        buffer.write(', ');
-        buffer.write(actual.message);
-        buffer.writeln(']');
-      }
-    }
-    if (buffer.isNotEmpty) {
-      errors.sort((first, second) => first.offset.compareTo(second.offset));
-      buffer.writeln();
-      buffer.writeln('To accept the current state, expect:');
-      for (var actual in errors) {
-        late String diagnosticKind;
-        Object? description;
-        if (actual.errorCode is LintCode) {
-          diagnosticKind = 'lint';
-        } else {
-          diagnosticKind = 'error';
-          description = actual.errorCode;
-        }
-        buffer.write('  $diagnosticKind(');
-        if (description != null) {
-          buffer.write(description);
-          buffer.write(', ');
-        }
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        buffer.writeln('),');
-      }
-
-      if (dumpAstOnFailures) {
-        buffer.writeln();
-        buffer.writeln();
-        try {
-          var astSink = StringBuffer();
-
-          StringSpelunker(result.unit.toSource(),
-                  sink: astSink, featureSet: result.unit.featureSet)
-              .spelunk();
-          buffer.write(astSink);
-          buffer.writeln();
-          // I hereby choose to catch this type.
-          // ignore: avoid_catching_errors
-        } on ArgumentError catch (_) {
-          // Perhaps we encountered a parsing error while spelunking.
-        }
-      }
-
-      fail(buffer.toString());
-    }
+    await _assertDiagnosticsIn(_errors, expectedDiagnostics);
   }
 
   /// Asserts that the number of diagnostics that have been gathered at [path]
@@ -325,7 +191,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   Future<void> assertDiagnosticsInFile(
       String path, List<ExpectedDiagnostic> expectedDiagnostics) async {
     await _resolveFile(path);
-    await assertDiagnosticsIn(errors, expectedDiagnostics);
+    await _assertDiagnosticsIn(_errors, expectedDiagnostics);
   }
 
   /// Asserts that the diagnostics for each `path` match those in the paired
@@ -338,17 +204,13 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
           unitsAndDiagnostics) async {
     for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
       result = await resolveFile(convertPath(path));
-      await assertDiagnosticsIn(result.errors, expectedDiagnostics);
+      await _assertDiagnosticsIn(result.errors, expectedDiagnostics);
     }
   }
 
   /// Asserts that there are no diagnostics in the given [content].
   Future<void> assertNoDiagnostics(String content) async =>
       assertDiagnostics(content, const []);
-
-  /// Asserts that there are no diagnostics in [errors].
-  Future<void> assertNoDiagnosticsIn(List<AnalysisError> errors) =>
-      assertDiagnosticsIn(errors, const []);
 
   /// Asserts that there are no diagnostics in the file at the given [path].
   Future<void> assertNoDiagnosticsInFile(String path) async =>
@@ -358,7 +220,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   Future<void> assertNoPubspecDiagnostics(String content) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _resolvePubspecFile(content);
-    await assertDiagnosticsIn(errors, []);
+    await _assertDiagnosticsIn(errors, []);
   }
 
   /// Asserts that [expectedDiagnostics] are reported when resolving [content].
@@ -366,7 +228,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       String content, List<ExpectedDiagnostic> expectedDiagnostics) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _resolvePubspecFile(content);
-    await assertDiagnosticsIn(errors, expectedDiagnostics);
+    await _assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
   @override
@@ -442,6 +304,116 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     writePackageConfig(path, configCopy);
   }
 
+  /// Asserts that the diagnostics in [errors] match [expectedDiagnostics].
+  Future<void> _assertDiagnosticsIn(List<AnalysisError> errors,
+      List<ExpectedDiagnostic> expectedDiagnostics) async {
+    //
+    // Match actual diagnostics to expected diagnostics.
+    //
+    var unmatchedActual = errors.toList();
+    var unmatchedExpected = expectedDiagnostics.toList();
+    var actualIndex = 0;
+    while (actualIndex < unmatchedActual.length) {
+      var matchFound = false;
+      var expectedIndex = 0;
+      while (expectedIndex < unmatchedExpected.length) {
+        if (unmatchedExpected[expectedIndex]
+            .matches(unmatchedActual[actualIndex])) {
+          matchFound = true;
+          unmatchedActual.removeAt(actualIndex);
+          unmatchedExpected.removeAt(expectedIndex);
+          break;
+        }
+        expectedIndex++;
+      }
+      if (!matchFound) {
+        actualIndex++;
+      }
+    }
+    //
+    // Write the results.
+    //
+    var buffer = StringBuffer();
+    if (unmatchedExpected.isNotEmpty) {
+      buffer.writeln('Expected but did not find:');
+      for (var expected in unmatchedExpected) {
+        buffer.write('  ');
+        if (expected is _ExpectedError) {
+          buffer.write(expected._code);
+        }
+        if (expected is _ExpectedLint) {
+          buffer.write(expected._lintName);
+        }
+        buffer.write(' [');
+        buffer.write(expected._offset);
+        buffer.write(', ');
+        buffer.write(expected._length);
+        buffer.writeln(']');
+      }
+    }
+    if (unmatchedActual.isNotEmpty) {
+      if (buffer.isNotEmpty) {
+        buffer.writeln();
+      }
+      buffer.writeln('Found but did not expect:');
+      for (var actual in unmatchedActual) {
+        buffer.write('  ');
+        buffer.write(actual.errorCode);
+        buffer.write(' [');
+        buffer.write(actual.offset);
+        buffer.write(', ');
+        buffer.write(actual.length);
+        buffer.write(', ');
+        buffer.write(actual.message);
+        buffer.writeln(']');
+      }
+    }
+    if (buffer.isNotEmpty) {
+      errors.sort((first, second) => first.offset.compareTo(second.offset));
+      buffer.writeln();
+      buffer.writeln('To accept the current state, expect:');
+      for (var actual in errors) {
+        late String diagnosticKind;
+        Object? description;
+        if (actual.errorCode is LintCode) {
+          diagnosticKind = 'lint';
+        } else {
+          diagnosticKind = 'error';
+          description = actual.errorCode;
+        }
+        buffer.write('  $diagnosticKind(');
+        if (description != null) {
+          buffer.write(description);
+          buffer.write(', ');
+        }
+        buffer.write(actual.offset);
+        buffer.write(', ');
+        buffer.write(actual.length);
+        buffer.writeln('),');
+      }
+
+      if (dumpAstOnFailures) {
+        buffer.writeln();
+        buffer.writeln();
+        try {
+          var astSink = StringBuffer();
+
+          StringSpelunker(result.unit.toSource(),
+                  sink: astSink, featureSet: result.unit.featureSet)
+              .spelunk();
+          buffer.write(astSink);
+          buffer.writeln();
+          // I hereby choose to catch this type.
+          // ignore: avoid_catching_errors
+        } on ArgumentError catch (_) {
+          // Perhaps we encountered a parsing error while spelunking.
+        }
+      }
+
+      fail(buffer.toString());
+    }
+  }
+
   Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
@@ -494,18 +466,7 @@ abstract class _ContextResolutionTest
 
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
-  late FindElement findElement;
-
-  late FindElement2 findElement2;
-
-  late FindNode findNode;
-
   late ResolvedUnitResult result;
-
-  /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get errors => result.errors
-      .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
-      .toList();
 
   /// Error codes that by default should be ignored in test expectations.
   List<AnalyzerErrorCode> get ignoredErrorCodes =>
@@ -518,6 +479,11 @@ abstract class _ContextResolutionTest
   String get testFilePath;
 
   List<String> get _collectionIncludedPaths;
+
+  /// The analysis errors that were computed during analysis.
+  List<AnalysisError> get _errors => result.errors
+      .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
+      .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
 
@@ -540,12 +506,7 @@ abstract class _ContextResolutionTest
   Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = _contextFor(path);
     var session = analysisContext.currentSession;
-    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
-
-    findElement = FindElement(result.unit);
-    findElement2 = FindElement2(result.unit);
-    findNode = FindNode(result.content, result.unit);
-    return result;
+    return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
   Future<void> resolveTestFile() => _resolveFile(testFilePath);
@@ -598,4 +559,23 @@ abstract class _ContextResolutionTest
 
     result = await resolveFile(convertedPath);
   }
+}
+
+/// A description of an expected error.
+final class _ExpectedError extends ExpectedDiagnostic {
+  final ErrorCode _code;
+
+  _ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
+      : super((error) => error.errorCode == _code, offset, length,
+            messageContains: messageContains);
+}
+
+/// A description of an expected lint rule violation.
+final class _ExpectedLint extends ExpectedDiagnostic {
+  final String _lintName;
+
+  _ExpectedLint(this._lintName, int offset, int length,
+      {Pattern? messageContains})
+      : super((error) => error.errorCode.name == _lintName, offset, length,
+            messageContains: messageContains);
 }
