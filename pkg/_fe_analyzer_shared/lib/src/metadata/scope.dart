@@ -111,6 +111,32 @@ abstract base class BaseExtensionTypeScope implements TypeDeclarationScope {
   }
 }
 
+/// Base implementation for creating a [TypeDeclarationScope] for an enum.
+abstract base class BaseEnumScope implements TypeDeclarationScope {
+  EnumReference get enumReference;
+
+  // TODO(johnniwinther): Support constructor lookup to support full parsing.
+
+  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
+      T? member, Proto Function(T, String) memberToProto) {
+    if (member == null) {
+      if (typeArguments != null) {
+        return new UnresolvedAccess(
+            new GenericEnumProto(enumReference, this, typeArguments), name);
+      } else {
+        return new UnresolvedAccess(new EnumProto(enumReference, this), name);
+      }
+    } else {
+      if (typeArguments != null) {
+        return new InvalidAccessProto(
+            new GenericEnumProto(enumReference, this, typeArguments), name);
+      } else {
+        return memberToProto(member, name);
+      }
+    }
+  }
+}
+
 /// Base implementation for creating a [TypeDeclarationScope] for a typedef.
 abstract base class BaseTypedefScope implements TypeDeclarationScope {
   TypedefReference get typedefReference;

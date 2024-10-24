@@ -60,6 +60,9 @@ shared.Proto _elementToProto(Element element, String name) {
     var reference = _ExtensionTypeReference(element);
     return shared.ExtensionTypeProto(
         reference, _ExtensionTypeScope(element, reference));
+  } else if (element is EnumElement) {
+    var reference = _EnumReference(element);
+    return shared.EnumProto(reference, _EnumScope(element, reference));
   }
 
   // TODO(johnniwinther): Support extension types.
@@ -112,6 +115,32 @@ class _DynamicReference extends shared.TypeReference {
 
   @override
   String get name => 'dynamic';
+}
+
+class _EnumReference extends shared.EnumReference {
+  final EnumElement _element;
+
+  _EnumReference(this._element);
+
+  @override
+  String get name => _element.name;
+}
+
+final class _EnumScope extends shared.BaseEnumScope {
+  final EnumElement _enumElement;
+
+  @override
+  final _EnumReference enumReference;
+
+  _EnumScope(this._enumElement, this.enumReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    Element? member = _enumElement.augmented.getField(name);
+    member ??= _enumElement.augmented.getMethod(name);
+    return createMemberProto(typeArguments, name, member, _elementToProto);
+  }
 }
 
 class _ExtensionReference extends shared.ExtensionReference {

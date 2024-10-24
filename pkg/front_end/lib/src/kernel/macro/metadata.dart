@@ -50,9 +50,15 @@ shared.Proto builderToProto(Builder builder, String name) {
   } else if (builder is PrefixBuilder) {
     return new shared.PrefixProto(name, new PrefixScope(builder));
   } else if (builder is ClassBuilder) {
-    shared.ClassReference classReference = new ClassReference(builder);
-    return new shared.ClassProto(
-        classReference, new ClassScope(builder, classReference));
+    if (builder.isEnum) {
+      shared.EnumReference enumReference = new EnumReference(builder);
+      return new shared.EnumProto(
+          enumReference, new EnumScope(builder, enumReference));
+    } else {
+      shared.ClassReference classReference = new ClassReference(builder);
+      return new shared.ClassProto(
+          classReference, new ClassScope(builder, classReference));
+    }
   } else if (builder is DynamicTypeDeclarationBuilder) {
     return new shared.DynamicProto(new TypeReference(builder));
   } else if (builder is TypeAliasBuilder) {
@@ -144,6 +150,22 @@ final class ClassScope extends shared.BaseClassScope {
       return createConstructorProto(
           typeArguments, new ConstructorReference(constructor));
     }
+    Builder? member = builder.lookupLocalMember(name, setter: false);
+    return createMemberProto(typeArguments, name, member, builderToProto);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+final class EnumScope extends shared.BaseEnumScope {
+  final ClassBuilder builder;
+  @override
+  final shared.EnumReference enumReference;
+
+  EnumScope(this.builder, this.enumReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
     Builder? member = builder.lookupLocalMember(name, setter: false);
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
@@ -288,6 +310,16 @@ class ClassReference extends shared.ClassReference {
   final ClassBuilder builder;
 
   ClassReference(this.builder);
+
+  @override
+  String get name => builder.name;
+}
+
+// Coverage-ignore(suite): Not run.
+class EnumReference extends shared.EnumReference {
+  final ClassBuilder builder;
+
+  EnumReference(this.builder);
 
   @override
   String get name => builder.name;
