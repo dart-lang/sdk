@@ -29,62 +29,107 @@ final testTimeoutSeconds = 10;
 // All contents after this separator are considered are diff comments.
 final testDiffSeparator = '/** DIFF **/';
 
-final argParser = ArgParser()
-  ..addFlag('help', abbr: 'h', help: 'Display this message.', negatable: false)
-  ..addOption('runtime',
-      abbr: 'r',
-      defaultsTo: 'd8',
-      allowed: RuntimePlatforms.values.map((v) => v.text),
-      help: 'runtime platform used to run tests.')
-  ..addOption('named-configuration',
-      abbr: 'n',
-      defaultsTo: 'no-configuration',
-      help: 'configuration name to use for emitting test result files.')
-  ..addOption('output-directory', help: 'directory to emit test results files.')
-  ..addOption(
-    'filter',
-    abbr: 'f',
-    defaultsTo: r'.*',
-    help: 'regexp filter over tests to run.',
-  )
-  ..addOption('diff',
-      allowed: ['check', 'write', 'ignore'],
-      allowedHelp: {
-        'check': 'validate that reload test diffs are generated and correct.',
-        'write': 'write diffs for reload tests.',
-        'ignore': 'ignore reload diffs.',
+/// Command line options for the hot reload test suite.
+class Options {
+  final bool help;
+  final RuntimePlatforms runtime;
+  final String namedConfiguration;
+  final Uri? testResultsOutputDir;
+  final RegExp testNameFilter;
+  final DiffMode diffMode;
+  final bool debug;
+  final bool verbose;
+
+  Options._({
+    required this.help,
+    required this.runtime,
+    required this.namedConfiguration,
+    required this.testResultsOutputDir,
+    required this.testNameFilter,
+    required this.diffMode,
+    required this.debug,
+    required this.verbose,
+  });
+
+  static final _parser = ArgParser()
+    ..addFlag('help',
+        abbr: 'h',
+        help: 'Display this message.',
+        negatable: false,
+        defaultsTo: false)
+    ..addOption('runtime',
+        abbr: 'r',
+        defaultsTo: 'd8',
+        allowed: RuntimePlatforms.values.map((v) => v.text),
+        help: 'runtime platform used to run tests.')
+    ..addOption('named-configuration',
+        abbr: 'n',
+        defaultsTo: 'no-configuration',
+        help: 'configuration name to use for emitting test result files.')
+    ..addOption('output-directory',
+        help: 'directory to emit test results files.')
+    ..addOption('filter',
+        abbr: 'f', defaultsTo: r'.*', help: 'regexp filter over tests to run.')
+    ..addOption('diff',
+        allowed: ['check', 'write', 'ignore'],
+        allowedHelp: {
+          'check': 'validate that reload test diffs are generated and correct.',
+          'write': 'write diffs for reload tests.',
+          'ignore': 'ignore reload diffs.',
+        },
+        defaultsTo: 'check',
+        help: 'selects whether test diffs should be checked, written, or '
+            'ignored.')
+    ..addFlag('debug',
+        abbr: 'd',
+        defaultsTo: false,
+        negatable: true,
+        help: 'enables additional debug behavior and logging.')
+    ..addFlag('verbose',
+        abbr: 'v',
+        defaultsTo: true,
+        negatable: true,
+        help: 'enables verbose logging.');
+
+  /// Usage description for these command line options.
+  String get usage => _parser.usage;
+
+  factory Options.parse(List<String> args) {
+    final results = _parser.parse(args);
+    return Options._(
+      help: results.flag('help'),
+      runtime: RuntimePlatforms.values.byName(results.option('runtime')!),
+      namedConfiguration: results.option('named-configuration')!,
+      testResultsOutputDir: results.wasParsed('output-directory')
+          ? Uri.directory(results.option('output-directory')!)
+          : null,
+      testNameFilter: RegExp(results.option('filter')!),
+      diffMode: switch (results.option('diff')!) {
+        'check' => DiffMode.check,
+        'write' => DiffMode.write,
+        'ignore' => DiffMode.ignore,
+        _ => throw Exception('Invalid diff mode: ${results.option('diff')}'),
       },
-      defaultsTo: 'check',
-      help:
-          'selects whether test diffs should be checked, written, or ignored.')
-  ..addFlag('debug',
-      abbr: 'd',
-      defaultsTo: false,
-      negatable: true,
-      help: 'enables additional debug behavior and logging.')
-  ..addFlag('verbose',
-      abbr: 'v',
-      defaultsTo: true,
-      negatable: true,
-      help: 'enables verbose logging.');
+      debug: results.flag('debug'),
+      verbose: results.flag('verbose'),
+    );
+  }
+}
+
+/// Modes for running diff check tests on the hot reload suite.
+enum DiffMode { check, write, ignore }
 
 late final bool verbose;
-late final bool debug;
-
 Future<void> main(List<String> args) async {
-  final argResults = argParser.parse(args);
-  if (argResults['help'] as bool) {
-    print(argParser.usage);
+  final options = Options.parse(args);
+  if (options.help) {
+    print(options.usage);
     return;
   }
-  final runtimePlatform =
-      RuntimePlatforms.values.byName(argResults['runtime'] as String);
-  final testNameFilter = RegExp(argResults['filter'] as String);
-  debug = argResults['debug'] as bool;
-  verbose = argResults['verbose'] as bool;
+  verbose = options.verbose;
 
   // Used to communicate individual test failures to our test bots.
-  final emitTestResultsJson = argResults['output-directory'] != null;
+  final emitTestResultsJson = options.testResultsOutputDir != null;
   final buildRootUri = fe.computePlatformBinariesLocation(forceBuildDir: true);
   // We can use the outline instead of the full SDK dill here.
   final ddcPlatformDillUri = buildRootUri.resolve('ddc_outline.dill');
@@ -135,9 +180,9 @@ Future<void> main(List<String> args) async {
     '--output-incremental-dill=${outputIncrementalDillUri.toFilePath()}',
     '--packages=${packageConfigUri.toFilePath()}',
     '--sdk-root=${sdkRoot.toFilePath()}',
-    '--verbosity=${verbose ? 'all' : 'info'}',
+    '--verbosity=${options.verbose ? 'all' : 'info'}',
   ];
-  switch (runtimePlatform) {
+  switch (options.runtime) {
     case RuntimePlatforms.d8:
     case RuntimePlatforms.chrome:
       final ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(
@@ -175,13 +220,13 @@ Future<void> main(List<String> args) async {
 
   // Only allow Chrome when debugging a single test.
   // TODO(markzipan): Add support for full Chrome testing.
-  if (runtimePlatform == RuntimePlatforms.chrome) {
+  if (options.runtime == RuntimePlatforms.chrome) {
     var matchingTests =
         Directory.fromUri(allTestsUri).listSync().where((testDir) {
       if (testDir is! Directory) return false;
       final testDirParts = testDir.uri.pathSegments;
       final testName = testDirParts[testDirParts.length - 2];
-      return testNameFilter.hasMatch(testName);
+      return options.testNameFilter.hasMatch(testName);
     });
 
     if (matchingTests.length > 1) {
@@ -205,13 +250,13 @@ Future<void> main(List<String> args) async {
     final testName = testDirParts[testDirParts.length - 2];
 
     // Skip tests that don't match the name filter.
-    if (!testNameFilter.hasMatch(testName)) {
+    if (!options.testNameFilter.hasMatch(testName)) {
       _print('Skipping test', label: testName);
       continue;
     }
 
     var outcome = TestResultOutcome(
-      configuration: argResults['named-configuration'] as String,
+      configuration: options.namedConfiguration,
       testName: testName,
     );
     var stopwatch = Stopwatch()..start();
@@ -235,7 +280,7 @@ Future<void> main(List<String> args) async {
       final filePath = fileUri.path;
       final relativeFilePath = p.relative(filePath, from: allTestsUri.path);
       var outcome = TestResultOutcome(
-        configuration: argResults['named-configuration'] as String,
+        configuration: options.namedConfiguration,
         testName: '$relativeFilePath-diff',
         testOutput: testOutput,
       );
@@ -305,14 +350,14 @@ Future<void> main(List<String> args) async {
           '(requested: $maxGenerations, max: $globalMaxGenerations).');
     }
 
-    var diffMode = argResults['diff']!;
-    if (fe_shared.isWindows && diffMode != 'ignore') {
+    var diffMode = options.diffMode;
+    if (fe_shared.isWindows && diffMode != DiffMode.ignore) {
       _print("Diffing isn't supported on Windows. Defaulting to 'ignore'.",
           label: testName);
-      diffMode = 'ignore';
+      diffMode = DiffMode.ignore;
     }
     switch (diffMode) {
-      case 'check':
+      case DiffMode.check:
         _print('Checking source file diffs.', label: testName);
         filesByGeneration.forEach((basename, filesQueue) {
           final files = filesQueue.toList();
@@ -378,7 +423,7 @@ Future<void> main(List<String> args) async {
           });
         });
         break;
-      case 'write':
+      case DiffMode.write:
         _print('Generating source file diffs.', label: testName);
         filesByGeneration.forEach((basename, filesQueue) {
           final files = filesQueue.toList();
@@ -416,7 +461,7 @@ Future<void> main(List<String> args) async {
           });
         });
         break;
-      case 'ignore':
+      case DiffMode.ignore:
         _print('Ignoring source file diffs.', label: testName);
         filesByGeneration.forEach((basename, filesQueue) {
           filesQueue.unorderedElements.forEach(((int, Uri) element) {
@@ -428,8 +473,8 @@ Future<void> main(List<String> args) async {
     }
 
     // Skip this test directory if this platform is excluded.
-    if (testConfig.excludedPlatforms.contains(runtimePlatform)) {
-      _print('Skipping test on platform: ${runtimePlatform.text}',
+    if (testConfig.excludedPlatforms.contains(options.runtime)) {
+      _print('Skipping test on platform: ${options.runtime.text}',
           label: testName);
       continue;
     }
@@ -536,7 +581,7 @@ Future<void> main(List<String> args) async {
           '$outputDirectoryPath',
           label: testName);
 
-      if (runtimePlatform.emitsJS) {
+      if (options.runtime.emitsJS) {
         // Update the memory filesystem with the newly-created JS files
         _print(
             'Loading generation $currentGeneration files '
@@ -589,7 +634,7 @@ Future<void> main(List<String> args) async {
         .transform(utf8.decoder)
         .listen(testOutputBuffer.write);
     var testPassed = false;
-    switch (runtimePlatform) {
+    switch (options.runtime) {
       case RuntimePlatforms.d8:
         // Run the compiled JS generations with D8.
         _print('Creating D8 hot reload test suite.', label: testName);
@@ -687,8 +732,7 @@ Future<void> main(List<String> args) async {
   if (emitTestResultsJson) {
     final testOutcomeResults = testOutcomes.map((o) => o.toRecordJson());
     final testOutcomeLogs = testOutcomes.map((o) => o.toLogJson());
-    final testResultsOutputDir =
-        Uri.directory(argResults['output-directory'] as String);
+    final testResultsOutputDir = options.testResultsOutputDir!;
     _print('Saving test results to ${testResultsOutputDir.toFilePath()}.');
 
     // Test outputs must have one JSON blob per line and be newline-terminated.
