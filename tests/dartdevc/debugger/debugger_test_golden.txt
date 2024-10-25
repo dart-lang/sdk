@@ -5136,55 +5136,17 @@ Value:
     }
 ]
 -----------------------------------
-Test: Test library Module header
+Test: Test library formatting header
 Value:
 [
     "span",
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "Library Module: debugger_test"
+    "debugger_test"
 ]
 -----------------------------------
-Test: Test library Module body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": ""
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {}
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: Test library Module child 0 formatting header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;color: black"
-    },
-    "<FILE>"
-]
------------------------------------
-Test: Test library Module child 0 formatting body
+Test: Test library formatting body
 Value:
 [
     "ol",
@@ -5565,7 +5527,59 @@ Value:
             {
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
+            "getCurrentLibrary: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
             "main: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "link: "
         ],
         [
             "span",
