@@ -6070,6 +6070,37 @@ class StaticWarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const StaticWarningCode INVALID_NULL_AWARE_ELEMENT = StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The element can't be null, so the null-aware operator '?' is unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_ELEMENT',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode INVALID_NULL_AWARE_MAP_ENTRY_KEY =
+      StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The map entry key can't be null, so the null-aware operator '?' is "
+        "unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_KEY',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode INVALID_NULL_AWARE_MAP_ENTRY_VALUE =
+      StaticWarningCode(
+    'INVALID_NULL_AWARE_OPERATOR',
+    "The map entry value can't be null, so the null-aware operator '?' is "
+        "unnecessary.",
+    correctionMessage: "Try removing the operator '?'.",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
+  );
+
   ///  Parameters:
   ///  0: the null-aware operator that is invalid
   ///  1: the non-null-aware operator that can replace the invalid operator

@@ -44,12 +44,16 @@ const set1 = {nullConst, null, intConst, stringConst};
 const set2 = {0, ?intConst, stringConst};
 //           ^
 // [cfe] Constant evaluation error:
+//               ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_ELEMENTS_IN_CONST_SET
 
 const set3 = {null, intConst, "", ?stringConst};
 //           ^
 // [cfe] Constant evaluation error:
+//                                ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                                 ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_ELEMENTS_IN_CONST_SET
 
@@ -64,6 +68,8 @@ const set4 = {?nullVar, intConst, stringConst};
 const set5 = {nullConst, ?intVar, stringConst};
 //           ^
 // [cfe] Constant evaluation error:
+//                       ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                        ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_SET_ELEMENT
@@ -72,6 +78,8 @@ const set5 = {nullConst, ?intVar, stringConst};
 const set6 = {nullConst, intConst, ?stringVar};
 //           ^
 // [cfe] Constant evaluation error:
+//                                 ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                                  ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_SET_ELEMENT
@@ -102,6 +110,8 @@ const map3 = {null: ?nullVar, intConst: 1, stringConst: 1};
 const map4 = {null: 1, ?intVar: 1, stringConst: 1};
 //    ^
 // [cfe] Constant evaluation error:
+//                     ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                      ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_KEY
@@ -110,6 +120,8 @@ const map4 = {null: 1, ?intVar: 1, stringConst: 1};
 const map5 = {null: 1, 0: ?intVar, stringConst: 1};
 //    ^
 // [cfe] Constant evaluation error:
+//                        ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                         ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_VALUE
@@ -118,6 +130,8 @@ const map5 = {null: 1, 0: ?intVar, stringConst: 1};
 const map6 = {null: 1, 0: 1, ?stringVar: 1};
 //    ^
 // [cfe] Constant evaluation error:
+//                           ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                            ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_KEY
@@ -126,6 +140,8 @@ const map6 = {null: 1, 0: 1, ?stringVar: 1};
 const map7 = {null: 1, 0: 1, "": ?stringVar};
 //    ^
 // [cfe] Constant evaluation error:
+//                               ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                                ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_VALUE
@@ -136,10 +152,14 @@ const map8 = {null: 1, nullConst: ?intConst, stringConst: 1};
 // [cfe] Constant evaluation error:
 //                     ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
+//                                ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
 const map9 = {intConst: null, ?0: intConst, null: 1, stringConst: 1};
 //    ^
 // [cfe] Constant evaluation error:
+//                            ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                             ^
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 
@@ -148,5 +168,7 @@ const map10 = {intConst: null, 0: ?intConst, null: 1, stringConst: 1};
 // [cfe] Constant evaluation error:
 //                             ^
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
+//                                ^
+// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
 main() {}

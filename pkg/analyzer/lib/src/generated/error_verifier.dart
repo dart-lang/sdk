@@ -1158,6 +1158,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    if (node.keyQuestion != null) {
+      _checkForUnnecessaryNullAware(node.key, node.keyQuestion!,
+          nullAwareElementOrMapEntryKind:
+              _NullAwareElementOrMapEntryKind.mapEntryKey);
+    }
+    if (node.valueQuestion != null) {
+      _checkForUnnecessaryNullAware(node.value, node.valueQuestion!,
+          nullAwareElementOrMapEntryKind:
+              _NullAwareElementOrMapEntryKind.mapEntryValue);
+    }
+    super.visitMapLiteralEntry(node);
+  }
+
+  @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredElement!;
     _withEnclosingExecutable(element, () {
@@ -1294,6 +1309,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitNativeFunctionBody(NativeFunctionBody node) {
     _checkForNativeFunctionBodyInNonSdkCode(node);
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitNullAwareElement(NullAwareElement node) {
+    _checkForUnnecessaryNullAware(node.value, node.question,
+        nullAwareElementOrMapEntryKind:
+            _NullAwareElementOrMapEntryKind.element);
+    super.visitNullAwareElement(node);
   }
 
   @override
@@ -5551,7 +5574,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForUnnecessaryNullAware(Expression target, Token operator) {
+  void _checkForUnnecessaryNullAware(Expression target, Token operator,
+      {_NullAwareElementOrMapEntryKind? nullAwareElementOrMapEntryKind}) {
     if (target is SuperExpression) {
       return;
     }
@@ -5560,9 +5584,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     Token endToken = operator;
     List<Object> arguments = const [];
     if (operator.type == TokenType.QUESTION) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
-      endToken = operator.next!;
-      arguments = ['?[', '['];
+      if (nullAwareElementOrMapEntryKind == null) {
+        errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+        endToken = operator.next!;
+        arguments = ['?[', '['];
+      } else {
+        switch (nullAwareElementOrMapEntryKind) {
+          case _NullAwareElementOrMapEntryKind.element:
+            errorCode = StaticWarningCode.INVALID_NULL_AWARE_ELEMENT;
+          case _NullAwareElementOrMapEntryKind.mapEntryKey:
+            errorCode = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY;
+          case _NullAwareElementOrMapEntryKind.mapEntryValue:
+            errorCode = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE;
+        }
+      }
     } else if (operator.type == TokenType.QUESTION_PERIOD) {
       errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '.'];
@@ -7163,6 +7198,10 @@ class _MacroTypeAnnotationLocationConverter {
     );
   }
 }
+
+/// Signals the kind of the null-aware element or entry observed in list, set,
+/// or map literals.
+enum _NullAwareElementOrMapEntryKind { element, mapEntryKey, mapEntryValue }
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
 class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {

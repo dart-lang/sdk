@@ -451,6 +451,8 @@ import 'invalid_modifier_on_constructor_test.dart'
 import 'invalid_modifier_on_setter_test.dart' as invalid_modifier_on_setter;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
+import 'invalid_null_aware_elements_error_test.dart'
+    as invalid_null_aware_elements_error;
 import 'invalid_null_aware_operator_test.dart' as invalid_null_aware_operator;
 import 'invalid_override_of_non_virtual_member_test.dart'
     as invalid_override_of_non_virtual_member;
@@ -1215,6 +1217,7 @@ main() {
     invalid_modifier_on_constructor.main();
     invalid_modifier_on_setter.main();
     invalid_non_virtual_annotation.main();
+    invalid_null_aware_elements_error.main();
     invalid_null_aware_operator.main();
     invalid_override_of_non_virtual_member.main();
     invalid_override.main();

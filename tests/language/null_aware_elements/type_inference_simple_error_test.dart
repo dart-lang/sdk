@@ -10,8 +10,12 @@ String? stringQuestion() => null;
 
 main() {
   <String>[?""]; // Ok.
+  //       ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   <num>[?""];
+  //    ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
   //     ^
@@ -42,6 +46,8 @@ main() {
   // [cfe] Expected ']' before this.
 
   <String>[?"": 0];
+  //       ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //          ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ']' before this.
@@ -52,8 +58,12 @@ main() {
   // [cfe] Expected ']' before this.
 
   <String>{?""}; // Ok.
+  //       ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   <bool>{?""};
+  //     ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //     ^^^
   // [analyzer] COMPILE_TIME_ERROR.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
   //      ^
@@ -72,6 +82,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.MAP_ENTRY_NOT_IN_MAP
   //        ^
   // [cfe] Expected ',' before this.
+  //          ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   <String>{0: ?stringQuestion()};
   //       ^^^^^^^^^^^^^^^^^^^^
@@ -80,6 +92,8 @@ main() {
   // [cfe] Expected ',' before this.
 
   <String>{?"": 0};
+  //       ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //       ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MAP_ENTRY_NOT_IN_MAP
   //          ^
@@ -92,8 +106,12 @@ main() {
   // [cfe] Expected ',' before this.
 
   <String, Symbol>{?"": #foo}; // Ok.
+  //               ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   <num, Symbol>{?"": #foo};
+  //            ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //             ^^
   // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'num?'.
@@ -106,8 +124,12 @@ main() {
   // [cfe] A value of type 'String?' can't be assigned to a variable of type 'num?'.
 
   <int, String>{0: ?""}; // Ok.
+  //               ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   <int, num>{0: ?""};
+  //            ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //             ^^
   // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'num?'.
@@ -120,6 +142,8 @@ main() {
   // [cfe] A value of type 'String?' can't be assigned to a variable of type 'num?'.
 
   <int, String>{0: "", ?""};
+  //                   ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                   ^^^
   // [analyzer] COMPILE_TIME_ERROR.EXPRESSION_IN_MAP
   // [cfe] Expected ':' after this.
