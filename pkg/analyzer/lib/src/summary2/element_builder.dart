@@ -97,72 +97,71 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
     var fragmentName = _buildFragmentName(nameToken);
 
-    var element = ClassElementImpl(name, nameToken.offset);
-    element.name2 = fragmentName;
-    element.isAbstract = node.abstractKeyword != null;
-    element.isAugmentation = node.augmentKeyword != null;
-    element.isBase = node.baseKeyword != null;
-    element.isFinal = node.finalKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
-    element.isMacro = node.macroKeyword != null;
-    element.isMixinClass = node.mixinKeyword != null;
+    var fragment = ClassElementImpl(name, nameToken.offset);
+    fragment.name2 = fragmentName;
+    fragment.isAbstract = node.abstractKeyword != null;
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isBase = node.baseKeyword != null;
+    fragment.isFinal = node.finalKeyword != null;
+    fragment.isInterface = node.interfaceKeyword != null;
+    fragment.isMacro = node.macroKeyword != null;
+    fragment.isMixinClass = node.mixinKeyword != null;
     if (node.sealedKeyword != null) {
-      element.isAbstract = true;
-      element.isSealed = true;
+      fragment.isAbstract = true;
+      fragment.isSealed = true;
     }
-    element.hasExtendsClause = node.extendsClause != null;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
-    _setDocumentation(element, node);
+    fragment.hasExtendsClause = node.extendsClause != null;
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
+    _setDocumentation(fragment, node);
 
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
+    node.declaredElement = fragment;
+    _linker.elementNodes[fragment] = node;
 
     var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
-    var reference = _enclosingContext.addClass(refName, element);
-    if (!element.isAugmentation) {
-      _libraryBuilder.declare(name, reference);
+    var fragmentReference = _enclosingContext.addClass(refName, fragment);
+    if (!fragment.isAugmentation) {
+      _libraryBuilder.declare(name, fragmentReference);
     }
 
-    var holder = _EnclosingContext(reference, element,
+    var holder = _EnclosingContext(fragmentReference, fragment,
         constFieldsForFinalInstance: true);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
-    element.typeParameters = holder.typeParameters;
-    element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
+    fragment.typeParameters = holder.typeParameters;
+    fragment.accessors = holder.propertyAccessors;
+    fragment.constructors = holder.constructors;
+    fragment.fields = holder.fields;
+    fragment.methods = holder.methods;
 
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
     // TODO(scheglov): remove it eventually
-    _libraryBuilder.updateAugmentationTarget0(name, element);
+    _libraryBuilder.updateAugmentationTarget0(name, fragment);
 
-    var augmentedBuilder = _libraryBuilder.getAugmentedBuilder(name);
-    augmentedBuilder?.setPreviousFor(element);
+    var elementBuilder = _libraryBuilder.getElementBuilder(name);
+    elementBuilder?.setPreviousFor(fragment);
 
     // If the fragment is an augmentation, and the corresponding builder
     // has correct type, add the fragment to the builder. Otherwise, create
     // a new builder.
-    if (element.isAugmentation &&
-        augmentedBuilder is AugmentedClassDeclarationBuilder) {
-      augmentedBuilder.augment(element);
+    if (fragment.isAugmentation && elementBuilder is ClassElementBuilder) {
+      elementBuilder.augment(fragment);
     } else {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@class');
       var elementReference = containerRef.addChild(refName);
-      var element2 = NotAugmentedClassElementImpl(elementReference, element);
+      var element = NotAugmentedClassElementImpl(elementReference, fragment);
 
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         name,
-        AugmentedClassDeclarationBuilder(
-          firstFragment: element,
-          element: element2,
+        ClassElementBuilder(
+          firstFragment: fragment,
+          element: element,
         ),
       );
     }
@@ -475,14 +474,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.typeParameters = holder.typeParameters;
 
     if (element.augmentationTarget != null) {
-      var builder = _libraryBuilder.getAugmentedBuilder(name);
-      if (builder is AugmentedEnumDeclarationBuilder) {
+      var builder = _libraryBuilder.getElementBuilder(name);
+      if (builder is EnumElementBuilder) {
         builder.augment(element);
       }
     } else {
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         name,
-        AugmentedEnumDeclarationBuilder(
+        EnumElementBuilder(
           firstFragment: element,
         ),
       );
@@ -544,14 +543,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.updateAugmentationTarget(name, element);
 
       if (element.augmentationTarget != null) {
-        var builder = _libraryBuilder.getAugmentedBuilder(name);
-        if (builder is AugmentedExtensionDeclarationBuilder) {
+        var builder = _libraryBuilder.getElementBuilder(name);
+        if (builder is ExtensionElementBuilder) {
           builder.augment(element);
         }
       } else {
-        _libraryBuilder.putAugmentedBuilder(
+        _libraryBuilder.putElementBuilder(
           name,
-          AugmentedExtensionDeclarationBuilder(
+          ExtensionElementBuilder(
             firstFragment: element,
           ),
         );
@@ -618,14 +617,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
 
     if (element.augmentationTarget != null) {
-      var builder = _libraryBuilder.getAugmentedBuilder(name);
-      if (builder is AugmentedExtensionTypeDeclarationBuilder) {
+      var builder = _libraryBuilder.getElementBuilder(name);
+      if (builder is ExtensionTypeElementBuilder) {
         builder.augment(element);
       }
     } else {
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         name,
-        AugmentedExtensionTypeDeclarationBuilder(
+        ExtensionTypeElementBuilder(
           firstFragment: element,
         ),
       );
@@ -774,7 +773,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       _libraryBuilder.topVariables.addAccessor(element);
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         name,
         FragmentedElementBuilder(firstFragment: element),
       );
@@ -793,7 +792,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       _libraryBuilder.topVariables.addAccessor(element);
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         '$name=',
         FragmentedElementBuilder(firstFragment: element),
       );
@@ -806,7 +805,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       executableElement = element;
 
       _libraryBuilder.updateAugmentationTarget(name, element);
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         name,
         FragmentedElementBuilder(firstFragment: element),
       );
@@ -1141,14 +1140,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryBuilder.updateAugmentationTarget(name, element);
 
     if (element.augmentationTarget != null) {
-      switch (_libraryBuilder.getAugmentedBuilder(name)) {
-        case AugmentedMixinDeclarationBuilder builder:
+      switch (_libraryBuilder.getElementBuilder(name)) {
+        case MixinElementBuilder builder:
           builder.augment(element);
       }
     } else {
-      _libraryBuilder.putAugmentedBuilder(
+      _libraryBuilder.putElementBuilder(
         name,
-        AugmentedMixinDeclarationBuilder(
+        MixinElementBuilder(
           firstFragment: element,
         ),
       );
