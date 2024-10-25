@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show
@@ -392,11 +391,6 @@ extension ElementExtension on Element {
       }
     }
     return self;
-  }
-
-  bool get isMacro {
-    var self = this;
-    return self is ClassElementImpl && self.isMacro;
   }
 }
 

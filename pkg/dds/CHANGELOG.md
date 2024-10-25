@@ -1,4 +1,5 @@
 # 5.0.0-wip
+- [DAP] The debug adapter no longer spawns its own in-process copy of DDS, instead relying on one started by the Dart VM (or `Flutter`). This means the `enableDds` and `enableAuthCodes` arguments to the `DartDebugAdapter` base class have been deprecated and have any effect. Suppressing DDS (or auth codes) should be done in launch configuration (for example using `vmAdditionalArgs` or `toolArgs` depending on the target tool).
 - Updated the `devtools_shared` dependency to version `^11.0.0`.
 - Made `runDartDevelopmentServiceFromCLI` pass the specified bind address
   directly into `startDartDevelopmentService` without resolving the address.

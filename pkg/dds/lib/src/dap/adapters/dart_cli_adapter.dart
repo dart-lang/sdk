@@ -30,8 +30,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   DartCliDebugAdapter(
     super.channel, {
     super.ipv6,
-    super.enableDds,
-    super.enableAuthCodes,
     super.logger,
     super.onError,
   });
@@ -106,12 +104,10 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final vmArgs = <String>[
       ...?args.vmAdditionalArgs,
+      '--no-serve-devtools',
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
-        if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
-      '--disable-dart-dev',
-      '--no-dds',
       if (debug && vmServiceInfoFile != null) ...[
         '-DSILENT_VM_SERVICE=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'

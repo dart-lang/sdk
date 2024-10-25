@@ -8166,13 +8166,15 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @experimental
   @override
   bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
-    if (variable is LocalVariableElementImpl2) {
-      return isPotentiallyMutatedInScope(variable.wrappedElement);
-    }
-    if (variable case VariableElement variable) {
-      return isPotentiallyMutatedInScope(variable);
-    }
-    return false;
+    return switch (variable) {
+      LocalVariableElementImpl2() =>
+        isPotentiallyMutatedInScope(variable.wrappedElement),
+      VariableElement() =>
+        isPotentiallyMutatedInScope(variable as VariableElement),
+      FormalParameterElement(:VariableElement firstFragment) =>
+        isPotentiallyMutatedInScope(firstFragment),
+      _ => false,
+    };
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
