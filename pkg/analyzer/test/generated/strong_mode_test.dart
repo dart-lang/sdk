@@ -2068,7 +2068,7 @@ MethodInvocation
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         parameter: ParameterMember
           base: root::@parameter::s
@@ -3435,7 +3435,7 @@ FunctionDeclaration
           bound: NamedType
             name: num
             element: dart:core::<fragment>::@class::num
-            element2: dart:core::<fragment>::@class::num#element
+            element2: dart:core::@class::num
             type: num
           declaredElement: T@4
       rightBracket: >
@@ -4132,7 +4132,7 @@ MethodInvocation
               type: S
           rightBracket: >
         element: <testLibraryFragment>::@class::C
-        element2: <testLibraryFragment>::@class::C#element
+        element2: <testLibrary>::@class::C
         type: C<S>
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::C::@constructor::new
@@ -4156,7 +4156,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -4208,7 +4208,7 @@ MethodInvocation
               type: S
           rightBracket: >
         element: <testLibraryFragment>::@class::C
-        element2: <testLibraryFragment>::@class::C#element
+        element2: <testLibrary>::@class::C
         type: C<S>
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::C::@constructor::new
@@ -4232,7 +4232,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

@@ -68,7 +68,7 @@ NamedType
       NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::T

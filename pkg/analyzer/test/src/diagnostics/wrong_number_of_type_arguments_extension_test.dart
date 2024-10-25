@@ -39,7 +39,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -81,7 +81,7 @@ ExtensionOverride
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -126,12 +126,12 @@ ExtensionOverride
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

@@ -156,6 +156,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(element.augmentedInternal is AugmentedClassElementImpl);
     _writeFragmentName(element.name2);
     ClassElementFlags.write(_sink, element);
 
@@ -755,8 +757,9 @@ class BundleWriter {
     _writeList(unitElement.libraryImports, _writeImportElement);
     _writeList(unitElement.libraryExports, _writeExportElement);
 
+    // Write the metadata for parts here, even though we write parts below.
+    // The reason is that resolution data must be in a single chunk.
     _writePartElementsMetadata(unitElement);
-    _writeList(unitElement.parts, _writePartElement);
 
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
@@ -781,6 +784,10 @@ class BundleWriter {
       _sink.writeStringUtf8(macroGenerated.code);
       _sink.writeUint8List(macroGenerated.informativeBytes);
     });
+
+    // Write parts after this library fragment, so that when we read, we
+    // process fragments of declarations in the same order as we build them.
+    _writeList(unitElement.parts, _writePartElement);
   }
 
   static TypeParameterVarianceTag _encodeVariance(

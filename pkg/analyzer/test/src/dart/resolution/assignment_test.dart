@@ -1596,7 +1596,7 @@ AssignmentExpression
   readElement2: <null>
   readType: null
   writeElement: <testLibraryFragment>::@class::C
-  writeElement2: <testLibraryFragment>::@class::C#element
+  writeElement2: <testLibrary>::@class::C
   writeType: InvalidType
   staticElement: <null>
   element: <null>
@@ -2031,7 +2031,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2086,7 +2086,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2139,7 +2139,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2284,7 +2284,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2333,7 +2333,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2621,7 +2621,7 @@ AssignmentExpression
         type: NamedType
           name: B
           element: <testLibraryFragment>::@class::B
-          element2: <testLibraryFragment>::@class::B#element
+          element2: <testLibrary>::@class::B
           type: B
         staticElement: <testLibraryFragment>::@class::B::@constructor::new
         element: <testLibraryFragment>::@class::B::@constructor::new#element
@@ -4840,7 +4840,7 @@ AssignmentExpression
       type: NamedType
         name: C
         element: <testLibraryFragment>::@class::C
-        element2: <testLibraryFragment>::@class::C#element
+        element2: <testLibrary>::@class::C
         type: C
       staticElement: <testLibraryFragment>::@class::C::@constructor::new
       element: <testLibraryFragment>::@class::C::@constructor::new#element
@@ -5510,7 +5510,7 @@ AssignmentExpression
       type: NamedType
         name: C
         element: <testLibraryFragment>::@class::C
-        element2: <testLibraryFragment>::@class::C#element
+        element2: <testLibrary>::@class::C
         type: C
       staticElement: <testLibraryFragment>::@class::C::@constructor::new
       element: <testLibraryFragment>::@class::C::@constructor::new#element
@@ -5702,10 +5702,10 @@ AssignmentExpression
     parameter: <null>
     staticType: int
   readElement: dart:core::<fragment>::@class::int
-  readElement2: dart:core::<fragment>::@class::int#element
+  readElement2: dart:core::@class::int
   readType: InvalidType
   writeElement: dart:core::<fragment>::@class::int
-  writeElement2: dart:core::<fragment>::@class::int#element
+  writeElement2: dart:core::@class::int
   writeType: InvalidType
   staticElement: <null>
   element: <null>
@@ -5740,7 +5740,7 @@ AssignmentExpression
   readElement2: <null>
   readType: null
   writeElement: dart:core::<fragment>::@class::int
-  writeElement2: dart:core::<fragment>::@class::int#element
+  writeElement2: dart:core::@class::int
   writeType: InvalidType
   staticElement: <null>
   element: <null>

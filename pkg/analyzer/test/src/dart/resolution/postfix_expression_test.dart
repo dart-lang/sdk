@@ -365,10 +365,10 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: dart:core::<fragment>::@class::int
-  readElement2: dart:core::<fragment>::@class::int#element
+  readElement2: dart:core::@class::int
   readType: InvalidType
   writeElement: dart:core::<fragment>::@class::int
-  writeElement2: dart:core::<fragment>::@class::int#element
+  writeElement2: dart:core::@class::int
   writeType: InvalidType
   staticElement: <null>
   element: <null>
@@ -554,7 +554,7 @@ PostfixExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element

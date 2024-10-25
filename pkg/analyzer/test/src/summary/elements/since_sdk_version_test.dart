@@ -76,7 +76,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           constructors
             named @55
               reference: dart:foo::<fragment>::@class::A::@constructor::named
@@ -86,7 +86,7 @@ library
               nameEnd: 60
         class B @73
           reference: dart:foo::<fragment>::@class::B
-          element: dart:foo::<fragment>::@class::B#element
+          element: dart:foo::@class::B
           constructors
             named @81
               reference: dart:foo::<fragment>::@class::B::@constructor::named
@@ -95,12 +95,14 @@ library
               nameEnd: 86
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       constructors
         named
           firstFragment: dart:foo::<fragment>::@class::A::@constructor::named
     class B
+      reference: dart:foo::@class::B
       firstFragment: dart:foo::<fragment>::@class::B
       constructors
         named
@@ -160,7 +162,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           fields
             foo @57
               reference: dart:foo::<fragment>::@class::A::@field::foo
@@ -182,6 +184,7 @@ library
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields
@@ -244,7 +247,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           fields
             <null-name>
               reference: dart:foo::<fragment>::@class::A::@field::foo
@@ -257,6 +260,7 @@ library
               sinceSdkVersion: 2.15.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields
@@ -307,7 +311,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           methods
             foo @58
               reference: dart:foo::<fragment>::@class::A::@method::foo
@@ -315,6 +319,7 @@ library
               sinceSdkVersion: 2.15.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       methods
@@ -361,7 +366,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           methods
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
@@ -369,6 +374,7 @@ library
               sinceSdkVersion: 2.16.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       methods
@@ -415,7 +421,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           methods
             foo @75
               reference: dart:foo::<fragment>::@class::A::@method::foo
@@ -423,6 +429,7 @@ library
               sinceSdkVersion: 2.15.0
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       methods
@@ -476,7 +483,7 @@ library
       classes
         class A @47
           reference: dart:foo::<fragment>::@class::A
-          element: dart:foo::<fragment>::@class::A#element
+          element: dart:foo::@class::A
           fields
             <null-name>
               reference: dart:foo::<fragment>::@class::A::@field::foo
@@ -492,6 +499,7 @@ library
                   element: dart:foo::<fragment>::@class::A::@setter::foo::@parameter::_#element
   classes
     class A
+      reference: dart:foo::@class::A
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields

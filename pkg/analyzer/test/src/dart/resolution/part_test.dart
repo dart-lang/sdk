@@ -114,7 +114,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          element2: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A?
         variables
           VariableDeclaration
@@ -223,7 +223,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a_html.dart::@class::A
-          element2: <testLibrary>::@fragment::package:test/a_html.dart::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A?
         variables
           VariableDeclaration
@@ -438,7 +438,7 @@ CompilationUnit
           name: A
           question: ?
           element: <testLibrary>::@fragment::package:test/a_io.dart::@class::A
-          element2: <testLibrary>::@fragment::package:test/a_io.dart::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A?
         variables
           VariableDeclaration

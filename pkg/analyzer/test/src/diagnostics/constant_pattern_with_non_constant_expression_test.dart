@@ -53,7 +53,7 @@ GuardedPattern
       prefix: SimpleIdentifier
         token: A
         staticElement: <testLibraryFragment>::@class::A
-        element: <testLibraryFragment>::@class::A#element
+        element: <testLibrary>::@class::A
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -131,10 +131,10 @@ GuardedPattern
         identifier: SimpleIdentifier
           token: A
           staticElement: package:test/a.dart::<fragment>::@class::A
-          element: package:test/a.dart::<fragment>::@class::A#element
+          element: package:test/a.dart::@class::A
           staticType: null
         staticElement: package:test/a.dart::<fragment>::@class::A
-        element: package:test/a.dart::<fragment>::@class::A#element
+        element: package:test/a.dart::@class::A
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
@@ -177,10 +177,10 @@ GuardedPattern
         identifier: SimpleIdentifier
           token: A
           staticElement: package:test/a.dart::<fragment>::@class::A
-          element: package:test/a.dart::<fragment>::@class::A#element
+          element: package:test/a.dart::@class::A
           staticType: null
         staticElement: package:test/a.dart::<fragment>::@class::A
-        element: package:test/a.dart::<fragment>::@class::A#element
+        element: package:test/a.dart::@class::A
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
@@ -214,7 +214,7 @@ GuardedPattern
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
@@ -133,6 +134,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ClassElementImpl(name, 0);
+    NotAugmentedClassElementImpl(Reference.root(), element);
     element.isAbstract = isAbstract;
     element.isAugmentation = isAugmentation;
     element.isSealed = isSealed;
@@ -639,7 +641,7 @@ extension ClassElementImplExtension on ClassElementImpl {
   void addAugmentations(List<ClassElementImpl> augmentations) {
     expect(this.augmented, TypeMatcher<NotAugmentedClassElementImpl>());
 
-    var augmented = AugmentedClassElementImpl(this);
+    var augmented = AugmentedClassElementImpl(Reference.root(), this);
     augmentedInternal = augmented;
 
     var augmentationTarget = this;

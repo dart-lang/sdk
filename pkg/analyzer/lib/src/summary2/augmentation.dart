@@ -13,23 +13,28 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
-  final ClassElementImpl declaration;
+  final ClassElementImpl firstFragment;
 
   AugmentedClassDeclarationBuilder({
-    required this.declaration,
+    required MaybeAugmentedClassElementMixin element,
+    required this.firstFragment,
   }) {
-    addFields(declaration.fields);
-    addConstructors(declaration.constructors);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
+    firstFragment.augmentedInternal = element;
+    addFields(firstFragment.fields);
+    addConstructors(firstFragment.constructors);
+    addAccessors(firstFragment.accessors);
+    addMethods(firstFragment.methods);
   }
 
-  void augment(ClassElementImpl element) {
-    addFields(element.fields);
-    addConstructors(element.constructors);
-    addAccessors(element.accessors);
-    addMethods(element.methods);
-    _updatedAugmented(element);
+  void augment(ClassElementImpl fragment) {
+    var element = _ensureAugmented(firstFragment);
+    fragment.augmentedInternal = firstFragment.augmentedInternal;
+
+    addFields(fragment.fields);
+    addConstructors(fragment.constructors);
+    addAccessors(fragment.accessors);
+    addMethods(fragment.methods);
+    _updatedAugmented(element, fragment);
   }
 }
 
@@ -47,11 +52,14 @@ class AugmentedEnumDeclarationBuilder
   }
 
   void augment(EnumElementImpl element) {
+    var augmented = _ensureAugmented(declaration);
+    element.augmentedInternal = declaration.augmentedInternal;
+
     addFields(element.fields);
     addConstructors(element.constructors);
     addAccessors(element.accessors);
     addMethods(element.methods);
-    _updatedAugmented(element);
+    _updatedAugmented(augmented, element);
   }
 }
 
@@ -68,10 +76,13 @@ class AugmentedExtensionDeclarationBuilder
   }
 
   void augment(ExtensionElementImpl element) {
+    var augmented = _ensureAugmented(declaration);
+    element.augmentedInternal = declaration.augmentedInternal;
+
     addFields(element.fields);
     addAccessors(element.accessors);
     addMethods(element.methods);
-    _updatedAugmented(element);
+    _updatedAugmented(augmented, element);
   }
 }
 
@@ -89,11 +100,14 @@ class AugmentedExtensionTypeDeclarationBuilder
   }
 
   void augment(ExtensionTypeElementImpl element) {
+    var augmented = _ensureAugmented(declaration);
+    element.augmentedInternal = declaration.augmentedInternal;
+
     addFields(element.fields);
     addConstructors(element.constructors);
     addAccessors(element.accessors);
     addMethods(element.methods);
-    _updatedAugmented(element);
+    _updatedAugmented(augmented, element);
   }
 }
 
@@ -183,7 +197,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
     }
   }
 
-  AugmentedInstanceElementImpl? _ensureAugmented(
+  AugmentedInstanceElementImpl _ensureAugmented(
     InstanceElementImpl augmentation,
   ) {
     var maybeAugmented = augmentation.augmented;
@@ -229,13 +243,10 @@ abstract class AugmentedInstanceDeclarationBuilder {
     return target;
   }
 
-  void _updatedAugmented(InstanceElementImpl augmentation) {
-    assert(augmentation.augmentationTarget != null);
-    var augmented = _ensureAugmented(augmentation);
-    if (augmented == null) {
-      return;
-    }
-
+  void _updatedAugmented(
+    AugmentedInstanceElementImpl augmented,
+    InstanceElementImpl augmentation,
+  ) {
     var declaration = augmented.declaration;
     var declarationTypeParameters = declaration.typeParameters;
 
@@ -320,10 +331,13 @@ class AugmentedMixinDeclarationBuilder
   }
 
   void augment(MixinElementImpl element) {
+    var augmented = _ensureAugmented(declaration);
+    element.augmentedInternal = declaration.augmentedInternal;
+
     addFields(element.fields);
     addAccessors(element.accessors);
     addMethods(element.methods);
-    _updatedAugmented(element);
+    _updatedAugmented(augmented, element);
   }
 }
 

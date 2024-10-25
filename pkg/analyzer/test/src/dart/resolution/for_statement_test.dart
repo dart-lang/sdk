@@ -46,7 +46,7 @@ ForStatement
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: v
       declaredElement: v@56
@@ -731,7 +731,7 @@ ForStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@27
@@ -873,7 +873,7 @@ ForStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@38
@@ -1070,7 +1070,7 @@ ForStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@39
@@ -1231,7 +1231,7 @@ ForStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@52

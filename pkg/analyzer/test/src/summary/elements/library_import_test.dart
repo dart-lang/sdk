@@ -63,7 +63,7 @@ library
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -71,6 +71,7 @@ library
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -128,7 +129,7 @@ library
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -136,6 +137,7 @@ library
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -193,7 +195,7 @@ library
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -201,6 +203,7 @@ library
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -258,7 +261,7 @@ library
       classes
         class B @104
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -266,6 +269,7 @@ library
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -323,7 +327,7 @@ library
       classes
         class B @124
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -331,6 +335,7 @@ library
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -892,14 +897,14 @@ library
       classes
         class C @31
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
         class D @42
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -907,11 +912,13 @@ library
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: C
       constructors

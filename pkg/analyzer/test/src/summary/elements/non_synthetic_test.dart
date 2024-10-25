@@ -70,7 +70,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo
@@ -94,6 +94,7 @@ library
                   element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         foo
@@ -160,7 +161,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             <null-name>
               reference: <testLibraryFragment>::@class::C::@field::foo
@@ -176,6 +177,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::foo#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic foo
@@ -239,7 +241,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             <null-name>
               reference: <testLibraryFragment>::@class::C::@field::foo
@@ -258,6 +260,7 @@ library
                   element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::value#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic foo

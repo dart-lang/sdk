@@ -179,7 +179,7 @@ ImplicitCallReference
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: <testLibraryFragment>::@class::C::@method::call
@@ -746,16 +746,16 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<int, String>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
@@ -798,7 +798,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -843,12 +843,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -894,12 +894,12 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::X
@@ -965,7 +965,7 @@ InstanceCreationExpression
         element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1029,11 +1029,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1097,11 +1097,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1258,7 +1258,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1309,7 +1309,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1329,12 +1329,12 @@ InstanceCreationExpression
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1374,7 +1374,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1394,12 +1394,12 @@ InstanceCreationExpression
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1463,16 +1463,16 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int, String>
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::new
@@ -1524,7 +1524,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -1579,12 +1579,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList

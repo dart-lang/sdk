@@ -79,7 +79,7 @@ InstanceCreationExpression
     type: NamedType
       name: B
       element: <testLibraryFragment>::@class::B
-      element2: <testLibraryFragment>::@class::B#element
+      element2: <testLibrary>::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::B::@constructor::new

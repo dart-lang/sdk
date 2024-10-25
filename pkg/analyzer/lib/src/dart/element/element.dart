@@ -109,9 +109,15 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
 class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
     with MaybeAugmentedClassElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final ClassElementImpl declaration;
 
-  AugmentedClassElementImpl(this.declaration);
+  AugmentedClassElementImpl(this.reference, this.declaration) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 }
 
 class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
@@ -209,8 +215,7 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 class ClassElementImpl extends ClassOrMixinElementImpl
     with AugmentableElement<ClassElementImpl>
     implements ClassElement, ClassFragment {
-  late MaybeAugmentedClassElementMixin augmentedInternal =
-      NotAugmentedClassElementImpl(this);
+  late MaybeAugmentedClassElementMixin augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -275,12 +280,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   MaybeAugmentedClassElementMixin get augmented {
-    if (isAugmentation) {
-      if (augmentationTarget case var augmentationTarget?) {
-        return augmentationTarget.augmented;
-      }
-    }
-
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -306,7 +305,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  ClassElement2 get element => super.element as ClassElement2;
+  MaybeAugmentedClassElementMixin get element {
+    return augmented;
+  }
 
   @override
   set fields(List<FieldElementImpl> fields) {
@@ -3175,6 +3176,13 @@ abstract class ElementImpl2 implements Element2 {
 
   @override
   Element2 get nonSynthetic2 => this;
+
+  /// The reference of this element, used during reading summaries.
+  ///
+  /// Can be `null` if this element cannot be referenced from outside,
+  /// for example a [LocalFunctionElement], a [TypeParameterElement],
+  /// a positional [FormalParameterElement], etc.
+  Reference? get reference => null;
 
   @override
   AnalysisSession? get session {
@@ -6680,6 +6688,9 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
   @override
   bool get isValidMixin => declaration.isValidMixin;
 
+  /// See [ElementImpl2.reference].
+  Reference get reference;
+
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitClassElement(this);
@@ -8296,16 +8307,22 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
     with MaybeAugmentedClassElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final ClassElementImpl element;
 
-  NotAugmentedClassElementImpl(this.element);
+  NotAugmentedClassElementImpl(this.reference, this.element) {
+    reference.element2 = this;
+    element.augmentedInternal = this;
+  }
 
   @override
   ClassElementImpl get declaration => element;
 
   @override
   AugmentedClassElementImpl toAugmented() {
-    var augmented = AugmentedClassElementImpl(declaration);
+    var augmented = AugmentedClassElementImpl(reference, declaration);
     declaration.augmentedInternal = augmented;
     return augmented;
   }
@@ -8889,6 +8906,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 }
 
 class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
+  @override
   final Reference reference;
 
   @override

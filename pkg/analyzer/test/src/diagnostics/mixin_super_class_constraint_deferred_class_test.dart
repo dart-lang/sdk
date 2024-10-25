@@ -38,7 +38,7 @@ MixinOnClause
         element2: <testLibraryFragment>::@prefix2::math
       name: Random
       element: dart:math::<fragment>::@class::Random
-      element2: dart:math::<fragment>::@class::Random#element
+      element2: dart:math::@class::Random
       type: Random
 ''');
   }

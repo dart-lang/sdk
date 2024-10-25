@@ -34,7 +34,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
-          element: dart:math::<fragment>::@class::Random#element
+          element: dart:math::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -90,7 +90,7 @@ ExportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
-          element: dart:math::<fragment>::@class::Random#element
+          element: dart:math::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryExportElement

@@ -588,7 +588,7 @@ PropertyAccess
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -626,7 +626,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -678,7 +678,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -851,7 +851,7 @@ CascadeExpression
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -902,7 +902,7 @@ CascadeExpression
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -1537,7 +1537,7 @@ PropertyAccess
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -1578,7 +1578,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -1632,7 +1632,7 @@ AssignmentExpression
         type: NamedType
           name: A
           element: <testLibraryFragment>::@class::A
-          element2: <testLibraryFragment>::@class::A#element
+          element2: <testLibrary>::@class::A
           type: A
         staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element

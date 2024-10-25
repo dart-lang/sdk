@@ -41,7 +41,7 @@ ThisExpression
   thisKeyword: this
   staticType: A
     element: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
 ''');
   }
 

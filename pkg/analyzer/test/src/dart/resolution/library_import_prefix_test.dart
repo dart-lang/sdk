@@ -96,7 +96,7 @@ InstanceCreationExpression
     type: NamedType
       name: C
       element: <testLibraryFragment>::@class::C
-      element2: <testLibraryFragment>::@class::C#element
+      element2: <testLibrary>::@class::C
       type: C<dynamic>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::C::@constructor::new

@@ -162,7 +162,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A::@def::0
-          element: <testLibraryFragment>::@class::A::@def::0#element
+          element: <testLibrary>::@class::A::@def::0
           fields
             f01 @25
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f01
@@ -185,7 +185,7 @@ library
               element: <testLibraryFragment>::@class::A::@def::0::@getter::f02#element
         class A @69
           reference: <testLibraryFragment>::@class::A::@def::1
-          element: <testLibraryFragment>::@class::A::@def::1#element
+          element: <testLibrary>::@class::A::@def::1
           fields
             f11 @88
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f11
@@ -208,7 +208,7 @@ library
               element: <testLibraryFragment>::@class::A::@def::1::@getter::f12#element
         class A @132
           reference: <testLibraryFragment>::@class::A::@def::2
-          element: <testLibraryFragment>::@class::A::@def::2#element
+          element: <testLibrary>::@class::A::@def::2
           fields
             f21 @151
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f21
@@ -231,6 +231,7 @@ library
               element: <testLibraryFragment>::@class::A::@def::2::@getter::f22#element
   classes
     class A
+      reference: <testLibrary>::@class::A::@def::0
       firstFragment: <testLibraryFragment>::@class::A::@def::0
       fields
         static const f01
@@ -250,6 +251,7 @@ library
         synthetic static get f02
           firstFragment: <testLibraryFragment>::@class::A::@def::0::@getter::f02
     class A
+      reference: <testLibrary>::@class::A::@def::1
       firstFragment: <testLibraryFragment>::@class::A::@def::1
       fields
         static const f11
@@ -269,6 +271,7 @@ library
         synthetic static get f12
           firstFragment: <testLibraryFragment>::@class::A::@def::1::@getter::f12
     class A
+      reference: <testLibrary>::@class::A::@def::2
       firstFragment: <testLibraryFragment>::@class::A::@def::2
       fields
         static const f21
@@ -329,7 +332,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             named @14
               reference: <testLibraryFragment>::@class::A::@constructor::named::@def::0
@@ -343,6 +346,7 @@ library
               nameEnd: 32
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         named
@@ -430,7 +434,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo::@def::0
@@ -468,6 +472,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@def::1::@parameter::_foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
@@ -543,7 +548,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -557,6 +562,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo::@def::1#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -652,21 +658,21 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @17
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
         class X @28
           reference: <testLibraryFragment>::@class::X::@def::0
-          element: <testLibraryFragment>::@class::X::@def::0#element
+          element: <testLibrary>::@class::X::@def::0
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::X::@def::0::@constructor::new
@@ -682,7 +688,7 @@ library
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class X @48
           reference: <testLibraryFragment>::@class::X::@def::1
-          element: <testLibraryFragment>::@class::X::@def::1#element
+          element: <testLibrary>::@class::X::@def::1
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::X::@def::1::@constructor::new
@@ -702,16 +708,19 @@ library
           element: <testLibraryFragment>::@mixin::M#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class alias X
+      reference: <testLibrary>::@class::X::@def::0
       firstFragment: <testLibraryFragment>::@class::X::@def::0
       supertype: A
       constructors
@@ -719,6 +728,7 @@ library
           firstFragment: <testLibraryFragment>::@class::X::@def::0::@constructor::new
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class alias X
+      reference: <testLibrary>::@class::X::@def::1
       firstFragment: <testLibraryFragment>::@class::X::@def::1
       supertype: B
       constructors

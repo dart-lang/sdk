@@ -32,7 +32,7 @@ ConstantPattern
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -67,7 +67,7 @@ ConstantPattern
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -193,10 +193,10 @@ ConstantPattern
       identifier: SimpleIdentifier
         token: A
         staticElement: package:test/a.dart::<fragment>::@class::A
-        element: package:test/a.dart::<fragment>::@class::A#element
+        element: package:test/a.dart::@class::A
         staticType: null
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -303,7 +303,7 @@ ConstantPattern
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     staticType: Type
   matchedValueType: Object?
@@ -331,7 +331,7 @@ ListPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         staticType: Type
       matchedValueType: Object?
@@ -384,7 +384,7 @@ ConstantPattern
         element2: <testLibraryFragment>::@prefix2::math
       name: Random
       element: dart:math::<fragment>::@class::Random
-      element2: dart:math::<fragment>::@class::Random#element
+      element2: dart:math::@class::Random
       type: Random
     staticType: Type
   matchedValueType: Object?

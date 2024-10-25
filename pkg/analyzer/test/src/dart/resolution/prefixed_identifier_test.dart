@@ -63,7 +63,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -94,7 +94,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -503,10 +503,10 @@ PrefixedIdentifier
   identifier: SimpleIdentifier
     token: A
     staticElement: package:test/a.dart::<fragment>::@class::A
-    element: package:test/a.dart::<fragment>::@class::A#element
+    element: package:test/a.dart::@class::A
     staticType: Type
   staticElement: package:test/a.dart::<fragment>::@class::A
-  element: package:test/a.dart::<fragment>::@class::A#element
+  element: package:test/a.dart::@class::A
   staticType: Type
 ''');
   }
@@ -782,7 +782,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -820,7 +820,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -858,7 +858,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   period: .
   identifier: SimpleIdentifier

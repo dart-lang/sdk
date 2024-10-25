@@ -57,7 +57,7 @@ library
               type: NamedType
                 name: int @32
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
               staticType: int
       accessors
@@ -320,7 +320,7 @@ library
                   prefix: SimpleIdentifier
                     token: C @61
                     staticElement: <testLibraryFragment>::@class::C
-                    element: <testLibraryFragment>::@class::C#element
+                    element: <testLibrary>::@class::C
                     staticType: null
                   period: . @62
                   identifier: SimpleIdentifier
@@ -341,7 +341,7 @@ library
                   prefix: SimpleIdentifier
                     token: C @72
                     staticElement: <testLibraryFragment>::@class::C
-                    element: <testLibraryFragment>::@class::C#element
+                    element: <testLibrary>::@class::C
                     staticType: null
                   period: . @73
                   identifier: SimpleIdentifier
@@ -378,7 +378,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             f1 @29
               reference: <testLibraryFragment>::@class::C::@field::f1
@@ -408,6 +408,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::f3#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const f1
@@ -499,7 +500,7 @@ library
                 type: NamedType
                   name: C @95
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C<int>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::C::@constructor::new
@@ -525,7 +526,7 @@ library
                 type: NamedType
                   name: C @124
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C<int>
                 period: . @125
                 name: SimpleIdentifier
@@ -565,7 +566,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @8
               element: <not-implemented>
@@ -611,6 +612,7 @@ library
           element: <testLibraryFragment>::@getter::y#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -697,7 +699,7 @@ library
                 type: NamedType
                   name: A @35
                   element: <testLibraryFragment>::@class::A
-                  element2: <testLibraryFragment>::@class::A#element
+                  element2: <testLibrary>::@class::A
                   type: null
                 period: . @36
                 name: SimpleIdentifier
@@ -722,7 +724,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             named @14
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -740,6 +742,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         named
@@ -801,7 +804,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             f @22
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -817,6 +820,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::f#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         final f
@@ -953,7 +957,7 @@ library
                   NamedType
                     name: int @30
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @33
               staticType: void Function(int)
@@ -1226,7 +1230,7 @@ library
                     type: NamedType
                       name: P1 @144
                       element: <testLibraryFragment>::@class::P1
-                      element2: <testLibraryFragment>::@class::P1#element
+                      element2: <testLibrary>::@class::P1
                       type: P1<dynamic>
                     staticElement: ConstructorMember
                       base: <testLibraryFragment>::@class::P1::@constructor::new
@@ -1246,11 +1250,11 @@ library
                           NamedType
                             name: int @155
                             element: dart:core::<fragment>::@class::int
-                            element2: dart:core::<fragment>::@class::int#element
+                            element2: dart:core::@class::int
                             type: int
                         rightBracket: > @158
                       element: <testLibraryFragment>::@class::P2
-                      element2: <testLibraryFragment>::@class::P2#element
+                      element2: <testLibrary>::@class::P2
                       type: P2<int>
                     staticElement: ConstructorMember
                       base: <testLibraryFragment>::@class::P2::@constructor::new
@@ -1276,7 +1280,7 @@ library
       classes
         class P @6
           reference: <testLibraryFragment>::@class::P
-          element: <testLibraryFragment>::@class::P#element
+          element: <testLibrary>::@class::P
           typeParameters
             T @8
               element: <not-implemented>
@@ -1286,7 +1290,7 @@ library
               element: <testLibraryFragment>::@class::P::@constructor::new#element
         class P1 @35
           reference: <testLibraryFragment>::@class::P1
-          element: <testLibraryFragment>::@class::P1#element
+          element: <testLibrary>::@class::P1
           typeParameters
             T @38
               element: <not-implemented>
@@ -1299,7 +1303,7 @@ library
                 substitution: {T: T}
         class P2 @79
           reference: <testLibraryFragment>::@class::P2
-          element: <testLibraryFragment>::@class::P2#element
+          element: <testLibrary>::@class::P2
           typeParameters
             T @82
               element: <not-implemented>
@@ -1321,6 +1325,7 @@ library
           element: <testLibraryFragment>::@getter::values#element
   classes
     class P
+      reference: <testLibrary>::@class::P
       firstFragment: <testLibraryFragment>::@class::P
       typeParameters
         T
@@ -1328,6 +1333,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::P::@constructor::new
     class P1
+      reference: <testLibrary>::@class::P1
       firstFragment: <testLibraryFragment>::@class::P1
       typeParameters
         T
@@ -1337,6 +1343,7 @@ library
           firstFragment: <testLibraryFragment>::@class::P1::@constructor::new
           superConstructor: <testLibraryFragment>::@class::P::@constructor::new#element
     class P2
+      reference: <testLibrary>::@class::P2
       firstFragment: <testLibraryFragment>::@class::P2
       typeParameters
         T
@@ -1424,7 +1431,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             f @25
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -1444,6 +1451,7 @@ library
           element: <testLibraryFragment>::@function::foo#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const f
@@ -1510,7 +1518,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             f @18
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -1530,6 +1538,7 @@ library
           element: <testLibraryFragment>::@function::foo#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         final f
@@ -1643,7 +1652,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             const <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1660,6 +1669,7 @@ library
                   rightParenthesis: ) @46
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -1713,7 +1723,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             const <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1736,6 +1746,7 @@ library
                   rightParenthesis: ) @42
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -1797,7 +1808,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @26
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -1826,6 +1837,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -1954,7 +1966,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             const <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1989,6 +2001,7 @@ library
               redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -2068,7 +2081,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             const <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2080,7 +2093,7 @@ library
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::b#element
         class B @49
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             const <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -2105,6 +2118,7 @@ library
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -2115,6 +2129,7 @@ library
             requiredPositional b
               type: Object
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -2534,16 +2549,16 @@ library
                       NamedType
                         name: int @63
                         element: dart:core::<fragment>::@class::int
-                        element2: dart:core::<fragment>::@class::int#element
+                        element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @68
                         element: dart:core::<fragment>::@class::String
-                        element2: dart:core::<fragment>::@class::String#element
+                        element2: dart:core::@class::String
                         type: String
                     rightBracket: > @74
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C<int, String>
                 period: . @75
                 name: SimpleIdentifier
@@ -2581,7 +2596,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             K @8
               element: <not-implemented>
@@ -2609,6 +2624,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         K
@@ -2670,16 +2686,16 @@ library
                       NamedType
                         name: int @35
                         element: dart:core::<fragment>::@class::int
-                        element2: dart:core::<fragment>::@class::int#element
+                        element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @40
                         element: dart:core::<fragment>::@class::String
-                        element2: dart:core::<fragment>::@class::String#element
+                        element2: dart:core::@class::String
                         type: String
                     rightBracket: > @46
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 period: . @47
                 name: SimpleIdentifier
@@ -2783,16 +2799,16 @@ library
                       NamedType
                         name: int @42
                         element: dart:core::<fragment>::@class::int
-                        element2: dart:core::<fragment>::@class::int#element
+                        element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @47
                         element: dart:core::<fragment>::@class::String
-                        element2: dart:core::<fragment>::@class::String#element
+                        element2: dart:core::@class::String
                         type: String
                     rightBracket: > @53
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 period: . @54
                 name: SimpleIdentifier
@@ -2892,7 +2908,7 @@ library
                 type: NamedType
                   name: C @47
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::C::@constructor::new
@@ -2916,7 +2932,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             K @8
               element: <not-implemented>
@@ -2937,6 +2953,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         K
@@ -3008,7 +3025,7 @@ library
                 type: NamedType
                   name: A @70
                   element: <testLibraryFragment>::@class::A
-                  element2: <testLibraryFragment>::@class::A#element
+                  element2: <testLibrary>::@class::A
                   type: A<int>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
@@ -3036,7 +3053,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -3067,6 +3084,7 @@ library
           element: <testLibraryFragment>::@getter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -3140,16 +3158,16 @@ library
                       NamedType
                         name: int @49
                         element: dart:core::<fragment>::@class::int
-                        element2: dart:core::<fragment>::@class::int#element
+                        element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @54
                         element: dart:core::<fragment>::@class::String
-                        element2: dart:core::<fragment>::@class::String#element
+                        element2: dart:core::@class::String
                         type: String
                     rightBracket: > @60
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C<int, String>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::C::@constructor::new
@@ -3173,7 +3191,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             K @8
               element: <not-implemented>
@@ -3194,6 +3212,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         K
@@ -3250,16 +3269,16 @@ library
                       NamedType
                         name: int @35
                         element: dart:core::<fragment>::@class::int
-                        element2: dart:core::<fragment>::@class::int#element
+                        element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @40
                         element: dart:core::<fragment>::@class::String
-                        element2: dart:core::<fragment>::@class::String#element
+                        element2: dart:core::@class::String
                         type: String
                     rightBracket: > @46
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 staticElement: ConstructorMember
                   base: package:test/a.dart::<fragment>::@class::C::@constructor::new
@@ -3349,16 +3368,16 @@ library
                       NamedType
                         name: int @42
                         element: dart:core::<fragment>::@class::int
-                        element2: dart:core::<fragment>::@class::int#element
+                        element2: dart:core::@class::int
                         type: int
                       NamedType
                         name: String @47
                         element: dart:core::<fragment>::@class::String
-                        element2: dart:core::<fragment>::@class::String#element
+                        element2: dart:core::@class::String
                         type: String
                     rightBracket: > @53
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C<int, String>
                 staticElement: ConstructorMember
                   base: package:test/a.dart::<fragment>::@class::C::@constructor::new
@@ -3454,7 +3473,7 @@ library
                 type: NamedType
                   name: C @89
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C
                 period: . @90
                 name: SimpleIdentifier
@@ -3513,7 +3532,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             const named @20
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -3544,6 +3563,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         const named
@@ -3605,7 +3625,7 @@ library
                 type: NamedType
                   name: C @33
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C
                 period: . @34
                 name: SimpleIdentifier
@@ -3694,7 +3714,7 @@ library
                     element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C
                 period: . @41
                 name: SimpleIdentifier
@@ -3777,7 +3797,7 @@ library
                 type: NamedType
                   name: C @27
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C
                 period: . @28
                 name: SimpleIdentifier
@@ -3805,7 +3825,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3821,6 +3841,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -3945,7 +3966,7 @@ library
                     element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C
                 period: . @41
                 name: SimpleIdentifier
@@ -4193,7 +4214,7 @@ library
                 type: NamedType
                   name: C @30
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C<dynamic>
                 period: . @31
                 name: SimpleIdentifier
@@ -4221,7 +4242,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @8
               element: <not-implemented>
@@ -4240,6 +4261,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -4292,7 +4314,7 @@ library
                 type: NamedType
                   name: C @41
                   element: <testLibraryFragment>::@class::C
-                  element2: <testLibraryFragment>::@class::C#element
+                  element2: <testLibrary>::@class::C
                   type: C
                 staticElement: <testLibraryFragment>::@class::C::@constructor::new
                 element: <testLibraryFragment>::@class::C::@constructor::new#element
@@ -4314,7 +4336,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             const <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4330,6 +4352,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         const new
@@ -4378,7 +4401,7 @@ library
                 type: NamedType
                   name: C @33
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C
                 staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::new
                 element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
@@ -4461,7 +4484,7 @@ library
                     element2: <testLibraryFragment>::@prefix2::p
                   name: C @40
                   element: package:test/a.dart::<fragment>::@class::C
-                  element2: package:test/a.dart::<fragment>::@class::C#element
+                  element2: package:test/a.dart::@class::C
                   type: C
                 staticElement: package:test/a.dart::<fragment>::@class::C::@constructor::new
                 element: package:test/a.dart::<fragment>::@class::C::@constructor::new#element
@@ -4756,7 +4779,7 @@ library
               type: NamedType
                 name: int @28
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
               staticType: bool
       accessors
@@ -4855,7 +4878,7 @@ library
                 prefix: SimpleIdentifier
                   token: C @56
                   staticElement: <testLibraryFragment>::@class::C
-                  element: <testLibraryFragment>::@class::C#element
+                  element: <testLibrary>::@class::C
                   staticType: null
                 period: . @57
                 identifier: SimpleIdentifier
@@ -4887,7 +4910,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             F @32
               reference: <testLibraryFragment>::@class::C::@field::F
@@ -4912,6 +4935,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const F
@@ -4967,7 +4991,7 @@ library
                 prefix: SimpleIdentifier
                   token: C @31
                   staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::<fragment>::@class::C#element
+                  element: package:test/a.dart::@class::C
                   staticType: null
                 period: . @32
                 identifier: SimpleIdentifier
@@ -5061,10 +5085,10 @@ library
                   identifier: SimpleIdentifier
                     token: C @38
                     staticElement: package:test/a.dart::<fragment>::@class::C
-                    element: package:test/a.dart::<fragment>::@class::C#element
+                    element: package:test/a.dart::@class::C
                     staticType: null
                   staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::<fragment>::@class::C#element
+                  element: package:test/a.dart::@class::C
                   staticType: null
                 operator: . @39
                 propertyName: SimpleIdentifier
@@ -5464,7 +5488,7 @@ library
               prefix: SimpleIdentifier
                 token: C @51
                 staticElement: <testLibraryFragment>::@class::C
-                element: <testLibraryFragment>::@class::C#element
+                element: <testLibrary>::@class::C
                 staticType: null
               period: . @52
               identifier: SimpleIdentifier
@@ -5489,7 +5513,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -5509,6 +5533,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -5553,7 +5578,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -5627,7 +5652,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -5766,7 +5791,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -5780,7 +5805,7 @@ library
                         NamedType
                           name: int @33
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                       rightBracket: > @36
                     leftBracket: [ @37
@@ -5849,7 +5874,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
@@ -5863,7 +5888,7 @@ library
                         NamedType
                           name: int @34
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                       rightBracket: > @37
                     leftBracket: [ @38
@@ -5932,12 +5957,12 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
@@ -6084,12 +6109,12 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
@@ -6103,12 +6128,12 @@ library
                         NamedType
                           name: int @38
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                         NamedType
                           name: int @43
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                       rightBracket: > @46
                     leftBracket: { @47
@@ -6184,12 +6209,12 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: int @29
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
@@ -6203,12 +6228,12 @@ library
                         NamedType
                           name: int @39
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                         NamedType
                           name: int @44
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                       rightBracket: > @47
                     leftBracket: { @48
@@ -6289,7 +6314,7 @@ library
                   NamedType
                     name: int @30
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @33
               argumentList: ArgumentList
@@ -6422,7 +6447,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -6446,6 +6471,7 @@ library
           element: <testLibraryFragment>::@function::foo#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         final x
@@ -6528,7 +6554,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -6548,6 +6574,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::x#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         final x
@@ -6625,7 +6652,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             x @18
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -6644,6 +6671,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::x#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         final x
@@ -6794,7 +6822,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             const positional @20
               reference: <testLibraryFragment>::@class::C::@constructor::positional
@@ -6842,6 +6870,7 @@ library
                   element: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault::@parameter::p#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         const positional
@@ -7555,7 +7584,7 @@ library
               prefix: SimpleIdentifier
                 token: C @49
                 staticElement: <testLibraryFragment>::@class::C
-                element: <testLibraryFragment>::@class::C#element
+                element: <testLibrary>::@class::C
                 staticType: null
               period: . @50
               identifier: SimpleIdentifier
@@ -7580,7 +7609,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             F @29
               reference: <testLibraryFragment>::@class::C::@field::F
@@ -7605,6 +7634,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const F
@@ -7659,7 +7689,7 @@ library
               prefix: SimpleIdentifier
                 token: C @27
                 staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::<fragment>::@class::C#element
+                element: package:test/a.dart::@class::C
                 staticType: null
               period: . @28
               identifier: SimpleIdentifier
@@ -7745,10 +7775,10 @@ library
                 identifier: SimpleIdentifier
                   token: C @34
                   staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::<fragment>::@class::C#element
+                  element: package:test/a.dart::@class::C
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::<fragment>::@class::C#element
+                element: package:test/a.dart::@class::C
                 staticType: null
               operator: . @35
               propertyName: SimpleIdentifier
@@ -7836,7 +7866,7 @@ library
               prefix: SimpleIdentifier
                 token: C @61
                 staticElement: <testLibraryFragment>::@class::C
-                element: <testLibraryFragment>::@class::C#element
+                element: <testLibrary>::@class::C
                 staticType: null
               period: . @62
               identifier: SimpleIdentifier
@@ -7861,7 +7891,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -7886,6 +7916,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -7940,7 +7971,7 @@ library
               prefix: SimpleIdentifier
                 token: C @27
                 staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::<fragment>::@class::C#element
+                element: package:test/a.dart::@class::C
                 staticType: null
               period: . @28
               identifier: SimpleIdentifier
@@ -8026,10 +8057,10 @@ library
                 identifier: SimpleIdentifier
                   token: C @34
                   staticElement: package:test/a.dart::<fragment>::@class::C
-                  element: package:test/a.dart::<fragment>::@class::C#element
+                  element: package:test/a.dart::@class::C
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::<fragment>::@class::C#element
+                element: package:test/a.dart::@class::C
                 staticType: null
               operator: . @35
               propertyName: SimpleIdentifier
@@ -8143,7 +8174,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -8167,6 +8198,7 @@ library
           element: <testLibraryFragment>::@getter::x#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -8920,7 +8952,7 @@ library
             SimpleIdentifier
               token: Null @110
               staticElement: dart:core::<fragment>::@class::Null
-              element: dart:core::<fragment>::@class::Null#element
+              element: dart:core::@class::Null
               staticType: Type
         static const vObject @122
           reference: <testLibraryFragment>::@topLevelVariable::vObject
@@ -8931,7 +8963,7 @@ library
             SimpleIdentifier
               token: Object @132
               staticElement: dart:core::<fragment>::@class::Object
-              element: dart:core::<fragment>::@class::Object#element
+              element: dart:core::@class::Object
               staticType: Type
         static const vClass @146
           reference: <testLibraryFragment>::@topLevelVariable::vClass
@@ -8942,7 +8974,7 @@ library
             SimpleIdentifier
               token: C @155
               staticElement: <testLibraryFragment>::@class::C
-              element: <testLibraryFragment>::@class::C#element
+              element: <testLibrary>::@class::C
               staticType: Type
         static const vGenericClass @164
           reference: <testLibraryFragment>::@topLevelVariable::vGenericClass
@@ -8953,7 +8985,7 @@ library
             SimpleIdentifier
               token: D @180
               staticElement: <testLibraryFragment>::@class::D
-              element: <testLibraryFragment>::@class::D#element
+              element: <testLibrary>::@class::D
               staticType: Type
         static const vEnum @189
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
@@ -9015,14 +9047,14 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
         class D @17
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           typeParameters
             T @19
               element: <not-implemented>
@@ -9125,11 +9157,13 @@ library
           element: <testLibraryFragment>::@getter::vFunctionTypeAlias#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       typeParameters
         T
@@ -9268,7 +9302,7 @@ library
       classes
         class C @19
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             f @31
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -9288,6 +9322,7 @@ library
           element: <testLibraryFragment>::@typeAlias::F#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         final f
@@ -9339,7 +9374,7 @@ library
             SimpleIdentifier
               token: C @32
               staticElement: package:test/a.dart::<fragment>::@class::C
-              element: package:test/a.dart::<fragment>::@class::C#element
+              element: package:test/a.dart::@class::C
               staticType: Type
         static const vEnum @41
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
@@ -9473,10 +9508,10 @@ library
               identifier: SimpleIdentifier
                 token: C @39
                 staticElement: package:test/a.dart::<fragment>::@class::C
-                element: package:test/a.dart::<fragment>::@class::C#element
+                element: package:test/a.dart::@class::C
                 staticType: Type
               staticElement: package:test/a.dart::<fragment>::@class::C
-              element: package:test/a.dart::<fragment>::@class::C#element
+              element: package:test/a.dart::@class::C
               staticType: Type
         static const vEnum @48
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
@@ -9634,7 +9669,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @8
               element: <not-implemented>
@@ -9653,6 +9688,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::f#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -9755,7 +9791,7 @@ library
               prefix: SimpleIdentifier
                 token: C @21
                 staticElement: <testLibraryFragment>::@class::C
-                element: <testLibraryFragment>::@class::C#element
+                element: <testLibrary>::@class::C
                 staticType: null
               period: . @22
               identifier: SimpleIdentifier
@@ -9780,7 +9816,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -9796,6 +9832,7 @@ library
           element: <testLibraryFragment>::@getter::V#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -9851,10 +9888,10 @@ library
                 identifier: SimpleIdentifier
                   token: C @36
                   staticElement: package:test/foo.dart::<fragment>::@class::C
-                  element: package:test/foo.dart::<fragment>::@class::C#element
+                  element: package:test/foo.dart::@class::C
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::C
-                element: package:test/foo.dart::<fragment>::@class::C#element
+                element: package:test/foo.dart::@class::C
                 staticType: null
               operator: . @37
               propertyName: SimpleIdentifier
@@ -9925,7 +9962,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
@@ -10062,7 +10099,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
@@ -10076,7 +10113,7 @@ library
                         NamedType
                           name: int @33
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                       rightBracket: > @36
                     leftBracket: { @37
@@ -10147,7 +10184,7 @@ library
                   NamedType
                     name: int @24
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
@@ -10161,7 +10198,7 @@ library
                         NamedType
                           name: int @34
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                       rightBracket: > @37
                     leftBracket: { @38
@@ -12297,7 +12334,7 @@ library
                   NamedType
                     name: Null @21
                     element: dart:core::<fragment>::@class::Null
-                    element2: dart:core::<fragment>::@class::Null#element
+                    element2: dart:core::@class::Null
                     type: Null
                 rightBracket: > @25
               leftBracket: [ @26
@@ -12347,7 +12384,7 @@ library
                   NamedType
                     name: int @115
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @118
               leftBracket: [ @119
@@ -12377,7 +12414,7 @@ library
                   NamedType
                     name: List @171
                     element: dart:core::<fragment>::@class::List
-                    element2: dart:core::<fragment>::@class::List#element
+                    element2: dart:core::@class::List
                     type: List<dynamic>
                 rightBracket: > @175
               leftBracket: [ @176
@@ -12402,11 +12439,11 @@ library
                         NamedType
                           name: String @228
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                       rightBracket: > @234
                     element: dart:core::<fragment>::@class::List
-                    element2: dart:core::<fragment>::@class::List#element
+                    element2: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @235
               leftBracket: [ @236
@@ -12431,7 +12468,7 @@ library
                         NamedType
                           name: int @288
                           element: dart:core::<fragment>::@class::int
-                          element2: dart:core::<fragment>::@class::int#element
+                          element2: dart:core::@class::int
                           type: int
                         NamedType
                           name: List @293
@@ -12441,15 +12478,15 @@ library
                               NamedType
                                 name: String @298
                                 element: dart:core::<fragment>::@class::String
-                                element2: dart:core::<fragment>::@class::String#element
+                                element2: dart:core::@class::String
                                 type: String
                             rightBracket: > @304
                           element: dart:core::<fragment>::@class::List
-                          element2: dart:core::<fragment>::@class::List#element
+                          element2: dart:core::@class::List
                           type: List<String>
                       rightBracket: > @305
                     element: dart:core::<fragment>::@class::Map
-                    element2: dart:core::<fragment>::@class::Map#element
+                    element2: dart:core::@class::Map
                     type: Map<int, List<String>>
                 rightBracket: > @306
               leftBracket: [ @307
@@ -12602,7 +12639,7 @@ library
                   NamedType
                     name: C @34
                     element: package:test/a.dart::<fragment>::@class::C
-                    element2: package:test/a.dart::<fragment>::@class::C#element
+                    element2: package:test/a.dart::@class::C
                     type: C
                 rightBracket: > @35
               leftBracket: [ @36
@@ -12681,7 +12718,7 @@ library
                       element2: <testLibraryFragment>::@prefix2::p
                     name: C @41
                     element: package:test/a.dart::<fragment>::@class::C
-                    element2: package:test/a.dart::<fragment>::@class::C#element
+                    element2: package:test/a.dart::@class::C
                     type: C
                 rightBracket: > @42
               leftBracket: [ @43
@@ -12839,7 +12876,7 @@ library
                   NamedType
                     name: int @34
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @37
               leftBracket: { @38
@@ -12860,7 +12897,7 @@ library
                   NamedType
                     name: int @67
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: dynamic @72
@@ -12886,12 +12923,12 @@ library
                   NamedType
                     name: int @110
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: String @115
                     element: dart:core::<fragment>::@class::String
-                    element2: dart:core::<fragment>::@class::String#element
+                    element2: dart:core::@class::String
                     type: String
                 rightBracket: > @121
               leftBracket: { @122
@@ -12912,7 +12949,7 @@ library
                   NamedType
                     name: int @169
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                   NamedType
                     name: List @174
@@ -12922,11 +12959,11 @@ library
                         NamedType
                           name: String @179
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                       rightBracket: > @185
                     element: dart:core::<fragment>::@class::List
-                    element2: dart:core::<fragment>::@class::List#element
+                    element2: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @186
               leftBracket: { @187
@@ -13064,7 +13101,7 @@ library
                   NamedType
                     name: int @63
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @66
               leftBracket: { @67
@@ -13090,11 +13127,11 @@ library
                         NamedType
                           name: String @119
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                       rightBracket: > @125
                     element: dart:core::<fragment>::@class::List
-                    element2: dart:core::<fragment>::@class::List#element
+                    element2: dart:core::@class::List
                     type: List<String>
                 rightBracket: > @126
               leftBracket: { @127
@@ -13399,11 +13436,11 @@ library
                     NamedType
                       name: int @15
                       element: dart:core::<fragment>::@class::int
-                      element2: dart:core::<fragment>::@class::int#element
+                      element2: dart:core::@class::int
                       type: int
                   rightBracket: > @18
                 element: dart:core::<fragment>::@class::List
-                element2: dart:core::<fragment>::@class::List#element
+                element2: dart:core::@class::List
                 type: List<int>
               staticType: Type
       accessors
@@ -13920,7 +13957,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             a @25
               reference: <testLibraryFragment>::@class::C::@field::a
@@ -13943,6 +13980,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::b#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const a
@@ -14017,7 +14055,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             a @25
               reference: <testLibraryFragment>::@class::C::@field::a
@@ -14037,6 +14075,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::m#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         static const a

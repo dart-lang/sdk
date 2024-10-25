@@ -307,7 +307,7 @@ library
       classes
         class C @6
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -318,6 +318,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::m#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -475,7 +476,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -484,7 +485,7 @@ library
                     returnType: NamedType
                       name: int @32
                       element: dart:core::<fragment>::@class::int
-                      element2: dart:core::<fragment>::@class::int#element
+                      element2: dart:core::@class::int
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -493,7 +494,7 @@ library
                         type: NamedType
                           name: String @45
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         name: a @52
                         declaredElement: a@52
@@ -528,7 +529,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -538,13 +539,14 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @64
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -552,6 +554,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
@@ -596,7 +599,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -605,7 +608,7 @@ library
                     returnType: NamedType
                       name: int @32
                       element: dart:core::<fragment>::@class::int
-                      element2: dart:core::<fragment>::@class::int#element
+                      element2: dart:core::@class::int
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -614,7 +617,7 @@ library
                         type: NamedType
                           name: String @45
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         name: a @52
                         declaredElement: a@52
@@ -659,7 +662,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -677,7 +680,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -686,7 +689,7 @@ library
                     returnType: NamedType
                       name: int @32
                       element: dart:core::<fragment>::@class::int
-                      element2: dart:core::<fragment>::@class::int#element
+                      element2: dart:core::@class::int
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -695,7 +698,7 @@ library
                         type: NamedType
                           name: String @45
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         name: a @52
                         declaredElement: a@52
@@ -732,6 +735,7 @@ library
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -747,7 +751,7 @@ library
           name: SimpleIdentifier
             token: A @30
             staticElement: <testLibraryFragment>::@class::A
-            element: <testLibraryFragment>::@class::A#element
+            element: <testLibrary>::@class::A
             staticType: null
           typeArguments: TypeArgumentList
             leftBracket: < @31
@@ -756,7 +760,7 @@ library
                 returnType: NamedType
                   name: int @32
                   element: dart:core::<fragment>::@class::int
-                  element2: dart:core::<fragment>::@class::int#element
+                  element2: dart:core::@class::int
                   type: int
                 functionKeyword: Function @36
                 parameters: FormalParameterList
@@ -765,7 +769,7 @@ library
                     type: NamedType
                       name: String @45
                       element: dart:core::<fragment>::@class::String
-                      element2: dart:core::<fragment>::@class::String#element
+                      element2: dart:core::@class::String
                       type: String
                     name: a @52
                     declaredElement: a@52
@@ -846,7 +850,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -858,7 +862,7 @@ library
                                 name: int @58
                                 question: ? @61
                                 element: dart:core::<fragment>::@class::int
-                                element2: dart:core::<fragment>::@class::int#element
+                                element2: dart:core::@class::int
                                 type: int?
                               name: a @63
                               declaredElement: a@63
@@ -877,7 +881,7 @@ library
                         type: String Function({int? a})
                     rightBracket: > @66
                   element: <testLibraryFragment>::@class::A
-                  element2: <testLibraryFragment>::@class::A#element
+                  element2: <testLibrary>::@class::A
                   type: A<String Function({int? a})>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
@@ -901,7 +905,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -920,6 +924,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -981,7 +986,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -993,7 +998,7 @@ library
                                 name: int @58
                                 question: ? @61
                                 element: dart:core::<fragment>::@class::int
-                                element2: dart:core::<fragment>::@class::int#element
+                                element2: dart:core::@class::int
                                 type: int?
                               name: a @63
                               declaredElement: a@63
@@ -1012,7 +1017,7 @@ library
                         type: String Function([int?])
                     rightBracket: > @66
                   element: <testLibraryFragment>::@class::A
-                  element2: <testLibraryFragment>::@class::A#element
+                  element2: <testLibrary>::@class::A
                   type: A<String Function([int?])>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
@@ -1036,7 +1041,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1055,6 +1060,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1116,7 +1122,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -1128,7 +1134,7 @@ library
                               type: NamedType
                                 name: int @67
                                 element: dart:core::<fragment>::@class::int
-                                element2: dart:core::<fragment>::@class::int#element
+                                element2: dart:core::@class::int
                                 type: int
                               name: a @71
                               declaredElement: a@71
@@ -1147,7 +1153,7 @@ library
                         type: String Function({required int a})
                     rightBracket: > @74
                   element: <testLibraryFragment>::@class::A
-                  element2: <testLibraryFragment>::@class::A#element
+                  element2: <testLibrary>::@class::A
                   type: A<String Function({required int a})>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
@@ -1171,7 +1177,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1190,6 +1196,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1251,7 +1258,7 @@ library
                         returnType: NamedType
                           name: String @41
                           element: dart:core::<fragment>::@class::String
-                          element2: dart:core::<fragment>::@class::String#element
+                          element2: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -1260,7 +1267,7 @@ library
                             type: NamedType
                               name: int @57
                               element: dart:core::<fragment>::@class::int
-                              element2: dart:core::<fragment>::@class::int#element
+                              element2: dart:core::@class::int
                               type: int
                             name: a @61
                             declaredElement: a@61
@@ -1276,7 +1283,7 @@ library
                         type: String Function(int)
                     rightBracket: > @63
                   element: <testLibraryFragment>::@class::A
-                  element2: <testLibraryFragment>::@class::A#element
+                  element2: <testLibrary>::@class::A
                   type: A<String Function(int)>
                 staticElement: ConstructorMember
                   base: <testLibraryFragment>::@class::A::@constructor::new
@@ -1300,7 +1307,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1319,6 +1326,7 @@ library
           element: <testLibraryFragment>::@getter::v#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1441,7 +1449,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1451,7 +1459,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @31
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1473,6 +1481,7 @@ library
           element: <testLibraryFragment>::@mixin::M#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1480,6 +1489,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class alias B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<void Function()>
       constructors

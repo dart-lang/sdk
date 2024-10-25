@@ -158,7 +158,7 @@ FunctionExpressionInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -248,12 +248,12 @@ FunctionExpressionInvocation
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -416,7 +416,7 @@ FunctionExpressionInvocation
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -616,7 +616,7 @@ FunctionExpressionInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -669,7 +669,7 @@ FunctionExpressionInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

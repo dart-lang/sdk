@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 
 class MockSdkElements {
   final LibraryElementImpl coreLibrary;
@@ -971,6 +972,7 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeParameters = const [],
   }) {
     var element = ClassElementImpl(name, 0);
+    NotAugmentedClassElementImpl(Reference.root(), element);
     element.typeParameters = typeParameters;
     element.constructors = <ConstructorElementImpl>[
       _constructor(),
