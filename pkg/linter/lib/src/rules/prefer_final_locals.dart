@@ -55,8 +55,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredElement;
-      if (element == null || function.isPotentiallyMutatedInScope(element)) {
+      var element = pattern.declaredElement2;
+      if (element == null || function.isPotentiallyMutatedInScope2(element)) {
         return true;
       }
     }
