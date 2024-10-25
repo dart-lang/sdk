@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:dart_style/src/dart_formatter.dart';
 import 'package:dart_style/src/exceptions.dart';
 import 'package:dart_style/src/source_code.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The handler for the `edit.format` request.
 class EditFormatHandler extends LegacyHandler {
@@ -52,13 +53,19 @@ class EditFormatHandler extends LegacyHandler {
 
     var driver = server.getAnalysisDriver(file);
     var unit = await driver?.getResolvedUnit(file);
-    var (pageWidth, effectiveLanguageVersion) = switch (unit) {
-      ResolvedUnitResult() => (
-          unit.analysisOptions.formatterOptions.pageWidth,
-          unit.libraryElement2.effectiveLanguageVersion,
-        ),
-      (_) => (null, null),
-    };
+
+    int? pageWidth;
+    Version effectiveLanguageVersion;
+    if (unit is ResolvedUnitResult) {
+      pageWidth = unit.analysisOptions.formatterOptions.pageWidth;
+      effectiveLanguageVersion = unit.libraryElement2.effectiveLanguageVersion;
+    } else {
+      // If the unit doesn't resolve, don't try to format it since we don't
+      // know what language version (and thus what formatting style) to apply.
+      sendResponse(Response.formatWithErrors(request));
+      return;
+    }
+
     var formatter = DartFormatter(
         pageWidth: pageWidth ?? params.lineLength,
         languageVersion: effectiveLanguageVersion);
