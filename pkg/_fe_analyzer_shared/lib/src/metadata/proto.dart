@@ -622,6 +622,112 @@ class GenericEnumProto extends Proto {
   }
 }
 
+/// A [reference] to a mixin
+///
+/// The [Proto] includes the [scope] of the mixin, which is used to resolve
+/// access to static members on the mixin.
+class MixinProto extends Proto {
+  final MixinReference reference;
+  final TypeDeclarationScope scope;
+
+  MixinProto(this.reference, this.scope);
+
+  @override
+  String toString() => 'MixinProto($reference)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? new GenericMixinProto(reference, scope, typeArguments)
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null
+        ? new InvalidInvocationProto(this, const [], arguments)
+        : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new TypeLiteral(toTypeAnnotation());
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() => new NamedTypeAnnotation(reference);
+
+  @override
+  Proto? resolve() => null;
+}
+
+/// A [reference] to an enum instantiated with [typeArguments].
+///
+/// The [Proto] includes the [scope] of the enum, which is used to resolve
+/// access to constructors on the enum.
+class GenericMixinProto extends Proto {
+  final MixinReference reference;
+  final TypeDeclarationScope scope;
+  final List<TypeAnnotation> typeArguments;
+
+  GenericMixinProto(this.reference, this.scope, this.typeArguments);
+
+  @override
+  String toString() => 'GenericMixinProto($reference,$typeArguments)';
+
+  @override
+  Proto access(String? name) {
+    if (name == null) {
+      return this;
+    }
+    if (name == 'new') {
+      name = '';
+    }
+    return scope.lookup(name, typeArguments);
+  }
+
+  @override
+  Proto instantiate(List<TypeAnnotation>? typeArguments) {
+    return typeArguments != null
+        ? throw new UnimplementedError('$this.instantiate')
+        : this;
+  }
+
+  @override
+  Proto invoke(List<Argument>? arguments) {
+    return arguments != null ? access('new').invoke(arguments) : this;
+  }
+
+  @override
+  Expression toExpression() {
+    return new TypeLiteral(toTypeAnnotation());
+  }
+
+  @override
+  TypeAnnotation toTypeAnnotation() =>
+      new NamedTypeAnnotation(reference, typeArguments);
+
+  @override
+  Proto? resolve() {
+    List<TypeAnnotation>? newTypeArguments =
+    typeArguments.resolve((a) => a.resolve());
+    return newTypeArguments == null
+        ? null
+        : new GenericMixinProto(reference, scope, newTypeArguments);
+  }
+}
+
 /// A [reference] to an extension type.
 ///
 /// The [Proto] includes the [scope] of the extension type, which is used to

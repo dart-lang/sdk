@@ -72,6 +72,9 @@ shared.Proto _elementToProto(Element element, String name) {
   } else if (element is EnumElement) {
     var reference = _EnumReference(element);
     return shared.EnumProto(reference, _EnumScope(element, reference));
+  } else if (element is MixinElement) {
+    var reference = _MixinReference(element);
+    return shared.MixinProto(reference, _MixinScope(element, reference));
   }
 
   // TODO(johnniwinther): Support extension types.
@@ -216,6 +219,32 @@ class _FunctionReference extends shared.FunctionReference {
 
   @override
   String get name => _element.name;
+}
+
+class _MixinReference extends shared.MixinReference {
+  final MixinElement _element;
+
+  _MixinReference(this._element);
+
+  @override
+  String get name => _element.name;
+}
+
+final class _MixinScope extends shared.BaseMixinScope {
+  final MixinElement _mixinElement;
+
+  @override
+  final _MixinReference mixinReference;
+
+  _MixinScope(this._mixinElement, this.mixinReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    Element? member = _mixinElement.augmented.getField(name);
+    member ??= _mixinElement.augmented.getMethod(name);
+    return createMemberProto(typeArguments, name, member, _elementToProto);
+  }
 }
 
 class _PrefixScope implements shared.Scope {

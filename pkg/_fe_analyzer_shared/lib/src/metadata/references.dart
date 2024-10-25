@@ -73,6 +73,13 @@ abstract class EnumReference extends Reference {
   String toString() => 'EnumReference(${name})';
 }
 
+abstract class MixinReference extends Reference {
+  String get name;
+
+  @override
+  String toString() => 'MixinReference(${name})';
+}
+
 abstract class FunctionTypeParameterReference extends Reference {
   String get name;
 

@@ -10709,6 +10709,14 @@ abstract class C {
 
 ### invalid_null_aware_operator
 
+_The element can't be null, so the null-aware operator '?' is unnecessary._
+
+_The map entry key can't be null, so the null-aware operator '?' is
+unnecessary._
+
+_The map entry value can't be null, so the null-aware operator '?' is
+unnecessary._
+
 _The receiver can't be 'null' because of short-circuiting, so the null-aware
 operator '{0}' can't be used._
 
@@ -10768,6 +10776,14 @@ The reason `s` can't be null, despite the fact that `o` can be `null`, is
 because of the cast to `String`, which is a non-nullable type. If `o` ever
 has the value `null`, the cast will fail and the invocation of `length`
 will not happen.
+
+The following code produces this diagnostic because `s` can't be `null`:
+
+```dart
+List<String> makeSingletonList(String s) {
+  return <String>[[!?!]s];
+}
+```
 
 #### Common fixes
 

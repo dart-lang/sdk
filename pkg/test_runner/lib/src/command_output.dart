@@ -439,6 +439,7 @@ class AnalyzerError implements Comparable<AnalyzerError> {
   static const Set<String> _specifiedWarnings = {
     'dead_null_aware_expression',
     'invalid_null_aware_operator',
+    'invalid_null_aware_element_or_map_entry',
     'missing_enum_constant_in_switch',
     'unnecessary_non_null_assertion',
     'unnecessary_null_assert_pattern',

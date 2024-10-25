@@ -3375,6 +3375,12 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
+StaticWarningCode.INVALID_NULL_AWARE_ELEMENT:
+  status: needsEvaluation
+StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY:
+  status: needsEvaluation
+StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
+  status: needsEvaluation
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
