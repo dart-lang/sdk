@@ -2119,15 +2119,6 @@ abstract class MultiplyDefinedElement implements Element {
   List<Element> get conflictingElements;
 }
 
-/// An [ExecutableElement], with the additional information of a list of
-/// [ExecutableElement]s from which this element was composed.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
-  /// The executable elements defined within this executable element.
-  List<ExecutableElement> get inheritedElements;
-}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
