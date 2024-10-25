@@ -73,7 +73,7 @@ ThisExpression
   thisKeyword: this
   staticType: M
     element: <testLibraryFragment>::@mixin::M
-    element: <testLibraryFragment>::@mixin::M#element
+    element: <testLibrary>::@mixin::M
 ''');
   }
 }

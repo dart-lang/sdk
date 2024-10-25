@@ -1107,51 +1107,77 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
     var fragmentName = _buildFragmentName(nameToken);
 
-    var element = MixinElementImpl(name, nameToken.offset);
-    element.name2 = fragmentName;
-    element.isAugmentation = node.augmentKeyword != null;
-    element.isBase = node.baseKeyword != null;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
-    _setDocumentation(element, node);
+    var fragment = MixinElementImpl(name, nameToken.offset);
+    fragment.name2 = fragmentName;
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isBase = node.baseKeyword != null;
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
+    _setDocumentation(fragment, node);
 
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
+    node.declaredElement = fragment;
+    _linker.elementNodes[fragment] = node;
 
     var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
-    var reference = _enclosingContext.addMixin(refName, element);
-    if (!element.isAugmentation) {
+    var reference = _enclosingContext.addMixin(refName, fragment);
+    if (!fragment.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }
 
-    var holder = _EnclosingContext(reference, element);
+    var holder = _EnclosingContext(reference, fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
-    element.typeParameters = holder.typeParameters;
-    element.accessors = holder.propertyAccessors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
+    fragment.typeParameters = holder.typeParameters;
+    fragment.accessors = holder.propertyAccessors;
+    fragment.fields = holder.fields;
+    fragment.methods = holder.methods;
 
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    _libraryBuilder.updateAugmentationTarget(name, element);
+    // TODO(scheglov): remove it eventually
+    _libraryBuilder.updateAugmentationTarget0(name, fragment);
 
-    if (element.augmentationTarget != null) {
-      switch (_libraryBuilder.getElementBuilder(name)) {
-        case MixinElementBuilder builder:
-          builder.augment(element);
-      }
+    var elementBuilder = _libraryBuilder.getElementBuilder(name);
+    elementBuilder?.setPreviousFor(fragment);
+
+    // If the fragment is an augmentation, and the corresponding builder
+    // has correct type, add the fragment to the builder. Otherwise, create
+    // a new builder.
+    if (fragment.isAugmentation && elementBuilder is MixinElementBuilder) {
+      elementBuilder.augment(fragment);
     } else {
+      var libraryRef = _libraryBuilder.reference;
+      var containerRef = libraryRef.getChild('@mixin');
+      var elementReference = containerRef.addChild(refName);
+      var element = NotAugmentedMixinElementImpl(elementReference, fragment);
+
       _libraryBuilder.putElementBuilder(
         name,
         MixinElementBuilder(
-          firstFragment: element,
+          firstFragment: fragment,
+          element: element,
         ),
       );
     }
+
+    // _libraryBuilder.updateAugmentationTarget(name, element);
+    //
+    // if (element.augmentationTarget != null) {
+    //   switch (_libraryBuilder.getElementBuilder(name)) {
+    //     case MixinElementBuilder builder:
+    //       builder.augment(element);
+    //   }
+    // } else {
+    //   _libraryBuilder.putElementBuilder(
+    //     name,
+    //     MixinElementBuilder(
+    //       firstFragment: element,
+    //     ),
+    //   );
+    // }
   }
 
   @override

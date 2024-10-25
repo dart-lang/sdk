@@ -538,7 +538,7 @@ WithClause
     NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
-      element2: <testLibraryFragment>::@mixin::M#element
+      element2: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -569,12 +569,12 @@ WithClause
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@mixin::M1
-      element2: <testLibraryFragment>::@mixin::M1#element
+      element2: <testLibrary>::@mixin::M1
       type: M1<int>
     NamedType
       name: M2
       element: <testLibraryFragment>::@mixin::M2
-      element2: <testLibraryFragment>::@mixin::M2#element
+      element2: <testLibrary>::@mixin::M2
       type: M2<int>
 ''');
   }

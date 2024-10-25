@@ -344,13 +344,18 @@ abstract class InstanceElementBuilder<F extends InstanceElementImpl>
 class MixinElementBuilder extends InstanceElementBuilder<MixinElementImpl> {
   MixinElementBuilder({
     required super.firstFragment,
+    required MaybeAugmentedMixinElementMixin element,
   }) {
+    firstFragment.augmentedInternal = element;
     addFields(firstFragment.fields);
     addAccessors(firstFragment.accessors);
     addMethods(firstFragment.methods);
   }
 
   void augment(MixinElementImpl fragment) {
+    lastFragment.augmentation = fragment;
+    lastFragment = fragment;
+
     var element = _ensureAugmented();
     fragment.augmentedInternal = firstFragment.augmentedInternal;
 

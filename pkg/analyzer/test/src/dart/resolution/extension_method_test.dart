@@ -535,7 +535,7 @@ extension E on M {}
 NamedType
   name: M
   element: <testLibraryFragment>::@mixin::M
-  element2: <testLibraryFragment>::@mixin::M#element
+  element2: <testLibrary>::@mixin::M
   type: M
 ''');
   }
@@ -654,7 +654,7 @@ extension on M {}
 NamedType
   name: M
   element: <testLibraryFragment>::@mixin::M
-  element2: <testLibraryFragment>::@mixin::M#element
+  element2: <testLibrary>::@mixin::M
   type: M
 ''');
   }

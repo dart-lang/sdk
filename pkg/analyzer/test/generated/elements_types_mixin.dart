@@ -414,6 +414,7 @@ mixin ElementsTypesMixin {
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
+    NotAugmentedMixinElementImpl(Reference.root(), element);
     element.isAugmentation = isAugmentation;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
@@ -663,7 +664,7 @@ extension MixinElementImplExtension on MixinElementImpl {
   void addAugmentations(List<MixinElementImpl> augmentations) {
     expect(this.augmented, TypeMatcher<NotAugmentedMixinElementImpl>());
 
-    var augmented = AugmentedMixinElementImpl(this);
+    var augmented = AugmentedMixinElementImpl(Reference.root(), this);
     augmentedInternal = augmented;
 
     var augmentationTarget = this;
