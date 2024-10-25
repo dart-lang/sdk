@@ -392,7 +392,7 @@ class DispatchTable {
 
     final selectorTargets = <SelectorInfo, Map<int, Reference>>{};
     final maxConcreteClassId = translator.classIdNumbering.maxConcreteClassId;
-    for (int classId = 0; classId < maxConcreteClassId; ++classId) {
+    for (int classId = 0; classId <= maxConcreteClassId; ++classId) {
       final cls = translator.classes[classId].cls;
       if (cls != null) {
         selectorsInClass[cls]!.forEach((selectorInfo, target) {
