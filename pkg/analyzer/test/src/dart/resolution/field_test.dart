@@ -34,7 +34,7 @@ FieldDeclaration
     type: NamedType
       name: Object
       element: dart:core::<fragment>::@class::Object
-      element2: dart:core::<fragment>::@class::Object#element
+      element2: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -64,7 +64,7 @@ FieldDeclaration
     type: NamedType
       name: Object
       element: dart:core::<fragment>::@class::Object
-      element2: dart:core::<fragment>::@class::Object#element
+      element2: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -97,7 +97,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -132,7 +132,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -167,7 +167,7 @@ FieldDeclaration
     type: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     variables
       VariableDeclaration

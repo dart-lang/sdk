@@ -581,7 +581,7 @@ library
                           NamedType
                             name: double @16
                             element: dart:core::<fragment>::@class::double
-                            element2: dart:core::<fragment>::@class::double#element
+                            element2: dart:core::@class::double
                             type: double
                         rightBracket: > @22
                       element: <testLibraryFragment>::@enum::E
@@ -3234,7 +3234,7 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
-          element: <testLibraryFragment>::@class::I#element
+          element: <testLibrary>::@class::I
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::I::@constructor::new
@@ -3265,6 +3265,7 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
     class I
+      reference: <testLibrary>::@class::I
       firstFragment: <testLibraryFragment>::@class::I
       constructors
         synthetic new
@@ -3370,10 +3371,10 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
@@ -3409,8 +3410,10 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
   enums
     enum E
@@ -3539,7 +3542,7 @@ library
       classes
         class I @6
           reference: <testLibraryFragment>::@class::I
-          element: <testLibraryFragment>::@class::I#element
+          element: <testLibrary>::@class::I
           typeParameters
             T @8
               element: <not-implemented>
@@ -3576,6 +3579,7 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
     class I
+      reference: <testLibrary>::@class::I
       firstFragment: <testLibraryFragment>::@class::I
       typeParameters
         T
@@ -3703,14 +3707,14 @@ library
       classes
         class X @6
           reference: <testLibraryFragment>::@class::X
-          element: <testLibraryFragment>::@class::X#element
+          element: <testLibrary>::@class::X
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
         class Z @17
           reference: <testLibraryFragment>::@class::Z
-          element: <testLibraryFragment>::@class::Z#element
+          element: <testLibrary>::@class::Z
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::Z::@constructor::new
@@ -3741,11 +3745,13 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
     class Z
+      reference: <testLibrary>::@class::Z
       firstFragment: <testLibraryFragment>::@class::Z
       constructors
         synthetic new
@@ -4406,10 +4412,10 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
         class C @45
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
       enums
         enum E @55
           reference: <testLibraryFragment>::@enum::E
@@ -4445,8 +4451,10 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
   enums
     enum E
@@ -6819,14 +6827,14 @@ library
       classes
         class M @24
           reference: <testLibraryFragment>::@class::M
-          element: <testLibraryFragment>::@class::M#element
+          element: <testLibrary>::@class::M
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::M::@constructor::new
               element: <testLibraryFragment>::@class::M::@constructor::new#element
         class A @36
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -6837,7 +6845,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
         class B @70
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -6848,7 +6856,7 @@ library
               element: <testLibraryFragment>::@class::B::@method::foo#element
         class C @110
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -6859,7 +6867,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::foo#element
         class D @159
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
             synthetic const <null-name>
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -6912,11 +6920,13 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
     class M
+      reference: <testLibrary>::@class::M
       firstFragment: <testLibraryFragment>::@class::M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::M::@constructor::new
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -6925,6 +6935,7 @@ library
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new
@@ -6933,6 +6944,7 @@ library
         foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: Object
       constructors
@@ -6942,6 +6954,7 @@ library
         foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
     class alias D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: Object
       constructors
@@ -7198,7 +7211,7 @@ library
                   name: SimpleIdentifier
                     token: A @71
                     staticElement: <testLibraryFragment>::@class::A
-                    element: <testLibraryFragment>::@class::A#element
+                    element: <testLibrary>::@class::A
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @72
@@ -7253,7 +7266,7 @@ library
                   name: SimpleIdentifier
                     token: A @89
                     staticElement: <testLibraryFragment>::@class::A
-                    element: <testLibraryFragment>::@class::A#element
+                    element: <testLibrary>::@class::A
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @90
@@ -7335,7 +7348,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             value @26
               reference: <testLibraryFragment>::@class::A::@field::value
@@ -7392,6 +7405,7 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final value
@@ -16190,7 +16204,7 @@ library
       classes
         class I1 @50
           reference: <testLibraryFragment>::@class::I1
-          element: <testLibraryFragment>::@class::I1#element
+          element: <testLibrary>::@class::I1
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::I1::@constructor::new
@@ -16226,7 +16240,7 @@ library
       classes
         class I2 @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2#element
+          element: <testLibrary>::@class::I2
           constructors
             synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
@@ -16238,11 +16252,13 @@ library
           previousFragment: <testLibraryFragment>::@enum::A
   classes
     class I1
+      reference: <testLibrary>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
+      reference: <testLibrary>::@class::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
@@ -16410,7 +16426,7 @@ library
       classes
         class I1 @50
           reference: <testLibraryFragment>::@class::I1
-          element: <testLibraryFragment>::@class::I1#element
+          element: <testLibrary>::@class::I1
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::I1::@constructor::new
@@ -16447,7 +16463,7 @@ library
       classes
         class I2 @74
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2#element
+          element: <testLibrary>::@class::I2
           constructors
             synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
@@ -16464,7 +16480,7 @@ library
       classes
         class I3 @56
           reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3
-          element: <testLibrary>::@fragment::package:test/b.dart::@class::I3#element
+          element: <testLibrary>::@class::I3
           constructors
             synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
@@ -16476,16 +16492,19 @@ library
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
   classes
     class I1
+      reference: <testLibrary>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
+      reference: <testLibrary>::@class::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       constructors
         synthetic new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
     class I3
+      reference: <testLibrary>::@class::I3
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@class::I3
       constructors
         synthetic new
@@ -16631,7 +16650,7 @@ library
       classes
         class I1 @60
           reference: <testLibraryFragment>::@class::I1
-          element: <testLibraryFragment>::@class::I1#element
+          element: <testLibrary>::@class::I1
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::I1::@constructor::new
@@ -16670,7 +16689,7 @@ library
       classes
         class I2 @67
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2#element
+          element: <testLibrary>::@class::I2
           typeParameters
             E @70
               element: <not-implemented>
@@ -16688,11 +16707,13 @@ library
               element: <not-implemented>
   classes
     class I1
+      reference: <testLibrary>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
+      reference: <testLibrary>::@class::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       typeParameters
         E
@@ -16843,7 +16864,7 @@ library
       classes
         class I1 @53
           reference: <testLibraryFragment>::@class::I1
-          element: <testLibraryFragment>::@class::I1#element
+          element: <testLibrary>::@class::I1
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::I1::@constructor::new
@@ -16882,7 +16903,7 @@ library
       classes
         class I2 @71
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@class::I2#element
+          element: <testLibrary>::@class::I2
           typeParameters
             E @74
               element: <not-implemented>
@@ -16902,11 +16923,13 @@ library
               element: <not-implemented>
   classes
     class I1
+      reference: <testLibrary>::@class::I1
       firstFragment: <testLibraryFragment>::@class::I1
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::I1::@constructor::new
     class I2
+      reference: <testLibrary>::@class::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::I2
       typeParameters
         E
@@ -19781,13 +19804,15 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@enum::A
+          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          augmented
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       classes
         augment class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTargetAny: <testLibraryFragment>::@enum::A
+          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -19822,19 +19847,20 @@ library
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A#element
+          element: <testLibrary>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A#element
+          element: <testLibrary>::@class::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-    class A
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -19899,7 +19925,6 @@ library
         enum A @36
           reference: <testLibraryFragment>::@enum::A
           enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           supertype: Enum
           fields
             static const enumConstant v @39
@@ -19920,15 +19945,6 @@ library
               reference: <testLibraryFragment>::@enum::A::@getter::values
               enclosingElement3: <testLibraryFragment>::@enum::A
               returnType: List<A>
-          augmented
-            fields
-              <testLibraryFragment>::@enum::A::@field::v
-              <testLibraryFragment>::@enum::A::@field::values
-            constants
-              <testLibraryFragment>::@enum::A::@field::v
-            accessors
-              <testLibraryFragment>::@enum::A::@getter::v
-              <testLibraryFragment>::@enum::A::@getter::values
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -19942,7 +19958,17 @@ library
         augment enum A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibraryFragment>::@enum::A
+          augmentationTargetAny: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          fields
+            synthetic static const values @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::values
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              type: List<A>
+          accessors
+            synthetic static get values @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::values
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+              returnType: List<A>
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -19954,7 +19980,6 @@ library
         enum A @36
           reference: <testLibraryFragment>::@enum::A
           element: <testLibraryFragment>::@enum::A#element
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
             enumConstant v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
@@ -19978,17 +20003,26 @@ library
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       enums
         enum A @35
           reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
-          element: <testLibraryFragment>::@enum::A#element
-          previousFragment: <testLibraryFragment>::@enum::A
+          element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A#element
+          fields
+            <null-name>
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::values
+              element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::values#element
+              getter2: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::values
+          getters
+            get <null-name>
+              reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::values
+              element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::values#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   enums
     enum A
@@ -20008,6 +20042,17 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::v
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
+    enum A
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
+      supertype: Enum
+      fields
+        synthetic static const values
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::values
+          type: List<A>
+          getter: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::values#element
+      getters
+        synthetic static get values
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::values
 ''');
   }
 
@@ -21218,7 +21263,7 @@ library
       classes
         class B @49
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -21264,6 +21309,7 @@ library
               element: <not-implemented>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         synthetic new

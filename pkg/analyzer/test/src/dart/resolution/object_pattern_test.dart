@@ -33,7 +33,7 @@ ObjectPattern
   type: NamedType
     name: B
     element: <testLibraryFragment>::@class::B
-    element2: <testLibraryFragment>::@class::B#element
+    element2: <testLibrary>::@class::B
     type: B<B<Object?>>
   leftParenthesis: (
   rightParenthesis: )
@@ -58,7 +58,7 @@ ObjectPattern
   type: NamedType
     name: B
     element: <testLibraryFragment>::@class::B
-    element2: <testLibraryFragment>::@class::B#element
+    element2: <testLibrary>::@class::B
     type: B<int>
   leftParenthesis: (
   rightParenthesis: )
@@ -84,7 +84,7 @@ ObjectPattern
   type: NamedType
     name: C
     element: <testLibraryFragment>::@class::C
-    element2: <testLibraryFragment>::@class::C#element
+    element2: <testLibrary>::@class::C
     type: C<int, Set<int>>
   leftParenthesis: (
   rightParenthesis: )
@@ -109,7 +109,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A<num>
   leftParenthesis: (
   rightParenthesis: )
@@ -172,11 +172,11 @@ ObjectPattern
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A<int>
   leftParenthesis: (
   fields
@@ -218,7 +218,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -259,7 +259,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -300,7 +300,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -344,7 +344,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -386,7 +386,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -428,7 +428,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -468,7 +468,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -509,7 +509,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -527,7 +527,7 @@ ObjectPattern
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         matchedValueType: int?
       element: <testLibraryFragment>::@class::A::@getter::foo
@@ -558,7 +558,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -602,7 +602,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -646,7 +646,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -684,7 +684,7 @@ ObjectPattern
   type: NamedType
     name: Object
     element: dart:core::<fragment>::@class::Object
-    element2: dart:core::<fragment>::@class::Object#element
+    element2: dart:core::@class::Object
     type: Object
   leftParenthesis: (
   fields
@@ -720,7 +720,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -760,7 +760,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@class::A
-    element2: <testLibraryFragment>::@class::A#element
+    element2: <testLibrary>::@class::A
     type: A
   leftParenthesis: (
   fields
@@ -1008,7 +1008,7 @@ ObjectPattern
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::A
@@ -1266,7 +1266,7 @@ PatternVariableDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<int>
     leftParenthesis: (
     fields
@@ -1321,11 +1321,11 @@ PatternVariableDeclaration
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<int>
     leftParenthesis: (
     fields
@@ -1351,7 +1351,7 @@ PatternVariableDeclaration
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A<int>
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::new
@@ -1386,7 +1386,7 @@ PatternVariableDeclaration
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<dynamic>
     leftParenthesis: (
     fields
@@ -1398,7 +1398,7 @@ PatternVariableDeclaration
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@28
@@ -1417,7 +1417,7 @@ PatternVariableDeclaration
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A<dynamic>
       staticElement: ConstructorMember
         base: <testLibraryFragment>::@class::A::@constructor::new

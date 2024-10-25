@@ -2138,7 +2138,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: C
       staticElement: <testLibraryFragment>::@class::C
-      element: <testLibraryFragment>::@class::C#element
+      element: <testLibrary>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -2444,7 +2444,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2483,7 +2483,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2527,7 +2527,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2565,7 +2565,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2579,7 +2579,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -2607,7 +2607,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3190,7 +3190,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3226,7 +3226,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3388,7 +3388,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: C
       staticElement: <testLibraryFragment>::@class::C
-      element: <testLibraryFragment>::@class::C#element
+      element: <testLibrary>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3429,7 +3429,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3476,7 +3476,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3516,7 +3516,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -5433,10 +5433,10 @@ FunctionExpressionInvocation
       identifier: SimpleIdentifier
         token: C
         staticElement: package:test/a.dart::<fragment>::@class::C
-        element: package:test/a.dart::<fragment>::@class::C#element
+        element: package:test/a.dart::@class::C
         staticType: null
       staticElement: package:test/a.dart::<fragment>::@class::C
-      element: package:test/a.dart::<fragment>::@class::C#element
+      element: package:test/a.dart::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -5488,10 +5488,10 @@ MethodInvocation
     identifier: SimpleIdentifier
       token: C
       staticElement: package:test/a.dart::<fragment>::@class::C
-      element: package:test/a.dart::<fragment>::@class::C#element
+      element: package:test/a.dart::@class::C
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@class::C
-    element: package:test/a.dart::<fragment>::@class::C#element
+    element: package:test/a.dart::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -6534,7 +6534,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -7581,7 +7581,7 @@ CascadeExpression
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -8090,7 +8090,7 @@ FunctionExpressionInvocation
             name: B
             question: ?
             element: <testLibraryFragment>::@class::B
-            element2: <testLibraryFragment>::@class::B#element
+            element2: <testLibrary>::@class::B
             type: B?
           staticType: B?
         rightParenthesis: )
@@ -8589,7 +8589,7 @@ MethodInvocation
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -8627,12 +8627,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: double
         element: dart:core::<fragment>::@class::double
-        element2: dart:core::<fragment>::@class::double#element
+        element2: dart:core::@class::double
         type: double
     rightBracket: >
   argumentList: ArgumentList

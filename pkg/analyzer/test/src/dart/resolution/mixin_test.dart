@@ -166,7 +166,7 @@ MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -197,12 +197,12 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
       element: <testLibraryFragment>::@class::B
-      element2: <testLibraryFragment>::@class::B#element
+      element2: <testLibrary>::@class::B
       type: B
 ''');
   }
@@ -338,12 +338,12 @@ MixinOnClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
       element: <testLibraryFragment>::@class::B
-      element2: <testLibraryFragment>::@class::B#element
+      element2: <testLibrary>::@class::B
       type: B
 ''');
   }
@@ -371,7 +371,7 @@ MethodDeclaration
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: _
       declaredElement: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_

@@ -41,7 +41,7 @@ ImplementsClause
         element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/lib1.dart::<fragment>::@class::A
-      element2: package:test/lib1.dart::<fragment>::@class::A#element
+      element2: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -107,7 +107,7 @@ ImplementsClause
         element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/lib1.dart::<fragment>::@class::A
-      element2: package:test/lib1.dart::<fragment>::@class::A#element
+      element2: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -137,7 +137,7 @@ ImplementsClause
         element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A
 ''');
   }
@@ -193,7 +193,7 @@ ImplementsClause
         element2: <testLibraryFragment>::@prefix2::math
       name: Random
       element: dart:math::<fragment>::@class::Random
-      element2: dart:math::<fragment>::@class::Random#element
+      element2: dart:math::@class::Random
       type: Random
 ''');
   }

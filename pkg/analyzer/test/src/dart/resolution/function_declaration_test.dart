@@ -38,11 +38,11 @@ FunctionDeclaration
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: dart:async::@fragment::dart:async/stream.dart::@class::Stream
-    element2: dart:async::@fragment::dart:async/stream.dart::@class::Stream#element
+    element2: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -90,11 +90,11 @@ FunctionDeclaration
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: dart:async::@fragment::dart:async/stream.dart::@class::Stream
-    element2: dart:async::@fragment::dart:async/stream.dart::@class::Stream#element
+    element2: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -164,7 +164,7 @@ FunctionDeclaration
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -175,7 +175,7 @@ FunctionDeclaration
         type: NamedType
           name: double
           element: dart:core::<fragment>::@class::double
-          element2: dart:core::<fragment>::@class::double#element
+          element2: dart:core::@class::double
           type: double
         name: a
         declaredElement: <testLibraryFragment>::@getter::foo::@parameter::a
@@ -215,11 +215,11 @@ FunctionDeclaration
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: dart:core::<fragment>::@class::Iterable
-    element2: dart:core::<fragment>::@class::Iterable#element
+    element2: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -265,11 +265,11 @@ FunctionDeclaration
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     element: dart:core::<fragment>::@class::Iterable
-    element2: dart:core::<fragment>::@class::Iterable#element
+    element2: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression

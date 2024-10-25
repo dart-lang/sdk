@@ -142,16 +142,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.updateAugmentationTarget(name, element);
 
-    if (element.augmentationTarget != null) {
-      switch (_libraryBuilder.getAugmentedBuilder(name)) {
-        case AugmentedClassDeclarationBuilder builder:
-          builder.augment(element);
-      }
+    // If the fragment is an augmentation, and the corresponding builder
+    // has correct type, add the fragment to the builder. Otherwise, create
+    // a new builder.
+    var augmentedBuilder = _libraryBuilder.getAugmentedBuilder(name);
+    if (element.augmentationTarget != null &&
+        augmentedBuilder is AugmentedClassDeclarationBuilder) {
+      augmentedBuilder.augment(element);
     } else {
+      var containerRef = _libraryBuilder.reference.getChild('@class');
+      var elementReference = containerRef.addChild(refName);
+      var element2 = NotAugmentedClassElementImpl(elementReference, element);
+
       _libraryBuilder.putAugmentedBuilder(
         name,
         AugmentedClassDeclarationBuilder(
-          declaration: element,
+          element: element2,
+          firstFragment: element,
         ),
       );
     }
@@ -180,10 +187,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
+    var refName = fragmentName?.name ?? '${_nextUnnamedId++}';
+    var elementReference =
+        _libraryBuilder.reference.getChild('@class').addChild(refName);
+    NotAugmentedClassElementImpl(elementReference, element);
+
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addClass(name, element);
+    var reference = _enclosingContext.addClass(refName, element);
     if (!element.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }

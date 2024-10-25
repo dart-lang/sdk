@@ -124,7 +124,6 @@ vars = {
   "async_rev": "5f70a996f673d625e3502597084653686c3e754c",
   "bazel_worker_rev": "aa3cc9e826350b960e0c5a67e6065bcedba8b0ac",
   "benchmark_harness_rev": "44f125ae1d045aa3de09fe88a8dd70cb7352d563",
-  "boolean_selector_rev": "d6c7c36ae1111f11cc24306d71d3ab2deea8fa68",
   "browser_launcher_rev": "e5fc5d488eb5038bfec2a6690c72ab8dd353e101",
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
   "cli_util_rev": "c36b3941e38092d6d6f87ac27d9e88f153d3ac38",
@@ -159,7 +158,6 @@ vars = {
   "lints_rev": "5016d63c889936b2100520f999591d0492d9afe3",
   "logging_rev": "6fa056098ceca03d399bff64592822b2ae5dee6e",
   "markdown_rev": "d53feae0760a4f0aae5ffdfb12d8e6acccf14b40",
-  "matcher_rev": "31f13583630e093731c8cf2b843c14196d748c5c",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mockito_rev": "57d484f9b8e7f6a504966a901174358a42fa932a",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
@@ -387,9 +385,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/benchmark_harness":
       Var("dart_git") + "benchmark_harness.git" + "@" +
       Var("benchmark_harness_rev"),
-  Var("dart_root") + "/third_party/pkg/boolean_selector":
-      Var("dart_git") + "boolean_selector.git" +
-      "@" + Var("boolean_selector_rev"),
   Var("dart_root") + "/third_party/pkg/browser_launcher":
       Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/characters": {
@@ -445,8 +440,6 @@ deps = {
       Var("dart_git") + "logging.git" + "@" + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
-  Var("dart_root") + "/third_party/pkg/matcher":
-      Var("dart_git") + "matcher.git" + "@" + Var("matcher_rev"),
   Var("dart_root") + "/third_party/pkg/material_color_utilities": {
     "url": Var("dart_git") +
            "external/github.com/material-foundation/material-color-utilities.git" +

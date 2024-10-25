@@ -153,7 +153,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -163,7 +163,7 @@ Annotation
           type: NamedType
             name: A
             element: <testLibraryFragment>::@class::A
-            element2: <testLibraryFragment>::@class::A#element
+            element2: <testLibrary>::@class::A
             type: A
           staticElement: <testLibraryFragment>::@class::A::@constructor::new
           element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -253,7 +253,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -357,7 +357,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -392,7 +392,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -452,7 +452,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -499,7 +499,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -546,7 +546,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -584,7 +584,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -626,7 +626,7 @@ Annotation
   name: SimpleIdentifier
     token: D
     staticElement: <testLibraryFragment>::@class::D
-    element: <testLibraryFragment>::@class::D#element
+    element: <testLibrary>::@class::D
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -637,7 +637,7 @@ Annotation
           type: NamedType
             name: C
             element: <testLibraryFragment>::@class::C
-            element2: <testLibraryFragment>::@class::C#element
+            element2: <testLibrary>::@class::C
             type: C
           staticElement: <testLibraryFragment>::@class::C::@constructor::new
           element: <testLibraryFragment>::@class::C::@constructor::new#element
@@ -676,7 +676,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -732,7 +732,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -776,7 +776,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -830,7 +830,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -870,7 +870,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -905,7 +905,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -959,7 +959,7 @@ Annotation
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@class::A
-      element: <testLibraryFragment>::@class::A#element
+      element: <testLibrary>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -996,7 +996,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1004,7 +1004,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -1054,7 +1054,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1062,7 +1062,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1105,7 +1105,7 @@ Annotation
   name: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1150,7 +1150,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1199,7 +1199,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1245,7 +1245,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1290,7 +1290,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1336,7 +1336,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1384,7 +1384,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1430,7 +1430,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@class::B
-    element: <testLibraryFragment>::@class::B#element
+    element: <testLibrary>::@class::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1438,7 +1438,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1581,10 +1581,10 @@ Annotation
     identifier: SimpleIdentifier
       token: A
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@class::A
-    element: package:test/a.dart::<fragment>::@class::A#element
+    element: package:test/a.dart::@class::A
     staticType: null
   period: .
   constructorName: SimpleIdentifier
@@ -1637,10 +1637,10 @@ Annotation
     identifier: SimpleIdentifier
       token: A
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@class::A
-    element: package:test/a.dart::<fragment>::@class::A#element
+    element: package:test/a.dart::@class::A
     staticType: null
   period: .
   constructorName: SimpleIdentifier
@@ -1687,10 +1687,10 @@ Annotation
     identifier: SimpleIdentifier
       token: A
       staticElement: package:test/a.dart::<fragment>::@class::A
-      element: package:test/a.dart::<fragment>::@class::A#element
+      element: package:test/a.dart::@class::A
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@class::A
-    element: package:test/a.dart::<fragment>::@class::A#element
+    element: package:test/a.dart::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1961,7 +1961,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2034,7 +2034,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2138,7 +2138,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2206,7 +2206,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2365,7 +2365,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2425,7 +2425,7 @@ Annotation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList

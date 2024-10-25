@@ -1256,13 +1256,13 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
         class B @17
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
         class C @28
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
       extensionTypes
         extension type X @64
           reference: <testLibraryFragment>::@extensionType::X
@@ -1278,10 +1278,13 @@ library
               element: <testLibraryFragment>::@extensionType::X::@getter::it#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
   extensionTypes
     extension type X
@@ -1917,6 +1920,7 @@ library
               getter2: <testLibraryFragment>::@extensionType::A::@getter::_it
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         _it
@@ -1934,6 +1938,7 @@ library
             requiredPositional __it
               type: int
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic _it
@@ -9674,13 +9679,15 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           augmentationTargetAny: <testLibraryFragment>::@extensionType::A
+          augmentation: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
+          augmented
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
       classes
         augment class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTargetAny: <testLibraryFragment>::@extensionType::A
+          augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -9708,19 +9715,20 @@ library
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A#element
+          element: <testLibrary>::@class::A
+          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A#element
+          element: <testLibrary>::@class::A
+          previousFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-    class A
-      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
   extensionTypes
     extension type A
       firstFragment: <testLibraryFragment>::@extensionType::A
@@ -9777,7 +9785,6 @@ library
         A @46
           reference: <testLibraryFragment>::@extensionType::A
           enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           representation: <testLibraryFragment>::@extensionType::A::@field::it
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
@@ -9791,11 +9798,6 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               enclosingElement3: <testLibraryFragment>::@extensionType::A
               returnType: int
-          augmented
-            fields
-              <testLibraryFragment>::@extensionType::A::@field::it
-            accessors
-              <testLibraryFragment>::@extensionType::A::@getter::it
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes
@@ -9809,7 +9811,20 @@ library
         augment A @45
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
-          augmentationTarget: <testLibraryFragment>::@extensionType::A
+          augmentationTargetAny: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          representation: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it
+          primaryConstructor: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
+          typeErasure: int
+          fields
+            final it @51
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              type: int
+          accessors
+            synthetic get it @-1
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getter::it
+              enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+              returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -9821,7 +9836,6 @@ library
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
           element: <testLibraryFragment>::@extensionType::A#element
-          nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -9838,17 +9852,26 @@ library
       classes
         class A @36
           reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @45
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
-          previousFragment: <testLibraryFragment>::@extensionType::A
+          element: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A#element
+          fields
+            it @51
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it
+              element: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it#element
+              getter2: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getter::it
+          getters
+            get <null-name>
+              reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getter::it
+              element: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getter::it#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   extensionTypes
     extension type A
@@ -9862,6 +9885,17 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+    extension type A
+      firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+      typeErasure: int
+      fields
+        final it
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it
+          type: int
+          getter: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getter::it#element
+      getters
+        synthetic get it
+          firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getter::it
 ''');
   }
 }

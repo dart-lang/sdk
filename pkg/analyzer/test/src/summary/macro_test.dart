@@ -200,19 +200,22 @@ library
       classes
         class A1 @70
           reference: <testLibraryFragment>::@class::A1
-          element: <testLibraryFragment>::@class::A1#element
+          element: <testLibrary>::@class::A1
         class A2 @125
           reference: <testLibraryFragment>::@class::A2
-          element: <testLibraryFragment>::@class::A2#element
+          element: <testLibrary>::@class::A2
         class A3 @222
           reference: <testLibraryFragment>::@class::A3
-          element: <testLibraryFragment>::@class::A3#element
+          element: <testLibrary>::@class::A3
   classes
     class A1
+      reference: <testLibrary>::@class::A1
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
+      reference: <testLibrary>::@class::A2
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
+      reference: <testLibrary>::@class::A3
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -375,19 +378,22 @@ library
       classes
         class A1 @64
           reference: <testLibraryFragment>::@class::A1
-          element: <testLibraryFragment>::@class::A1#element
+          element: <testLibrary>::@class::A1
         class A2 @113
           reference: <testLibraryFragment>::@class::A2
-          element: <testLibraryFragment>::@class::A2#element
+          element: <testLibrary>::@class::A2
         class A3 @198
           reference: <testLibraryFragment>::@class::A3
-          element: <testLibraryFragment>::@class::A3#element
+          element: <testLibrary>::@class::A3
   classes
     class A1
+      reference: <testLibrary>::@class::A1
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
+      reference: <testLibrary>::@class::A2
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
+      reference: <testLibrary>::@class::A3
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -549,19 +555,22 @@ library
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
-          element: <testLibraryFragment>::@class::A1#element
+          element: <testLibrary>::@class::A1
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
-          element: <testLibraryFragment>::@class::A2#element
+          element: <testLibrary>::@class::A2
         class A3 @202
           reference: <testLibraryFragment>::@class::A3
-          element: <testLibraryFragment>::@class::A3#element
+          element: <testLibrary>::@class::A3
   classes
     class A1
+      reference: <testLibrary>::@class::A1
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
+      reference: <testLibrary>::@class::A2
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
+      reference: <testLibrary>::@class::A3
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -653,19 +662,22 @@ library
       classes
         class A1 @65
           reference: <testLibraryFragment>::@class::A1
-          element: <testLibraryFragment>::@class::A1#element
+          element: <testLibrary>::@class::A1
         class A2 @115
           reference: <testLibraryFragment>::@class::A2
-          element: <testLibraryFragment>::@class::A2#element
+          element: <testLibrary>::@class::A2
         class A3 @165
           reference: <testLibraryFragment>::@class::A3
-          element: <testLibraryFragment>::@class::A3#element
+          element: <testLibrary>::@class::A3
   classes
     class A1
+      reference: <testLibrary>::@class::A1
       firstFragment: <testLibraryFragment>::@class::A1
     class A2
+      reference: <testLibrary>::@class::A2
       firstFragment: <testLibraryFragment>::@class::A2
     class A3
+      reference: <testLibrary>::@class::A3
       firstFragment: <testLibraryFragment>::@class::A3
 ''');
   }
@@ -1028,9 +1040,10 @@ library
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''',
     );
@@ -3098,7 +3111,7 @@ library
       classes
         class A @66
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             f @82
@@ -3115,7 +3128,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @57
@@ -3128,6 +3141,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::f#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final f
@@ -3214,7 +3228,7 @@ library
       classes
         class A @65
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -3222,7 +3236,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @57
@@ -3235,6 +3249,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named::@parameter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         named
@@ -3311,7 +3326,7 @@ library
       classes
         class A @59
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -3319,7 +3334,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             <null-name>
@@ -3330,6 +3345,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new::@parameter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -3422,7 +3438,7 @@ library
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -3430,7 +3446,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @59
@@ -3451,6 +3467,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
@@ -3543,7 +3560,7 @@ library
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -3551,7 +3568,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             <null-name>
@@ -3564,6 +3581,7 @@ library
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
@@ -3645,7 +3663,7 @@ library
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -3653,7 +3671,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             foo @59
@@ -3664,6 +3682,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo::@parameter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -3750,7 +3769,7 @@ library
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -3758,7 +3777,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             <null-name>
@@ -3774,6 +3793,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
@@ -3813,6 +3833,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         new
@@ -3845,6 +3866,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
@@ -3877,6 +3899,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
@@ -3929,6 +3952,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
@@ -3981,6 +4005,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         synthetic foo
@@ -4038,6 +4063,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         static const x
@@ -4074,6 +4100,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final x
@@ -4108,6 +4135,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final x
@@ -4142,6 +4170,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         static const x
@@ -4176,6 +4205,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
@@ -4211,6 +4241,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
@@ -4252,6 +4283,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
@@ -4269,10 +4301,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -4296,10 +4328,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -4338,6 +4370,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
@@ -4376,8 +4409,10 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -4410,6 +4445,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       constructors
         named
@@ -4427,10 +4463,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::<fragment>::@class::A#element
+                  element: package:test/a.dart::@class::A
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
-                element: package:test/a.dart::<fragment>::@class::A#element
+                element: package:test/a.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
@@ -4466,6 +4502,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final foo
@@ -4504,6 +4541,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         final foo
@@ -4548,6 +4586,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         synthetic foo
@@ -4570,10 +4609,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::<fragment>::@class::A#element
+                  element: package:test/a.dart::@class::A
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
-                element: package:test/a.dart::<fragment>::@class::A#element
+                element: package:test/a.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
@@ -4609,6 +4648,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
@@ -4626,10 +4666,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::<fragment>::@class::A#element
+                  element: package:test/a.dart::@class::A
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
-                element: package:test/a.dart::<fragment>::@class::A#element
+                element: package:test/a.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
@@ -4665,6 +4705,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
         synthetic foo
@@ -4687,10 +4728,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @106
                   staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::<fragment>::@class::A#element
+                  element: package:test/a.dart::@class::A
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
-                element: package:test/a.dart::<fragment>::@class::A#element
+                element: package:test/a.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @107
@@ -4729,6 +4770,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   functions
     foo
@@ -4746,10 +4788,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -4782,6 +4824,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   functions
     foo
@@ -4819,6 +4862,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     synthetic foo
@@ -4841,10 +4885,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -4880,6 +4924,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     synthetic foo
@@ -4902,10 +4947,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -4940,6 +4985,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     synthetic foo
@@ -5001,6 +5047,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     final foo
@@ -5018,10 +5065,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -5062,6 +5109,7 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     final foo
@@ -5079,10 +5127,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -5106,10 +5154,10 @@ library
             identifier: SimpleIdentifier
               token: A @86
               staticElement: package:test/a.dart::<fragment>::@class::A
-              element: package:test/a.dart::<fragment>::@class::A#element
+              element: package:test/a.dart::@class::A
               staticType: null
             staticElement: package:test/a.dart::<fragment>::@class::A
-            element: package:test/a.dart::<fragment>::@class::A#element
+            element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @87
@@ -5154,8 +5202,10 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -5188,8 +5238,10 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -5222,8 +5274,10 @@ library
   reference: <testLibrary>
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -5255,6 +5309,7 @@ library
   reference: <testLibrary>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
   functions
     foo
@@ -5292,8 +5347,10 @@ library
   reference: <testLibrary>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
   functions
     foo
@@ -5379,7 +5436,7 @@ library
       classes
         class B @71
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -5387,10 +5444,11 @@ library
       classes
         class B @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
 ''');
   }
@@ -5458,7 +5516,7 @@ library
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -5468,6 +5526,7 @@ library
           element: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
   functions
     foo
@@ -5555,7 +5614,7 @@ library
       classes
         class A @64
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -5570,6 +5629,7 @@ library
           element: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
   topLevelVariables
     final x
@@ -5690,7 +5750,7 @@ library
       classes
         class A @42
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -5703,7 +5763,7 @@ library
       classes
         class A @91
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             named @131
@@ -5720,6 +5780,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         named
@@ -5846,7 +5907,7 @@ library
       classes
         class A @36
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -5862,7 +5923,7 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             foo @166
@@ -5888,6 +5949,7 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo::@parameter::_foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
@@ -6015,7 +6077,7 @@ library
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -6031,7 +6093,7 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             <null-name>
@@ -6049,6 +6111,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
@@ -6155,7 +6218,7 @@ library
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -6171,7 +6234,7 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             foo @176
@@ -6184,6 +6247,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         external foo
@@ -6305,7 +6369,7 @@ library
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -6321,7 +6385,7 @@ library
       classes
         class A @122
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
             <null-name>
@@ -6345,6 +6409,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic foo
@@ -6531,9 +6596,10 @@ library
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -6582,13 +6648,14 @@ library
       classes
         class A @44
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @93
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -6633,9 +6700,10 @@ library
       classes
         class A @76
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -6698,18 +6766,20 @@ library
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B#element
+          element: <testLibrary>::@class::B
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
   }
@@ -6785,9 +6855,10 @@ library
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -6957,9 +7028,10 @@ library
       classes
         class X @84
           reference: <testLibraryFragment>::@class::X
-          element: <testLibraryFragment>::@class::X#element
+          element: <testLibrary>::@class::X
   classes
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
@@ -7022,9 +7094,10 @@ library
       classes
         class X @82
           reference: <testLibraryFragment>::@class::X
-          element: <testLibraryFragment>::@class::X#element
+          element: <testLibrary>::@class::X
   classes
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
 ''');
   }
@@ -7078,9 +7151,10 @@ library
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -7145,7 +7219,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @97
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -7155,6 +7229,7 @@ library
                   element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -7221,7 +7296,7 @@ library
       classes
         class A @80
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @82
               element: <not-implemented>
@@ -7231,6 +7306,7 @@ library
               element: <not-implemented>
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -7292,7 +7368,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -7307,6 +7383,7 @@ library
                   correctionMessage: Correction message
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -7376,7 +7453,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -7388,6 +7465,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -7523,13 +7601,14 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @75
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -7787,13 +7866,14 @@ library
       classes
         class A @56
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @67
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -7853,9 +7933,10 @@ library
       classes
         class A @78
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -7925,7 +8006,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @102
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -7937,6 +8018,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -8495,7 +8577,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @98
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -8507,6 +8589,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -8711,13 +8794,14 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @90
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -9005,7 +9089,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @116
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -9017,6 +9101,7 @@ library
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::b#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -9088,13 +9173,14 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @94
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -9234,7 +9320,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @145
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -9246,6 +9332,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -9326,7 +9413,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @138
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -9338,6 +9425,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -9480,7 +9568,7 @@ library
       classes
         class A @62
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @73
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -9490,6 +9578,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::bar#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -9547,9 +9636,10 @@ library
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9602,9 +9692,10 @@ library
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9657,9 +9748,10 @@ library
       classes
         class A @63
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9720,9 +9812,10 @@ library
       classes
         class A @68
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -9787,7 +9880,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -9809,6 +9902,7 @@ My declarations phase
                   correctionMessage: Try reporting the failure to the macro author.
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -9892,7 +9986,7 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
@@ -9912,6 +10006,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         foo
@@ -9994,13 +10089,14 @@ library
       classes
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -10064,9 +10160,10 @@ library
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10124,9 +10221,10 @@ library
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10182,9 +10280,10 @@ library
       classes
         class A @55
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10245,9 +10344,10 @@ library
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
 ''');
   }
@@ -10280,13 +10380,14 @@ library
       classes
         class A @12
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -10340,7 +10441,7 @@ library
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic const <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -10359,6 +10460,7 @@ library
           element: <testLibraryFragment>::@mixin::M#element
   classes
     class alias A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       supertype: Object
       constructors
@@ -10453,10 +10555,10 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
         class B @125
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
@@ -10469,18 +10571,21 @@ library
       classes
         class C @86
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C#element
+          element: <testLibrary>::@class::C
         class B @105
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           previousFragment: <testLibraryFragment>::@class::B
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::C
 ''');
   }
@@ -10543,13 +10648,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -10659,13 +10765,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -10735,7 +10842,7 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @85
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -10749,6 +10856,7 @@ library
           element: <testLibrary>::@fragment::package:test/test.macro.dart::@extension::B#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -10812,13 +10920,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @91
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -10879,13 +10988,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @74
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -10946,13 +11056,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11015,13 +11126,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11084,13 +11196,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @77
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11153,13 +11266,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @79
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11222,13 +11336,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11291,13 +11406,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11387,7 +11503,7 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @87
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -11414,6 +11530,7 @@ library
               element: <testLibraryFragment>::@enum::B::@getter::values#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11494,13 +11611,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @89
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11563,13 +11681,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @95
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11652,7 +11771,7 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           methods
             foo @82
@@ -11665,7 +11784,7 @@ library
       classes
         class A @49
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             augment foo @68
@@ -11674,6 +11793,7 @@ library
               previousFragment: <testLibraryFragment>::@class::A::@method::foo
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11736,13 +11856,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @81
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11805,13 +11926,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @78
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11874,13 +11996,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @80
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -11943,13 +12066,14 @@ library
       classes
         class A @29
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           methods
             foo @84
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
@@ -12095,7 +12219,7 @@ library
       classes
         class A @53
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             foo @69
@@ -12124,7 +12248,7 @@ library
       classes
         class A @81
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           methods
             toString @122
@@ -12137,6 +12261,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -12306,7 +12431,7 @@ library
       classes
         class A @60
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
           fields
             foo @76
@@ -12338,7 +12463,7 @@ library
       classes
         class A @138
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           constructors
             external fromJson @177
@@ -12370,6 +12495,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final foo
@@ -17281,18 +17407,20 @@ library
       classes
         class A @67
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
+          element: <testLibrary>::@class::MyClass
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class MyClass
+      reference: <testLibrary>::@class::MyClass
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
   }
@@ -17357,7 +17485,7 @@ library
       classes
         class A @73
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -17368,18 +17496,20 @@ library
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
+          element: <testLibrary>::@class::MyClass
           constructors
             synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class MyClass
+      reference: <testLibrary>::@class::MyClass
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       constructors
         synthetic new
@@ -17454,7 +17584,7 @@ library
       classes
         class A @84
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -17465,18 +17595,20 @@ library
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
+          element: <testLibrary>::@class::MyClass
           constructors
             synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class MyClass
+      reference: <testLibrary>::@class::MyClass
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       constructors
         synthetic new
@@ -17551,7 +17683,7 @@ library
       classes
         class A @90
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -17562,18 +17694,20 @@ library
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
+          element: <testLibrary>::@class::MyClass
           constructors
             synthetic <null-name>
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class MyClass
+      reference: <testLibrary>::@class::MyClass
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       constructors
         synthetic new
@@ -17643,18 +17777,20 @@ library
       classes
         class A @61
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B#element
+          element: <testLibrary>::@class::B
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
   exportedReferences
     declared <testLibraryFragment>::@class::A
@@ -17866,18 +18002,20 @@ library
       classes
         class A @35
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
+          element: <testLibrary>::@class::MyClass
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
     class MyClass
+      reference: <testLibrary>::@class::MyClass
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
 ''');
     }
@@ -17987,7 +18125,7 @@ library
       classes
         class X @35
           reference: <testLibraryFragment>::@class::X
-          element: <testLibraryFragment>::@class::X#element
+          element: <testLibrary>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -17999,7 +18137,7 @@ library
       classes
         class MyClass @83
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass#element
+          element: <testLibrary>::@class::MyClass
           methods
             foo @100
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
@@ -18009,8 +18147,10 @@ library
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo::@parameter::_#element
   classes
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
     class MyClass
+      reference: <testLibrary>::@class::MyClass
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       methods
         foo
@@ -18417,7 +18557,7 @@ library
       classes
         class X @37
           reference: <testLibraryFragment>::@class::X
-          element: <testLibraryFragment>::@class::X#element
+          element: <testLibrary>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -18429,16 +18569,19 @@ library
       classes
         class A @104
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A#element
+          element: <testLibrary>::@class::A
         class B @116
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B#element
+          element: <testLibrary>::@class::B
   classes
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::A
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::B
 ''');
 
@@ -18668,18 +18811,20 @@ library
       classes
         class B @78
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
       classes
         class X @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X#element
+          element: <testLibrary>::@class::X
   classes
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
     class X
+      reference: <testLibrary>::@class::X
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::X
 ''');
   }
@@ -19396,18 +19541,20 @@ library
       classes
         class A @74
           reference: package:other/other.dart::<fragment>::@class::A
-          element: package:other/other.dart::<fragment>::@class::A#element
+          element: package:other/other.dart::@class::A
     package:other/other.dart::@fragment::package:other/other.macro.dart
       element: package:other/other.dart
       previousFragment: package:other/other.dart::<fragment>
       classes
         class B @43
           reference: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
-          element: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B#element
+          element: package:other/other.dart::@class::B
   classes
     class A
+      reference: package:other/other.dart::@class::A
       firstFragment: package:other/other.dart::<fragment>::@class::A
     class B
+      reference: package:other/other.dart::@class::B
       firstFragment: package:other/other.dart::@fragment::package:other/other.macro.dart::@class::B
 ''');
   }

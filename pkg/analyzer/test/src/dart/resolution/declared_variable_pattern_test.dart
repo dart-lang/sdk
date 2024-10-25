@@ -55,7 +55,7 @@ DeclaredVariablePattern
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   name: y
   declaredElement: isFinal y@46
@@ -153,7 +153,7 @@ ObjectPattern
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   leftParenthesis: (
   fields
@@ -236,7 +236,7 @@ DeclaredVariablePattern
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   name: y
   declaredElement: y@40
@@ -370,7 +370,7 @@ CastPattern
   type: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   matchedValueType: num
 ''');

@@ -39,7 +39,7 @@ MixinOnClause
     NamedType
       name: Enum
       element: dart:core::<fragment>::@class::Enum
-      element2: dart:core::<fragment>::@class::Enum#element
+      element2: dart:core::@class::Enum
       type: Enum
 ''');
   }
@@ -78,7 +78,7 @@ MixinOnClause
     NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
 ''');
   }

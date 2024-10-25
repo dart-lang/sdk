@@ -212,7 +212,7 @@ SwitchExpression
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -312,7 +312,7 @@ SwitchExpressionCase
           type: NamedType
             name: A
             element: <testLibraryFragment>::@class::A
-            element2: <testLibraryFragment>::@class::A#element
+            element2: <testLibrary>::@class::A
             type: A
           staticElement: <testLibraryFragment>::@class::A::@constructor::new
           element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -543,7 +543,7 @@ SwitchExpression
               NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -624,7 +624,7 @@ SwitchExpression
               type: NamedType
                 name: int
                 element: dart:core::<fragment>::@class::int
-                element2: dart:core::<fragment>::@class::int#element
+                element2: dart:core::@class::int
                 type: int
               name: a
               declaredElement: a@58
@@ -711,7 +711,7 @@ SwitchExpression
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@44

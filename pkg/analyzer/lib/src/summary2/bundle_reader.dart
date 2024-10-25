@@ -154,7 +154,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
-        var augmented = AugmentedClassElementImpl(element);
+        var augmented = element.augmentedInternal as AugmentedClassElementImpl;
         element.augmentedInternal = augmented;
         augmented.mixins = reader._readInterfaceTypeList();
         augmented.interfaces = reader._readInterfaceTypeList();
@@ -754,11 +754,23 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
+
+    var reference2 = _readReference();
+    var isAugmented = _reader.readBool();
+
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
 
     var element = ClassElementImpl(name, -1);
     element.name2 = fragmentName;
+
+    if (reference2.element2 case MaybeAugmentedClassElementMixin element2?) {
+      element.augmentedInternal = element2;
+    } else if (isAugmented) {
+      AugmentedClassElementImpl(reference2, element);
+    } else {
+      NotAugmentedClassElementImpl(reference2, element);
+    }
 
     var linkedData = ClassElementLinkedData(
       reference: reference,
@@ -1809,13 +1821,6 @@ class LibraryReader {
       );
     });
 
-    unitElement.parts = _reader.readTypedList(() {
-      return _readPartElement(
-        libraryElement: libraryElement,
-        containerUnit: unitElement,
-      );
-    });
-
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
@@ -1836,6 +1841,13 @@ class LibraryReader {
       return MacroGeneratedLibraryFragment(
         code: _reader.readStringUtf8(),
         informativeBytes: _reader.readUint8List(),
+      );
+    });
+
+    unitElement.parts = _reader.readTypedList(() {
+      return _readPartElement(
+        libraryElement: libraryElement,
+        containerUnit: unitElement,
       );
     });
 

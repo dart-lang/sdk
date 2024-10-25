@@ -56,7 +56,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
@@ -72,6 +72,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::x#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
@@ -128,7 +129,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             x @18
               reference: <testLibraryFragment>::@class::A::@field::x
@@ -144,6 +145,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::x#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
@@ -197,7 +199,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -211,6 +213,7 @@ library
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -259,7 +262,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             synthetic <null-name>
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -270,6 +273,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
@@ -312,7 +316,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -322,6 +326,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -890,14 +895,14 @@ library
                             type: NamedType
                               name: int @17
                               element: dart:core::<fragment>::@class::int
-                              element2: dart:core::<fragment>::@class::int#element
+                              element2: dart:core::@class::int
                               type: int
                             name: f1 @21
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: String @25
                               element: dart:core::<fragment>::@class::String
-                              element2: dart:core::<fragment>::@class::String#element
+                              element2: dart:core::@class::String
                               type: String
                             name: f2 @32
                         rightBracket: } @34
@@ -905,7 +910,7 @@ library
                       type: ({int f1, String f2})
                   rightBracket: > @36
                 element: dart:core::<fragment>::@class::List
-                element2: dart:core::<fragment>::@class::List#element
+                element2: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
       accessors
@@ -970,20 +975,20 @@ library
                           type: NamedType
                             name: int @16
                             element: dart:core::<fragment>::@class::int
-                            element2: dart:core::<fragment>::@class::int#element
+                            element2: dart:core::@class::int
                             type: int
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: String @21
                             element: dart:core::<fragment>::@class::String
-                            element2: dart:core::<fragment>::@class::String#element
+                            element2: dart:core::@class::String
                             type: String
                           name: f2 @28
                       rightParenthesis: ) @30
                       type: (int, String)
                   rightBracket: > @31
                 element: dart:core::<fragment>::@class::List
-                element2: dart:core::<fragment>::@class::List#element
+                element2: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type
       accessors

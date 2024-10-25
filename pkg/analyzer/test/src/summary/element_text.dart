@@ -182,6 +182,20 @@ abstract class _AbstractElementWriter {
       });
     }
   }
+
+  void _writeReference2(Element2 e) {
+    var reference = switch (e) {
+      MaybeAugmentedClassElementMixin() => e.reference,
+      _ => null,
+    };
+
+    if (reference != null) {
+      _sink.writeIndentedLine(() {
+        _sink.write('reference: ');
+        _elementPrinter.writeReference(reference);
+      });
+    }
+  }
 }
 
 /// Writes the canonical text presentation of elements.
@@ -991,6 +1005,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);

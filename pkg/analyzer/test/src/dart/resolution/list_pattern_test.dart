@@ -35,7 +35,7 @@ ListPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: a@41
@@ -95,7 +95,7 @@ ListPattern
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -216,7 +216,7 @@ ListPattern
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -297,7 +297,7 @@ ListPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: a@48
@@ -355,7 +355,7 @@ ListPattern
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -391,7 +391,7 @@ ListPattern
       NamedType
         name: num
         element: dart:core::<fragment>::@class::num
-        element2: dart:core::<fragment>::@class::num#element
+        element2: dart:core::@class::num
         type: num
     rightBracket: >
   leftBracket: [
@@ -400,7 +400,7 @@ ListPattern
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: a@53
@@ -432,7 +432,7 @@ ListPattern
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -503,7 +503,7 @@ PatternVariableDeclaration
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: [
@@ -555,7 +555,7 @@ PatternVariableDeclaration
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@22

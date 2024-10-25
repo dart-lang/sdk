@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show NonExistingSource;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -44,6 +45,7 @@ class ElementFactory {
       String typeName, InterfaceType? superclassType,
       [List<String>? parameterNames]) {
     ClassElementImpl element = ClassElementImpl(typeName, 0);
+    NotAugmentedClassElementImpl(Reference.root(), element);
     element.constructors = const <ConstructorElementImpl>[];
     element.supertype = superclassType;
     if (parameterNames != null) {
@@ -68,6 +70,7 @@ class ElementFactory {
     supertype ??= objectType;
 
     var element = ClassElementImpl(name, 0);
+    NotAugmentedClassElementImpl(Reference.root(), element);
     element.typeParameters = typeParameters;
     element.supertype = supertype;
     element.mixins = mixins;

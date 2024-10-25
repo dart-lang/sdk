@@ -35,7 +35,7 @@ ImportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
-          element: dart:math::<fragment>::@class::Random#element
+          element: dart:math::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -94,7 +94,7 @@ ImportDirective
         SimpleIdentifier
           token: Random
           staticElement: dart:math::<fragment>::@class::Random
-          element: dart:math::<fragment>::@class::Random#element
+          element: dart:math::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryImportElement
@@ -227,7 +227,7 @@ CompilationUnit
                 type: NamedType
                   name: A
                   element: package:test/a.dart::<fragment>::@class::A
-                  element2: package:test/a.dart::<fragment>::@class::A#element
+                  element2: package:test/a.dart::@class::A
                   type: A
                 staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
                 element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
@@ -335,7 +335,7 @@ CompilationUnit
                 type: NamedType
                   name: A
                   element: package:test/a_html.dart::<fragment>::@class::A
-                  element2: package:test/a_html.dart::<fragment>::@class::A#element
+                  element2: package:test/a_html.dart::@class::A
                   type: A
                 staticElement: package:test/a_html.dart::<fragment>::@class::A::@constructor::new
                 element: package:test/a_html.dart::<fragment>::@class::A::@constructor::new#element
@@ -569,7 +569,7 @@ CompilationUnit
                 type: NamedType
                   name: A
                   element: package:test/a_io.dart::<fragment>::@class::A
-                  element2: package:test/a_io.dart::<fragment>::@class::A#element
+                  element2: package:test/a_io.dart::@class::A
                   type: A
                 staticElement: package:test/a_io.dart::<fragment>::@class::A::@constructor::new
                 element: package:test/a_io.dart::<fragment>::@class::A::@constructor::new#element

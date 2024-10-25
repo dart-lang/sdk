@@ -440,7 +440,7 @@ NamedType
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C<S>
 ''');
   }
@@ -484,7 +484,7 @@ GenericFunctionType
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -493,7 +493,7 @@ GenericFunctionType
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       declaredElement: @-1
         type: int
@@ -519,7 +519,7 @@ extension E on C {}
 NamedType
   name: C
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C
 ''');
   }
@@ -559,7 +559,7 @@ NamedType
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C<S>
 ''');
   }
@@ -603,7 +603,7 @@ GenericFunctionType
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -612,7 +612,7 @@ GenericFunctionType
       type: NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
       declaredElement: @-1
         type: String
@@ -638,7 +638,7 @@ extension on C {}
 NamedType
   name: C
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C
 ''');
   }

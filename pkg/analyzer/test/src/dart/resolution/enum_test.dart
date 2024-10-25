@@ -57,7 +57,7 @@ GenericFunctionType
       type: NamedType
         name: double
         element: dart:core::<fragment>::@class::double
-        element2: dart:core::<fragment>::@class::double#element
+        element2: dart:core::@class::double
         type: double
       declaredElement: @-1
         type: double
@@ -161,7 +161,7 @@ EnumConstantDeclaration
         NamedType
           name: double
           element: dart:core::<fragment>::@class::double
-          element2: dart:core::<fragment>::@class::double#element
+          element2: dart:core::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -418,7 +418,7 @@ ImplementsClause
     NamedType
       name: I
       element: <testLibraryFragment>::@class::I
-      element2: <testLibraryFragment>::@class::I#element
+      element2: <testLibrary>::@class::I
       type: I
 ''');
   }
@@ -450,7 +450,7 @@ MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   name: foo
   typeParameters: TypeParameterList
@@ -506,7 +506,7 @@ MethodDeclaration
   returnType: NamedType
     name: String
     element: dart:core::<fragment>::@class::String
-    element2: dart:core::<fragment>::@class::String#element
+    element2: dart:core::@class::String
     type: String
   name: toString
   parameters: FormalParameterList
@@ -565,7 +565,7 @@ WithClause
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@mixin::M1

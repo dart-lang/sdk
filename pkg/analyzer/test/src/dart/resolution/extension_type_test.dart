@@ -33,7 +33,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -63,7 +63,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -115,7 +115,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: num
       element: dart:core::<fragment>::@class::num
-      element2: dart:core::<fragment>::@class::num#element
+      element2: dart:core::@class::num
       type: num
     fieldName: it
     rightParenthesis: )
@@ -138,7 +138,7 @@ ExtensionTypeDeclaration
           type: NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
@@ -183,7 +183,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -211,7 +211,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -223,7 +223,7 @@ ExtensionTypeDeclaration
       NamedType
         name: num
         element: dart:core::<fragment>::@class::num
-        element2: dart:core::<fragment>::@class::num#element
+        element2: dart:core::@class::num
         type: num
   leftBracket: {
   rightBracket: }
@@ -342,7 +342,7 @@ ExtensionTypeDeclaration
             type: U
         rightBracket: >
       element: dart:core::<fragment>::@class::Map
-      element2: dart:core::<fragment>::@class::Map#element
+      element2: dart:core::@class::Map
       type: Map<T, U>
     fieldName: it
     rightParenthesis: )
@@ -380,7 +380,7 @@ ExtensionTypeDeclaration
         bound: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         declaredElement: _@24
     rightBracket: >
@@ -389,7 +389,7 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     fieldName: _
     rightParenthesis: )
