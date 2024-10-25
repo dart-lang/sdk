@@ -82,8 +82,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       Map.identity();
 
   /// The top-level elements that can be augmented.
-  final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
-      {};
+  final Map<String, FragmentedElementBuilder> _augmentedBuilders = {};
 
   /// The top-level variables and accessors that can be augmented.
   late final AugmentedTopVariablesBuilder topVariables =
@@ -472,7 +471,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
-  AugmentedInstanceDeclarationBuilder? getAugmentedBuilder(String name) {
+  FragmentedElementBuilder? getAugmentedBuilder(String name) {
     return _augmentedBuilders[name];
   }
 
@@ -654,9 +653,9 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   void putAugmentedBuilder(
     String name,
-    AugmentedInstanceDeclarationBuilder element,
+    FragmentedElementBuilder builder,
   ) {
-    _augmentedBuilders[name] = element;
+    _augmentedBuilders[name] = builder;
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
@@ -794,6 +793,14 @@ class LibraryBuilder with MacroApplicationsContainer {
         target.augmentation = augmentation as T;
       }
     }
+    _augmentationTargets[name] = augmentation;
+  }
+
+  // TODO(scheglov): Remove this method when we use only builders.
+  void updateAugmentationTarget0<T extends ElementImpl>(
+    String name,
+    AugmentableElement<T> augmentation,
+  ) {
     _augmentationTargets[name] = augmentation;
   }
 

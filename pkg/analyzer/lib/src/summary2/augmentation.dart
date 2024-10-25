@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -12,12 +13,10 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class AugmentedClassDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final ClassElementImpl firstFragment;
-
+    extends AugmentedInstanceDeclarationBuilder<ClassElementImpl> {
   AugmentedClassDeclarationBuilder({
+    required super.firstFragment,
     required MaybeAugmentedClassElementMixin element,
-    required this.firstFragment,
   }) {
     firstFragment.augmentedInternal = element;
     addFields(firstFragment.fields);
@@ -27,6 +26,9 @@ class AugmentedClassDeclarationBuilder
   }
 
   void augment(ClassElementImpl fragment) {
+    lastFragment.augmentation = fragment;
+    lastFragment = fragment;
+
     var element = _ensureAugmented(firstFragment);
     fragment.augmentedInternal = firstFragment.augmentedInternal;
 
@@ -39,21 +41,19 @@ class AugmentedClassDeclarationBuilder
 }
 
 class AugmentedEnumDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final EnumElementImpl declaration;
-
+    extends AugmentedInstanceDeclarationBuilder<EnumElementImpl> {
   AugmentedEnumDeclarationBuilder({
-    required this.declaration,
+    required super.firstFragment,
   }) {
-    addFields(declaration.fields);
-    addConstructors(declaration.constructors);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
+    addFields(firstFragment.fields);
+    addConstructors(firstFragment.constructors);
+    addAccessors(firstFragment.accessors);
+    addMethods(firstFragment.methods);
   }
 
   void augment(EnumElementImpl element) {
-    var augmented = _ensureAugmented(declaration);
-    element.augmentedInternal = declaration.augmentedInternal;
+    var augmented = _ensureAugmented(firstFragment);
+    element.augmentedInternal = firstFragment.augmentedInternal;
 
     addFields(element.fields);
     addConstructors(element.constructors);
@@ -64,20 +64,18 @@ class AugmentedEnumDeclarationBuilder
 }
 
 class AugmentedExtensionDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final ExtensionElementImpl declaration;
-
+    extends AugmentedInstanceDeclarationBuilder<ExtensionElementImpl> {
   AugmentedExtensionDeclarationBuilder({
-    required this.declaration,
+    required super.firstFragment,
   }) {
-    addFields(declaration.fields);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
+    addFields(firstFragment.fields);
+    addAccessors(firstFragment.accessors);
+    addMethods(firstFragment.methods);
   }
 
   void augment(ExtensionElementImpl element) {
-    var augmented = _ensureAugmented(declaration);
-    element.augmentedInternal = declaration.augmentedInternal;
+    var augmented = _ensureAugmented(firstFragment);
+    element.augmentedInternal = firstFragment.augmentedInternal;
 
     addFields(element.fields);
     addAccessors(element.accessors);
@@ -87,21 +85,19 @@ class AugmentedExtensionDeclarationBuilder
 }
 
 class AugmentedExtensionTypeDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final ExtensionTypeElementImpl declaration;
-
+    extends AugmentedInstanceDeclarationBuilder<ExtensionTypeElementImpl> {
   AugmentedExtensionTypeDeclarationBuilder({
-    required this.declaration,
+    required super.firstFragment,
   }) {
-    addFields(declaration.fields);
-    addConstructors(declaration.constructors);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
+    addFields(firstFragment.fields);
+    addConstructors(firstFragment.constructors);
+    addAccessors(firstFragment.accessors);
+    addMethods(firstFragment.methods);
   }
 
   void augment(ExtensionTypeElementImpl element) {
-    var augmented = _ensureAugmented(declaration);
-    element.augmentedInternal = declaration.augmentedInternal;
+    var augmented = _ensureAugmented(firstFragment);
+    element.augmentedInternal = firstFragment.augmentedInternal;
 
     addFields(element.fields);
     addConstructors(element.constructors);
@@ -111,12 +107,17 @@ class AugmentedExtensionTypeDeclarationBuilder
   }
 }
 
-abstract class AugmentedInstanceDeclarationBuilder {
+abstract class AugmentedInstanceDeclarationBuilder<
+    F extends InstanceElementImpl> extends FragmentedElementBuilder<F> {
   final Map<String, FieldElementImpl> fields = {};
   final Map<String, ConstructorElementImpl> constructors = {};
   final Map<String, PropertyAccessorElementImpl> getters = {};
   final Map<String, PropertyAccessorElementImpl> setters = {};
   final Map<String, MethodElementImpl> methods = {};
+
+  AugmentedInstanceDeclarationBuilder({
+    required super.firstFragment,
+  });
 
   void addAccessors(List<PropertyAccessorElementImpl> elements) {
     for (var element in elements) {
@@ -319,20 +320,18 @@ abstract class AugmentedInstanceDeclarationBuilder {
 }
 
 class AugmentedMixinDeclarationBuilder
-    extends AugmentedInstanceDeclarationBuilder {
-  final MixinElementImpl declaration;
-
+    extends AugmentedInstanceDeclarationBuilder<MixinElementImpl> {
   AugmentedMixinDeclarationBuilder({
-    required this.declaration,
+    required super.firstFragment,
   }) {
-    addFields(declaration.fields);
-    addAccessors(declaration.accessors);
-    addMethods(declaration.methods);
+    addFields(firstFragment.fields);
+    addAccessors(firstFragment.accessors);
+    addMethods(firstFragment.methods);
   }
 
   void augment(MixinElementImpl element) {
-    var augmented = _ensureAugmented(declaration);
-    element.augmentedInternal = declaration.augmentedInternal;
+    var augmented = _ensureAugmented(firstFragment);
+    element.augmentedInternal = firstFragment.augmentedInternal;
 
     addFields(element.fields);
     addAccessors(element.accessors);
@@ -398,6 +397,32 @@ class AugmentedTopVariablesBuilder {
     }
     if (element.setter case var setter?) {
       addAccessor(setter);
+    }
+  }
+}
+
+/// A builder for top-level fragmented elements, e.g. classes.
+class FragmentedElementBuilder<F extends Fragment> {
+  final F firstFragment;
+  F lastFragment;
+
+  FragmentedElementBuilder({
+    required this.firstFragment,
+  }) : lastFragment = firstFragment;
+
+  /// If [fragment] is an augmentation, set its previous fragment to
+  /// [lastFragment].
+  ///
+  /// We invoke this method on any [FragmentedElementBuilder] associated with
+  /// the name of [fragment], even if it is not a correct builder for this
+  /// [fragment]. So, the [lastFragment] might have a wrong type, but we still
+  /// want to remember it for generating the corresponding diagnostic.
+  void setPreviousFor(AugmentableElement fragment) {
+    if (fragment.isAugmentation) {
+      // TODO(scheglov): hopefully the type check can be removed in the future.
+      if (lastFragment case ElementImpl lastFragment) {
+        fragment.augmentationTargetAny = lastFragment;
+      }
     }
   }
 }

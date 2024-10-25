@@ -652,8 +652,7 @@ part of 'a.dart';
 
 augment class foo {}
 ''', [
-      error(CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND, 19,
-          7),
+      error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION, 19, 7),
     ]);
   }
 }
