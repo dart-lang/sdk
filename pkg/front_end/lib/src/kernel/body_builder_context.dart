@@ -137,34 +137,34 @@ abstract class BodyBuilderContext {
   /// constructor declaration.
   bool get isConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a non-factory
   /// constructor declaration marked as `external`.
-  // Coverage-ignore(suite): Not run.
   bool get isExternalConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a constructor,
   /// factory, method, getter, or setter marked as `external`.
-  // Coverage-ignore(suite): Not run.
   bool get isExternalFunction => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a setter
   /// declaration.
-  // Coverage-ignore(suite): Not run.
   bool get isSetter => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a non-factory
   /// constructor declaration marked as `const`.
-  // Coverage-ignore(suite): Not run.
   bool get isConstConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a (redirecting)
   /// factory declaration.
-  // Coverage-ignore(suite): Not run.
   bool get isFactory => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is marked as
   /// native.
-  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod => false;
 
   /// Returns `true` if the member whose body is built is an instance member
@@ -222,19 +222,19 @@ abstract class BodyBuilderContext {
   /// Returns the [ConstantContext] for the body currently being built.
   ConstantContext get constantContext => ConstantContext.none;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a late field
   /// declaration.
-  // Coverage-ignore(suite): Not run.
   bool get isLateField => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is an abstract
   /// field declaration.
-  // Coverage-ignore(suite): Not run.
   bool get isAbstractField => false;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is an external
   /// field declaration.
-  // Coverage-ignore(suite): Not run.
   bool get isExternalField => false;
 
   /// Returns `true` if the enclosing class of the member whose body is being
@@ -331,9 +331,9 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Returns the target for using the `augmented` expression in an augmenting
   /// member.
-  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     return null;
   }

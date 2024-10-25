@@ -107,6 +107,11 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   bool get isAssignable => field.hasSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences =>
+      [field.getterReference, if (field.hasSetter) field.setterReference!];
 }
 
 class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
@@ -127,6 +132,10 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   Member? get invokeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
@@ -148,6 +157,10 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
@@ -169,6 +182,10 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionTypeStaticMethodBuilder
@@ -192,6 +209,10 @@ class DillExtensionTypeStaticMethodBuilder
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionTypeInstanceMethodBuilder
@@ -210,7 +231,8 @@ class DillExtensionTypeInstanceMethodBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [procedure, _extensionTearOff];
+  Iterable<Reference> get exportedMemberReferences =>
+      [procedure.reference, _extensionTearOff.reference];
 
   @override
   Member get readTarget => _extensionTearOff;
@@ -253,6 +275,10 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
 
   @override
   Procedure get invokeTarget => constructor;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [constructor.reference];
 }
 
 class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
@@ -276,4 +302,8 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   Member get invokeTarget => _procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 }

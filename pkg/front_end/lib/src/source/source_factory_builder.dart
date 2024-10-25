@@ -181,7 +181,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [_procedure];
+  Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {

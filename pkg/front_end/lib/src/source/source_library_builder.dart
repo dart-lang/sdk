@@ -783,19 +783,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   'member', 'exportScope', builder.fileOffset, builder.fileUri);
           }
         } else if (builder is MemberBuilder) {
-          for (Member exportedMember in builder.exportedMembers) {
-            if (exportedMember is Field) {
-              // For fields add both getter and setter references
-              // so replacing a field with a getter/setter pair still
-              // exports correctly.
-              library.additionalExports.add(exportedMember.getterReference);
-              if (exportedMember.hasSetter) {
-                library.additionalExports.add(exportedMember.setterReference!);
-              }
-            } else {
-              library.additionalExports.add(exportedMember.reference);
-            }
-          }
+          library.additionalExports.addAll(builder.exportedMemberReferences);
         } else {
           unhandled(
               'member', 'exportScope', builder.fileOffset, builder.fileUri);

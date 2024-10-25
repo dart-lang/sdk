@@ -493,7 +493,7 @@ class DeclaredSourceConstructorBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [constructor];
+  Iterable<Reference> get exportedMemberReferences => [constructor.reference];
 
   @override
   List<Initializer> get initializers => _constructor.initializers;
@@ -1072,7 +1072,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [_constructor];
+  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
 
   @override
   String get name => _constructor.name.text;
@@ -1312,7 +1312,7 @@ class SourceExtensionTypeConstructorBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [_constructor];
+  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -659,7 +659,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => const [];
+  Iterable<Reference> get exportedMemberReferences => const [];
 
   @override
   // Coverage-ignore(suite): Not run.
