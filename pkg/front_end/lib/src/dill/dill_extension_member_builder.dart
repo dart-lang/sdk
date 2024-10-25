@@ -65,6 +65,11 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
 
   @override
   bool get isAssignable => field.hasSetter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences =>
+      [field.getterReference, if (field.hasSetter) field.setterReference!];
 }
 
 class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
@@ -87,6 +92,10 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Member? get invokeTarget => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
@@ -109,6 +118,10 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
@@ -131,6 +144,10 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
@@ -154,6 +171,10 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
 
   @override
   Member get invokeTarget => procedure;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
@@ -172,7 +193,8 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [procedure, _extensionTearOff];
+  Iterable<Reference> get exportedMemberReferences =>
+      [procedure.reference, _extensionTearOff.reference];
 
   @override
   Member get readTarget => _extensionTearOff;

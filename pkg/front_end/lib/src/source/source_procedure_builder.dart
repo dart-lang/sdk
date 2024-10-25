@@ -280,7 +280,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  Iterable<Member> get exportedMembers => [procedure];
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {

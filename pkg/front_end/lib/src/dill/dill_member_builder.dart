@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         ProcedureKind,
         ProcedureStubKind;
+import 'package:kernel/canonical_name.dart';
 
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -47,9 +48,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
-
-  @override
-  Iterable<Member> get exportedMembers => [member];
 
   @override
   String get name => member.name.text;
@@ -158,6 +156,10 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
 
   @override
   bool get isStatic => field.isStatic;
+
+  @override
+  Iterable<Reference> get exportedMemberReferences =>
+      [field.getterReference, if (field.hasSetter) field.setterReference!];
 }
 
 abstract class DillProcedureBuilder extends DillMemberBuilder
@@ -180,6 +182,9 @@ abstract class DillProcedureBuilder extends DillMemberBuilder
 
   @override
   bool get isStatic => procedure.isStatic;
+
+  @override
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 }
 
 class DillGetterBuilder extends DillProcedureBuilder {
@@ -305,6 +310,10 @@ class DillConstructorBuilder extends DillMemberBuilder
   @override
   // Coverage-ignore(suite): Not run.
   bool get isConst => constructor.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [constructor.reference];
 }
 
 class DillClassMember extends BuilderClassMember {

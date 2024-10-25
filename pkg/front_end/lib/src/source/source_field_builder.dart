@@ -450,7 +450,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Member get invokeTarget => readTarget;
 
   @override
-  Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
+  Iterable<Reference> get exportedMemberReferences =>
+      _fieldEncoding.exportedReferenceMembers;
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
@@ -673,8 +674,11 @@ abstract class FieldEncoding {
   /// Returns the member used to write to the field.
   Member? get writeTarget;
 
-  /// Returns the generated members that are visible through exports.
-  Iterable<Member> get exportedMembers;
+  /// Returns the references to the generated members that are visible through
+  /// exports.
+  ///
+  /// This is the getter reference, and, if available, the setter reference.
+  Iterable<Reference> get exportedReferenceMembers;
 
   /// Creates the members necessary for this field encoding.
   ///
@@ -814,7 +818,8 @@ class RegularFieldEncoding implements FieldEncoding {
   Member get writeTarget => _field;
 
   @override
-  Iterable<Member> get exportedMembers => [_field];
+  Iterable<Reference> get exportedReferenceMembers =>
+      [_field.getterReference, if (_field.hasSetter) _field.setterReference!];
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
@@ -1181,11 +1186,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Member? get writeTarget => _lateSetter;
 
   @override
-  Iterable<Member> get exportedMembers {
+  Iterable<Reference> get exportedReferenceMembers {
     if (_lateSetter != null) {
-      return [_lateGetter, _lateSetter!];
+      return [_lateGetter.reference, _lateSetter!.reference];
     }
-    return [_lateGetter];
+    return [_lateGetter.reference];
   }
 
   @override
@@ -2008,11 +2013,11 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   Member? get writeTarget => _setter;
 
   @override
-  Iterable<Member> get exportedMembers {
+  Iterable<Reference> get exportedReferenceMembers {
     if (_setter != null) {
-      return [_getter, _setter!];
+      return [_getter.reference, _setter!.reference];
     }
-    return [_getter];
+    return [_getter.reference];
   }
 
   @override
@@ -2159,7 +2164,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => [_getter];
+  Iterable<Reference> get exportedReferenceMembers => [_getter.reference];
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
