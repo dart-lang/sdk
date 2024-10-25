@@ -33,7 +33,6 @@ bool _isDartLibrary(Uri importUri, Uri fileUri) {
   return importUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 }
 
-
 /// Creates a [shared.Expression] for the annotation at [atToken].
 ///
 /// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
@@ -65,6 +64,10 @@ shared.Proto builderToProto(Builder builder, String name) {
       shared.EnumReference enumReference = new EnumReference(builder);
       return new shared.EnumProto(
           enumReference, new EnumScope(builder, enumReference));
+    } else if (builder.isMixinDeclaration) {
+      shared.MixinReference mixinReference = new MixinReference(builder);
+      return new shared.MixinProto(
+          mixinReference, new MixinScope(builder, mixinReference));
     } else {
       shared.ClassReference classReference = new ClassReference(builder);
       return new shared.ClassProto(
@@ -173,6 +176,22 @@ final class EnumScope extends shared.BaseEnumScope {
   final shared.EnumReference enumReference;
 
   EnumScope(this.builder, this.enumReference);
+
+  @override
+  shared.Proto lookup(String name,
+      [List<shared.TypeAnnotation>? typeArguments]) {
+    Builder? member = builder.lookupLocalMember(name, setter: false);
+    return createMemberProto(typeArguments, name, member, builderToProto);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+final class MixinScope extends shared.BaseMixinScope {
+  final ClassBuilder builder;
+  @override
+  final shared.MixinReference mixinReference;
+
+  MixinScope(this.builder, this.mixinReference);
 
   @override
   shared.Proto lookup(String name,
@@ -331,6 +350,16 @@ class EnumReference extends shared.EnumReference {
   final ClassBuilder builder;
 
   EnumReference(this.builder);
+
+  @override
+  String get name => builder.name;
+}
+
+// Coverage-ignore(suite): Not run.
+class MixinReference extends shared.MixinReference {
+  final ClassBuilder builder;
+
+  MixinReference(this.builder);
 
   @override
   String get name => builder.name;

@@ -137,6 +137,30 @@ abstract base class BaseEnumScope implements TypeDeclarationScope {
   }
 }
 
+/// Base implementation for creating a [TypeDeclarationScope] for a mixin.
+abstract base class BaseMixinScope implements TypeDeclarationScope {
+  MixinReference get mixinReference;
+
+  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
+      T? member, Proto Function(T, String) memberToProto) {
+    if (member == null) {
+      if (typeArguments != null) {
+        return new UnresolvedAccess(
+            new GenericMixinProto(mixinReference, this, typeArguments), name);
+      } else {
+        return new UnresolvedAccess(new MixinProto(mixinReference, this), name);
+      }
+    } else {
+      if (typeArguments != null) {
+        return new InvalidAccessProto(
+            new GenericMixinProto(mixinReference, this, typeArguments), name);
+      } else {
+        return memberToProto(member, name);
+      }
+    }
+  }
+}
+
 /// Base implementation for creating a [TypeDeclarationScope] for a typedef.
 abstract base class BaseTypedefScope implements TypeDeclarationScope {
   TypedefReference get typedefReference;

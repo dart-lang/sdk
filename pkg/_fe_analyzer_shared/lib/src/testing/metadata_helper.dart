@@ -316,6 +316,8 @@ class Writer {
         _write(reference.name);
       case EnumReference():
         _write(reference.name);
+      case MixinReference():
+        _write(reference.name);
       case FunctionTypeParameterReference():
         _write(reference.name);
     }
@@ -655,6 +657,15 @@ class Writer {
         _write(')');
       case GenericEnumProto():
         _write('GenericEnumProto(');
+        _referenceToText(proto.reference);
+        _typeArgumentsToText(proto.typeArguments);
+        _write(')');
+      case MixinProto():
+        _write('MixinProto(');
+        _referenceToText(proto.reference);
+        _write(')');
+      case GenericMixinProto():
+        _write('GenericMixinProto(');
         _referenceToText(proto.reference);
         _typeArgumentsToText(proto.typeArguments);
         _write(')');
