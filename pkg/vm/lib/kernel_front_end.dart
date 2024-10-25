@@ -49,6 +49,7 @@ import 'modular/target/install.dart' show installAdditionalTargets;
 import 'modular/transformations/call_site_annotator.dart'
     as call_site_annotator;
 import 'native_assets/synthesizer.dart';
+import 'target_arch.dart';
 import 'target_os.dart';
 import 'transformations/deferred_loading.dart' as deferred_loading;
 import 'transformations/devirtualization.dart' as devirtualization
@@ -123,6 +124,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addOption('target-arch',
+      help: 'Compile for a specific target CPU architecture when in AOT mode.',
+      allowed: TargetArch.names);
   args.addOption('target-os',
       help: 'Compile for a specific target operating system when in AOT mode.',
       allowed: TargetOS.names);
@@ -222,6 +226,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? depfileTarget = options['depfile-target'];
   final String? fromDillFile = options['from-dill'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
+  final String? targetArch = options['target-arch'];
   final String? targetOS = options['target-os'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
@@ -353,6 +358,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+      targetArch: targetArch,
       targetOS: targetOS,
       fromDillFile: fromDillFile));
 
@@ -463,6 +469,7 @@ class KernelCompilationArguments {
   final bool treeShakeWriteOnlyFields;
   final bool useProtobufTreeShakerV2;
   final bool minimalKernel;
+  final String? targetArch;
   final String? targetOS;
   final String? fromDillFile;
 
@@ -485,6 +492,7 @@ class KernelCompilationArguments {
     this.treeShakeWriteOnlyFields = false,
     this.useProtobufTreeShakerV2 = false,
     this.minimalKernel = false,
+    this.targetArch,
     this.targetOS,
     this.fromDillFile,
   }) : environmentDefines = environmentDefines ?? {};
@@ -625,10 +633,12 @@ Future runGlobalTransformations(Target target, Component component,
 
   // Perform unreachable code elimination, which should be performed before
   // type flow analysis so TFA won't take unreachable code into account.
+  final targetArch = args.targetArch;
+  final arch = targetArch != null ? TargetArch.fromString(targetArch)! : null;
   final targetOS = args.targetOS;
   final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
   final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
-      target, component, os,
+      target, component, arch, os,
       enableAsserts: args.enableAsserts,
       environmentDefines: args.environmentDefines,
       coreTypes: coreTypes);

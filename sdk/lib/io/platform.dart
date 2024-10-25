@@ -67,6 +67,20 @@ abstract final class Platform {
   @pragma("vm:platform-const")
   static final pathSeparator = _Platform.pathSeparator;
 
+  /// A string representing the CPU architecture
+  ///
+  /// Possible values include:
+  /// * "arm64"
+  /// * "arm"
+  /// * "ia32"
+  /// * "riscv32"
+  /// * "riscv64"
+  /// * "x64"
+  ///
+  /// Note that this list may change over time.
+  @pragma("vm:platform-const")
+  static final architecture = _Platform.architecture;
+
   /// A string representing the operating system or platform.
   ///
   /// Possible values include:

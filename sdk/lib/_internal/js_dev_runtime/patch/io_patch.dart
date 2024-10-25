@@ -235,6 +235,11 @@ class _Platform {
   }
 
   @patch
+  static String _architecture() {
+    throw UnsupportedError("Platform._architecture");
+  }
+
+  @patch
   static String _pathSeparator() {
     throw UnsupportedError("Platform._pathSeparator");
   }

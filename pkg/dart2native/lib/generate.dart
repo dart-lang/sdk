@@ -40,6 +40,7 @@ extension type KernelGenerator._(_Generator _generator) {
     String? outputFile,
     String? debugFile,
     String? packages,
+    String? targetArch,
     String? targetOS,
     String? depFile,
     String enableExperiment = '',
@@ -57,6 +58,7 @@ extension type KernelGenerator._(_Generator _generator) {
           kind: kind,
           outputFile: outputFile,
           packages: packages,
+          targetArch: targetArch,
           targetOS: targetOS,
           verbose: verbose,
           verbosity: verbosity,
@@ -120,6 +122,11 @@ class _Generator {
   /// Specifies the file debugging information should be written to.
   final String? _debugFile;
 
+  /// Specifies the CPU architecture the executable is being generated for. This
+  /// must be provided when [_kind] is [Kind.exe], and it must match the current
+  /// CPU architecture.
+  final String? _targetArch;
+
   /// Specifies the operating system the executable is being generated for. This
   /// must be provided when [_kind] is [Kind.exe], and it must match the current
   /// operating system.
@@ -160,6 +167,7 @@ class _Generator {
     String? outputFile,
     String? debugFile,
     String? packages,
+    String? targetArch,
     String? targetOS,
     String? depFile,
     required String enableExperiment,
@@ -173,6 +181,7 @@ class _Generator {
         _verbosity = verbosity,
         _enableAsserts = enableAsserts,
         _enableExperiment = enableExperiment,
+        _targetArch = targetArch,
         _targetOS = targetOS,
         _debugFile = debugFile,
         _outputFile = outputFile,
@@ -182,6 +191,13 @@ class _Generator {
         _sourcePath = _normalize(sourceFile)!,
         _packages = _normalize(packages) {
     if (_kind == Kind.exe) {
+      if (_targetArch == null) {
+        throw ArgumentError('targetArch must be specified for executables.');
+      } else if (_targetArch != Platform.architecture) {
+        throw UnsupportedError(
+            'Cross compilation not supported for executables.');
+      }
+
       if (_targetOS == null) {
         throw ArgumentError('targetOS must be specified for executables.');
       } else if (_targetOS != Platform.operatingSystem) {
@@ -196,6 +212,10 @@ class _Generator {
     List<String>? extraOptions,
   }) async {
     if (_verbose) {
+      if (_targetArch != null) {
+        print('Specializing Platform getters for target arch $_targetArch.');
+      }
+
       if (_targetOS != null) {
         print('Specializing Platform getters for target OS $_targetOS.');
       }
@@ -212,6 +232,7 @@ class _Generator {
       fromDill: await isKernelFile(_sourcePath),
       enableAsserts: _enableAsserts,
       enableExperiment: _enableExperiment,
+      targetArch: _targetArch,
       targetOS: _targetOS,
       extraGenKernelOptions: [
         '--invocation-modes=compile',
@@ -308,6 +329,7 @@ class _Generator {
         defines: _defines,
         enableAsserts: _enableAsserts,
         enableExperiment: _enableExperiment,
+        targetArch: _targetArch,
         targetOS: _targetOS,
         extraGenKernelOptions: [
           '--invocation-modes=compile',
