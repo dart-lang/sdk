@@ -204,14 +204,6 @@ abstract class LintRule {
   /// visiting nodes.
   late ErrorReporter _reporter;
 
-  /// Description (in markdown format) suitable for display in a detailed lint
-  /// description.
-  ///
-  /// This property is deprecated and will be removed in a future release.
-  @Deprecated('Use .description for a short description and consider placing '
-      'long-form documentation on an external website.')
-  final String details;
-
   /// Short description suitable for display in console output.
   final String description;
 
@@ -230,9 +222,6 @@ abstract class LintRule {
     @Deprecated('Lint rule categories are no longer used. Remove the argument.')
     this.categories = const <String>{},
     required this.description,
-    @Deprecated("Specify 'details' for a short description and consider "
-        'placing long-form documentation on an external website.')
-    this.details = '',
     State? state,
   }) : state = state ?? State.stable();
 
