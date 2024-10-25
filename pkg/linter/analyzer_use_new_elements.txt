@@ -34,6 +34,7 @@ lib/src/rules/avoid_relative_lib_imports.dart
 lib/src/rules/avoid_return_types_on_setters.dart
 lib/src/rules/avoid_returning_null.dart
 lib/src/rules/avoid_returning_null_for_future.dart
+lib/src/rules/avoid_returning_null_for_void.dart
 lib/src/rules/avoid_returning_this.dart
 lib/src/rules/avoid_shadowing_type_parameters.dart
 lib/src/rules/avoid_single_cascade_in_expression_statements.dart
@@ -201,6 +202,7 @@ lib/src/rules/use_named_constants.dart
 lib/src/rules/use_raw_strings.dart
 lib/src/rules/use_rethrow_when_possible.dart
 lib/src/rules/use_string_in_part_of_directives.dart
+lib/src/rules/use_super_parameters.dart
 lib/src/rules/use_test_throws_matchers.dart
 lib/src/rules/use_to_and_as_if_applicable.dart
 lib/src/rules/use_truncating_division.dart

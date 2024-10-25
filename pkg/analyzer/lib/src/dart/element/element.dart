@@ -4088,7 +4088,8 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
 class FormalParameterElementImpl extends PromotableElementImpl2
     with
         FragmentedAnnotatableElementMixin<FormalParameterFragment>,
-        FragmentedElementMixin<FormalParameterFragment>
+        FragmentedElementMixin<FormalParameterFragment>,
+        _NonTopLevelVariableOrParameter
     implements FormalParameterElement {
   @override
   final ParameterElementImpl firstFragment;
@@ -4107,10 +4108,6 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   String? get defaultValueCode => firstFragment.defaultValueCode;
-
-  @override
-  Element2? get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as Fragment).element;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -4195,6 +4192,9 @@ class FormalParameterElementImpl extends PromotableElementImpl2
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElement2> get typeParameters2 => const [];
+
+  @override
+  Element? get _enclosingFunction => firstFragment._enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -5002,6 +5002,16 @@ class GetterElementImpl extends ExecutableElementImpl2
 
   @override
   String? get name3 => firstFragment.name;
+
+  @override
+  Element2 get nonSynthetic2 {
+    if (!isSynthetic) {
+      return this;
+    } else if (variable3 case var variable?) {
+      return variable.nonSynthetic2;
+    }
+    throw StateError('Synthetic getter has no variable');
+  }
 
   @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
@@ -6456,6 +6466,10 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   String? get documentationComment => _wrappedElement.documentationComment;
 
   @override
+  // Local functions belong to Fragments, not Elements.
+  Element2? get enclosingElement2 => null;
+
+  @override
   ExecutableFragment get enclosingFunction {
     var element = _wrappedElement.enclosingElement3;
     if (element is! ExecutableElementImpl) {
@@ -6549,7 +6563,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 }
 
 class LocalVariableElementImpl2 extends PromotableElementImpl2
-    with WrappedElementMixin
+    with WrappedElementMixin, _NonTopLevelVariableOrParameter
     implements LocalVariableElement2 {
   @override
   final LocalVariableElementImpl _wrappedElement;
@@ -6596,6 +6610,9 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
   LocalVariableElementImpl get wrappedElement {
     return _wrappedElement;
   }
+
+  @override
+  Element? get _enclosingFunction => _wrappedElement.enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -9571,6 +9588,16 @@ class SetterElementImpl extends ExecutableElementImpl2
   String? get name3 => firstFragment.name;
 
   @override
+  Element2 get nonSynthetic2 {
+    if (!isSynthetic) {
+      return this;
+    } else if (variable3 case var variable?) {
+      return variable.nonSynthetic2;
+    }
+    throw StateError('Synthetic setter has no variable');
+  }
+
+  @override
   PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
 
   @override
@@ -10391,7 +10418,8 @@ class TypeParameterElementImpl extends ElementImpl
 class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
     with
         FragmentedAnnotatableElementMixin<TypeParameterFragment>,
-        FragmentedElementMixin<TypeParameterFragment>
+        FragmentedElementMixin<TypeParameterFragment>,
+        _NonTopLevelVariableOrParameter
     implements TypeParameterElement2 {
   @override
   final TypeParameterElementImpl? firstFragment;
@@ -10428,14 +10456,6 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
     _syntheticFirstFragment?.bound = _bound;
   }
 
-  @override
-  Element2? get enclosingElement2 {
-    if (firstFragment case var firstFragment?) {
-      return (firstFragment._enclosingElement3 as Fragment).element;
-    }
-    return null;
-  }
-
   TypeParameterElementImpl get firstFragmentOrSynthetic {
     return firstFragment ??
         (_syntheticFirstFragment ??= TypeParameterElementImpl(name3, -1)
@@ -10448,6 +10468,9 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   LibraryElement2 get library2 => super.library2!;
+
+  @override
+  Element? get _enclosingFunction => firstFragment?._enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -10726,6 +10749,34 @@ mixin _HasLibraryMixin on ElementImpl {
   Source get source => enclosingElement3!.source!;
 }
 
+mixin _NonTopLevelVariableOrParameter on Element2 {
+  @override
+  Element2? get enclosingElement2 {
+    // TODO(dantup): Can we simplify this code and inline it into each class?
+
+    var enclosingFunction = _enclosingFunction;
+    return switch (enclosingFunction) {
+      // There is no enclosingElement for a local function so we need to
+      // determine whether our enclosing FunctionElementImpl is a local function
+      // or not.
+      // TODO(dantup): Is the real issue here that we're getting
+      //  FunctionElementImpl here that should be LocalFunctionElementImpl?
+      FunctionElementImpl()
+          when enclosingFunction.enclosingElement3 is ExecutableElementImpl ||
+              enclosingFunction.enclosingElement3 is VariableElementImpl =>
+        null,
+      // GenericFunctionTypeElementImpl currently implements Fragment but throws
+      // if we try to access `element`.
+      GenericFunctionTypeElementImpl() => null,
+      // Otherwise, we have a valid enclosing element.
+      Fragment(:var element) => element,
+      _ => null,
+    };
+  }
+
+  Element? get _enclosingFunction;
+}
+
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
@@ -10743,10 +10794,7 @@ class _Sentinel {
 
 extension on Fragment {
   /// The content of the documentation comment (including delimiters) for this
-  /// element or fragment.
-  ///
-  /// If the receiver is an element that has fragments, the comment will be a
-  /// concatenation of the comments from all of the fragments.
+  /// fragment.
   ///
   /// Returns `null` if the receiver does not have or does not support
   /// documentation.

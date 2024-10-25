@@ -132,7 +132,9 @@ extension ElementImplExtension on ElementImpl {
 extension ElementOrNullExtension on Element? {
   Element2? get asElement2 {
     var self = this;
-    if (self is DynamicElementImpl) {
+    if (self == null) {
+      return null;
+    } else if (self is DynamicElementImpl) {
       return self;
     } else if (self is FunctionElementImpl &&
         self.enclosingElement3 is! CompilationUnitElement) {
@@ -142,6 +144,8 @@ extension ElementOrNullExtension on Element? {
       return self.element;
     } else if (self is LabelElementImpl) {
       return self.element2;
+    } else if (self is LibraryElementImpl) {
+      return self;
     } else if (self is LocalVariableElementImpl) {
       return self.element2;
     } else if (self is MultiplyDefinedElementImpl) {

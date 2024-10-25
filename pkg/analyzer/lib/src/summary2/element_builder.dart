@@ -140,25 +140,29 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    _libraryBuilder.updateAugmentationTarget(name, element);
+    // TODO(scheglov): remove it eventually
+    _libraryBuilder.updateAugmentationTarget0(name, element);
+
+    var augmentedBuilder = _libraryBuilder.getAugmentedBuilder(name);
+    augmentedBuilder?.setPreviousFor(element);
 
     // If the fragment is an augmentation, and the corresponding builder
     // has correct type, add the fragment to the builder. Otherwise, create
     // a new builder.
-    var augmentedBuilder = _libraryBuilder.getAugmentedBuilder(name);
-    if (element.augmentationTarget != null &&
+    if (element.isAugmentation &&
         augmentedBuilder is AugmentedClassDeclarationBuilder) {
       augmentedBuilder.augment(element);
     } else {
-      var containerRef = _libraryBuilder.reference.getChild('@class');
+      var libraryRef = _libraryBuilder.reference;
+      var containerRef = libraryRef.getChild('@class');
       var elementReference = containerRef.addChild(refName);
       var element2 = NotAugmentedClassElementImpl(elementReference, element);
 
       _libraryBuilder.putAugmentedBuilder(
         name,
         AugmentedClassDeclarationBuilder(
-          element: element2,
           firstFragment: element,
+          element: element2,
         ),
       );
     }
@@ -479,7 +483,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.putAugmentedBuilder(
         name,
         AugmentedEnumDeclarationBuilder(
-          declaration: element,
+          firstFragment: element,
         ),
       );
     }
@@ -548,7 +552,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _libraryBuilder.putAugmentedBuilder(
           name,
           AugmentedExtensionDeclarationBuilder(
-            declaration: element,
+            firstFragment: element,
           ),
         );
       }
@@ -622,7 +626,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.putAugmentedBuilder(
         name,
         AugmentedExtensionTypeDeclarationBuilder(
-          declaration: element,
+          firstFragment: element,
         ),
       );
     }
@@ -770,6 +774,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       _libraryBuilder.topVariables.addAccessor(element);
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        FragmentedElementBuilder(firstFragment: element),
+      );
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.name2 = fragmentName;
@@ -785,6 +793,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       _libraryBuilder.topVariables.addAccessor(element);
+      _libraryBuilder.putAugmentedBuilder(
+        '$name=',
+        FragmentedElementBuilder(firstFragment: element),
+      );
     } else {
       var element = FunctionElementImpl(name, nameOffset);
       element.name2 = fragmentName;
@@ -794,6 +806,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       executableElement = element;
 
       _libraryBuilder.updateAugmentationTarget(name, element);
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        FragmentedElementBuilder(firstFragment: element),
+      );
     }
 
     executableElement.hasImplicitReturnType = node.returnType == null;
@@ -1133,7 +1149,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.putAugmentedBuilder(
         name,
         AugmentedMixinDeclarationBuilder(
-          declaration: element,
+          firstFragment: element,
         ),
       );
     }

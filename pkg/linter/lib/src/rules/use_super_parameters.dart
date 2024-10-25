@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -15,7 +15,7 @@ const _desc = r'Use super-initializer parameters where possible.';
 
 /// Return a set containing the elements of all of the parameters that are
 /// referenced in the body of the [constructor].
-Set<ParameterElement> _referencedParameters(
+Set<FormalParameterElement> _referencedParameters(
     ConstructorDeclaration constructor) {
   var collector = _ReferencedParameterCollector();
   constructor.body.accept(collector);
@@ -47,12 +47,12 @@ class UseSuperParameters extends LintRule {
 }
 
 class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
-  final Set<ParameterElement> foundParameters = {};
+  final Set<FormalParameterElement> foundParameters = {};
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is ParameterElement) {
+    var element = node.element;
+    if (element is FormalParameterElement) {
       foundParameters.add(element);
     }
   }
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       ConstructorDeclaration node,
       SuperConstructorInvocation superInvocation,
       FormalParameterList parameters) {
-    var constructorElement = superInvocation.staticElement;
+    var constructorElement = superInvocation.element;
     if (constructorElement == null) return;
 
     // TODO(pq): consolidate logic shared w/ server
@@ -83,9 +83,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (identifiers == null) return;
 
     for (var parameter in parameters.parameters) {
-      var parameterElement = parameter.declaredElement;
+      var parameterElement = parameter.declaredFragment?.element;
       if (parameterElement == null) continue;
-      if (parameterElement is FieldFormalParameterElement) continue;
+      if (parameterElement is FieldFormalParameterElement2) continue;
       if (parameterElement.isNamed &&
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
@@ -116,10 +116,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// there are parameters that can't be converted since this will short-circuit
   /// the lint.
   List<String>? _checkForConvertiblePositionalParams(
-      ConstructorElement constructorElement,
+      ConstructorElement2 constructorElement,
       SuperConstructorInvocation superInvocation,
       FormalParameterList parameters,
-      Set<ParameterElement> referencedParameters) {
+      Set<FormalParameterElement> referencedParameters) {
     var positionalSuperArgs = <SimpleIdentifier>[];
     for (var arg in superInvocation.argumentList.arguments) {
       if (arg is SimpleIdentifier) {
@@ -135,14 +135,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     var convertibleConstructorParams = <String>[];
     var matchedConstructorParamIndex = 0;
 
-    var seenSuperParams = <Element>{};
+    var seenSuperParams = <Element2>{};
 
     // For each super arg, ensure there is a constructor param (in the right
     // order).
     for (var i = 0; i < positionalSuperArgs.length; ++i) {
       var superArg = positionalSuperArgs[i];
-      var superParam = superArg.staticElement;
-      if (superParam is! ParameterElement) return null;
+      var superParam = superArg.element;
+      if (superParam is! FormalParameterElement) return null;
       if (superParam.isNamed) return null;
 
       // Check for the case where a super param is used more than once.
@@ -153,8 +153,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         var constructorParam = constructorParams[i];
         if (constructorParam is FieldFormalParameter) return null;
         if (constructorParam is SuperFormalParameter) return null;
-        var constructorElement = constructorParam.declaredElement;
-        if (constructorElement == null) continue;
+        var constructorElement = constructorParam.declaredFragment?.element;
+        if (constructorElement == null) return null;
         if (referencedParameters.contains(constructorElement)) return null;
         if (constructorElement == superParam) {
           // Compare the types.
@@ -166,9 +166,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
           match = true;
           var identifier = constructorParam.name?.lexeme;
-          if (identifier != null) {
-            convertibleConstructorParams.add(identifier);
-          }
+          if (identifier == null) return null;
+          convertibleConstructorParams.add(identifier);
           // Ensure we're not out of order.
           if (i < matchedConstructorParamIndex) return null;
           matchedConstructorParamIndex = i;
@@ -183,8 +182,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// initializing formal parameter.
   bool _checkNamedParameter(
       FormalParameter parameter,
-      ParameterElement parameterElement,
-      ConstructorElement superConstructor,
+      FormalParameterElement parameterElement,
+      ConstructorElement2 superConstructor,
       SuperConstructorInvocation superInvocation) {
     var superParameter =
         _correspondingNamedParameter(superConstructor, parameterElement);
@@ -194,10 +193,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var arguments = superInvocation.argumentList.arguments;
     for (var argument in arguments) {
       if (argument is NamedExpression &&
-          argument.name.label.name == parameterElement.name) {
+          argument.name.label.name == parameterElement.name3) {
         var expression = argument.expression;
         if (expression is SimpleIdentifier &&
-            expression.staticElement == parameterElement) {
+            expression.element == parameterElement) {
           matchingArgument = true;
           break;
         }
@@ -221,10 +220,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     return true;
   }
 
-  ParameterElement? _correspondingNamedParameter(
-      ConstructorElement superConstructor, ParameterElement thisParameter) {
-    for (var superParameter in superConstructor.parameters) {
-      if (superParameter.isNamed && superParameter.name == thisParameter.name) {
+  FormalParameterElement? _correspondingNamedParameter(
+      ConstructorElement2 superConstructor,
+      FormalParameterElement thisParameter) {
+    for (var superParameter in superConstructor.formalParameters) {
+      if (superParameter.isNamed &&
+          superParameter.name3 == thisParameter.name3) {
         return superParameter;
       }
     }
