@@ -1909,7 +1909,7 @@ library
       mixins
         mixin B @38
           reference: <testLibraryFragment>::@mixin::B
-          element: <testLibraryFragment>::@mixin::B#element
+          element: <testLibrary>::@mixin::B
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1935,6 +1935,7 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   mixins
     mixin B
+      reference: <testLibrary>::@mixin::B
       firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
@@ -2628,7 +2629,7 @@ library
       mixins
         mixin B @32
           reference: <testLibraryFragment>::@mixin::B
-          element: <testLibraryFragment>::@mixin::B#element
+          element: <testLibrary>::@mixin::B
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2654,6 +2655,7 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   mixins
     mixin B
+      reference: <testLibrary>::@mixin::B
       firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
@@ -5144,7 +5146,7 @@ library
       mixins
         mixin M @38
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           methods
             m @54
               reference: <testLibraryFragment>::@mixin::M::@method::m
@@ -5186,6 +5188,7 @@ library
           element: <testLibraryFragment>::@getter::b#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -5474,7 +5477,7 @@ library
       mixins
         mixin M @27
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           typeParameters
             T @34
               element: <not-implemented>
@@ -5522,6 +5525,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       typeParameters
         T
@@ -5645,7 +5649,7 @@ library
       mixins
         mixin M @44
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -5664,6 +5668,7 @@ library
           element: <testLibraryFragment>::@getter::b#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -6605,7 +6610,7 @@ library
       mixins
         mixin M @33
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -6644,6 +6649,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -7424,7 +7430,7 @@ library
       mixins
         mixin A @27
           reference: <testLibraryFragment>::@mixin::A
-          element: <testLibraryFragment>::@mixin::A#element
+          element: <testLibrary>::@mixin::A
           typeParameters
             T @34
               element: <not-implemented>
@@ -7449,6 +7455,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   mixins
     mixin A
+      reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       typeParameters
         T

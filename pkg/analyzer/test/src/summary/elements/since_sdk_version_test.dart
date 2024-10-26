@@ -831,7 +831,7 @@ library
       mixins
         mixin M @47
           reference: dart:foo::<fragment>::@mixin::M
-          element: dart:foo::<fragment>::@mixin::M#element
+          element: dart:foo::@mixin::M
           methods
             foo @58
               reference: dart:foo::<fragment>::@mixin::M::@method::foo
@@ -839,6 +839,7 @@ library
               sinceSdkVersion: 2.15.0
   mixins
     mixin M
+      reference: dart:foo::@mixin::M
       firstFragment: dart:foo::<fragment>::@mixin::M
       sinceSdkVersion: 2.15.0
       superclassConstraints

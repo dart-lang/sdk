@@ -1105,7 +1105,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@mixin::A
-    element: <testLibraryFragment>::@mixin::A#element
+    element: <testLibrary>::@mixin::A
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -1143,7 +1143,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@mixin::A
-    element: <testLibraryFragment>::@mixin::A#element
+    element: <testLibrary>::@mixin::A
     staticType: null
   period: .
   identifier: SimpleIdentifier

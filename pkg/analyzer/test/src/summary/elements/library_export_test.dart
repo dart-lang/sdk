@@ -1470,7 +1470,7 @@ library
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
-          element: <testLibraryFragment>::@mixin::A#element
+          element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -1478,17 +1478,19 @@ library
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
-          element: <testLibraryFragment>::@mixin::A#element
+          element: <testLibrary>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
         mixin B @46
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
-          element: <testLibrary>::@fragment::package:test/a.dart::@mixin::B#element
+          element: <testLibrary>::@mixin::B
   mixins
     mixin A
+      reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
     mixin B
+      reference: <testLibrary>::@mixin::B
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       superclassConstraints
         Object

@@ -186,6 +186,7 @@ abstract class _AbstractElementWriter {
   void _writeReference2(Element2 e) {
     var reference = switch (e) {
       MaybeAugmentedClassElementMixin() => e.reference,
+      MaybeAugmentedMixinElementMixin() => e.reference,
       _ => null,
     };
 

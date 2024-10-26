@@ -5491,10 +5491,10 @@ library
       mixins
         mixin M1 @41
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
-          element: <testLibraryFragment>::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
@@ -5517,10 +5517,12 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         Object
@@ -5612,10 +5614,10 @@ library
       mixins
         mixin M1 @41
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
         mixin M2 @53
           reference: <testLibraryFragment>::@mixin::M2
-          element: <testLibraryFragment>::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
@@ -5638,10 +5640,12 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibraryFragment>::@mixin::M2
       superclassConstraints
         Object

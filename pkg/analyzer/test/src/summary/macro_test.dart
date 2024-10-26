@@ -7667,9 +7667,10 @@ library
       mixins
         mixin A @62
           reference: <testLibraryFragment>::@mixin::A
-          element: <testLibraryFragment>::@mixin::A#element
+          element: <testLibrary>::@mixin::A
   mixins
     mixin A
+      reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
@@ -7731,12 +7732,13 @@ library
       mixins
         mixin A @80
           reference: <testLibraryFragment>::@mixin::A
-          element: <testLibraryFragment>::@mixin::A#element
+          element: <testLibrary>::@mixin::A
           typeParameters
             T @82
               element: <not-implemented>
   mixins
     mixin A
+      reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       typeParameters
         T
@@ -10457,7 +10459,7 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
   classes
     class alias A
       reference: <testLibrary>::@class::A
@@ -10468,6 +10470,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object

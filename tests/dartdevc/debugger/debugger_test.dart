@@ -16,6 +16,7 @@ import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_f
 import 'package:js/js.dart' as pkgJs;
 
 import 'dart:_debugger' as _debugger;
+import 'dart:_foreign_helper' as _foreign_helper;
 
 class TestClass {
   String name = 'test class';
@@ -54,6 +55,9 @@ class FormattedObject {
   JSAny? object;
   JSAny? config;
 }
+
+@JS()
+external JSAny? get dartDevEmbedder;
 
 @JS('JSON.stringify')
 external String? stringify(JSAny? value, [JSFunction replacer, int space]);
@@ -106,10 +110,6 @@ JSAny? replacer(String key, JSAny? externalValue) {
     if (new RegExp(r'[.](js|dart|html)').hasMatch(value)) {
       return '<FILE>'.toJS;
     }
-    // Normalize the name of the `Event` type as it appears in this test.
-    // The new type system preserves the original name from the Dart source.
-    // TODO(48585): Remove when no longer running with the old type system.
-    return value.replaceAll(r'Event$', 'Event').toJS;
   }
   return externalValue;
 }
@@ -148,6 +148,14 @@ List<FormattedObject> extractNestedFormattedObjects(JSAny json) {
   }
   return ret;
 }
+
+JSObject getCurrentLibrary() =>
+    // With the new module format, we can't get the current library, so this is
+    // a workaround to fetch it. Note that this is run in the top-level scope.
+    // We can't use interop for this, as the lowering would be emitted as
+    // `dart.global.eval('this')`, which does not evaluate to the same value as
+    // `eval('this')`.
+    _foreign_helper.JS('', 'this');
 
 main() async {
   asyncStart();
@@ -315,13 +323,22 @@ window.PackageJSClass = function PackageJSClass(x) {
     expect(_devtoolsFormatter.header(object, null), isNull);
   });
 
-  group('Module formatting', () {
-    var moduleNames = _debugger.getModuleNames();
-    var testModuleName = "debugger_test";
-    expect(moduleNames.contains(testModuleName), isTrue);
-
-    addAllNestedFormatterGoldens(
-        'Test library Module', _debugger.getModuleLibraries(testModuleName));
+  group('Library formatting', () {
+    final lib = getCurrentLibrary();
+    if (dartDevEmbedder == null) {
+      // The new module format adds a `link` function to every library. Patch
+      // something like that in so we can have a consistent golden file for all
+      // module formats.
+      lib['link'] = () {}.toJS;
+    }
+    addFormatterGoldens(
+        'Test library',
+        // TODO(srujzs): We have to construct a `Library` manually here,
+        // whereas the `LibraryModuleFormatter` does that for us automatically
+        // when we format the module. We should add properties to libraries so
+        // that we can detect them as a library. Once we have support for that,
+        // revisit this and the formatter code.
+        _debugger.Library('debugger_test', lib));
   });
 
   group('StackTrace formatting', () {
@@ -355,13 +372,14 @@ window.PackageJSClass = function PackageJSClass(x) {
   });
 
   test('verify golden match', () {
-    // Warning: all other test groups must have run for this test to be meaningful
+    // Warning: all other test groups must have run for this test to be
+    // meaningful
     var actualStr = actual.toString().trim();
 
     if (actualStr != golden) {
       var helpMessage =
           'Debugger output does not match the golden data found in:\n'
-          'tests/dartdevc/debugger/debugger_test_golden.txt\n'
+          'tests/dartdevc/debugger/debugger_test_golden.txt.\n'
           'The new golden data is copied to the clipboard when you click on '
           'this window.\n'
           'Please update the golden file with the following output and review '

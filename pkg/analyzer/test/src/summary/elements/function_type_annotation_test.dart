@@ -1374,12 +1374,13 @@ library
       mixins
         mixin B @6
           reference: <testLibraryFragment>::@mixin::B
-          element: <testLibraryFragment>::@mixin::B#element
+          element: <testLibrary>::@mixin::B
           typeParameters
             X @8
               element: <not-implemented>
   mixins
     mixin B
+      reference: <testLibrary>::@mixin::B
       firstFragment: <testLibraryFragment>::@mixin::B
       typeParameters
         X
@@ -1478,7 +1479,7 @@ library
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1498,6 +1499,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object

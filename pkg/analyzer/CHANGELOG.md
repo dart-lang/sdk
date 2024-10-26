@@ -32,6 +32,7 @@
 * Remove deprecated `source_io.dart`.
 * Remove deprecated `lint/Spelunker`.
 * Remove deprecated `source_resource.dart`.
+* Remove `MultiplyInheritedExecutableElement`.
 
 ## 6.11.0
 * Un-deprecated `LibraryElement.exportedLibraries`.

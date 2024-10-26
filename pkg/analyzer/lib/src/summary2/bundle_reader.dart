@@ -1369,11 +1369,23 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
+
+    var reference2 = _readReference();
+    var isAugmented = _reader.readBool();
+
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
 
     var element = MixinElementImpl(name, -1);
     element.name2 = fragmentName;
+
+    if (reference2.element2 case MaybeAugmentedMixinElementMixin element2?) {
+      element.augmentedInternal = element2;
+    } else if (isAugmented) {
+      AugmentedMixinElementImpl(reference2, element);
+    } else {
+      NotAugmentedMixinElementImpl(reference2, element);
+    }
 
     var linkedData = MixinElementLinkedData(
       reference: reference,
@@ -1931,7 +1943,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
 
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
-        var augmented = AugmentedMixinElementImpl(element);
+        var augmented = element.augmentedInternal as AugmentedMixinElementImpl;
         element.augmentedInternal = augmented;
         augmented.superclassConstraints = reader._readInterfaceTypeList();
         augmented.interfaces = reader._readInterfaceTypeList();

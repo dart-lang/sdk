@@ -705,7 +705,7 @@ library
       mixins
         mixin M @68
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -737,6 +737,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -1662,10 +1663,10 @@ library
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A::@def::0
-          element: <testLibraryFragment>::@mixin::A::@def::0#element
+          element: <testLibrary>::@mixin::A::@def::0
         mixin A @17
           reference: <testLibraryFragment>::@mixin::A::@def::1
-          element: <testLibraryFragment>::@mixin::A::@def::1#element
+          element: <testLibrary>::@mixin::A::@def::1
           fields
             x @27
               reference: <testLibraryFragment>::@mixin::A::@def::1::@field::x
@@ -1685,7 +1686,7 @@ library
                   element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x::@parameter::_x#element
         mixin A @38
           reference: <testLibraryFragment>::@mixin::A::@def::2
-          element: <testLibraryFragment>::@mixin::A::@def::2#element
+          element: <testLibrary>::@mixin::A::@def::2
           fields
             y @48
               reference: <testLibraryFragment>::@mixin::A::@def::2::@field::y
@@ -1705,10 +1706,12 @@ library
                   element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y::@parameter::_y#element
   mixins
     mixin A
+      reference: <testLibrary>::@mixin::A::@def::0
       firstFragment: <testLibraryFragment>::@mixin::A::@def::0
       superclassConstraints
         Object
     mixin A
+      reference: <testLibrary>::@mixin::A::@def::1
       firstFragment: <testLibraryFragment>::@mixin::A::@def::1
       superclassConstraints
         Object
@@ -1728,6 +1731,7 @@ library
             requiredPositional _x
               type: dynamic
     mixin A
+      reference: <testLibrary>::@mixin::A::@def::2
       firstFragment: <testLibraryFragment>::@mixin::A::@def::2
       superclassConstraints
         Object

@@ -4305,7 +4305,7 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
   enums
     enum E
       firstFragment: <testLibraryFragment>::@enum::E
@@ -4329,6 +4329,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -4610,13 +4611,13 @@ library
       mixins
         mixin M1 @6
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
           typeParameters
             T @9
               element: <not-implemented>
         mixin M2 @21
           reference: <testLibraryFragment>::@mixin::M2
-          element: <testLibraryFragment>::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
           typeParameters
             T @24
               element: <not-implemented>
@@ -4643,12 +4644,14 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       typeParameters
         T
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibraryFragment>::@mixin::M2
       typeParameters
         T
@@ -18573,7 +18576,7 @@ library
       mixins
         mixin M1 @44
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -18585,7 +18588,7 @@ library
       mixins
         mixin M2 @53
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-          element: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
   enums
     enum A
       firstFragment: <testLibraryFragment>::@enum::A
@@ -18609,10 +18612,12 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       superclassConstraints
         Object
@@ -18797,7 +18802,7 @@ library
       mixins
         mixin M1 @74
           reference: <testLibraryFragment>::@mixin::M1
-          element: <testLibraryFragment>::@mixin::M1#element
+          element: <testLibrary>::@mixin::M1
           typeParameters
             U1 @77
               element: <not-implemented>
@@ -18817,7 +18822,7 @@ library
       mixins
         mixin M2 @57
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
-          element: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2#element
+          element: <testLibrary>::@mixin::M2
           typeParameters
             U2 @60
               element: <not-implemented>
@@ -18835,7 +18840,7 @@ library
       mixins
         mixin M3 @57
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
-          element: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3#element
+          element: <testLibrary>::@mixin::M3
           typeParameters
             U3 @60
               element: <not-implemented>
@@ -18864,18 +18869,21 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
   mixins
     mixin M1
+      reference: <testLibrary>::@mixin::M1
       firstFragment: <testLibraryFragment>::@mixin::M1
       typeParameters
         U1
       superclassConstraints
         Object
     mixin M2
+      reference: <testLibrary>::@mixin::M2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::M2
       typeParameters
         U2
       superclassConstraints
         M1<U2>
     mixin M3
+      reference: <testLibrary>::@mixin::M3
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixin::M3
       typeParameters
         U3

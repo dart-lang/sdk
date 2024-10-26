@@ -6101,7 +6101,7 @@ library
       mixins
         mixin M @112
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -6165,6 +6165,7 @@ library
               type: B<int>
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object

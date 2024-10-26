@@ -542,6 +542,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(element.augmentedInternal is AugmentedMixinElementImpl);
     _writeFragmentName(element.name2);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);

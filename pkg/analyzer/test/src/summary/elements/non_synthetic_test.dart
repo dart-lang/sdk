@@ -499,7 +499,7 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           fields
             foo @16
               reference: <testLibraryFragment>::@mixin::M::@field::foo
@@ -519,6 +519,7 @@ library
                   element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_foo#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -581,7 +582,7 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           fields
             <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
@@ -593,6 +594,7 @@ library
               element: <testLibraryFragment>::@mixin::M::@getter::foo#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
@@ -652,7 +654,7 @@ library
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           fields
             <null-name>
               reference: <testLibraryFragment>::@mixin::M::@field::foo
@@ -667,6 +669,7 @@ library
                   element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::value#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object

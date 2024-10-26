@@ -176,12 +176,18 @@ abstract class AugmentedInterfaceElementImpl
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
     with MaybeAugmentedMixinElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final MixinElementImpl declaration;
 
   @override
   List<InterfaceType> superclassConstraints = [];
 
-  AugmentedMixinElementImpl(this.declaration);
+  AugmentedMixinElementImpl(this.reference, this.declaration) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 }
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
@@ -7202,6 +7208,9 @@ mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
   @override
   bool get isBase => declaration.isBase;
 
+  /// See [ElementImpl2.reference].
+  Reference get reference;
+
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMixinElement(this);
@@ -7737,8 +7746,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
 
-  late MaybeAugmentedMixinElementMixin augmentedInternal =
-      NotAugmentedMixinElementImpl(this);
+  late MaybeAugmentedMixinElementMixin augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -7746,12 +7754,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
 
   @override
   MaybeAugmentedMixinElementMixin get augmented {
-    if (isAugmentation) {
-      if (augmentationTarget case var augmentationTarget?) {
-        return augmentationTarget.augmented;
-      }
-    }
-
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -7771,7 +7773,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  MixinElement2 get element => super.element as MixinElement2;
+  MaybeAugmentedMixinElementMixin get element => augmented;
 
   @override
   bool get isBase {
@@ -8469,9 +8471,15 @@ abstract class NotAugmentedInterfaceElementImpl
 class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
     with MaybeAugmentedMixinElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final MixinElementImpl element;
 
-  NotAugmentedMixinElementImpl(this.element);
+  NotAugmentedMixinElementImpl(this.reference, this.element) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 
   @override
   MixinElementImpl get declaration => element;
@@ -8483,7 +8491,7 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
 
   @override
   AugmentedMixinElementImpl toAugmented() {
-    var augmented = AugmentedMixinElementImpl(declaration);
+    var augmented = AugmentedMixinElementImpl(reference, declaration);
     declaration.augmentedInternal = augmented;
     return augmented;
   }

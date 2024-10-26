@@ -81,12 +81,12 @@ class LibraryBuilder with MacroApplicationsContainer {
   final Map<EnumElementImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
-  /// The top-level elements that can be augmented.
-  final Map<String, FragmentedElementBuilder> _augmentedBuilders = {};
+  /// The builders for top-level elements.
+  final Map<String, FragmentedElementBuilder> _elementBuilders = {};
 
-  /// The top-level variables and accessors that can be augmented.
-  late final AugmentedTopVariablesBuilder topVariables =
-      AugmentedTopVariablesBuilder(_augmentationTargets);
+  /// The builders for top-level variables and accessors.
+  late final TopVariableElementsBuilder topVariables =
+      TopVariableElementsBuilder(_augmentationTargets);
 
   /// The top-level elements that can be augmented.
   final Map<String, ElementImpl> _augmentationTargets = {};
@@ -471,10 +471,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
-  FragmentedElementBuilder? getAugmentedBuilder(String name) {
-    return _augmentedBuilders[name];
-  }
-
   MacroResultOutput? getCacheableMacroResult() {
     // Nothing if we already reuse a cached result.
     if (inputMacroPartInclude != null) {
@@ -494,6 +490,10 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
 
     return null;
+  }
+
+  FragmentedElementBuilder? getElementBuilder(String name) {
+    return _elementBuilders[name];
   }
 
   /// Merges accumulated [_macroResults] and corresponding macro augmentation
@@ -651,11 +651,11 @@ class LibraryBuilder with MacroApplicationsContainer {
     ).applyToUnit(unitElement, informativeBytes);
   }
 
-  void putAugmentedBuilder(
+  void putElementBuilder(
     String name,
     FragmentedElementBuilder builder,
   ) {
-    _augmentedBuilders[name] = builder;
+    _elementBuilders[name] = builder;
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
