@@ -52,91 +52,92 @@ static method bar3(core::int? x, core::List<core::String> y) → dynamic
 static method bar4(core::String x, core::bool? y) → dynamic
   return block {
     final core::Map<core::String, core::bool> #t13 = <core::String, core::bool>{};
-    final core::bool? #t14 = y;
-    if(!(#t14 == null))
-      #t13.{core::Map::[]=}{Invariant}(x, #t14{core::bool}){(core::String, core::bool) → void};
+    final core::String #t14 = x;
+    final core::bool? #t15 = y;
+    if(!(#t15 == null))
+      #t13.{core::Map::[]=}{Invariant}(#t14, #t15{core::bool}){(core::String, core::bool) → void};
   } =>#t13;
 static method bar5(core::int? x, core::num y) → dynamic
   return block {
-    final core::Map<core::int, core::num> #t15 = <core::int, core::num>{};
-    final core::int? #t16 = x;
-    if(!(#t16 == null))
-      #t15.{core::Map::[]=}{Invariant}(#t16{core::int}, y){(core::int, core::num) → void};
-  } =>#t15;
+    final core::Map<core::int, core::num> #t16 = <core::int, core::num>{};
+    final core::int? #t17 = x;
+    if(!(#t17 == null))
+      #t16.{core::Map::[]=}{Invariant}(#t17{core::int}, y){(core::int, core::num) → void};
+  } =>#t16;
 static method bar6(core::Symbol? x, core::String? y) → dynamic
   return block {
-    final core::Map<core::Symbol, core::String> #t17 = <core::Symbol, core::String>{};
-    final core::Symbol? #t18 = x;
-    if(!(#t18 == null)) {
-      final core::String? #t19 = y;
-      if(!(#t19 == null))
-        #t17.{core::Map::[]=}{Invariant}(#t18{core::Symbol}, #t19{core::String}){(core::Symbol, core::String) → void};
+    final core::Map<core::Symbol, core::String> #t18 = <core::Symbol, core::String>{};
+    final core::Symbol? #t19 = x;
+    if(!(#t19 == null)) {
+      final core::String? #t20 = y;
+      if(!(#t20 == null))
+        #t18.{core::Map::[]=}{Invariant}(#t19{core::Symbol}, #t20{core::String}){(core::Symbol, core::String) → void};
     }
-  } =>#t17;
+  } =>#t18;
 static method bar7(core::int? x, core::double? y, core::bool b) → dynamic
   return block {
-    final core::Map<core::int, core::double> #t20 = <core::int, core::double>{};
+    final core::Map<core::int, core::double> #t21 = <core::int, core::double>{};
     if(b) {
-      final core::int? #t21 = x;
-      if(!(#t21 == null)) {
-        final core::double? #t22 = y;
-        if(!(#t22 == null))
-          #t20.{core::Map::[]=}{Invariant}(#t21{core::int}, #t22{core::double}){(core::int, core::double) → void};
+      final core::int? #t22 = x;
+      if(!(#t22 == null)) {
+        final core::double? #t23 = y;
+        if(!(#t23 == null))
+          #t21.{core::Map::[]=}{Invariant}(#t22{core::int}, #t23{core::double}){(core::int, core::double) → void};
       }
     }
-  } =>#t20;
+  } =>#t21;
 static method bar8(core::bool? x, core::Symbol? y, core::List<core::num> z) → dynamic
   return block {
-    final core::Map<core::bool, core::Symbol> #t23 = <core::bool, core::Symbol>{};
+    final core::Map<core::bool, core::Symbol> #t24 = <core::bool, core::Symbol>{};
     for (wildcard core::num _#wc0#var in z) {
-      final core::bool? #t24 = x;
-      if(!(#t24 == null)) {
-        final core::Symbol? #t25 = y;
-        if(!(#t25 == null))
-          #t23.{core::Map::[]=}{Invariant}(#t24{core::bool}, #t25{core::Symbol}){(core::bool, core::Symbol) → void};
+      final core::bool? #t25 = x;
+      if(!(#t25 == null)) {
+        final core::Symbol? #t26 = y;
+        if(!(#t26 == null))
+          #t24.{core::Map::[]=}{Invariant}(#t25{core::bool}, #t26{core::Symbol}){(core::bool, core::Symbol) → void};
       }
     }
-  } =>#t23;
+  } =>#t24;
 static method main() → dynamic {
   self::expectShallowEqualLists(self::foo1(0) as{TypeError,ForDynamic} core::List<dynamic>, <core::int>[0]);
   self::expectShallowEqualLists(self::foo1(null) as{TypeError,ForDynamic} core::List<dynamic>, <core::int>[]);
   self::expectShallowEqualSets(self::foo2("") as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::String> #t26 = col::LinkedHashSet::•<core::String>();
-    #t26.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
-  } =>#t26);
-  self::expectShallowEqualSets(self::foo2(null) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::String> #t27 = col::LinkedHashSet::•<core::String>();
+    #t27.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
   } =>#t27);
+  self::expectShallowEqualSets(self::foo2(null) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::String> #t28 = col::LinkedHashSet::•<core::String>();
+  } =>#t28);
   self::expectShallowEqualMaps(self::foo3(false, 0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::num>{false: 0});
   self::expectShallowEqualMaps(self::foo3(null, 0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::bool, core::num>{});
   self::expectShallowEqualLists(self::bar1(0) as{TypeError,ForDynamic} core::List<dynamic>, <core::int>[0]);
   self::expectShallowEqualLists(self::bar1(null) as{TypeError,ForDynamic} core::List<dynamic>, <core::int>[]);
   self::expectShallowEqualSets(self::bar2(0, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
-    final core::Set<core::int> #t28 = col::LinkedHashSet::•<core::int>();
-    #t28.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
-  } =>#t28);
-  self::expectShallowEqualSets(self::bar2(0, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t29 = col::LinkedHashSet::•<core::int>();
+    #t29.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t29);
-  self::expectShallowEqualSets(self::bar2(null, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+  self::expectShallowEqualSets(self::bar2(0, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t30 = col::LinkedHashSet::•<core::int>();
   } =>#t30);
-  self::expectShallowEqualSets(self::bar2(null, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+  self::expectShallowEqualSets(self::bar2(null, true) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t31 = col::LinkedHashSet::•<core::int>();
   } =>#t31);
-  self::expectShallowEqualSets(self::bar3(0, <core::String>["", ""]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+  self::expectShallowEqualSets(self::bar2(null, false) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t32 = col::LinkedHashSet::•<core::int>();
-    #t32.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t32);
-  self::expectShallowEqualSets(self::bar3(null, <core::String>["", ""]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+  self::expectShallowEqualSets(self::bar3(0, <core::String>["", ""]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t33 = col::LinkedHashSet::•<core::int>();
+    #t33.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
   } =>#t33);
-  self::expectShallowEqualSets(self::bar3(0, <core::String>[]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+  self::expectShallowEqualSets(self::bar3(null, <core::String>["", ""]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t34 = col::LinkedHashSet::•<core::int>();
   } =>#t34);
-  self::expectShallowEqualSets(self::bar3(null, <core::String>[]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+  self::expectShallowEqualSets(self::bar3(0, <core::String>[]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
     final core::Set<core::int> #t35 = col::LinkedHashSet::•<core::int>();
   } =>#t35);
+  self::expectShallowEqualSets(self::bar3(null, <core::String>[]) as{TypeError,ForDynamic} core::Set<dynamic>, block {
+    final core::Set<core::int> #t36 = col::LinkedHashSet::•<core::int>();
+  } =>#t36);
   self::expectShallowEqualMaps(self::bar4("", false) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::String, core::bool>{"": false});
   self::expectShallowEqualMaps(self::bar4("", null) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::String, core::bool>{});
   self::expectShallowEqualMaps(self::bar5(0, 1.0) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>, <core::int, core::num>{0: 1.0});

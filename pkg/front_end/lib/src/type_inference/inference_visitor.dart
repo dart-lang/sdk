@@ -3851,6 +3851,38 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       desugaredStatement = _createBlock([keyTemp, ifKeyNotNullStatement])
         ..fileOffset = entry.fileOffset;
+    } else if (entry.isValueNullAware) {
+      assert(!entry.isKeyNullAware);
+      // The key is non null-aware, but the value is null-aware. In this case,
+      // we need to hoist the key expression to preserve the evaluation order.
+      // Consider the following example:
+      //
+      //   <String, int>{keyExpression(): ?valueExpression()}
+      //
+      // Without hoisting the key expression, the map literal will be desugared
+      // as follows:
+      //
+      //   int? #valueTemp = valueExpression();
+      //   if (#valueTemp != null) {
+      //     #t[keyExpression()] = #valueTemp{int};
+      //   }
+      //
+      // In that desugaring, `valueExpression` is executed before
+      // `keyExpression`, which doesn't match the expected evaluation order.
+      // With the hoisting of the key, the desugared expression will look as
+      // follows:
+      //
+      //   String #keyTemp = keyExpression();
+      //   int? #valueTemp = valueExpression();
+      //   if (#valueTemp != null) {
+      //     #t[#keyTemp] = #valueTemp{int};
+      //   }
+
+      VariableDeclaration keyTemp = _createVariable(keyExpression, keyType);
+      keyExpression = _createVariableGet(keyTemp);
+
+      desugaredStatement.statements.insert(0, keyTemp);
+      keyTemp.parent = desugaredStatement;
     }
 
     // Since either the key or the value is null-aware, [desugaredStatement]

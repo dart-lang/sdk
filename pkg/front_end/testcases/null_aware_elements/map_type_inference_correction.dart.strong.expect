@@ -17,19 +17,20 @@ static method test(core::String? key, core::num? value) → dynamic {
   } =>#t1;
   core::Map<core::String?, core::num> map3 = block {
     final core::Map<core::String?, core::num> #t3 = <core::String?, core::num>{};
-    final core::num? #t4 = value;
-    if(!(#t4 == null))
-      #t3.{core::Map::[]=}{Invariant}(key, #t4{core::num}){(core::String?, core::num) → void};
+    final core::String? #t4 = key;
+    final core::num? #t5 = value;
+    if(!(#t5 == null))
+      #t3.{core::Map::[]=}{Invariant}(#t4, #t5{core::num}){(core::String?, core::num) → void};
   } =>#t3;
   core::Map<core::String, core::num> map4 = block {
-    final core::Map<core::String, core::num> #t5 = <core::String, core::num>{};
-    final core::String? #t6 = key;
-    if(!(#t6 == null)) {
-      final core::num? #t7 = value;
-      if(!(#t7 == null))
-        #t5.{core::Map::[]=}{Invariant}(#t6{core::String}, #t7{core::num}){(core::String, core::num) → void};
+    final core::Map<core::String, core::num> #t6 = <core::String, core::num>{};
+    final core::String? #t7 = key;
+    if(!(#t7 == null)) {
+      final core::num? #t8 = value;
+      if(!(#t8 == null))
+        #t6.{core::Map::[]=}{Invariant}(#t7{core::String}, #t8{core::num}){(core::String, core::num) → void};
     }
-  } =>#t5;
+  } =>#t6;
   self::E|expectStaticType<core::Map<core::String?, core::num?>, (core::Map<core::String?, core::num?>) → core::Map<core::String?, core::num?>>(map1);
   self::E|expectStaticType<core::Map<core::String, core::num?>, (core::Map<core::String, core::num?>) → core::Map<core::String, core::num?>>(map2);
   self::E|expectStaticType<core::Map<core::String?, core::num>, (core::Map<core::String?, core::num>) → core::Map<core::String?, core::num>>(map3);
