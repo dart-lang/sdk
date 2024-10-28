@@ -1658,10 +1658,10 @@ VM_UNIT_TEST_CASE(MutatorMarkerRace_DetectInTLAB) {
           }
         }
 
-        new_page->top.store(
-            reinterpret_cast<uword>(
-                &new_page->objects[kExistingObjectSlotCount + 1]),
-            std::memory_order_release);
+        new_page->top.store(reinterpret_cast<uword>(
+                                &new_page->objects[kExistingObjectSlotCount] +
+                                sizeof(NewObject*)),
+                            std::memory_order_release);
       },
       [](ExistingObject* existing_object) {
         // Marker:

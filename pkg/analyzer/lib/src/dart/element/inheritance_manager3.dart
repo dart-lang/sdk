@@ -1298,8 +1298,8 @@ class Name {
     }
   }
 
-  factory Name.forLibrary(LibraryElement2 library, String name) {
-    var uri = library.firstFragment.source.uri;
+  factory Name.forLibrary(LibraryElement2? library, String name) {
+    var uri = library?.firstFragment.source.uri;
     return Name(uri, name);
   }
 

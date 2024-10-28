@@ -143,6 +143,7 @@ import 'missing_code_block_language_in_doc_comment_test.dart'
 import 'missing_whitespace_between_adjacent_strings_test.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'no_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
+import 'no_default_cases_test.dart' as no_default_cases;
 import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
 import 'no_leading_underscores_for_library_prefixes_test.dart'
     as no_leading_underscores_for_library_prefixes;
@@ -419,6 +420,7 @@ void main() {
   missing_code_block_language_in_doc_comment.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
+  no_default_cases.main();
   no_duplicate_case_values.main();
   no_leading_underscores_for_library_prefixes.main();
   no_leading_underscores_for_local_identifiers.main();

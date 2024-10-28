@@ -10,13 +10,6 @@
 
 namespace dart {
 
-#if !defined(FFI_UNIT_TESTS)
-DEFINE_FLAG(bool,
-            use_compressed_instructions,
-            true,
-            "Use instructions from the C extension");
-#endif
-
 const char* const cpu_reg_names[kNumberOfCpuRegisters] = {
     "zero", "ra", "sp",  "gp",   "tp",   "t0",  "t1", "t2", "fp", "thr", "a0",
     "a1",   "a2", "tmp", "tmp2", "pp",   "a6",  "a7", "s2", "s3", "s4",  "s5",

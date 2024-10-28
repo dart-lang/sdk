@@ -2384,7 +2384,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       locs->set_in(2, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
     } else if (rep == kUnboxedInt8 || rep == kUnboxedUint8) {
-      locs->set_in(2, LocationRegisterOrConstant(value()));
+      locs->set_in(2, LocationRegisterOrSmiConstant(value()));
     } else {
       locs->set_in(2, Location::RequiresRegister());
     }

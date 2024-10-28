@@ -27,16 +27,6 @@ class EnumLikeClassDescription {
   Map<DartObject, Set<FieldElement2>> get enumConstants => {..._enumConstants};
 }
 
-extension on SetterElement {
-  /// Return name in a format suitable for string comparison.
-  String? get canonicalName {
-    var name = name3;
-    if (name == null) return null;
-    // TODO(pq): remove when `name3` consistently does not include a trailing `=`.
-    return name.endsWith('=') ? name.substring(0, name.length - 1) : name;
-  }
-}
-
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
 
@@ -289,20 +279,7 @@ extension ClassMemberListExtension on List<ClassMember> {
       .firstWhereOrNull((node) => node.name.lexeme == name);
 }
 
-extension ConstructorElementExtension on ConstructorElement {
-  /// Returns whether `this` is the same element as the [className] constructor
-  /// named [constructorName] declared in [uri].
-  bool isSameAs({
-    required String uri,
-    required String className,
-    required String constructorName,
-  }) =>
-      library.name == uri &&
-      enclosingElement3.name == className &&
-      name == constructorName;
-}
-
-extension ConstructorElementExtension2 on ConstructorElement2 {
+extension ConstructorElementExtension on ConstructorElement2 {
   /// Returns whether `this` is the same element as the [className] constructor
   /// named [constructorName] declared in [uri].
   bool isSameAs({
@@ -581,13 +558,6 @@ extension InhertanceManager3Extension on InheritanceManager3 {
   }
 }
 
-extension InterfaceElementExtension on InterfaceElement {
-  /// Returns whether this element is exactly [otherName] declared in
-  /// [otherLibrary].
-  bool isClass(String otherName, String otherLibrary) =>
-      name == otherName && library.name == otherLibrary;
-}
-
 extension InterfaceTypeExtension on InterfaceType {
   /// Returns the collection of all interfaces that this type implements,
   /// including itself.
@@ -614,8 +584,9 @@ extension InterfaceTypeExtension on InterfaceType {
     return interfaceTypes;
   }
 
-  GetterElement? getGetter2(String name) =>
-      getters.firstWhereOrNull((s) => s.name3 == name);
+  GetterElement? getGetter2(String name, {LibraryElement2? library}) =>
+      getters.firstWhereOrNull((s) =>
+          s.name3 == name && (library == null || (s.library2 == library)));
 
   SetterElement? getSetter2(String name) =>
       setters.firstWhereOrNull((s) => s.canonicalName == name);
@@ -727,6 +698,16 @@ extension MethodDeclarationExtension on MethodDeclaration {
       }
     }
     return null;
+  }
+}
+
+extension SetterElementExtension on SetterElement {
+  /// Return name in a format suitable for string comparison.
+  String? get canonicalName {
+    var name = name3;
+    if (name == null) return null;
+    // TODO(pq): remove when `name3` consistently does not include a trailing `=`.
+    return name.endsWith('=') ? name.substring(0, name.length - 1) : name;
   }
 }
 

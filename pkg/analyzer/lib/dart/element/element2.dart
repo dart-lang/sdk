@@ -1308,6 +1308,10 @@ abstract class LibraryElement2
   /// The public [Namespace] of this library.
   Namespace get publicNamespace;
 
+  /// The analysis session in which this library is defined.
+  @override
+  AnalysisSession get session;
+
   /// The setters defined in this library.
   ///
   /// There is no guarantee of the order in which the setters will be returned.

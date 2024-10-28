@@ -40,7 +40,7 @@ class TransformSetManager {
   /// Return the transform sets associated with the [library].
   List<TransformSet> forLibrary(LibraryElement2 library) {
     var transformSets = <TransformSet>[];
-    var analysisContext = library.session!.analysisContext;
+    var analysisContext = library.session.analysisContext;
     var workspace = analysisContext.contextRoot.workspace;
     var libraryPath = library.firstFragment.source.fullName;
     var package = workspace.findPackageFor(libraryPath);

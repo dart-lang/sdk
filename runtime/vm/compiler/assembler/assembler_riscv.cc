@@ -2406,9 +2406,7 @@ void MicroAssembler::EmitJType(intptr_t imm, Register rd, Opcode opcode) {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      intptr_t far_branch_level)
-    : MicroAssembler(object_pool_builder,
-                     far_branch_level,
-                     FLAG_use_compressed_instructions ? RV_GC : RV_G),
+    : MicroAssembler(object_pool_builder, far_branch_level, RV_baseline),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     // Note this does not destroy RA.
@@ -2572,7 +2570,7 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
       return mv(rd, rn);
     case kUnsignedFourBytes:
       if (Supports(RV_Zba)) {
-        return adduw(rd, rn, ZR);
+        return zextw(rd, rn);
       }
       slli(rd, rn, XLEN - 32);
       return srli(rd, rn, XLEN - 32);
@@ -3311,13 +3309,12 @@ void Assembler::LslImmediate(Register rd,
     return slliw(rd, rn, shift);
   }
   if (sz == kUnsignedFourBytes) {
-    if (Supports(RV_Zba)) {
-      return slliuw(rd, rn, shift);
-    } else {
-      // Clear upper bits in addition to the shift.
-      slli(rd, rn, shift + (XLEN / 2));
-      return srli(rd, rn, XLEN / 2);
-    }
+    // Not slliuw even when available. That zero extends the input, not the
+    // output.
+
+    // Clear upper bits in addition to the shift.
+    slli(rd, rn, shift + (XLEN / 2));
+    return srli(rd, rn, XLEN / 2);
   }
 #endif
   slli(rd, rn, shift);

@@ -2392,23 +2392,29 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
     } else {
       const Register value = locs()->in(2).reg();
+      if (__ Supports(RV_Zbb)) {
+        __ li(TMP, 255);
+        __ min(TMP, TMP, value);
+        __ max(TMP, TMP, ZR);
+        __ sb(TMP, element_address);
+      } else {
+        compiler::Label store_zero, store_ff, done;
+        __ blt(value, ZR, &store_zero, compiler::Assembler::kNearJump);
 
-      compiler::Label store_zero, store_ff, done;
-      __ blt(value, ZR, &store_zero, compiler::Assembler::kNearJump);
+        __ li(TMP, 0xFF);
+        __ bgt(value, TMP, &store_ff, compiler::Assembler::kNearJump);
 
-      __ li(TMP, 0xFF);
-      __ bgt(value, TMP, &store_ff, compiler::Assembler::kNearJump);
+        __ sb(value, element_address);
+        __ j(&done, compiler::Assembler::kNearJump);
 
-      __ sb(value, element_address);
-      __ j(&done, compiler::Assembler::kNearJump);
+        __ Bind(&store_zero);
+        __ mv(TMP, ZR);
 
-      __ Bind(&store_zero);
-      __ mv(TMP, ZR);
+        __ Bind(&store_ff);
+        __ sb(TMP, element_address);
 
-      __ Bind(&store_ff);
-      __ sb(TMP, element_address);
-
-      __ Bind(&done);
+        __ Bind(&done);
+      }
     }
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
@@ -6993,15 +6999,12 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (from() == kUnboxedInt64) {
     if (to() == kUnboxedInt32) {
       if (is_truncating() || out != value) {
-        __ sextw(out, value);  // Signed extension 64->32.
+        __ ExtendValue(out, value, compiler::kFourBytes);
       }
     } else {
       ASSERT(to() == kUnboxedUint32);
       if (is_truncating() || out != value) {
-        // Unsigned extension 64->32.
-        // TODO(riscv): Might be a shorter way to do this.
-        __ slli(out, value, 32);
-        __ srli(out, out, 32);
+        __ ExtendValue(out, value, compiler::kUnsignedFourBytes);
       }
     }
     if (CanDeoptimize()) {
@@ -7011,12 +7014,10 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else if (to() == kUnboxedInt64) {
     if (from() == kUnboxedUint32) {
-      // TODO(riscv): Might be a shorter way to do this.
-      __ slli(out, value, 32);
-      __ srli(out, out, 32);
+      __ ExtendValue(out, value, compiler::kUnsignedFourBytes);
     } else {
       ASSERT(from() == kUnboxedInt32);
-      __ sextw(out, value);  // Signed extension 32->64.
+      __ ExtendValue(out, value, compiler::kFourBytes);
     }
   } else {
     UNREACHABLE();

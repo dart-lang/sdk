@@ -97,6 +97,57 @@ class B extends A {
 ''');
   }
 
+  test_extendingClass_multipleDeclarations() async {
+    await assertDiagnostics(r'''
+class A {
+  int y = 1;
+}
+class B extends A {
+  final x = 1, y = 2;
+}
+''', [
+      lint(60, 1),
+    ]);
+  }
+
+  test_extendingClass_overridingAbstract() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  abstract int x;
+}
+class B extends A {
+  @override
+  int x = 1;
+}
+''');
+  }
+
+  test_extendingClass_staticField() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static int x = 1;
+}
+class B extends A {
+  static int x = 2;
+}
+''');
+  }
+
+  test_extendsClass_indirectly() async {
+    await assertDiagnostics(r'''
+class A {
+  int x = 0;
+}
+class B extends A {}
+class C extends B {
+  @override
+  int x = 1;
+}
+''', [
+      lint(84, 1),
+    ]);
+  }
+
   test_externalLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -137,6 +188,44 @@ class A {
 class B extends A {
   @override
   int a = 1;
+}
+''');
+  }
+
+  test_implementingClass() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 1;
+}
+class B implements A {
+  @override
+  int x = 2;
+}
+''');
+  }
+
+  test_mixingInMixin() async {
+    await assertDiagnostics(r'''
+mixin M {
+  int x = 1;
+}
+class A with M {
+  @override
+  int x = 2;
+}
+''', [
+      lint(60, 1),
+    ]);
+  }
+
+  test_mixingInMixin_overridingAbstract() async {
+    await assertNoDiagnostics(r'''
+mixin M {
+  abstract int x;
+}
+class A with M {
+  @override
+  int x = 2;
 }
 ''');
   }
@@ -227,6 +316,20 @@ class GC34 extends GC33 {
       lint(821, 4),
       lint(883, 1),
       lint(912, 4),
+    ]);
+  }
+
+  test_mixinSuperclassConstraint() async {
+    await assertDiagnostics(r'''
+class A {
+  int x = 1;
+}
+mixin M on A {
+  @override
+  final x = 1;
+}
+''', [
+      lint(60, 1),
     ]);
   }
 

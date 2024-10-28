@@ -187,7 +187,6 @@ static intx_t CallI(intx_t entry, double arg0, double arg1) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadUpperImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   __ lui(A0, 42 << 16);
@@ -201,7 +200,6 @@ ASSEMBLER_TEST_RUN(LoadUpperImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddUpperImmediatePC, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   __ auipc(A0, 0);
@@ -215,7 +213,6 @@ ASSEMBLER_TEST_RUN(AddUpperImmediatePC, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(JumpAndLink, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label1, label2;
@@ -252,7 +249,6 @@ ASSEMBLER_TEST_RUN(JumpAndLink, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label1, label2;
@@ -281,7 +277,6 @@ ASSEMBLER_TEST_RUN(Jump, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(JumpAndLinkRegister, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   /* 00 */ __ jalr(T4, A1, 28);  // Forward.
@@ -315,7 +310,6 @@ ASSEMBLER_TEST_RUN(JumpAndLinkRegister, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(JumpRegister, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   /* 00 */ __ jr(A1, 20);  // Forward.
@@ -341,7 +335,6 @@ ASSEMBLER_TEST_RUN(JumpRegister, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -371,7 +364,6 @@ ASSEMBLER_TEST_RUN(BranchEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchEqualForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -399,7 +391,6 @@ ASSEMBLER_TEST_RUN(BranchEqualForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchNotEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -429,7 +420,6 @@ ASSEMBLER_TEST_RUN(BranchNotEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchNotEqualForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -457,7 +447,6 @@ ASSEMBLER_TEST_RUN(BranchNotEqualForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -487,7 +476,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -515,7 +503,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -545,7 +532,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -573,7 +559,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterThanForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -603,7 +588,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterThanForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterOrEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -633,7 +617,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterOrEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -663,7 +646,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -693,7 +675,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterThanUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -723,7 +704,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterThanUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterOrEqualUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -753,7 +733,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterOrEqualUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByte_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lb(A0, Address(A0, 0));
   __ ret();
@@ -772,7 +751,6 @@ ASSEMBLER_TEST_RUN(LoadByte_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByte_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lb(A0, Address(A0, 1));
   __ ret();
@@ -792,7 +770,6 @@ ASSEMBLER_TEST_RUN(LoadByte_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByte_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lb(A0, Address(A0, -1));
   __ ret();
@@ -812,7 +789,6 @@ ASSEMBLER_TEST_RUN(LoadByte_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteUnsigned_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lbu(A0, Address(A0, 0));
   __ ret();
@@ -832,7 +808,6 @@ ASSEMBLER_TEST_RUN(LoadByteUnsigned_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteUnsigned_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lbu(A0, Address(A0, 1));
   __ ret();
@@ -852,7 +827,6 @@ ASSEMBLER_TEST_RUN(LoadByteUnsigned_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteUnsigned_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lbu(A0, Address(A0, -1));
   __ ret();
@@ -871,7 +845,6 @@ ASSEMBLER_TEST_RUN(LoadByteUnsigned_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfword_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lh(A0, Address(A0, 0));
   __ ret();
@@ -889,7 +862,6 @@ ASSEMBLER_TEST_RUN(LoadHalfword_0, test) {
   EXPECT_EQ(-13054, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadHalfword_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lh(A0, Address(A0, 2));
   __ ret();
@@ -907,7 +879,6 @@ ASSEMBLER_TEST_RUN(LoadHalfword_Pos, test) {
   EXPECT_EQ(-4349, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadHalfword_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lh(A0, Address(A0, -2));
   __ ret();
@@ -926,7 +897,6 @@ ASSEMBLER_TEST_RUN(LoadHalfword_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfwordUnsigned_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lhu(A0, Address(A0, 0));
   __ ret();
@@ -945,7 +915,6 @@ ASSEMBLER_TEST_RUN(LoadHalfwordUnsigned_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfwordUnsigned_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lhu(A0, Address(A0, 2));
   __ ret();
@@ -963,7 +932,6 @@ ASSEMBLER_TEST_RUN(LoadHalfwordUnsigned_Pos, test) {
   EXPECT_EQ(0xEF03, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadHalfwordUnsigned_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lhu(A0, Address(A0, -2));
   __ ret();
@@ -982,7 +950,6 @@ ASSEMBLER_TEST_RUN(LoadHalfwordUnsigned_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lw(A0, Address(A0, 0));
   __ ret();
@@ -1001,7 +968,6 @@ ASSEMBLER_TEST_RUN(LoadWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lw(A0, Address(A0, 4));
   __ ret();
@@ -1020,7 +986,6 @@ ASSEMBLER_TEST_RUN(LoadWord_Pos, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lw(A0, Address(A0, -4));
   __ ret();
@@ -1040,7 +1005,6 @@ ASSEMBLER_TEST_RUN(LoadWord_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sw(A1, Address(A0, 0));
   __ ret();
@@ -1061,7 +1025,6 @@ ASSEMBLER_TEST_RUN(StoreWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sw(A1, Address(A0, 4));
   __ ret();
@@ -1082,7 +1045,6 @@ ASSEMBLER_TEST_RUN(StoreWord_Pos, test) {
   EXPECT_EQ(0xEF030607, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sw(A1, Address(A0, -4));
   __ ret();
@@ -1105,7 +1067,6 @@ ASSEMBLER_TEST_RUN(StoreWord_Neg, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, 0));
   __ ret();
@@ -1124,7 +1085,6 @@ ASSEMBLER_TEST_RUN(LoadWordUnsigned_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, 4));
   __ ret();
@@ -1143,7 +1103,6 @@ ASSEMBLER_TEST_RUN(LoadWordUnsigned_Pos, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, -4));
   __ ret();
@@ -1163,7 +1122,6 @@ ASSEMBLER_TEST_RUN(LoadWordUnsigned_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ld(A0, Address(A0, 0));
   __ ret();
@@ -1182,7 +1140,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ld(A0, Address(A0, 8));
   __ ret();
@@ -1201,7 +1158,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleWord_Pos, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadDoubleWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ld(A0, Address(A0, -8));
   __ ret();
@@ -1221,7 +1177,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleWord_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sd(A1, Address(A0, 0));
   __ ret();
@@ -1242,7 +1197,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sd(A1, Address(A0, 8));
   __ ret();
@@ -1263,7 +1217,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWord_Pos, test) {
   EXPECT_EQ(0xEF03060708090A0B, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreDoubleWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sd(A1, Address(A0, -8));
   __ ret();
@@ -1286,7 +1239,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWord_Neg, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(AddImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addi(A0, A0, 42);
   __ ret();
@@ -1301,7 +1253,6 @@ ASSEMBLER_TEST_RUN(AddImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addi(A0, A0, -42);
   __ ret();
@@ -1316,7 +1267,6 @@ ASSEMBLER_TEST_RUN(AddImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slti(A0, A0, 7);
   __ ret();
@@ -1334,7 +1284,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slti(A0, A0, -7);
   __ ret();
@@ -1352,7 +1301,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediateUnsigned1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltiu(A0, A0, 7);
   __ ret();
@@ -1370,7 +1318,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediateUnsigned1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediateUnsigned2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltiu(A0, A0, -7);
   __ ret();
@@ -1388,7 +1335,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediateUnsigned2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(XorImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ xori(A0, A0, 42);
   __ ret();
@@ -1405,7 +1351,6 @@ ASSEMBLER_TEST_RUN(XorImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(XorImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ xori(A0, A0, -42);
   __ ret();
@@ -1422,7 +1367,6 @@ ASSEMBLER_TEST_RUN(XorImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(OrImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ori(A0, A0, -6);
   __ ret();
@@ -1439,7 +1383,6 @@ ASSEMBLER_TEST_RUN(OrImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(OrImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ori(A0, A0, 6);
   __ ret();
@@ -1456,7 +1399,6 @@ ASSEMBLER_TEST_RUN(OrImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AndImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ andi(A0, A0, -6);
   __ ret();
@@ -1473,7 +1415,6 @@ ASSEMBLER_TEST_RUN(AndImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AndImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ andi(A0, A0, 6);
   __ ret();
@@ -1490,7 +1431,6 @@ ASSEMBLER_TEST_RUN(AndImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slli(A0, A0, 2);
   __ ret();
@@ -1507,7 +1447,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slli(A0, A0, XLEN - 1);
   __ ret();
@@ -1530,7 +1469,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srli(A0, A0, 2);
   __ ret();
@@ -1549,7 +1487,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srli(A0, A0, XLEN - 1);
   __ ret();
@@ -1572,7 +1509,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srai(A0, A0, 2);
   __ ret();
@@ -1589,7 +1525,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srai(A0, A0, XLEN - 1);
   __ ret();
@@ -1612,7 +1547,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Add, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ add(A0, A0, A1);
   __ ret();
@@ -1632,7 +1566,6 @@ ASSEMBLER_TEST_RUN(Add, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Subtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sub(A0, A0, A1);
   __ ret();
@@ -1652,7 +1585,6 @@ ASSEMBLER_TEST_RUN(Subtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogical, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sll(A0, A0, A1);
   __ ret();
@@ -1670,7 +1602,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogical, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThan, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slt(A0, A0, A1);
   __ ret();
@@ -1692,7 +1623,6 @@ ASSEMBLER_TEST_RUN(SetLessThan, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltu(A0, A0, A1);
   __ ret();
@@ -1714,7 +1644,6 @@ ASSEMBLER_TEST_RUN(SetLessThanUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Xor, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ xor_(A0, A0, A1);
   __ ret();
@@ -1734,7 +1663,6 @@ ASSEMBLER_TEST_RUN(Xor, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogical, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srl(A0, A0, A1);
   __ ret();
@@ -1754,7 +1682,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogical, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmetic, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sra(A0, A0, A1);
   __ ret();
@@ -1772,7 +1699,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmetic, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Or, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ or_(A0, A0, A1);
   __ ret();
@@ -1792,7 +1718,6 @@ ASSEMBLER_TEST_RUN(Or, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(And, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ and_(A0, A0, A1);
   __ ret();
@@ -1812,7 +1737,6 @@ ASSEMBLER_TEST_RUN(And, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Fence, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fence();
   __ fence(kRead, kWrite);
@@ -1833,7 +1757,6 @@ ASSEMBLER_TEST_RUN(Fence, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(InstructionFence, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fencei();
   __ ret();
@@ -1846,7 +1769,6 @@ ASSEMBLER_TEST_RUN(InstructionFence, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(EnvironmentCall, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ecall();
   __ ret();
@@ -1860,7 +1782,6 @@ ASSEMBLER_TEST_RUN(EnvironmentCall, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(EnvironmentBreak, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ebreak();
   __ ret();
@@ -1874,7 +1795,6 @@ ASSEMBLER_TEST_RUN(EnvironmentBreak, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ControlStatusRegisters, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ csrrw(T0, 0x123, S1);
   __ csrrs(T1, 0x123, S2);
@@ -1912,7 +1832,6 @@ ASSEMBLER_TEST_RUN(ControlStatusRegisters, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Nop, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ nop();
   __ ret();
@@ -1925,7 +1844,6 @@ ASSEMBLER_TEST_RUN(Nop, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Move, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mv(A0, A1);
   __ ret();
@@ -1938,7 +1856,6 @@ ASSEMBLER_TEST_RUN(Move, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Not, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ not_(A0, A0);
   __ ret();
@@ -1952,7 +1869,6 @@ ASSEMBLER_TEST_RUN(Not, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Negate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ neg(A0, A0);
   __ ret();
@@ -1966,7 +1882,6 @@ ASSEMBLER_TEST_RUN(Negate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetNotEqualToZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ snez(A0, A0);
   __ ret();
@@ -1981,7 +1896,6 @@ ASSEMBLER_TEST_RUN(SetNotEqualToZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetEqualToZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ seqz(A0, A0);
   __ ret();
@@ -1996,7 +1910,6 @@ ASSEMBLER_TEST_RUN(SetEqualToZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltz(A0, A0);
   __ ret();
@@ -2011,7 +1924,6 @@ ASSEMBLER_TEST_RUN(SetLessThanZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetGreaterThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sgtz(A0, A0);
   __ ret();
@@ -2026,7 +1938,6 @@ ASSEMBLER_TEST_RUN(SetGreaterThanZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ beqz(A0, &label);
@@ -2049,7 +1960,6 @@ ASSEMBLER_TEST_RUN(BranchEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchNotEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bnez(A0, &label);
@@ -2072,7 +1982,6 @@ ASSEMBLER_TEST_RUN(BranchNotEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ blez(A0, &label);
@@ -2095,7 +2004,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterOrEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bgez(A0, &label);
@@ -2118,7 +2026,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterOrEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bltz(A0, &label);
@@ -2141,7 +2048,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bgtz(A0, &label);
@@ -2165,7 +2071,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterThanZero, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(AddImmediateWord1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addiw(A0, A0, 42);
   __ ret();
@@ -2180,7 +2085,6 @@ ASSEMBLER_TEST_RUN(AddImmediateWord1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediateWord2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addiw(A0, A0, -42);
   __ ret();
@@ -2195,7 +2099,6 @@ ASSEMBLER_TEST_RUN(AddImmediateWord2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slliw(A0, A0, 2);
   __ ret();
@@ -2212,7 +2115,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srliw(A0, A0, 2);
   __ ret();
@@ -2231,7 +2133,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalImmediateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sraiw(A0, A0, 2);
   __ ret();
@@ -2248,7 +2149,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticImmediateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addw(A0, A0, A1);
   __ ret();
@@ -2269,7 +2169,6 @@ ASSEMBLER_TEST_RUN(AddWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ subw(A0, A0, A1);
   __ ret();
@@ -2290,7 +2189,6 @@ ASSEMBLER_TEST_RUN(SubtractWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sllw(A0, A0, A1);
   __ ret();
@@ -2309,7 +2207,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srlw(A0, A0, A1);
   __ ret();
@@ -2329,7 +2226,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sraw(A0, A0, A1);
   __ ret();
@@ -2347,7 +2243,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(NegateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ negw(A0, A0);
   __ ret();
@@ -2363,7 +2258,6 @@ ASSEMBLER_TEST_RUN(NegateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SignExtendWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sextw(A0, A0);
   __ ret();
@@ -2380,7 +2274,6 @@ ASSEMBLER_TEST_RUN(SignExtendWord, test) {
 #endif  // XLEN >= 64
 
 ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mul(A0, A0, A1);
   __ ret();
@@ -2400,7 +2293,6 @@ ASSEMBLER_TEST_RUN(Multiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyHigh, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulh(A0, A0, A1);
   __ ret();
@@ -2420,7 +2312,6 @@ ASSEMBLER_TEST_RUN(MultiplyHigh, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyHighSignedUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulhsu(A0, A0, A1);
   __ ret();
@@ -2440,7 +2331,6 @@ ASSEMBLER_TEST_RUN(MultiplyHighSignedUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyHighUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulhu(A0, A0, A1);
   __ ret();
@@ -2460,7 +2350,6 @@ ASSEMBLER_TEST_RUN(MultiplyHighUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Divide, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ div(A0, A0, A1);
   __ ret();
@@ -2480,7 +2369,6 @@ ASSEMBLER_TEST_RUN(Divide, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DivideUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ divu(A0, A0, A1);
   __ ret();
@@ -2508,7 +2396,6 @@ ASSEMBLER_TEST_RUN(DivideUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Remainder, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ rem(A0, A0, A1);
   __ ret();
@@ -2528,7 +2415,6 @@ ASSEMBLER_TEST_RUN(Remainder, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(RemainderUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ remu(A0, A0, A1);
   __ ret();
@@ -2549,7 +2435,6 @@ ASSEMBLER_TEST_RUN(RemainderUnsigned, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(MultiplyWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulw(A0, A0, A1);
   __ ret();
@@ -2569,7 +2454,6 @@ ASSEMBLER_TEST_RUN(MultiplyWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DivideWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ divw(A0, A0, A1);
   __ ret();
@@ -2589,7 +2473,6 @@ ASSEMBLER_TEST_RUN(DivideWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DivideUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ divuw(A0, A0, A1);
   __ ret();
@@ -2609,7 +2492,6 @@ ASSEMBLER_TEST_RUN(DivideUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(RemainderWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ remw(A0, A0, A1);
   __ ret();
@@ -2629,7 +2511,6 @@ ASSEMBLER_TEST_RUN(RemainderWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(RemainderUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ remuw(A0, A0, A1);
   __ ret();
@@ -2650,7 +2531,6 @@ ASSEMBLER_TEST_RUN(RemainderUnsignedWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalWord_Success, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lrw(T0, Address(A0));
   __ addi(T0, T0, 1);
@@ -2671,7 +2551,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Success, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalWord_Failure, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ li(T0, 42);
   __ scw(A0, T0, Address(A0));
@@ -2690,7 +2569,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Failure, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoSwapWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoswapw(A0, A1, Address(A0));
   __ ret();
@@ -2708,7 +2586,6 @@ ASSEMBLER_TEST_RUN(AmoSwapWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAddWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoaddw(A0, A1, Address(A0));
   __ ret();
@@ -2725,7 +2602,6 @@ ASSEMBLER_TEST_RUN(AmoAddWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoXorWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoxorw(A0, A1, Address(A0));
   __ ret();
@@ -2743,7 +2619,6 @@ ASSEMBLER_TEST_RUN(AmoXorWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAndWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoandw(A0, A1, Address(A0));
   __ ret();
@@ -2761,7 +2636,6 @@ ASSEMBLER_TEST_RUN(AmoAndWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoOrWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoorw(A0, A1, Address(A0));
   __ ret();
@@ -2779,7 +2653,6 @@ ASSEMBLER_TEST_RUN(AmoOrWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amominw(A0, A1, Address(A0));
   __ ret();
@@ -2800,7 +2673,6 @@ ASSEMBLER_TEST_RUN(AmoMinWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxw(A0, A1, Address(A0));
   __ ret();
@@ -2821,7 +2693,6 @@ ASSEMBLER_TEST_RUN(AmoMaxWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amominuw(A0, A1, Address(A0));
   __ ret();
@@ -2845,7 +2716,6 @@ ASSEMBLER_TEST_RUN(AmoMinUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxuw(A0, A1, Address(A0));
   __ ret();
@@ -2871,7 +2741,6 @@ ASSEMBLER_TEST_RUN(AmoMaxUnsignedWord, test) {
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalDoubleWord_Success,
                         assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lrd(T0, Address(A0));
   __ addi(T0, T0, 1);
@@ -2893,7 +2762,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalDoubleWord_Success, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalDoubleWord_Failure,
                         assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ li(T0, 42);
   __ scd(A0, T0, Address(A0));
@@ -2912,7 +2780,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalDoubleWord_Failure, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoSwapDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoswapd(A0, A1, Address(A0));
   __ ret();
@@ -2930,7 +2797,6 @@ ASSEMBLER_TEST_RUN(AmoSwapDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAddDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoaddd(A0, A1, Address(A0));
   __ ret();
@@ -2947,7 +2813,6 @@ ASSEMBLER_TEST_RUN(AmoAddDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoXorDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoxord(A0, A1, Address(A0));
   __ ret();
@@ -2965,7 +2830,6 @@ ASSEMBLER_TEST_RUN(AmoXorDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAndDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoandd(A0, A1, Address(A0));
   __ ret();
@@ -2983,7 +2847,6 @@ ASSEMBLER_TEST_RUN(AmoAndDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoOrDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoord(A0, A1, Address(A0));
   __ ret();
@@ -3001,7 +2864,6 @@ ASSEMBLER_TEST_RUN(AmoOrDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomind(A0, A1, Address(A0));
   __ ret();
@@ -3022,7 +2884,6 @@ ASSEMBLER_TEST_RUN(AmoMinDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxd(A0, A1, Address(A0));
   __ ret();
@@ -3043,7 +2904,6 @@ ASSEMBLER_TEST_RUN(AmoMaxDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amominud(A0, A1, Address(A0));
   __ ret();
@@ -3064,7 +2924,6 @@ ASSEMBLER_TEST_RUN(AmoMinUnsignedDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxud(A0, A1, Address(A0));
   __ ret();
@@ -3086,7 +2945,6 @@ ASSEMBLER_TEST_RUN(AmoMaxUnsignedDoubleWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(LoadSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ flw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -3104,7 +2962,6 @@ ASSEMBLER_TEST_RUN(LoadSingleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -3123,7 +2980,6 @@ ASSEMBLER_TEST_RUN(StoreSingleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmadds(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3144,7 +3000,6 @@ ASSEMBLER_TEST_RUN(SingleMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmsubs(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3165,7 +3020,6 @@ ASSEMBLER_TEST_RUN(SingleMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegateMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmsubs(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3186,7 +3040,6 @@ ASSEMBLER_TEST_RUN(SingleNegateMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegateMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmadds(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3207,7 +3060,6 @@ ASSEMBLER_TEST_RUN(SingleNegateMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fadds(FA0, FA0, FA1);
   __ ret();
@@ -3228,7 +3080,6 @@ ASSEMBLER_TEST_RUN(SingleAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleSubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsubs(FA0, FA0, FA1);
   __ ret();
@@ -3249,7 +3100,6 @@ ASSEMBLER_TEST_RUN(SingleSubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMultiply, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmuls(FA0, FA0, FA1);
   __ ret();
@@ -3270,7 +3120,6 @@ ASSEMBLER_TEST_RUN(SingleMultiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleDivide, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fdivs(FA0, FA0, FA1);
   __ ret();
@@ -3286,7 +3135,6 @@ ASSEMBLER_TEST_RUN(SingleDivide, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleSquareRoot, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsqrts(FA0, FA0);
   __ ret();
@@ -3302,7 +3150,6 @@ ASSEMBLER_TEST_RUN(SingleSquareRoot, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjs(FA0, FA0, FA1);
   __ ret();
@@ -3318,7 +3165,6 @@ ASSEMBLER_TEST_RUN(SingleSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegatedSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjns(FA0, FA0, FA1);
   __ ret();
@@ -3334,7 +3180,6 @@ ASSEMBLER_TEST_RUN(SingleNegatedSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleXorSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjxs(FA0, FA0, FA1);
   __ ret();
@@ -3350,7 +3195,6 @@ ASSEMBLER_TEST_RUN(SingleXorSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMin, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmins(FA0, FA0, FA1);
   __ ret();
@@ -3400,7 +3244,6 @@ ASSEMBLER_TEST_RUN(SingleMin, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMax, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmaxs(FA0, FA0, FA1);
   __ ret();
@@ -3450,7 +3293,6 @@ ASSEMBLER_TEST_RUN(SingleMax, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ feqs(A0, FA0, FA1);
   __ ret();
@@ -3480,7 +3322,6 @@ ASSEMBLER_TEST_RUN(SingleEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleLessThan, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ flts(A0, FA0, FA1);
   __ ret();
@@ -3510,7 +3351,6 @@ ASSEMBLER_TEST_RUN(SingleLessThan, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleLessOrEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fles(A0, FA0, FA1);
   __ ret();
@@ -3540,7 +3380,6 @@ ASSEMBLER_TEST_RUN(SingleLessOrEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleClassify, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fclasss(A0, FA0);
   __ ret();
@@ -3578,7 +3417,6 @@ ASSEMBLER_TEST_RUN(SingleClassify, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0);
   __ ret();
@@ -3611,7 +3449,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RNE, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RNE);
   __ ret();
@@ -3641,7 +3478,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RNE, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RTZ, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RTZ);
   __ ret();
@@ -3671,7 +3507,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RTZ, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RDN, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RDN);
   __ ret();
@@ -3701,7 +3536,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RDN, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RUP, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RUP);
   __ ret();
@@ -3731,7 +3565,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RUP, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RMM, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RMM);
   __ ret();
@@ -3761,7 +3594,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RMM, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtwus(A0, FA0);
   __ ret();
@@ -3794,7 +3626,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtsw(FA0, A0);
   __ ret();
@@ -3814,7 +3645,6 @@ ASSEMBLER_TEST_RUN(ConvertWordToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtswu(FA0, A0);
   __ ret();
@@ -3837,7 +3667,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedWordToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMove, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvs(FA0, FA1);
   __ ret();
@@ -3853,7 +3682,6 @@ ASSEMBLER_TEST_RUN(SingleMove, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleAbsoluteValue, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fabss(FA0, FA0);
   __ ret();
@@ -3873,7 +3701,6 @@ ASSEMBLER_TEST_RUN(SingleAbsoluteValue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnegs(FA0, FA0);
   __ ret();
@@ -3893,7 +3720,6 @@ ASSEMBLER_TEST_RUN(SingleNegate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastSingleToInteger, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvxw(A0, FA0);
   __ ret();
@@ -3917,7 +3743,6 @@ ASSEMBLER_TEST_RUN(BitCastSingleToInteger, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastIntegerToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvwx(FA0, A0);
   __ ret();
@@ -3949,7 +3774,6 @@ ASSEMBLER_TEST_RUN(BitCastIntegerToSingle, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(ConvertSingleToDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtls(A0, FA0);
   __ ret();
@@ -3980,7 +3804,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtlus(A0, FA0);
   __ ret();
@@ -4013,7 +3836,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToUnsignedDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtsl(FA0, A0);
   __ ret();
@@ -4040,7 +3862,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleWordToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedDoubleWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtslu(FA0, A0);
   __ ret();
@@ -4069,7 +3890,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedDoubleWordToSingle, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(LoadDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fld(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -4087,7 +3907,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsd(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -4106,7 +3925,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmaddd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4127,7 +3945,6 @@ ASSEMBLER_TEST_RUN(DoubleMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmsubd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4148,7 +3965,6 @@ ASSEMBLER_TEST_RUN(DoubleMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegateMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmsubd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4169,7 +3985,6 @@ ASSEMBLER_TEST_RUN(DoubleNegateMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegateMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmaddd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4190,7 +4005,6 @@ ASSEMBLER_TEST_RUN(DoubleNegateMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ faddd(FA0, FA0, FA1);
   __ ret();
@@ -4211,7 +4025,6 @@ ASSEMBLER_TEST_RUN(DoubleAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsubd(FA0, FA0, FA1);
   __ ret();
@@ -4232,7 +4045,6 @@ ASSEMBLER_TEST_RUN(DoubleSubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMultiply, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmuld(FA0, FA0, FA1);
   __ ret();
@@ -4253,7 +4065,6 @@ ASSEMBLER_TEST_RUN(DoubleMultiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleDivide, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fdivd(FA0, FA0, FA1);
   __ ret();
@@ -4269,7 +4080,6 @@ ASSEMBLER_TEST_RUN(DoubleDivide, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSquareRoot, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsqrtd(FA0, FA0);
   __ ret();
@@ -4285,7 +4095,6 @@ ASSEMBLER_TEST_RUN(DoubleSquareRoot, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjd(FA0, FA0, FA1);
   __ ret();
@@ -4301,7 +4110,6 @@ ASSEMBLER_TEST_RUN(DoubleSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegatedSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjnd(FA0, FA0, FA1);
   __ ret();
@@ -4317,7 +4125,6 @@ ASSEMBLER_TEST_RUN(DoubleNegatedSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleXorSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjxd(FA0, FA0, FA1);
   __ ret();
@@ -4333,7 +4140,6 @@ ASSEMBLER_TEST_RUN(DoubleXorSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMin, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmind(FA0, FA0, FA1);
   __ ret();
@@ -4383,7 +4189,6 @@ ASSEMBLER_TEST_RUN(DoubleMin, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMax, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmaxd(FA0, FA0, FA1);
   __ ret();
@@ -4433,7 +4238,6 @@ ASSEMBLER_TEST_RUN(DoubleMax, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtsd(FA0, FA0);
   __ ret();
@@ -4456,7 +4260,6 @@ ASSEMBLER_TEST_RUN(DoubleToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtds(FA0, FA0);
   __ ret();
@@ -4479,7 +4282,6 @@ ASSEMBLER_TEST_RUN(SingleToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(NaNBoxing, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ret();
 }
@@ -4489,7 +4291,6 @@ ASSEMBLER_TEST_RUN(NaNBoxing, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ feqd(A0, FA0, FA1);
   __ ret();
@@ -4519,7 +4320,6 @@ ASSEMBLER_TEST_RUN(DoubleEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleLessThan, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fltd(A0, FA0, FA1);
   __ ret();
@@ -4549,7 +4349,6 @@ ASSEMBLER_TEST_RUN(DoubleLessThan, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleLessOrEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fled(A0, FA0, FA1);
   __ ret();
@@ -4579,7 +4378,6 @@ ASSEMBLER_TEST_RUN(DoubleLessOrEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleClassify, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fclassd(A0, FA0);
   __ ret();
@@ -4617,7 +4415,6 @@ ASSEMBLER_TEST_RUN(DoubleClassify, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtwd(A0, FA0);
   __ ret();
@@ -4650,7 +4447,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtwud(A0, FA0);
   __ ret();
@@ -4683,7 +4479,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdw(FA0, A0);
   __ ret();
@@ -4703,7 +4498,6 @@ ASSEMBLER_TEST_RUN(ConvertWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdwu(FA0, A0);
   __ ret();
@@ -4726,7 +4520,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMove, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvd(FA0, FA1);
   __ ret();
@@ -4742,7 +4535,6 @@ ASSEMBLER_TEST_RUN(DoubleMove, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleAbsoluteValue, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fabsd(FA0, FA0);
   __ ret();
@@ -4762,7 +4554,6 @@ ASSEMBLER_TEST_RUN(DoubleAbsoluteValue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnegd(FA0, FA0);
   __ ret();
@@ -4783,7 +4574,6 @@ ASSEMBLER_TEST_RUN(DoubleNegate, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0);
   __ ret();
@@ -4813,7 +4603,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RNE, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RNE);
   __ ret();
@@ -4843,7 +4632,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RNE, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RTZ, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RTZ);
   __ ret();
@@ -4873,7 +4661,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RTZ, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RDN, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RDN);
   __ ret();
@@ -4903,7 +4690,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RDN, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RUP, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RUP);
   __ ret();
@@ -4933,7 +4719,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RUP, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RMM, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RMM);
   __ ret();
@@ -4963,7 +4748,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RMM, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtlud(A0, FA0);
   __ ret();
@@ -4996,7 +4780,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToUnsignedDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastDoubleToInteger, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvxd(A0, FA0);
   __ ret();
@@ -5020,7 +4803,6 @@ ASSEMBLER_TEST_RUN(BitCastDoubleToInteger, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdl(FA0, A0);
   __ ret();
@@ -5047,7 +4829,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedDoubleWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdlu(FA0, A0);
   __ ret();
@@ -5075,7 +4856,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedDoubleWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastIntegerToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvdx(FA0, A0);
   __ ret();
@@ -5105,7 +4885,6 @@ ASSEMBLER_TEST_RUN(BitCastIntegerToDouble, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(Fibonacci, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label fib, base, done;
   __ Bind(&fib);
@@ -5187,7 +4966,6 @@ ASSEMBLER_TEST_RUN(Fibonacci, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreWordSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   __ subi(SP, SP, 256);
@@ -5209,7 +4987,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreWordSP_0, test) {
   EXPECT_EQ(sign_extend(0xEF030607), Call(test->entry(), 0, 0xEF030607));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreWordSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   __ subi(SP, SP, 256);
@@ -5233,7 +5010,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreWordSP_Pos, test) {
 
 #if XLEN == 32
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreSingleFloatSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsw(FA1, Address(SP, 0));
@@ -5255,7 +5031,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreSingleFloatSP_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreSingleFloatSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsw(FA1, Address(SP, 4));
@@ -5278,7 +5053,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreSingleFloatSP_Pos, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleFloatSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsd(FA1, Address(SP, 0));
@@ -5299,7 +5073,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleFloatSP_0, test) {
   EXPECT_EQ(3.9, CallD(test->entry(), 0.0, 3.9));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleFloatSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsd(FA1, Address(SP, 8));
@@ -5322,7 +5095,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleFloatSP_Pos, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleWordSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ sd(A1, Address(SP, 0));
@@ -5346,7 +5118,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleWordSP_0, test) {
             Call(test->entry(), 0, 0xEF03060708090A0B));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleWordSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ sd(A1, Address(SP, 8));
@@ -5372,7 +5143,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleWordSP_Pos, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ lw(A0, Address(A0, 0));
   __ ret();
@@ -5391,7 +5161,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ lw(A0, Address(A0, 4));
   __ ret();
@@ -5411,7 +5180,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadWord_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sw(A1, Address(A0, 0));
   __ ret();
@@ -5432,7 +5200,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(CompressedStoreWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sw(A1, Address(A0, 4));
   __ ret();
@@ -5455,7 +5222,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreWord_Pos, test) {
 
 #if XLEN == 32
 ASSEMBLER_TEST_GENERATE(CompressedLoadSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ flw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -5473,7 +5239,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadSingleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ fsw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -5494,7 +5259,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreSingleFloat, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(CompressedLoadDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ ld(A0, Address(A0, 0));
   __ ret();
@@ -5513,7 +5277,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadDoubleWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ ld(A0, Address(A0, 8));
   __ ret();
@@ -5533,7 +5296,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadDoubleWord_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sd(A1, Address(A0, 0));
   __ ret();
@@ -5554,7 +5316,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreDoubleWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(CompressedStoreDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sd(A1, Address(A0, 8));
   __ ret();
@@ -5576,7 +5337,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreDoubleWord_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ fld(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -5595,7 +5355,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadDoubleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ fsd(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -5616,7 +5375,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreDoubleFloat, test) {
 
 #if XLEN == 32
 ASSEMBLER_TEST_GENERATE(CompressedJumpAndLink, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label label1, label2;
@@ -5664,7 +5422,6 @@ ASSEMBLER_TEST_RUN(CompressedJumpAndLink, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedJump, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label1, label2;
   __ j(&label1, Assembler::kNearJump);  // Forward.
@@ -5694,7 +5451,6 @@ ASSEMBLER_TEST_RUN(CompressedJump, test) {
 static int CompressedJumpAndLinkRegister_label1 = 0;
 static int CompressedJumpAndLinkRegister_label2 = 0;
 ASSEMBLER_TEST_GENERATE(CompressedJumpAndLinkRegister, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label1, label2;
   __ mv(T3, RA);
@@ -5745,7 +5501,6 @@ ASSEMBLER_TEST_RUN(CompressedJumpAndLinkRegister, test) {
 
 static int CompressedJumpRegister_label = 0;
 ASSEMBLER_TEST_GENERATE(CompressedJumpRegister, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label;
   __ jr(A1);
@@ -5767,7 +5522,6 @@ ASSEMBLER_TEST_RUN(CompressedJumpRegister, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedBranchEqualZero, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label;
   __ beqz(A0, &label, Assembler::kNearJump);
@@ -5790,7 +5544,6 @@ ASSEMBLER_TEST_RUN(CompressedBranchEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedBranchNotEqualZero, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label;
   __ bnez(A0, &label, Assembler::kNearJump);
@@ -5813,7 +5566,6 @@ ASSEMBLER_TEST_RUN(CompressedBranchNotEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ li(A0, -7);
   __ ret();
@@ -5826,7 +5578,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadUpperImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ lui(A0, 7 << 12);
   __ ret();
@@ -5839,7 +5590,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadUpperImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addi(A0, A0, 19);
   __ ret();
@@ -5853,7 +5603,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediate, test) {
 
 #if XLEN == 64
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addiw(A0, A0, 19);
   __ ret();
@@ -5868,7 +5617,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediateWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediateSP16, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addi(SP, SP, -128);
   __ addi(SP, SP, +128);
@@ -5883,7 +5631,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediateSP16, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediateSP4N, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addi(A1, SP, 36);
   __ sub(A0, A1, SP);
@@ -5898,7 +5645,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediateSP4N, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedShiftLeftLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ slli(A0, A0, 3);
   __ ret();
@@ -5915,7 +5661,6 @@ ASSEMBLER_TEST_RUN(CompressedShiftLeftLogicalImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedShiftRightLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ srli(A0, A0, 3);
   __ ret();
@@ -5934,7 +5679,6 @@ ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedShiftRightArithmeticImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ srai(A0, A0, 3);
   __ ret();
@@ -5951,7 +5695,6 @@ ASSEMBLER_TEST_RUN(CompressedShiftRightArithmeticImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAndImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ andi(A0, A0, 6);
   __ ret();
@@ -5968,7 +5711,6 @@ ASSEMBLER_TEST_RUN(CompressedAndImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAndImmediate2, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ andi(A0, A0, -6);
   __ ret();
@@ -5985,7 +5727,6 @@ ASSEMBLER_TEST_RUN(CompressedAndImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedMove, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ mv(A0, A1);
   __ ret();
@@ -5998,7 +5739,6 @@ ASSEMBLER_TEST_RUN(CompressedMove, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAdd, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ add(A0, A0, A1);
   __ ret();
@@ -6018,7 +5758,6 @@ ASSEMBLER_TEST_RUN(CompressedAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAnd, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ and_(A0, A0, A1);
   __ ret();
@@ -6038,7 +5777,6 @@ ASSEMBLER_TEST_RUN(CompressedAnd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedOr, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ or_(A0, A0, A1);
   __ ret();
@@ -6058,7 +5796,6 @@ ASSEMBLER_TEST_RUN(CompressedOr, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedXor, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ xor_(A0, A0, A1);
   __ ret();
@@ -6078,7 +5815,6 @@ ASSEMBLER_TEST_RUN(CompressedXor, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedSubtract, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sub(A0, A0, A1);
   __ ret();
@@ -6099,7 +5835,6 @@ ASSEMBLER_TEST_RUN(CompressedSubtract, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(CompressedAddWord, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addw(A0, A0, A1);
   __ ret();
@@ -6120,7 +5855,6 @@ ASSEMBLER_TEST_RUN(CompressedAddWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedSubtractWord, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subw(A0, A0, A1);
   __ ret();
@@ -6142,7 +5876,6 @@ ASSEMBLER_TEST_RUN(CompressedSubtractWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedNop, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ nop();
   __ ret();
@@ -6155,7 +5888,6 @@ ASSEMBLER_TEST_RUN(CompressedNop, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedEnvironmentBreak, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ ebreak();
   __ ret();
@@ -7233,7 +6965,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWordRelease, test) {
 #endif  // XLEN >= 64
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MaxInt32, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMaxInt32);
   __ ret();
@@ -7254,7 +6985,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_MaxInt32, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt32, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMinInt32);
   __ ret();
@@ -7268,7 +6998,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_MinInt32, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt64, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMinInt64);
   __ ret();
@@ -7282,7 +7011,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_MinInt64, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_Full, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABCDABCDABCDABCD);
   __ ret();
@@ -7302,7 +7030,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_Full, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiAddiwSlli, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0x7BCDABCD00000);
   __ ret();
@@ -7317,7 +7044,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LuiAddiwSlli, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiSlli, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABCDE00000000000);
   __ ret();
@@ -7331,7 +7057,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LuiSlli, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlli, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABC00000000000);
   __ ret();
@@ -7345,7 +7070,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LiSlli, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlliAddi, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xFF000000000000FF);
   __ ret();
@@ -7361,7 +7085,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GC, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ AndImmediate(A0, A1, ~0x10000000);
   __ OrImmediate(A0, A1, 0x10000000);
@@ -7393,7 +7116,6 @@ ASSEMBLER_TEST_RUN(BitwiseImmediates_GC, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GCB, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GCB);
   __ AndImmediate(A0, A1, ~0x10000000);
   __ OrImmediate(A0, A1, 0x10000000);
@@ -7409,7 +7131,6 @@ ASSEMBLER_TEST_RUN(BitwiseImmediates_GCB, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediateBranchOverflow, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7434,7 +7155,6 @@ ASSEMBLER_TEST_RUN(AddImmediateBranchOverflow, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddBranchOverflow_NonDestructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7463,7 +7183,6 @@ ASSEMBLER_TEST_RUN(AddBranchOverflow_NonDestructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddBranchOverflow_Destructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7492,7 +7211,6 @@ ASSEMBLER_TEST_RUN(AddBranchOverflow_Destructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractImmediateBranchOverflow, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7517,7 +7235,6 @@ ASSEMBLER_TEST_RUN(SubtractImmediateBranchOverflow, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractBranchOverflow_NonDestructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7546,7 +7263,6 @@ ASSEMBLER_TEST_RUN(SubtractBranchOverflow_NonDestructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractBranchOverflow_Destructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7575,7 +7291,6 @@ ASSEMBLER_TEST_RUN(SubtractBranchOverflow_Destructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyImmediateBranchOverflow, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7616,7 +7331,6 @@ ASSEMBLER_TEST_RUN(MultiplyImmediateBranchOverflow, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyBranchOverflow_NonDestructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7660,7 +7374,6 @@ ASSEMBLER_TEST_RUN(MultiplyBranchOverflow_NonDestructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyBranchOverflow_Destructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;

@@ -726,13 +726,16 @@ void AssemblerTest::Assemble() {
   // Disassemble relative since code addresses are not stable from run to run.
   SetFlagScope<bool> sfs(&FLAG_disassemble_relative, true);
   uword start = code_.PayloadStart();
+  uword end = start + assembler_->CodeSize();
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  Disassembler::SetExtensions(assembler_->extensions());
+#endif
   if (FLAG_disassemble) {
     OS::PrintErr("Code for test '%s' {\n", name_);
-    Disassembler::Disassemble(start, start + assembler_->CodeSize());
+    Disassembler::Disassemble(start, end);
     OS::PrintErr("}\n");
   }
-  Disassembler::Disassemble(start, start + assembler_->CodeSize(), disassembly_,
-                            DISASSEMBLY_SIZE);
+  Disassembler::Disassemble(start, end, disassembly_, DISASSEMBLY_SIZE);
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   // Blank out absolute addressing constants on ia32, since they are not stable
   // from run to run.

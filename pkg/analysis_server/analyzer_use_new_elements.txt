@@ -40,6 +40,7 @@ lib/src/computer/computer_color.dart
 lib/src/computer/computer_folding.dart
 lib/src/computer/computer_highlights.dart
 lib/src/computer/computer_outline.dart
+lib/src/computer/computer_overrides.dart
 lib/src/computer/computer_selection_ranges.dart
 lib/src/context_manager.dart
 lib/src/domain_analysis_flags.dart
@@ -173,6 +174,7 @@ lib/src/lsp/semantic_tokens/legend.dart
 lib/src/lsp/semantic_tokens/mapping.dart
 lib/src/lsp/server_capabilities_computer.dart
 lib/src/lsp/snippets.dart
+lib/src/lsp/source_edits.dart
 lib/src/lsp/temporary_overlay_operation.dart
 lib/src/plugin/notification_manager.dart
 lib/src/plugin/plugin_locator.dart
