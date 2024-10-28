@@ -5086,11 +5086,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<PropertyAccessorElementImpl> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    linkedData?.readMembers(this);
     return _accessors;
   }
 
@@ -5120,11 +5115,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<FieldElementImpl> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    linkedData?.readMembers(this);
     return _fields;
   }
 
@@ -5153,11 +5143,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodElementImpl> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    linkedData?.readMembers(this);
     return _methods;
   }
 
@@ -5258,7 +5243,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     }
 
     _buildMixinAppConstructors();
-    linkedData?.readMembers(this);
     return _constructors;
   }
 

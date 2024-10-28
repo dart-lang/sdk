@@ -74,7 +74,6 @@ class BundleReader {
       return _LibraryHeader(
         uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
-        classMembersLengths: _reader.readUInt30List(),
         macroGeneratedCode: _reader.readOptionalObject((reader) {
           return _reader.readStringUtf8();
         }),
@@ -93,7 +92,6 @@ class BundleReader {
         referenceReader: referenceReader,
         reference: reference,
         offset: libraryHeader.offset,
-        classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
         macroGeneratedCode: libraryHeader.macroGeneratedCode,
       );
@@ -103,8 +101,6 @@ class BundleReader {
 
 class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
-  void Function()? _readMembers;
-  void Function()? applyInformativeDataToMembers;
 
   ClassElementLinkedData({
     required Reference reference,
@@ -125,12 +121,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
     if (element.isMixinApplication) {
       element.constructors;
-    } else {
-      _readMembers?.call();
-      _readMembers = null;
-
-      applyInformativeDataToMembers?.call();
-      applyInformativeDataToMembers = null;
     }
   }
 
@@ -655,9 +645,6 @@ class LibraryReader {
   final InfoDeclarationStore _deserializedDataStore;
   final String? macroGeneratedCode;
 
-  final Uint32List _classMembersLengths;
-  int _classMembersLengthsIndex = 0;
-
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
@@ -667,7 +654,6 @@ class LibraryReader {
     required _ReferenceReader referenceReader,
     required Reference reference,
     required int offset,
-    required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
     required this.macroGeneratedCode,
   })  : _elementFactory = elementFactory,
@@ -677,7 +663,6 @@ class LibraryReader {
         _referenceReader = referenceReader,
         _reference = reference,
         _offset = offset,
-        _classMembersLengths = classMembersLengths,
         _deserializedDataStore = infoDeclarationStore;
 
   LibraryElementImpl readElement({required Source librarySource}) {
@@ -685,11 +670,6 @@ class LibraryReader {
     var analysisSession = _elementFactory.analysisSession;
 
     _reader.offset = _offset;
-
-    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
-    // This should not be needed.
-    // But I have a suspicion that we attempt to read the library twice.
-    _classMembersLengthsIndex = 0;
 
     // Read enough data to create the library.
     var name = _reader.readStringReference();
@@ -786,41 +766,19 @@ class LibraryReader {
     element.typeParameters = _readTypeParameters();
 
     if (!element.isMixinApplication) {
-      var membersOffset = _reader.offset;
-      linkedData._readMembers = () {
-        _reader.offset = membersOffset;
-        _readClassElementMembers(unitElement, element, reference);
-      };
-      if (_classMembersLengthsIndex >= _classMembersLengths.length) {
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
-        throw StateError(
-          '[libraryReference: $_reference]'
-          '[classReference: $reference]'
-          '[_classMembersLengthsIndex: $_classMembersLengthsIndex]'
-          '[_classMembersLengths: $_classMembersLengths]',
-        );
-      }
-      _reader.offset += _classMembersLengths[_classMembersLengthsIndex++];
+      var accessors = <PropertyAccessorElementImpl>[];
+      var fields = <FieldElementImpl>[];
+      _readFields(unitElement, element, reference, accessors, fields);
+      _readPropertyAccessors(
+          unitElement, element, reference, accessors, fields, '@field');
+      element.fields = fields.toFixedList();
+      element.accessors = accessors.toFixedList();
+
+      element.constructors = _readConstructors(unitElement, element, reference);
+      element.methods = _readMethods(unitElement, element, reference);
     }
 
     return element;
-  }
-
-  void _readClassElementMembers(
-    CompilationUnitElementImpl unitElement,
-    ClassElementImpl element,
-    Reference reference,
-  ) {
-    var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElementImpl>[];
-    _readFields(unitElement, element, reference, accessors, fields);
-    _readPropertyAccessors(
-        unitElement, element, reference, accessors, fields, '@field');
-    element.fields = fields.toFixedList();
-    element.accessors = accessors.toFixedList();
-
-    element.constructors = _readConstructors(unitElement, element, reference);
-    element.methods = _readMethods(unitElement, element, reference);
   }
 
   void _readClasses(
@@ -2721,18 +2679,12 @@ class _LibraryHeader {
   final Uri uri;
   final int offset;
 
-  /// We don't read class members when reading libraries, by performance
-  /// reasons - in many cases only some classes of a library are used. But
-  /// we need to know how much data to skip for each class.
-  final Uint32List classMembersLengths;
-
   /// The only (if any) macro generated augmentation code.
   final String? macroGeneratedCode;
 
   _LibraryHeader({
     required this.uri,
     required this.offset,
-    required this.classMembersLengths,
     required this.macroGeneratedCode,
   });
 }
