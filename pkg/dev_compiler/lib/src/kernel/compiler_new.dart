@@ -546,12 +546,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The list of output module items, in the order they need to be emitted in.
   final _moduleItems = <js_ast.ModuleItem>[];
 
-  /// Like [_moduleItems] but for items that should be emitted after classes.
-  ///
-  /// This is used for deferred supertypes of mutually recursive non-generic
-  /// classes.
-  final _afterClassDefItems = <js_ast.ModuleItem>[];
-
   /// The entrypoint method of a dynamic module, if any.
   Procedure? _dynamicEntrypoint;
 
@@ -782,8 +776,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _constLazyAccessors.clear();
     }
 
-    _moduleItems.addAll(_afterClassDefItems);
-    _afterClassDefItems.clear();
     // Register the local const cache for this module so it can be cleared on a
     // hot restart.
     if (_constTableCache.isNotEmpty) {
@@ -1194,13 +1186,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsProperties = _emitClassProperties(c);
 
     _emitSuperHelperSymbols(body);
-    // Deferred supertypes must be evaluated lazily while emitting classes to
-    // prevent evaluating a JS expression for a deferred type from influencing
-    // class declaration order (such as when calling 'emitDeferredType').
-    var deferredSupertypes = <js_ast.Statement Function()>[];
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
-    _defineClass(c, className, jsProperties, body, deferredSupertypes);
+    _defineClass(c, className, jsProperties, body);
     body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
@@ -1249,14 +1237,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var typeFormals = c.typeParameters;
-    var evaluatedDeferredSupertypes =
-        deferredSupertypes.map<js_ast.Statement>((f) => f()).toList();
     if (typeFormals.isNotEmpty) {
-      var genericClassStmts = _defineGenericClass(typeFormals,
-          js_ast.Statement.from(body), evaluatedDeferredSupertypes);
+      var genericClassStmts =
+          _defineGenericClass(typeFormals, js_ast.Statement.from(body));
       body = [...genericClassStmts];
-    } else {
-      _afterClassDefItems.addAll(evaluatedDeferredSupertypes);
     }
 
     if (c == _coreTypes.objectClass) {
@@ -1324,7 +1308,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var typeFormals = c.typeParameters;
       if (typeFormals.isNotEmpty) {
         var genericClassStmts =
-            _defineGenericClass(typeFormals, js_ast.Statement.from(body), []);
+            _defineGenericClass(typeFormals, js_ast.Statement.from(body));
         body = genericClassStmts;
       }
       return js_ast.Statement.from(body);
@@ -1333,13 +1317,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits a generic class with additional initialization logic.
-  List<js_ast.Statement> _defineGenericClass(List<TypeParameter> formals,
-      js_ast.Statement body, List<js_ast.Statement> deferredBaseClass) {
+  List<js_ast.Statement> _defineGenericClass(
+      List<TypeParameter> formals, js_ast.Statement body) {
     assert(formals.isNotEmpty);
     return [
       ..._typeTable.dischargeFreeTypes(formals),
       body,
-      ...deferredBaseClass,
     ];
   }
 
@@ -1423,12 +1406,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ]));
   }
 
-  void _defineClass(
-      Class c,
-      js_ast.Expression className,
-      List<js_ast.Property> properties,
-      List<js_ast.Statement> body,
-      List<js_ast.Statement Function()> deferredSupertypes) {
+  /// Emits code required to represent [c] as a series of statements in [body].
+  ///
+  /// [properties] holds methods, fields, or properties in [c].
+  void _defineClass(Class c, js_ast.Expression className,
+      List<js_ast.Property> properties, List<js_ast.Statement> body) {
     if (c == _coreTypes.objectClass) {
       body.add(_emitClassStatement(c, className, null, properties));
       return;
@@ -3328,12 +3310,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             init is BasicLiteral ||
             init is ConstructorInvocation && isInternalConstructor(init) ||
             init is StaticInvocation && isInlineJS(init.target)) {
-          if (init is ConstructorInvocation) {
-            // This is an eagerly executed constructor invocation.  We need to
-            // ensure the class is emitted before this statement.
-            var type = init.getStaticType(_staticTypeContext) as InterfaceType;
-            _emitClass(type.classNode);
-          }
           _currentUri = field.fileUri;
           _moduleItems.add(js.statement('# = #;', [
             _emitTopLevelName(field),
