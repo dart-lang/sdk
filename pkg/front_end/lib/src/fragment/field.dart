@@ -5,7 +5,9 @@
 part of 'fragment.dart';
 
 class FieldFragment implements Fragment {
+  @override
   final String name;
+
   final Uri fileUri;
   final int charOffset;
   final int charEndOffset;

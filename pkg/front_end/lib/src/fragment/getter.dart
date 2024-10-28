@@ -5,7 +5,9 @@
 part of 'fragment.dart';
 
 class GetterFragment implements Fragment, FunctionFragment {
+  @override
   final String name;
+
   final Uri fileUri;
   final int startOffset;
   final int nameOffset;

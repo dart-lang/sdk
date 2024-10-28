@@ -1091,19 +1091,89 @@ library;
 // class N1 = B implements D with C;
 //                           ^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:40: Error: 'C' is already declared in this scope.
-// class N2 = implements D extends B with C;
-//                                        ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
-// class N1 = B implements D with C;
-//                                ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Error: 'with' is already declared in this scope.
 // class N3 = implements D with C extends B;
 //                         ^^^^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:35:35: Context: Previous declaration of 'with'.
 // class N2 = implements D extends B with C;
 //                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Error: 'with' is already declared in this scope.
+// class N8 = B with C implements D with C;
+//                                  ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Context: Previous declaration of 'with'.
+// class N3 = implements D with C extends B;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Error: 'with' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                           ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Context: Previous declaration of 'with'.
+// class N8 = B with C implements D with C;
+//                                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Error: 'with' is already declared in this scope.
+// class N10 = B implements D with C implements D;
+//                            ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Context: Previous declaration of 'with'.
+// class N9 = B implements D with C extends B;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Error: 'with' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                            ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Context: Previous declaration of 'with'.
+// class N10 = B implements D with C implements D;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Error: 'with' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                                   ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Context: Previous declaration of 'with'.
+// class N11 = B implements D with C with C;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Error: 'with' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                         ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Context: Previous declaration of 'with'.
+// class N11 = B implements D with C with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Error: 'with' is already declared in this scope.
+// class N13 = B with C with C implements D;
+//                      ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Context: Previous declaration of 'with'.
+// class N12 = B extends B with C implements D;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Error: 'with' is already declared in this scope.
+// class N17 = implements D with C;
+//                          ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Context: Previous declaration of 'with'.
+// class N13 = B with C with C implements D;
+//                      ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Error: 'with' is already declared in this scope.
+// class N25 = with C with;
+//                    ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Context: Previous declaration of 'with'.
+// class N17 = implements D with C;
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:30: Error: 'with' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                              ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Context: Previous declaration of 'with'.
+// class N25 = with C with;
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:40: Error: 'C' is already declared in this scope.
+// class N2 = implements D extends B with C;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:36:30: Error: 'C' is already declared in this scope.
 // class N3 = implements D with C extends B;
@@ -1112,6 +1182,48 @@ library;
 // class N2 = implements D extends B with C;
 //                                        ^
 //
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:39: Error: 'C' is already declared in this scope.
+// class N8 = B with C implements D with C;
+//                                       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:30: Context: Previous declaration of 'C'.
+// class N3 = implements D with C extends B;
+//                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Error: 'C' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                                ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:39: Context: Previous declaration of 'C'.
+// class N8 = B with C implements D with C;
+//                                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Error: 'C' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                                 ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Context: Previous declaration of 'C'.
+// class N9 = B implements D with C extends B;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:40: Error: 'C' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Context: Previous declaration of 'C'.
+// class N11 = B implements D with C with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:31: Error: 'C' is already declared in this scope.
+// class N17 = implements D with C;
+//                               ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:40: Context: Previous declaration of 'C'.
+// class N11 = B implements D with C with C;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:90:7: Error: 'C' is already declared in this scope.
+// class C {}
+//       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:31: Context: Previous declaration of 'C'.
+// class N17 = implements D with C;
+//                               ^
+//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:36:32: Error: 'extends' is already declared in this scope.
 // class N3 = implements D with C extends B;
 //                                ^^^^^^^
@@ -1119,26 +1231,12 @@ library;
 // class N2 = implements D extends B with C;
 //                         ^^^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:40: Error: 'B' is already declared in this scope.
-// class N3 = implements D with C extends B;
-//                                        ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
-// class N2 = implements D extends B with C;
-//                                 ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:37:32: Error: 'extends' is already declared in this scope.
 // class N4 = with C implements D extends B;
 //                                ^^^^^^^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:36:32: Context: Previous declaration of 'extends'.
 // class N3 = implements D with C extends B;
 //                                ^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:40: Error: 'B' is already declared in this scope.
-// class N4 = with C implements D extends B;
-//                                        ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:40: Context: Previous declaration of 'B'.
-// class N3 = implements D with C extends B;
-//                                        ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:38:19: Error: 'extends' is already declared in this scope.
 // class N5 = with C extends B implements D;
@@ -1154,117 +1252,12 @@ library;
 // class N5 = with C extends B implements D;
 //                   ^^^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:42: Error: 'B' is already declared in this scope.
-// class N6 = B with C implements D extends B;
-//                                          ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:40: Context: Previous declaration of 'B'.
-// class N4 = with C implements D extends B;
-//                                        ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Error: 'implements' is already declared in this scope.
-// class N7 = B with C implements D implements D;
-//                                  ^^^^^^^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
-// class N5 = with C extends B implements D;
-//                             ^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:45: Error: 'D' is already declared in this scope.
-// class N7 = B with C implements D implements D;
-//                                             ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
-// class N5 = with C extends B implements D;
-//                                        ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Error: 'with' is already declared in this scope.
-// class N8 = B with C implements D with C;
-//                                  ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Context: Previous declaration of 'with'.
-// class N3 = implements D with C extends B;
-//                         ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:39: Error: 'C' is already declared in this scope.
-// class N8 = B with C implements D with C;
-//                                       ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:30: Context: Previous declaration of 'C'.
-// class N3 = implements D with C extends B;
-//                              ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Error: 'with' is already declared in this scope.
-// class N9 = B implements D with C extends B;
-//                           ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Context: Previous declaration of 'with'.
-// class N8 = B with C implements D with C;
-//                                  ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Error: 'C' is already declared in this scope.
-// class N9 = B implements D with C extends B;
-//                                ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:39: Context: Previous declaration of 'C'.
-// class N8 = B with C implements D with C;
-//                                       ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:42:34: Error: 'extends' is already declared in this scope.
 // class N9 = B implements D with C extends B;
 //                                  ^^^^^^^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:39:34: Context: Previous declaration of 'extends'.
 // class N6 = B with C implements D extends B;
 //                                  ^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:42: Error: 'B' is already declared in this scope.
-// class N9 = B implements D with C extends B;
-//                                          ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:42: Context: Previous declaration of 'B'.
-// class N6 = B with C implements D extends B;
-//                                          ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Error: 'with' is already declared in this scope.
-// class N10 = B implements D with C implements D;
-//                            ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Context: Previous declaration of 'with'.
-// class N9 = B implements D with C extends B;
-//                           ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:35: Error: 'implements' is already declared in this scope.
-// class N10 = B implements D with C implements D;
-//                                   ^^^^^^^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Context: Previous declaration of 'implements'.
-// class N7 = B with C implements D implements D;
-//                                  ^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:46: Error: 'D' is already declared in this scope.
-// class N10 = B implements D with C implements D;
-//                                              ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:45: Context: Previous declaration of 'D'.
-// class N7 = B with C implements D implements D;
-//                                             ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Error: 'with' is already declared in this scope.
-// class N11 = B implements D with C with C;
-//                            ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Context: Previous declaration of 'with'.
-// class N10 = B implements D with C implements D;
-//                            ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Error: 'C' is already declared in this scope.
-// class N11 = B implements D with C with C;
-//                                 ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Context: Previous declaration of 'C'.
-// class N9 = B implements D with C extends B;
-//                                ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Error: 'with' is already declared in this scope.
-// class N11 = B implements D with C with C;
-//                                   ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Context: Previous declaration of 'with'.
-// class N11 = B implements D with C with C;
-//                            ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:40: Error: 'C' is already declared in this scope.
-// class N11 = B implements D with C with C;
-//                                        ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Context: Previous declaration of 'C'.
-// class N11 = B implements D with C with C;
-//                                 ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Error: 'extends' is already declared in this scope.
 // class N12 = B extends B with C implements D;
@@ -1273,82 +1266,12 @@ library;
 // class N9 = B implements D with C extends B;
 //                                  ^^^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Error: 'B' is already declared in this scope.
-// class N12 = B extends B with C implements D;
-//                       ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:42: Context: Previous declaration of 'B'.
-// class N9 = B implements D with C extends B;
-//                                          ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Error: 'with' is already declared in this scope.
-// class N12 = B extends B with C implements D;
-//                         ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Context: Previous declaration of 'with'.
-// class N11 = B implements D with C with C;
-//                                   ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:32: Error: 'implements' is already declared in this scope.
-// class N12 = B extends B with C implements D;
-//                                ^^^^^^^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:35: Context: Previous declaration of 'implements'.
-// class N10 = B implements D with C implements D;
-//                                   ^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:43: Error: 'D' is already declared in this scope.
-// class N12 = B extends B with C implements D;
-//                                           ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:46: Context: Previous declaration of 'D'.
-// class N10 = B implements D with C implements D;
-//                                              ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Error: 'with' is already declared in this scope.
-// class N13 = B with C with C implements D;
-//                      ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Context: Previous declaration of 'with'.
-// class N12 = B extends B with C implements D;
-//                         ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:29: Error: 'implements' is already declared in this scope.
-// class N13 = B with C with C implements D;
-//                             ^^^^^^^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:32: Context: Previous declaration of 'implements'.
-// class N12 = B extends B with C implements D;
-//                                ^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:40: Error: 'D' is already declared in this scope.
-// class N13 = B with C with C implements D;
-//                                        ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:43: Context: Previous declaration of 'D'.
-// class N12 = B extends B with C implements D;
-//                                           ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:35: Error: 'implements' is already declared in this scope.
-// class N14 = B with C implements D implements D;
-//                                   ^^^^^^^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:29: Context: Previous declaration of 'implements'.
-// class N13 = B with C with C implements D;
-//                             ^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:46: Error: 'D' is already declared in this scope.
-// class N14 = B with C implements D implements D;
-//                                              ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:40: Context: Previous declaration of 'D'.
-// class N13 = B with C with C implements D;
-//                                        ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:48:20: Error: 'extends' is already declared in this scope.
 // class N15 = with D extends B;
 //                    ^^^^^^^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Context: Previous declaration of 'extends'.
 // class N12 = B extends B with C implements D;
 //               ^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:28: Error: 'B' is already declared in this scope.
-// class N15 = with D extends B;
-//                            ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Context: Previous declaration of 'B'.
-// class N12 = B extends B with C implements D;
-//                       ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:49:26: Error: 'extends' is already declared in this scope.
 // class N16 = implements D extends B;
@@ -1357,40 +1280,12 @@ library;
 // class N15 = with D extends B;
 //                    ^^^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:34: Error: 'B' is already declared in this scope.
-// class N16 = implements D extends B;
-//                                  ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:28: Context: Previous declaration of 'B'.
-// class N15 = with D extends B;
-//                            ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Error: 'with' is already declared in this scope.
-// class N17 = implements D with C;
-//                          ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Context: Previous declaration of 'with'.
-// class N13 = B with C with C implements D;
-//                      ^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:31: Error: 'C' is already declared in this scope.
-// class N17 = implements D with C;
-//                               ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:40: Context: Previous declaration of 'C'.
-// class N11 = B implements D with C with C;
-//                                        ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:57:15: Error: 'extends' is already declared in this scope.
 // class N24 = B extends;
 //               ^^^^^^^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:49:26: Context: Previous declaration of 'extends'.
 // class N16 = implements D extends B;
 //                          ^^^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Error: 'with' is already declared in this scope.
-// class N25 = with C with;
-//                    ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Context: Previous declaration of 'with'.
-// class N17 = implements D with C;
-//                          ^^^^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Error: 'extends' is already declared in this scope.
 // enum E12 extends B extends B with C implements D { element }
@@ -1399,19 +1294,68 @@ library;
 // class N24 = B extends;
 //               ^^^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:18: Error: 'B' is already declared in this scope.
-// enum E12 extends B extends B with C implements D { element }
-//                  ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:34: Context: Previous declaration of 'B'.
-// class N16 = implements D extends B;
-//                                  ^
-//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:20: Error: 'extends' is already declared in this scope.
 // enum E12 extends B extends B with C implements D { element }
 //                    ^^^^^^^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Context: Previous declaration of 'extends'.
 // enum E12 extends B extends B with C implements D { element }
 //          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:40: Error: 'B' is already declared in this scope.
+// class N3 = implements D with C extends B;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:40: Error: 'B' is already declared in this scope.
+// class N4 = with C implements D extends B;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:40: Context: Previous declaration of 'B'.
+// class N3 = implements D with C extends B;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:42: Error: 'B' is already declared in this scope.
+// class N6 = B with C implements D extends B;
+//                                          ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:40: Context: Previous declaration of 'B'.
+// class N4 = with C implements D extends B;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:42: Error: 'B' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                                          ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:42: Context: Previous declaration of 'B'.
+// class N6 = B with C implements D extends B;
+//                                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Error: 'B' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:42: Context: Previous declaration of 'B'.
+// class N9 = B implements D with C extends B;
+//                                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:28: Error: 'B' is already declared in this scope.
+// class N15 = with D extends B;
+//                            ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Context: Previous declaration of 'B'.
+// class N12 = B extends B with C implements D;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:34: Error: 'B' is already declared in this scope.
+// class N16 = implements D extends B;
+//                                  ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:28: Context: Previous declaration of 'B'.
+// class N15 = with D extends B;
+//                            ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:18: Error: 'B' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                  ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:34: Context: Previous declaration of 'B'.
+// class N16 = implements D extends B;
+//                                  ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:28: Error: 'B' is already declared in this scope.
 // enum E12 extends B extends B with C implements D { element }
@@ -1420,12 +1364,47 @@ library;
 // enum E12 extends B extends B with C implements D { element }
 //                  ^
 //
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:30: Error: 'with' is already declared in this scope.
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:89:7: Error: 'B' is already declared in this scope.
+// class B {}
+//       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:28: Context: Previous declaration of 'B'.
 // enum E12 extends B extends B with C implements D { element }
-//                              ^^^^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Context: Previous declaration of 'with'.
-// class N25 = with C with;
-//                    ^^^^
+//                            ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Error: 'implements' is already declared in this scope.
+// class N7 = B with C implements D implements D;
+//                                  ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:35: Error: 'implements' is already declared in this scope.
+// class N10 = B implements D with C implements D;
+//                                   ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Context: Previous declaration of 'implements'.
+// class N7 = B with C implements D implements D;
+//                                  ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:32: Error: 'implements' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                                ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:35: Context: Previous declaration of 'implements'.
+// class N10 = B implements D with C implements D;
+//                                   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:29: Error: 'implements' is already declared in this scope.
+// class N13 = B with C with C implements D;
+//                             ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:32: Context: Previous declaration of 'implements'.
+// class N12 = B extends B with C implements D;
+//                                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:35: Error: 'implements' is already declared in this scope.
+// class N14 = B with C implements D implements D;
+//                                   ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:29: Context: Previous declaration of 'implements'.
+// class N13 = B with C with C implements D;
+//                             ^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:37: Error: 'implements' is already declared in this scope.
 // enum E12 extends B extends B with C implements D { element }
@@ -1434,26 +1413,47 @@ library;
 // class N14 = B with C implements D implements D;
 //                                   ^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:45: Error: 'D' is already declared in this scope.
+// class N7 = B with C implements D implements D;
+//                                             ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:46: Error: 'D' is already declared in this scope.
+// class N10 = B implements D with C implements D;
+//                                              ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:45: Context: Previous declaration of 'D'.
+// class N7 = B with C implements D implements D;
+//                                             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:43: Error: 'D' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                                           ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:46: Context: Previous declaration of 'D'.
+// class N10 = B implements D with C implements D;
+//                                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:40: Error: 'D' is already declared in this scope.
+// class N13 = B with C with C implements D;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:43: Context: Previous declaration of 'D'.
+// class N12 = B extends B with C implements D;
+//                                           ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:46: Error: 'D' is already declared in this scope.
+// class N14 = B with C implements D implements D;
+//                                              ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:40: Context: Previous declaration of 'D'.
+// class N13 = B with C with C implements D;
+//                                        ^
+//
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:73:48: Error: 'D' is already declared in this scope.
 // enum E12 extends B extends B with C implements D { element }
 //                                                ^
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:47:46: Context: Previous declaration of 'D'.
 // class N14 = B with C implements D implements D;
 //                                              ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:89:7: Error: 'B' is already declared in this scope.
-// class B {}
-//       ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:28: Context: Previous declaration of 'B'.
-// enum E12 extends B extends B with C implements D { element }
-//                            ^
-//
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:90:7: Error: 'C' is already declared in this scope.
-// class C {}
-//       ^
-// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:31: Context: Previous declaration of 'C'.
-// class N17 = implements D with C;
-//                               ^
 //
 // pkg/front_end/testcases/general/error_recovery/class_header.dart:91:7: Error: 'D' is already declared in this scope.
 // class D {}

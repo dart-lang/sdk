@@ -22,6 +22,6 @@ import self as self;
 import "dart:core" as core;
 
 part field_setter_conflict_part.dart;
-static field core::int? topLevelFieldInMainSetterInPart;
 static field core::int? topLevelFieldInPartSetterInMain /* from org-dartlang-testcase:///field_setter_conflict_part.dart */;
+static field core::int? topLevelFieldInMainSetterInPart;
 static method main() → dynamic {}
