@@ -48,7 +48,7 @@ BinaryExpression
           literal: 'a'
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: String
     staticType: null
   operator: +

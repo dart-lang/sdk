@@ -1839,7 +1839,7 @@ library
       extensionTypes
         extension type B @26
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1862,6 +1862,7 @@ library
       firstFragment: <testLibraryFragment>::@class::C
   extensionTypes
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
@@ -2257,7 +2258,7 @@ library
       extensionTypes
         extension type B @26
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @32
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -2280,6 +2281,7 @@ library
       firstFragment: <testLibraryFragment>::@class::C
   extensionTypes
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
@@ -3455,7 +3457,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
@@ -3654,7 +3656,7 @@ library
                   type: int
               returnType: void
               id: setter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
@@ -4818,7 +4820,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@getter::foo
 ----------------------------------------
 library
@@ -4982,7 +4984,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -4998,7 +5000,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ----------------------------------------
 library
@@ -5168,7 +5170,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@getter::foo1
 ----------------------------------------
 library
@@ -5318,7 +5320,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -5334,7 +5336,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ----------------------------------------
 library
@@ -6652,7 +6654,7 @@ library
                   type: int
               returnType: void
               id: setter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@setter::foo
 ----------------------------------------
 library
@@ -6818,7 +6820,7 @@ library
                   type: int
               returnType: void
               id: setter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@mixin::A::@setter::foo1
 ----------------------------------------
 library

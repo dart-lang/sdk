@@ -629,7 +629,7 @@ PropertyAccess
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@enum::E
-      element: <testLibraryFragment>::@enum::E#element
+      element: <testLibrary>::@enum::E
       staticType: null
     period: .
     identifier: SimpleIdentifier

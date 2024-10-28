@@ -46,9 +46,10 @@ library
       extensions
         extension E @34
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       documentationComment: /// aaa\n/// bbbb\n/// cc
 ''');
@@ -95,7 +96,7 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           fields
             x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
@@ -107,6 +108,7 @@ library
               element: <testLibraryFragment>::@extension::E::@getter::x#element
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       fields
         static const x
@@ -148,12 +150,13 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           typeParameters
             T @12
               element: <not-implemented>
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T
@@ -189,12 +192,13 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           typeParameters
             T @12
               element: <not-implemented>
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T
@@ -301,7 +305,7 @@ library
       extensions
         extension E @31
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           typeParameters
             T @38
               element: <not-implemented>
@@ -349,6 +353,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T
@@ -475,7 +480,7 @@ library
       extensions
         extension E @50
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -494,6 +499,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
   topLevelVariables
     const a
@@ -546,7 +552,7 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           fields
             <null-name>
               reference: <testLibraryFragment>::@extension::E::@field::foo
@@ -558,6 +564,7 @@ library
               element: <testLibraryFragment>::@extension::E::@getter::foo#element
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       fields
         synthetic foo
@@ -614,7 +621,7 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           fields
             <null-name>
               reference: <testLibraryFragment>::@extension::E::@field::foo
@@ -629,6 +636,7 @@ library
                   element: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value#element
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       fields
         synthetic foo
@@ -669,9 +677,10 @@ library
       extensions
         extension <null-name>
           reference: <testLibraryFragment>::@extension::0
-          element: <testLibraryFragment>::@extension::0#element
+          element: <testLibrary>::@extension::0
   extensions
     extension <null-name>
+      reference: <testLibrary>::@extension::0
       firstFragment: <testLibraryFragment>::@extension::0
 ''');
   }
@@ -749,7 +758,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -758,7 +767,7 @@ library
       extensions
         extension A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
@@ -767,10 +776,11 @@ library
       extensions
         extension A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
   exportedReferences
     declared <testLibraryFragment>::@extension::A
@@ -859,7 +869,7 @@ library
       extensions
         extension A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           methods
             foo1 @65
@@ -871,7 +881,7 @@ library
       extensions
         extension A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo2 @47
@@ -879,6 +889,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
       methods
         foo1
@@ -979,7 +990,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @49
@@ -1005,7 +1016,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
             foo @64
@@ -1014,6 +1025,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@field::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -1153,7 +1165,7 @@ library
       extensions
         extension A @40
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -1180,7 +1192,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           fields
@@ -1195,7 +1207,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -1204,6 +1216,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -1316,7 +1329,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
@@ -1343,7 +1356,7 @@ library
       extensions
         extension A @40
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -1371,7 +1384,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           getters
@@ -1385,7 +1398,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -1394,6 +1407,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@field::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -1509,7 +1523,7 @@ library
                   type: int
               returnType: void
               id: setter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
@@ -1536,7 +1550,7 @@ library
       extensions
         extension A @40
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -1564,7 +1578,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           setters
@@ -1581,7 +1595,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -1590,6 +1604,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@field::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -1700,7 +1715,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @49
@@ -1726,7 +1741,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
             foo @67
@@ -1735,6 +1750,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@field::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -1835,7 +1851,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             <null-name>
@@ -1853,7 +1869,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
             foo @64
@@ -1862,6 +1878,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@field::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic static foo
@@ -1984,7 +2001,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo1 @49
@@ -2009,7 +2026,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
             foo2 @56
@@ -2030,6 +2047,7 @@ library
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo1
@@ -2147,7 +2165,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             <null-name>
@@ -2164,7 +2182,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
             <null-name>
@@ -2177,6 +2195,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic foo1
@@ -2291,7 +2310,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           typeParameters
             T1 @27
@@ -2311,7 +2330,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           typeParameters
             T2 @41
@@ -2327,6 +2346,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       typeParameters
         T1
@@ -2426,7 +2446,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
 ----------------------------------------
 library
@@ -2438,7 +2458,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @49
@@ -2464,7 +2484,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           getters
             augment get foo @68
@@ -2473,6 +2493,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@getter::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -2584,7 +2605,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -2600,7 +2621,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
 ----------------------------------------
 library
@@ -2612,7 +2633,7 @@ library
       extensions
         extension A @40
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @64
@@ -2639,7 +2660,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           getters
@@ -2654,7 +2675,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           getters
             augment get foo @68
@@ -2663,6 +2684,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -2764,7 +2786,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo1
 ----------------------------------------
 library
@@ -2776,7 +2798,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             <null-name>
@@ -2801,7 +2823,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           getters
             augment get foo1 @61
@@ -2810,6 +2832,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@getter::foo1
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic foo1
@@ -2908,7 +2931,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
               returnType: int
               id: getter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -2924,7 +2947,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
 ----------------------------------------
 library
@@ -2936,7 +2959,7 @@ library
       extensions
         extension A @40
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             <null-name>
@@ -2955,7 +2978,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           getters
@@ -2970,7 +2993,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           getters
             augment get foo @61
@@ -2979,6 +3002,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic foo
@@ -3055,7 +3079,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo @43
@@ -3067,7 +3091,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           methods
             bar @50
@@ -3075,6 +3099,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo
@@ -3155,7 +3180,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo1 @43
@@ -3171,7 +3196,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           methods
             augment foo1 @58
@@ -3180,6 +3205,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@method::foo1
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo2
@@ -3282,7 +3308,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo @43
@@ -3296,7 +3322,7 @@ library
       extensions
         extension A @54
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
           methods
@@ -3311,7 +3337,7 @@ library
       extensions
         extension A @36
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             augment foo @55
@@ -3320,6 +3346,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo
@@ -3399,7 +3426,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           typeParameters
             T @27
@@ -3414,7 +3441,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           typeParameters
             T2 @41
@@ -3425,6 +3452,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       typeParameters
         T
@@ -3509,7 +3537,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           typeParameters
             T @27
@@ -3525,7 +3553,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           typeParameters
             T2 @41
@@ -3537,6 +3565,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@method::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       typeParameters
         T
@@ -3622,7 +3651,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           methods
             foo @43
@@ -3638,7 +3667,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           typeParameters
             T @41
@@ -3650,6 +3679,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@method::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         bar
@@ -3751,7 +3781,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             <null-name>
@@ -3771,7 +3801,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
             <null-name>
@@ -3787,6 +3817,7 @@ library
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_#element
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic foo1
@@ -3893,7 +3924,7 @@ library
                   type: int
               returnType: void
               id: setter_1
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo
 ----------------------------------------
 library
@@ -3905,7 +3936,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             foo @49
@@ -3931,7 +3962,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           setters
             augment set foo @64
@@ -3943,6 +3974,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@setter::foo
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         static foo
@@ -4053,7 +4085,7 @@ library
                   type: int
               returnType: void
               id: setter_2
-              variable: field_0
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extension::A::@setter::foo1
 ----------------------------------------
 library
@@ -4065,7 +4097,7 @@ library
       extensions
         extension A @25
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
             <null-name>
@@ -4096,7 +4128,7 @@ library
       extensions
         extension A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           setters
             augment set foo1 @57
@@ -4108,6 +4140,7 @@ library
               previousFragment: <testLibraryFragment>::@extension::A::@setter::foo1
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       fields
         synthetic foo1
@@ -4200,7 +4233,7 @@ library
       extensions
         extension A @41
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4224,6 +4257,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   extensions
     extension A
+      reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
 ''');
   }
@@ -4295,7 +4329,7 @@ library
       extensions
         extension A @41
           reference: <testLibraryFragment>::@extension::A
-          element: <testLibraryFragment>::@extension::A#element
+          element: <testLibrary>::@extension::A::@def::0
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -4310,15 +4344,17 @@ library
       extensions
         extension A @40
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
-          element: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A#element
+          element: <testLibrary>::@extension::A::@def::1
   classes
     class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   extensions
     extension A
+      reference: <testLibrary>::@extension::A::@def::0
       firstFragment: <testLibraryFragment>::@extension::A
     extension A
+      reference: <testLibrary>::@extension::A::@def::1
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A
 ''');
   }

@@ -1502,22 +1502,22 @@ library
       extensions
         extension Raw @22
           reference: <testLibraryFragment>::@extension::Raw
-          element: <testLibraryFragment>::@extension::Raw#element
+          element: <testLibrary>::@extension::Raw
         extension HasDocComment @75
           reference: <testLibraryFragment>::@extension::HasDocComment
-          element: <testLibraryFragment>::@extension::HasDocComment#element
+          element: <testLibrary>::@extension::HasDocComment
         extension HasAnnotation @118
           reference: <testLibraryFragment>::@extension::HasAnnotation
-          element: <testLibraryFragment>::@extension::HasAnnotation#element
+          element: <testLibrary>::@extension::HasAnnotation
         extension AnnotationThenComment @191
           reference: <testLibraryFragment>::@extension::AnnotationThenComment
-          element: <testLibraryFragment>::@extension::AnnotationThenComment#element
+          element: <testLibrary>::@extension::AnnotationThenComment
         extension CommentThenAnnotation @272
           reference: <testLibraryFragment>::@extension::CommentThenAnnotation
-          element: <testLibraryFragment>::@extension::CommentThenAnnotation#element
+          element: <testLibrary>::@extension::CommentThenAnnotation
         extension CommentAroundAnnotation @353
           reference: <testLibraryFragment>::@extension::CommentAroundAnnotation
-          element: <testLibraryFragment>::@extension::CommentAroundAnnotation#element
+          element: <testLibrary>::@extension::CommentAroundAnnotation
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1527,19 +1527,25 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   extensions
     extension Raw
+      reference: <testLibrary>::@extension::Raw
       firstFragment: <testLibraryFragment>::@extension::Raw
     extension HasDocComment
+      reference: <testLibrary>::@extension::HasDocComment
       firstFragment: <testLibraryFragment>::@extension::HasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
     extension HasAnnotation
+      reference: <testLibrary>::@extension::HasAnnotation
       firstFragment: <testLibraryFragment>::@extension::HasAnnotation
     extension AnnotationThenComment
+      reference: <testLibrary>::@extension::AnnotationThenComment
       firstFragment: <testLibraryFragment>::@extension::AnnotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
     extension CommentThenAnnotation
+      reference: <testLibrary>::@extension::CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@extension::CommentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
     extension CommentAroundAnnotation
+      reference: <testLibrary>::@extension::CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@extension::CommentAroundAnnotation
       documentationComment: /// Comment 2.
 ''');
@@ -4930,12 +4936,13 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           typeParameters
             T @12
               element: <not-implemented>
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T

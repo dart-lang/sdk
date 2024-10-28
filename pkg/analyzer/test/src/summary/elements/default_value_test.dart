@@ -837,7 +837,7 @@ library
       extensions
         extension E @21
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           methods
             f @44
               reference: <testLibraryFragment>::@extension::E::@method::f
@@ -857,6 +857,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f

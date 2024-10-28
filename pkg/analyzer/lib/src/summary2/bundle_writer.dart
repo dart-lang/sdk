@@ -258,6 +258,8 @@ class BundleWriter {
   void _writeEnumElement(EnumElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(element.augmentedInternal is AugmentedEnumElementImpl);
     _writeFragmentName(element.name2);
     EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -328,6 +330,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(element.augmentedInternal is AugmentedExtensionElementImpl);
     _writeFragmentName(element.name2);
     ExtensionElementFlags.write(_sink, element);
 
@@ -363,6 +367,9 @@ class BundleWriter {
   void _writeExtensionTypeElement(ExtensionTypeElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(
+        element.augmentedInternal is AugmentedExtensionTypeElementImpl);
     _writeFragmentName(element.name2);
     ExtensionTypeElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);

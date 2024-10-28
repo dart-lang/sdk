@@ -55,7 +55,7 @@ MixinOnClause
     NamedType
       name: E
       element: <testLibraryFragment>::@enum::E
-      element2: <testLibraryFragment>::@enum::E#element
+      element2: <testLibrary>::@enum::E
       type: E
 ''');
   }
@@ -77,7 +77,7 @@ MixinOnClause
     NamedType
       name: A
       element: <testLibraryFragment>::@extensionType::A
-      element2: <testLibraryFragment>::@extensionType::A#element
+      element2: <testLibrary>::@extensionType::A
       type: A
 ''');
   }

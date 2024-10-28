@@ -479,7 +479,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -534,7 +534,7 @@ MethodInvocation
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -602,7 +602,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -658,7 +658,7 @@ AssignmentExpression
             staticType: A<int>
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A<num>
       staticType: null
       typeArgumentTypes
@@ -737,7 +737,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -783,7 +783,7 @@ MethodInvocation
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -842,7 +842,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -888,7 +888,7 @@ AssignmentExpression
             staticType: A<int>
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A<int>
       staticType: null
       typeArgumentTypes

@@ -170,6 +170,7 @@ mixin ElementsTypesMixin {
     required List<ConstFieldElementImpl> constants,
   }) {
     var element = EnumElementImpl(name, 0);
+    NotAugmentedEnumElementImpl(Reference.root(), element);
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.fields = constants;
     return element;
@@ -189,6 +190,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
+    NotAugmentedExtensionElementImpl(Reference.root(), element);
     element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
@@ -205,6 +207,7 @@ mixin ElementsTypesMixin {
     List<InterfaceType> interfaces = const [],
   }) {
     var element = ExtensionTypeElementImpl(name, -1);
+    NotAugmentedExtensionTypeElementImpl(Reference.root(), element);
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.interfaces = interfaces;

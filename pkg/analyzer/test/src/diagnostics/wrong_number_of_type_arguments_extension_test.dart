@@ -51,7 +51,7 @@ ExtensionOverride
         staticType: int
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
 ''');
@@ -93,7 +93,7 @@ ExtensionOverride
         staticType: int
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -143,7 +143,7 @@ ExtensionOverride
         staticType: int
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes

@@ -1124,7 +1124,7 @@ MethodInvocation
           staticType: int
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: .
@@ -1435,7 +1435,7 @@ MethodInvocation
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -3670,7 +3670,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@extension::A
-      element: <testLibraryFragment>::@extension::A#element
+      element: <testLibrary>::@extension::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3714,7 +3714,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@extension::A
-      element: <testLibraryFragment>::@extension::A#element
+      element: <testLibrary>::@extension::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3755,7 +3755,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@extension::A
-    element: <testLibraryFragment>::@extension::A#element
+    element: <testLibrary>::@extension::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3795,7 +3795,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@extension::A
-    element: <testLibraryFragment>::@extension::A#element
+    element: <testLibrary>::@extension::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3833,7 +3833,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@extensionType::A
-    element: <testLibraryFragment>::@extensionType::A#element
+    element: <testLibrary>::@extensionType::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier

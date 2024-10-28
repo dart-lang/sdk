@@ -2189,7 +2189,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@extension::A
-      element: <testLibraryFragment>::@extension::A#element
+      element: <testLibrary>::@extension::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2237,7 +2237,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@extension::A
-      element: <testLibraryFragment>::@extension::A#element
+      element: <testLibrary>::@extension::A
       staticType: null
     period: .
     identifier: SimpleIdentifier

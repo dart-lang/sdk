@@ -362,9 +362,10 @@ library
       extensions
         extension IntStringExtension @10
           reference: <testLibraryFragment>::@extension::IntStringExtension
-          element: <testLibraryFragment>::@extension::IntStringExtension#element
+          element: <testLibrary>::@extension::IntStringExtension
   extensions
     extension IntStringExtension
+      reference: <testLibrary>::@extension::IntStringExtension
       firstFragment: <testLibraryFragment>::@extension::IntStringExtension
 ''');
   }

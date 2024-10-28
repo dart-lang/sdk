@@ -50,7 +50,7 @@ E a;
 NamedType
   name: E
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   type: InvalidType
 ''');
   }

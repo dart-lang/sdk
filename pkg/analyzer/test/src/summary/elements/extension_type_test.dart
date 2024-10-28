@@ -66,7 +66,7 @@ library
       extensionTypes
         extension type A @21
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -85,6 +85,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -161,7 +162,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @27
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -184,6 +185,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -260,7 +262,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -287,6 +289,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
@@ -368,7 +371,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -395,6 +398,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
@@ -488,7 +492,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -528,6 +532,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
@@ -607,7 +612,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -628,6 +633,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -696,7 +702,7 @@ library
       extensionTypes
         extension type A @24
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @30
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -715,6 +721,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       documentationComment: /// Docs
       typeErasure: int
@@ -789,7 +796,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -808,6 +815,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -881,7 +889,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -900,6 +908,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -969,7 +978,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -988,6 +997,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -1073,7 +1083,7 @@ library
       extensionTypes
         extension type A @32
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1092,6 +1102,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -1160,7 +1171,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1179,6 +1190,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -1266,7 +1278,7 @@ library
       extensionTypes
         extension type X @64
           reference: <testLibraryFragment>::@extensionType::X
-          element: <testLibraryFragment>::@extensionType::X#element
+          element: <testLibrary>::@extensionType::X
           fields
             it @68
               reference: <testLibraryFragment>::@extensionType::X::@field::it
@@ -1288,6 +1300,7 @@ library
       firstFragment: <testLibraryFragment>::@class::C
   extensionTypes
     extension type X
+      reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
       typeErasure: C
       fields
@@ -1361,7 +1374,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1373,7 +1386,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @56
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1385,6 +1398,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -1396,6 +1410,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
@@ -1450,7 +1465,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1462,6 +1477,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -1533,7 +1549,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1545,7 +1561,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @43
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @49
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1557,6 +1573,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: num
       fields
@@ -1568,6 +1585,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int
       fields
@@ -1622,7 +1640,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1634,6 +1652,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -1686,7 +1705,7 @@ library
       extensionTypes
         extension type X @15
           reference: <testLibraryFragment>::@extensionType::X
-          element: <testLibraryFragment>::@extensionType::X#element
+          element: <testLibrary>::@extensionType::X
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::X::@field::it
@@ -1698,6 +1717,7 @@ library
               element: <testLibraryFragment>::@extensionType::X::@getter::it#element
   extensionTypes
     extension type X
+      reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
       typeErasure: int?
       fields
@@ -1753,7 +1773,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
               element: <not-implemented>
@@ -1768,6 +1788,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -1829,7 +1850,7 @@ library
       extensionTypes
         extension type X @33
           reference: <testLibraryFragment>::@extensionType::X
-          element: <testLibraryFragment>::@extensionType::X#element
+          element: <testLibrary>::@extensionType::X
           fields
             it @39
               reference: <testLibraryFragment>::@extensionType::X::@field::it
@@ -1845,6 +1866,7 @@ library
           element: <testLibraryFragment>::@typeAlias::A#element
   extensionTypes
     extension type X
+      reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
       typeErasure: int
       fields
@@ -1912,7 +1934,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             promotable _it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::_it
@@ -1950,6 +1972,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::_it
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int?
       fields
@@ -2036,7 +2059,7 @@ library
       extensionTypes
         extension type A @37
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @43
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2055,6 +2078,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -2123,7 +2147,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2142,6 +2166,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -2215,7 +2240,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2235,6 +2260,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -2294,7 +2320,7 @@ library
       extensionTypes
         extension type <null-name>
           reference: <testLibraryFragment>::@extensionType::0
-          element: <testLibraryFragment>::@extensionType::0#element
+          element: <testLibrary>::@extensionType::0
           fields
             it @20
               reference: <testLibraryFragment>::@extensionType::0::@field::it
@@ -2306,6 +2332,7 @@ library
               element: <testLibraryFragment>::@extensionType::0::@getter::it#element
   extensionTypes
     extension type 
+      reference: <testLibrary>::@extensionType::0
       firstFragment: <testLibraryFragment>::@extensionType::0
       typeErasure: int
       fields
@@ -2374,7 +2401,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             <null-name>
               reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
@@ -2395,6 +2422,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
@@ -2457,7 +2485,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
               element: <not-implemented>
@@ -2472,6 +2500,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -2540,7 +2569,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2563,6 +2592,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -2643,7 +2673,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2655,7 +2685,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @46
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -2667,6 +2697,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
@@ -2678,6 +2709,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: InvalidType
       fields
@@ -2748,7 +2780,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2760,7 +2792,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @42
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -2772,6 +2804,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
@@ -2783,6 +2816,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: InvalidType
       fields
@@ -2835,7 +2869,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @19
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2847,6 +2881,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: InvalidType
       fields
@@ -2917,7 +2952,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2929,7 +2964,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -2941,6 +2976,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -2952,6 +2988,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: int Function(int)
       fields
@@ -3025,7 +3062,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
               element: <not-implemented>
@@ -3040,7 +3077,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @45
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @57
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -3052,6 +3089,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -3065,6 +3103,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: double
       fields
@@ -3135,7 +3174,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -3147,7 +3186,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type B @44
           reference: <testLibraryFragment>::@extensionType::B
-          element: <testLibraryFragment>::@extensionType::B#element
+          element: <testLibrary>::@extensionType::B
           fields
             it @54
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -3159,6 +3198,7 @@ library
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -3170,6 +3210,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type B
+      reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       typeErasure: List<int>
       fields
@@ -3222,7 +3263,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -3234,6 +3275,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -3299,7 +3341,7 @@ library
       extensionTypes
         extension type A @15
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
               element: <not-implemented>
@@ -3323,6 +3365,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -3445,7 +3488,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -3470,7 +3513,7 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
@@ -3479,10 +3522,11 @@ library
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -3612,7 +3656,7 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
             it @65
@@ -3640,7 +3684,7 @@ library
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           methods
             foo2 @60
@@ -3648,6 +3692,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
       typeErasure: int
       fields
@@ -3754,7 +3799,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -3778,7 +3823,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           constructors
             named @60
@@ -3788,6 +3833,7 @@ library
               nameEnd: 65
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -3902,7 +3948,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T1 @32
@@ -3929,7 +3975,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
@@ -3945,6 +3991,7 @@ library
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named::@parameter::a#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T1
@@ -4053,7 +4100,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @42
@@ -4079,7 +4126,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           constructors
             <null-name>
@@ -4087,6 +4134,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -4225,7 +4273,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -4265,7 +4313,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo @77
@@ -4274,6 +4322,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -4452,7 +4501,7 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
@@ -4493,7 +4542,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
@@ -4508,7 +4557,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             foo @77
@@ -4517,6 +4566,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -4668,7 +4718,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
@@ -4695,7 +4745,7 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
@@ -4737,7 +4787,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           getters
@@ -4751,7 +4801,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             foo @77
@@ -4760,6 +4810,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -4914,7 +4965,7 @@ library
                   type: int
               returnType: void
               id: setter_1
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       enclosingElement3: <testLibraryFragment>
@@ -4941,7 +4992,7 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
@@ -4983,7 +5034,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           setters
@@ -5000,7 +5051,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             foo @77
@@ -5009,6 +5060,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -5158,7 +5210,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -5198,7 +5250,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo @80
@@ -5207,6 +5259,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -5346,7 +5399,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -5378,7 +5431,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo @77
@@ -5387,6 +5440,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -5548,7 +5602,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -5587,7 +5641,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             foo2 @69
@@ -5608,6 +5662,7 @@ library
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -5764,7 +5819,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -5795,7 +5850,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             <null-name>
@@ -5808,6 +5863,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -5961,7 +6017,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T1 @32
@@ -5995,7 +6051,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T1 @46
@@ -6011,6 +6067,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T1
@@ -6149,7 +6206,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@getter::foo
 ----------------------------------------
 library
@@ -6161,7 +6218,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -6201,7 +6258,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           getters
             augment get foo @81
@@ -6210,6 +6267,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -6360,7 +6418,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -6376,7 +6434,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_3
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
 ----------------------------------------
 library
@@ -6388,7 +6446,7 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
@@ -6429,7 +6487,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           getters
@@ -6444,7 +6502,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @81
@@ -6453,6 +6511,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -6593,7 +6652,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_3
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@getter::foo1
 ----------------------------------------
 library
@@ -6605,7 +6664,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -6644,7 +6703,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           getters
             augment get foo1 @74
@@ -6653,6 +6712,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo1
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -6790,7 +6850,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_2
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@getter::foo
               augmentation: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
@@ -6806,7 +6866,7 @@ library
               enclosingElement3: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
               returnType: int
               id: getter_3
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
 ----------------------------------------
 library
@@ -6818,7 +6878,7 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @51
@@ -6851,7 +6911,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           getters
@@ -6866,7 +6926,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           getters
             augment get foo @74
@@ -6875,6 +6935,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -7005,7 +7066,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -7018,7 +7079,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1#element
+          element: <testLibrary>::@extensionType::I1
           fields
             it @79
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
@@ -7034,11 +7095,11 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
         extension type I2 @86
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
+          element: <testLibrary>::@extensionType::I2
           fields
             it @93
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
@@ -7050,6 +7111,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -7061,6 +7123,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
+      reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
@@ -7072,6 +7135,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
+      reference: <testLibrary>::@extensionType::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeErasure: int
       fields
@@ -7262,7 +7326,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -7282,7 +7346,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @72
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1#element
+          element: <testLibrary>::@extensionType::I1
           fields
             it @79
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
@@ -7306,12 +7370,12 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
         extension type I2 @101
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
+          element: <testLibrary>::@extensionType::I2
           fields
             it @108
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it
@@ -7334,11 +7398,11 @@ library
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
         extension type I3 @83
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
-          element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3#element
+          element: <testLibrary>::@extensionType::I3
           fields
             it @90
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it
@@ -7357,6 +7421,7 @@ library
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -7374,6 +7439,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
+      reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
@@ -7391,6 +7457,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
+      reference: <testLibrary>::@extensionType::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeErasure: int
       fields
@@ -7408,6 +7475,7 @@ library
         synthetic get it
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it
     extension type I3
+      reference: <testLibrary>::@extensionType::I3
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
       typeErasure: int
       fields
@@ -7566,7 +7634,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
@@ -7589,7 +7657,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1#element
+          element: <testLibrary>::@extensionType::I1
           fields
             it @82
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
@@ -7612,14 +7680,14 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
               element: <not-implemented>
         extension type I2 @94
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
+          element: <testLibrary>::@extensionType::I2
           typeParameters
             E @97
               element: <not-implemented>
@@ -7641,6 +7709,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -7660,6 +7729,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
+      reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
@@ -7677,6 +7747,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
+      reference: <testLibrary>::@extensionType::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeParameters
         E
@@ -7838,7 +7909,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
@@ -7861,7 +7932,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
         extension type I1 @75
           reference: <testLibraryFragment>::@extensionType::I1
-          element: <testLibraryFragment>::@extensionType::I1#element
+          element: <testLibrary>::@extensionType::I1
           fields
             it @82
               reference: <testLibraryFragment>::@extensionType::I1::@field::it
@@ -7884,7 +7955,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
@@ -7893,7 +7964,7 @@ library
               element: <not-implemented>
         extension type I2 @98
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
-          element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2#element
+          element: <testLibrary>::@extensionType::I2
           typeParameters
             E @101
               element: <not-implemented>
@@ -7915,6 +7986,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -7934,6 +8006,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type I1
+      reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
       typeErasure: int
       fields
@@ -7951,6 +8024,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::I1::@getter::it
     extension type I2
+      reference: <testLibrary>::@extensionType::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeParameters
         E
@@ -8062,7 +8136,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -8090,7 +8164,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           methods
             bar @63
@@ -8098,6 +8172,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -8219,7 +8294,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -8251,7 +8326,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           methods
             augment foo1 @71
@@ -8260,6 +8335,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo1
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -8403,7 +8479,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -8433,7 +8509,7 @@ library
       extensionTypes
         extension type A @59
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           methods
@@ -8448,7 +8524,7 @@ library
       extensionTypes
         extension type A @41
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           methods
             augment foo @68
@@ -8457,6 +8533,7 @@ library
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -8577,7 +8654,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
@@ -8608,7 +8685,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
@@ -8619,6 +8696,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -8744,7 +8822,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           typeParameters
             T @32
@@ -8776,7 +8854,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T2 @46
@@ -8788,6 +8866,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
@@ -8914,7 +8993,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -8946,7 +9025,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           typeParameters
             T @46
@@ -8958,6 +9037,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@method::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -9100,7 +9180,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -9135,7 +9215,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
             <null-name>
@@ -9151,6 +9231,7 @@ library
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2::@parameter::_#element
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -9297,7 +9378,7 @@ library
                   type: int
               returnType: void
               id: setter_1
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@setter::foo
 ----------------------------------------
 library
@@ -9309,7 +9390,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -9349,7 +9430,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           setters
             augment set foo @77
@@ -9361,6 +9442,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -9510,7 +9592,7 @@ library
                   type: int
               returnType: void
               id: setter_2
-              variable: field_1
+              variable: <null>
               augmentationTarget: <testLibraryFragment>::@extensionType::A::@setter::foo1
 ----------------------------------------
 library
@@ -9522,7 +9604,7 @@ library
       extensionTypes
         extension type A @30
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
             it @36
@@ -9568,7 +9650,7 @@ library
       extensionTypes
         extension type A @44
           reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           setters
             augment set foo1 @70
@@ -9580,6 +9662,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo1
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -9698,7 +9781,7 @@ library
       extensionTypes
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -9731,6 +9814,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -9835,7 +9919,7 @@ library
       extensionTypes
         extension type A @46
           reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibraryFragment>::@extensionType::A#element
+          element: <testLibrary>::@extensionType::A::@def::0
           fields
             it @52
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -9859,7 +9943,7 @@ library
       extensionTypes
         extension type A @45
           reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
-          element: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A#element
+          element: <testLibrary>::@extensionType::A::@def::1
           fields
             it @51
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it
@@ -9875,6 +9959,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
   extensionTypes
     extension type A
+      reference: <testLibrary>::@extensionType::A::@def::0
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeErasure: int
       fields
@@ -9886,6 +9971,7 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
     extension type A
+      reference: <testLibrary>::@extensionType::A::@def::1
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
       typeErasure: int
       fields

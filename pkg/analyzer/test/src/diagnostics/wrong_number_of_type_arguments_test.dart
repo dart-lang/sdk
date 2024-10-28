@@ -384,7 +384,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A
 ''');
   }
@@ -412,7 +412,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<InvalidType, InvalidType>
 ''');
   }
@@ -445,7 +445,7 @@ NamedType
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@extensionType::A
-  element2: <testLibraryFragment>::@extensionType::A#element
+  element2: <testLibrary>::@extensionType::A
   type: A<InvalidType>
 ''');
   }

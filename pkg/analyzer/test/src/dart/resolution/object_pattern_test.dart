@@ -799,7 +799,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
-    element2: <testLibraryFragment>::@extensionType::A#element
+    element2: <testLibrary>::@extensionType::A
     type: A
   leftParenthesis: (
   fields
@@ -840,7 +840,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
-    element2: <testLibraryFragment>::@extensionType::A#element
+    element2: <testLibrary>::@extensionType::A
     type: A
   leftParenthesis: (
   fields
@@ -879,7 +879,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@extensionType::A
-    element2: <testLibraryFragment>::@extensionType::A#element
+    element2: <testLibrary>::@extensionType::A
     type: A
   leftParenthesis: (
   fields

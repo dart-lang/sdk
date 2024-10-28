@@ -386,7 +386,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.augmentation = reader.readElement() as EnumElementImpl?;
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
-        var augmented = AugmentedEnumElementImpl(element);
+        var augmented = element.augmentedInternal as AugmentedEnumElementImpl;
         element.augmentedInternal = augmented;
         augmented.mixins = reader._readInterfaceTypeList();
         augmented.interfaces = reader._readInterfaceTypeList();
@@ -427,7 +427,8 @@ class ExtensionElementLinkedData
     if (element.augmentationTarget == null) {
       var extendedType = reader.readRequiredType();
       if (reader.readBool()) {
-        var augmented = AugmentedExtensionElementImpl(element);
+        var augmented =
+            element.augmentedInternal as AugmentedExtensionElementImpl;
         element.augmentedInternal = augmented;
         augmented.fields = reader.readElementList();
         augmented.accessors = reader.readElementList();
@@ -467,7 +468,8 @@ class ExtensionTypeElementLinkedData
     element.augmentation = reader.readElement() as ExtensionTypeElementImpl?;
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
-        var augmented = AugmentedExtensionTypeElementImpl(element);
+        var augmented =
+            element.augmentedInternal as AugmentedExtensionTypeElementImpl;
         element.augmentedInternal = augmented;
         augmented.interfaces = reader._readInterfaceTypeList();
         augmented.fields = reader.readElementList();
@@ -939,11 +941,23 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
+
+    var reference2 = _readReference();
+    var isAugmented = _reader.readBool();
+
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
 
     var element = EnumElementImpl(name, -1);
     element.name2 = fragmentName;
+
+    if (reference2.element2 case MaybeAugmentedEnumElementMixin element2?) {
+      element.augmentedInternal = element2;
+    } else if (isAugmented) {
+      AugmentedEnumElementImpl(reference2, element);
+    } else {
+      NotAugmentedEnumElementImpl(reference2, element);
+    }
 
     var linkedData = EnumElementLinkedData(
       reference: reference,
@@ -1028,11 +1042,24 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
+
+    var reference2 = _readReference();
+    var isAugmented = _reader.readBool();
+
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name;
 
     var element = ExtensionElementImpl(name, -1);
     element.name2 = fragmentName;
+
+    if (reference2.element2
+        case MaybeAugmentedExtensionElementMixin element2?) {
+      element.augmentedInternal = element2;
+    } else if (isAugmented) {
+      AugmentedExtensionElementImpl(reference2, element);
+    } else {
+      NotAugmentedExtensionElementImpl(reference2, element);
+    }
 
     element.setLinkedData(
       reference,
@@ -1075,11 +1102,24 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
+
+    var reference2 = _readReference();
+    var isAugmented = _reader.readBool();
+
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
 
     var element = ExtensionTypeElementImpl(name, -1);
     element.name2 = fragmentName;
+
+    if (reference2.element2
+        case MaybeAugmentedExtensionTypeElementMixin element2?) {
+      element.augmentedInternal = element2;
+    } else if (isAugmented) {
+      AugmentedExtensionTypeElementImpl(reference2, element);
+    } else {
+      NotAugmentedExtensionTypeElementImpl(reference2, element);
+    }
 
     element.setLinkedData(
       reference,
@@ -1989,7 +2029,6 @@ class PropertyAccessorElementLinkedData
     if (augmentationTarget is PropertyAccessorElementImpl) {
       if (augmentationTarget.kind == element.kind) {
         augmentationTarget.augmentation = element;
-        element.variable2 = augmentationTarget.variable2;
       }
     }
 

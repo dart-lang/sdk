@@ -2333,7 +2333,7 @@ library
       extensions
         extension E @21
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           methods
             f @43
               reference: <testLibraryFragment>::@extension::E::@method::f
@@ -2364,6 +2364,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
@@ -3627,31 +3628,11 @@ library
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
-          getter: getter_0
-          setter: setter_0
           augmentationTargetAny: <testLibraryFragment>::@class::A
-      accessors
-        synthetic static get A @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: int
-          id: getter_0
-          variable: variable_0
-        synthetic static set A= @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          parameters
-            requiredPositional _A @-1
-              type: int
-          returnType: void
-          id: setter_0
-          variable: variable_0
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::A
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::A
+    declared <testLibraryFragment>::@class::A
   exportNamespace
-    A: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-    A=: <testLibrary>::@fragment::package:test/a.dart::@setter::A
+    A: <testLibraryFragment>::@class::A
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3674,19 +3655,6 @@ library
         augment A @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
           element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A#element
-          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::A
-      getters
-        get <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@getter::A#element
-      setters
-        set <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@setter::A#element
-          formalParameters
-            <null-name>
-              element: <testLibrary>::@fragment::package:test/a.dart::@setter::A::@parameter::_A#element
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3698,23 +3666,10 @@ library
     A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
       type: int
-      getter: <testLibrary>::@fragment::package:test/a.dart::@getter::A#element
-      setter: <testLibrary>::@fragment::package:test/a.dart::@setter::A#element
-  getters
-    synthetic static get A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-  setters
-    synthetic static set A=
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::A
-      formalParameters
-        requiredPositional _A
-          type: int
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::A
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::A
+    declared <testLibraryFragment>::@class::A
   exportNamespace
-    A: <testLibrary>::@fragment::package:test/a.dart::@getter::A
-    A=: <testLibrary>::@fragment::package:test/a.dart::@setter::A
+    A: <testLibraryFragment>::@class::A
 ''');
   }
 
@@ -3758,31 +3713,11 @@ library
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_0
-          getter: getter_0
-          setter: setter_0
           augmentationTargetAny: <testLibraryFragment>::@function::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: int
-          id: getter_0
-          variable: variable_0
-        synthetic static set foo= @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          parameters
-            requiredPositional _foo @-1
-              type: int
-          returnType: void
-          id: setter_0
-          variable: variable_0
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@function::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo: <testLibraryFragment>::@function::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3801,44 +3736,18 @@ library
         augment foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo#element
-          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      getters
-        get <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setters
-        set <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
-          formalParameters
-            <null-name>
-              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
       type: int
-      getter: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setter: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
-  getters
-    synthetic static get foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-  setters
-    synthetic static set foo=
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      formalParameters
-        requiredPositional _foo
-          type: int
   functions
     foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: void
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@function::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo: <testLibraryFragment>::@function::foo
 ''');
   }
 
@@ -3875,6 +3784,7 @@ library
           type: int
           id: variable_0
           getter: getter_0
+          augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
       accessors
         static get foo @23
           reference: <testLibraryFragment>::@getter::foo
@@ -3891,31 +3801,11 @@ library
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_1
-          getter: getter_1
-          setter: setter_0
-          augmentationTargetAny: <testLibraryFragment>::@getter::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: int
-          id: getter_1
-          variable: variable_1
-        synthetic static set foo= @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          parameters
-            requiredPositional _foo @-1
-              type: int
-          returnType: void
-          id: setter_0
-          variable: variable_1
+          augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@getter::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo: <testLibraryFragment>::@getter::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3927,6 +3817,7 @@ library
         synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @23
@@ -3938,47 +3829,20 @@ library
       topLevelVariables
         augment foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo#element
-          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      getters
-        get <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setters
-        set <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
-          formalParameters
-            <null-name>
-              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-      type: int
-      getter: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setter: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
   getters
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
-    synthetic static get foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-  setters
-    synthetic static set foo=
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      formalParameters
-        requiredPositional _foo
-          type: int
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@getter::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo: <testLibraryFragment>::@getter::foo
 ''');
   }
 
@@ -4015,6 +3879,7 @@ library
           type: int
           id: variable_0
           setter: setter_0
+          augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
       accessors
         static set foo= @19
           reference: <testLibraryFragment>::@setter::foo
@@ -4034,31 +3899,11 @@ library
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_1
-          getter: getter_0
-          setter: setter_1
-          augmentationTargetAny: <testLibraryFragment>::@setter::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: int
-          id: getter_0
-          variable: variable_1
-        synthetic static set foo= @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          parameters
-            requiredPositional _foo @-1
-              type: int
-          returnType: void
-          id: setter_1
-          variable: variable_1
+          augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo=: <testLibraryFragment>::@setter::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -4070,6 +3915,7 @@ library
         synthetic <null-name>
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
+          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           setter2: <testLibraryFragment>::@setter::foo
       setters
         set foo @19
@@ -4084,50 +3930,23 @@ library
       topLevelVariables
         augment foo @33
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo#element
-          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      getters
-        get <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setters
-        set <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
-          formalParameters
-            <null-name>
-              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
+          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
   topLevelVariables
     synthetic foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       setter: <testLibraryFragment>::@setter::foo#element
-    foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-      type: int
-      getter: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setter: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
-  getters
-    synthetic static get foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
   setters
     static set foo=
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _
           type: int
-    synthetic static set foo=
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      formalParameters
-        requiredPositional _foo
-          type: int
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo=: <testLibraryFragment>::@setter::foo
 ''');
   }
 
@@ -4192,31 +4011,13 @@ library
           type: int
           shouldUseTypeForInitializerInference: true
           id: variable_1
-          getter: getter_1
-          setter: setter_1
           augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: int
-          id: getter_1
-          variable: variable_1
-        synthetic static set foo= @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          parameters
-            requiredPositional _foo @-1
-              type: int
-          returnType: void
-          id: setter_1
-          variable: variable_1
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@getter::foo
+    declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo: <testLibraryFragment>::@getter::foo
+    foo=: <testLibraryFragment>::@setter::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -4250,19 +4051,6 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           previousFragment: <testLibraryFragment>::@topLevelVariable::foo
-          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      getters
-        get <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
-      setters
-        set <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo#element
-          formalParameters
-            <null-name>
-              element: <testLibrary>::@fragment::package:test/a.dart::@setter::foo::@parameter::_foo#element
   topLevelVariables
     foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -4272,25 +4060,18 @@ library
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
-    synthetic static get foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
   setters
     synthetic static set foo=
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo
           type: int
-    synthetic static set foo=
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
-      formalParameters
-        requiredPositional _foo
-          type: int
   exportedReferences
-    declared <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    declared <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    declared <testLibraryFragment>::@getter::foo
+    declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-    foo=: <testLibrary>::@fragment::package:test/a.dart::@setter::foo
+    foo: <testLibraryFragment>::@getter::foo
+    foo=: <testLibraryFragment>::@setter::foo
 ''');
   }
 
@@ -4357,11 +4138,6 @@ library
               staticInvokeType: num Function(num)
               staticType: int
           augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: int
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -4387,11 +4163,6 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           element: <testLibraryFragment>::@topLevelVariable::foo#element
           previousFragment: <testLibraryFragment>::@topLevelVariable::foo
-          getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-      getters
-        get <null-name>
-          reference: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
-          element: <testLibrary>::@fragment::package:test/a.dart::@getter::foo#element
   topLevelVariables
     const foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
@@ -4400,8 +4171,6 @@ library
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
-    synthetic static get foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::foo
 ''');
   }
 }

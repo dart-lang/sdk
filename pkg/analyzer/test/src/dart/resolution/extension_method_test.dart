@@ -469,7 +469,7 @@ extension E on A {}
 NamedType
   name: A
   element: <testLibraryFragment>::@enum::A
-  element2: <testLibraryFragment>::@enum::A#element
+  element2: <testLibrary>::@enum::A
   type: A
 ''');
   }
@@ -588,7 +588,7 @@ extension on A {}
 NamedType
   name: A
   element: <testLibraryFragment>::@enum::A
-  element2: <testLibraryFragment>::@enum::A#element
+  element2: <testLibrary>::@enum::A
   type: A
 ''');
   }
@@ -2831,10 +2831,10 @@ PropertyAccess
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
-    element: package:test/lib.dart::<fragment>::@extension::E#element
+    element: package:test/lib.dart::@extension::E
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
@@ -2864,7 +2864,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -2906,10 +2906,10 @@ PropertyAccess
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
-    element: package:test/lib.dart::<fragment>::@extension::E#element
+    element: package:test/lib.dart::@extension::E
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
@@ -2939,7 +2939,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -2981,10 +2981,10 @@ MethodInvocation
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
-    element: package:test/lib.dart::<fragment>::@extension::E#element
+    element: package:test/lib.dart::@extension::E
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3018,7 +3018,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3063,10 +3063,10 @@ AssignmentExpression
       identifier: SimpleIdentifier
         token: E
         staticElement: package:test/lib.dart::<fragment>::@extension::E
-        element: package:test/lib.dart::<fragment>::@extension::E#element
+        element: package:test/lib.dart::@extension::E
         staticType: null
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3111,7 +3111,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3155,7 +3155,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   period: .
   identifier: SimpleIdentifier

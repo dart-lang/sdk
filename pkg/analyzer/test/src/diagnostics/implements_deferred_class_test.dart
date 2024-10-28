@@ -167,7 +167,7 @@ ImplementsClause
         element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/a.dart::<fragment>::@extensionType::A
-      element2: package:test/a.dart::<fragment>::@extensionType::A#element
+      element2: package:test/a.dart::@extensionType::A
       type: A
 ''');
   }
