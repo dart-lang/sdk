@@ -8844,7 +8844,7 @@ class Parser {
     token = allowCascades
         ? parseExpression(throwToken)
         : parseExpressionWithoutCascade(throwToken);
-    listener.handleThrowExpression(throwToken, token.next!);
+    listener.handleThrowExpression(throwToken, token);
     return token;
   }
 
