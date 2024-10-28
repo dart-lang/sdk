@@ -577,17 +577,31 @@ class AnnotationsListener extends StackListener {
 
   @override
   void handleLiteralInt(Token token) {
-    push(new ExpressionProto(new IntegerLiteral(token.lexeme)));
+    int? value = intFromToken(token, hasSeparators: false);
+    push(new ExpressionProto(new IntegerLiteral.fromText(token.lexeme, value)));
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    int? value = intFromToken(token, hasSeparators: true);
+    push(new ExpressionProto(new IntegerLiteral.fromText(token.lexeme, value)));
   }
 
   @override
   void handleLiteralDouble(Token token) {
-    push(new ExpressionProto(new DoubleLiteral(token.lexeme)));
+    push(new ExpressionProto(new DoubleLiteral(
+        token.lexeme, doubleFromToken(token, hasSeparators: false))));
+  }
+
+  @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    push(new ExpressionProto(new DoubleLiteral(
+        token.lexeme, doubleFromToken(token, hasSeparators: true))));
   }
 
   @override
   void handleLiteralBool(Token token) {
-    push(new ExpressionProto(new BooleanLiteral(token.lexeme)));
+    push(new ExpressionProto(new BooleanLiteral(boolFromToken(token))));
   }
 
   @override
@@ -953,7 +967,8 @@ enum _NullValues implements NullValue<Object> {
   TypeAnnotations,
 }
 
-final Argument _dummyArgument = new PositionalArgument(new IntegerLiteral('0'));
+final Argument _dummyArgument =
+    new PositionalArgument(new IntegerLiteral.fromText('0'));
 
 final RecordField _dummyRecordField =
     new RecordPositionalField(_dummyExpression);

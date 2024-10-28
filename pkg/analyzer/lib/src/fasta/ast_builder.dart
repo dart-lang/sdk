@@ -35,18 +35,20 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
+        boolFromToken,
         ConstructorReferenceContext,
         DeclarationHeaderKind,
         DeclarationKind,
+        doubleFromToken,
         FormalParameterKind,
         IdentifierContext,
+        intFromToken,
         MemberKind,
         optional,
         Parser;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;
-import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -4708,8 +4710,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleLiteralBool(Token token) {
-    bool value = identical(token.stringValue, "true");
-    assert(value || identical(token.stringValue, "false"));
+    bool value = boolFromToken(token);
     debugEvent("LiteralBool");
 
     push(
@@ -4745,14 +4746,10 @@ class AstBuilder extends StackListener {
       );
     }
 
-    // Only copy `source` if we find a separator ('_'). Most int literals
-    // will not have any separator, and so a quick scan will show we do not
-    // need to produce a new String.
-    var source = stripSeparators(token.lexeme);
     push(
       DoubleLiteralImpl(
         literal: token,
-        value: double.parse(source),
+        value: doubleFromToken(token, hasSeparators: true),
       ),
     );
   }
@@ -4766,7 +4763,7 @@ class AstBuilder extends StackListener {
     push(
       IntegerLiteralImpl(
         literal: token,
-        value: int.tryParse(token.lexeme),
+        value: intFromToken(token, hasSeparators: false),
       ),
     );
   }
@@ -4784,11 +4781,10 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var source = stripSeparators(token.lexeme);
     push(
       IntegerLiteralImpl(
         literal: token,
-        value: int.tryParse(source),
+        value: intFromToken(token, hasSeparators: true),
       ),
     );
   }

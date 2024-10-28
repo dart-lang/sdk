@@ -124,7 +124,11 @@ class Writer {
         _write(')');
       case IntegerLiteral():
         _write('IntegerLiteral(');
-        _write(expression.text);
+        if (expression.text != null) {
+          _write(expression.text!);
+        } else {
+          _write('value=${expression.value}');
+        }
         _write(')');
       case DoubleLiteral():
         _write('DoubleLiteral(');
@@ -132,7 +136,7 @@ class Writer {
         _write(')');
       case BooleanLiteral():
         _write('BooleanLiteral(');
-        _write(expression.text);
+        _write('${expression.value}');
         _write(')');
       case NullLiteral():
         _write('NullLiteral()');

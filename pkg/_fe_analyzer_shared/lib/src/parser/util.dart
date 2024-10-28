@@ -8,7 +8,7 @@ import 'dart:typed_data';
 
 import '../messages/codes.dart' show noLength;
 
-import '../scanner/scanner.dart' show Token;
+import '../scanner/scanner.dart' show Keyword, Token;
 
 import '../scanner/token.dart'
     show BeginToken, SimpleToken, SyntheticToken, TokenIsAExtension, TokenType;
@@ -247,4 +247,40 @@ Token syntheticGt(Token next) {
     // Set next rather than calling Token.setNext
     // so that the previous token is not set.
     ..next = next;
+}
+
+/// Returns the boolean value from a 'true' or 'false' [token].
+bool boolFromToken(Token token) {
+  bool value = token.isA(Keyword.TRUE);
+  assert(value || token.isA(Keyword.FALSE));
+  return value;
+}
+
+/// Returns the integer value from an integer literal token.
+///
+/// If [hasSeparators], separator characters, '_', are stripped before parsing
+/// the token text.
+///
+/// `null` is returned if the token text could not be parsed as an integer
+/// value. This does _not_ mean that the token is not valid as an integer token
+/// since negated integer literals are parsed as a unary operation on the
+/// positive integer.
+int? intFromToken(Token token, {required bool hasSeparators}) {
+  String text = token.lexeme;
+  if (hasSeparators) {
+    text = stripSeparators(text);
+  }
+  return int.tryParse(text);
+}
+
+/// Returns the double value from an double literal token.
+///
+/// If [hasSeparators], separator characters, '_', are stripped before parsing
+/// the token text.
+double doubleFromToken(Token token, {required bool hasSeparators}) {
+  String text = token.lexeme;
+  if (hasSeparators) {
+    text = stripSeparators(text);
+  }
+  return double.parse(text);
 }

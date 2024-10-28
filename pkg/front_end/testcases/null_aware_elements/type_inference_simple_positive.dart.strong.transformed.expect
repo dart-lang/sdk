@@ -98,47 +98,41 @@ static method main() → dynamic {
   }
   {
     final core::Map<core::bool, core::num> #t31 = <core::bool, core::num>{};
-    final core::num? #t32 = let final core::num? #t33 = self::contextType<core::num?>(null) in block {
-      self::E|expectStaticType<core::num?, (core::num?) → core::num?>(#t33);
+    final core::bool #t32 = let final core::bool #t33 = self::contextType<core::bool>(false) in block {
+      self::E|expectStaticType<core::bool, (core::bool) → core::bool>(#t33);
     } =>#t33;
-    if(!(#t32 == null))
-      #t31.{core::Map::[]=}{Invariant}(let final core::bool #t34 = self::contextType<core::bool>(false) in block {
-        self::E|expectStaticType<core::bool, (core::bool) → core::bool>(#t34);
-      } =>#t34, #t32{core::num}){(core::bool, core::num) → void};
+    final core::num? #t34 = let final core::num? #t35 = self::contextType<core::num?>(null) in block {
+      self::E|expectStaticType<core::num?, (core::num?) → core::num?>(#t35);
+    } =>#t35;
+    if(!(#t34 == null))
+      #t31.{core::Map::[]=}{Invariant}(#t32, #t34{core::num}){(core::bool, core::num) → void};
   }
   {
-    final core::Map<core::bool, core::num> #t35 = <core::bool, core::num>{};
-    #t35.{core::Map::[]=}{Invariant}(false, 0){(core::bool, core::num) → void};
-    final core::num? #t36 = let final core::num? #t37 = self::contextType<core::num?>(null) in block {
-      self::E|expectStaticType<core::num?, (core::num?) → core::num?>(#t37);
-    } =>#t37;
-    if(!(#t36 == null))
-      #t35.{core::Map::[]=}{Invariant}(let final core::bool #t38 = self::contextType<core::bool>(false) in block {
-        self::E|expectStaticType<core::bool, (core::bool) → core::bool>(#t38);
-      } =>#t38, #t36{core::num}){(core::bool, core::num) → void};
+    final core::Map<core::bool, core::num> #t36 = <core::bool, core::num>{};
+    #t36.{core::Map::[]=}{Invariant}(false, 0){(core::bool, core::num) → void};
+    final core::bool #t37 = let final core::bool #t38 = self::contextType<core::bool>(false) in block {
+      self::E|expectStaticType<core::bool, (core::bool) → core::bool>(#t38);
+    } =>#t38;
+    final core::num? #t39 = let final core::num? #t40 = self::contextType<core::num?>(null) in block {
+      self::E|expectStaticType<core::num?, (core::num?) → core::num?>(#t40);
+    } =>#t40;
+    if(!(#t39 == null))
+      #t36.{core::Map::[]=}{Invariant}(#t37, #t39{core::num}){(core::bool, core::num) → void};
   }
   {
-    final core::Map<core::bool, core::num> #t39 = <core::bool, core::num>{};
-    final core::num? #t40 = let final core::num? #t41 = self::contextType<core::num?>(null) in block {
-      self::E|expectStaticType<core::num?, (core::num?) → core::num?>(#t41);
-    } =>#t41;
-    if(!(#t40 == null))
-      #t39.{core::Map::[]=}{Invariant}(let final core::bool #t42 = self::contextType<core::bool>(false) in block {
-        self::E|expectStaticType<core::bool, (core::bool) → core::bool>(#t42);
-      } =>#t42, #t40{core::num}){(core::bool, core::num) → void};
-    #t39.{core::Map::[]=}{Invariant}(false, 0){(core::bool, core::num) → void};
+    final core::Map<core::bool, core::num> #t41 = <core::bool, core::num>{};
+    final core::bool #t42 = let final core::bool #t43 = self::contextType<core::bool>(false) in block {
+      self::E|expectStaticType<core::bool, (core::bool) → core::bool>(#t43);
+    } =>#t43;
+    final core::num? #t44 = let final core::num? #t45 = self::contextType<core::num?>(null) in block {
+      self::E|expectStaticType<core::num?, (core::num?) → core::num?>(#t45);
+    } =>#t45;
+    if(!(#t44 == null))
+      #t41.{core::Map::[]=}{Invariant}(#t42, #t44{core::num}){(core::bool, core::num) → void};
+    #t41.{core::Map::[]=}{Invariant}(false, 0){(core::bool, core::num) → void};
   }
-  self::acceptsMap<core::String, core::int>(let final core::Map<core::String, core::int> #t43 = block {
-    final core::Map<core::String, core::int> #t44 = <core::String, core::int>{};
-    final core::String? #t45 = self::foo();
-    if(!(#t45 == null))
-      #t44.{core::Map::[]=}{Invariant}(#t45{core::String}, 0){(core::String, core::int) → void};
-  } =>#t44 in block {
-    self::E|expectStaticType<core::Map<core::String, core::int>, (core::Map<core::String, core::int>) → core::Map<core::String, core::int>>(#t43);
-  } =>#t43);
   self::acceptsMap<core::String, core::int>(let final core::Map<core::String, core::int> #t46 = block {
     final core::Map<core::String, core::int> #t47 = <core::String, core::int>{};
-    #t47.{core::Map::[]=}{Invariant}("", 0){(core::String, core::int) → void};
     final core::String? #t48 = self::foo();
     if(!(#t48 == null))
       #t47.{core::Map::[]=}{Invariant}(#t48{core::String}, 0){(core::String, core::int) → void};
@@ -147,90 +141,102 @@ static method main() → dynamic {
   } =>#t46);
   self::acceptsMap<core::String, core::int>(let final core::Map<core::String, core::int> #t49 = block {
     final core::Map<core::String, core::int> #t50 = <core::String, core::int>{};
+    #t50.{core::Map::[]=}{Invariant}("", 0){(core::String, core::int) → void};
     final core::String? #t51 = self::foo();
     if(!(#t51 == null))
       #t50.{core::Map::[]=}{Invariant}(#t51{core::String}, 0){(core::String, core::int) → void};
-    #t50.{core::Map::[]=}{Invariant}("", 0){(core::String, core::int) → void};
   } =>#t50 in block {
     self::E|expectStaticType<core::Map<core::String, core::int>, (core::Map<core::String, core::int>) → core::Map<core::String, core::int>>(#t49);
   } =>#t49);
-  self::acceptsMap<core::bool, core::String>(let final core::Map<core::bool, core::String> #t52 = block {
-    final core::Map<core::bool, core::String> #t53 = <core::bool, core::String>{};
+  self::acceptsMap<core::String, core::int>(let final core::Map<core::String, core::int> #t52 = block {
+    final core::Map<core::String, core::int> #t53 = <core::String, core::int>{};
     final core::String? #t54 = self::foo();
     if(!(#t54 == null))
-      #t53.{core::Map::[]=}{Invariant}(false, #t54{core::String}){(core::bool, core::String) → void};
+      #t53.{core::Map::[]=}{Invariant}(#t54{core::String}, 0){(core::String, core::int) → void};
+    #t53.{core::Map::[]=}{Invariant}("", 0){(core::String, core::int) → void};
   } =>#t53 in block {
-    self::E|expectStaticType<core::Map<core::bool, core::String>, (core::Map<core::bool, core::String>) → core::Map<core::bool, core::String>>(#t52);
+    self::E|expectStaticType<core::Map<core::String, core::int>, (core::Map<core::String, core::int>) → core::Map<core::String, core::int>>(#t52);
   } =>#t52);
   self::acceptsMap<core::bool, core::String>(let final core::Map<core::bool, core::String> #t55 = block {
     final core::Map<core::bool, core::String> #t56 = <core::bool, core::String>{};
-    #t56.{core::Map::[]=}{Invariant}(true, ""){(core::bool, core::String) → void};
-    final core::String? #t57 = self::foo();
-    if(!(#t57 == null))
-      #t56.{core::Map::[]=}{Invariant}(false, #t57{core::String}){(core::bool, core::String) → void};
+    final core::bool #t57 = false;
+    final core::String? #t58 = self::foo();
+    if(!(#t58 == null))
+      #t56.{core::Map::[]=}{Invariant}(#t57, #t58{core::String}){(core::bool, core::String) → void};
   } =>#t56 in block {
     self::E|expectStaticType<core::Map<core::bool, core::String>, (core::Map<core::bool, core::String>) → core::Map<core::bool, core::String>>(#t55);
   } =>#t55);
-  self::acceptsMap<core::bool, core::String>(let final core::Map<core::bool, core::String> #t58 = block {
-    final core::Map<core::bool, core::String> #t59 = <core::bool, core::String>{};
-    final core::String? #t60 = self::foo();
-    if(!(#t60 == null))
-      #t59.{core::Map::[]=}{Invariant}(false, #t60{core::String}){(core::bool, core::String) → void};
-    #t59.{core::Map::[]=}{Invariant}(true, ""){(core::bool, core::String) → void};
-  } =>#t59 in block {
-    self::E|expectStaticType<core::Map<core::bool, core::String>, (core::Map<core::bool, core::String>) → core::Map<core::bool, core::String>>(#t58);
-  } =>#t58);
-  let final core::List<core::String> #t61 = block {
-    final core::List<core::String> #t62 = core::_GrowableList::•<core::String>(0);
-    final core::String? #t63 = self::foo();
-    if(!(#t63 == null))
-      #t62.{core::List::add}{Invariant}(#t63{core::String}){(core::String) → void};
-  } =>#t62 in block {
-    self::E|expectStaticType<core::List<core::String>, (core::List<core::String>) → core::List<core::String>>(#t61);
-  } =>#t61;
-  let final core::List<core::String> #t64 = block {
-    final core::List<core::String> #t65 = core::_GrowableList::_literal1<core::String>("");
+  self::acceptsMap<core::bool, core::String>(let final core::Map<core::bool, core::String> #t59 = block {
+    final core::Map<core::bool, core::String> #t60 = <core::bool, core::String>{};
+    #t60.{core::Map::[]=}{Invariant}(true, ""){(core::bool, core::String) → void};
+    final core::bool #t61 = false;
+    final core::String? #t62 = self::foo();
+    if(!(#t62 == null))
+      #t60.{core::Map::[]=}{Invariant}(#t61, #t62{core::String}){(core::bool, core::String) → void};
+  } =>#t60 in block {
+    self::E|expectStaticType<core::Map<core::bool, core::String>, (core::Map<core::bool, core::String>) → core::Map<core::bool, core::String>>(#t59);
+  } =>#t59);
+  self::acceptsMap<core::bool, core::String>(let final core::Map<core::bool, core::String> #t63 = block {
+    final core::Map<core::bool, core::String> #t64 = <core::bool, core::String>{};
+    final core::bool #t65 = false;
     final core::String? #t66 = self::foo();
     if(!(#t66 == null))
-      #t65.{core::List::add}{Invariant}(#t66{core::String}){(core::String) → void};
-  } =>#t65 in block {
-    self::E|expectStaticType<core::List<core::String>, (core::List<core::String>) → core::List<core::String>>(#t64);
-  } =>#t64;
+      #t64.{core::Map::[]=}{Invariant}(#t65, #t66{core::String}){(core::bool, core::String) → void};
+    #t64.{core::Map::[]=}{Invariant}(true, ""){(core::bool, core::String) → void};
+  } =>#t64 in block {
+    self::E|expectStaticType<core::Map<core::bool, core::String>, (core::Map<core::bool, core::String>) → core::Map<core::bool, core::String>>(#t63);
+  } =>#t63);
   let final core::List<core::String> #t67 = block {
     final core::List<core::String> #t68 = core::_GrowableList::•<core::String>(0);
     final core::String? #t69 = self::foo();
     if(!(#t69 == null))
       #t68.{core::List::add}{Invariant}(#t69{core::String}){(core::String) → void};
-    #t68.{core::List::add}{Invariant}(""){(core::String) → void};
   } =>#t68 in block {
     self::E|expectStaticType<core::List<core::String>, (core::List<core::String>) → core::List<core::String>>(#t67);
   } =>#t67;
-  self::acceptsSet<core::String>(let final core::Set<core::String> #t70 = block {
-    final core::Set<core::String> #t71 = new _co::_Set::•<core::String>();
+  let final core::List<core::String> #t70 = block {
+    final core::List<core::String> #t71 = core::_GrowableList::_literal1<core::String>("");
     final core::String? #t72 = self::foo();
     if(!(#t72 == null))
-      #t71.{core::Set::add}{Invariant}(#t72{core::String}){(core::String) → core::bool};
+      #t71.{core::List::add}{Invariant}(#t72{core::String}){(core::String) → void};
   } =>#t71 in block {
-    self::E|expectStaticType<core::Set<core::String>, (core::Set<core::String>) → core::Set<core::String>>(#t70);
-  } =>#t70);
-  self::acceptsSet<core::String>(let final core::Set<core::String> #t73 = block {
-    final core::Set<core::String> #t74 = new _co::_Set::•<core::String>();
-    #t74.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
+    self::E|expectStaticType<core::List<core::String>, (core::List<core::String>) → core::List<core::String>>(#t70);
+  } =>#t70;
+  let final core::List<core::String> #t73 = block {
+    final core::List<core::String> #t74 = core::_GrowableList::•<core::String>(0);
     final core::String? #t75 = self::foo();
     if(!(#t75 == null))
-      #t74.{core::Set::add}{Invariant}(#t75{core::String}){(core::String) → core::bool};
+      #t74.{core::List::add}{Invariant}(#t75{core::String}){(core::String) → void};
+    #t74.{core::List::add}{Invariant}(""){(core::String) → void};
   } =>#t74 in block {
-    self::E|expectStaticType<core::Set<core::String>, (core::Set<core::String>) → core::Set<core::String>>(#t73);
-  } =>#t73);
+    self::E|expectStaticType<core::List<core::String>, (core::List<core::String>) → core::List<core::String>>(#t73);
+  } =>#t73;
   self::acceptsSet<core::String>(let final core::Set<core::String> #t76 = block {
     final core::Set<core::String> #t77 = new _co::_Set::•<core::String>();
     final core::String? #t78 = self::foo();
     if(!(#t78 == null))
       #t77.{core::Set::add}{Invariant}(#t78{core::String}){(core::String) → core::bool};
-    #t77.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
   } =>#t77 in block {
     self::E|expectStaticType<core::Set<core::String>, (core::Set<core::String>) → core::Set<core::String>>(#t76);
   } =>#t76);
+  self::acceptsSet<core::String>(let final core::Set<core::String> #t79 = block {
+    final core::Set<core::String> #t80 = new _co::_Set::•<core::String>();
+    #t80.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
+    final core::String? #t81 = self::foo();
+    if(!(#t81 == null))
+      #t80.{core::Set::add}{Invariant}(#t81{core::String}){(core::String) → core::bool};
+  } =>#t80 in block {
+    self::E|expectStaticType<core::Set<core::String>, (core::Set<core::String>) → core::Set<core::String>>(#t79);
+  } =>#t79);
+  self::acceptsSet<core::String>(let final core::Set<core::String> #t82 = block {
+    final core::Set<core::String> #t83 = new _co::_Set::•<core::String>();
+    final core::String? #t84 = self::foo();
+    if(!(#t84 == null))
+      #t83.{core::Set::add}{Invariant}(#t84{core::String}){(core::String) → core::bool};
+    #t83.{core::Set::add}{Invariant}(""){(core::String) → core::bool};
+  } =>#t83 in block {
+    self::E|expectStaticType<core::Set<core::String>, (core::Set<core::String>) → core::Set<core::String>>(#t82);
+  } =>#t82);
 }
 static method contextType<X extends core::Object? = dynamic>(core::Object? value) → self::contextType::X%
   return value as self::contextType::X%;
