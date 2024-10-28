@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
 /// A set of analysis options used to control the behavior of an analysis
@@ -45,6 +46,13 @@ abstract class AnalysisOptions {
   /// [lint] is `true`.
   List<LintRule> get lintRules;
 
+  /// The plugin configurations for each plugin which is configured in analysis
+  /// options.
+  ///
+  /// These are distinct from the legacy plugins found at
+  /// [enabledLegacyPluginNames].
+  List<PluginConfiguration> get pluginConfigurations;
+
   /// Whether implicit casts should be reported as potential problems.
   bool get strictCasts;
 
@@ -63,4 +71,23 @@ abstract class AnalysisOptions {
 
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name);
+}
+
+/// The configuration of a Dart Analysis Server plugin, as specified by
+/// analysis options.
+final class PluginConfiguration {
+  /// The name of the plugin being configured.
+  final String name;
+
+  /// The list of specified [RuleConfig]s.
+  final List<RuleConfig> ruleConfigs;
+
+  /// Whether the plugin is enabled.
+  final bool isEnabled;
+
+  PluginConfiguration({
+    required this.name,
+    required this.ruleConfigs,
+    required this.isEnabled,
+  });
 }

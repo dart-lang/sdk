@@ -96,7 +96,7 @@ Future<void> runLinter(List<String> args) async {
   if (configFile is String) {
     var optionsContent = readFile(configFile);
     var ruleConfigs =
-        parseLintRuleConfigs(loadYamlNode(optionsContent) as YamlMap)!;
+        parseLinterSection(loadYamlNode(optionsContent) as YamlMap)!;
     var enabledRules = Registry.ruleRegistry.where(
         (LintRule rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)));
 

@@ -63,7 +63,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest {
       ),
     );
     var avoidIntRule = _AvoidIntRule();
-    Registry.ruleRegistry.register(avoidIntRule);
+    Registry.ruleRegistry.registerLintRule(avoidIntRule);
     await assertErrorsInCode(r'''
 // ignore: avoid_int
 int a = 0;

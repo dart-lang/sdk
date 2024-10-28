@@ -33,7 +33,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 
   void registerRule(LintRule rule) {
     addedRules.add(rule);
-    Registry.ruleRegistry.register(rule);
+    Registry.ruleRegistry.registerLintRule(rule);
   }
 
   void setUp() {
@@ -42,7 +42,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 
   void tearDown() {
     for (var rule in addedRules) {
-      Registry.ruleRegistry.unregister(rule);
+      Registry.ruleRegistry.unregisterLintRule(rule);
     }
   }
 

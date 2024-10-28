@@ -29,8 +29,8 @@ class ReplacedLintUseTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    Registry.ruleRegistry.register(RemovedLint());
-    Registry.ruleRegistry.register(ReplacingLint());
+    Registry.ruleRegistry.registerLintRule(RemovedLint());
+    Registry.ruleRegistry.registerLintRule(ReplacingLint());
   }
 
   @FailingTest(

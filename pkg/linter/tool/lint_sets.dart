@@ -31,7 +31,7 @@ Future<List<String>> _fetchRulesFromGitHub(String optionsPath) async {
     return [];
   }
 
-  var ruleConfigs = parseLintRuleConfigs(optionsYaml);
+  var ruleConfigs = parseLinterSection(optionsYaml);
   if (ruleConfigs == null) {
     printToConsole('No config found for: $optionsUrl (SKIPPED)');
     return [];

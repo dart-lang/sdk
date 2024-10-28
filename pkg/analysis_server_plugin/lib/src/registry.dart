@@ -18,7 +18,14 @@ final class PluginRegistryImpl implements PluginRegistry {
   }
 
   @override
-  void registerRule(LintRule lint) {
-    Registry.ruleRegistry.register(lint);
+  void registerLintRule(LintRule rule) {
+    Registry.ruleRegistry.registerLintRule(rule);
   }
+
+  @override
+  void registerWarningRule(LintRule rule) {
+    Registry.ruleRegistry.registerWarningRule(rule);
+  }
+
+  LintRule? ruleNamed(String name) => Registry.ruleRegistry[name];
 }

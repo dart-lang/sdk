@@ -59,6 +59,6 @@ class Analyzer {
 
   /// Register this [lint] with the analyzer's rule registry.
   void register(LintRule lint) {
-    Registry.ruleRegistry.register(lint);
+    Registry.ruleRegistry.registerLintRule(lint);
   }
 }

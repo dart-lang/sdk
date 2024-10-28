@@ -190,7 +190,7 @@ MyCla^ss? a;
     var camelCaseTypes = Registry.ruleRegistry.getRule('camel_case_types')!;
 
     // Overwrite it.
-    Registry.ruleRegistry.register(DeprecatedCamelCaseTypes());
+    Registry.ruleRegistry.registerLintRule(DeprecatedCamelCaseTypes());
 
     // Now we can assume it will have an action associated...
 
@@ -219,7 +219,7 @@ linter:
       );
     } finally {
       // Restore the "real" `camel_case_types`.
-      Registry.ruleRegistry.register(camelCaseTypes);
+      Registry.ruleRegistry.registerLintRule(camelCaseTypes);
     }
   }
 
