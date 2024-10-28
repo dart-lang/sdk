@@ -8,13 +8,12 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptionsImpl, AnalysisOptionsBuilder;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';

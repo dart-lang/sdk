@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -39,7 +41,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';

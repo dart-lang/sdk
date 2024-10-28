@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -29,8 +30,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptionsImpl, AnalysisOptionsBuilder;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
