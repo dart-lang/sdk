@@ -206,7 +206,6 @@ extension type const Modifiers(int _mask) implements Object {
         Keyword.CONST => _constMask,
         Keyword.FINAL => _finalMask,
         Keyword.VAR => 0,
-        // Coverage-ignore(suite): Not run.
         _ => // Coverage-ignore(suite): Not run.
           throw new UnsupportedError(
               "Unexpected varFinalOrConst token $varFinalOrConst."),

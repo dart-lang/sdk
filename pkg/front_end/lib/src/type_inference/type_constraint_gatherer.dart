@@ -522,9 +522,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                       // Coverage-ignore(suite): Not run.
                       (DartType type, ignored) => type is UnknownType
                           ? false
-                          :
-                          // Coverage-ignore(suite): Not run.
-                          throw new UnsupportedError(
+                          : throw new UnsupportedError(
                               "Unsupported type '${type.runtimeType}'."));
           for (GeneratedTypeConstraint constraint in constraints) {
             if (constraint.isUpper) {

@@ -31,24 +31,19 @@ import 'source_loader.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
-class _Added {
-  final Fragment fragment;
-
-  _Added(this.fragment);
-
-  void getAddBuilders(
-      {required ProblemReporting problemReporting,
-      required SourceLoader loader,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      required List<NominalParameterBuilder> unboundNominalVariables,
-      required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
-      required List<_AddBuilder> builders,
-      required IndexedLibrary? indexedLibrary,
-      required ContainerType containerType,
-      IndexedContainer? indexedContainer,
-      ContainerName? containerName}) {
-    Fragment fragment = this.fragment;
+void _computeBuildersFromFragments(String name, List<Fragment> fragments,
+    {required ProblemReporting problemReporting,
+    required SourceLoader loader,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    DeclarationBuilder? declarationBuilder,
+    required List<NominalParameterBuilder> unboundNominalVariables,
+    required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+    required List<_AddBuilder> builders,
+    required IndexedLibrary? indexedLibrary,
+    required ContainerType containerType,
+    IndexedContainer? indexedContainer,
+    ContainerName? containerName}) {
+  for (Fragment fragment in fragments) {
     switch (fragment) {
       case TypedefFragment():
         Reference? reference = indexedLibrary?.lookupTypedef(fragment.name);
@@ -861,14 +856,14 @@ class LibraryNameSpaceBuilder {
 
   final Map<String, List<Builder>> setterAugmentations = {};
 
-  List<_Added> _added = [];
+  List<Fragment> _fragments = [];
 
   void addFragment(Fragment fragment) {
-    _added.add(new _Added(fragment));
+    _fragments.add(fragment);
   }
 
   void includeBuilders(LibraryNameSpaceBuilder other) {
-    _added.addAll(other._added);
+    _fragments.addAll(other._fragments);
   }
 
   NameSpace toNameSpace({
@@ -961,9 +956,14 @@ class LibraryNameSpaceBuilder {
       members[name] = declaration;
     }
 
-    for (_Added added in _added) {
+    Map<String, List<Fragment>> fragmentsByName = {};
+    for (Fragment fragment in _fragments) {
+      (fragmentsByName[fragment.name] ??= []).add(fragment);
+    }
+
+    for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       List<_AddBuilder> addBuilders = [];
-      added.getAddBuilders(
+      _computeBuildersFromFragments(entry.key, entry.value,
           loader: enclosingLibraryBuilder.loader,
           problemReporting: problemReporting,
           enclosingLibraryBuilder: enclosingLibraryBuilder,
@@ -1046,7 +1046,7 @@ abstract class DeclarationFragment {
   final Uri fileUri;
   final LookupScope typeParameterScope;
   final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
-  final List<_Added> _added = [];
+  final List<Fragment> _fragments = [];
 
   List<FieldFragment>? primaryConstructorFields;
 
@@ -1072,12 +1072,12 @@ abstract class DeclarationFragment {
   }
 
   void addFragment(Fragment fragment) {
-    _added.add(new _Added(fragment));
+    _fragments.add(fragment);
   }
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder() {
     return new DeclarationNameSpaceBuilder._(
-        name, _nominalParameterNameSpace, _added);
+        name, _nominalParameterNameSpace, _fragments);
   }
 }
 
@@ -1093,15 +1093,15 @@ class _AddBuilder {
 class DeclarationNameSpaceBuilder {
   final String _name;
   final NominalParameterNameSpace? _nominalParameterNameSpace;
-  final List<_Added> _added;
+  final List<Fragment> _fragments;
 
   DeclarationNameSpaceBuilder.empty()
       : _name = '',
         _nominalParameterNameSpace = null,
-        _added = const [];
+        _fragments = const [];
 
   DeclarationNameSpaceBuilder._(
-      this._name, this._nominalParameterNameSpace, this._added);
+      this._name, this._nominalParameterNameSpace, this._fragments);
 
   void _addBuilder(
       ProblemReporting problemReporting,
@@ -1206,9 +1206,14 @@ class DeclarationNameSpaceBuilder {
     Map<String, MemberBuilder> setables = {};
     Map<String, MemberBuilder> constructors = {};
 
-    for (_Added added in _added) {
+    Map<String, List<Fragment>> fragmentsByName = {};
+    for (Fragment fragment in _fragments) {
+      (fragmentsByName[fragment.name] ??= []).add(fragment);
+    }
+
+    for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       List<_AddBuilder> addBuilders = [];
-      added.getAddBuilders(
+      _computeBuildersFromFragments(entry.key, entry.value,
           loader: loader,
           problemReporting: problemReporting,
           enclosingLibraryBuilder: enclosingLibraryBuilder,

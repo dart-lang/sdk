@@ -160,6 +160,27 @@ library;
 //   get Foo => 0;
 //       ^^^
 //
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:21:7: Error: 'Foo' is already declared in this scope.
+//   set Foo {
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Context: Previous declaration of 'Foo'.
+//   set Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Error: 'Foo' is already declared in this scope.
+//   int Foo;
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:9:7: Context: Previous declaration of 'Foo'.
+//   get Foo {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:37:10: Error: 'Foo' is already declared in this scope.
+//   int A, Foo, B;
+//          ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Context: Previous declaration of 'Foo'.
+//   int Foo;
+//       ^^^
+//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:13:7: Error: 'Foo.X' is already declared in this scope.
 //   get Foo.X {
 //       ^^^^^
@@ -173,13 +194,6 @@ library;
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:13:7: Context: Previous declaration of 'Foo.X'.
 //   get Foo.X {
 //       ^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:21:7: Error: 'Foo' is already declared in this scope.
-//   set Foo {
-//       ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Context: Previous declaration of 'Foo'.
-//   set Foo => 0;
-//       ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: 'Foo.X' is already declared in this scope.
 //   set Foo.X => 0;
@@ -195,26 +209,12 @@ library;
 //   set Foo.X => 0;
 //       ^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: 'Foo' is already declared in this scope.
-//   set Foo : bla = null => 0;
-//       ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Context: Previous declaration of 'Foo'.
-//   get Foo : bla = null => 0;
-//       ^^^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:29:7: Error: 'Foo.X' is already declared in this scope.
 //   set Foo.X : bla = null {
 //       ^^^^^
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:7: Context: Previous declaration of 'Foo.X'.
 //   set Foo.X {
 //       ^^^^^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:12: Error: 'Foo' is already declared in this scope.
-//   external Foo() : bla = null;
-//            ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Context: Previous declaration of 'Foo'.
-//   set Foo : bla = null => 0;
-//       ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:33:12: Error: 'Foo.X' is already declared in this scope.
 //   external Foo.X() : bla = null {
@@ -223,18 +223,18 @@ library;
 //   set Foo.X : bla = null {
 //       ^^^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Error: 'Foo' is already declared in this scope.
-//   int Foo;
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: 'Foo' is already declared in this scope.
+//   set Foo : bla = null => 0;
 //       ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:9:7: Context: Previous declaration of 'Foo'.
-//   get Foo {
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Context: Previous declaration of 'Foo'.
+//   get Foo : bla = null => 0;
 //       ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:37:10: Error: 'Foo' is already declared in this scope.
-//   int A, Foo, B;
-//          ^^^
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:7: Context: Previous declaration of 'Foo'.
-//   int Foo;
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:12: Error: 'Foo' is already declared in this scope.
+//   external Foo() : bla = null;
+//            ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Context: Previous declaration of 'Foo'.
+//   set Foo : bla = null => 0;
 //       ^^^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:21:7: Error: Conflicts with the implicit setter of the field 'Foo'.

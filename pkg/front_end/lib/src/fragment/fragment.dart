@@ -47,5 +47,21 @@ part 'setter.dart';
 part 'typedef.dart';
 
 sealed class Fragment {
+  /// The declared name of this fragment.
+  ///
+  /// For unnamed extensions this is
+  /// [UnnamedExtensionName.unnamedExtensionSentinel].
+  ///
+  /// For setters this is the name without `=`.
+  ///
+  /// The name is used to group introductory fragments with augmenting fragments
+  /// and to group getters, setters, and fields as properties.
+  String get name;
+
+  /// The [Builder] created for this fragment.
+  ///
+  // TODO(johnniwinther): Implement this:
+  /// The builder is shared between introductory fragments and augmenting
+  /// fragments, as well as between getters, setters, and fields.
   Builder get builder;
 }

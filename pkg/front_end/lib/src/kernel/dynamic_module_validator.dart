@@ -90,6 +90,7 @@ class DynamicInterfaceSpecification {
   void _verifyKeys(YamlMap map, Set<String> allowedKeys) {
     for (dynamic k in map.keys) {
       if (!allowedKeys.contains(k.toString())) {
+        // Coverage-ignore-block(suite): Not run.
         throw 'Unexpected key "$k" in dynamic interface specification';
       }
     }
@@ -108,6 +109,7 @@ class DynamicInterfaceSpecification {
 
     final String librarySpec = yamlMap['library'] as String;
     if (librarySpec.endsWith('*')) {
+      // Coverage-ignore-block(suite): Not run.
       _verifyKeys(yamlMap, const {'library'});
       final String prefix = baseUri
           .resolve(librarySpec.substring(0, librarySpec.length - 1))
@@ -126,6 +128,7 @@ class DynamicInterfaceSpecification {
     if (yamlMap.containsKey('class')) {
       final dynamic yamlClassNode = yamlMap['class'];
       if (yamlClassNode is YamlList) {
+        // Coverage-ignore-block(suite): Not run.
         _verifyKeys(yamlMap, const {'library', 'class'});
         for (dynamic c in yamlClassNode) {
           result.add(libraryIndex.getClass(libraryUri, c as String));
@@ -167,10 +170,12 @@ class DynamicInterfaceSpecification {
   void _validateSpecifiedMember(Member member,
       {required bool allowStaticMembers, required bool allowInstanceMembers}) {
     if (member.isInstanceMember) {
+      // Coverage-ignore-block(suite): Not run.
       if (!allowInstanceMembers) {
         throw 'Expected non-instance member $member';
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       if (!allowStaticMembers) {
         throw 'Expected instance member $member';
       }
@@ -290,12 +295,14 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
     _verifyCallable(node.interfaceTarget, node);
     super.visitInstanceGetterInvocation(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitEqualsCall(EqualsCall node) {
     _verifyCallable(node.interfaceTarget, node);
     super.visitEqualsCall(node);
@@ -308,18 +315,21 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitSuperPropertyGet(SuperPropertyGet node) {
     _verifyCallable(node.interfaceTarget, node);
     super.visitSuperPropertyGet(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitSuperPropertySet(SuperPropertySet node) {
     _verifyCallable(node.interfaceTarget, node);
     super.visitSuperPropertySet(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     _verifyCallable(node.interfaceTarget, node);
     super.visitSuperMethodInvocation(node);
@@ -362,6 +372,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
     _verifyCallable(node.target, node);
     super.visitRedirectingFactoryTearOff(node);
@@ -408,23 +419,28 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitExtensionType(ExtensionType node) {
     node.extensionTypeErasure.accept(this);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) =>
       throw 'Unexpected node ${node.runtimeType} $node';
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
       throw 'Unexpected node ${node.runtimeType} $node';
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) =>
       throw 'Unexpected node ${node.runtimeType} $node';
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitInstanceCreation(InstanceCreation node) =>
       throw 'Unexpected node ${node.runtimeType} $node';
 
@@ -448,6 +464,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitConstructorTearOffConstantReference(
       ConstructorTearOffConstant node) {
     _verifyCallable(node.target, _enclosingTreeNode!);
@@ -455,6 +472,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitRedirectingFactoryTearOffConstantReference(
       RedirectingFactoryTearOffConstant node) {
     _verifyCallable(node.target, _enclosingTreeNode!);
@@ -462,6 +480,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitTypedefTearOffConstantReference(TypedefTearOffConstant node) =>
       throw 'Unexpected node ${node.runtimeType} $node';
 
@@ -505,6 +524,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
               node.fileOffset,
               noLength,
               node.location!.file);
+        // Coverage-ignore(suite): Not run.
         case _:
           throw 'Unexpected node ${node.runtimeType} $node';
       }
@@ -543,6 +563,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {
+        // Coverage-ignore-block(suite): Not run.
         ++j;
       } else {
         if (!identical(impl, interfaceMember)) {
@@ -574,8 +595,10 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   Library _enclosingLibrary(TreeNode node) => switch (node) {
         Member() => node.enclosingLibrary,
         Class() => node.enclosingLibrary,
+        // Coverage-ignore(suite): Not run.
         Library() => node,
-        _ => throw 'Unexpected node ${node.runtimeType} $node'
+        _ => // Coverage-ignore(suite): Not run.
+          throw 'Unexpected node ${node.runtimeType} $node'
       };
 
   bool _isSpecified(TreeNode node, Set<TreeNode> specified) =>
@@ -586,6 +609,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         Class() =>
           node.name[0] != '_' && _isSpecified(node.enclosingLibrary, specified),
         Library() => false,
-        _ => throw 'Unexpected node ${node.runtimeType} $node'
+        _ => // Coverage-ignore(suite): Not run.
+          throw 'Unexpected node ${node.runtimeType} $node'
       };
 }

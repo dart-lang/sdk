@@ -201,8 +201,7 @@ Component _fromBinary(List<int> bytes,
         filename: 'filename', disableLazyReading: eager);
     builder.readComponent(component);
     if (verbose) {
-      // print("#lookups: ${builder.lookups}");
-      // print("#good lookups: ${builder.goodLookups}");
+      // No current verbose output.
     }
   } else {
     new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)

@@ -1484,6 +1484,15 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   }
 
   @override
+  void visitSwitchExpressionBlockEnd(SwitchExpressionBlockEnd node) {
+    super.visitSwitchExpressionBlockEnd(node);
+    // Sometimes the endToken is reported as being a position we can hit.
+    // Ignore it!
+    _collector.ignoredStartEnd.addIntervalIncludingEnd(
+        node.endToken.charOffset, node.endToken.charEnd);
+  }
+
+  @override
   void visitSwitchExpressionCaseEnd(SwitchExpressionCaseEnd node) {
     // The entire thing?
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(

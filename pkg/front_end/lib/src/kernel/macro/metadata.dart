@@ -33,6 +33,7 @@ bool _isDartLibrary(Uri importUri, Uri fileUri) {
   return importUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 }
 
+// Coverage-ignore(suite): Not run.
 /// Creates a [shared.Expression] for the annotation at [atToken].
 ///
 /// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
@@ -41,7 +42,6 @@ bool _isDartLibrary(Uri importUri, Uri fileUri) {
 /// A subsequent call to [shared.Expression.resolve] will perform the lookup
 /// a create the resolved expression. This is used in testing to mimic the
 /// scenario in which the declaration is added to the scope via macros.
-// Coverage-ignore(suite): Not run.
 shared.Expression parseAnnotation(
     Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
     {bool delayLookupForTesting = false}) {

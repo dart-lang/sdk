@@ -416,14 +416,14 @@ class _MacroListener implements Listener {
 
   @override
   void handleLiteralDoubleWithSeparators(Token token) {
-    push(new _MacroArgumentNode(new macro.DoubleArgument(
-        doubleFromToken(token, hasSeparators: true))));
+    push(new _MacroArgumentNode(
+        new macro.DoubleArgument(doubleFromToken(token, hasSeparators: true))));
   }
 
   @override
   void handleLiteralInt(Token token) {
-    push(new _MacroArgumentNode(new macro.IntArgument(
-        intFromToken(token, hasSeparators: false)!)));
+    push(new _MacroArgumentNode(
+        new macro.IntArgument(intFromToken(token, hasSeparators: false)!)));
   }
 
   @override

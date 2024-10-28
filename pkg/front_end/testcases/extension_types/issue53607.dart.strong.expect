@@ -4,8 +4,8 @@ import "dart:core" as core;
 
 extension type E(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
-  get value = self::E|get#value;
   get foo = self::E|get#foo;
+  get value = self::E|get#value;
   constructor _ = self::E|constructor#_;
   constructor tearoff _ = self::E|constructor#_#_#tearOff;
   constructor foo = self::E|constructor#foo;

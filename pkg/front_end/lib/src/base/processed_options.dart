@@ -962,11 +962,12 @@ class ProcessedOptions {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   Future<String?> _readAsString(FileSystemEntity file) async {
     try {
       return await file.readAsString();
-    } on FileSystemException catch (error) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on FileSystemException catch (error) {
       reportWithoutLocation(
           templateCantReadFile.withArguments(
               error.uri, osErrorMessage(error.message)),

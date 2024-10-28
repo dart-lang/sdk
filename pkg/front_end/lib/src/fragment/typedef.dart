@@ -6,7 +6,10 @@ part of 'fragment.dart';
 
 class TypedefFragment implements Fragment {
   final List<MetadataBuilder>? metadata;
+
+  @override
   final String name;
+
   final List<NominalParameterBuilder>? typeParameters;
   final TypeBuilder type;
   final Uri fileUri;

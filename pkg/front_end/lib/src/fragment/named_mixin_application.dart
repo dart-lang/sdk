@@ -5,7 +5,9 @@
 part of 'fragment.dart';
 
 class NamedMixinApplicationFragment implements Fragment {
+  @override
   final String name;
+
   final Uri fileUri;
   final int startOffset;
   final int nameOffset;
