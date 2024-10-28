@@ -12,7 +12,8 @@ import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 int get hotRestartGeneration =>
     throw Exception('Not implemented on this platform.');
 
-void hotRestart() => throw Exception('Not implemented on this platform.');
+Future<void> hotRestart() async =>
+    throw Exception('Not implemented on this platform.');
 
 int _reloadCounter = 0;
 int get hotReloadGeneration => _reloadCounter;

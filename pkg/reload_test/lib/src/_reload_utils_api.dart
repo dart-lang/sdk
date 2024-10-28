@@ -7,10 +7,11 @@
 int get hotRestartGeneration =>
     throw Exception('Not implemented on this platform.');
 
-void hotRestart() => throw Exception('Not implemented on this platform.');
+Future<void> hotRestart() async =>
+    throw Exception('Not implemented on this platform.');
 
 int get hotReloadGeneration =>
     throw Exception('Not implemented on this platform.');
 
-Future<void> hotReload() =>
+Future<void> hotReload() async =>
     throw Exception('Not implemented on this platform.');

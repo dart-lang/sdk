@@ -1701,8 +1701,8 @@ if (!self.deferred_loader) {
      * Immediately triggers a hot restart of the application losing all state
      * and running the main method again.
      */
-    hotRestart() {
-      self.$dartReloadModifiedModules(
+    async hotRestart() {
+      await self.$dartReloadModifiedModules(
         libraryManager.savedEntryPointLibraryName,
         () => { libraryManager.hotRestart(); });
     }

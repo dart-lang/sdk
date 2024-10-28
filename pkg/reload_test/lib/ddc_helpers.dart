@@ -124,7 +124,7 @@ let modifiedFilesPerGeneration = ${_encoder.convert(modifiedFilesPerGeneration)}
 let previousGenerations = new Set();
 
 // Append a helper function for hot restart.
-self.\$dartReloadModifiedModules = function(subAppName, callback) {
+self.\$dartReloadModifiedModules = async function(subAppName, callback) {
   let expectedName = "$entrypointModuleName";
   if (subAppName !== expectedName) {
     throw Error("Unexpected app name " + subAppName
@@ -152,8 +152,9 @@ self.\$dartReloadModifiedModules = function(subAppName, callback) {
     self.\$dartLoader.forceLoadScript(modifiedFilePath);
   }
 
-  // Run main.
-  callback();
+  // Run main in an async callback. D8 performs synchronous loads, so we need
+  // to insert an async task to match its semantics to that of Chrome.
+  await Promise.resolve().then(() => { callback(); });
 }
 
 // Append a helper function for hot reload.
@@ -467,7 +468,7 @@ let _scriptUrls = {
       return [fileUrls, libraryIds];
     }
 
-    self.\$dartReloadModifiedModules = function(subAppName, callback) {
+    self.\$dartReloadModifiedModules = async function(subAppName, callback) {
       let expectedName = "$entrypointModuleName";
       if (subAppName !== expectedName) {
         throw Error("Unexpected app name " + subAppName
