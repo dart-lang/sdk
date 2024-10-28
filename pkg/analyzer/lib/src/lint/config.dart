@@ -8,14 +8,14 @@ import 'package:yaml/yaml.dart';
 
 /// Parses [optionsMap] into a list of [RuleConfig]s, returning them, or `null`
 /// if [optionsMap] does not have `linter` map.
-List<RuleConfig>? parseLintRuleConfigs(YamlMap optionsMap) {
+List<RuleConfig>? parseLinterSection(YamlMap optionsMap) {
   var options = optionsMap.valueAt('linter');
   // Quick check of basic contract.
   if (options is YamlMap) {
     var ruleConfigs = <RuleConfig>[];
     var rulesNode = options.valueAt(AnalyzerOptions.rules);
     if (rulesNode != null) {
-      ruleConfigs.addAll(_ruleConfigs(rulesNode));
+      ruleConfigs.addAll(parseRulesSection(rulesNode));
     }
 
     return ruleConfigs;
@@ -24,21 +24,9 @@ List<RuleConfig>? parseLintRuleConfigs(YamlMap optionsMap) {
   return null;
 }
 
-RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
-    {String? group}) {
-  // For example: `{unnecessary_getters: false}`.
-  if (configKey case YamlScalar(value: String ruleName)) {
-    if (configNode case YamlScalar(value: bool isEnabled)) {
-      return RuleConfig._(name: ruleName, isEnabled: isEnabled, group: group);
-    }
-  }
-
-  return null;
-}
-
 /// Returns the [RuleConfig]s that are parsed from [value], which can be either
 /// a YAML list or a YAML map.
-List<RuleConfig> _ruleConfigs(YamlNode value) {
+List<RuleConfig> parseRulesSection(YamlNode value) {
   // For example:
   //
   // ```yaml
@@ -87,6 +75,18 @@ List<RuleConfig> _ruleConfigs(YamlNode value) {
     }
   });
   return ruleConfigs;
+}
+
+RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
+    {String? group}) {
+  // For example: `{unnecessary_getters: false}`.
+  if (configKey case YamlScalar(value: String ruleName)) {
+    if (configNode case YamlScalar(value: bool isEnabled)) {
+      return RuleConfig._(name: ruleName, isEnabled: isEnabled, group: group);
+    }
+  }
+
+  return null;
 }
 
 /// The configuration of a single lint rule within an analysis options file.

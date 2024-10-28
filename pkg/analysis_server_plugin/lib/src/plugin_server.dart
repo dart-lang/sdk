@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/lint/lint_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -253,13 +254,16 @@ class PluginServer {
       null,
     );
 
-    // TODO(srawlins): Distinguish between registered rules and enabled rules.
-    for (var rule in _registry.registeredRules) {
-      rule.reporter = errorReporter;
-      var timer = enableTiming ? lintRuleTimers.getTimer(rule) : null;
-      timer?.start();
-      rule.registerNodeProcessors(nodeRegistry, context);
-      timer?.stop();
+    for (var configuration in analysisOptions.pluginConfigurations) {
+      if (!configuration.isEnabled) continue;
+      var rules = Registry.ruleRegistry.enabled(configuration.ruleConfigs);
+      for (var rule in rules) {
+        rule.reporter = errorReporter;
+        var timer = enableTiming ? lintRuleTimers.getTimer(rule) : null;
+        timer?.start();
+        rule.registerNodeProcessors(nodeRegistry, context);
+        timer?.stop();
+      }
     }
 
     currentUnit.unit.accept(LinterVisitor(nodeRegistry));

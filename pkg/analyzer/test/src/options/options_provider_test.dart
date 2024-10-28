@@ -218,8 +218,8 @@ linter:
 
     var lowLevelLint = TestRule.withName('low_level_lint');
     var topLevelLint = TestRule.withName('top_level_lint');
-    Registry.ruleRegistry.register(lowLevelLint);
-    Registry.ruleRegistry.register(topLevelLint);
+    Registry.ruleRegistry.registerLintRule(lowLevelLint);
+    Registry.ruleRegistry.registerLintRule(topLevelLint);
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
@@ -240,8 +240,8 @@ linter:
 
     var lowLevelLint = TestRule.withName('low_level_lint');
     var topLevelLint = TestRule.withName('top_level_lint');
-    Registry.ruleRegistry.register(lowLevelLint);
-    Registry.ruleRegistry.register(topLevelLint);
+    Registry.ruleRegistry.registerLintRule(lowLevelLint);
+    Registry.ruleRegistry.registerLintRule(topLevelLint);
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([topLevelLint, lowLevelLint]));
@@ -261,7 +261,7 @@ linter:
 ''');
 
     var topLevelLint = TestRule.withName('top_level_lint');
-    Registry.ruleRegistry.register(topLevelLint);
+    Registry.ruleRegistry.registerLintRule(topLevelLint);
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, isNot(contains(topLevelLint)));

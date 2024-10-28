@@ -95,7 +95,7 @@ analyzer:
   }
 
   test_analyzer_cannotIgnore_lintRule() {
-    Registry.ruleRegistry.register(TestRule());
+    Registry.ruleRegistry.registerLintRule(TestRule());
     validate('''
 analyzer:
   cannot-ignore:
@@ -244,7 +244,7 @@ analyzer:
   }
 
   test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.register(TestRule());
+    Registry.ruleRegistry.registerLintRule(TestRule());
     validate('''
 analyzer:
   errors:
@@ -400,7 +400,7 @@ formatter:
   }
 
   test_linter_supported_rules() {
-    Registry.ruleRegistry.register(TestRule());
+    Registry.ruleRegistry.registerLintRule(TestRule());
     validate('''
 linter:
   rules:

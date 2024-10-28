@@ -9,9 +9,9 @@ import 'util/test_utils.dart';
 
 void main() {
   group('rule doc format', () {
-    setUp(setUpSharedTestEnvironment);
-
+    setUpSharedTestEnvironment();
     var rules = Registry.ruleRegistry.rules;
+
     test('(setup)', () {
       expect(rules, isNotEmpty,
           reason:

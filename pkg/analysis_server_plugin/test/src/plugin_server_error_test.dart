@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -29,6 +28,19 @@ void main() async {
 
 @reflectiveTest
 class PluginServerErrorTest extends PluginServerTestBase {
+  String get packagePath => convertPath('/package1');
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    newAnalysisOptionsYamlFile(packagePath, '''
+plugins:
+  no_bools:
+    rules:
+      - no_bools
+''');
+  }
+
   Future<void> test_handleAnalysisSetContextRoots_throwingAsyncError() async {
     pluginServer = PluginServer(
       resourceProvider: resourceProvider,
@@ -36,7 +48,6 @@ class PluginServerErrorTest extends PluginServerTestBase {
     );
     await startPlugin();
 
-    var packagePath = convertPath('/package1');
     var filePath = join(packagePath, 'lib', 'test.dart');
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
@@ -44,13 +55,18 @@ class PluginServerErrorTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var notifications = StreamQueue(channel.notifications);
-    var analysisErrorsParams = protocol.AnalysisErrorsParams.fromNotification(
-        await notifications.next);
+    // Create a broadcast Stream of notifications, so that we can have multiple
+    // StreamQueues listening.
+    var notifications = channel.notifications.asBroadcastStream();
+    var analysisErrorsParamsQueue = StreamQueue(notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var analysisErrorsParams = await analysisErrorsParamsQueue.next;
     expect(analysisErrorsParams.errors, isEmpty);
 
-    var pluginErrorParams =
-        protocol.PluginErrorParams.fromNotification(await notifications.next);
+    var pluginErrorParamsQueue = StreamQueue(notifications
+        .map((n) => protocol.PluginErrorParams.fromNotification(n)));
+    var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
     expect(pluginErrorParams.message, 'Bad state: A message.');
     // TODO(srawlins): Does `StackTrace.toString()` not do what I think?
@@ -64,7 +80,6 @@ class PluginServerErrorTest extends PluginServerTestBase {
     );
     await startPlugin();
 
-    var packagePath = convertPath('/package1');
     var filePath = join(packagePath, 'lib', 'test.dart');
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
@@ -87,7 +102,6 @@ class PluginServerErrorTest extends PluginServerTestBase {
     );
     await startPlugin();
 
-    var packagePath = convertPath('/package1');
     var filePath = join(packagePath, 'lib', 'test.dart');
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
@@ -97,13 +111,18 @@ class PluginServerErrorTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.EditGetFixesParams(filePath, 'bool b = '.length));
 
-    var notifications = StreamQueue(channel.notifications);
-    var analysisErrorsParams = protocol.AnalysisErrorsParams.fromNotification(
-        await notifications.next);
-    expect(analysisErrorsParams.errors.single, isA<protocol.AnalysisError>());
+    // Create a broadcast Stream of notifications, so that we can have multiple
+    // StreamQueues listening.
+    var notifications = channel.notifications.asBroadcastStream();
+    var analysisErrorsParamsQueue = StreamQueue(notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var analysisErrorsParams = await analysisErrorsParamsQueue.next;
+    expect(analysisErrorsParams.errors.single, isNotNull);
 
-    var pluginErrorParams =
-        protocol.PluginErrorParams.fromNotification(await notifications.next);
+    var pluginErrorParamsQueue = StreamQueue(notifications
+        .map((n) => protocol.PluginErrorParams.fromNotification(n)));
+    var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
     expect(pluginErrorParams.message, 'Bad state: A message.');
     // TODO(srawlins): Does `StackTrace.toString()` not do what I think?
@@ -117,7 +136,6 @@ class PluginServerErrorTest extends PluginServerTestBase {
     );
     await startPlugin();
 
-    var packagePath = convertPath('/package1');
     var filePath = join(packagePath, 'lib', 'test.dart');
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
@@ -139,7 +157,7 @@ class PluginServerErrorTest extends PluginServerTestBase {
 class _FixThrowsAsyncErrorPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    registry.registerRule(NoBoolsRule());
+    registry.registerWarningRule(NoBoolsRule());
     registry.registerFixForRule(NoBoolsRule.code, _ThrowsAsyncErrorFix.new);
   }
 }
@@ -147,7 +165,7 @@ class _FixThrowsAsyncErrorPlugin extends Plugin {
 class _FixThrowsSyncErrorPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    registry.registerRule(NoBoolsRule());
+    registry.registerWarningRule(NoBoolsRule());
     registry.registerFixForRule(NoBoolsRule.code, _ThrowsSyncErrorFix.new);
   }
 }
@@ -155,14 +173,14 @@ class _FixThrowsSyncErrorPlugin extends Plugin {
 class _RuleThrowsAsyncErrorPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    registry.registerRule(_ThrowsAsyncErrorRule());
+    registry.registerWarningRule(_ThrowsAsyncErrorRule());
   }
 }
 
 class _RuleThrowsSyncErrorPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    registry.registerRule(_ThrowsSyncErrorRule());
+    registry.registerWarningRule(_ThrowsSyncErrorRule());
   }
 }
 

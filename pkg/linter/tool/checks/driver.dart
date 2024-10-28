@@ -70,7 +70,7 @@ class Driver {
     _print('Analyzing...');
 
     // Register our checks.
-    lints.forEach(Registry.ruleRegistry.register);
+    lints.forEach(Registry.ruleRegistry.registerLintRule);
 
     // Track failures.
     var failedChecks = <AnalysisError>{};
@@ -121,7 +121,7 @@ class Driver {
     }
 
     // Unregister our checks.
-    lints.forEach(Registry.ruleRegistry.unregister);
+    lints.forEach(Registry.ruleRegistry.unregisterLintRule);
 
     return failedChecks.toList();
   }

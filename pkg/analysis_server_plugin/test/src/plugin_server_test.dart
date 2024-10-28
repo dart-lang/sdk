@@ -34,6 +34,12 @@ class PluginServerTest extends PluginServerTestBase {
   @override
   Future<void> setUp() async {
     await super.setUp();
+    newAnalysisOptionsYamlFile(packagePath, '''
+plugins:
+  no_bools:
+    rules:
+      - no_bools
+''');
 
     pluginServer = PluginServer(
         resourceProvider: resourceProvider, plugins: [_NoBoolsPlugin()]);
@@ -44,9 +50,10 @@ class PluginServerTest extends PluginServerTestBase {
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    var notification = await channel.notifications.first;
-    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
@@ -71,18 +78,16 @@ class PluginServerTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var notifications = StreamQueue(channel.notifications);
-    var notification = await notifications.next;
-    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
     await channel.sendRequest(protocol.AnalysisUpdateContentParams(
         {filePath: protocol.AddContentOverlay('bool b = false;')}));
 
-    notification = await notifications.next;
-    params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
@@ -92,18 +97,16 @@ class PluginServerTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var notifications = StreamQueue(channel.notifications);
-    var notification = await notifications.next;
-    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
     await channel.sendRequest(protocol.AnalysisUpdateContentParams(
         {filePath: protocol.AddContentOverlay('int b = 0;')}));
 
-    notification = await notifications.next;
-    params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
     await channel.sendRequest(protocol.AnalysisUpdateContentParams({
@@ -111,9 +114,7 @@ class PluginServerTest extends PluginServerTestBase {
           [protocol.SourceEdit(0, 9, 'bool b = false')])
     }));
 
-    notification = await notifications.next;
-    params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
@@ -123,27 +124,23 @@ class PluginServerTest extends PluginServerTestBase {
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
 
-    var notifications = StreamQueue(channel.notifications);
-    var notification = await notifications.next;
-    var params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
 
     await channel.sendRequest(protocol.AnalysisUpdateContentParams(
         {filePath: protocol.AddContentOverlay('int b = 7;')}));
 
-    notification = await notifications.next;
-    params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
     await channel.sendRequest(protocol.AnalysisUpdateContentParams(
         {filePath: protocol.RemoveContentOverlay()}));
 
-    notification = await notifications.next;
-    params = protocol.AnalysisErrorsParams.fromNotification(notification);
-    expect(params.file, convertPath('/package1/lib/test.dart'));
+    params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
@@ -165,7 +162,7 @@ class PluginServerTest extends PluginServerTestBase {
 class _NoBoolsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
-    registry.registerRule(NoBoolsRule());
+    registry.registerWarningRule(NoBoolsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
   }
 }

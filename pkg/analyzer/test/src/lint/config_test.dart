@@ -19,7 +19,7 @@ defineTests() {
   List<RuleConfig>? processAnalysisOptionsFile(String fileContents) {
     var yaml = loadYamlNode(fileContents);
     if (yaml is YamlMap) {
-      return parseLintRuleConfigs(yaml);
+      return parseLinterSection(yaml);
     }
     return null;
   }
@@ -34,7 +34,7 @@ defineTests() {
   group('lint config', () {
     group('rule', () {
       test('configs', () {
-        var ruleConfigs = parseLintRuleConfigs(loadYamlNode('''
+        var ruleConfigs = parseLinterSection(loadYamlNode('''
 linter:
   # Unsupported sections here to check that no exceptions are thrown when
   # YAML includes unknown sections.
@@ -54,7 +54,7 @@ linter:
       });
 
       test('config', () {
-        var ruleConfigs = parseLintRuleConfigs(loadYamlNode('''
+        var ruleConfigs = parseLinterSection(loadYamlNode('''
 linter:
   rules:
     style_guide:
@@ -145,7 +145,7 @@ linter:
   group('options processing', () {
     group('raw maps', () {
       List<RuleConfig> parseMap(Map<Object, Object?> map) {
-        return parseLintRuleConfigs(wrap(map) as YamlMap)!;
+        return parseLinterSection(wrap(map) as YamlMap)!;
       }
 
       test('rule list', () {

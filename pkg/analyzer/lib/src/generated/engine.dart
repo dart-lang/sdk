@@ -195,12 +195,15 @@ final class AnalysisOptionsBuilder {
 
   Set<String> unignorableNames = {};
 
+  List<PluginConfiguration> pluginConfigurations = [];
+
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
       file: file,
       contextFeatures: contextFeatures,
       nonPackageFeatureSet: nonPackageFeatureSet,
       enabledLegacyPluginNames: enabledLegacyPluginNames,
+      pluginConfigurations: pluginConfigurations,
       errorProcessors: errorProcessors,
       excludePatterns: excludePatterns,
       lint: lint,
@@ -327,6 +330,44 @@ final class AnalysisOptionsBuilder {
     }
   }
 
+  void _applyPluginsOptions(YamlNode? plugins) {
+    if (plugins is! YamlMap) {
+      return;
+    }
+
+    plugins.nodes.forEach((nameNode, pluginNode) {
+      if (nameNode is! YamlScalar) {
+        return;
+      }
+      var pluginName = nameNode.toString();
+      if (pluginNode is YamlScalar) {
+        // TODO(srawlins): There may be value in storing the version constraint,
+        // `value`.
+        pluginConfigurations.add(PluginConfiguration(
+            name: pluginName, ruleConfigs: const [], isEnabled: true));
+        return;
+      }
+
+      if (pluginNode is! YamlMap) {
+        return;
+      }
+
+      var rules = pluginNode.valueAt(AnalyzerOptions.rules);
+      if (rules == null) {
+        return;
+      }
+
+      var ruleConfigurations = parseRulesSection(rules);
+
+      pluginConfigurations.add(PluginConfiguration(
+        name: pluginName,
+        ruleConfigs: ruleConfigurations,
+        // TODO(srawlins): Implement `enabled: false`.
+        isEnabled: true,
+      ));
+    });
+  }
+
   void _applyUnignorables(YamlNode? cannotIgnore) {
     if (cannotIgnore is! YamlList) {
       return;
@@ -394,6 +435,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   List<String> enabledLegacyPluginNames;
+
+  @override
+  List<PluginConfiguration> pluginConfigurations = [];
 
   /// Return `true` if timing data should be gathered during execution.
   bool enableTiming = false;
@@ -506,7 +550,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     var formatter = optionsMap.valueAt(AnalyzerOptions.formatter);
     builder._applyFormatterOptions(formatter);
 
-    var ruleConfigs = parseLintRuleConfigs(optionsMap);
+    // Process the 'plugins' option.
+    var plugins = optionsMap.valueAt(AnalyzerOptions.plugins);
+    builder._applyPluginsOptions(plugins);
+
+    var ruleConfigs = parseLinterSection(optionsMap);
     if (ruleConfigs != null) {
       var enabledRules = Registry.ruleRegistry.enabled(ruleConfigs);
       if (enabledRules.isNotEmpty) {
@@ -528,6 +576,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.nonPackageFeatureSet,
     required this.excludePatterns,
     required this.enabledLegacyPluginNames,
+    required this.pluginConfigurations,
     required this.errorProcessors,
     required this.lint,
     required this.lintRules,
