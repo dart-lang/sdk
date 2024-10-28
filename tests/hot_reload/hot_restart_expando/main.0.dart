@@ -1,11 +1,10 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_runtime' as dart;
-
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
+import 'package:reload_test/reload_test_utils.dart';
 
 final e = Expando<int>();
 
@@ -15,7 +14,7 @@ external void eval(String s);
 @JS()
 external Object get singleton;
 
-void main() {
+Future<void> main() async {
   eval('''
     if (!self.singleton) {
       self.singleton = {};
@@ -25,6 +24,5 @@ void main() {
   Expect.equals(null, e[o]);
   e[o] = 1;
 
-  dart.hotRestart();
-  Expect.equals(null, e[o]);
+  await hotRestart();
 }
