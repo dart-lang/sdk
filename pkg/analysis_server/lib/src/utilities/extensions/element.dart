@@ -24,6 +24,21 @@ extension ClassElementExtensions on ClassElement {
 }
 
 extension Element2Extension on Element2 {
+  /// The content of the documentation comment (including delimiters) for this
+  /// element.
+  ///
+  /// If the receiver is an element that has fragments, the comment will be a
+  /// concatenation of the comments from all of the fragments.
+  ///
+  /// Returns `null` if the receiver does not have or does not support
+  /// documentation.
+  String? get documentationCommentOrNull {
+    return switch (this) {
+      Annotatable(:var documentationComment) => documentationComment,
+      _ => null,
+    };
+  }
+
   /// Return `true` if this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@deprecated`
   /// annotation.
