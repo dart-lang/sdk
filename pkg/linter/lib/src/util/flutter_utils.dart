@@ -40,6 +40,8 @@ bool isKDebugMode(Element2? element) => _flutter.isKDebugMode(element);
 
 bool isState(InterfaceElement element) => _flutter.isState(element);
 
+bool isState2(InterfaceElement2 element) => _flutter.isState2(element);
+
 bool isStatefulWidget(ClassElement2? element) =>
     element != null && _flutter.isStatefulWidget(element);
 
@@ -138,17 +140,22 @@ class _Flutter {
       element.allSupertypes
           .any((type) => isExactly(type.element, _nameState, _uriFramework));
 
+  bool isState2(InterfaceElement2 element) =>
+      isExactly2(element, _nameState, _uriFramework) ||
+      element.allSupertypes
+          .any((type) => isExactly2(type.element3, _nameState, _uriFramework));
+
   bool isStatefulWidget(ClassElement2 element) =>
       isExactly2(element, _nameStatefulWidget, _uriFramework) ||
       element.allSupertypes.any((type) =>
           isExactly(type.element, _nameStatefulWidget, _uriFramework));
 
-  bool isWidget(InterfaceElement element) {
-    if (isExactly(element, _nameWidget, _uriFramework)) {
+  bool isWidget(InterfaceElement2 element) {
+    if (isExactly2(element, _nameWidget, _uriFramework)) {
       return true;
     }
     for (var type in element.allSupertypes) {
-      if (isExactly(type.element, _nameWidget, _uriFramework)) {
+      if (isExactly2(type.element3, _nameWidget, _uriFramework)) {
         return true;
       }
     }
@@ -156,5 +163,5 @@ class _Flutter {
   }
 
   bool isWidgetType(DartType? type) =>
-      type is InterfaceType && isWidget(type.element);
+      type is InterfaceType && isWidget(type.element3);
 }
