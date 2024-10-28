@@ -1352,7 +1352,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       // Get the class index and insert it into the tags.
       uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orq(RDI, Immediate(tags));
-      __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
+      __ InitializeHeader(RDI, RAX);
     }
 
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
@@ -1842,7 +1842,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // R13: size and bit tags.
     uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orq(R13, Immediate(tags));
-    __ movq(FieldAddress(RAX, target::Object::tags_offset()), R13);  // Tags.
+    __ InitializeHeader(R13, RAX);
   }
 
   // Setup up number of context variables field.
@@ -2227,9 +2227,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
     // Set the tags.
     // 64 bit store also zeros the identity hash field.
-    __ movq(
-        Address(AllocateObjectABI::kResultReg, target::Object::tags_offset()),
-        kTagsReg);
+    __ InitializeHeaderUntagged(kTagsReg, AllocateObjectABI::kResultReg);
 
     __ addq(AllocateObjectABI::kResultReg, Immediate(kHeapObjectTag));
 
@@ -3861,8 +3859,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       uword tags =
           target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
       __ orq(RDI, Immediate(tags));
-      __ movq(FieldAddress(RAX, target::Object::tags_offset()),
-              RDI); /* Tags. */
+      __ InitializeHeader(RDI, RAX);
     }
     /* Set the length field. */
     /* RAX: new object start as a tagged pointer. */

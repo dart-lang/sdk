@@ -1816,7 +1816,7 @@ static void TryAllocateString(Assembler* assembler,
     const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ OrImmediate(A1, A1, tags);
-    __ sx(A1, FieldAddress(A0, target::Object::tags_offset()));  // Store tags.
+    __ InitializeHeader(A1, A0);
   }
 
   // Set the length field using the saved length (T0).

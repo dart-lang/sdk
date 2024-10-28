@@ -867,6 +867,19 @@ class Assembler : public AssemblerBase {
 
   void Call(Address target) { call(target); }
 
+  void InitializeHeader(Register tags, Register object) {
+    movq(FieldAddress(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on x64.
+  }
+  void InitializeHeaderUntagged(Register tags, Register object) {
+    movq(Address(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on x64.
+  }
+  void InitializeHeader(Immediate tags, Register object) {
+    movq(FieldAddress(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on x64.
+  }
+
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
   void StoreObject(const Address& dst,

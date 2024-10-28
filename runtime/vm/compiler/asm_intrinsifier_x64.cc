@@ -1677,7 +1677,7 @@ static void TryAllocateString(Assembler* assembler,
     const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orq(RDI, Immediate(tags));
-    __ movq(FieldAddress(RAX, target::Object::tags_offset()), RDI);  // Tags.
+    __ InitializeHeader(RDI, RAX);
   }
 
   // Set the length field.

@@ -2817,8 +2817,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    movl(FieldAddress(instance_reg, target::Object::tags_offset()),
-         Immediate(tags));
+    InitializeHeader(Immediate(tags), instance_reg);
   } else {
     jmp(failure);
   }
@@ -2859,8 +2858,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
-    movl(FieldAddress(instance, target::Object::tags_offset()),
-         Immediate(tags));
+    InitializeHeader(Immediate(tags), instance);
   } else {
     jmp(failure);
   }

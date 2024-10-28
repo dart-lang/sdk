@@ -322,6 +322,9 @@ class UntaggedObject {
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() { return tags_.TryClear<NotMarkedBit>(); }
+  bool TryAcquireMarkBitIgnoreRace() {
+    return tags_.TryClearIgnoreRace<NotMarkedBit>();
+  }
 
   static bool IsEvacuationCandidate(uword tags) {
     return NewOrEvacuationCandidateBit::decode(tags);

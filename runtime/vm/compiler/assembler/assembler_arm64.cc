@@ -1969,7 +1969,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp_reg, tags);
-    Store(temp_reg, FieldAddress(instance_reg, target::Object::tags_offset()));
+    InitializeHeader(temp_reg, instance_reg);
   } else {
     b(failure);
   }
@@ -2011,7 +2011,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // instance: new object start as a tagged pointer.
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp2, tags);
-    str(temp2, FieldAddress(instance, target::Object::tags_offset()));
+    InitializeHeader(temp2, instance);
   } else {
     b(failure);
   }

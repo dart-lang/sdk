@@ -820,6 +820,15 @@ class Assembler : public AssemblerBase {
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
+  void InitializeHeader(Register tags, Register object) {
+    movl(FieldAddress(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on ia32.
+  }
+  void InitializeHeader(Immediate tags, Register object) {
+    movl(FieldAddress(object, target::Object::tags_offset()), tags);
+    // No fence: all stores are ordered on ia32.
+  }
+
   void StoreObjectIntoObjectNoBarrier(
       Register object,
       const Address& dest,

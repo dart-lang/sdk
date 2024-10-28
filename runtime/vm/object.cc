@@ -2837,7 +2837,11 @@ void Object::InitializeObject(uword address,
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
+
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+#if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
+  std::atomic_thread_fence(std::memory_order_release);
+#endif
 }
 
 void Object::CheckHandle() const {

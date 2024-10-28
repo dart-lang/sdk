@@ -1193,6 +1193,19 @@ class Assembler : public MicroAssembler {
     UNREACHABLE();
   }
 
+  void InitializeHeader(Register tags, Register object) {
+    sx(tags, FieldAddress(object, target::Object::tags_offset()));
+#if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
+    fence(kWrite, kWrite);
+#endif
+  }
+  void InitializeHeaderUntagged(Register tags, Register object) {
+    sx(tags, Address(object, target::Object::tags_offset()));
+#if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
+    fence(kWrite, kWrite);
+#endif
+  }
+
   void StoreBarrier(Register object,
                     Register value,
                     CanBeSmi can_value_be_smi,
