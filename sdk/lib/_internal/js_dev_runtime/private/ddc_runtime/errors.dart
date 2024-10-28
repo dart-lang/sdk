@@ -64,7 +64,8 @@ nullFailed(String? fileUri, int? line, int? column, String? variable) {
 }
 
 throwLateInitializationError(String name) {
-  throw internal.LateError(name);
+  var errorText = "Field '$name' has been assigned during initialization.";
+  throw internal.LateError(errorText);
 }
 
 throwCyclicInitializationError([String? field]) {

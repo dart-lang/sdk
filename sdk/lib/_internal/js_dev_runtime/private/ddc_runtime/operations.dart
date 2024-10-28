@@ -1145,3 +1145,51 @@ checkNativeNonNull(dynamic variable) {
   }
   return variable;
 }
+
+/// Returns whether or not [property] holds state that should be conserved
+/// across hot reloads.
+///
+/// These are generated for all fields after a hot reload.
+bool isStateBearingSymbol(property) => JS<bool>(
+    '!',
+    'typeof # == "symbol" && #.description.startsWith("_#v_")',
+    property,
+    property);
+
+/// Attempts to assign class [classDeclaration] as [classIdentifier] on [library].
+///
+/// During a hot reload, should [library.classIdentifier] already exist, this
+/// copies the members of [classDeclaration] and its prototype's properties to
+/// the existing class. Existing members not prefixed by a special identifier
+/// are replaced (see [isStateBearingSymbol]).
+declareClass(library, classIdentifier, classDeclaration) {
+  var originalClass = JS<Object>('!', '#.#', library, classIdentifier);
+  if (JS<bool>('!', '# === void 0', originalClass)) {
+    JS('', '#.# = #', library, classIdentifier, classDeclaration);
+  } else {
+    var newClassProto = JS<Object>('!', '#.prototype', classDeclaration);
+    var originalClassProto = JS<Object>('!', '#.prototype', originalClass);
+    var copyWhenProto = (property) => JS<bool>('!', '# || # === void 0',
+        !isStateBearingSymbol(property), originalClassProto);
+    copyProperties(originalClassProto, newClassProto, copyWhen: copyWhenProto);
+    var copyWhen = (property) => JS<bool>('!', '# || # === void 0',
+        !isStateBearingSymbol(property), originalClass);
+    copyProperties(originalClass, classDeclaration, copyWhen: copyWhen);
+  }
+  return JS<Object>('!', '#.#', library, classIdentifier);
+}
+
+/// Declares properties in [propertiesObject] on [topLevelContainer].
+///
+/// [topLevelContainer] must already exist.
+/// During a hot reload, properties in [propertiesObject] not prefixed by a
+/// special identifier are replaced (see [isStateBearingSymbol]).
+declareTopLevelProperties(topLevelContainer, propertiesObject) {
+  if (JS<bool>('!', '# === void 0', topLevelContainer)) {
+    throw Exception('$topLevelContainer does not exist.');
+  }
+  var copyWhen = (property) => JS<bool>('!', '# || #.# === void 0',
+      !isStateBearingSymbol(property), topLevelContainer, property);
+  copyProperties(topLevelContainer, propertiesObject, copyWhen: copyWhen);
+  return topLevelContainer;
+}
