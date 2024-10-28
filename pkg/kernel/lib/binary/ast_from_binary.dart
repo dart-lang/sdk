@@ -4177,6 +4177,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   void _readMetadataMappings(
       Component component, int binaryOffsetForMetadataPayloads) {
+    // If reading a component with several sub-components there's no reason to
+    // lookup in old ones.
+    _subsections = null;
+
     // At the beginning of this function _byteOffset points right past
     // metadataMappings to string table.
 
