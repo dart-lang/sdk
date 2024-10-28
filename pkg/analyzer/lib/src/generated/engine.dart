@@ -15,7 +15,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
@@ -34,10 +33,6 @@ export 'package:analyzer/dart/analysis/analysis_options.dart';
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
 export 'package:analyzer/src/generated/timestamped_data.dart'
     show TimestampedData;
-
-/// Used by [AnalysisOptions] to allow function bodies to be analyzed in some
-/// sources but not others.
-typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK
