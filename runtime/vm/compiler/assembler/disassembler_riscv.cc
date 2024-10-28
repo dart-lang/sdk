@@ -993,7 +993,11 @@ void RISCVDisassembler::DisassembleOP32_ADDUW(Instr instr) {
   switch (instr.funct3()) {
 #if XLEN >= 64
     case F3_0:
-      Print("add.uw 'rd, 'rs1, 'rs2", instr, RV_Zba);
+      if (instr.rs2() == ZR) {
+        Print("zext.w 'rd, 'rs1", instr, RV_Zba);
+      } else {
+        Print("add.uw 'rd, 'rs1, 'rs2", instr, RV_Zba);
+      }
       break;
     case ZEXT:
       Print("zext.h 'rd, 'rs1", instr, RV_Zbb);
@@ -1592,8 +1596,6 @@ void RISCVDisassembler::UnknownInstruction(CInstr instr) {
 void RISCVDisassembler::Print(const char* format,
                               Instr instr,
                               ExtensionSet ex) {
-  // Printf("  %08x ", instr.encoding());
-
   while (format[0] != '\0') {
     if (format[0] == '\'') {
       format = PrintOption(format + 1, instr);
@@ -1603,14 +1605,14 @@ void RISCVDisassembler::Print(const char* format,
     }
   }
 
-  // Printf("\n");
+  if (!Supports(ex)) {
+    Printf(" ;; from unsupported extension");
+  }
 }
 
 void RISCVDisassembler::Print(const char* format,
                               CInstr instr,
                               ExtensionSet ex) {
-  // Printf("      %04x ", instr.encoding());
-
   while (format[0] != '\0') {
     if (format[0] == '\'') {
       format = PrintOption(format + 1, instr);
@@ -1620,7 +1622,9 @@ void RISCVDisassembler::Print(const char* format,
     }
   }
 
-  // Printf("\n");
+  if (!Supports(ex)) {
+    Printf(" ;; from unsupported extension");
+  }
 }
 
 #define STRING_STARTS_WITH(string, compare_string)                             \
@@ -1816,6 +1820,8 @@ const char* RISCVDisassembler::PrintOption(const char* format, CInstr instr) {
   return nullptr;
 }
 
+ExtensionSet Disassembler::extensions_ = RV_baseline;
+
 void Disassembler::DecodeInstruction(char* hex_buffer,
                                      intptr_t hex_size,
                                      char* human_buffer,
@@ -1824,8 +1830,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
                                      const Code& code,
                                      Object** object,
                                      uword pc) {
-  RISCVDisassembler decoder(human_buffer, human_size,
-                            FLAG_use_compressed_instructions ? RV_GC : RV_G);
+  RISCVDisassembler decoder(human_buffer, human_size, extensions_);
   int instr_size = decoder.Disassemble(pc);
   if (instr_size == 2) {
     Utils::SNPrint(hex_buffer, hex_size, "    %04x",

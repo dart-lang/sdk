@@ -20,8 +20,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, use_compressed_instructions);
-
 #if defined(TARGET_ARCH_RISCV32)
 typedef uint32_t uintx_t;
 typedef int32_t intx_t;
@@ -1602,6 +1600,12 @@ static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 static constexpr Extension RV_Zbc(9);      // Carry-less multiplication
 static constexpr Extension RV_Zalasr(10);  // Load-acquire, store-release
+
+#if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
+static constexpr ExtensionSet RV_baseline = RV_GCB;
+#else
+static constexpr ExtensionSet RV_baseline = RV_GC;
+#endif
 
 #undef R
 
