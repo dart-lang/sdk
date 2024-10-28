@@ -90,12 +90,15 @@ class ConstructorInvocation extends Expression {
 }
 
 class IntegerLiteral extends Expression {
-  final String text;
+  final String? text;
+  final int? value;
 
-  IntegerLiteral(this.text);
+  IntegerLiteral.fromText(String this.text, [this.value]);
+
+  IntegerLiteral.fromValue(int this.value) : text = null;
 
   @override
-  String toString() => 'IntegerLiteral($text)';
+  String toString() => 'IntegerLiteral(${value ?? text})';
 
   @override
   Expression? resolve() => null;
@@ -103,8 +106,9 @@ class IntegerLiteral extends Expression {
 
 class DoubleLiteral extends Expression {
   final String text;
+  final double value;
 
-  DoubleLiteral(this.text);
+  DoubleLiteral(this.text, this.value);
 
   @override
   String toString() => 'DoubleLiteral($text)';
@@ -114,12 +118,12 @@ class DoubleLiteral extends Expression {
 }
 
 class BooleanLiteral extends Expression {
-  final String text;
+  final bool value;
 
-  BooleanLiteral(this.text);
+  BooleanLiteral(this.value);
 
   @override
-  String toString() => 'BooleanLiteral($text)';
+  String toString() => 'BooleanLiteral($value)';
 
   @override
   Expression? resolve() => null;

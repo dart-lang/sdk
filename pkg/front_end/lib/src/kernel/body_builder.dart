@@ -14,8 +14,12 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         IdentifierContext,
         MemberKind,
         Parser,
+        boolFromToken,
+        doubleFromToken,
+        intFromToken,
         lengthForToken,
-        lengthOfSpan;
+        lengthOfSpan,
+        stripSeparators;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -26,7 +30,6 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
@@ -3526,7 +3529,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    int? value = int.tryParse(token.lexeme);
+    int? value = intFromToken(token, hasSeparators: false);
     // Postpone parsing of literals resulting in a negative value
     // (hex literals >= 2^63). These are only allowed when not negated.
     if (value == null || value < 0) {
@@ -4795,8 +4798,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
-    bool value = token.isA(Keyword.TRUE);
-    assert(value || token.isA(Keyword.FALSE));
+    bool value = boolFromToken(token);
     push(forest.createBoolLiteral(offsetForToken(token), value));
   }
 
@@ -4804,7 +4806,7 @@ class BodyBuilder extends StackListenerImpl
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
     push(forest.createDoubleLiteral(
-        offsetForToken(token), double.parse(token.lexeme)));
+        offsetForToken(token), doubleFromToken(token, hasSeparators: false)));
   }
 
   @override
@@ -4819,8 +4821,7 @@ class BodyBuilder extends StackListenerImpl
           token.length);
     }
 
-    String source = stripSeparators(token.lexeme);
-    double value = double.parse(source);
+    double value = doubleFromToken(token, hasSeparators: true);
     push(forest.createDoubleLiteral(offsetForToken(token), value));
   }
 
