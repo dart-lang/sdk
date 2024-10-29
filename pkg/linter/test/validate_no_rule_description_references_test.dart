@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:linter/src/analyzer.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +14,7 @@ void main() {
       onPlatform: {'windows': Skip('Windows host may not have "grep" tool')},
       () {
     registerLintRules();
-    for (var rule in Analyzer.facade.registeredRules) {
+    for (var rule in Registry.ruleRegistry) {
       test(rule.name, () async {
         var result = Process.runSync('grep', ['-R', rule.description, 'test']);
         expect(result.stdout, isEmpty,

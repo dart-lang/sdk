@@ -5,8 +5,8 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:yaml/yaml.dart';
 
@@ -52,7 +52,7 @@ String? checkAllYaml() {
 
   registerLintRules();
 
-  var registeredRules = Analyzer.facade.registeredRules
+  var registeredRules = Registry.ruleRegistry
       .where((r) =>
           !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved)
       .map((r) => r.name);

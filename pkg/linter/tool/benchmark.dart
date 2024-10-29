@@ -27,6 +27,8 @@ Future<void> main(List<String> args) async {
   await runLinter(args);
 }
 
+const loggedAnalyzerErrorExitCode = 63;
+
 const unableToProcessExitCode = 64;
 
 Future<void> lintFiles(TestLinter linter, List<File> filesToLint) async {
