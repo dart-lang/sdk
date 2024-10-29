@@ -307,15 +307,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return element;
   }
 
-  AugmentedClassElementImpl? get augmentedIfReally {
-    if (augmentationTarget != null) {
-      if (augmented case AugmentedClassElementImpl augmented) {
-        return augmented;
-      }
-    }
-    return null;
-  }
-
   @override
   List<Element2> get children2 {
     throw StateError('This is a fragment');
@@ -3397,15 +3388,6 @@ class EnumElementImpl extends InterfaceElementImpl
     return element;
   }
 
-  AugmentedEnumElementImpl? get augmentedIfReally {
-    if (augmentationTarget != null) {
-      if (augmented case AugmentedEnumElementImpl augmented) {
-        return augmented;
-      }
-    }
-    return null;
-  }
-
   @override
   List<Element2> get children2 {
     throw StateError('This is a fragment');
@@ -3665,15 +3647,6 @@ class ExtensionElementImpl extends InstanceElementImpl
     return element;
   }
 
-  AugmentedExtensionElementImpl? get augmentedIfReally {
-    if (augmentationTarget != null) {
-      if (augmented case AugmentedExtensionElementImpl augmented) {
-        return augmented;
-      }
-    }
-    return null;
-  }
-
   @override
   List<Element> get children => [
         ...super.children,
@@ -3792,15 +3765,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   MaybeAugmentedExtensionTypeElementMixin get augmented {
     return element;
-  }
-
-  AugmentedExtensionTypeElementImpl? get augmentedIfReally {
-    if (augmentationTarget != null) {
-      if (augmented case AugmentedExtensionTypeElementImpl augmented) {
-        return augmented;
-      }
-    }
-    return null;
   }
 
   @override
@@ -7734,15 +7698,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   @override
   MaybeAugmentedMixinElementMixin get augmented {
     return element;
-  }
-
-  AugmentedMixinElementImpl? get augmentedIfReally {
-    if (augmentationTarget != null) {
-      if (augmented case AugmentedMixinElementImpl augmented) {
-        return augmented;
-      }
-    }
-    return null;
   }
 
   @override
