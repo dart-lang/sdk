@@ -13,8 +13,8 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/linter.dart';
+
+import 'linter_options.dart';
 
 import 'analysis_error_info.dart';
 

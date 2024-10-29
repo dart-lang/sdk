@@ -16,6 +16,7 @@ import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:linter/src/test_utilities/formatter.dart';
+import 'package:linter/src/test_utilities/linter_options.dart';
 import 'package:linter/src/test_utilities/test_linter.dart';
 import 'package:yaml/yaml.dart';
 

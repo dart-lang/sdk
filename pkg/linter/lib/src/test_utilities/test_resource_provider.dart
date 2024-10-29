@@ -12,6 +12,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import 'linter_options.dart';
 import 'test_linter.dart';
 
 /// Builds the [TestLinter] with appropriate mock SDK, resource providers, and

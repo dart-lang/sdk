@@ -21,7 +21,6 @@ export 'package:analyzer/src/lint/linter.dart'
         dart3_3,
         LintRule,
         LinterContext,
-        LinterOptions,
         NodeLintRegistry,
         State;
 export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
