@@ -159,7 +159,8 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
         if (errors.isNotEmpty) {
           fail('Errors found when parsing $path');
         }
-        var sorter = MemberSorter(code, unit, result.lineInfo);
+        var sorter = MemberSorter(code, unit,
+            result.analysisOptions.codeStyleOptions, result.lineInfo);
         var edits = sorter.sort();
         if (edits.isNotEmpty) {
           if (updateUnsorted) {

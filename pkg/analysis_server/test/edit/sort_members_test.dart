@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:linter/src/lint_names.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,6 +23,7 @@ class SortMembersTest extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> setUp() async {
+    registerLintRules();
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
@@ -248,6 +251,26 @@ class C {
 class Sub extends Super {}
 
 class Super {}
+''');
+  }
+
+  Future<void> test_OK_lint_sortConstructorsFirst() async {
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: [LintNames.sort_constructors_first]),
+    );
+
+    addTestFile('''
+class Z {
+  var a = '';
+  Z();
+}
+''');
+    await waitForTasksFinished();
+    return _assertSorted(r'''
+class Z {
+  Z();
+  var a = '';
+}
 ''');
   }
 

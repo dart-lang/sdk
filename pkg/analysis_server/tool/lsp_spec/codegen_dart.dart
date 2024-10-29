@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
@@ -304,7 +305,12 @@ String _rewriteCommentReference(String comment) {
 /// Sorts [content] as a Dart library.
 String _sortContent(String content) {
   var parseResult = parseString(content: content);
-  var sorter = MemberSorter(content, parseResult.unit, parseResult.lineInfo);
+  var sorter = MemberSorter(
+    content,
+    parseResult.unit,
+    CodeStyleOptionsImpl(useFormatter: true),
+    parseResult.lineInfo,
+  );
   var edits = sorter.sort();
   return SourceEdit.applySequence(content, edits);
 }
