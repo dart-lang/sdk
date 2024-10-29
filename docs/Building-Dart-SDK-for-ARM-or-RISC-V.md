@@ -6,6 +6,9 @@ The Dart VM runs on a variety of ARM processors on Linux and Android. This docum
 
 The build scripts download a Clang toolchain that can target IA32, X64, ARM, ARM64 or RISCV64 and run on an X64 or ARM64 host. For these cases, you do not need to install a cross-compiler yourself. For other cases, like building on a RISCV64 host or targeting RISCV32, you will need to manually install a toolchain.
 
+## General
+IMPORTANT: You must follow instructions for Getting the [source](https://github.com/dart-lang/sdk/blob/main/docs/Building.md#source) before attempting to build. Just cloning a GitHub repo or downloading and unpacking a ZIP of the SDK repository would not work.
+
 ## Linux
 
 If you are running Debian/Ubuntu, you can obtain a cross-compiler by doing the following:	
