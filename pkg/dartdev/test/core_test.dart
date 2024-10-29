@@ -41,7 +41,7 @@ void _dartdevCommand() {
   });
 
   test('compile', () {
-    assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 6);
+    assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 7);
   });
 
   test('compile/js', () {
@@ -49,6 +49,13 @@ void _dartdevCommand() {
         CompileCommand().subcommands['js'] as DartdevCommand,
         'js',
         'compile/js');
+  });
+
+  test('compile/js-dev', () {
+    assertDartdevCommandProperties(
+        CompileCommand().subcommands['js-dev'] as DartdevCommand,
+        'js-dev',
+        'compile/js-dev');
   });
 
   test('compile/jit-snapshot', () {
