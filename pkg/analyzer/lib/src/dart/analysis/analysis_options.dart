@@ -299,12 +299,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   FeatureSet nonPackageFeatureSet = ExperimentStatus();
 
   @override
-  List<String> enabledLegacyPluginNames;
+  final List<String> enabledLegacyPluginNames;
 
   @override
   List<PluginConfiguration> pluginConfigurations = [];
 
-  /// Return `true` if timing data should be gathered during execution.
+  /// Whether timing data should be gathered during execution.
   bool enableTiming = false;
 
   @override

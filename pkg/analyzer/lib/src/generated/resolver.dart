@@ -16,6 +16,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -28,7 +29,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -163,7 +163,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   final ErrorReporter errorReporter;
 
   /// The analysis options used by this resolver.
-  final AnalysisOptionsImpl analysisOptions;
+  final AnalysisOptions analysisOptions;
 
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
@@ -318,7 +318,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     AnalysisErrorListener errorListener, {
     required CompilationUnitElementImpl libraryFragment,
     required FeatureSet featureSet,
-    required AnalysisOptionsImpl analysisOptions,
+    required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
   }) : this._(
           inheritanceManager,

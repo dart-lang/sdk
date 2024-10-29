@@ -745,7 +745,7 @@ class AnalysisDriver {
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
   @experimental
-  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
@@ -2119,7 +2119,7 @@ class AnalysisDriver {
           strictCasts: analysisOptions.strictCasts);
 
       var analysisResult = LibraryAnalyzer(
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         declaredVariables,
         libraryElement,
         libraryContext.elementFactory.analysisSession.inheritanceManager,

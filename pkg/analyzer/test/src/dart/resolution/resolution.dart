@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -81,8 +80,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       typeProvider.objectType.element as ClassElement;
 
   bool get strictCasts {
-    var analysisOptions = result.session.analysisContext
-        .getAnalysisOptionsForFile(result.file) as AnalysisOptionsImpl;
+    var analysisOptions =
+        result.session.analysisContext.getAnalysisOptionsForFile(result.file);
     return analysisOptions.strictCasts;
   }
 

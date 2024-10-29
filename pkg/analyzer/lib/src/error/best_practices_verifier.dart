@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -100,8 +99,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required WorkspacePackage? workspacePackage,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
-        _strictInference =
-            (analysisOptions as AnalysisOptionsImpl).strictInference,
+        _strictInference = analysisOptions.strictInference,
         _inheritanceManager = inheritanceManager,
         _annotationVerifier = AnnotationVerifier(
             _errorReporter, _currentLibrary, workspacePackage),

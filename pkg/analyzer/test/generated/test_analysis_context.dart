@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -19,7 +20,7 @@ class TestAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
-  final AnalysisOptionsImpl _analysisOptions = AnalysisOptionsImpl();
+  final AnalysisOptions _analysisOptions = AnalysisOptionsImpl();
 
   late TypeProviderImpl _typeProvider;
   late TypeSystemImpl _typeSystem;
@@ -41,7 +42,7 @@ class TestAnalysisContext implements AnalysisContext {
   }
 
   @override
-  AnalysisOptionsImpl get analysisOptions => _analysisOptions;
+  AnalysisOptions get analysisOptions => _analysisOptions;
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 

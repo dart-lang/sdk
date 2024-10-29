@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -172,7 +173,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final InterfaceType _intType;
 
   /// The options for verification.
-  final AnalysisOptionsImpl options;
+  final AnalysisOptions options;
 
   /// The object providing access to the types defined by the language.
   final TypeProvider _typeProvider;
@@ -3770,7 +3771,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForIllegalLanguageOverride(CompilationUnit node) {
-    var sourceLanguageConstraint = options.sourceLanguageConstraint;
+    var sourceLanguageConstraint =
+        (options as AnalysisOptionsImpl).sourceLanguageConstraint;
     if (sourceLanguageConstraint == null) {
       return;
     }

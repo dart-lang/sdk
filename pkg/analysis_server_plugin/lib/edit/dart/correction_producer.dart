@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,7 +20,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -356,9 +356,8 @@ abstract class ResolvedCorrectionProducer
     extends CorrectionProducer<ResolvedUnitResult> {
   ResolvedCorrectionProducer({required super.context});
 
-  AnalysisOptionsImpl get analysisOptions =>
-      sessionHelper.session.analysisContext
-          .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
+  AnalysisOptions get analysisOptions => sessionHelper.session.analysisContext
+      .getAnalysisOptionsForFile(unitResult.file);
 
   InheritanceManager3 get inheritanceManager {
     return (libraryElement as LibraryElementImpl).session.inheritanceManager;
