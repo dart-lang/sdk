@@ -11,12 +11,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/generated/engine.dart' // ignore: implementation_imports
-    show
-        AnalysisErrorInfoImpl;
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:path/path.dart' as path;
 
@@ -103,7 +101,7 @@ class Driver {
                     .where((e) => e.errorCode.name != 'TODO')
                     .toList();
                 if (filtered.isNotEmpty) {
-                  errors.add(AnalysisErrorInfoImpl(filtered, result.lineInfo));
+                  errors.add(AnalysisErrorInfo(filtered, result.lineInfo));
                 }
               }
             } on Exception catch (e) {

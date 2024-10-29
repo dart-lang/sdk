@@ -10,11 +10,12 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/linter.dart';
+
+import 'analysis_error_info.dart';
+import 'linter_options.dart';
 
 class LintDriver {
   /// The files which have been analyzed so far.  This is used to compute the
@@ -60,10 +61,7 @@ class LintDriver {
       var errorsResult = await analysisSession.getErrors(path);
       if (errorsResult is ErrorsResult) {
         result.add(
-          AnalysisErrorInfoImpl(
-            errorsResult.errors,
-            errorsResult.lineInfo,
-          ),
+          AnalysisErrorInfo(errorsResult.errors, errorsResult.lineInfo),
         );
       }
     }

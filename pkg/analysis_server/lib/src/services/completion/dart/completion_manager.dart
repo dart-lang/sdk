@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -77,6 +78,11 @@ class DartCompletionManager {
   /// with the import index property updated.
   final NotImportedSuggestions? notImportedSuggestions;
 
+  /// Whether the number of suggestions initallly computed was
+  /// greater than the [maxSuggestions] for a given request, and they were
+  /// truncated to fit.
+  bool isTruncated = false;
+
   DartCompletionManager({
     required this.budget,
     this.listener,
@@ -96,6 +102,12 @@ class DartCompletionManager {
     request.checkAborted();
 
     var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
+
+      // Don't suggest in comments.
+    if (request.target.isCommentText) {
+      return collector;
+    }
+
     try {
       var selection = request.unit.select(offset: request.offset, length: 0);
       if (selection == null) {
@@ -138,6 +150,29 @@ class DartCompletionManager {
       // to be inconsistent. Just abort the operation.
       throw AbortCompletion();
     }
+    return collector;
+  }
+
+  /// Return a suggestion collector containing a finalized list of suggestions.
+  Future<SuggestionCollector> computeFinalizedCandidateSuggestions({
+    required int maxSuggestions,
+    required OperationPerformanceImpl performance,
+    required DartCompletionRequest request,
+  }) async {
+
+    var collector = await computeCandidateSuggestions(
+        maxSuggestions: maxSuggestions,
+        performance: performance,
+        request: request);
+
+    var notImportedSuggestions = this.notImportedSuggestions;
+
+    if (notImportedSuggestions != null && collector.isIncomplete) {
+      notImportedSuggestions.isIncomplete = true;
+    }
+    // Compute relevance, sort and truncate list.
+    isTruncated = collector.suggestions.length > maxSuggestions;
+    collector.finalize(RelevanceComputer(request, listener));
     return collector;
   }
 

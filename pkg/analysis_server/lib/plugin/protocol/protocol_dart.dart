@@ -19,7 +19,7 @@ Element convertElement(engine.Element element) {
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
   var aliasedType = getAliasedTypeString(element);
-  var elementParameters = _getParametersString(element);
+  var elementParameters = getParametersString(element);
   var elementReturnType = getReturnTypeString(element);
   return Element(
     kind,
@@ -188,7 +188,7 @@ String getElementDisplayName2(engine.Element2 element) {
   }
 }
 
-String? _getParametersString(engine.Element element) {
+String? getParametersString(engine.Element element) {
   // TODO(scheglov): expose the corresponding feature from ExecutableElement
   List<engine.ParameterElement> parameters;
   if (element is engine.ExecutableElement) {

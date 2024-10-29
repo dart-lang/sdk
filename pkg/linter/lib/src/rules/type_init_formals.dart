@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 
@@ -39,10 +39,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var nodeType = node.type;
     if (nodeType == null) return;
 
-    var paramElement = node.declaredElement;
-    if (paramElement is! FieldFormalParameterElement) return;
+    var paramElement = node.declaredFragment?.element;
+    if (paramElement is! FieldFormalParameterElement2) return;
 
-    var field = paramElement.field;
+    var field = paramElement.field2;
     // If no such field exists, the code is invalid; do not report lint.
     if (field != null && nodeType.type == field.type) {
       rule.reportLint(nodeType);
@@ -54,10 +54,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var nodeType = node.type;
     if (nodeType == null) return;
 
-    var paramElement = node.declaredElement;
-    if (paramElement is! SuperFormalParameterElement) return;
+    var paramElement = node.declaredFragment?.element;
+    if (paramElement is! SuperFormalParameterElement2) return;
 
-    var superConstructorParameter = paramElement.superConstructorParameter;
+    var superConstructorParameter = paramElement.superConstructorParameter2;
     if (superConstructorParameter == null) return;
 
     if (superConstructorParameter.type == nodeType.type) {

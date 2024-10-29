@@ -96,4 +96,8 @@ extension StringExtension on String {
     }
     return substring(0, 1).toUpperCase() + substring(1).toLowerCase();
   }
+
+  /// Returns `null` if this string is the same as [other], otherwise `this`.
+  String? orNullIfSameAs(String other) => this == other ? null : this;
 }
+

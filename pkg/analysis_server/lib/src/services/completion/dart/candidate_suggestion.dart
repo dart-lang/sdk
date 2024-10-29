@@ -724,6 +724,20 @@ final class NameSuggestion extends CandidateSuggestion {
   String get completion => name;
 }
 
+/// Additional information needed for an [OverrideSuggestion]. This should be
+/// computed when the [CandidateSuggestion] is converted over to the completion
+/// item.
+class OverrideData {
+  final String completion;
+  final String displayText;
+  final Set<Uri> imports;
+  final int selectionOffset;
+  final int selectionLength;
+
+  OverrideData(
+      this.completion, this.displayText, this.imports, this.selectionOffset, this.selectionLength);
+}
+
 /// The information about a candidate suggestion to create an override of an
 /// inherited method.
 final class OverrideSuggestion extends CandidateSuggestion
@@ -741,6 +755,10 @@ final class OverrideSuggestion extends CandidateSuggestion
   /// The source range that should be replaced by the override.
   final SourceRange replacementRange;
 
+  /// Data required for the suggestion, computed when [CandidateSuggestion]
+  /// is converted to a completion item as per the protocol.
+  OverrideData? data;
+
   /// Initialize a newly created candidate suggestion to suggest the [element]
   /// by inserting the [shouldInvokeSuper].
   OverrideSuggestion({
@@ -752,9 +770,7 @@ final class OverrideSuggestion extends CandidateSuggestion
   });
 
   @override
-  // TODO(brianwilkerson): This needs to be replaced with code to compute the
-  //  actual completion when we remove SuggestionBuilder.
-  String get completion => '@override ${element.displayName}';
+  String get completion =>  data?.completion ?? '@override ${element.displayName}';
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
@@ -1015,7 +1031,7 @@ final class TopLevelPropertyAccessSuggestion extends ImportableSuggestion
       required super.matcherScore});
 
   @override
-  String get completion => '$completionPrefix${element.name}';
+  String get completion => '$completionPrefix${element.displayName}';
 }
 
 /// The information about a candidate suggestion based on a top-level variable.

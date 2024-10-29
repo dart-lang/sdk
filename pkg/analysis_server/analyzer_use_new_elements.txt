@@ -134,7 +134,6 @@ lib/src/lsp/handlers/handler_cancel_request.dart
 lib/src/lsp/handlers/handler_change_workspace_folders.dart
 lib/src/lsp/handlers/handler_code_actions.dart
 lib/src/lsp/handlers/handler_code_lens.dart
-lib/src/lsp/handlers/handler_completion.dart
 lib/src/lsp/handlers/handler_dart_text_document_content_provider.dart
 lib/src/lsp/handlers/handler_document_color.dart
 lib/src/lsp/handlers/handler_document_highlights.dart

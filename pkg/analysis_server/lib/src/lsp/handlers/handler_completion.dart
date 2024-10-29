@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/completion_utils.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -14,8 +15,8 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
@@ -389,33 +390,26 @@ class CompletionHandler
 
     var isIncomplete = false;
     try {
-      var serverSuggestions2 =
+      var candidateSuggestions =
           await performance.runAsync('computeSuggestions', (performance) async {
         var contributor = DartCompletionManager(
           budget: CompletionBudget(completionBudgetDuration),
           notImportedSuggestions: notImportedSuggestions,
         );
 
-        var suggestions = await contributor.computeSuggestions(
-          completionRequest,
-          performance,
+        var suggestions =
+            await contributor.computeFinalizedCandidateSuggestions(
+          request: completionRequest,
+          performance: performance,
           maxSuggestions: maxSuggestions,
-          useFilter: true,
         );
 
         // Keep track of whether the set of results was truncated (because
         // budget was exhausted).
         isIncomplete =
-            contributor.notImportedSuggestions?.isIncomplete ?? false;
-
+            (contributor.notImportedSuggestions?.isIncomplete ?? false) ||
+                contributor.isTruncated;
         return suggestions;
-      });
-
-      var serverSuggestions =
-          performance.run('buildSuggestions', (performance) {
-        return serverSuggestions2
-            .map((serverSuggestion) => serverSuggestion.build())
-            .toList();
       });
 
       var replacementOffset = completionRequest.replacementOffset;
@@ -445,16 +439,22 @@ class CompletionHandler
       var defaults = _computeCompletionDefaults(
           capabilities, defaultInsertionRange, defaultReplacementRange);
 
-      /// Helper to convert [CompletionSuggestions] to [CompletionItem].
-      CompletionItem suggestionToCompletionItem(CompletionSuggestion item) {
-        var itemReplacementOffset =
-            item.replacementOffset ?? completionRequest.replacementOffset;
-        var itemReplacementLength =
-            item.replacementLength ?? completionRequest.replacementLength;
+      /// Helper to convert [CandidateSuggestion] to [CompletionItem].
+      Future<CompletionItem?> candidateSuggestionToCompletionItem(
+          CandidateSuggestion item) async {
+        if (item is OverrideSuggestion) {
+          item.data =
+              await createOverrideSuggestionData(item, completionRequest);
+        }
+        var itemReplacementOffset = completionRequest.replacementOffset;
+        var itemReplacementLength = completionRequest.replacementLength;
         var itemInsertLength = insertLength;
 
-        // Recompute the insert length if it may be affected by the above.
-        if (item.replacementOffset != null || item.replacementLength != null) {
+        if (item is NamedArgumentSuggestion) {
+          if (item.replacementLength != null) {
+            itemReplacementLength = item.replacementLength!;
+          }
+          // Recompute the insert length if it may be affected by the above.
           itemInsertLength = _computeInsertLength(
               offset, itemReplacementOffset, itemInsertLength);
         }
@@ -469,11 +469,25 @@ class CompletionHandler
         // to allow their additional edits (and documentation) to be handled
         // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
-        if (item is DartCompletionSuggestion) {
-          var elementLocation = item.elementLocation;
-          var importUris = item.requiredImports;
 
-          if (importUris.isNotEmpty) {
+        if (item is ElementBasedSuggestion && item is ImportableSuggestion) {
+          var elementLocation =
+              (item as ElementBasedSuggestion).element.location;
+          var importUri = item.importData?.libraryUri;
+
+          if (importUri != null) {
+            resolutionInfo = DartCompletionResolutionInfo(
+              file: unit.path,
+              importUris: [importUri.toString()],
+              ref: elementLocation?.encoding,
+            );
+          }
+        } else if (item is OverrideSuggestion) {
+          var overrideData = item.data;
+          if (overrideData != null && overrideData.imports.isNotEmpty) {
+            var elementLocation =
+                (item as ElementBasedSuggestion).element.location;
+            var importUris = overrideData.imports;
             resolutionInfo = DartCompletionResolutionInfo(
               file: unit.path,
               importUris: importUris.map((uri) => uri.toString()).toList(),
@@ -482,10 +496,11 @@ class CompletionHandler
           }
         }
 
-        return toCompletionItem(
+        return toLspCompletionItem(
           capabilities,
           unit.lineInfo,
           item,
+          request: completionRequest,
           uriConverter: uriConverter,
           pathContext: pathContext,
           completionFilePath: unit.path,
@@ -507,20 +522,16 @@ class CompletionHandler
         );
       }
 
-      var rankedResults = performance.run('mapSuggestions', (performance) {
-        return serverSuggestions
-            // Compute the fuzzy score which we can use both for filtering here
-            // and for truncation sorting later on.
-            .map((item) => (item: item, score: fuzzy.suggestionScore(item)))
-            // Filter out the non-matches.
-            .where((scoredItem) => scoredItem.score > 0)
-            // Convert to CompletionItem and re-attach the score to be used for
-            // truncation later.
-            .map((scoredItem) => (
-                  item: suggestionToCompletionItem(scoredItem.item),
-                  score: scoredItem.score
-                ))
-            .toList();
+      var rankedResults =
+          await performance.run('mapSuggestions', (performance) async {
+        var completionItems = <({CompletionItem item, double score})>[];
+        for (var suggestion in candidateSuggestions.suggestions) {
+          var item = await candidateSuggestionToCompletionItem(suggestion);
+          if (item != null) {
+              completionItems.add((item: item, score: suggestion.matcherScore));          
+          }
+        }
+        return completionItems;
       });
 
       // Add in any snippets.

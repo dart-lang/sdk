@@ -6,6 +6,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
+import 'package:linter/src/test_utilities/linter_options.dart';
 import 'package:linter/src/test_utilities/test_linter.dart';
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';

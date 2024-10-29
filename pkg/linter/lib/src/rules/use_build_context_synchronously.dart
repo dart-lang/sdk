@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
+import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';

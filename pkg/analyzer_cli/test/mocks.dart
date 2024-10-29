@@ -7,7 +7,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 
 class MockAnalysisError implements AnalysisError {
@@ -50,16 +49,6 @@ class MockAnalysisError implements AnalysisError {
 
   @override
   Severity get severity => Severity.error;
-}
-
-class MockAnalysisErrorInfo implements AnalysisErrorInfo {
-  @override
-  LineInfo lineInfo;
-
-  @override
-  List<AnalysisError> errors;
-
-  MockAnalysisErrorInfo(this.lineInfo, this.errors);
 }
 
 class MockCommandLineOptions implements CommandLineOptions {

@@ -36,7 +36,7 @@ class AnalyzerImpl {
   /// All files references by the analyzed library.
   final Set<String> files = <String>{};
 
-  /// All [AnalysisErrorInfo]s in the analyzed library.
+  /// All [ErrorsResult]s in the analyzed library.
   final List<ErrorsResult> errorsResults = [];
 
   /// If the file specified on the command line is part of a package, the name

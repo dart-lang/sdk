@@ -5,10 +5,8 @@
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:meta/meta.dart';
 
@@ -107,32 +105,4 @@ class AnalysisEngine {
     // Ensure the string canonicalization cache size is reasonable.
     pruneStringCanonicalizationCache();
   }
-}
-
-/// The analysis errors and line information for the errors.
-abstract class AnalysisErrorInfo {
-  /// Return the errors that as a result of the analysis, or `null` if there were
-  /// no errors.
-  List<AnalysisError> get errors;
-
-  /// Return the line information associated with the errors, or `null` if there
-  /// were no errors.
-  LineInfo get lineInfo;
-}
-
-/// The analysis errors and line info associated with a source.
-class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
-  /// The analysis errors associated with a source, or `null` if there are no
-  /// errors.
-  @override
-  final List<AnalysisError> errors;
-
-  /// The line information associated with the errors, or `null` if there are no
-  /// errors.
-  @override
-  final LineInfo lineInfo;
-
-  /// Initialize an newly created error info with the given [errors] and
-  /// [lineInfo].
-  AnalysisErrorInfoImpl(this.errors, this.lineInfo);
 }

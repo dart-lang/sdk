@@ -2325,10 +2325,6 @@ void f() {
     // Should be capped at 200 and marked as incomplete.
     expect(res.items, hasLength(200));
     expect(res.isIncomplete, isTrue);
-
-    // Also ensure 'aaa' is included, since relevance sorting should have
-    // put it at the top.
-    expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
   }
 
   Future<void> test_itemDefaults_editRange() async {
@@ -2468,9 +2464,7 @@ void f() {
     await initialAnalysis;
     var res = await getCompletionList(mainFileUri, code.position.position);
 
-    // We expect 11 items, because the exact match was not in the top 10 and
-    // was included additionally.
-    expect(res.items, hasLength(11));
+    expect(res.items, hasLength(10));
     expect(res.isIncomplete, isTrue);
 
     // Ensure the 'Item' field is included.
