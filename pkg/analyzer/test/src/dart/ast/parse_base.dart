@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -15,7 +16,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 class ParseBase with ResourceProviderMixin {
   /// Override this to change the analysis options for a given set of tests.
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
+  AnalysisOptions get analysisOptions => AnalysisOptionsImpl();
 
   ParseResult parseUnit(String path) {
     var file = getFile(path);

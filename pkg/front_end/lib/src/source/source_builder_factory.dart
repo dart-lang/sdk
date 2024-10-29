@@ -1308,7 +1308,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       String name,
       List<NominalParameterBuilder>? typeParameters,
       TypeBuilder type,
-      int charOffset) {
+      int nameOffset) {
     if (typeParameters != null) {
       for (NominalParameterBuilder typeParameter in typeParameters) {
         typeParameter.varianceCalculationValue =
@@ -1326,7 +1326,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameters: typeParameters,
         type: type,
         fileUri: _compilationUnit.fileUri,
-        fileOffset: charOffset);
+        nameOffset: nameOffset);
     _addFragment(fragment);
   }
 
@@ -1687,17 +1687,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       {required List<MetadataBuilder>? metadata,
       required TypeBuilder type,
       required String name,
-      required int charOffset}) {
+      required int nameOffset}) {
     _declarationFragments.current.addPrimaryConstructorField(_addField(
-        metadata,
-        Modifiers.Final,
-        /* isTopLevel = */ false,
-        type,
-        name,
-        /* charOffset = */ charOffset,
-        /* charEndOffset = */ charOffset,
-        /* initializerToken = */ null,
-        /* hasInitializer = */ false));
+        metadata: metadata,
+        modifiers: Modifiers.Final,
+        isTopLevel: false,
+        type: type,
+        name: name,
+        nameOffset: nameOffset,
+        endOffset: nameOffset,
+        initializerToken: null,
+        hasInitializer: false));
   }
 
   @override
@@ -2122,39 +2122,39 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       offsetMap.registerField(
           info.identifier,
           _addField(
-              metadata,
-              modifiers,
-              isTopLevel,
-              type ?? addInferableType(),
-              info.identifier.name,
-              info.identifier.nameOffset,
-              info.charEndOffset,
-              startToken,
-              hasInitializer,
+              metadata: metadata,
+              modifiers: modifiers,
+              isTopLevel: isTopLevel,
+              type: type ?? addInferableType(),
+              name: info.identifier.name,
+              nameOffset: info.identifier.nameOffset,
+              endOffset: info.endOffset,
+              initializerToken: startToken,
+              hasInitializer: hasInitializer,
               constInitializerToken:
                   potentiallyNeedInitializerInOutline ? startToken : null));
     }
   }
 
   FieldFragment _addField(
-      List<MetadataBuilder>? metadata,
-      Modifiers modifiers,
-      bool isTopLevel,
-      TypeBuilder type,
-      String name,
-      int charOffset,
-      int charEndOffset,
-      Token? initializerToken,
-      bool hasInitializer,
-      {Token? constInitializerToken}) {
+      {required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required bool isTopLevel,
+      required TypeBuilder type,
+      required String name,
+      required int nameOffset,
+      required int endOffset,
+      required Token? initializerToken,
+      required bool hasInitializer,
+      Token? constInitializerToken}) {
     if (hasInitializer) {
       modifiers |= Modifiers.HasInitializer;
     }
     FieldFragment fragment = new FieldFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
-        charOffset: charOffset,
-        charEndOffset: charEndOffset,
+        nameOffset: nameOffset,
+        endOffset: endOffset,
         initializerToken: initializerToken,
         constInitializerToken: constInitializerToken,
         metadata: metadata,

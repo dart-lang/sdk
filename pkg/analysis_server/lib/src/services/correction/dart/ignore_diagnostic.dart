@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
@@ -38,7 +39,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
     if (_isCodeUnignorable) return;
 
-    var analysisOptionsFile = analysisOptions.file;
+    var analysisOptionsFile = (analysisOptions as AnalysisOptionsImpl).file;
 
     // TODO(osaxma): should an `analysis_options.yaml` be created when
     //               it doesn't exists?
@@ -227,8 +228,9 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   /// - `error.code` is present in the `cannot-ignore` list.
   /// - `error.code` is already ignored in the `errors` list.
   bool get _isCodeUnignorable {
-    var cannotIgnore =
-        analysisOptions.unignorableNames.contains(error.errorCode.name);
+    var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
+        .unignorableNames
+        .contains(error.errorCode.name);
 
     if (cannotIgnore) {
       return true;

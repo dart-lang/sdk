@@ -218,5 +218,5 @@ extension on DriverBasedAnalysisContext {
   }
 
   AnalysisOptionsImpl getAnalysisOptionsImplForFile(File file) =>
-      driver.getAnalysisOptionsForFile(file);
+      driver.getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
 }

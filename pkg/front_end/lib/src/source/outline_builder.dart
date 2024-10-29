@@ -1655,7 +1655,7 @@ class OutlineBuilder extends StackListenerImpl {
             metadata: null,
             type: formal.type,
             name: formal.name,
-            charOffset: formal.fileOffset);
+            nameOffset: formal.fileOffset);
         formals[i] = formal.forPrimaryConstructor(_builderFactory);
       }
       if (inExtensionType) {

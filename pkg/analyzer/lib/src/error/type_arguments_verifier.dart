@@ -4,6 +4,7 @@
 
 import "dart:math" as math;
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -11,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -19,7 +19,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class TypeArgumentsVerifier {
-  final AnalysisOptionsImpl _options;
+  final AnalysisOptions _options;
   final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
@@ -222,7 +222,7 @@ class TypeArgumentsVerifier {
   }
 
   /// Checks a type annotation for a raw generic type, and reports the
-  /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
+  /// appropriate error if [AnalysisOptions.strictRawTypes] is set.
   ///
   /// This checks if [node] refers to a generic type and does not have explicit
   /// or inferred type arguments. When that happens, it reports error code

@@ -1,0 +1,41 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/sdk/issues/56911
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=false`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=false --enable-vm-service \
+# --serve-observatory --disable-service-auth-codes --pause_isolates_on_start \
+# inputFile.dart
+# ```
+# and then issuing the expression compilation. It will then print stuff like
+# `DFE: request[6]: [dart:core, _OneByteString, 1, 0]` in the terminal.
+
+sources: |
+  void main() {
+    List<ExtensionType> list = [new ExtensionType(0)];
+    list.forEach((ExtensionType input) {
+      print(input.value);
+    });
+  }
+
+  extension type ExtensionType._(String s) {
+    ExtensionType(int i) : this._("$i");
+    int get value => s.codeUnitAt(0);
+  }
+
+definitions: ["input"]
+# String
+definition_types: ["dart:core", "_OneByteString", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "<anonymous closure>"
+static: true
+offset: 122 # at the 'value' of 'print(input.value)' line.
+scriptUri: main.dart
+expression: |
+  input.value
