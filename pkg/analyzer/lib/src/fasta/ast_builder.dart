@@ -3636,6 +3636,14 @@ class AstBuilder extends StackListener {
               var awaitToken = variable.name;
               if (awaitToken.type == Keyword.AWAIT ||
                   awaitToken.type == TokenType.IDENTIFIER) {
+                // We see `x.foo await;`, where `;` is synthetic.
+                // It is followed by `y.bar()`.
+                // Insert a new `;`, and (unfortunately) drop `await;`.
+                type.name2.setNext(semicolon.next!);
+                var semicolon2 = parser.rewriter.insertSyntheticToken(
+                  type.name2,
+                  TokenType.SEMICOLON,
+                );
                 push(
                   ExpressionStatementImpl(
                     expression: PrefixedIdentifierImpl(
@@ -3643,10 +3651,9 @@ class AstBuilder extends StackListener {
                       period: importPrefix.period,
                       identifier: SimpleIdentifierImpl(type.name2),
                     ),
-                    semicolon: semicolon,
+                    semicolon: semicolon2,
                   ),
                 );
-                parser.rewriter.insertToken(semicolon, awaitToken);
                 return;
               }
             }
