@@ -4088,10 +4088,10 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
   FieldFormalParameterElementImpl2(super.firstFragment);
 
   @override
-  FieldElement2? get field2 =>
-      ((firstFragment as FieldFormalParameterElementImpl).field
-              as FieldFragment)
-          .element;
+  FieldElement2? get field2 => switch (firstFragment) {
+        FieldFormalParameterElementImpl(:FieldFragment field) => field.element,
+        _ => null,
+      };
 }
 
 class FormalParameterElementImpl extends PromotableElementImpl2
@@ -9724,10 +9724,17 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
   SuperFormalParameterElementImpl2(super.firstFragment);
 
   @override
-  FormalParameterElement? get superConstructorParameter2 =>
-      ((firstFragment as SuperFormalParameterElementImpl)
-              .superConstructorParameter as FormalParameterFragment?)
-          ?.element;
+  FormalParameterElement? get superConstructorParameter2 {
+    var superConstructorParameter =
+        (firstFragment as SuperFormalParameterElementImpl)
+            .superConstructorParameter;
+    return switch (superConstructorParameter) {
+      ParameterMember() =>
+        superConstructorParameter.asElement2 as FormalParameterElement?,
+      FormalParameterFragment()? => superConstructorParameter.element,
+      _ => null,
+    };
+  }
 }
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
