@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't lint augmentations.
     if (node.isAugmentation) return;
 
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredFragment?.element;
     if (declaredElement != null && !declaredElement.isPrivate) {
       checkParams(node.parameters.parameters);
     }
@@ -63,8 +63,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't lint augmentations.
     if (node.isAugmentation) return;
 
-    var declaredElement = node.declaredElement;
-    if (declaredElement != null && !declaredElement.isPrivate) {
+    var element = node.element;
+    if (element != null && !element.isPrivate) {
       checkParams(node.functionExpression.parameters?.parameters);
     }
   }
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't lint augmentations.
     if (node.isAugmentation) return;
 
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredFragment?.element;
     if (declaredElement != null &&
         !node.isSetter &&
         !declaredElement.isPrivate &&
@@ -90,21 +90,28 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isOverridingMember(Element member) {
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
+  bool _isOverridingMember(Element2 member) {
+    var classElement = member.thisOrAncestorOfType2<ClassElement2>();
     if (classElement == null) return false;
 
-    var name = member.name;
+    var name = member.name3;
     if (name == null) return false;
 
-    var libraryUri = classElement.library.source.uri;
+    var libraryUri = classElement.library2.firstFragment.source.uri;
     return context.inheritanceManager
-            .getInherited(classElement.thisType, Name(libraryUri, name)) !=
+            .getInherited3(classElement.thisType, Name(libraryUri, name)) !=
         null;
   }
 
   static bool _isBoolean(FormalParameter node) {
-    var type = node.declaredElement?.type;
+    var type = node.declaredFragment?.element.type;
     return !node.isNamed && type is InterfaceType && type.isDartCoreBool;
   }
+}
+
+// TODO(pq): consider moving to `extensions.dart`
+extension on FunctionDeclaration {
+  ExecutableElement2? get element =>
+      // Check for a local function first.
+      declaredElement2 ?? declaredFragment?.element;
 }
