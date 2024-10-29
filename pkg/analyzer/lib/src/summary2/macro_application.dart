@@ -157,7 +157,7 @@ class LibraryMacroApplier {
       switch (declaration) {
         case ast.ClassDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -169,7 +169,7 @@ class LibraryMacroApplier {
           );
         case ast.ClassTypeAliasImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -181,7 +181,7 @@ class LibraryMacroApplier {
           );
         case ast.EnumDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -203,7 +203,7 @@ class LibraryMacroApplier {
           }
         case ast.ExtensionDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -215,7 +215,7 @@ class LibraryMacroApplier {
           );
         case ast.ExtensionTypeDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -248,7 +248,7 @@ class LibraryMacroApplier {
           );
         case ast.MixinDeclarationImpl():
           var element = declaration.declaredElement!;
-          var declarationElement = element.augmented.declaration;
+          var declarationElement = element.augmented.firstFragment;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,

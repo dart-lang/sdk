@@ -2044,7 +2044,7 @@ class ResolutionReader {
     if (memberFlags == Tag.MemberWithTypeArguments) {
       var enclosing = element.enclosingElement3 as InstanceElement;
 
-      var declaration = enclosing.augmented.declaration;
+      var declaration = enclosing.augmented.firstFragment;
       var declarationTypeParameters = declaration.typeParameters;
 
       var augmentationSubstitution = Substitution.empty;

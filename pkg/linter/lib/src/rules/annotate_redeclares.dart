@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null || element.hasRedeclare) return;
 
     var parentElement = parent.declaredElement;
-    var extensionType = parentElement?.augmented.declaration;
+    var extensionType = parentElement?.augmented.firstFragment;
     if (extensionType == null) return;
 
     if (_redeclaresMember(element, extensionType)) {

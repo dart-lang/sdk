@@ -372,8 +372,8 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// Whether this is a constructor invocation for a class that has the Flutter
   /// class `Widget` as a superclass.
   bool get isWidgetCreation {
-    var element =
-        constructorName.staticElement?.enclosingElement3.augmented.declaration;
+    var element = constructorName
+        .staticElement?.enclosingElement3.augmented.firstFragment;
     return element.isWidget;
   }
 
@@ -391,8 +391,8 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
 
   /// The presentation for this node.
   String? get widgetPresentationText {
-    var element =
-        constructorName.staticElement?.enclosingElement3.augmented.declaration;
+    var element = constructorName
+        .staticElement?.enclosingElement3.augmented.firstFragment;
     if (!element.isWidget) {
       return null;
     }

@@ -214,7 +214,7 @@ class _UnnecessaryMethodOverrideVisitor
     if (enclosingElement is! InterfaceElement) return null;
 
     var augmented = enclosingElement.augmented;
-    return augmented.declaration.thisType.lookUpMethod2(
+    return augmented.firstFragment.thisType.lookUpMethod2(
       node.name.lexeme,
       element.library,
       concrete: true,

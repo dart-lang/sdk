@@ -387,7 +387,7 @@ class TypesBuilder {
       return;
     }
 
-    var declaration = augmented.declaration;
+    var declaration = augmented.firstFragment;
     var declarationTypeParameters = declaration.typeParameters;
 
     var augmentationTypeParameters = element.typeParameters;

@@ -112,11 +112,11 @@ class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
   final Reference reference;
 
   @override
-  final ClassElementImpl declaration;
+  final ClassElementImpl firstFragment;
 
-  AugmentedClassElementImpl(this.reference, this.declaration) {
+  AugmentedClassElementImpl(this.reference, this.firstFragment) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 }
 
@@ -126,11 +126,11 @@ class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
   final Reference reference;
 
   @override
-  final EnumElementImpl declaration;
+  final EnumElementImpl firstFragment;
 
-  AugmentedEnumElementImpl(this.reference, this.declaration) {
+  AugmentedEnumElementImpl(this.reference, this.firstFragment) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 }
 
@@ -140,11 +140,11 @@ class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
   final Reference reference;
 
   @override
-  final ExtensionElementImpl declaration;
+  final ExtensionElementImpl firstFragment;
 
-  AugmentedExtensionElementImpl(this.reference, this.declaration) {
+  AugmentedExtensionElementImpl(this.reference, this.firstFragment) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 }
 
@@ -154,11 +154,11 @@ class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
   final Reference reference;
 
   @override
-  final ExtensionTypeElementImpl declaration;
+  final ExtensionTypeElementImpl firstFragment;
 
-  AugmentedExtensionTypeElementImpl(this.reference, this.declaration) {
+  AugmentedExtensionTypeElementImpl(this.reference, this.firstFragment) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 }
 
@@ -197,14 +197,14 @@ class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
   final Reference reference;
 
   @override
-  final MixinElementImpl declaration;
+  final MixinElementImpl firstFragment;
 
   @override
   List<InterfaceType> superclassConstraints = [];
 
-  AugmentedMixinElementImpl(this.reference, this.declaration) {
+  AugmentedMixinElementImpl(this.reference, this.firstFragment) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 }
 
@@ -1499,7 +1499,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result as InterfaceType;
     }
 
-    var augmentedDeclaration = enclosingElement3.augmented.declaration;
+    var augmentedDeclaration = enclosingElement3.augmented.firstFragment;
     result = augmentedDeclaration.thisType;
     return _returnType = result as InterfaceType;
   }
@@ -6651,52 +6651,49 @@ mixin MacroTargetElement on ElementImpl {
 mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
     implements AugmentedClassElement, ClassElement2 {
   @override
-  ClassElementImpl get declaration;
+  ClassElementImpl get firstFragment;
 
   @override
-  ClassElementImpl get firstFragment => declaration;
+  bool get hasNonFinalField => firstFragment.hasNonFinalField;
 
   @override
-  bool get hasNonFinalField => declaration.hasNonFinalField;
+  bool get isAbstract => firstFragment.isAbstract;
 
   @override
-  bool get isAbstract => declaration.isAbstract;
+  bool get isBase => firstFragment.isBase;
 
   @override
-  bool get isBase => declaration.isBase;
+  bool get isConstructable => firstFragment.isConstructable;
 
   @override
-  bool get isConstructable => declaration.isConstructable;
+  bool get isDartCoreEnum => firstFragment.isDartCoreEnum;
 
   @override
-  bool get isDartCoreEnum => declaration.isDartCoreEnum;
+  bool get isDartCoreObject => firstFragment.isDartCoreObject;
 
   @override
-  bool get isDartCoreObject => declaration.isDartCoreObject;
+  bool get isExhaustive => firstFragment.isExhaustive;
 
   @override
-  bool get isExhaustive => declaration.isExhaustive;
+  bool get isFinal => firstFragment.isFinal;
 
   @override
-  bool get isFinal => declaration.isFinal;
+  bool get isInterface => firstFragment.isInterface;
 
   @override
-  bool get isInterface => declaration.isInterface;
+  bool get isMacro => firstFragment.isMacro;
 
   @override
-  bool get isMacro => declaration.isMacro;
+  bool get isMixinApplication => firstFragment.isMixinApplication;
 
   @override
-  bool get isMixinApplication => declaration.isMixinApplication;
+  bool get isMixinClass => firstFragment.isMixinClass;
 
   @override
-  bool get isMixinClass => declaration.isMixinClass;
+  bool get isSealed => firstFragment.isSealed;
 
   @override
-  bool get isSealed => declaration.isSealed;
-
-  @override
-  bool get isValidMixin => declaration.isValidMixin;
+  bool get isValidMixin => firstFragment.isValidMixin;
 
   /// See [ElementImpl2.reference].
   Reference get reference;
@@ -6708,15 +6705,15 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
 
   @override
   bool isExtendableIn2(LibraryElement2 library) =>
-      declaration.isExtendableIn(library as LibraryElement);
+      firstFragment.isExtendableIn(library as LibraryElement);
 
   @override
   bool isImplementableIn2(LibraryElement2 library) =>
-      declaration.isImplementableIn(library as LibraryElement);
+      firstFragment.isImplementableIn(library as LibraryElement);
 
   @override
   bool isMixableIn2(LibraryElement2 library) =>
-      declaration.isMixableIn(library as LibraryElement);
+      firstFragment.isMixableIn(library as LibraryElement);
 }
 
 mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
@@ -6730,10 +6727,7 @@ mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
   List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
 
   @override
-  EnumElementImpl get declaration;
-
-  @override
-  EnumFragment get firstFragment => declaration;
+  EnumElementImpl get firstFragment;
 
   /// See [ElementImpl2.reference].
   Reference get reference;
@@ -6750,10 +6744,7 @@ mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
   DartType extendedType = InvalidTypeImpl.instance;
 
   @override
-  ExtensionElementImpl get declaration;
-
-  @override
-  ExtensionElementImpl get firstFragment => declaration;
+  ExtensionElementImpl get firstFragment;
 
   /// See [ElementImpl2.reference].
   Reference get reference;
@@ -6780,10 +6771,7 @@ mixin MaybeAugmentedExtensionTypeElementMixin
   late DartType typeErasure;
 
   @override
-  ExtensionTypeElementImpl get declaration;
-
-  @override
-  ExtensionTypeElementImpl get firstFragment => declaration;
+  ExtensionTypeElementImpl get firstFragment;
 
   @override
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
@@ -6823,16 +6811,13 @@ mixin MaybeAugmentedInstanceElementMixin
   }
 
   @override
-  InstanceElementImpl get declaration;
+  String get displayName => firstFragment.displayName;
 
   @override
-  String get displayName => declaration.displayName;
+  String? get documentationComment => firstFragment.documentationComment;
 
   @override
-  String? get documentationComment => declaration.documentationComment;
-
-  @override
-  LibraryElement2 get enclosingElement2 => declaration.library;
+  LibraryElement2 get enclosingElement2 => firstFragment.library;
 
   @override
   List<FieldElement> get fields;
@@ -6842,7 +6827,7 @@ mixin MaybeAugmentedInstanceElementMixin
       fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
 
   @override
-  InstanceFragment get firstFragment => declaration;
+  InstanceElementImpl get firstFragment;
 
   @override
   List<GetterElement> get getters2 => accessors
@@ -6852,34 +6837,34 @@ mixin MaybeAugmentedInstanceElementMixin
       .toList();
 
   @override
-  int get id => declaration.id;
+  int get id => firstFragment.id;
 
   @override
-  bool get isPrivate => declaration.isPrivate;
+  bool get isPrivate => firstFragment.isPrivate;
 
   @override
-  bool get isPublic => declaration.isPublic;
+  bool get isPublic => firstFragment.isPublic;
 
   @override
-  bool get isSimplyBounded => declaration.isSimplyBounded;
+  bool get isSimplyBounded => firstFragment.isSimplyBounded;
 
   @override
-  bool get isSynthetic => declaration.isSynthetic;
+  bool get isSynthetic => firstFragment.isSynthetic;
 
   @override
-  ElementKind get kind => declaration.kind;
+  ElementKind get kind => firstFragment.kind;
 
   @override
-  LibraryElement2 get library2 => declaration.library2!;
+  LibraryElement2 get library2 => firstFragment.library2!;
 
   @override
-  ElementLocation? get location => declaration.location;
+  ElementLocation? get location => firstFragment.location;
 
   @override
-  List<ElementAnnotation> get metadata => declaration.metadata;
+  List<ElementAnnotation> get metadata => firstFragment.metadata;
 
   @override
-  Metadata get metadata2 => declaration.metadata2;
+  Metadata get metadata2 => firstFragment.metadata2;
 
   @override
   List<MethodElement> get methods;
@@ -6889,14 +6874,14 @@ mixin MaybeAugmentedInstanceElementMixin
       methods.map((e) => e.asElement2 as MethodElement2?).nonNulls.toList();
 
   @override
-  String? get name3 => declaration.name;
+  String? get name3 => firstFragment.name;
 
   @override
   Element2 get nonSynthetic2 =>
       isSynthetic ? enclosingElement2 : this as Element2;
 
   @override
-  AnalysisSession? get session => declaration.session;
+  AnalysisSession? get session => firstFragment.session;
 
   @override
   List<SetterElement> get setters2 => accessors
@@ -6906,14 +6891,15 @@ mixin MaybeAugmentedInstanceElementMixin
       .toList();
 
   @override
-  List<TypeParameterElement2> get typeParameters2 => declaration.typeParameters
-      .map((fragment) => (fragment as TypeParameterFragment).element)
-      .toList();
+  List<TypeParameterElement2> get typeParameters2 =>
+      firstFragment.typeParameters
+          .map((fragment) => (fragment as TypeParameterFragment).element)
+          .toList();
 
   @override
   String displayString2(
           {bool multiline = false, bool preferTypeAlias = false}) =>
-      declaration.getDisplayString(
+      firstFragment.getDisplayString(
           multiline: multiline, preferTypeAlias: preferTypeAlias);
 
   @override
@@ -6963,7 +6949,7 @@ mixin MaybeAugmentedInstanceElementMixin
 
   @override
   bool isAccessibleIn2(LibraryElement2 library) =>
-      declaration.isAccessibleIn(library as LibraryElement);
+      firstFragment.isAccessibleIn(library as LibraryElement);
 
   @override
   PropertyAccessorElement? lookUpGetter({
@@ -7046,7 +7032,7 @@ mixin MaybeAugmentedInstanceElementMixin
           yield getter;
         }
       }
-      augmented = augmented.declaration.supertype?.element.augmented;
+      augmented = augmented.firstFragment.supertype?.element.augmented;
     }
   }
 
@@ -7078,7 +7064,7 @@ mixin MaybeAugmentedInstanceElementMixin
           yield method;
         }
       }
-      augmented = augmented.declaration.supertype?.element.augmented;
+      augmented = augmented.firstFragment.supertype?.element.augmented;
     }
   }
 
@@ -7111,7 +7097,7 @@ mixin MaybeAugmentedInstanceElementMixin
           yield setter;
         }
       }
-      augmented = augmented.declaration.supertype?.element.augmented;
+      augmented = augmented.firstFragment.supertype?.element.augmented;
     }
   }
 }
@@ -7121,7 +7107,7 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
   InterfaceType? _thisType;
 
   @override
-  List<InterfaceType> get allSupertypes => declaration.allSupertypes;
+  List<InterfaceType> get allSupertypes => firstFragment.allSupertypes;
 
   @override
   List<Element2> get children2 {
@@ -7138,22 +7124,22 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
       .toList();
 
   @override
-  InterfaceElementImpl get declaration;
+  InterfaceElementImpl get firstFragment;
 
   @override
-  List<InterfaceType> get interfaces => declaration.interfaces;
+  List<InterfaceType> get interfaces => firstFragment.interfaces;
 
   @override
-  List<InterfaceType> get mixins => declaration.mixins;
+  List<InterfaceType> get mixins => firstFragment.mixins;
 
   @override
-  InterfaceType? get supertype => declaration.supertype;
+  InterfaceType? get supertype => firstFragment.supertype;
 
   @override
   InterfaceType get thisType {
     if (_thisType == null) {
       List<DartType> typeArguments;
-      var typeParameters = declaration.typeParameters;
+      var typeParameters = firstFragment.typeParameters;
       if (typeParameters.isNotEmpty) {
         typeArguments = typeParameters.map<DartType>((t) {
           return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
@@ -7161,7 +7147,7 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
       } else {
         typeArguments = const <DartType>[];
       }
-      return _thisType = declaration.instantiate(
+      return _thisType = firstFragment.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -7189,20 +7175,17 @@ mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) =>
-      declaration.instantiate(
+      firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
 }
 
 mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
     implements AugmentedMixinElement, MixinElement2 {
   @override
-  MixinElementImpl get declaration;
+  MixinElementImpl get firstFragment;
 
   @override
-  MixinElementImpl get firstFragment => declaration;
-
-  @override
-  bool get isBase => declaration.isBase;
+  bool get isBase => firstFragment.isBase;
 
   /// See [ElementImpl2.reference].
   Reference get reference;
@@ -7214,7 +7197,7 @@ mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
 
   @override
   bool isImplementableIn2(LibraryElement2 library) =>
-      declaration.isImplementableIn(library as LibraryElement);
+      firstFragment.isImplementableIn(library as LibraryElement);
 }
 
 final class MetadataImpl implements Metadata {
@@ -8335,12 +8318,12 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
   }
 
   @override
-  ClassElementImpl get declaration => element;
+  ClassElementImpl get firstFragment => element;
 
   @override
   AugmentedClassElementImpl toAugmented() {
-    var augmented = AugmentedClassElementImpl(reference, declaration);
-    declaration.augmentedInternal = augmented;
+    var augmented = AugmentedClassElementImpl(reference, firstFragment);
+    firstFragment.augmentedInternal = augmented;
     return augmented;
   }
 }
@@ -8359,12 +8342,12 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
   }
 
   @override
-  EnumElementImpl get declaration => element;
+  EnumElementImpl get firstFragment => element;
 
   @override
   AugmentedEnumElementImpl toAugmented() {
-    var augmented = AugmentedEnumElementImpl(reference, declaration);
-    declaration.augmentedInternal = augmented;
+    var augmented = AugmentedEnumElementImpl(reference, firstFragment);
+    firstFragment.augmentedInternal = augmented;
     return augmented;
   }
 }
@@ -8379,17 +8362,17 @@ class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
 
   NotAugmentedExtensionElementImpl(this.reference, this.element) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 
   @override
-  ExtensionElementImpl get declaration => element;
+  ExtensionElementImpl get firstFragment => element;
 
   @override
   AugmentedExtensionElementImpl toAugmented() {
-    var augmented = AugmentedExtensionElementImpl(reference, declaration);
+    var augmented = AugmentedExtensionElementImpl(reference, firstFragment);
     augmented.extendedType = extendedType;
-    declaration.augmentedInternal = augmented;
+    firstFragment.augmentedInternal = augmented;
     return augmented;
   }
 }
@@ -8405,18 +8388,18 @@ class NotAugmentedExtensionTypeElementImpl
 
   NotAugmentedExtensionTypeElementImpl(this.reference, this.element) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 
   @override
-  ExtensionTypeElementImpl get declaration => element;
+  ExtensionTypeElementImpl get firstFragment => element;
 
   @override
   AugmentedExtensionTypeElementImpl toAugmented() {
-    var augmented = AugmentedExtensionTypeElementImpl(reference, declaration);
+    var augmented = AugmentedExtensionTypeElementImpl(reference, firstFragment);
     augmented.primaryConstructor = primaryConstructor;
     augmented.representation = representation;
-    declaration.augmentedInternal = augmented;
+    firstFragment.augmentedInternal = augmented;
     return augmented;
   }
 }
@@ -8458,10 +8441,10 @@ abstract class NotAugmentedInterfaceElementImpl
   }
 
   @override
-  InterfaceElementImpl get declaration;
+  InterfaceElementImpl get element;
 
   @override
-  InterfaceElementImpl get element;
+  InterfaceElementImpl get firstFragment;
 
   @override
   List<InterfaceType> get interfaces {
@@ -8494,11 +8477,11 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
 
   NotAugmentedMixinElementImpl(this.reference, this.element) {
     reference.element2 = this;
-    declaration.augmentedInternal = this;
+    firstFragment.augmentedInternal = this;
   }
 
   @override
-  MixinElementImpl get declaration => element;
+  MixinElementImpl get firstFragment => element;
 
   @override
   List<InterfaceType> get superclassConstraints {
@@ -8507,8 +8490,8 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
 
   @override
   AugmentedMixinElementImpl toAugmented() {
-    var augmented = AugmentedMixinElementImpl(reference, declaration);
-    declaration.augmentedInternal = augmented;
+    var augmented = AugmentedMixinElementImpl(reference, firstFragment);
+    firstFragment.augmentedInternal = augmented;
     return augmented;
   }
 }

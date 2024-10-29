@@ -467,7 +467,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: augmented.firstFragment.typeParameters,
         );
       }
 
@@ -479,7 +479,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _isInNativeClass = node.nativeClause != null;
 
       var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -536,7 +536,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     var element = node.declaredElement!;
     var augmented = element.augmented;
-    var declarationElement = augmented.declaration;
+    var declarationElement = augmented.firstFragment;
 
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
@@ -681,12 +681,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: augmented.firstFragment.typeParameters,
         );
       }
 
       var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
       _checkForBuiltInIdentifierAsName(
@@ -765,7 +765,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkAugmentationTypeParameters(
           nameToken: nameToken,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: augmented.firstFragment.typeParameters,
         );
       }
     }
@@ -795,7 +795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       var element = node.declaredElement!;
       var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var declarationElement = augmented.firstFragment;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
@@ -806,7 +806,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: augmented.firstFragment.typeParameters,
         );
       }
 
@@ -1245,12 +1245,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: augmented.firstFragment.typeParameters,
         );
       }
 
       var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -1791,7 +1791,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var declaration = target.augmented.declaration;
+    var declaration = target.augmented.firstFragment;
 
     void singleModifier({
       required String modifierName,
@@ -6087,7 +6087,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var declaration = target.augmented.declaration;
+    var declaration = target.augmented.firstFragment;
 
     void singleModifier({
       required String modifierName,

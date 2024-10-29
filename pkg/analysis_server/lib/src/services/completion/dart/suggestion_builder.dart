@@ -228,7 +228,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement3.augmented.declaration;
+    var enclosingClass = constructor.enclosingElement3.augmented.firstFragment;
 
     if (completion == null) {
       var className = enclosingClass.name;

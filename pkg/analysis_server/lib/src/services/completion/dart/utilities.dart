@@ -238,7 +238,7 @@ InterfaceType instantiateInstanceElement(
 bool isFlutterWidgetParameter(ParameterElement parameter) {
   var element = parameter.enclosingElement3;
   if (element is ConstructorElement &&
-      element.enclosingElement3.augmented.declaration.isWidget) {
+      element.enclosingElement3.augmented.firstFragment.isWidget) {
     return true;
   }
   return false;

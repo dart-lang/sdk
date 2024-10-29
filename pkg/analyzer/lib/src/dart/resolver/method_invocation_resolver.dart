@@ -751,7 +751,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var augmented = enclosingClass!.augmented;
     var target = _inheritance.getMember2(
-      augmented.declaration,
+      augmented.firstFragment,
       _currentName!,
       forSuper: true,
     );
@@ -771,7 +771,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited2(augmented.declaration, _currentName!);
+    target = _inheritance.getInherited2(augmented.firstFragment, _currentName!);
     if (target != null) {
       nameNode.staticElement = target;
       _setResolution(node, target.type, whyNotPromotedArguments,
@@ -792,7 +792,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _resolver.errorReporter.atNode(
       nameNode,
       CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
-      arguments: [name, augmented.declaration.displayName],
+      arguments: [name, augmented.firstFragment.displayName],
     );
     return null;
   }

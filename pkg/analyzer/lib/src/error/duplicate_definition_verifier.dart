@@ -334,7 +334,7 @@ class MemberDuplicateDefinitionVerifier {
     InstanceElement fragment,
     List<ClassMember> members,
   ) {
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
 
     var elementContext = _getElementContext(declarationElement);
     var constructorNames = elementContext.constructorNames;
@@ -412,7 +412,7 @@ class MemberDuplicateDefinitionVerifier {
     InstanceElement fragment,
     List<ClassMember> members,
   ) {
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
 
     var elementContext = _getElementContext(declarationElement);
     var instanceGetters = elementContext.instanceGetters;
@@ -572,7 +572,7 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkEnum(EnumDeclaration node) {
     var fragment = node.declaredElement!;
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
     var declarationName = declarationElement.name;
 
     var elementContext = _getElementContext(declarationElement);
@@ -646,7 +646,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkEnumStatic(EnumDeclarationImpl node) {
     var fragment = node.declaredElement!;
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
     var declarationName = declarationElement.name;
 
     for (var accessor in fragment.accessors) {
@@ -692,7 +692,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionStatic(ExtensionDeclaration node) {
     var fragment = node.declaredElement!;
-    var declarationElement = fragment.augmented.declaration;
+    var declarationElement = fragment.augmented.firstFragment;
 
     var elementContext = _getElementContext(declarationElement);
     var instanceGetters = elementContext.instanceGetters;
@@ -733,7 +733,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredElement!;
-    var element = fragment.augmented.declaration;
+    var element = fragment.augmented.firstFragment;
     var primaryConstructorName = element.constructors.first.name;
     var representationGetter = element.representation.getter!;
     _getElementContext(element)

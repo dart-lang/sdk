@@ -657,7 +657,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var enclosing = fieldElement.enclosingElement3;
       var augmented = enclosing.ifTypeOrNull<ClassElementImpl>()?.augmented;
       if (augmented == null) continue;
-      if (!withConstConstructors.contains(augmented.declaration)) {
+      if (!withConstConstructors.contains(augmented.firstFragment)) {
         fieldElement.constantInitializer = null;
       }
     }

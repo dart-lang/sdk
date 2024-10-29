@@ -29,7 +29,7 @@ class ConstructorInitializerResolver {
           _constructor(
             unitElement,
             // TODO(scheglov): Avoid cast.
-            interfaceElement.augmented.declaration as InterfaceElementImpl,
+            interfaceElement.augmented.firstFragment as InterfaceElementImpl,
             constructorElement,
           );
         }
