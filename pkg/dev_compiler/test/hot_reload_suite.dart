@@ -408,7 +408,9 @@ Future<void> main(List<String> args) async {
                   label: testName);
               File.fromUri(previousTempUri).deleteSync();
               File.fromUri(currentTempUri).deleteSync();
-              if (diffOutput != currentDiff) {
+              var (filteredDiffOutput, filteredCurrentDiff) =
+                  _filterLineDeltas(diffOutput, currentDiff);
+              if (filteredDiffOutput != filteredCurrentDiff) {
                 reportDiffOutcome(
                     file,
                     'Unexpected diff found for $file:\n'
@@ -832,6 +834,22 @@ String _diffWithFileUris(Uri file1, Uri file2,
     output = output.split('\n').skip(2).join('\n');
   }
   return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
+}
+
+/// Removes diff lines that show added or removed newlines.
+///
+/// 'diff' can be unstable across platforms around newline offsets.
+(String, String) _filterLineDeltas(String diff1, String diff2) {
+  bool isBlankLineOrDelta(String s) {
+    return s.trim().isEmpty ||
+        (s.startsWith('+') || s.startsWith('-')) && s.trim().length == 1;
+  }
+
+  var diff1Lines = LineSplitter().convert(diff1)
+    ..removeWhere(isBlankLineOrDelta);
+  var diff2Lines = LineSplitter().convert(diff2)
+    ..removeWhere(isBlankLineOrDelta);
+  return (diff1Lines.join('\n'), diff2Lines.join('\n'));
 }
 
 /// Returns the code and diff portions of [file].

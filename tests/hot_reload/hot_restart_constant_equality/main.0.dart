@@ -27,8 +27,8 @@ class ConstObject {
       '${value1 == value2 ? 'ConstantEqualitySuccess' : 'ConstantEqualityFailure'})';
 }
 
-void main() {
+Future<void> main() async {
   Expect.equals('ConstObject(reloadVariable: 23, ConstantEqualitySuccess)',
       '${const ConstObject().text}');
-  hotRestart();
+  await hotRestart();
 }
