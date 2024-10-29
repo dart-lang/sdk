@@ -4378,6 +4378,12 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   ASSERT(out_entry_point != nullptr);
   ASSERT(out_trampoline_type != nullptr);
 
+  if (!Isolate::IsolateCreationEnabled()) {
+    TRACE_RUNTIME_CALL("GetFfiCallbackMetadata called after shutdown %p",
+                       reinterpret_cast<void*>(trampoline));
+    return nullptr;
+  }
+
   Thread* const current_thread = Thread::Current();
   auto* fcm = FfiCallbackMetadata::Instance();
   auto metadata = fcm->LookupMetadataForTrampoline(trampoline);
