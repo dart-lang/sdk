@@ -40,7 +40,6 @@ class Utf8Decoder {
               (next as JsonDecoder)._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;
     }
-    // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
     return super.fuse<T>(next);
   }
 }
