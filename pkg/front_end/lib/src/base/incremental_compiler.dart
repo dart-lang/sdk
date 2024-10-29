@@ -66,7 +66,8 @@ import '../api_prototype/incremental_kernel_generator.dart'
         IncrementalCompilerResult,
         IncrementalKernelGenerator,
         isLegalIdentifier;
-import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
+import '../api_prototype/lowering_predicates.dart'
+    show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../base/nnbd_mode.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -1917,6 +1918,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 builder.lookupLocalMember(afterDot, setter: false);
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
+                List<VariableDeclaration>? positionals =
+                    subBuilder.invokeTarget?.function?.positionalParameters;
+                if (positionals != null &&
+                    positionals.isNotEmpty &&
+                    isExtensionThisName(positionals.first.name) &&
+                    usedDefinitions.containsKey(syntheticThisName)) {
+                  // If we setup the extensionType (and later the
+                  // `extensionThis`) we should also set the type correctly
+                  // (at least in a non-static setting).
+                  usedDefinitions[syntheticThisName] = positionals.first.type;
+                }
                 isStatic = false;
               }
             }
