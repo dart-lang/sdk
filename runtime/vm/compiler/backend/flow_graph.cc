@@ -2678,7 +2678,8 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
       Definition* definition = instr_it.Current()->AsDefinition();
       // CheckArrayBound instructions have their own mechanism for ensuring
       // proper dependencies, so we don't rewrite those here.
-      if (definition != nullptr && !definition->IsCheckArrayBound()) {
+      if (definition != nullptr && !definition->IsCheckArrayBound() &&
+          !definition->IsGenericCheckBound()) {
         Value* redefined = definition->RedefinedValue();
         if (redefined != nullptr) {
           if (!definition->HasSSATemp()) {
