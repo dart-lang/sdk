@@ -85,25 +85,24 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   final DeclarationBuilder? declarationBuilder;
 
-  @override
-  final int fileOffset;
+  final int nameOffset;
 
   @override
   final Uri fileUri;
 
   SourceFieldBuilder(
-      this.metadata,
-      this.type,
-      this.name,
-      this.modifiers,
-      this.isTopLevel,
-      this.libraryBuilder,
-      this.declarationBuilder,
-      this.fileUri,
-      this.fileOffset,
-      int charEndOffset,
-      NameScheme fieldNameScheme,
-      {Reference? fieldReference,
+      {required this.metadata,
+      required this.type,
+      required this.name,
+      required this.modifiers,
+      required this.isTopLevel,
+      required this.libraryBuilder,
+      required this.declarationBuilder,
+      required this.fileUri,
+      required this.nameOffset,
+      required int endOffset,
+      required NameScheme nameScheme,
+      Reference? fieldReference,
       Reference? fieldGetterReference,
       Reference? fieldSetterReference,
       Reference? lateIsSetFieldReference,
@@ -116,10 +115,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.isSynthesized = false,
       this.isEnumElement = false})
       : _constInitializerToken = constInitializerToken,
-        _memberName = fieldNameScheme.getDeclaredName(name) {
+        _memberName = nameScheme.getDeclaredName(name) {
     type.registerInferredTypeListener(this);
 
-    bool isInstanceMember = fieldNameScheme.isInstanceMember;
+    bool isInstanceMember = nameScheme.isInstanceMember;
 
     // If in mixed mode, late lowerings cannot use `null` as a sentinel on
     // non-nullable fields since they can be assigned from legacy code.
@@ -136,18 +135,18 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       _fieldEncoding = new AbstractOrExternalFieldEncoding(
           this,
           name,
-          fieldNameScheme,
+          nameScheme,
           fileUri,
-          fileOffset,
-          charEndOffset,
+          nameOffset,
+          endOffset,
           fieldGetterReference,
           fieldSetterReference,
           isAbstract: isAbstract,
           isExternal: isExternal,
           isFinal: isFinal,
           isCovariantByDeclaration: isCovariantByDeclaration);
-    } else if (fieldNameScheme.isExtensionTypeMember &&
-        fieldNameScheme.isInstanceMember) {
+    } else if (nameScheme.isExtensionTypeMember &&
+        nameScheme.isInstanceMember) {
       assert(fieldReference == null);
       assert(fieldSetterReference == null);
       assert(lateIsSetFieldReference == null);
@@ -158,10 +157,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       _fieldEncoding = new RepresentationFieldEncoding(
           this,
           name,
-          fieldNameScheme,
+          nameScheme,
           fileUri,
-          fileOffset,
-          charEndOffset,
+          nameOffset,
+          endOffset,
           fieldGetterReference);
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
@@ -172,74 +171,74 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       if (hasInitializer) {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              fileOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         } else {
           _fieldEncoding = new LateFieldWithInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              fileOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         }
       } else {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithoutInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              fileOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         } else {
           _fieldEncoding = new LateFieldWithoutInitializerEncoding(
-              name,
-              fieldNameScheme,
-              fileUri,
-              fileOffset,
-              charEndOffset,
-              fieldReference,
-              fieldGetterReference,
-              fieldSetterReference,
-              lateIsSetFieldReference,
-              lateIsSetGetterReference,
-              lateIsSetSetterReference,
-              lateGetterReference,
-              lateSetterReference,
-              isCovariantByDeclaration,
-              isSetStrategy);
+              name: name,
+              nameScheme: nameScheme,
+              fileUri: fileUri,
+              nameOffset: nameOffset,
+              endOffset: endOffset,
+              fieldReference: fieldReference,
+              fieldGetterReference: fieldGetterReference,
+              fieldSetterReference: fieldSetterReference,
+              lateIsSetFieldReference: lateIsSetFieldReference,
+              lateIsSetGetterReference: lateIsSetGetterReference,
+              lateIsSetSetterReference: lateIsSetSetterReference,
+              lateGetterReference: lateGetterReference,
+              lateSetterReference: lateSetterReference,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+              isSetStrategy: isSetStrategy);
         }
       }
     } else if (libraryBuilder
@@ -250,38 +249,38 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(!isEnumElement, "Unexpected non-const enum element");
       if (isFinal) {
         _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
-            name,
-            fieldNameScheme,
-            fileUri,
-            fileOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+            name: name,
+            nameScheme: nameScheme,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            endOffset: endOffset,
+            fieldReference: fieldReference,
+            fieldGetterReference: fieldGetterReference,
+            fieldSetterReference: fieldSetterReference,
+            lateIsSetFieldReference: lateIsSetFieldReference,
+            lateIsSetGetterReference: lateIsSetGetterReference,
+            lateIsSetSetterReference: lateIsSetSetterReference,
+            lateGetterReference: lateGetterReference,
+            lateSetterReference: lateSetterReference,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isSetStrategy: isSetStrategy);
       } else {
         _fieldEncoding = new LateFieldWithInitializerEncoding(
-            name,
-            fieldNameScheme,
-            fileUri,
-            fileOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+            name: name,
+            nameScheme: nameScheme,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            endOffset: endOffset,
+            fieldReference: fieldReference,
+            fieldGetterReference: fieldGetterReference,
+            fieldSetterReference: fieldSetterReference,
+            lateIsSetFieldReference: lateIsSetFieldReference,
+            lateIsSetGetterReference: lateIsSetGetterReference,
+            lateIsSetSetterReference: lateIsSetSetterReference,
+            lateGetterReference: lateGetterReference,
+            lateSetterReference: lateSetterReference,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isSetStrategy: isSetStrategy);
       }
     } else {
       assert(lateIsSetFieldReference == null);
@@ -290,7 +289,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
       _fieldEncoding = new RegularFieldEncoding(
-          name, fieldNameScheme, fileUri, fileOffset, charEndOffset,
+          name: name,
+          nameScheme: nameScheme,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          endOffset: endOffset,
           isFinal: isFinal,
           isConst: isConst,
           isLate: isLate,
@@ -315,6 +318,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       }
     }
   }
+
+  @override
+  int get fileOffset => nameOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -703,9 +709,13 @@ abstract class FieldEncoding {
 class RegularFieldEncoding implements FieldEncoding {
   late final Field _field;
 
-  RegularFieldEncoding(String name, NameScheme nameScheme, Uri fileUri,
-      int charOffset, int charEndOffset,
-      {required bool isFinal,
+  RegularFieldEncoding(
+      {required String name,
+      required NameScheme nameScheme,
+      required Uri fileUri,
+      required int nameOffset,
+      required int endOffset,
+      required bool isFinal,
       required bool isConst,
       required bool isLate,
       required bool hasInitializer,
@@ -735,8 +745,8 @@ class RegularFieldEncoding implements FieldEncoding {
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
         .attachMember(_field);
     _field
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
   }
 
   @override
@@ -936,23 +946,23 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   bool _forceIncludeIsSetField;
 
   AbstractLateFieldEncoding(
-      this.name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : fileOffset = charOffset,
-        fileEndOffset = charEndOffset,
+      {required this.name,
+      required NameScheme nameScheme,
+      required Uri fileUri,
+      required int nameOffset,
+      required int endOffset,
+      required Reference? fieldReference,
+      required Reference? fieldGetterReference,
+      required Reference? fieldSetterReference,
+      required Reference? lateIsSetFieldReference,
+      required Reference? lateIsSetGetterReference,
+      required Reference? lateIsSetSetterReference,
+      required Reference? lateGetterReference,
+      required Reference? lateSetterReference,
+      required bool isCovariantByDeclaration,
+      required late_lowering.IsSetStrategy isSetStrategy})
+      : fileOffset = nameOffset,
+        fileEndOffset = endOffset,
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
@@ -961,8 +971,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         fieldReference: fieldReference,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference)
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset
       ..isInternalImplementation = true;
     nameScheme
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: true)
@@ -979,8 +989,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             fieldReference: lateIsSetFieldReference,
             getterReference: lateIsSetGetterReference,
             setterReference: lateIsSetSetterReference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset
           ..isInternalImplementation = true;
         nameScheme
             .getFieldMemberName(FieldNameType.IsSetField, name,
@@ -992,16 +1002,16 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         dummyName,
         ProcedureKind.Getter,
         new FunctionNode(null)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset,
         fileUri: fileUri,
         reference: lateGetterReference)
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
     nameScheme
         .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
         .attachMember(_lateGetter);
-    _lateSetter = _createSetter(fileUri, charOffset, lateSetterReference,
+    _lateSetter = _createSetter(fileUri, nameOffset, lateSetterReference,
         isCovariantByDeclaration: isCovariantByDeclaration);
     if (_lateSetter != null) {
       nameScheme
@@ -1357,73 +1367,41 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
 class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     with NonFinalLate, LateWithoutInitializer {
   LateFieldWithoutInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 }
 
 class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
     with NonFinalLate {
   LateFieldWithInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 
   @override
   Statement _createGetterBody(
@@ -1460,37 +1438,21 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
 class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     with LateWithoutInitializer {
   LateFinalFieldWithoutInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 
   @override
   Statement _createSetterBody(
@@ -1512,37 +1474,21 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
 
 class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   LateFinalFieldWithInitializerEncoding(
-      String name,
-      NameScheme nameScheme,
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Reference? fieldReference,
-      Reference? fieldGetterReference,
-      Reference? fieldSetterReference,
-      Reference? lateIsSetFieldReference,
-      Reference? lateIsSetGetterReference,
-      Reference? lateIsSetSetterReference,
-      Reference? lateGetterReference,
-      Reference? lateSetterReference,
-      bool isCovariantByDeclaration,
-      late_lowering.IsSetStrategy isSetStrategy)
-      : super(
-            name,
-            nameScheme,
-            fileUri,
-            charOffset,
-            charEndOffset,
-            fieldReference,
-            fieldGetterReference,
-            fieldSetterReference,
-            lateIsSetFieldReference,
-            lateIsSetGetterReference,
-            lateIsSetSetterReference,
-            lateGetterReference,
-            lateSetterReference,
-            isCovariantByDeclaration,
-            isSetStrategy);
+      {required super.name,
+      required super.nameScheme,
+      required super.fileUri,
+      required super.nameOffset,
+      required super.endOffset,
+      required super.fieldReference,
+      required super.fieldGetterReference,
+      required super.fieldSetterReference,
+      required super.lateIsSetFieldReference,
+      required super.lateIsSetGetterReference,
+      required super.lateIsSetSetterReference,
+      required super.lateGetterReference,
+      required super.lateSetterReference,
+      required super.isCovariantByDeclaration,
+      required super.isSetStrategy});
 
   @override
   Statement _createGetterBody(
@@ -1756,8 +1702,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       String name,
       NameScheme nameScheme,
       Uri fileUri,
-      int charOffset,
-      int charEndOffset,
+      int nameOffset,
+      int endOffset,
       Reference? getterReference,
       Reference? setterReference,
       {required this.isAbstract,
@@ -1776,13 +1722,13 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: [
             new VariableDeclaration(syntheticThisName)
-              ..fileOffset = charOffset
+              ..fileOffset = nameOffset
               ..isLowered = true
           ]),
           fileUri: fileUri,
           reference: getterReference)
-        ..fileOffset = charOffset
-        ..fileEndOffset = charEndOffset;
+        ..fileOffset = nameOffset
+        ..fileEndOffset = endOffset;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, name)
           .attachMember(_getter);
@@ -1790,24 +1736,24 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = isCovariantByDeclaration
-              ..fileOffset = charOffset;
+              ..fileOffset = nameOffset;
         _setter = new Procedure(
             dummyName,
             ProcedureKind.Method,
             new FunctionNode(null,
                 positionalParameters: [
                   new VariableDeclaration(syntheticThisName)
-                    ..fileOffset = charOffset
+                    ..fileOffset = nameOffset
                     ..isLowered = true,
                   parameter
                 ],
                 returnType: const VoidType())
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+              ..fileOffset = nameOffset
+              ..fileEndOffset = endOffset,
             fileUri: fileUri,
             reference: setterReference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset;
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset;
         nameScheme
             .getProcedureMemberName(ProcedureKind.Setter, name)
             .attachMember(_setter!);
@@ -1816,8 +1762,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       _getter = new Procedure(
           dummyName, ProcedureKind.Getter, new FunctionNode(null),
           fileUri: fileUri, reference: getterReference)
-        ..fileOffset = charOffset
-        ..fileEndOffset = charEndOffset;
+        ..fileOffset = nameOffset
+        ..fileEndOffset = endOffset;
       nameScheme
           .getFieldMemberName(FieldNameType.Getter, name, isSynthesized: true)
           .attachMember(_getter);
@@ -1825,18 +1771,18 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         VariableDeclaration parameter =
             new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = isCovariantByDeclaration
-              ..fileOffset = charOffset;
+              ..fileOffset = nameOffset;
         _setter = new Procedure(
             dummyName,
             ProcedureKind.Setter,
             new FunctionNode(null,
                 positionalParameters: [parameter], returnType: const VoidType())
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+              ..fileOffset = nameOffset
+              ..fileEndOffset = endOffset,
             fileUri: fileUri,
             reference: setterReference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset;
+          ..fileOffset = nameOffset
+          ..fileEndOffset = endOffset;
         nameScheme
             .getFieldMemberName(FieldNameType.Setter, name, isSynthesized: true)
             .attachMember(_setter!);

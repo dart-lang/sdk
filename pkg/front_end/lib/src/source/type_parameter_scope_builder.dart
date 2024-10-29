@@ -51,11 +51,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             name: fragment.name,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
-            fileOffset: fragment.fileOffset,
+            fileOffset: fragment.nameOffset,
             fragment: fragment,
             reference: reference);
         builders.add(new _AddBuilder(fragment.name, typedefBuilder,
-            fragment.fileUri, fragment.fileOffset));
+            fragment.fileUri, fragment.nameOffset));
         if (reference != null) {
           loader.buildersCreatedWithReferences[reference] = typedefBuilder;
         }
@@ -398,17 +398,17 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           }
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-            fragment.metadata,
-            fragment.type,
-            name,
-            fragment.modifiers,
-            fragment.isTopLevel,
-            enclosingLibraryBuilder,
-            declarationBuilder,
-            fragment.fileUri,
-            fragment.charOffset,
-            fragment.charEndOffset,
-            nameScheme,
+            metadata: fragment.metadata,
+            type: fragment.type,
+            name: name,
+            modifiers: fragment.modifiers,
+            isTopLevel: fragment.isTopLevel,
+            libraryBuilder: enclosingLibraryBuilder,
+            declarationBuilder: declarationBuilder,
+            fileUri: fragment.fileUri,
+            nameOffset: fragment.nameOffset,
+            endOffset: fragment.endOffset,
+            nameScheme: nameScheme,
             fieldReference: fieldReference,
             fieldGetterReference: fieldGetterReference,
             fieldSetterReference: fieldSetterReference,
@@ -421,7 +421,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             constInitializerToken: fragment.constInitializerToken);
         fragment.builder = fieldBuilder;
         builders.add(new _AddBuilder(fragment.name, fieldBuilder,
-            fragment.fileUri, fragment.charOffset));
+            fragment.fileUri, fragment.nameOffset));
         if (fieldGetterReference != null) {
           loader.buildersCreatedWithReferences[fieldGetterReference] =
               fieldBuilder;

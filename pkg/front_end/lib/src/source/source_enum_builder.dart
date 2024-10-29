@@ -315,17 +315,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     SourceFieldBuilder valuesBuilder = new SourceFieldBuilder(
-        /* metadata = */ null,
-        listType,
-        "values",
-        Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
-        /* isTopLevel = */ false,
-        libraryBuilder,
-        this,
-        fileUri,
-        fileOffset,
-        fileOffset,
-        staticFieldNameScheme,
+        metadata: null,
+        type: listType,
+        name: "values",
+        modifiers:
+            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
+        isTopLevel: false,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        fileUri: fileUri,
+        nameOffset: fileOffset,
+        endOffset: fileOffset,
+        nameScheme: staticFieldNameScheme,
         fieldReference: valuesFieldReference,
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference,
@@ -436,11 +437,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // Report the error on the member that occurs later in the code.
           int existingOffset;
           int duplicateOffset;
-          if (existing.fileOffset < enumConstantInfo.charOffset) {
+          if (existing.fileOffset < enumConstantInfo.nameOffset) {
             existingOffset = existing.fileOffset;
-            duplicateOffset = enumConstantInfo.charOffset;
+            duplicateOffset = enumConstantInfo.nameOffset;
           } else {
-            existingOffset = enumConstantInfo.charOffset;
+            existingOffset = enumConstantInfo.nameOffset;
             duplicateOffset = existing.fileOffset;
           }
 
@@ -467,7 +468,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         } else if (name == className) {
           libraryBuilder.addProblem(
               templateEnumConstantSameNameAsEnclosing.withArguments(name),
-              enumConstantInfo.charOffset,
+              enumConstantInfo.nameOffset,
               name.length,
               libraryBuilder.fileUri);
         }
@@ -481,17 +482,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
           setterReference = indexedClass!.lookupSetterReference(nameName);
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-            metadata,
-            libraryBuilder.loader.inferableTypes.addInferableType(),
-            name,
-            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
-            /* isTopLevel = */ false,
-            libraryBuilder,
-            this,
-            fileUri,
-            enumConstantInfo.charOffset,
-            enumConstantInfo.charOffset,
-            staticFieldNameScheme,
+            metadata: metadata,
+            type: libraryBuilder.loader.inferableTypes.addInferableType(),
+            name: name,
+            modifiers:
+                Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
+            isTopLevel: false,
+            libraryBuilder: libraryBuilder,
+            declarationBuilder: this,
+            fileUri: fileUri,
+            nameOffset: enumConstantInfo.nameOffset,
+            endOffset: enumConstantInfo.nameOffset,
+            nameScheme: staticFieldNameScheme,
             fieldReference: fieldReference,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference,
@@ -608,7 +610,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     String fullConstructorNameForErrors =
         enumConstantInfo.constructorReferenceBuilder?.fullNameForErrors ?? name;
     int fileOffset = enumConstantInfo.constructorReferenceBuilder?.charOffset ??
-        enumConstantInfo.charOffset;
+        enumConstantInfo.nameOffset;
     constructorName = constructorName == "new" ? "" : constructorName;
     MemberBuilder? constructorBuilder =
         nameSpace.lookupConstructor(constructorName);
@@ -794,9 +796,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 class EnumConstantInfo {
   final List<MetadataBuilder>? metadata;
   final String name;
-  final int charOffset;
+  final int nameOffset;
   ConstructorReferenceBuilder? constructorReferenceBuilder;
   Token? argumentsBeginToken;
 
-  EnumConstantInfo(this.metadata, this.name, this.charOffset);
+  EnumConstantInfo(this.metadata, this.name, this.nameOffset);
 }

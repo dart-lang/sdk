@@ -288,7 +288,7 @@ abstract class BuilderFactory {
       String name,
       List<NominalParameterBuilder>? typeParameters,
       TypeBuilder type,
-      int charOffset);
+      int nameOffset);
 
   void addClassMethod(
       {required OffsetMap offsetMap,
@@ -344,7 +344,7 @@ abstract class BuilderFactory {
       {required List<MetadataBuilder>? metadata,
       required TypeBuilder type,
       required String name,
-      required int charOffset});
+      required int nameOffset});
 
   void addFactoryMethod(
       {required OffsetMap offsetMap,
@@ -498,8 +498,8 @@ class FieldInfo {
   final Identifier identifier;
   final Token? initializerToken;
   final Token? beforeLast;
-  final int charEndOffset;
+  final int endOffset;
 
   const FieldInfo(this.identifier, this.initializerToken, this.beforeLast,
-      this.charEndOffset);
+      this.endOffset);
 }
