@@ -14,9 +14,8 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
 
-import 'linter_options.dart';
-
 import 'analysis_error_info.dart';
+import 'linter_options.dart';
 
 class LintDriver {
   /// The files which have been analyzed so far.  This is used to compute the
