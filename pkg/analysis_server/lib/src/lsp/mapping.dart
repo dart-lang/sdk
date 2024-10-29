@@ -36,6 +36,15 @@ import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
+/// A regex used for splitting the display text in a completion so that
+/// filterText only includes the symbol name and not any additional text (such
+/// as parens, ` => `). Match `=>` but not `==` (which may appear in overrides).
+final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
+
+/// A regex to extract the type name from the parameter string of a setter
+/// completion item.
+final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
+
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
@@ -58,15 +67,6 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
 /// completion item.
 final sortTextMaxValue = int.parse('9' * maximumRelevance.toString().length);
 
-/// A regex used for splitting the display text in a completion so that
-/// filterText only includes the symbol name and not any additional text (such
-/// as parens, ` => `). Match `=>` but not `==` (which may appear in overrides).
-final _completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
-
-/// A regex to extract the type name from the parameter string of a setter
-/// completion item.
-final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
-
 /// Pattern for docComplete text on completion items that can be upgraded to
 /// the "detail" field so that it can be shown more prominently by clients.
 ///
@@ -74,7 +74,7 @@ final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 /// the pubspec version items. These go into docComplete so that they appear
 /// reasonably for non-LSP clients where there is no equivalent of the detail
 /// field.
-final _upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
+final upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
 
 lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
     Set<lsp.MarkupKind>? preferredFormats, String content) {
@@ -82,6 +82,60 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
       ? lsp.Either2<lsp.MarkupContent, String>.t1(
           _asMarkup(preferredFormats, content))
       : lsp.Either2<lsp.MarkupContent, String>.t2(content);
+}
+
+({String text, lsp.InsertTextFormat format}) buildInsertText({
+  required bool supportsSnippets,
+  required bool commitCharactersEnabled,
+  required bool completeFunctionCalls,
+  required String? requiredArgumentListString,
+  required List<int>? requiredArgumentListTextRanges,
+  required bool hasOptionalParameters,
+  required String completion,
+  required int selectionOffset,
+  required int selectionLength,
+}) {
+  var insertText = completion;
+  var insertTextFormat = lsp.InsertTextFormat.PlainText;
+
+  // SuggestionBuilder already does the equiv of completeFunctionCalls for
+  // some methods (for example Flutter's setState). If the completion already
+  // includes any `(` then disable our own insertion as the special-cased code
+  // will likely provide better code.
+  if (completion.contains('(')) {
+    completeFunctionCalls = false;
+  }
+
+  // If the client supports snippets, we can support completeFunctionCalls or
+  // setting a selection.
+  if (supportsSnippets) {
+    // completeFunctionCalls should only work if commit characters are disabled
+    // otherwise the editor may insert parens that we're also inserting.
+    if (!commitCharactersEnabled && completeFunctionCalls) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      var hasRequiredParameters =
+          requiredArgumentListTextRanges?.isNotEmpty ?? false;
+      var functionCallSuffix =
+          hasRequiredParameters && requiredArgumentListString != null
+              ? buildSnippetStringWithTabStops(
+                  requiredArgumentListString, requiredArgumentListTextRanges)
+              // Optional params still gets a final tab stop in the parens.
+              : hasOptionalParameters
+                  ? SnippetBuilder.finalTabStop
+                  // And no parameters at all we skip the tabstop in the parens.
+                  : '';
+      insertText =
+          '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
+    } else if (selectionOffset != 0 &&
+        // We don't need a tab stop if the selection is the end of the string.
+        selectionOffset != completion.length) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      insertText = buildSnippetStringWithTabStops(
+          completion, [selectionOffset, selectionLength]);
+    }
+  }
+
+  return (text: insertText, format: insertTextFormat);
 }
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
@@ -431,7 +485,7 @@ CompletionDetail getCompletionDetail(
   if (returnType == null &&
       element?.kind == server.ElementKind.SETTER &&
       parameters != null) {
-    returnType = _completionSetterTypePattern.firstMatch(parameters)?.group(1);
+    returnType = completionSetterTypePattern.firstMatch(parameters)?.group(1);
     parameters = null;
   }
 
@@ -1029,8 +1083,8 @@ lsp.CompletionItem toCompletionItem(
 
   // TODO(dantup): Consider including more of these raw fields in the original
   //  suggestion to avoid needing to manipulate them in this way here.
-  var filterText = !label.startsWith(_completionFilterTextSplitPattern)
-      ? label.split(_completionFilterTextSplitPattern).first.trim()
+  var filterText = !label.startsWith(completionFilterTextSplitPattern)
+      ? label.split(completionFilterTextSplitPattern).first.trim()
       : label;
 
   // If we're using label details, we also don't want the label to include any
@@ -1072,7 +1126,7 @@ lsp.CompletionItem toCompletionItem(
     label += labelDetails.truncatedParams;
   }
 
-  var insertTextInfo = _buildInsertText(
+  var insertTextInfo = buildInsertText(
     supportsSnippets: supportsSnippets,
     commitCharactersEnabled: commitCharactersEnabled,
     completeFunctionCalls: completeFunctionCalls,
@@ -1098,7 +1152,7 @@ lsp.CompletionItem toCompletionItem(
   // short labels in the format `_foo_` in docComplete are "upgraded" to the
   // detail field.
   var labelMatch = cleanedDoc != null
-      ? _upgradableDocCompletePattern.firstMatch(cleanedDoc)
+      ? upgradableDocCompletePattern.firstMatch(cleanedDoc)
       : null;
   if (labelMatch != null) {
     cleanedDoc = null;
@@ -1633,60 +1687,6 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-({String text, lsp.InsertTextFormat format}) _buildInsertText({
-  required bool supportsSnippets,
-  required bool commitCharactersEnabled,
-  required bool completeFunctionCalls,
-  required String? requiredArgumentListString,
-  required List<int>? requiredArgumentListTextRanges,
-  required bool hasOptionalParameters,
-  required String completion,
-  required int selectionOffset,
-  required int selectionLength,
-}) {
-  var insertText = completion;
-  var insertTextFormat = lsp.InsertTextFormat.PlainText;
-
-  // SuggestionBuilder already does the equiv of completeFunctionCalls for
-  // some methods (for example Flutter's setState). If the completion already
-  // includes any `(` then disable our own insertion as the special-cased code
-  // will likely provide better code.
-  if (completion.contains('(')) {
-    completeFunctionCalls = false;
-  }
-
-  // If the client supports snippets, we can support completeFunctionCalls or
-  // setting a selection.
-  if (supportsSnippets) {
-    // completeFunctionCalls should only work if commit characters are disabled
-    // otherwise the editor may insert parens that we're also inserting.
-    if (!commitCharactersEnabled && completeFunctionCalls) {
-      insertTextFormat = lsp.InsertTextFormat.Snippet;
-      var hasRequiredParameters =
-          requiredArgumentListTextRanges?.isNotEmpty ?? false;
-      var functionCallSuffix =
-          hasRequiredParameters && requiredArgumentListString != null
-              ? buildSnippetStringWithTabStops(
-                  requiredArgumentListString, requiredArgumentListTextRanges)
-              // Optional params still gets a final tab stop in the parens.
-              : hasOptionalParameters
-                  ? SnippetBuilder.finalTabStop
-                  // And no parameters at all we skip the tabstop in the parens.
-                  : '';
-      insertText =
-          '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
-    } else if (selectionOffset != 0 &&
-        // We don't need a tab stop if the selection is the end of the string.
-        selectionOffset != completion.length) {
-      insertTextFormat = lsp.InsertTextFormat.Snippet;
-      insertText = buildSnippetStringWithTabStops(
-          completion, [selectionOffset, selectionLength]);
-    }
-  }
-
-  return (text: insertText, format: insertTextFormat);
-}
-
 String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
 
 /// Additional details about a completion that may be formatted differently
@@ -1717,15 +1717,10 @@ typedef CompletionDetail = ({
   Uri? autoImportUri,
 });
 
-extension on CompletionItemLabelDetails {
+extension CompletionLabelExtension on CompletionItemLabelDetails {
   /// Returns `null` if no fields are set, otherwise `this`.
   CompletionItemLabelDetails? get nullIfEmpty =>
       detail != null || description != null ? this : null;
-}
-
-extension on String? {
-  /// Returns `null` if this string is the same as [other], otherwise `this`.
-  String? orNullIfSameAs(String other) => this == other ? null : this;
 }
 
 extension _ListExtensions<T> on List<T> {
