@@ -310,7 +310,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -330,7 +330,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -390,7 +390,7 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant a @11
               reference: <testLibraryFragment>::@enum::E::@field::a
@@ -420,6 +420,7 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields

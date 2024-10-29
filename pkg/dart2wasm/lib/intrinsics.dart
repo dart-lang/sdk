@@ -14,6 +14,9 @@ import 'types.dart';
 
 typedef CodeGenCallback = void Function(AstCodeGenerator);
 
+typedef InlineCodeGenCallback = void Function(
+    AstCodeGenerator, Expression receiver);
+
 /// Specialized code generation for external members.
 ///
 /// The code is generated either inlined at the call site, or as the body of
@@ -91,8 +94,78 @@ class Intrinsifier {
       'truncateToDouble': (c) {
         c.b.f64_trunc();
       },
-      '_toInt': (c) {
-        c.b.i64_trunc_sat_f64_s();
+    },
+  };
+
+  static final Map<w.ValueType, Map<String, InlineCodeGenCallback>>
+      _inlineUnaryOperatorMap = {
+    intType: {
+      'unary-': (c, receiver) {
+        final int? intValue = _extractIntValue(receiver);
+        if (intValue == null) {
+          c.translateExpression(receiver, intType);
+          c.b.i64_const(-1);
+          c.b.i64_mul();
+        } else {
+          c.b.i64_const(-intValue);
+        }
+      },
+      '~': (c, receiver) {
+        final int? intValue = _extractIntValue(receiver);
+        if (intValue == null) {
+          c.translateExpression(receiver, intType);
+          c.b.i64_const(-1);
+          c.b.i64_xor();
+        } else {
+          c.b.i64_const(~intValue);
+        }
+      },
+      'toDouble': (c, receiver) {
+        final int? intValue = _extractIntValue(receiver);
+        if (intValue == null) {
+          c.translateExpression(receiver, intType);
+          c.b.f64_convert_i64_s();
+        } else {
+          c.b.f64_const(intValue.toDouble());
+        }
+      },
+    },
+    doubleType: {
+      'unary-': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_neg();
+        } else {
+          c.b.f64_const(-doubleValue);
+        }
+      },
+      'floorToDouble': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_floor();
+        } else {
+          c.b.f64_const(doubleValue.floorToDouble());
+        }
+      },
+      'ceilToDouble': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_ceil();
+        } else {
+          c.b.f64_const(doubleValue.ceilToDouble());
+        }
+      },
+      'truncateToDouble': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_trunc();
+        } else {
+          c.b.f64_const(doubleValue.truncateToDouble());
+        }
       },
     },
   };
@@ -102,7 +175,6 @@ class Intrinsifier {
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,
-    '_toInt': w.NumType.i64,
   };
 
   Translator get translator => codeGen.translator;
@@ -430,12 +502,11 @@ class Intrinsifier {
     } else if (node.arguments.positional.isEmpty) {
       // Unary operator
       Expression operand = node.receiver;
-      w.ValueType opType = translator.translateType(receiverType);
-      var code = _unaryOperatorMap[opType]?[name];
+      w.ValueType operandType = translator.translateType(receiverType);
+      var code = _inlineUnaryOperatorMap[operandType]?[name];
       if (code != null) {
-        codeGen.translateExpression(operand, opType);
-        code(codeGen);
-        return _unaryResultMap[name] ?? opType;
+        code(codeGen, operand);
+        return _unaryResultMap[name] ?? operandType;
       }
     }
 
@@ -1761,4 +1832,34 @@ class Intrinsifier {
 
     return false;
   }
+}
+
+int? _extractIntValue(Expression expr) {
+  if (expr is IntLiteral) {
+    return expr.value;
+  }
+
+  if (expr is ConstantExpression) {
+    final constant = expr.constant;
+    if (constant is IntConstant) {
+      return constant.value;
+    }
+  }
+
+  return null;
+}
+
+double? _extractDoubleValue(Expression expr) {
+  if (expr is DoubleLiteral) {
+    return expr.value;
+  }
+
+  if (expr is ConstantExpression) {
+    final constant = expr.constant;
+    if (constant is DoubleConstant) {
+      return constant.value;
+    }
+  }
+
+  return null;
 }

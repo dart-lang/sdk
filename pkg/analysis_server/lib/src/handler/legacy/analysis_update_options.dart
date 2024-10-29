@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 
 /// The handler for the `analysis.updateOptions` request.
 class AnalysisUpdateOptionsHandler extends LegacyHandler {
@@ -25,13 +25,13 @@ class AnalysisUpdateOptionsHandler extends LegacyHandler {
     var updaters = <OptionUpdater>[];
     var generateHints = newOptions.generateHints;
     if (generateHints != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
+      updaters.add((AnalysisOptionsImpl options) {
         options.warning = generateHints;
       });
     }
     var generateLints = newOptions.generateLints;
     if (generateLints != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
+      updaters.add((AnalysisOptionsImpl options) {
         options.lint = generateLints;
       });
     }

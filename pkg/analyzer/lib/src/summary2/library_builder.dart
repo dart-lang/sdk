@@ -81,15 +81,9 @@ class LibraryBuilder with MacroApplicationsContainer {
   final Map<EnumElementImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
-  /// The builders for top-level elements.
-  final Map<String, FragmentedElementBuilder> _elementBuilders = {};
-
-  /// The builders for top-level variables and accessors.
-  late final TopVariableElementsBuilder topVariables =
-      TopVariableElementsBuilder(_augmentationTargets);
-
-  /// The top-level elements that can be augmented.
-  final Map<String, ElementImpl> _augmentationTargets = {};
+  final Map<String, FragmentedElementBuilder> elementBuilderGetters = {};
+  final Map<String, FragmentedElementBuilder> elementBuilderSetters = {};
+  final Map<String, FragmentedElementBuilder> elementBuilderVariables = {};
 
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
@@ -492,10 +486,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     return null;
   }
 
-  FragmentedElementBuilder? getElementBuilder(String name) {
-    return _elementBuilders[name];
-  }
-
   /// Merges accumulated [_macroResults] and corresponding macro augmentation
   /// libraries into a single macro augmentation library.
   Future<void> mergeMacroAugmentations({
@@ -651,13 +641,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     ).applyToUnit(unitElement, informativeBytes);
   }
 
-  void putElementBuilder(
-    String name,
-    FragmentedElementBuilder builder,
-  ) {
-    _elementBuilders[name] = builder;
-  }
-
   void replaceConstFieldsIfNoConstConstructor() {
     var withConstConstructors = Set<ClassElementImpl>.identity();
     for (var classElement in element.topLevelElements) {
@@ -776,32 +759,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
     }
-  }
-
-  void updateAugmentationTarget<T extends ElementImpl>(
-    String name,
-    AugmentableElement<T> augmentation,
-  ) {
-    if (augmentation.isAugmentation) {
-      var target = _augmentationTargets[name];
-      target ??= topVariables.accessors[name];
-      target ??= topVariables.accessors['$name='];
-
-      augmentation.augmentationTargetAny = target;
-      if (target is AugmentableElement<T>) {
-        augmentation.isAugmentationChainStart = false;
-        target.augmentation = augmentation as T;
-      }
-    }
-    _augmentationTargets[name] = augmentation;
-  }
-
-  // TODO(scheglov): Remove this method when we use only builders.
-  void updateAugmentationTarget0<T extends ElementImpl>(
-    String name,
-    AugmentableElement<T> augmentation,
-  ) {
-    _augmentationTargets[name] = augmentation;
   }
 
   /// Updates the element of the macro augmentation.

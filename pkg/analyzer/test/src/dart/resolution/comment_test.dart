@@ -559,7 +559,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: package:test/foo.dart::<fragment>::@extension::E
-      element: package:test/foo.dart::<fragment>::@extension::E#element
+      element: package:test/foo.dart::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -593,7 +593,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: package:test/foo.dart::<fragment>::@extension::E
-      element: package:test/foo.dart::<fragment>::@extension::E#element
+      element: package:test/foo.dart::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -627,7 +627,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: package:test/foo.dart::<fragment>::@extension::E
-      element: package:test/foo.dart::<fragment>::@extension::E#element
+      element: package:test/foo.dart::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -661,7 +661,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: package:test/foo.dart::<fragment>::@extension::E
-      element: package:test/foo.dart::<fragment>::@extension::E#element
+      element: package:test/foo.dart::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -695,7 +695,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: package:test/foo.dart::<fragment>::@extension::E
-      element: package:test/foo.dart::<fragment>::@extension::E#element
+      element: package:test/foo.dart::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -729,7 +729,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: package:test/foo.dart::<fragment>::@extension::E
-      element: package:test/foo.dart::<fragment>::@extension::E#element
+      element: package:test/foo.dart::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -759,7 +759,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -789,7 +789,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -819,7 +819,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -849,7 +849,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -879,7 +879,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -909,7 +909,7 @@ CommentReference
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1263,10 +1263,10 @@ CommentReference
       identifier: SimpleIdentifier
         token: E
         staticElement: <testLibraryFragment>::@extension::E
-        element: <testLibraryFragment>::@extension::E#element
+        element: <testLibrary>::@extension::E
         staticType: null
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -1302,10 +1302,10 @@ CommentReference
       identifier: SimpleIdentifier
         token: E
         staticElement: <testLibraryFragment>::@extension::E
-        element: <testLibraryFragment>::@extension::E#element
+        element: <testLibrary>::@extension::E
         staticType: null
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -1341,10 +1341,10 @@ CommentReference
       identifier: SimpleIdentifier
         token: E
         staticElement: <testLibraryFragment>::@extension::E
-        element: <testLibraryFragment>::@extension::E#element
+        element: <testLibrary>::@extension::E
         staticType: null
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -1380,10 +1380,10 @@ CommentReference
       identifier: SimpleIdentifier
         token: E
         staticElement: <testLibraryFragment>::@extension::E
-        element: <testLibraryFragment>::@extension::E#element
+        element: <testLibrary>::@extension::E
         staticType: null
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -1419,10 +1419,10 @@ CommentReference
       identifier: SimpleIdentifier
         token: E
         staticElement: <testLibraryFragment>::@extension::E
-        element: <testLibraryFragment>::@extension::E#element
+        element: <testLibrary>::@extension::E
         staticType: null
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -1458,10 +1458,10 @@ CommentReference
       identifier: SimpleIdentifier
         token: E
         staticElement: <testLibraryFragment>::@extension::E
-        element: <testLibraryFragment>::@extension::E#element
+        element: <testLibrary>::@extension::E
         staticType: null
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -1610,7 +1610,7 @@ CommentReference
   expression: SimpleIdentifier
     token: Samurai
     staticElement: <testLibraryFragment>::@enum::Samurai
-    element: <testLibraryFragment>::@enum::Samurai#element
+    element: <testLibrary>::@enum::Samurai
     staticType: null
 ''');
 

@@ -1444,8 +1444,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 
     __ LoadImmediate(TMP, tags);
     __ orr(R3, R3, Operand(TMP));
-    __ StoreFieldToOffset(R3, AllocateArrayABI::kResultReg,
-                          target::Array::tags_offset());
+    __ InitializeHeader(R3, AllocateArrayABI::kResultReg);
 
     // Store the type argument field.
     __ StoreCompressedIntoObjectOffsetNoBarrier(
@@ -1913,7 +1912,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 
   __ LoadImmediate(TMP, tags);
   __ orr(R2, R2, Operand(TMP));
-  __ StoreFieldToOffset(R2, R0, target::Object::tags_offset());
+  __ InitializeHeader(R2, R0);
 
   // Setup up number of context variables field.
   // R0: new object.
@@ -2324,8 +2323,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     }  // kInstanceSizeReg = R4, kEndReg = R5
 
     // Tags.
-    __ str(kTagsReg, Address(AllocateObjectABI::kResultReg,
-                             target::Object::tags_offset()));
+    __ InitializeHeaderUntagged(kTagsReg, AllocateObjectABI::kResultReg);
 
     // Initialize the remaining words of the object.
     {
@@ -3953,7 +3951,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
           target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
       __ LoadImmediate(TMP, tags);
       __ orr(R2, R2, Operand(TMP));
-      __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+      __ InitializeHeader(R2, R0);
     }
     /* Set the length field. */
     /* R0: new object start as a tagged pointer. */

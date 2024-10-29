@@ -960,9 +960,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       // Get the class index and insert it into the tags.
       uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
-      __ movl(FieldAddress(AllocateArrayABI::kResultReg,
-                           target::Object::tags_offset()),
-              EDI);  // Tags.
+      __ InitializeHeader(EDI, AllocateArrayABI::kResultReg);
     }
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
@@ -1363,7 +1361,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // EBX: size and bit tags.
     uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orl(EBX, Immediate(tags));
-    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
+    __ InitializeHeader(EBX, EAX);
   }
 
   // Setup up number of context variables field.

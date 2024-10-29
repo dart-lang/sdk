@@ -418,7 +418,7 @@ FunctionReference
   function: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -461,10 +461,10 @@ FunctionReference
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/a.dart::<fragment>::@extension::E
-      element: package:test/a.dart::<fragment>::@extension::E#element
+      element: package:test/a.dart::@extension::E
       staticType: InvalidType
     staticElement: package:test/a.dart::<fragment>::@extension::E
-    element: package:test/a.dart::<fragment>::@extension::E#element
+    element: package:test/a.dart::@extension::E
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -511,7 +511,7 @@ FunctionReference
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -644,7 +644,7 @@ FunctionReference
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -745,7 +745,7 @@ FunctionReference
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -799,7 +799,7 @@ FunctionReference
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .

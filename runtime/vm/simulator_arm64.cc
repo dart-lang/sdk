@@ -1821,6 +1821,12 @@ void Simulator::DecodeSystem(Instr* instr) {
     return;
   }
 
+  if (instr->InstructionBits() == kDataMemoryBarrier) {
+    // Format(instr, "dmb ish");
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+    return;
+  }
+
   if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
       (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
       (instr->Bit(21) == 0)) {

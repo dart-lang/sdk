@@ -1621,6 +1621,7 @@ class Instr {
 };
 
 const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+constexpr int32_t kDataMemoryBarrier = 0xD5033BBF;             // dmb ish
 
 struct LinkRegister {};
 

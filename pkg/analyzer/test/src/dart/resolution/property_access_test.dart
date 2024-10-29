@@ -46,7 +46,7 @@ PropertyAccess
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -90,7 +90,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -147,7 +147,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .

@@ -122,13 +122,14 @@ class ElementPrinter {
         _sink.write('${element.name3}@${element.nameOffset}');
       case MaybeAugmentedClassElementMixin element:
         writeReference(element.reference);
+      case MaybeAugmentedEnumElementMixin element:
+        writeReference(element.reference);
+      case MaybeAugmentedExtensionElementMixin element:
+        writeReference(element.reference);
+      case MaybeAugmentedExtensionTypeElementMixin element:
+        writeReference(element.reference);
       case MaybeAugmentedMixinElementMixin element:
         writeReference(element.reference);
-      case MaybeAugmentedInstanceElementMixin element:
-        var firstFragment = element.firstFragment as ElementImpl;
-        var reference = firstFragment.reference!;
-        writeReference(reference);
-        _sink.write('#element');
       case MethodElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;

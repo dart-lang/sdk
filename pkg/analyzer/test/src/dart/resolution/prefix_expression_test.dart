@@ -701,7 +701,7 @@ PrefixExpression
           staticType: C
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::Ext
-    element2: <testLibraryFragment>::@extension::Ext#element
+    element2: <testLibrary>::@extension::Ext
     extendedType: C
     staticType: null
   readElement: <null>

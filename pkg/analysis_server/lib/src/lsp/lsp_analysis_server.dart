@@ -649,8 +649,13 @@ class LspAnalysisServer extends AnalysisServer {
     // dependencies (so the optimization works for them) but below we use
     // `contextManager.driverFor` so we only add to the specific driver.
     var driver = getAnalysisDriver(path);
+    var state = driver?.fsState.getExistingFromPath(path);
+    // Content is updated if we have no state, we have state that does not exist
+    // or the content differs. For a file with state that does not exist, the
+    // content will be an empty string, so we must check exists to cover files
+    // that are newly created with empty contents.
     var contentIsUpdated =
-        driver?.fsState.getExistingFromPath(path)?.content != content;
+        state == null || !state.exists || state.content != content;
 
     if (contentIsUpdated) {
       _afterOverlayChanged(path, plugin.AddContentOverlay(content));

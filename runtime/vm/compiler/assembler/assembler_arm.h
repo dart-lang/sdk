@@ -1034,6 +1034,19 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register rn, const Object& object);
 
+  void InitializeHeader(Register tags, Register object) {
+    str(tags, FieldAddress(object, target::Object::tags_offset()));
+#if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
+    dmb();
+#endif
+  }
+  void InitializeHeaderUntagged(Register tags, Register object) {
+    str(tags, Address(object, target::Object::tags_offset()));
+#if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
+    dmb();
+#endif
+  }
+
   void StoreObjectIntoObjectNoBarrier(
       Register object,
       const Address& dest,

@@ -7371,7 +7371,7 @@ library
       extensions
         extension <null-name>
           reference: <testLibraryFragment>::@extension::0
-          element: <testLibraryFragment>::@extension::0#element
+          element: <testLibrary>::@extension::0
           fields
             <null-name>
               reference: <testLibraryFragment>::@extension::0::@field::foo
@@ -7400,6 +7400,7 @@ library
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   extensions
     extension <null-name>
+      reference: <testLibrary>::@extension::0
       firstFragment: <testLibraryFragment>::@extension::0
       fields
         synthetic foo
@@ -8180,7 +8181,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -8289,7 +8290,7 @@ library
       enums
         enum E @16
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant v @20
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -8368,6 +8369,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -8531,7 +8533,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
-                      element2: <testLibrary>::@fragment::package:test/a.dart::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
@@ -8640,7 +8642,7 @@ library
       enums
         enum E @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
-          element: <testLibrary>::@fragment::package:test/a.dart::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
@@ -8674,6 +8676,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
       fields
@@ -8784,7 +8787,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -8897,7 +8900,7 @@ library
       enums
         enum E @42
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant v @46
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -8979,6 +8982,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -9097,7 +9101,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
-                      element2: <testLibrary>::@fragment::package:test/a.dart::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
@@ -9214,7 +9218,7 @@ library
       enums
         enum E @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
-          element: <testLibrary>::@fragment::package:test/a.dart::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
@@ -9296,6 +9300,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
       fields
@@ -9408,7 +9413,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
-                      element2: <testLibrary>::@fragment::package:test/a.dart::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
@@ -9522,7 +9527,7 @@ library
       enums
         enum E @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
-          element: <testLibrary>::@fragment::package:test/a.dart::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
@@ -9601,6 +9606,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
       fields
@@ -9990,7 +9996,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10052,7 +10058,7 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant v @9
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -10092,6 +10098,7 @@ library
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields

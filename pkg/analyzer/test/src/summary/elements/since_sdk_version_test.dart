@@ -578,7 +578,7 @@ library
       enums
         enum E @31
           reference: dart:foo::<fragment>::@enum::E
-          element: dart:foo::<fragment>::@enum::E#element
+          element: dart:foo::@enum::E
           fields
             enumConstant v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
@@ -605,6 +605,7 @@ library
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
   enums
     enum E
+      reference: dart:foo::@enum::E
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
       fields
@@ -690,7 +691,7 @@ library
       enums
         enum E @46
           reference: dart:foo::<fragment>::@enum::E
-          element: dart:foo::<fragment>::@enum::E#element
+          element: dart:foo::@enum::E
           fields
             enumConstant v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
@@ -715,6 +716,7 @@ library
               sinceSdkVersion: 2.15.0
   enums
     enum E
+      reference: dart:foo::@enum::E
       firstFragment: dart:foo::<fragment>::@enum::E
       sinceSdkVersion: 2.15.0
       supertype: Enum
@@ -776,7 +778,7 @@ library
       extensions
         extension E @51
           reference: dart:foo::<fragment>::@extension::E
-          element: dart:foo::<fragment>::@extension::E#element
+          element: dart:foo::@extension::E
           methods
             foo @69
               reference: dart:foo::<fragment>::@extension::E::@method::foo
@@ -784,6 +786,7 @@ library
               sinceSdkVersion: 2.15.0
   extensions
     extension E
+      reference: dart:foo::@extension::E
       firstFragment: dart:foo::<fragment>::@extension::E
       sinceSdkVersion: 2.15.0
       methods

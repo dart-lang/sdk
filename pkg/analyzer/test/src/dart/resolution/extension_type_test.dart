@@ -75,7 +75,7 @@ ExtensionTypeDeclaration
       returnType: SimpleIdentifier
         token: A
         staticElement: <testLibraryFragment>::@extensionType::A
-        element: <testLibraryFragment>::@extensionType::A#element
+        element: <testLibrary>::@extensionType::A
         staticType: null
       period: .
       name: named
@@ -128,7 +128,7 @@ ExtensionTypeDeclaration
       returnType: SimpleIdentifier
         token: A
         staticElement: <testLibraryFragment>::@extensionType::A
-        element: <testLibraryFragment>::@extensionType::A#element
+        element: <testLibrary>::@extensionType::A
         staticType: null
       period: .
       name: named

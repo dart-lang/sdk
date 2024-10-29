@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -70,10 +70,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAssignmentExpression(AssignmentExpression node) {
     var leftPart = node.leftHandSide.unParenthesized;
     if (leftPart is SimpleIdentifier) {
-      var leftPartElement = node.writeElement;
+      var leftPartElement = node.writeElement2;
       if (leftPartElement == null) return;
-      var enclosingElement = leftPartElement.enclosingElement3;
-      if (enclosingElement is ClassElement) {
+      var enclosingElement = leftPartElement.enclosingElement2;
+      if (enclosingElement is ClassElement2) {
         _checkAssignment(enclosingElement.thisType, leftPart, node);
       }
     } else if (leftPart is PropertyAccess) {
@@ -110,10 +110,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     DartType? type;
     if (node.realTarget == null) {
       // Implicit `this` target.
-      var methodElement = node.methodName.staticElement;
+      var methodElement = node.methodName.element;
       if (methodElement == null) return;
-      var enclosingElement = methodElement.enclosingElement3;
-      if (enclosingElement is ClassElement) {
+      var enclosingElement = methodElement.enclosingElement2;
+      if (enclosingElement is ClassElement2) {
         type = enclosingElement.thisType;
       } else {
         return;

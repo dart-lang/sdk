@@ -6719,7 +6719,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -6738,7 +6738,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -6767,7 +6767,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -6845,7 +6845,7 @@ library
       enums
         enum E @26
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant e1 @37
               reference: <testLibraryFragment>::@enum::E::@field::e1
@@ -6891,6 +6891,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -6999,7 +7000,7 @@ library
       extensions
         extension E @31
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           typeParameters
             T @38
               element: <not-implemented>
@@ -7024,6 +7025,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T
@@ -10443,7 +10445,7 @@ library
                 prefix: SimpleIdentifier
                   token: E @18
                   staticElement: <testLibraryFragment>::@enum::E
-                  element: <testLibraryFragment>::@enum::E#element
+                  element: <testLibrary>::@enum::E
                   staticType: null
                 period: . @19
                 identifier: SimpleIdentifier
@@ -10477,7 +10479,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10496,7 +10498,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10515,7 +10517,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10586,7 +10588,7 @@ library
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
             enumConstant a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
@@ -10630,6 +10632,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
@@ -10690,7 +10693,7 @@ library
                 prefix: SimpleIdentifier
                   token: E @46
                   staticElement: <testLibraryFragment>::@extension::E
-                  element: <testLibraryFragment>::@extension::E#element
+                  element: <testLibrary>::@extension::E
                   staticType: null
                 period: . @47
                 identifier: SimpleIdentifier
@@ -10744,7 +10747,7 @@ library
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           fields
             x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
@@ -10763,6 +10766,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       fields
         static const x
@@ -10817,10 +10821,10 @@ library
                 identifier: SimpleIdentifier
                   token: E @31
                   staticElement: package:test/foo.dart::<fragment>::@extension::E
-                  element: package:test/foo.dart::<fragment>::@extension::E#element
+                  element: package:test/foo.dart::@extension::E
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@extension::E
-                element: package:test/foo.dart::<fragment>::@extension::E#element
+                element: package:test/foo.dart::@extension::E
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier

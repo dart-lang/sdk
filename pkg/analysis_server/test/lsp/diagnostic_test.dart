@@ -192,6 +192,29 @@ void f() {
     expect(diagnostic.message, contains('\nTry'));
   }
 
+  /// Verify that if a nonexistant file is imported, creating that file causes
+  /// the uri_does_not_exist error to go away.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/55318
+  Future<void> test_createAfterImport() async {
+    var fooFilePath = join(projectFolderPath, 'lib', 'foo.dart');
+
+    await initialize();
+    await openFile(mainFileUri, "import 'foo.dart';");
+    await pumpEventQueue(times: 5000);
+
+    expect(diagnostics[mainFileUri]!.single.code, 'uri_does_not_exist');
+
+    // Create the file.
+    await openFile(toUri(fooFilePath), '');
+
+    // Allow server to catch up.
+    await pumpEventQueue(times: 5000);
+
+    // Expect the diagnostic is now for an unused import instead.
+    expect(diagnostics[mainFileUri]!.single.code, 'unused_import');
+  }
+
   Future<void> test_deletedFile() async {
     newFile(mainFilePath, 'String a = 1;');
 
@@ -566,6 +589,40 @@ void f(dynamic a) => a.foo();
       var diagnostics = await diagnosticsUpdate;
       expect(diagnostics, hasLength(0));
     }
+  }
+
+  /// Verify that when a file is renamed, if references to the new file are
+  /// written into the documents before the new file is "created", it does not
+  /// result in uri_does_not_exist errors that hang around.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5269
+  Future<void> test_rename_updatedImportsBeforeCreated() async {
+    var oldFilePath = join(projectFolderPath, 'lib', 'old.dart');
+    var newFilePath = join(projectFolderPath, 'lib', 'new.dart');
+    newFile(oldFilePath, '');
+    newFile(mainFilePath, '');
+
+    await initialize();
+    await pumpEventQueue(times: 5000);
+
+    // Create a valid reference to the old file.
+    await openFile(mainFileUri, "import 'old.dart';");
+    await openFile(toUri(oldFilePath), '');
+    await pumpEventQueue(times: 5000);
+
+    // Update the reference to the new file, update the overlays, and update
+    // the disk.
+    await replaceFile(2, mainFileUri, "import 'new.dart';");
+    await closeFile(toUri(oldFilePath));
+    await openFile(toUri(newFilePath), '');
+    deleteFile(oldFilePath);
+    newFile(newFilePath, '');
+
+    // Allow server to catch up.
+    await waitForAnalysisComplete();
+
+    // Expect unused_import, not uri_does_not_exist.
+    expect(diagnostics[mainFileUri]!.single.code, 'unused_import');
   }
 
   /// Tests that diagnostic ordering is stable when minor changes are made to

@@ -812,7 +812,7 @@ ExtensionOverride
         staticType: A
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -1538,7 +1538,7 @@ ExtensionOverride
         staticType: A
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@extension::E
-  element2: package:test/a.dart::<fragment>::@extension::E#element
+  element2: package:test/a.dart::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes

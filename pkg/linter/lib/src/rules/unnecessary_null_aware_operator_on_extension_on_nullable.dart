@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 
@@ -45,9 +45,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         _isExtensionOnNullableType(node.inSetterContext()
             ? node
                 .thisOrAncestorOfType<AssignmentExpression>()
-                ?.writeElement
-                ?.enclosingElement3
-            : node.staticElement?.enclosingElement3)) {
+                ?.writeElement2
+                ?.enclosingElement2
+            : node.element?.enclosingElement2)) {
       rule.reportLintForToken(node.question);
     }
   }
@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isNullAware &&
         _isExtensionOnNullableType(
-            node.methodName.staticElement?.enclosingElement3)) {
+            node.methodName.element?.enclosingElement2)) {
       rule.reportLintForToken(node.operator);
     }
   }
@@ -67,14 +67,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       var realParent = node.thisOrAncestorMatching(
           (p) => p != node && p is! ParenthesizedExpression);
       if (_isExtensionOnNullableType(realParent is AssignmentExpression
-          ? realParent.writeElement?.enclosingElement3
-          : node.propertyName.staticElement?.enclosingElement3)) {
+          ? realParent.writeElement2?.enclosingElement2
+          : node.propertyName.element?.enclosingElement2)) {
         rule.reportLintForToken(node.operator);
       }
     }
   }
 
-  bool _isExtensionOnNullableType(Element? enclosingElement) =>
-      enclosingElement is ExtensionElement &&
+  bool _isExtensionOnNullableType(Element2? enclosingElement) =>
+      enclosingElement is ExtensionElement2 &&
       context.typeSystem.isNullable(enclosingElement.extendedType);
 }

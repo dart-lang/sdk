@@ -1383,8 +1383,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ Bind(&done);
       uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
       __ OrImmediate(temp_reg, tags);
-      __ StoreFieldToOffset(temp_reg, result_reg,
-                            target::Object::tags_offset());  // Tags.
+      __ InitializeHeader(temp_reg, result_reg);
     }
 
     __ StoreCompressedIntoObjectNoBarrier(
@@ -1863,8 +1862,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
     __ Bind(&done);
     uword tags = target::MakeTagWordForNewSpaceObject(kSuspendStateCid, 0);
     __ OrImmediate(temp_reg, tags);
-    __ StoreFieldToOffset(temp_reg, result_reg,
-                          target::Object::tags_offset());  // Tags.
+    __ InitializeHeader(temp_reg, result_reg);
   }
 
   __ StoreFieldToOffset(frame_size_reg, result_reg,

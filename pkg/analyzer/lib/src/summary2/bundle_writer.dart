@@ -54,11 +54,6 @@ class BundleWriter {
     references: _references,
   );
 
-  /// [_writeClassElement] remembers the length of data written into [_sink]
-  /// while writing members. So, when we read, we can skip members initially,
-  /// and read them later on demand.
-  List<int> _classMembersLengths = [];
-
   /// [_writePropertyAccessorElement] adds augmentations here, so that after
   /// reading the library we can read them, and while doing this, update
   /// `getter` and `setter` of augmented variables.
@@ -86,7 +81,6 @@ class BundleWriter {
     _sink.writeList<_Library>(_libraries, (library) {
       _sink._writeStringReference(library.uriStr);
       _sink.writeUInt30(library.offset);
-      _sink.writeUint30List(library.classMembersOffsets);
       _sink.writeOptionalObject(library.macroGenerated, (it) {
         _sink.writeStringUtf8(it.code);
       });
@@ -113,7 +107,6 @@ class BundleWriter {
 
   void writeLibraryElement(LibraryElementImpl libraryElement) {
     var libraryOffset = _sink.offset;
-    _classMembersLengths = [];
     _accessorAugmentations = [];
     _propertyAugmentations = [];
 
@@ -146,7 +139,6 @@ class BundleWriter {
       _Library(
         uriStr: '${libraryElement.source.uri}',
         offset: libraryOffset,
-        classMembersOffsets: _classMembersLengths,
         macroGenerated: macroGenerated,
       ),
     );
@@ -185,7 +177,6 @@ class BundleWriter {
       }
 
       if (!element.isMixinApplication) {
-        var membersOffset = _sink.offset;
         _writeList(
           element.fields.where((e) => !e.isSynthetic).toList(),
           _writeFieldElement,
@@ -196,7 +187,6 @@ class BundleWriter {
         );
         _writeList(element.constructors, _writeConstructorElement);
         _writeList(element.methods, _writeMethodElement);
-        _classMembersLengths.add(_sink.offset - membersOffset);
       }
     });
   }
@@ -258,6 +248,8 @@ class BundleWriter {
   void _writeEnumElement(EnumElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(element.augmentedInternal is AugmentedEnumElementImpl);
     _writeFragmentName(element.name2);
     EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -328,6 +320,8 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(element.augmentedInternal is AugmentedExtensionElementImpl);
     _writeFragmentName(element.name2);
     ExtensionElementFlags.write(_sink, element);
 
@@ -363,6 +357,9 @@ class BundleWriter {
   void _writeExtensionTypeElement(ExtensionTypeElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeReference2(element.augmented.reference);
+    _sink.writeBool(
+        element.augmentedInternal is AugmentedExtensionTypeElementImpl);
     _writeFragmentName(element.name2);
     ExtensionTypeElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -1331,7 +1328,6 @@ class _BundleWriterReferences {
 class _Library {
   final String uriStr;
   final int offset;
-  final List<int> classMembersOffsets;
 
   /// The only (if any) macro generated fragment.
   final MacroGeneratedLibraryFragment? macroGenerated;
@@ -1339,7 +1335,6 @@ class _Library {
   _Library({
     required this.uriStr,
     required this.offset,
-    required this.classMembersOffsets,
     required this.macroGenerated,
   });
 }

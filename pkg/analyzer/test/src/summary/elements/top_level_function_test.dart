@@ -2716,7 +2716,7 @@ library
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_1
-          variable: variable_0
+          variable: <null>
           augmentationTarget: <testLibraryFragment>::@getter::foo
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
@@ -2985,7 +2985,7 @@ library
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: int
           id: getter_1
-          variable: variable_0
+          variable: <null>
           augmentationTarget: <testLibraryFragment>::@getter::foo
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
@@ -3372,7 +3372,7 @@ library
               type: int
           returnType: void
           id: setter_1
-          variable: variable_0
+          variable: <null>
           augmentationTarget: <testLibraryFragment>::@setter::foo
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
@@ -3490,7 +3490,7 @@ library
               type: int
           returnType: void
           id: setter_1
-          variable: variable_0
+          variable: <null>
           augmentationTarget: <testLibraryFragment>::@setter::foo
   exportedReferences
     declared <testLibraryFragment>::@getter::foo

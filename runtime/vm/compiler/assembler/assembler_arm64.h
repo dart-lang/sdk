@@ -1232,6 +1232,8 @@ class Assembler : public AssemblerBase {
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
 
+  void dmb() { Emit(kDataMemoryBarrier); }
+
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
     int64_t imm64 = bit_cast<int64_t, double>(immd);
@@ -1947,6 +1949,19 @@ class Assembler : public AssemblerBase {
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadCompressed(Register dest, const Address& slot) override;
 #endif
+
+  void InitializeHeader(Register header, Register object) {
+    str(header, FieldAddress(object, target::Object::tags_offset()));
+#if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
+    dmb();
+#endif
+  }
+  void InitializeHeaderUntagged(Register header, Register object) {
+    str(header, Address(object, target::Object::tags_offset()));
+#if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
+    dmb();
+#endif
+  }
 
   void StoreBarrier(Register object,
                     Register value,

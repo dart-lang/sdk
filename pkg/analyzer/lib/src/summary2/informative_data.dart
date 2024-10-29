@@ -225,6 +225,10 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
+    _applyToConstructors(element.constructors, info.constructors);
+    _applyToFields(element.fields, info.fields);
+    _applyToAccessors(element.accessors, info.accessors);
+    _applyToMethods(element.methods, info.methods);
 
     var applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
@@ -234,20 +238,11 @@ class InformativeDataApplier {
       },
     );
 
-    void applyToMembers() {
-      _applyToConstructors(element.constructors, info.constructors);
-      _applyToFields(element.fields, info.fields);
-      _applyToAccessors(element.accessors, info.accessors);
-      _applyToMethods(element.methods, info.methods);
-    }
-
     var linkedData = element.linkedData;
     if (linkedData is ClassElementLinkedData) {
       linkedData.applyConstantOffsets = applyOffsets;
-      linkedData.applyInformativeDataToMembers = applyToMembers;
     } else {
       applyOffsets.perform();
-      applyToMembers();
     }
   }
 

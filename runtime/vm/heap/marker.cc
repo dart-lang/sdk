@@ -114,6 +114,17 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     thread->StoreBufferAcquireGC();
   }
 
+  static bool InTLAB(ObjectPtr obj) {
+    ASSERT(obj->IsNewObject());
+    Page* page = Page::Of(obj);
+    // This load-acquire pairs with the store-release in Page::Release. If we
+    // see an object below Page::top_, we'll see at least its initializing
+    // stores. Page::top_ is rarely updated when a thread starts or finishes
+    // using a TLAB. Importantly, here we are not reading Thread::top_, that is
+    // updated frequently as a store-relaxed as part of bump-pointer allocation.
+    return page->original_top() <= static_cast<uword>(obj);
+  }
+
   void DrainMarkingStackWithPauseChecks() {
     ASSERT(concurrent_);
     Thread* thread = Thread::Current();
@@ -123,11 +134,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         ASSERT(!has_evacuation_candidate_);
 
         if (obj->IsNewObject()) {
-          Page* page = Page::Of(obj);
-          uword top = page->original_top();
-          uword end = page->original_end();
-          uword addr = static_cast<uword>(obj);
-          if (top <= addr && addr < end) {
+          if (InTLAB(obj)) {
             // New-space objects still in a TLAB are deferred. This allows the
             // compiler to remove write barriers for freshly allocated objects.
             tlab_deferred_work_list_.Push(obj);
@@ -637,6 +644,18 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+  static bool TryAcquireMarkBitIgnoreRace(ObjectPtr obj) {
+    if constexpr (!sync) {
+      if (!obj->untag()->IsMarked()) {
+        obj->untag()->SetMarkBitUnsynchronized();
+        return true;
+      }
+      return false;
+    } else {
+      return obj->untag()->TryAcquireMarkBitIgnoreRace();
+    }
+  }
+
   DART_FORCE_INLINE
   bool MarkObject(ObjectPtr obj) {
     if (obj->IsImmediateObject()) {
@@ -644,9 +663,20 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
 
     if (obj->IsNewObject()) {
-      if (TryAcquireMarkBit(obj)) {
+#if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
+      // Ignore race: TSAN doesn't support fences.
+      if (TryAcquireMarkBitIgnoreRace(obj)) {
         new_work_list_.Push(obj);
       }
+#else
+      if (sync && concurrent_ && InTLAB(obj)) {
+        // New-space objects still in a TLAB might race with the header's
+        // initializing store.
+        deferred_work_list_.Push(obj);
+      } else if (TryAcquireMarkBit(obj)) {
+        new_work_list_.Push(obj);
+      }
+#endif
       return false;
     }
 

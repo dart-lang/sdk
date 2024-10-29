@@ -113,6 +113,13 @@ class AtomicBitFieldContainer {
     return TargetBitField::decode(old_field);
   }
 
+  template <class TargetBitField>
+  NO_SANITIZE_THREAD bool TryClearIgnoreRace() {
+    T mask = ~TargetBitField::encode(true);
+    T old_field = field_.fetch_and(mask, std::memory_order_relaxed);
+    return TargetBitField::decode(old_field);
+  }
+
  private:
   std::atomic<T> field_;
 };

@@ -123,25 +123,43 @@ class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
 class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
     with MaybeAugmentedEnumElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final EnumElementImpl declaration;
 
-  AugmentedEnumElementImpl(this.declaration);
+  AugmentedEnumElementImpl(this.reference, this.declaration) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 }
 
 class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
     with MaybeAugmentedExtensionElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final ExtensionElementImpl declaration;
 
-  AugmentedExtensionElementImpl(this.declaration);
+  AugmentedExtensionElementImpl(this.reference, this.declaration) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 }
 
 class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
     with MaybeAugmentedExtensionTypeElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final ExtensionTypeElementImpl declaration;
 
-  AugmentedExtensionTypeElementImpl(this.declaration);
+  AugmentedExtensionTypeElementImpl(this.reference, this.declaration) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 }
 
 abstract class AugmentedInstanceElementImpl
@@ -286,8 +304,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   MaybeAugmentedClassElementMixin get augmented {
-    linkedData?.read(this);
-    return augmentedInternal;
+    return element;
   }
 
   AugmentedClassElementImpl? get augmentedIfReally {
@@ -312,7 +329,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   MaybeAugmentedClassElementMixin get element {
-    return augmented;
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -3368,8 +3386,7 @@ class ElementLocationImpl implements ElementLocation {
 class EnumElementImpl extends InterfaceElementImpl
     with AugmentableElement<EnumElementImpl>
     implements EnumElement, EnumFragment {
-  late MaybeAugmentedEnumElementMixin augmentedInternal =
-      NotAugmentedEnumElementImpl(this);
+  late MaybeAugmentedEnumElementMixin augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -3377,14 +3394,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
   @override
   MaybeAugmentedEnumElementMixin get augmented {
-    if (isAugmentation) {
-      if (augmentationTarget case var augmentationTarget?) {
-        return augmentationTarget.augmented;
-      }
-    }
-
-    linkedData?.read(this);
-    return augmentedInternal;
+    return element;
   }
 
   AugmentedEnumElementImpl? get augmentedIfReally {
@@ -3409,7 +3419,10 @@ class EnumElementImpl extends InterfaceElementImpl
   List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
 
   @override
-  EnumElement2 get element => super.element as EnumElement2;
+  MaybeAugmentedEnumElementMixin get element {
+    linkedData?.read(this);
+    return augmentedInternal;
+  }
 
   @override
   ElementKind get kind => ElementKind.ENUM;
@@ -3640,8 +3653,7 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 class ExtensionElementImpl extends InstanceElementImpl
     with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement, ExtensionFragment {
-  late MaybeAugmentedExtensionElementMixin augmentedInternal =
-      NotAugmentedExtensionElementImpl(this);
+  late MaybeAugmentedExtensionElementMixin augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
@@ -3650,14 +3662,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   MaybeAugmentedExtensionElementMixin get augmented {
-    if (isAugmentation) {
-      if (augmentationTarget case var augmentationTarget?) {
-        return augmentationTarget.augmented;
-      }
-    }
-
-    linkedData?.read(this);
-    return augmentedInternal;
+    return element;
   }
 
   AugmentedExtensionElementImpl? get augmentedIfReally {
@@ -3687,7 +3692,10 @@ class ExtensionElementImpl extends InstanceElementImpl
   String get displayName => name ?? '';
 
   @override
-  ExtensionElement2 get element => super.element as ExtensionElement2;
+  MaybeAugmentedExtensionElementMixin get element {
+    linkedData?.read(this);
+    return augmentedInternal;
+  }
 
   @override
   DartType get extendedType {
@@ -3769,8 +3777,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with AugmentableElement<ExtensionTypeElementImpl>
     implements ExtensionTypeElement, ExtensionTypeFragment {
-  late MaybeAugmentedExtensionTypeElementMixin augmentedInternal =
-      NotAugmentedExtensionTypeElementImpl(this);
+  late MaybeAugmentedExtensionTypeElementMixin augmentedInternal;
 
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
@@ -3784,14 +3791,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   MaybeAugmentedExtensionTypeElementMixin get augmented {
-    if (isAugmentation) {
-      if (augmentationTarget case var augmentationTarget?) {
-        return augmentationTarget.augmented;
-      }
-    }
-
-    linkedData?.read(this);
-    return augmentedInternal;
+    return element;
   }
 
   AugmentedExtensionTypeElementImpl? get augmentedIfReally {
@@ -3809,7 +3809,10 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  ExtensionTypeElement2 get element => super.element as ExtensionTypeElement2;
+  MaybeAugmentedExtensionTypeElementMixin get element {
+    linkedData?.read(this);
+    return augmentedInternal;
+  }
 
   @override
   ElementKind get kind {
@@ -5083,11 +5086,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<PropertyAccessorElementImpl> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    linkedData?.readMembers(this);
     return _accessors;
   }
 
@@ -5117,11 +5115,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<FieldElementImpl> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    linkedData?.readMembers(this);
     return _fields;
   }
 
@@ -5150,11 +5143,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodElementImpl> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    linkedData?.readMembers(this);
     return _methods;
   }
 
@@ -5255,7 +5243,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     }
 
     _buildMixinAppConstructors();
-    linkedData?.readMembers(this);
     return _constructors;
   }
 
@@ -6748,6 +6735,9 @@ mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
   @override
   EnumFragment get firstFragment => declaration;
 
+  /// See [ElementImpl2.reference].
+  Reference get reference;
+
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitEnumElement(this);
@@ -6764,6 +6754,9 @@ mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
 
   @override
   ExtensionElementImpl get firstFragment => declaration;
+
+  /// See [ElementImpl2.reference].
+  Reference get reference;
 
   @override
   DartType get thisType => extendedType;
@@ -6794,6 +6787,9 @@ mixin MaybeAugmentedExtensionTypeElementMixin
 
   @override
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
+
+  /// See [ElementImpl2.reference].
+  Reference get reference;
 
   @override
   FieldElement2 get representation2 =>
@@ -7754,8 +7750,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
 
   @override
   MaybeAugmentedMixinElementMixin get augmented {
-    linkedData?.read(this);
-    return augmentedInternal;
+    return element;
   }
 
   AugmentedMixinElementImpl? get augmentedIfReally {
@@ -7773,7 +7768,10 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  MaybeAugmentedMixinElementMixin get element => augmented;
+  MaybeAugmentedMixinElementMixin get element {
+    linkedData?.read(this);
+    return augmentedInternal;
+  }
 
   @override
   bool get isBase {
@@ -8350,16 +8348,22 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
 class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
     with MaybeAugmentedEnumElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final EnumElementImpl element;
 
-  NotAugmentedEnumElementImpl(this.element);
+  NotAugmentedEnumElementImpl(this.reference, this.element) {
+    reference.element2 = this;
+    element.augmentedInternal = this;
+  }
 
   @override
   EnumElementImpl get declaration => element;
 
   @override
   AugmentedEnumElementImpl toAugmented() {
-    var augmented = AugmentedEnumElementImpl(declaration);
+    var augmented = AugmentedEnumElementImpl(reference, declaration);
     declaration.augmentedInternal = augmented;
     return augmented;
   }
@@ -8368,16 +8372,22 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
 class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
     with MaybeAugmentedExtensionElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final ExtensionElementImpl element;
 
-  NotAugmentedExtensionElementImpl(this.element);
+  NotAugmentedExtensionElementImpl(this.reference, this.element) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 
   @override
   ExtensionElementImpl get declaration => element;
 
   @override
   AugmentedExtensionElementImpl toAugmented() {
-    var augmented = AugmentedExtensionElementImpl(declaration);
+    var augmented = AugmentedExtensionElementImpl(reference, declaration);
     augmented.extendedType = extendedType;
     declaration.augmentedInternal = augmented;
     return augmented;
@@ -8388,16 +8398,22 @@ class NotAugmentedExtensionTypeElementImpl
     extends NotAugmentedInterfaceElementImpl
     with MaybeAugmentedExtensionTypeElementMixin {
   @override
+  final Reference reference;
+
+  @override
   final ExtensionTypeElementImpl element;
 
-  NotAugmentedExtensionTypeElementImpl(this.element);
+  NotAugmentedExtensionTypeElementImpl(this.reference, this.element) {
+    reference.element2 = this;
+    declaration.augmentedInternal = this;
+  }
 
   @override
   ExtensionTypeElementImpl get declaration => element;
 
   @override
   AugmentedExtensionTypeElementImpl toAugmented() {
-    var augmented = AugmentedExtensionTypeElementImpl(declaration);
+    var augmented = AugmentedExtensionTypeElementImpl(reference, declaration);
     augmented.primaryConstructor = primaryConstructor;
     augmented.representation = representation;
     declaration.augmentedInternal = augmented;
