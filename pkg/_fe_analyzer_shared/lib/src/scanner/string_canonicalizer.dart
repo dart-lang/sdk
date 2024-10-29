@@ -141,7 +141,7 @@ class _StringCanonicalizer {
   /// Number of [_StringNode]s in the cache.
   int _stringCount = 0;
 
-  /// Number of []s in the cache.
+  /// Number of [_Utf8Node]s in the cache.
   int _utf8StringCount = 0;
 
   /// Memory consumption of [_StringNode]s.
