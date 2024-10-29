@@ -11,8 +11,6 @@ import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
-// ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/linter.dart';
@@ -21,6 +19,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
+import 'analysis_error_info.dart';
 import 'lint_driver.dart';
 
 Source createSource(Uri uri) {

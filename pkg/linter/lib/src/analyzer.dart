@@ -10,14 +10,10 @@ import 'package:analyzer/src/lint/util.dart' as util;
 
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/source/line_info.dart';
-export 'package:analyzer/source/source.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
-export 'package:analyzer/src/dart/resolver/exit_detector.dart';
-export 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
-export 'package:analyzer/src/lint/lint_rule_timers.dart';
 export 'package:analyzer/src/lint/linter.dart'
     show
         dart2_12,
@@ -29,7 +25,6 @@ export 'package:analyzer/src/lint/linter.dart'
         NodeLintRegistry,
         State;
 export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
-export 'package:analyzer/src/lint/util.dart' show FileSpelunker;
 export 'package:analyzer/src/utilities/extensions/ast.dart';
 export 'package:analyzer/src/workspace/pub.dart' show PubPackage;
 

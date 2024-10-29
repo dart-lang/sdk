@@ -8,11 +8,13 @@ import 'dart:math' as math;
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/lint_rule_timers.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:linter/src/test_utilities/test_linter.dart';
 import 'package:yaml/yaml.dart';
@@ -26,8 +28,7 @@ Future<void> main(List<String> args) async {
 
 const unableToProcessExitCode = 64;
 
-Future<Iterable<AnalysisErrorInfo>> lintFiles(
-    TestLinter linter, List<File> filesToLint) async {
+Future<void> lintFiles(TestLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
   var errorWatcher = _ErrorWatchingSink(errorSink);
@@ -38,8 +39,6 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
   } else if (errors.isNotEmpty) {
     exitCode = _maxSeverity(errors);
   }
-
-  return errors;
 }
 
 void printUsage(ArgParser parser, StringSink out, [String? error]) {

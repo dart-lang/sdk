@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:linter/src/test_utilities/formatter.dart';
 import 'package:test/test.dart';
 
@@ -38,7 +38,7 @@ void defineTests() {
       var error = AnalysisError.tmp(
           source: source, offset: 10, length: 3, errorCode: code);
 
-      var info = AnalysisErrorInfoImpl([error], lineInfo);
+      var info = AnalysisErrorInfo([error], lineInfo);
 
       var out = StringBuffer();
 
@@ -87,7 +87,7 @@ mock_code                               1
       var error = AnalysisError.tmp(
           source: source, offset: 12, length: 13, errorCode: code);
 
-      var info = AnalysisErrorInfoImpl([error], lineInfo);
+      var info = AnalysisErrorInfo([error], lineInfo);
 
       var out = StringBuffer();
 

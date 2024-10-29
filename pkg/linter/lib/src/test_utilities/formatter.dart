@@ -6,9 +6,12 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/lint/lint_rule_timers.dart';
 
 import '../analyzer.dart';
 import '../util/charcodes.dart' show $backslash, $pipe;
+import 'analysis_error_info.dart';
 
 // Number of times to perform linting to get stable benchmarks.
 const benchmarkRuns = 10;
