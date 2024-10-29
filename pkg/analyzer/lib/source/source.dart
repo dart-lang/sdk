@@ -71,11 +71,9 @@ abstract class Source {
 
   /// Return `true` if this source exists.
   ///
-  /// Clients should consider using the method [AnalysisContext.exists] because
-  /// contexts can have local overrides of the content of a source that the
-  /// source is not aware of and a source with local content is considered to
-  /// exist even if there is no file on disk.
-  ///
-  /// @return `true` if this source exists
+  /// Clients should consider using the method `AnalysisSession.getFile` (and
+  /// checking for an invalid result) because contexts can have local overrides
+  /// of the content of a source that the source is not aware of and a source
+  /// with local content is considered to exist even if there is no file on disk.
   bool exists();
 }

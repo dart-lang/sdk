@@ -116,7 +116,7 @@ abstract class AugmentedInstanceElement {
 
   /// The fields declared in this element.
   ///
-  /// [FieldAugmentationElement]s replace corresponding elements, other
+  /// `FieldAugmentationElement`s replace corresponding elements, other
   /// [FieldElement]s are appended.
   List<FieldElement> get fields;
 
@@ -131,7 +131,7 @@ abstract class AugmentedInstanceElement {
 
   /// The methods declared in this element.
   ///
-  /// [MethodAugmentationElement]s replace corresponding elements, other
+  /// `MethodAugmentationElement`s replace corresponding elements, other
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
 
@@ -190,7 +190,7 @@ abstract class AugmentedInstanceElement {
 abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
   /// The constructors declared in this element.
   ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
+  /// `ConstructorAugmentationElement`s replace corresponding elements,
   /// other [ConstructorElement]s are appended.
   List<ConstructorElement> get constructors;
 

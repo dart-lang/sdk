@@ -129,7 +129,7 @@ class AnalysisDriver {
   /// file analysis.
   final SummaryDataStore? _externalSummaries;
 
-  /// This [ContentCache] is consulted for a file content before reading
+  /// This [FileContentCache] is consulted for a file content before reading
   /// the content from the file.
   final FileContentCache _fileContentCache;
 
@@ -174,8 +174,7 @@ class AnalysisDriver {
   /// The file changes that should be applied before processing requests.
   final List<_FileChange> _pendingFileChanges = [];
 
-  /// When [_applyFileChangesSynchronously] is `true`, affected files are
-  /// accumulated here.
+  /// Affected files are accumulated here.
   Set<String> _accumulatedAffected = {};
 
   /// The completers to complete after [_pendingFileChanges] are applied.

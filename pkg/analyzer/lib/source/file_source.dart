@@ -45,9 +45,9 @@ class FileSource extends Source {
 
   /// Get and return the contents and timestamp of the underlying file.
   ///
-  /// Clients should consider using the method [AnalysisContext.getContents]
-  /// because contexts can have local overrides of the content of a source that
-  /// the source is not aware of.
+  /// Clients should consider using the method
+  /// `AnalysisSession.getFile('...').contents` because contexts can have local
+  /// overrides of the content of a source that the source is not aware of.
   ///
   /// Throws an exception if the contents of this source could not be accessed.
   /// See [contents].

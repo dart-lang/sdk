@@ -58,9 +58,11 @@ class ErrorReporter {
   @internal
   int lockLevel = 0;
 
-  /// Initialize a newly created error reporter that will report errors to the
-  /// given [_errorListener]. Errors will be reported against the
-  /// [_defaultSource] unless another source is provided later.
+  /// Initializes a newly created error reporter that will report errors to the
+  /// given [_errorListener].
+  ///
+  /// Errors will be reported against the [_source] unless another source is
+  /// provided later.
   ErrorReporter(this._errorListener, this._source);
 
   Source get source => _source;

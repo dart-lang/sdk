@@ -110,7 +110,7 @@ class OverlayResourceProvider implements ResourceProvider {
   }
 
   /// Return the paths of all of the overlaid files that are children of the
-  /// given [folder], either directly or indirectly.
+  /// given [folderPath], either directly or indirectly.
   Iterable<String> _overlaysInFolder(String folderPath) => _overlays.keys
       .where((filePath) => pathContext.isWithin(folderPath, filePath));
 }

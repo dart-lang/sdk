@@ -42,6 +42,7 @@
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
 ///
+/// @docImport 'package:analyzer/dart/element/element.dart';
 /// @docImport 'package:analyzer/src/dart/element/member.dart';
 library;
 
@@ -1171,7 +1172,7 @@ abstract class InterfaceFragment implements InstanceFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class JoinPatternVariableElement2 implements PatternVariableElement2 {
-  /// Whether the [variables] are consistent, present in all branches,
+  /// Whether the [variables2] are consistent, present in all branches,
   /// and have the same type and finality.
   bool get isConsistent;
 

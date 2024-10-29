@@ -535,8 +535,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /// Return a subset of the given [errors] that are not marked as ignored in
-  /// the [file].
+  /// Returns a subset of the given [errors] that are not marked as ignored in
+  /// the file.
   List<AnalysisError> _filterIgnoredErrors(
     FileAnalysis fileAnalysis,
     List<AnalysisError> errors,

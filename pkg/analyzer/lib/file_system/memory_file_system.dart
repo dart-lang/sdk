@@ -50,7 +50,8 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   pathos.Context get pathContext => _pathContext;
 
-  /// Convert the given posix [path] to conform to this provider's path context.
+  /// Converts the given posix [filePath] to conform to this provider's path
+  /// context.
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
@@ -605,7 +606,7 @@ abstract class _MemoryResource implements Resource {
   /// Watch for changes to the files inside this folder (and in any nested
   /// folders, including folders reachable via links).
   ///
-  /// If [provider.delayWatcherInitialization] is not `null`, this method will
+  /// If `provider.delayWatcherInitialization` is not `null`, this method will
   /// wait for this amount of time before it starts capturing/streaming events
   /// to simulate the delay that occurs when initializing a real file system
   /// watcher.

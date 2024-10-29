@@ -187,8 +187,8 @@ class GeneralizingElementVisitor2<R> implements ElementVisitor2<R> {
 
 /// A visitor that will recursively visit all of the element in an element
 /// model. For example, using an instance of this class to visit a
-/// [CompilationUnitElement] will also cause all of the types in the compilation
-/// unit to be visited.
+/// [LibraryFragment] will also cause all of the types in the fragment to be
+/// visited.
 ///
 /// Subclasses that override a visit method must either invoke the overridden
 /// visit method or must explicitly ask the visited element to visit its
