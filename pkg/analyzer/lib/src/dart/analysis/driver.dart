@@ -174,9 +174,6 @@ class AnalysisDriver {
   /// The file changes that should be applied before processing requests.
   final List<_FileChange> _pendingFileChanges = [];
 
-  /// Affected files are accumulated here.
-  Set<String> _accumulatedAffected = {};
-
   /// The completers to complete after [_pendingFileChanges] are applied.
   final _pendingFileChangesCompleters = <Completer<List<String>>>[];
 
@@ -559,9 +556,7 @@ class AnalysisDriver {
       _pendingFileChangesCompleters.add(completer);
       return completer.future;
     } else {
-      var accumulatedAffected = _accumulatedAffected.toList();
-      _accumulatedAffected = {};
-      return Future.value(accumulatedAffected);
+      return Future.value([]);
     }
   }
 
