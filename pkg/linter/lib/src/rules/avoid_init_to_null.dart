@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -41,12 +41,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredFragment?.element;
     if (declaredElement == null) return;
 
-    if (declaredElement is SuperFormalParameterElement) {
-      var superConstructorParameter = declaredElement.superConstructorParameter;
-      if (superConstructorParameter is! ParameterElement) return;
+    if (declaredElement is SuperFormalParameterElement2) {
+      var superConstructorParameter =
+          declaredElement.superConstructorParameter2;
+      if (superConstructorParameter is! FormalParameterElement) return;
       var defaultValue = superConstructorParameter.defaultValueCode ?? 'null';
       if (defaultValue != 'null') return;
     }
@@ -58,7 +59,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement =
+        node.declaredElement2 ?? node.declaredFragment?.element;
     if (declaredElement != null &&
         !node.isConst &&
         !node.isFinal &&

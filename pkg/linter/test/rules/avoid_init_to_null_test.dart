@@ -18,6 +18,17 @@ class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_init_to_null;
 
+  test_forLoop() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (var i = null; i != null; i++) {
+  }
+}
+''', [
+      lint(22, 8),
+    ]);
+  }
+
   test_nullableStringInit() async {
     await assertDiagnostics(r'''
 class A {
