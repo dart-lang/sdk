@@ -16,6 +16,7 @@ lib/src/rules/avoid_as.dart
 lib/src/rules/avoid_bool_literals_in_conditional_expressions.dart
 lib/src/rules/avoid_catches_without_on_clauses.dart
 lib/src/rules/avoid_catching_errors.dart
+lib/src/rules/avoid_classes_with_only_static_members.dart
 lib/src/rules/avoid_double_and_int_checks.dart
 lib/src/rules/avoid_dynamic_calls.dart
 lib/src/rules/avoid_empty_else.dart
@@ -27,6 +28,7 @@ lib/src/rules/avoid_implementing_value_types.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
 lib/src/rules/avoid_null_checks_in_equality_operators.dart
+lib/src/rules/avoid_positional_boolean_parameters.dart
 lib/src/rules/avoid_print.dart
 lib/src/rules/avoid_private_typedef_functions.dart
 lib/src/rules/avoid_redundant_argument_values.dart
@@ -45,6 +47,7 @@ lib/src/rules/avoid_unnecessary_containers.dart
 lib/src/rules/avoid_unstable_final_fields.dart
 lib/src/rules/avoid_unused_constructor_parameters.dart
 lib/src/rules/avoid_web_libraries_in_flutter.dart
+lib/src/rules/await_only_futures.dart
 lib/src/rules/camel_case_extensions.dart
 lib/src/rules/camel_case_types.dart
 lib/src/rules/cancel_subscriptions.dart
@@ -109,6 +112,7 @@ lib/src/rules/omit_obvious_local_variable_types.dart
 lib/src/rules/omit_obvious_property_types.dart
 lib/src/rules/one_member_abstracts.dart
 lib/src/rules/only_throw_errors.dart
+lib/src/rules/overridden_fields.dart
 lib/src/rules/package_api_docs.dart
 lib/src/rules/package_prefixed_library_names.dart
 lib/src/rules/parameter_assignments.dart
@@ -127,6 +131,7 @@ lib/src/rules/prefer_double_quotes.dart
 lib/src/rules/prefer_equal_for_default_values.dart
 lib/src/rules/prefer_expression_function_bodies.dart
 lib/src/rules/prefer_final_in_for_each.dart
+lib/src/rules/prefer_final_locals.dart
 lib/src/rules/prefer_for_elements_to_map_fromIterable.dart
 lib/src/rules/prefer_foreach.dart
 lib/src/rules/prefer_function_declarations_over_variables.dart
@@ -182,6 +187,7 @@ lib/src/rules/unnecessary_library_directive.dart
 lib/src/rules/unnecessary_library_name.dart
 lib/src/rules/unnecessary_new.dart
 lib/src/rules/unnecessary_null_aware_assignments.dart
+lib/src/rules/unnecessary_null_aware_operator_on_extension_on_nullable.dart
 lib/src/rules/unnecessary_null_checks.dart
 lib/src/rules/unnecessary_null_in_if_null_operators.dart
 lib/src/rules/unnecessary_nullable_for_final_variable_declarations.dart
@@ -192,6 +198,7 @@ lib/src/rules/unnecessary_string_escapes.dart
 lib/src/rules/unnecessary_string_interpolations.dart
 lib/src/rules/unnecessary_to_list_in_spreads.dart
 lib/src/rules/unrelated_type_equality_checks.dart
+lib/src/rules/unsafe_html.dart
 lib/src/rules/use_colored_box.dart
 lib/src/rules/use_decorated_box.dart
 lib/src/rules/use_enums.dart
@@ -208,10 +215,12 @@ lib/src/rules/use_test_throws_matchers.dart
 lib/src/rules/use_to_and_as_if_applicable.dart
 lib/src/rules/use_truncating_division.dart
 lib/src/rules/valid_regexps.dart
+lib/src/test_utilities/analysis_error_info.dart
 lib/src/test_utilities/analyzer_utils.dart
 lib/src/test_utilities/annotation.dart
 lib/src/test_utilities/formatter.dart
 lib/src/test_utilities/lint_driver.dart
+lib/src/test_utilities/linter_options.dart
 lib/src/test_utilities/test_linter.dart
 lib/src/test_utilities/test_resource_provider.dart
 lib/src/util/ascii_utils.dart
@@ -329,6 +338,7 @@ test/rules/matching_super_parameters_test.dart
 test/rules/missing_code_block_language_in_doc_comment_test.dart
 test/rules/missing_whitespace_between_adjacent_strings_test.dart
 test/rules/no_adjacent_strings_in_list_test.dart
+test/rules/no_default_cases_test.dart
 test/rules/no_duplicate_case_values_test.dart
 test/rules/no_leading_underscores_for_library_prefixes_test.dart
 test/rules/no_leading_underscores_for_local_identifiers_test.dart
@@ -474,15 +484,12 @@ test/validate_rule_description_format_test.dart
 test/verify_checks_test.dart
 test/verify_generated_files_test.dart
 test/verify_reflective_test_suites_test.dart
-test_data/rules/no_default_cases.dart
-test_data/rules/overridden_fields.dart
 test_data/rules/prefer_const_declarations.dart
 test_data/rules/prefer_void_to_null.dart
 test_data/rules/require_trailing_commas.dart
 test_data/rules/type_init_formals.dart
 test_data/rules/unawaited_futures.dart
 test_data/rules/unmocked/unsafe_html.dart
-test_data/rules/unnecessary_lambdas.dart
 test_data/rules/unnecessary_parenthesis.dart
 test_data/rules/void_checks.dart
 tool/benchmark.dart

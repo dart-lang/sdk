@@ -4,10 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Avoid defining a class that contains only static members.';
 
@@ -38,35 +37,34 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement;
-    if (element == null || element.isAugmentation || element.isSealed) {
-      return;
-    }
+    var fragment = node.declaredFragment;
+    if (fragment == null || fragment.isAugmentation) return;
+    var element = fragment.element;
+    if (element.isSealed) return;
 
-    var interface = context.inheritanceManager.getInterface(element);
-    var map = interface.map;
+    var interface = context.inheritanceManager.getInterface2(element);
+    var map = interface.map2;
     for (var member in map.values) {
-      var enclosingElement = member.enclosingElement3;
-      if (enclosingElement is ClassElement &&
+      var enclosingElement = member.enclosingElement2;
+      if (enclosingElement is ClassElement2 &&
           !enclosingElement.isDartCoreObject) {
         return;
       }
     }
 
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredFragment?.element;
     if (declaredElement == null) return;
 
-    var constructors = declaredElement.allConstructors;
+    var constructors = declaredElement.constructors2;
     if (constructors.isNotEmpty &&
         constructors.any((c) => !c.isDefaultConstructor)) {
       return;
     }
 
-    var methods = declaredElement.allMethods;
+    var methods = declaredElement.methods2;
     if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
 
-    if (methods.isNotEmpty ||
-        declaredElement.allFields.any((f) => !f.isConst)) {
+    if (methods.isNotEmpty || declaredElement.fields2.any((f) => !f.isConst)) {
       rule.reportLint(node);
     }
   }
