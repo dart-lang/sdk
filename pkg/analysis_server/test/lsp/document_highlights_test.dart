@@ -150,6 +150,14 @@ void f() {
 }
 ''');
 
+  Future<void> test_prefixed() => _testMarkedContent('''
+import '' as p;
+
+class /*[0*/A^/*0]*/ {}
+
+p./*[1*/A/*1]*/? a;
+''');
+
   Future<void> test_shadow_inner() => _testMarkedContent('''
 void f() {
   var foo = 1;

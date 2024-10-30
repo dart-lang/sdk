@@ -1822,7 +1822,9 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
   if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
       cid == kImmutableArrayCid ||
       array_type.type_class() ==
-          IsolateGroup::Current()->object_store()->list_class()) {
+          IsolateGroup::Current()->object_store()->list_class() ||
+      array_type.type_class() ==
+          IsolateGroup::Current()->object_store()->iterable_class()) {
     const auto& type_args =
         TypeArguments::Handle(Type::Cast(array_type).arguments());
     return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);

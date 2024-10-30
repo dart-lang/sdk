@@ -8,7 +8,6 @@ import 'dart:math' as math;
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/lint_rule_timers.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
@@ -144,7 +143,7 @@ Future<void> writeBenchmarks(
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
     await lintFiles(TestLinter(linterOptions), filesToLint);
-    lintRuleTimers.timers.forEach((n, t) {
+    analysisRuleTimers.timers.forEach((n, t) {
       var timing = t.elapsedMilliseconds;
       var previous = timings[n];
       timings[n] = previous == null ? timing : math.min(previous, timing);

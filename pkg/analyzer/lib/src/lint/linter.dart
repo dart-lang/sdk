@@ -36,6 +36,10 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
+/// Describes a static analysis rule, either a lint rule (which must be enabled
+/// via analysis options) or a warning rule (which is enabled by default).
+typedef AnalysisRule = LintRule;
+
 /// The result of attempting to evaluate an expression as a constant.
 final class LinterConstantEvaluationResult {
   /// The value of the expression, or `null` if has [errors].

@@ -682,6 +682,19 @@ import 'dart:io' as /*[0*/_/*0]*/;
     );
   }
 
+  Future<void> test_prefixed() async {
+    await assertOccurrences(
+      kind: ElementKind.CLASS,
+      '''
+import '' as p;
+
+class /*[0*/A/*0]*/ {}
+
+p./*[1*/A/*1]*/? a;
+''',
+    );
+  }
+
   Future<void> test_recordType_typeName() async {
     await assertOccurrences(
       kind: ElementKind.CLASS,

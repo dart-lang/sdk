@@ -331,7 +331,7 @@ class ConstantEvaluationEngine {
     }
   }
 
-  /// Evaluate the constructor call and format any [InvalidConstants] if found.
+  /// Evaluates the constructor call and format any [InvalidConstant]s if found.
   Constant evaluateAndFormatErrorsInConstructorCall(
     LibraryElementImpl library,
     AstNode node,
@@ -545,12 +545,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// Helper class used to compute constant values.
   late final DartObjectComputer _dartObjectComputer;
 
-  /// Initialize a newly created constant visitor. The [evaluationEngine] is
+  /// Initializes a newly created constant visitor. The [_evaluationEngine] is
   /// used to evaluate instance creation expressions. The [lexicalEnvironment]
   /// is a map containing values which should override identifiers, or `null` if
   /// no overriding is necessary. The [_errorReporter] is used to report errors
-  /// found during evaluation.  The [validator] is used by unit tests to verify
-  /// correct dependency analysis.
+  /// found during evaluation.
   ///
   /// The [substitution] is specified for instance creations.
   ConstantVisitor(
@@ -569,11 +568,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     );
   }
 
-  /// Convenience getter to gain access to the [evaluationEngine]'s type system.
+  /// Convenience getter to access the [_evaluationEngine]'s type system.
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
-  /// Convenience getter to gain access to the [evaluationEngine]'s type
-  /// provider.
+  /// Convenience getter to access the [_evaluationEngine]'s type provider.
   TypeProvider get _typeProvider => _library.typeProvider;
 
   /// Evaluates and reports an error if the evaluation result of [node] is an
@@ -2417,9 +2415,9 @@ class _InstanceCreationEvaluator {
   /// An error reporter for errors determined while computing values for field
   /// initializers, or default values for the constructor parameters.
   ///
-  /// Such errors cannot be reported into [_errorReporter], because they usually
-  /// happen in a different source. But they still should cause a constant
-  /// evaluation error for the current node.
+  /// Such errors cannot be reported into [ConstantVisitor._errorReporter],
+  /// because they usually happen in a different source. But they still should
+  /// cause a constant evaluation error for the current node.
   late final ErrorReporter _externalErrorReporter = ErrorReporter(
     _externalErrorListener,
     _constructor.source,
@@ -2650,14 +2648,12 @@ class _InstanceCreationEvaluator {
     return null;
   }
 
-  /// Check that the arguments to a call to `fromEnvironment()` are correct.
+  /// Checks that the arguments to a call to `fromEnvironment()` are correct.
   ///
-  /// The [arguments] are the AST nodes of the arguments. The [argumentValues]
-  /// are the values of the unnamed arguments. The [namedArgumentValues] are the
-  /// values of the named arguments. The [expectedDefaultValueType] is the
-  /// allowed type of the "defaultValue" parameter (if present). Note:
-  /// "defaultValue" is always allowed to be `null`. Return `true` if the
-  /// arguments are correct, `false` otherwise.
+  /// The [arguments] are the AST nodes of the arguments. The
+  /// [expectedDefaultValueType] is the allowed type of the "defaultValue"
+  /// parameter (if present). Note: "defaultValue" is always allowed to be
+  /// `null`. Returns `true` if the arguments are correct, `false` otherwise.
   bool _checkFromEnvironmentArguments(
     List<Expression> arguments,
     InterfaceType expectedDefaultValueType,
@@ -3013,10 +3009,8 @@ class _InstanceCreationEvaluator {
 
   /// Checks that the arguments to a call to [Symbol.new] are correct.
   ///
-  /// The [arguments] are the AST nodes of the arguments. The [argumentValues]
-  /// are the values of the unnamed arguments. The [namedArgumentValues] are the
-  /// values of the named arguments. Returns `true` if the arguments are
-  /// correct, `false` otherwise.
+  /// The [arguments] are the AST nodes of the arguments. Returns `true` if the
+  /// arguments are correct, `false` otherwise.
   bool _checkSymbolArguments(List<Expression> arguments) {
     if (arguments.length != 1) {
       return false;

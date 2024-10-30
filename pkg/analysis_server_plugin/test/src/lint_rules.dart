@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
-class NoBoolsRule extends LintRule {
+class NoBoolsRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   NoBoolsRule() : super(name: 'no_bools', description: 'No bools desc');
@@ -24,7 +24,7 @@ class NoBoolsRule extends LintRule {
 }
 
 class _NoBoolsVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _NoBoolsVisitor(this.rule);
 

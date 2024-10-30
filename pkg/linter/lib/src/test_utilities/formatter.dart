@@ -6,10 +6,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/lint/lint_rule_timers.dart';
+import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 
-import '../analyzer.dart';
 import '../util/charcodes.dart' show $backslash, $pipe;
 import 'analysis_error_info.dart';
 
@@ -233,7 +233,7 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeTimings() {
-    var timers = lintRuleTimers.timers;
+    var timers = analysisRuleTimers.timers;
     var timings = timers.keys
         .map((t) => Stat(t, timers[t]?.elapsedMilliseconds ?? 0))
         .toList();

@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/lint/linter.dart';
+/// @docImport 'package:analyzer/src/lint/linter_visitor.dart';
+library;
+
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -11,10 +15,43 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 
-/// A function used to handle exceptions that are thrown by delegates while
-/// using an [ExceptionHandlingDelegatingAstVisitor].
-typedef ExceptionInDelegateHandler = void Function(
-    AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
+/// Class capable of handling exceptions generated during the execution of an
+/// analysis rule.
+final class AnalysisRuleExceptionHandler {
+  /// Indicates whether exceptions should be propagated to the caller (by
+  /// re-throwing them).
+  final bool propagateExceptions;
+
+  AnalysisRuleExceptionHandler({
+    required this.propagateExceptions,
+  });
+
+  /// A method that can be passed to the [AnalysisRuleVisitor] constructor to
+  /// handle exceptions that occur during the execution of an [AnalysisRule].
+  ///
+  /// Returns `true` if the exception was fully handled, and `false` if the
+  /// exception should be rethrown.
+  bool logException(
+      AstNode node, Object visitor, Object exception, StackTrace stackTrace) {
+    StringBuffer buffer = StringBuffer();
+    buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
+    AstNode? currentNode = node;
+    bool first = true;
+    while (currentNode != null) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(' in ');
+      }
+      buffer.write(currentNode.runtimeType);
+      currentNode = currentNode.parent;
+    }
+    // TODO(39284): should this exception be silent?
+    AnalysisEngine.instance.instrumentationService.logException(
+        SilentException(buffer.toString(), exception, stackTrace));
+    return !propagateExceptions;
+  }
+}
 
 /// An AstVisitor that compares the structure of two AstNodes to see whether
 /// they are equal.
@@ -30,14 +67,15 @@ class AstComparator implements AstVisitor<bool> {
     return false;
   }
 
-  /// Check whether the values of the [first] and [second] nodes are [equal].
+  /// Checks whether the values of the [first] and [second] nodes are equal.
+  ///
   /// Subclasses can override to throw.
   bool failIfNotEqual(
       AstNode first, Object? firstValue, AstNode second, Object? secondValue) {
     return firstValue == secondValue;
   }
 
-  /// Check whether [second] is null. Subclasses can override to throw.
+  /// Checks whether [second] is `null`. Subclasses can override to throw.
   bool failIfNotNull(Object? first, Object? second) {
     return second == null;
   }
@@ -1674,45 +1712,6 @@ class AstComparator implements AstVisitor<bool> {
   static bool equalNodes(AstNode first, AstNode second) {
     AstComparator comparator = AstComparator();
     return comparator.isEqualNodes(first, second);
-  }
-}
-
-/// Class capable of handling exceptions generated during linting.
-///
-/// Clients may not extend, implement or mix-in this class.
-class LinterExceptionHandler {
-  /// Indicates whether linter exceptions should be propagated to the caller (by
-  /// re-throwing them)
-  final bool propagateExceptions;
-
-  LinterExceptionHandler({
-    required this.propagateExceptions,
-  });
-
-  /// A method that can be passed to the `LinterVisitor` constructor to handle
-  /// exceptions that occur during linting.
-  ///
-  /// Returns `true` if the exception was fully handled, and `false` if the
-  /// exception should be rethrown.
-  bool logException(
-      AstNode node, Object visitor, Object exception, StackTrace stackTrace) {
-    StringBuffer buffer = StringBuffer();
-    buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
-    AstNode? currentNode = node;
-    bool first = true;
-    while (currentNode != null) {
-      if (first) {
-        first = false;
-      } else {
-        buffer.write(' in ');
-      }
-      buffer.write(currentNode.runtimeType);
-      currentNode = currentNode.parent;
-    }
-    // TODO(39284): should this exception be silent?
-    AnalysisEngine.instance.instrumentationService.logException(
-        SilentException(buffer.toString(), exception, stackTrace));
-    return !propagateExceptions;
   }
 }
 

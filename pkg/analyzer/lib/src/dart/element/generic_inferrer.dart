@@ -36,9 +36,9 @@ import 'package:collection/collection.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
 ///
-/// This class is used by calling [isSubtypeOf]. When it encounters one of
-/// the type parameters it is inferring, it will record the constraint, and
-/// optimistically assume the constraint will be satisfied.
+/// When the methods of this class encounter one of the type parameters it is
+/// inferring, it will record the constraint, and optimistically assume the
+/// constraint will be satisfied.
 ///
 /// For example if we are inferring type parameter A, and we ask if
 /// `A <: num`, this will record that A must be a subtype of `num`. It also
@@ -47,9 +47,9 @@ import 'package:collection/collection.dart';
 /// (due to covariant generic types) as would `() -> A <: () -> num`. In
 /// contrast `(A) -> void <: (num) -> void`.
 ///
-/// Once the lower/upper bounds are determined, [infer] should be called to
-/// finish the inference. It will instantiate a generic function type with the
-/// inferred types for each type parameter.
+/// Once the lower/upper bounds are determined, `chooseFinalTypes` should be
+/// called to finish the inference. It will instantiate a generic function type
+/// with the inferred types for each type parameter.
 ///
 /// It can also optionally compute a partial solution, in case some of the type
 /// parameters could not be inferred (because the constraints cannot be
@@ -154,8 +154,8 @@ class GenericInferrer {
     return types;
   }
 
-  /// Apply an argument constraint, which asserts that the [argument] staticType
-  /// is a subtype of the [parameterType].
+  /// Apply an argument constraint, which asserts that the [argumentType] static
+  /// type is a subtype of the [parameterType].
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
       {InterfaceElement? genericClass, required AstNode? nodeForTesting}) {
@@ -386,7 +386,7 @@ class GenericInferrer {
     return result;
   }
 
-  /// Check that inferred [typeArguments] satisfy the [typeParameters] bounds.
+  /// Check that inferred [typeArguments] satisfy the [_typeParameters] bounds.
   void _checkArgumentsNotMatchingBounds({
     required SyntacticEntity? errorEntity,
     required ErrorReporter? errorReporter,
@@ -490,7 +490,7 @@ class GenericInferrer {
     }
   }
 
-  /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
+  /// Computes (or recomputes) a set of inferred types based on the constraints
   /// that have been recorded so far.
   List<DartType> _chooseTypes({required bool preliminary}) {
     var inferredTypes = List<DartType>.filled(
@@ -873,11 +873,11 @@ class GenericInferrer {
     }
   }
 
-  /// Tries to make [i1] a subtype of [i2] and accumulate constraints as needed.
+  /// Tries to make [t1] a subtype of [t2] and accumulate constraints as needed.
   ///
   /// The return value indicates whether the match was successful.  If it was
   /// unsuccessful, any constraints that were accumulated during the match
-  /// attempt have been rewound (see [_rewindConstraints]).
+  /// attempt have been rewound.
   bool _tryMatchSubtypeOf(
       DartType t1,
       DartType t2,

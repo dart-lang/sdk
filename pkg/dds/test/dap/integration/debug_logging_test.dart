@@ -75,7 +75,6 @@ main() {
         client.terminate(),
         client.event('terminated'),
       ]);
-      print(await loggedEvaluateInFrameRequests);
 
       // Verify that the middle evaluation was logged but the others were not.
       expect(

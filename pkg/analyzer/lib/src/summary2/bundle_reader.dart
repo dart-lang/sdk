@@ -683,8 +683,6 @@ class LibraryReader {
     );
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var accessorAugmentationsOffset = _reader.readUInt30();
-
     libraryElement.linkedData = LibraryElementLinkedData(
       reference: _reference,
       libraryReader: this,
@@ -697,8 +695,6 @@ class LibraryReader {
     InformativeDataApplier(
             _elementFactory, _unitsInformativeBytes, _deserializedDataStore)
         .applyTo(libraryElement);
-
-    _readPropertyAccessorAugmentations(accessorAugmentationsOffset);
 
     return libraryElement;
   }
@@ -1526,29 +1522,6 @@ class LibraryReader {
     return PartElementImpl(
       uri: uri,
     );
-  }
-
-  /// This method is invoked when all units of the library are read, the
-  /// defining unit, and all its augmentations. So, we have all elements
-  /// created (excluding class members, that are delayed).
-  ///
-  /// We can read now augmentation back and forth pointers, for accessors and
-  /// properties.
-  void _readPropertyAccessorAugmentations(int offset) {
-    var reader = ResolutionReader(
-      _elementFactory,
-      _referenceReader,
-      _reader.fork(_baseResolutionOffset + offset),
-    );
-    var accessors = reader.readElementList<PropertyAccessorElementImpl>();
-    for (var element in accessors) {
-      element.linkedData?.read(element);
-    }
-
-    var properties = reader.readElementList<PropertyInducingElementImpl>();
-    for (var element in properties) {
-      element.linkedData?.read(element);
-    }
   }
 
   PropertyAccessorElementImpl _readPropertyAccessorElement(

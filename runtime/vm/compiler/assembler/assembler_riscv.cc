@@ -2853,10 +2853,34 @@ void Assembler::BranchIf(Condition condition,
         UNREACHABLE();
     }
   } else if (deferred_compare_ == kTestImm || deferred_compare_ == kTestReg) {
-    if (deferred_compare_ == kTestImm) {
-      AndImmediate(TMP2, deferred_left_, deferred_imm_);
-    } else {
+    uintx_t uimm = deferred_imm_;
+    if (deferred_compare_ == kTestReg) {
       and_(TMP2, deferred_left_, deferred_reg_);
+    } else if (IsITypeImm(deferred_imm_)) {
+      andi(TMP2, deferred_left_, deferred_imm_);
+    } else if (Utils::IsPowerOfTwo(uimm)) {
+      intptr_t shift = Utils::ShiftForPowerOfTwo(uimm);
+      Register sign;
+      if (shift == XLEN - 1) {
+        sign = deferred_left_;
+      } else {
+        slli(TMP2, deferred_left_, XLEN - 1 - shift);
+        sign = TMP2;
+      }
+      switch (condition) {
+        case ZERO:
+          bgez(sign, label, distance);
+          break;
+        case NOT_ZERO:
+          bltz(sign, label, distance);
+          break;
+        default:
+          UNREACHABLE();
+      }
+      deferred_compare_ = kNone;  // Consumed.
+      return;
+    } else {
+      AndImmediate(TMP2, deferred_left_, deferred_imm_);
     }
     switch (condition) {
       case ZERO:

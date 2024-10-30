@@ -3638,7 +3638,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   late MaybeAugmentedExtensionElementMixin augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at
-  /// the given [offset] in the file that contains the declaration of this
+  /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
 
@@ -5675,7 +5675,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   final bool _onSwitchMember;
 
   /// Initialize a newly created label element to have the given [name].
-  /// [onSwitchMember] should be `true` if this label is associated with a
+  /// [_onSwitchMember] should be `true` if this label is associated with a
   /// `switch` member.
   LabelElementImpl(String super.name, super.nameOffset, this._onSwitchMember);
 
@@ -9940,8 +9940,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   LibraryFragment? get enclosingFragment =>
       enclosingElement3 as LibraryFragment;
 
-  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
-  /// defined in the constructor-tearoffs specification.
+  /// Whether this alias is a "proper rename" of [aliasedType], as defined in
+  /// the constructor-tearoffs specification.
   bool get isProperRename {
     var aliasedType_ = aliasedType;
     if (aliasedType_ is! InterfaceType) {
@@ -10212,7 +10212,7 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl(String super.name, super.offset);
 
   /// Initialize a newly created synthetic type parameter element to have the
-  /// given [name], and with [synthetic] set to true.
+  /// given [name], and with [isSynthetic] set to `true`.
   TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
     isSynthetic = true;
   }
@@ -10325,7 +10325,7 @@ class TypeParameterElementImpl extends ElementImpl
     builder.writeTypeParameter(this);
   }
 
-  /// Computes the variance of the [typeParameter] in the [type].
+  /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
     if (type is TypeParameterType) {
       if (type.element == this) {

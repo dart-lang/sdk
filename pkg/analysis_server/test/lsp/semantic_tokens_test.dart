@@ -1337,8 +1337,8 @@ class MyClass {}
 
   Future<void> test_namedArguments() async {
     var content = '''
-f({String? a}) {
-  f(a: a);
+f({String? a, dynamic b}) {
+  f(a: a, b: b);
 }
 ''';
 
@@ -1348,10 +1348,16 @@ f({String? a}) {
       _Token('String', SemanticTokenTypes.class_),
       _Token('a', SemanticTokenTypes.parameter,
           [SemanticTokenModifiers.declaration]),
+      _Token('dynamic', SemanticTokenTypes.type),
+      _Token('b', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
       _Token('f', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.parameter,
           [CustomSemanticTokenModifiers.label]),
       _Token('a', SemanticTokenTypes.parameter),
+      _Token('b', SemanticTokenTypes.parameter,
+          [CustomSemanticTokenModifiers.label]),
+      _Token('b', SemanticTokenTypes.parameter),
     ];
 
     await _initializeAndVerifyTokens(content, expected);

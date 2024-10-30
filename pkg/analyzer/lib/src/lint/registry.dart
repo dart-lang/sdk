@@ -9,35 +9,30 @@ import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
 /// Registry of lint rules and warning rules.
-// TODO(srawlins): This class now tracks both "lint rules" (which must be
-// explicitly enabled) and "warning rules" (which are enabled by default), but
-// the class names (`LintRule`, `LintCode`) do not reflect that.
-// Introduce / work in a `WarningRule` class, likely with a shared parent,
-// `AnalysisRule`.
-class Registry with IterableMixin<LintRule> {
+class Registry with IterableMixin<AnalysisRule> {
   /// The default registry to be used by clients.
   static final Registry ruleRegistry = Registry();
 
   /// A table mapping rule names to rules.
-  final Map<String, LintRule> _lintRules = {};
+  final Map<String, AnalysisRule> _lintRules = {};
 
-  final Map<String, LintRule> _warningRules = {};
+  final Map<String, AnalysisRule> _warningRules = {};
 
   /// A table mapping unique names to lint codes.
   final Map<String, LintCode> _codeMap = {};
 
   @override
-  Iterator<LintRule> get iterator => _rules.values.iterator;
+  Iterator<AnalysisRule> get iterator => _rules.values.iterator;
 
   /// Returns a list of the rules that are defined.
-  Iterable<LintRule> get rules => _rules.values;
+  Iterable<AnalysisRule> get rules => _rules.values;
 
   // TODO(srawlins): This process can result in collisions. Guard against this
   // somehow.
-  Map<String, LintRule> get _rules => {..._lintRules, ..._warningRules};
+  Map<String, AnalysisRule> get _rules => {..._lintRules, ..._warningRules};
 
-  /// Returns the lint rule with the given [name].
-  LintRule? operator [](String name) => _rules[name];
+  /// Returns the rule with the given [name].
+  AnalysisRule? operator [](String name) => _rules[name];
 
   /// Returns the lint code that has the given [uniqueName].
   LintCode? codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
@@ -51,17 +46,17 @@ class Registry with IterableMixin<LintRule> {
   ///     my_rule: true
   ///
   /// enables `my_rule`.
-  Iterable<LintRule> enabled(List<RuleConfig> ruleConfigs) => [
+  Iterable<AnalysisRule> enabled(List<RuleConfig> ruleConfigs) => [
         ..._warningRules.values,
         ..._lintRules.values
             .where((rule) => ruleConfigs.any((rc) => rc.enables(rule.name))),
       ];
 
-  /// Returns the lint rule with the given [name].
-  LintRule? getRule(String name) => _rules[name];
+  /// Returns the rule with the given [name].
+  AnalysisRule? getRule(String name) => _rules[name];
 
   /// Adds the given lint [rule] to this registry.
-  void registerLintRule(LintRule rule) {
+  void registerLintRule(AnalysisRule rule) {
     _lintRules[rule.name] = rule;
     for (var lintCode in rule.lintCodes) {
       _codeMap[lintCode.uniqueName] = lintCode;
@@ -69,7 +64,7 @@ class Registry with IterableMixin<LintRule> {
   }
 
   /// Adds the given warning [rule] to this registry.
-  void registerWarningRule(LintRule rule) {
+  void registerWarningRule(AnalysisRule rule) {
     _warningRules[rule.name] = rule;
     for (var lintCode in rule.lintCodes) {
       _codeMap[lintCode.uniqueName] = lintCode;
@@ -77,7 +72,7 @@ class Registry with IterableMixin<LintRule> {
   }
 
   /// Removes the given lint [rule] from this registry.
-  void unregisterLintRule(LintRule rule) {
+  void unregisterLintRule(AnalysisRule rule) {
     _lintRules.remove(rule.name);
     for (var lintCode in rule.lintCodes) {
       _codeMap.remove(lintCode.uniqueName);
@@ -85,7 +80,7 @@ class Registry with IterableMixin<LintRule> {
   }
 
   /// Removes the given warning [rule] from this registry.
-  void unregisterWarningRule(LintRule rule) {
+  void unregisterWarningRule(AnalysisRule rule) {
     _warningRules.remove(rule.name);
     for (var lintCode in rule.lintCodes) {
       _codeMap.remove(lintCode.uniqueName);

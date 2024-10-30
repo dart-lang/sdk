@@ -606,7 +606,7 @@ void main(List<String> args) async {
       final thread1 = stop1.threadId!;
 
       // Attach a second debug adapter to it.
-      final dap2 = await DapTestSession.setUp();
+      final dap2 = await DapTestSession.setUp(logPrefix: '(CLIENT2) ');
       final client2 = dap2.client;
       await Future.wait([
         // We'll still get event for existing pause.

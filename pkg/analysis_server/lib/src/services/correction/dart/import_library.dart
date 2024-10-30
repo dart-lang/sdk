@@ -194,14 +194,8 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (!kinds.contains(element.kind)) {
         continue;
       }
-      // Maybe apply a prefix.
-      var prefix = import.prefix?.element;
-      if (prefix != null) {
-        producers.add(
-            _ImportLibraryPrefix(libraryElement, prefix, context: context));
-        continue;
-      }
-      // Maybe update a "show"/"hide" directive.
+      _ImportLibraryCombinator? combinatorProducer;
+      // Maybe update a "show" directive.
       var combinators = import.combinators;
       if (combinators.length == 1) {
         // Prepare library name - unit name or 'dart:name' for SDK library.
@@ -214,14 +208,26 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (combinator is HideElementCombinator) {
           // Don't add this library again.
           alreadyImportedWithPrefix.add(libraryElement);
-          producers.add(_ImportLibraryCombinator(libraryName, combinator, name,
-              context: context));
+          combinatorProducer = _ImportLibraryCombinator(
+              libraryName, combinator, name,
+              context: context);
         } else if (combinator is ShowElementCombinator) {
           // Don't add this library again.
           alreadyImportedWithPrefix.add(libraryElement);
-          producers.add(_ImportLibraryCombinator(libraryName, combinator, name,
-              context: context));
+          combinatorProducer = _ImportLibraryCombinator(
+              libraryName, combinator, name,
+              context: context);
         }
+      }
+      // Maybe apply a prefix.
+      var prefix = import.prefix?.element;
+      if (prefix != null) {
+        producers.add(_ImportLibraryPrefix(
+            libraryElement, prefix, combinatorProducer,
+            context: context));
+        continue;
+      } else if (combinatorProducer != null) {
+        producers.add(combinatorProducer);
       }
     }
     // Find new top-level declarations.
@@ -564,10 +570,12 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   final LibraryElement _importedLibrary;
   final PrefixElement _importPrefix;
+  final _ImportLibraryCombinator? _editCombinator;
 
   _ImportLibraryPrefix(
     this._importedLibrary,
-    this._importPrefix, {
+    this._importPrefix,
+    this._editCombinator, {
     required super.context,
   });
 
@@ -594,6 +602,8 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
     if (targetNode is Annotation) {
       targetNode = targetNode.name;
     }
+
+    await _editCombinator?.compute(builder);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');

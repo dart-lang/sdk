@@ -10,7 +10,7 @@ import 'package:analyzer/src/lint/registry.dart';
 
 final class PluginRegistryImpl implements PluginRegistry {
   /// Returns currently registered lint rules.
-  Iterable<LintRule> get registeredRules => Registry.ruleRegistry;
+  Iterable<AnalysisRule> get registeredRules => Registry.ruleRegistry;
 
   @override
   void registerFixForRule(LintCode code, ProducerGenerator generator) {
@@ -18,14 +18,14 @@ final class PluginRegistryImpl implements PluginRegistry {
   }
 
   @override
-  void registerLintRule(LintRule rule) {
+  void registerLintRule(AnalysisRule rule) {
     Registry.ruleRegistry.registerLintRule(rule);
   }
 
   @override
-  void registerWarningRule(LintRule rule) {
+  void registerWarningRule(AnalysisRule rule) {
     Registry.ruleRegistry.registerWarningRule(rule);
   }
 
-  LintRule? ruleNamed(String name) => Registry.ruleRegistry[name];
+  AnalysisRule? ruleNamed(String name) => Registry.ruleRegistry[name];
 }

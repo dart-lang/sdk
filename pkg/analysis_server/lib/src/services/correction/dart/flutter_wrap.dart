@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
@@ -29,6 +30,14 @@ class FlutterWrap extends MultiCorrectionProducer {
       }
       if (!widgetType.isExactWidgetTypeContainer) {
         producers.add(_FlutterWrapContainer(widgetExpr, context: context));
+      }
+      if (!widgetType.isExactWidgetTypeExpanded &&
+          (widgetExpr.isParentFlexWidget || !widgetExpr.isParentWidget)) {
+        producers.add(_FlutterWrapExpanded(widgetExpr, context: context));
+      }
+      if (!widgetType.isExactWidgetTypeFlexible &&
+          (widgetExpr.isParentFlexWidget || !widgetExpr.isParentWidget)) {
+        producers.add(_FlutterWrapFlexible(widgetExpr, context: context));
       }
       if (!widgetType.isExactWidgetTypePadding) {
         producers.add(_FlutterWrapPadding(widgetExpr, context: context));
@@ -133,6 +142,36 @@ class _FlutterWrapContainer extends _WrapSingleWidget {
 
   @override
   String get _parentClassName => 'Container';
+
+  @override
+  String get _parentLibraryUri => widgetsUri;
+}
+
+/// A correction processor that can make one of the possible changes computed by
+/// the [FlutterWrap] producer.
+class _FlutterWrapExpanded extends _WrapSingleWidget {
+  _FlutterWrapExpanded(super.widgetExpr, {required super.context});
+
+  @override
+  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_EXPANDED;
+
+  @override
+  String get _parentClassName => 'Expanded';
+
+  @override
+  String get _parentLibraryUri => widgetsUri;
+}
+
+/// A correction processor that can make one of the possible changes computed by
+/// the [FlutterWrap] producer.
+class _FlutterWrapFlexible extends _WrapSingleWidget {
+  _FlutterWrapFlexible(super.widgetExpr, {required super.context});
+
+  @override
+  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_FLEXIBLE;
+
+  @override
+  String get _parentClassName => 'Flexible';
 
   @override
   String get _parentLibraryUri => widgetsUri;
@@ -348,5 +387,55 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
         builder.write(')');
       });
     });
+  }
+}
+
+extension on Expression {
+  /// Return `true` if the parent is a `Flex` widget creation.
+  ///
+  /// This is used to determine if the widget is wrapped in a `Row`, `Column`,
+  /// or `Flex` widget.
+  bool get isParentFlexWidget {
+    var parent = _getParentInstanceCreationExpression();
+    if (parent == null || !parent.isWidgetCreation) {
+      return false;
+    }
+    return parent.staticType.isWidgetFlexType;
+  }
+
+  /// Return `true` if the parent is a widget creation.
+  ///
+  /// This tells if this is a direct child of a widget creation.
+  /// It will return `false` if we are assigning this to a variable or
+  /// returning it from a function or other similar cases.
+  bool get isParentWidget {
+    var parent = _getParentInstanceCreationExpression();
+    return parent != null && parent.isWidgetCreation;
+  }
+
+  /// Return the parent `InstanceCreationExpression` if it exists.
+  ///
+  /// This is used to find the parent widget creation if it exists.
+  InstanceCreationExpression? _getParentInstanceCreationExpression() {
+    var self = this;
+    NamedExpression? namedExpression;
+    if (self.parent case ListLiteral listLiteral) {
+      if (listLiteral.parent case NamedExpression parent) {
+        namedExpression = parent;
+      }
+    }
+    // NamedExpression (child:), ArgumentList, InstanceCreationExpression
+    if ((namedExpression ?? self.parent)?.parent?.parent
+        case InstanceCreationExpression parent?) {
+      return parent;
+    }
+    return null;
+  }
+}
+
+extension on DartType? {
+  bool get isWidgetFlexType {
+    var self = this;
+    return self is InterfaceType && self.element3.isFlexWidget;
   }
 }
