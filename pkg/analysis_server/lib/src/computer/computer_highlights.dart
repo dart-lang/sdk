@@ -119,9 +119,6 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_field(parent, nameToken, element)) {
       return;
     }
-    if (_addIdentifierRegion_dynamicLocal(nameToken, element)) {
-      return;
-    }
     if (_addIdentifierRegion_function(parent, nameToken, element)) {
       return;
     }
@@ -227,23 +224,6 @@ class DartUnitHighlightsComputer {
           CustomSemanticTokenModifiers.annotation,
       },
     );
-  }
-
-  bool _addIdentifierRegion_dynamicLocal(Token nameToken, Element2? element) {
-    if (element is LocalVariableElement2) {
-      var elementType = element.type;
-      if (elementType is DynamicType) {
-        var type = HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
-        return _addRegion_token(nameToken, type);
-      }
-    } else if (element is FormalParameterElement) {
-      var elementType = element.type;
-      if (elementType is DynamicType) {
-        var type = HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
-        return _addRegion_token(nameToken, type);
-      }
-    }
-    return false;
   }
 
   bool _addIdentifierRegion_extension(Token nameToken, Element2? element) {
@@ -407,7 +387,9 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // OK
-    var type = HighlightRegionType.LOCAL_VARIABLE_REFERENCE;
+    var type = element.type is DynamicType
+        ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE
+        : HighlightRegionType.LOCAL_VARIABLE_REFERENCE;
     return _addRegion_token(nameToken, type);
   }
 
@@ -438,7 +420,9 @@ class DartUnitHighlightsComputer {
     if (element is! FormalParameterElement) {
       return false;
     }
-    var type = HighlightRegionType.PARAMETER_REFERENCE;
+    var type = element.type is DynamicType
+        ? HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE
+        : HighlightRegionType.PARAMETER_REFERENCE;
     var modifiers =
         parent is Label ? {CustomSemanticTokenModifiers.label} : null;
     return _addRegion_token(nameToken, type, semanticTokenModifiers: modifiers);
