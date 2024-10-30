@@ -6,7 +6,7 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -40,33 +40,35 @@ class DartUnitSignatureComputer {
       return null;
     }
     String? name;
-    Element? element;
-    List<ParameterElement>? parameters;
+    Element2? element;
+    List<FormalParameterElement>? parameters;
     var parent = argumentList.parent;
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
-      element = ElementLocator.locate(parent);
-      parameters = element is FunctionTypedElement ? element.parameters : null;
+      element = ElementLocator.locate2(parent);
+      parameters =
+          element is FunctionTypedElement2 ? element.formalParameters : null;
     } else if (parent is InstanceCreationExpression) {
       name = parent.constructorName.type.qualifiedName;
       var constructorName = parent.constructorName.name;
       if (constructorName != null) {
         name += '.${constructorName.name}';
       }
-      element = ElementLocator.locate(parent);
-      parameters = element is FunctionTypedElement ? element.parameters : null;
+      element = ElementLocator.locate2(parent);
+      parameters =
+          element is FunctionTypedElement2 ? element.formalParameters : null;
     } else if (parent
         case FunctionExpressionInvocation(function: Identifier function)) {
       name = function.name;
 
       if (function.staticType case FunctionType functionType) {
         // Standard function expression.
-        element = function.staticElement;
-        parameters = functionType.parameters;
-      } else if (parent.staticElement case ExecutableElement staticElement) {
+        element = function.element;
+        parameters = functionType.formalParameters;
+      } else if (parent.element case ExecutableElement2 executableElement) {
         // Callable class instance (where we'll look at the `call` method).
-        element = staticElement;
-        parameters = staticElement.parameters;
+        element = executableElement;
+        parameters = executableElement.formalParameters;
       }
     }
 
@@ -76,7 +78,7 @@ class DartUnitSignatureComputer {
 
     _argumentList = argumentList;
     var convertedParameters = parameters.map((p) => _convertParam(p)).toList();
-    var dartdoc = _documentationComputer.computePreferred(
+    var dartdoc = _documentationComputer.computePreferred2(
       element,
       documentationPreference,
     );
@@ -88,7 +90,7 @@ class DartUnitSignatureComputer {
     );
   }
 
-  ParameterInfo _convertParam(ParameterElement param) {
+  ParameterInfo _convertParam(FormalParameterElement param) {
     return ParameterInfo(
         param.isOptionalNamed
             ? ParameterKind.OPTIONAL_NAMED
