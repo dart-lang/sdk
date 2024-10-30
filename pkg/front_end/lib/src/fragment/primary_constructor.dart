@@ -5,12 +5,10 @@
 part of 'fragment.dart';
 
 class PrimaryConstructorFragment implements Fragment, FunctionFragment {
-  @override
-  final String name;
+  final ConstructorName constructorName;
 
   final Uri fileUri;
   final int startOffset;
-  final int? nameOffset;
   final int formalsOffset;
   final Modifiers modifiers;
   final OmittedTypeBuilder returnType;
@@ -23,10 +21,9 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   AbstractSourceConstructorBuilder? _builder;
 
   PrimaryConstructorFragment(
-      {required this.name,
+      {required this.constructorName,
       required this.fileUri,
       required this.startOffset,
-      required this.nameOffset,
       required this.formalsOffset,
       required this.modifiers,
       required this.returnType,
@@ -37,7 +34,10 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
       required Token? beginInitializers})
       : _beginInitializers = beginInitializers;
 
-  int get fileOffset => nameOffset ?? formalsOffset;
+  @override
+  String get name => constructorName.name;
+
+  int get fileOffset => constructorName.nameOffset ?? formalsOffset;
 
   Token? get beginInitializers {
     Token? result = _beginInitializers;

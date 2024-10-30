@@ -1588,12 +1588,12 @@ class OutlineBuilder extends StackListenerImpl {
     int? nameOffset;
     int formalsOffset = charOffset;
 
-    String constructorName = '';
+    String? name;
     if (hasConstructorName) {
       // TODO(johnniwinther): Handle [ParserRecovery].
       Identifier identifier = pop() as Identifier;
       nameOffset = charOffset = identifier.nameOffset;
-      constructorName = identifier.name;
+      name = identifier.name;
     }
 
     int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
@@ -1684,7 +1684,7 @@ class OutlineBuilder extends StackListenerImpl {
     _builderFactory.addPrimaryConstructor(
         offsetMap: _offsetMap,
         beginToken: beginToken,
-        constructorName: constructorName == "new" ? "" : constructorName,
+        name: name,
         startOffset: startOffset,
         nameOffset: nameOffset,
         formalsOffset: formalsOffset,
