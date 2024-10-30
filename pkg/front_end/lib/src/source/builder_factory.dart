@@ -21,6 +21,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import 'offset_map.dart';
 import 'source_class_builder.dart';
 import 'source_enum_builder.dart';
@@ -319,11 +320,10 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required String constructorName,
+      required ConstructorName constructorName,
       required List<NominalParameterBuilder>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
-      required int nameOffset,
       required int formalsOffset,
       required int endOffset,
       required String? nativeMethodName,
@@ -333,7 +333,7 @@ abstract class BuilderFactory {
   void addPrimaryConstructor(
       {required OffsetMap offsetMap,
       required Token beginToken,
-      required String constructorName,
+      required String? name,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int? nameOffset,
@@ -360,7 +360,7 @@ abstract class BuilderFactory {
       required String? nativeMethodName,
       required AsyncMarker asyncModifier});
 
-  String? computeAndValidateConstructorName(
+  ConstructorName computeAndValidateConstructorName(
       DeclarationFragment enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
@@ -500,6 +500,6 @@ class FieldInfo {
   final Token? beforeLast;
   final int endOffset;
 
-  const FieldInfo(this.identifier, this.initializerToken, this.beforeLast,
-      this.endOffset);
+  const FieldInfo(
+      this.identifier, this.initializerToken, this.beforeLast, this.endOffset);
 }

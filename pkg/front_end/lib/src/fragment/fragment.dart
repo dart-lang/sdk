@@ -45,6 +45,7 @@ part 'named_mixin_application.dart';
 part 'primary_constructor.dart';
 part 'setter.dart';
 part 'typedef.dart';
+part 'util.dart';
 
 sealed class Fragment {
   /// The declared name of this fragment.

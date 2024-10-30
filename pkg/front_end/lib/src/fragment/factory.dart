@@ -5,12 +5,10 @@
 part of 'fragment.dart';
 
 class FactoryFragment implements Fragment, FunctionFragment {
-  @override
-  final String name;
+  final ConstructorName constructorName;
 
   final Uri fileUri;
   final int startOffset;
-  final int nameOffset;
   final int formalsOffset;
   final int endOffset;
   final Modifiers modifiers;
@@ -26,10 +24,9 @@ class FactoryFragment implements Fragment, FunctionFragment {
   SourceFactoryBuilder? _builder;
 
   FactoryFragment(
-      {required this.name,
+      {required this.constructorName,
       required this.fileUri,
       required this.startOffset,
-      required this.nameOffset,
       required this.formalsOffset,
       required this.endOffset,
       required this.modifiers,
@@ -41,6 +38,11 @@ class FactoryFragment implements Fragment, FunctionFragment {
       required this.asyncModifier,
       required this.nativeMethodName,
       required this.redirectionTarget});
+
+  @override
+  String get name => constructorName.name;
+
+  int get fullNameOffset => constructorName.fullNameOffset;
 
   @override
   SourceFactoryBuilder get builder {
@@ -59,7 +61,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$fullNameOffset)';
 }
 
 class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {

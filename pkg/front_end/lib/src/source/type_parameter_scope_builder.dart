@@ -650,7 +650,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               declarationBuilder: declarationBuilder,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
-              fileOffset: fragment.nameOffset,
+              fileOffset: fragment.fullNameOffset,
               formalsOffset: fragment.formalsOffset,
               endOffset: fragment.endOffset,
               constructorReference: constructorReference,
@@ -671,7 +671,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               declarationBuilder: declarationBuilder!,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
-              fileOffset: fragment.nameOffset,
+              fileOffset: fragment.fullNameOffset,
               formalsOffset: fragment.formalsOffset,
               endOffset: fragment.endOffset,
               constructorReference: constructorReference,
@@ -683,7 +683,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
         fragment.builder = constructorBuilder;
         builders.add(new _AddBuilder(fragment.name, constructorBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.fullNameOffset));
 
         // TODO(johnniwinther): There is no way to pass the tear off reference
         //  here.
@@ -807,7 +807,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               declarationBuilder: declarationBuilder!,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
-              nameOffset: fragment.nameOffset,
+              nameOffset: fragment.fullNameOffset,
               formalsOffset: fragment.formalsOffset,
               endOffset: fragment.endOffset,
               procedureReference: procedureReference,
@@ -829,7 +829,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               declarationBuilder: declarationBuilder!,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
-              nameOffset: fragment.nameOffset,
+              nameOffset: fragment.fullNameOffset,
               formalsOffset: fragment.formalsOffset,
               endOffset: fragment.endOffset,
               procedureReference: procedureReference,
@@ -840,7 +840,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
         fragment.builder = factoryBuilder;
         builders.add(new _AddBuilder(fragment.name, factoryBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.fullNameOffset));
         // TODO(johnniwinther): There is no way to pass the tear off reference
         //  here.
         if (procedureReference != null) {

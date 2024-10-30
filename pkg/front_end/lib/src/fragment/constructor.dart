@@ -5,12 +5,10 @@
 part of 'fragment.dart';
 
 class ConstructorFragment implements Fragment, FunctionFragment {
-  @override
-  final String name;
+  final ConstructorName constructorName;
 
   final Uri fileUri;
   final int startOffset;
-  final int nameOffset;
   final int formalsOffset;
   final int endOffset;
   final Modifiers modifiers;
@@ -26,10 +24,9 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   AbstractSourceConstructorBuilder? _builder;
 
   ConstructorFragment(
-      {required this.name,
+      {required this.constructorName,
       required this.fileUri,
       required this.startOffset,
-      required this.nameOffset,
       required this.formalsOffset,
       required this.endOffset,
       required this.modifiers,
@@ -42,6 +39,11 @@ class ConstructorFragment implements Fragment, FunctionFragment {
       required this.forAbstractClassOrMixin,
       required Token? beginInitializers})
       : _beginInitializers = beginInitializers;
+
+  @override
+  String get name => constructorName.name;
+
+  int get fullNameOffset => constructorName.fullNameOffset;
 
   Token? get beginInitializers {
     Token? result = _beginInitializers;
@@ -67,7 +69,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
+  String toString() => '$runtimeType($name,$fileUri,$fullNameOffset)';
 }
 
 class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
