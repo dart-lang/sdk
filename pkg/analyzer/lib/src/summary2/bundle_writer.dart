@@ -54,17 +54,6 @@ class BundleWriter {
     references: _references,
   );
 
-  /// [_writePropertyAccessorElement] adds augmentations here, so that after
-  /// reading the library we can read them, and while doing this, update
-  /// `getter` and `setter` of augmented variables.
-  List<PropertyAccessorElementImpl> _accessorAugmentations = [];
-
-  /// [_writeFieldElement] adds augmentations here, so that after
-  /// reading the library we can read them, and while doing this, update
-  /// getters and setter to point at this property augmentation, and set
-  /// `getter` and `setter` of the augmentation.
-  List<PropertyInducingElementImpl> _propertyAugmentations = [];
-
   final StringIndexer _stringIndexer = StringIndexer();
 
   final List<_Library> _libraries = [];
@@ -107,8 +96,6 @@ class BundleWriter {
 
   void writeLibraryElement(LibraryElementImpl libraryElement) {
     var libraryOffset = _sink.offset;
-    _accessorAugmentations = [];
-    _propertyAugmentations = [];
 
     // Write non-resolution data for the library.
     _sink._writeStringReference(libraryElement.name);
@@ -129,8 +116,6 @@ class BundleWriter {
     _resolutionSink.writeElement(libraryElement.entryPoint);
     _writeFieldNameNonPromotabilityInfo(
         libraryElement.fieldNameNonPromotabilityInfo);
-
-    _writePropertyAccessorAugmentations();
 
     var lastUnit = libraryElement.units.lastOrNull;
     var macroGenerated = lastUnit?.macroGenerated;
@@ -423,11 +408,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
-
-    if (element.isAugmentation) {
-      _propertyAugmentations.add(element);
-    }
-
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
 
@@ -647,15 +627,6 @@ class BundleWriter {
     }
   }
 
-  /// Write information to update `getter` and `setter` properties of
-  /// augmented variables to use the corresponding augmentations.
-  void _writePropertyAccessorAugmentations() {
-    var offset = _resolutionSink.offset;
-    _resolutionSink._writeElementList(_accessorAugmentations);
-    _resolutionSink._writeElementList(_propertyAugmentations);
-    _sink.writeUInt30(offset);
-  }
-
   void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
@@ -670,10 +641,6 @@ class BundleWriter {
     // Write the reference for the variable, the reader will use it.
     if (!element.isAugmentation) {
       _writeReference(element.variable2!);
-    }
-
-    if (element.isAugmentation) {
-      _accessorAugmentations.add(element);
     }
   }
 
@@ -701,10 +668,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
-
-    if (element.isAugmentation) {
-      _propertyAugmentations.add(element);
-    }
 
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
