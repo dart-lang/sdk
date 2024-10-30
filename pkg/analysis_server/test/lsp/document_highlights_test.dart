@@ -195,6 +195,42 @@ void f() {
 }
 ''');
 
+  Future<void> test_typeAlias_class_declaration() => _testMarkedContent('''
+class MyClass {}
+mixin MyMixin {}
+class /*[0*/MyAli^as/*0]*/ = MyClass with MyMixin;
+/*[1*/MyAlias/*1]*/? a;
+''');
+
+  Future<void> test_typeAlias_class_reference() => _testMarkedContent('''
+class MyClass {}
+mixin MyMixin {}
+class /*[0*/MyAlias/*0]*/ = MyClass with MyMixin;
+/*[1*/MyAl^ias/*1]*/? a;
+''');
+
+  Future<void> test_typeAlias_function_declaration() => _testMarkedContent('''
+typedef /*[0*/myFu^nc/*0]*/();
+/*[1*/myFunc/*1]*/? f;
+''');
+
+  Future<void> test_typeAlias_function_reference() => _testMarkedContent('''
+typedef /*[0*/myFunc/*0]*/();
+/*[1*/myFun^c/*1]*/? f;
+''');
+
+  Future<void> test_typeAlias_generic_declaration() => _testMarkedContent('''
+typedef /*[0*/TD^/*0]*/ = String;
+
+/*[1*/TD/*1]*/? a;
+''');
+
+  Future<void> test_typeAlias_generic_reference() => _testMarkedContent('''
+typedef /*[0*/TD/*0]*/ = String;
+
+/*[1*/TD^/*1]*/? a;
+''');
+
   /// Tests highlights in a Dart file using the provided content.
   ///
   /// The content should be marked up using the [TestCode] format.
