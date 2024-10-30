@@ -287,6 +287,16 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with Container',
   );
+  static const FLUTTER_WRAP_EXPANDED = AssistKind(
+    'dart.assist.flutter.wrap.expanded',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with Expanded',
+  );
+  static const FLUTTER_WRAP_FLEXIBLE = AssistKind(
+    'dart.assist.flutter.wrap.flexible',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with Flexible',
+  );
   static const FLUTTER_WRAP_PADDING = AssistKind(
     'dart.assist.flutter.wrap.padding',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
