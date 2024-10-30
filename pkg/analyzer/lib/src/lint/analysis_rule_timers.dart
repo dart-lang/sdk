@@ -4,16 +4,16 @@
 
 import 'package:analyzer/src/lint/linter.dart';
 
-/// Shared registry of lint rule timers.
-final lintRuleTimers = LintRuleTimers();
+/// Shared registry of analysis rule timers.
+final analysisRuleTimers = AnalysisRuleTimers();
 
-/// Manages lint timing.
-class LintRuleTimers {
-  /// Dictionary mapping lints (by name) to timers.
+/// Manages analysis rule timing.
+class AnalysisRuleTimers {
+  /// Dictionary mapping rules (by name) to timers.
   final Map<String, Stopwatch> timers = <String, Stopwatch>{};
 
-  /// Get a timer associated with the given lint rule (or create one if none
+  /// Get a timer associated with the given analysis rule (or create one if none
   /// exists).
-  Stopwatch getTimer(LintRule linter) =>
+  Stopwatch getTimer(AnalysisRule linter) =>
       timers.putIfAbsent(linter.name, () => Stopwatch());
 }

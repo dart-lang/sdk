@@ -205,7 +205,7 @@ class _ThrowsAsyncErrorFix extends ResolvedCorrectionProducer {
   }
 }
 
-class _ThrowsAsyncErrorRule extends LintRule {
+class _ThrowsAsyncErrorRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   _ThrowsAsyncErrorRule()
@@ -223,7 +223,7 @@ class _ThrowsAsyncErrorRule extends LintRule {
 }
 
 class _ThrowsAsyncErrorVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _ThrowsAsyncErrorVisitor(this.rule);
 
@@ -253,7 +253,7 @@ class _ThrowsSyncErrorFix extends ResolvedCorrectionProducer {
   }
 }
 
-class _ThrowsSyncErrorRule extends LintRule {
+class _ThrowsSyncErrorRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   _ThrowsSyncErrorRule()
@@ -271,7 +271,7 @@ class _ThrowsSyncErrorRule extends LintRule {
 }
 
 class _ThrowsSyncErrorVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _ThrowsSyncErrorVisitor(this.rule);
 

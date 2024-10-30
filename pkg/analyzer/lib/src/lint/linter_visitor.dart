@@ -4,24 +4,27 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/lint/lint_rule_timers.dart';
+import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
-/// The type of the function that handles exceptions in lints.
+/// The type of the function that handles exceptions that occur in the execution
+/// of an analysis rule.
 ///
 /// Returns `true` if the exception was fully handled, or `false` if
 /// the exception should be rethrown.
-typedef LintRuleExceptionHandler = bool Function(
-    AstNode node, LintRule linter, Object exception, StackTrace stackTrace);
+typedef _AnalysisRuleExceptionHandler = bool Function(
+    AstNode node, AnalysisRule rule, Object exception, StackTrace stackTrace);
 
 /// The AST visitor that runs handlers for nodes from the [registry].
-class LinterVisitor implements AstVisitor<void> {
+class AnalysisRuleVisitor implements AstVisitor<void> {
   final NodeLintRegistry registry;
-  final LintRuleExceptionHandler exceptionHandler;
+  final _AnalysisRuleExceptionHandler exceptionHandler;
 
-  LinterVisitor(this.registry, [LintRuleExceptionHandler? exceptionHandler])
+  AnalysisRuleVisitor(this.registry,
+      [_AnalysisRuleExceptionHandler? exceptionHandler])
       : exceptionHandler = exceptionHandler ??
-            LinterExceptionHandler(propagateExceptions: true).logException;
+            AnalysisRuleExceptionHandler(propagateExceptions: true)
+                .logException;
 
   void afterLibrary() {
     _runAfterLibrarySubscriptions(registry._afterLibrary);
@@ -1082,8 +1085,7 @@ class LinterVisitor implements AstVisitor<void> {
       try {
         node.accept(subscription.visitor);
       } catch (exception, stackTrace) {
-        if (!exceptionHandler(
-            node, subscription.linter, exception, stackTrace)) {
+        if (!exceptionHandler(node, subscription.rule, exception, stackTrace)) {
           rethrow;
         }
       }
@@ -1307,763 +1309,718 @@ class NodeLintRegistry {
 
   NodeLintRegistry(this.enableTiming);
 
-  void addAdjacentStrings(LintRule linter, AstVisitor visitor) {
-    _forAdjacentStrings.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAdjacentStrings(AnalysisRule rule, AstVisitor visitor) {
+    _forAdjacentStrings.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAnnotation(LintRule linter, AstVisitor visitor) {
-    _forAnnotation.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAnnotation(AnalysisRule rule, AstVisitor visitor) {
+    _forAnnotation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addArgumentList(LintRule linter, AstVisitor visitor) {
-    _forArgumentList.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addArgumentList(AnalysisRule rule, AstVisitor visitor) {
+    _forArgumentList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAsExpression(LintRule linter, AstVisitor visitor) {
-    _forAsExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAsExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forAsExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAssertInitializer(LintRule linter, AstVisitor visitor) {
-    _forAssertInitializer
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAssertInitializer(AnalysisRule rule, AstVisitor visitor) {
+    _forAssertInitializer.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAssertStatement(LintRule linter, AstVisitor visitor) {
-    _forAssertStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAssertStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forAssertStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAssignedVariablePattern(LintRule linter, AstVisitor visitor) {
+  void addAssignedVariablePattern(AnalysisRule rule, AstVisitor visitor) {
     _forAssignedVariablePattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAssignmentExpression(LintRule linter, AstVisitor visitor) {
-    _forAssignmentExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAssignmentExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forAssignmentExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAugmentedExpression(LintRule linter, AstVisitor visitor) {
-    _forAugmentedExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAugmentedExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forAugmentedExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAugmentedInvocation(LintRule linter, AstVisitor visitor) {
-    _forAugmentedInvocation
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAugmentedInvocation(AnalysisRule rule, AstVisitor visitor) {
+    _forAugmentedInvocation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAwaitExpression(LintRule linter, AstVisitor visitor) {
-    _forAwaitExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addAwaitExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forAwaitExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addBinaryExpression(LintRule linter, AstVisitor visitor) {
-    _forBinaryExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addBinaryExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forBinaryExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addBlock(LintRule linter, AstVisitor visitor) {
-    _forBlock.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addBlock(AnalysisRule rule, AstVisitor visitor) {
+    _forBlock.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addBlockFunctionBody(LintRule linter, AstVisitor visitor) {
-    _forBlockFunctionBody
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addBlockFunctionBody(AnalysisRule rule, AstVisitor visitor) {
+    _forBlockFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addBooleanLiteral(LintRule linter, AstVisitor visitor) {
-    _forBooleanLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addBooleanLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forBooleanLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addBreakStatement(LintRule linter, AstVisitor visitor) {
-    _forBreakStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addBreakStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forBreakStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCascadeExpression(LintRule linter, AstVisitor visitor) {
-    _forCascadeExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCascadeExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forCascadeExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCaseClause(LintRule linter, AstVisitor visitor) {
-    _forCaseClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCaseClause(AnalysisRule rule, AstVisitor visitor) {
+    _forCaseClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCastPattern(LintRule linter, AstVisitor visitor) {
-    _forCastPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCastPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forCastPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCatchClause(LintRule linter, AstVisitor visitor) {
-    _forCatchClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCatchClause(AnalysisRule rule, AstVisitor visitor) {
+    _forCatchClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCatchClauseParameter(LintRule linter, AstVisitor visitor) {
-    _forCatchClauseParameter
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCatchClauseParameter(AnalysisRule rule, AstVisitor visitor) {
+    _forCatchClauseParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addClassDeclaration(LintRule linter, AstVisitor visitor) {
-    _forClassDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addClassDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forClassDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addClassTypeAlias(LintRule linter, AstVisitor visitor) {
-    _forClassTypeAlias.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addClassTypeAlias(AnalysisRule rule, AstVisitor visitor) {
+    _forClassTypeAlias.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addComment(LintRule linter, AstVisitor visitor) {
-    _forComment.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addComment(AnalysisRule rule, AstVisitor visitor) {
+    _forComment.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCommentReference(LintRule linter, AstVisitor visitor) {
-    _forCommentReference.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCommentReference(AnalysisRule rule, AstVisitor visitor) {
+    _forCommentReference.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addCompilationUnit(LintRule linter, AstVisitor visitor) {
-    _forCompilationUnit.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addCompilationUnit(AnalysisRule rule, AstVisitor visitor) {
+    _forCompilationUnit.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConditionalExpression(LintRule linter, AstVisitor visitor) {
+  void addConditionalExpression(AnalysisRule rule, AstVisitor visitor) {
     _forConditionalExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConfiguration(LintRule linter, AstVisitor visitor) {
-    _forConfiguration.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addConfiguration(AnalysisRule rule, AstVisitor visitor) {
+    _forConfiguration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConstantPattern(LintRule linter, AstVisitor visitor) {
-    _forConstantPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addConstantPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forConstantPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConstructorDeclaration(LintRule linter, AstVisitor visitor) {
+  void addConstructorDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forConstructorDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConstructorFieldInitializer(LintRule linter, AstVisitor visitor) {
+  void addConstructorFieldInitializer(AnalysisRule rule, AstVisitor visitor) {
     _forConstructorFieldInitializer
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConstructorName(LintRule linter, AstVisitor visitor) {
-    _forConstructorName.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addConstructorName(AnalysisRule rule, AstVisitor visitor) {
+    _forConstructorName.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConstructorReference(LintRule linter, AstVisitor visitor) {
-    _forConstructorReference
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addConstructorReference(AnalysisRule rule, AstVisitor visitor) {
+    _forConstructorReference.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addConstructorSelector(LintRule linter, AstVisitor visitor) {
-    _forConstructorSelector
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addConstructorSelector(AnalysisRule rule, AstVisitor visitor) {
+    _forConstructorSelector.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addContinueStatement(LintRule linter, AstVisitor visitor) {
-    _forContinueStatement
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addContinueStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forContinueStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addDeclaredIdentifier(LintRule linter, AstVisitor visitor) {
-    _forDeclaredIdentifier
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addDeclaredIdentifier(AnalysisRule rule, AstVisitor visitor) {
+    _forDeclaredIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addDeclaredVariablePattern(LintRule linter, AstVisitor visitor) {
+  void addDeclaredVariablePattern(AnalysisRule rule, AstVisitor visitor) {
     _forDeclaredVariablePattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addDefaultFormalParameter(LintRule linter, AstVisitor visitor) {
+  void addDefaultFormalParameter(AnalysisRule rule, AstVisitor visitor) {
     _forDefaultFormalParameter
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addDoStatement(LintRule linter, AstVisitor visitor) {
-    _forDoStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addDoStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forDoStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addDottedName(LintRule linter, AstVisitor visitor) {
-    _forDottedName.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addDottedName(AnalysisRule rule, AstVisitor visitor) {
+    _forDottedName.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addDoubleLiteral(LintRule linter, AstVisitor visitor) {
-    _forDoubleLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addDoubleLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forDoubleLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addEmptyFunctionBody(LintRule linter, AstVisitor visitor) {
-    _forEmptyFunctionBody
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addEmptyFunctionBody(AnalysisRule rule, AstVisitor visitor) {
+    _forEmptyFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addEmptyStatement(LintRule linter, AstVisitor visitor) {
-    _forEmptyStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addEmptyStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forEmptyStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addEnumConstantArguments(LintRule linter, AstVisitor visitor) {
+  void addEnumConstantArguments(AnalysisRule rule, AstVisitor visitor) {
     _forEnumConstantArguments
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addEnumConstantDeclaration(LintRule linter, AstVisitor visitor) {
+  void addEnumConstantDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forEnumConstantDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addEnumDeclaration(LintRule linter, AstVisitor visitor) {
-    _forEnumDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addEnumDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forEnumDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExportDirective(LintRule linter, AstVisitor visitor) {
-    _forExportDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addExportDirective(AnalysisRule rule, AstVisitor visitor) {
+    _forExportDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExpressionFunctionBody(LintRule linter, AstVisitor visitor) {
+  void addExpressionFunctionBody(AnalysisRule rule, AstVisitor visitor) {
     _forExpressionFunctionBody
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExpressionStatement(LintRule linter, AstVisitor visitor) {
-    _forExpressionStatement
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addExpressionStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forExpressionStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExtendsClause(LintRule linter, AstVisitor visitor) {
-    _forExtendsClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addExtendsClause(AnalysisRule rule, AstVisitor visitor) {
+    _forExtendsClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExtensionDeclaration(LintRule linter, AstVisitor visitor) {
-    _forExtensionDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addExtensionDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forExtensionDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExtensionOnClause(LintRule linter, AstVisitor visitor) {
-    _forExtensionOnClause
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addExtensionOnClause(AnalysisRule rule, AstVisitor visitor) {
+    _forExtensionOnClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExtensionOverride(LintRule linter, AstVisitor visitor) {
-    _forExtensionOverride
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addExtensionOverride(AnalysisRule rule, AstVisitor visitor) {
+    _forExtensionOverride.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addExtensionTypeDeclaration(LintRule linter, AstVisitor visitor) {
+  void addExtensionTypeDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forExtensionTypeDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFieldDeclaration(LintRule linter, AstVisitor visitor) {
-    _forFieldDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFieldDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forFieldDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFieldFormalParameter(LintRule linter, AstVisitor visitor) {
-    _forFieldFormalParameter
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFieldFormalParameter(AnalysisRule rule, AstVisitor visitor) {
+    _forFieldFormalParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForEachPartsWithDeclaration(LintRule linter, AstVisitor visitor) {
+  void addForEachPartsWithDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forForEachPartsWithDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForEachPartsWithIdentifier(LintRule linter, AstVisitor visitor) {
+  void addForEachPartsWithIdentifier(AnalysisRule rule, AstVisitor visitor) {
     _forForEachPartsWithIdentifier
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForEachPartsWithPattern(LintRule linter, AstVisitor visitor) {
+  void addForEachPartsWithPattern(AnalysisRule rule, AstVisitor visitor) {
     _forForEachPartsWithPattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForElement(LintRule linter, AstVisitor visitor) {
-    _forForElement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addForElement(AnalysisRule rule, AstVisitor visitor) {
+    _forForElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFormalParameterList(LintRule linter, AstVisitor visitor) {
-    _forFormalParameterList
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFormalParameterList(AnalysisRule rule, AstVisitor visitor) {
+    _forFormalParameterList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForPartsWithDeclarations(LintRule linter, AstVisitor visitor) {
+  void addForPartsWithDeclarations(AnalysisRule rule, AstVisitor visitor) {
     _forForPartsWithDeclarations
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForPartsWithExpression(LintRule linter, AstVisitor visitor) {
+  void addForPartsWithExpression(AnalysisRule rule, AstVisitor visitor) {
     _forForPartsWithExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForPartsWithPattern(LintRule linter, AstVisitor visitor) {
-    _forForPartsWithPattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addForPartsWithPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forForPartsWithPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addForStatement(LintRule linter, AstVisitor visitor) {
-    _forForStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addForStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forForStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionDeclaration(LintRule linter, AstVisitor visitor) {
-    _forFunctionDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFunctionDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forFunctionDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionDeclarationStatement(LintRule linter, AstVisitor visitor) {
+  void addFunctionDeclarationStatement(AnalysisRule rule, AstVisitor visitor) {
     _forFunctionDeclarationStatement
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionExpression(LintRule linter, AstVisitor visitor) {
-    _forFunctionExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFunctionExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forFunctionExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionExpressionInvocation(LintRule linter, AstVisitor visitor) {
+  void addFunctionExpressionInvocation(AnalysisRule rule, AstVisitor visitor) {
     _forFunctionExpressionInvocation
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionReference(LintRule linter, AstVisitor visitor) {
-    _forFunctionReference
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFunctionReference(AnalysisRule rule, AstVisitor visitor) {
+    _forFunctionReference.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionTypeAlias(LintRule linter, AstVisitor visitor) {
-    _forFunctionTypeAlias
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addFunctionTypeAlias(AnalysisRule rule, AstVisitor visitor) {
+    _forFunctionTypeAlias.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addFunctionTypedFormalParameter(LintRule linter, AstVisitor visitor) {
+  void addFunctionTypedFormalParameter(AnalysisRule rule, AstVisitor visitor) {
     _forFunctionTypedFormalParameter
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addGenericFunctionType(LintRule linter, AstVisitor visitor) {
-    _forGenericFunctionType
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addGenericFunctionType(AnalysisRule rule, AstVisitor visitor) {
+    _forGenericFunctionType.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addGenericTypeAlias(LintRule linter, AstVisitor visitor) {
-    _forGenericTypeAlias.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addGenericTypeAlias(AnalysisRule rule, AstVisitor visitor) {
+    _forGenericTypeAlias.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addGuardedPattern(LintRule linter, AstVisitor visitor) {
-    _forGuardedPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addGuardedPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forGuardedPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addHideCombinator(LintRule linter, AstVisitor visitor) {
-    _forHideCombinator.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addHideCombinator(AnalysisRule rule, AstVisitor visitor) {
+    _forHideCombinator.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addIfElement(LintRule linter, AstVisitor visitor) {
-    _forIfElement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addIfElement(AnalysisRule rule, AstVisitor visitor) {
+    _forIfElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addIfStatement(LintRule linter, AstVisitor visitor) {
-    _forIfStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addIfStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forIfStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addImplementsClause(LintRule linter, AstVisitor visitor) {
-    _forImplementsClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addImplementsClause(AnalysisRule rule, AstVisitor visitor) {
+    _forImplementsClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addImplicitCallReference(LintRule linter, AstVisitor visitor) {
+  void addImplicitCallReference(AnalysisRule rule, AstVisitor visitor) {
     _forImplicitCallReference
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addImportDirective(LintRule linter, AstVisitor visitor) {
-    _forImportDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addImportDirective(AnalysisRule rule, AstVisitor visitor) {
+    _forImportDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addImportPrefixReference(LintRule linter, AstVisitor visitor) {
+  void addImportPrefixReference(AnalysisRule rule, AstVisitor visitor) {
     _forImportPrefixReference
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addIndexExpression(LintRule linter, AstVisitor visitor) {
-    _forIndexExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addIndexExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forIndexExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addInstanceCreationExpression(LintRule linter, AstVisitor visitor) {
+  void addInstanceCreationExpression(AnalysisRule rule, AstVisitor visitor) {
     _forInstanceCreationExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addIntegerLiteral(LintRule linter, AstVisitor visitor) {
-    _forIntegerLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addIntegerLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forIntegerLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addInterpolationExpression(LintRule linter, AstVisitor visitor) {
+  void addInterpolationExpression(AnalysisRule rule, AstVisitor visitor) {
     _forInterpolationExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addInterpolationString(LintRule linter, AstVisitor visitor) {
-    _forInterpolationString
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addInterpolationString(AnalysisRule rule, AstVisitor visitor) {
+    _forInterpolationString.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addIsExpression(LintRule linter, AstVisitor visitor) {
-    _forIsExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addIsExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forIsExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addLabel(LintRule linter, AstVisitor visitor) {
-    _forLabel.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addLabel(AnalysisRule rule, AstVisitor visitor) {
+    _forLabel.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addLabeledStatement(LintRule linter, AstVisitor visitor) {
-    _forLabeledStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addLabeledStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forLabeledStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addLibraryDirective(LintRule linter, AstVisitor visitor) {
-    _forLibraryDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addLibraryDirective(AnalysisRule rule, AstVisitor visitor) {
+    _forLibraryDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addLibraryIdentifier(LintRule linter, AstVisitor visitor) {
-    _forLibraryIdentifier
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addLibraryIdentifier(AnalysisRule rule, AstVisitor visitor) {
+    _forLibraryIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addListLiteral(LintRule linter, AstVisitor visitor) {
-    _forListLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addListLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forListLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addListPattern(LintRule linter, AstVisitor visitor) {
-    _forListPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addListPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forListPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addLogicalAndPattern(LintRule linter, AstVisitor visitor) {
-    _forLogicalAndPattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addLogicalAndPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forLogicalAndPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addLogicalOrPattern(LintRule linter, AstVisitor visitor) {
-    _forLogicalOrPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addLogicalOrPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forLogicalOrPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMapLiteralEntry(LintRule linter, AstVisitor visitor) {
-    _forMapLiteralEntry.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMapLiteralEntry(AnalysisRule rule, AstVisitor visitor) {
+    _forMapLiteralEntry.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMapPattern(LintRule linter, AstVisitor visitor) {
-    _forMapPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMapPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forMapPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMapPatternEntry(LintRule linter, AstVisitor visitor) {
-    _forMapPatternEntry.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMapPatternEntry(AnalysisRule rule, AstVisitor visitor) {
+    _forMapPatternEntry.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMethodDeclaration(LintRule linter, AstVisitor visitor) {
-    _forMethodDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMethodDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forMethodDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMethodInvocation(LintRule linter, AstVisitor visitor) {
-    _forMethodInvocation.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMethodInvocation(AnalysisRule rule, AstVisitor visitor) {
+    _forMethodInvocation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMixinDeclaration(LintRule linter, AstVisitor visitor) {
-    _forMixinDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMixinDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forMixinDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addMixinOnClause(LintRule linter, AstVisitor visitor) {
-    _forMixinOnClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addMixinOnClause(AnalysisRule rule, AstVisitor visitor) {
+    _forMixinOnClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNamedExpression(LintRule linter, AstVisitor visitor) {
-    _forNamedExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNamedExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forNamedExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNamedType(LintRule linter, AstVisitor visitor) {
-    _forNamedType.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNamedType(AnalysisRule rule, AstVisitor visitor) {
+    _forNamedType.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNativeClause(LintRule linter, AstVisitor visitor) {
-    _forNativeClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNativeClause(AnalysisRule rule, AstVisitor visitor) {
+    _forNativeClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNativeFunctionBody(LintRule linter, AstVisitor visitor) {
-    _forNativeFunctionBody
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNativeFunctionBody(AnalysisRule rule, AstVisitor visitor) {
+    _forNativeFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNullAssertPattern(LintRule linter, AstVisitor visitor) {
-    _forNullAssertPattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNullAssertPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forNullAssertPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNullCheckPattern(LintRule linter, AstVisitor visitor) {
-    _forNullCheckPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNullCheckPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forNullCheckPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addNullLiteral(LintRule linter, AstVisitor visitor) {
-    _forNullLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addNullLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forNullLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addObjectPattern(LintRule linter, AstVisitor visitor) {
-    _forObjectPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addObjectPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forObjectPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addParenthesizedExpression(LintRule linter, AstVisitor visitor) {
+  void addParenthesizedExpression(AnalysisRule rule, AstVisitor visitor) {
     _forParenthesizedExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addParenthesizedPattern(LintRule linter, AstVisitor visitor) {
-    _forParenthesizedPattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addParenthesizedPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forParenthesizedPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPartDirective(LintRule linter, AstVisitor visitor) {
-    _forPartDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPartDirective(AnalysisRule rule, AstVisitor visitor) {
+    _forPartDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPartOfDirective(LintRule linter, AstVisitor visitor) {
-    _forPartOfDirective.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPartOfDirective(AnalysisRule rule, AstVisitor visitor) {
+    _forPartOfDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPatternAssignment(LintRule linter, AstVisitor visitor) {
-    _forPatternAssignment
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPatternAssignment(AnalysisRule rule, AstVisitor visitor) {
+    _forPatternAssignment.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPatternField(LintRule linter, AstVisitor visitor) {
-    _forPatternField.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPatternField(AnalysisRule rule, AstVisitor visitor) {
+    _forPatternField.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPatternFieldName(LintRule linter, AstVisitor visitor) {
-    _forPatternFieldName.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPatternFieldName(AnalysisRule rule, AstVisitor visitor) {
+    _forPatternFieldName.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPatternVariableDeclaration(LintRule linter, AstVisitor visitor) {
+  void addPatternVariableDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forPatternVariableDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   void addPatternVariableDeclarationStatement(
-      LintRule linter, AstVisitor visitor) {
+      AnalysisRule rule, AstVisitor visitor) {
     _forPatternVariableDeclarationStatement
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPostfixExpression(LintRule linter, AstVisitor visitor) {
-    _forPostfixExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPostfixExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forPostfixExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPrefixedIdentifier(LintRule linter, AstVisitor visitor) {
-    _forPrefixedIdentifier
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPrefixedIdentifier(AnalysisRule rule, AstVisitor visitor) {
+    _forPrefixedIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPrefixExpression(LintRule linter, AstVisitor visitor) {
-    _forPrefixExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPrefixExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forPrefixExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addPropertyAccess(LintRule linter, AstVisitor visitor) {
-    _forPropertyAccess.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addPropertyAccess(AnalysisRule rule, AstVisitor visitor) {
+    _forPropertyAccess.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRecordLiteral(LintRule linter, AstVisitor visitor) {
-    _forRecordLiterals.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addRecordLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forRecordLiterals.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRecordPattern(LintRule linter, AstVisitor visitor) {
-    _forRecordPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addRecordPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forRecordPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRecordTypeAnnotation(LintRule linter, AstVisitor visitor) {
-    _forRecordTypeAnnotation
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addRecordTypeAnnotation(AnalysisRule rule, AstVisitor visitor) {
+    _forRecordTypeAnnotation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   void addRedirectingConstructorInvocation(
-      LintRule linter, AstVisitor visitor) {
+      AnalysisRule rule, AstVisitor visitor) {
     _forRedirectingConstructorInvocation
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRelationalPattern(LintRule linter, AstVisitor visitor) {
-    _forRelationalPattern
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addRelationalPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forRelationalPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRepresentationConstructorName(LintRule linter, AstVisitor visitor) {
+  void addRepresentationConstructorName(AnalysisRule rule, AstVisitor visitor) {
     _forRepresentationConstructorName
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRepresentationDeclaration(LintRule linter, AstVisitor visitor) {
+  void addRepresentationDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forRepresentationDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRestPatternElement(LintRule linter, AstVisitor visitor) {
-    _forRestPatternElement
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addRestPatternElement(AnalysisRule rule, AstVisitor visitor) {
+    _forRestPatternElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addRethrowExpression(LintRule linter, AstVisitor visitor) {
-    _forRethrowExpression
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addRethrowExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forRethrowExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addReturnStatement(LintRule linter, AstVisitor visitor) {
-    _forReturnStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addReturnStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forReturnStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addScriptTag(LintRule linter, AstVisitor visitor) {
-    _forScriptTag.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addScriptTag(AnalysisRule rule, AstVisitor visitor) {
+    _forScriptTag.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSetOrMapLiteral(LintRule linter, AstVisitor visitor) {
-    _forSetOrMapLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSetOrMapLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forSetOrMapLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addShowCombinator(LintRule linter, AstVisitor visitor) {
-    _forShowCombinator.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addShowCombinator(AnalysisRule rule, AstVisitor visitor) {
+    _forShowCombinator.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSimpleFormalParameter(LintRule linter, AstVisitor visitor) {
+  void addSimpleFormalParameter(AnalysisRule rule, AstVisitor visitor) {
     _forSimpleFormalParameter
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSimpleIdentifier(LintRule linter, AstVisitor visitor) {
-    _forSimpleIdentifier.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSimpleIdentifier(AnalysisRule rule, AstVisitor visitor) {
+    _forSimpleIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSimpleStringLiteral(LintRule linter, AstVisitor visitor) {
-    _forSimpleStringLiteral
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSimpleStringLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forSimpleStringLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSpreadElement(LintRule linter, AstVisitor visitor) {
-    _forSpreadElement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSpreadElement(AnalysisRule rule, AstVisitor visitor) {
+    _forSpreadElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addStringInterpolation(LintRule linter, AstVisitor visitor) {
-    _forStringInterpolation
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addStringInterpolation(AnalysisRule rule, AstVisitor visitor) {
+    _forStringInterpolation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSuperConstructorInvocation(LintRule linter, AstVisitor visitor) {
+  void addSuperConstructorInvocation(AnalysisRule rule, AstVisitor visitor) {
     _forSuperConstructorInvocation
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSuperExpression(LintRule linter, AstVisitor visitor) {
-    _forSuperExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSuperExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forSuperExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSuperFormalParameter(LintRule linter, AstVisitor visitor) {
-    _forSuperFormalParameter
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSuperFormalParameter(AnalysisRule rule, AstVisitor visitor) {
+    _forSuperFormalParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSwitchCase(LintRule linter, AstVisitor visitor) {
-    _forSwitchCase.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSwitchCase(AnalysisRule rule, AstVisitor visitor) {
+    _forSwitchCase.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSwitchDefault(LintRule linter, AstVisitor visitor) {
-    _forSwitchDefault.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSwitchDefault(AnalysisRule rule, AstVisitor visitor) {
+    _forSwitchDefault.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSwitchExpression(LintRule linter, AstVisitor visitor) {
-    _forSwitchExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSwitchExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forSwitchExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSwitchExpressionCase(LintRule linter, AstVisitor visitor) {
-    _forSwitchExpressionCase
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSwitchExpressionCase(AnalysisRule rule, AstVisitor visitor) {
+    _forSwitchExpressionCase.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSwitchPatternCase(LintRule linter, AstVisitor visitor) {
-    _forSwitchPatternCase
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSwitchPatternCase(AnalysisRule rule, AstVisitor visitor) {
+    _forSwitchPatternCase.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSwitchStatement(LintRule linter, AstVisitor visitor) {
-    _forSwitchStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSwitchStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forSwitchStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addSymbolLiteral(LintRule linter, AstVisitor visitor) {
-    _forSymbolLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addSymbolLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forSymbolLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addThisExpression(LintRule linter, AstVisitor visitor) {
-    _forThisExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addThisExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forThisExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addThrowExpression(LintRule linter, AstVisitor visitor) {
-    _forThrowExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addThrowExpression(AnalysisRule rule, AstVisitor visitor) {
+    _forThrowExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addTopLevelVariableDeclaration(LintRule linter, AstVisitor visitor) {
+  void addTopLevelVariableDeclaration(AnalysisRule rule, AstVisitor visitor) {
     _forTopLevelVariableDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addTryStatement(LintRule linter, AstVisitor visitor) {
-    _forTryStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addTryStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forTryStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addTypeArgumentList(LintRule linter, AstVisitor visitor) {
-    _forTypeArgumentList.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addTypeArgumentList(AnalysisRule rule, AstVisitor visitor) {
+    _forTypeArgumentList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addTypeLiteral(LintRule linter, AstVisitor visitor) {
-    _forTypeLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addTypeLiteral(AnalysisRule rule, AstVisitor visitor) {
+    _forTypeLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addTypeParameter(LintRule linter, AstVisitor visitor) {
-    _forTypeParameter.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addTypeParameter(AnalysisRule rule, AstVisitor visitor) {
+    _forTypeParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addTypeParameterList(LintRule linter, AstVisitor visitor) {
-    _forTypeParameterList
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addTypeParameterList(AnalysisRule rule, AstVisitor visitor) {
+    _forTypeParameterList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addVariableDeclaration(LintRule linter, AstVisitor visitor) {
-    _forVariableDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addVariableDeclaration(AnalysisRule rule, AstVisitor visitor) {
+    _forVariableDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addVariableDeclarationList(LintRule linter, AstVisitor visitor) {
+  void addVariableDeclarationList(AnalysisRule rule, AstVisitor visitor) {
     _forVariableDeclarationList
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addVariableDeclarationStatement(LintRule linter, AstVisitor visitor) {
+  void addVariableDeclarationStatement(AnalysisRule rule, AstVisitor visitor) {
     _forVariableDeclarationStatement
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addWhenClause(LintRule linter, AstVisitor visitor) {
-    _forWhenClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addWhenClause(AnalysisRule rule, AstVisitor visitor) {
+    _forWhenClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addWhileStatement(LintRule linter, AstVisitor visitor) {
-    _forWhileStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addWhileStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forWhileStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addWithClause(LintRule linter, AstVisitor visitor) {
-    _forWithClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addWithClause(AnalysisRule rule, AstVisitor visitor) {
+    _forWithClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addYieldStatement(LintRule linter, AstVisitor visitor) {
-    _forYieldStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  void addYieldStatement(AnalysisRule rule, AstVisitor visitor) {
+    _forYieldStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void afterLibrary(LintRule linter, void Function() callback) {
+  void afterLibrary(AnalysisRule rule, void Function() callback) {
     _afterLibrary
-        .add(_AfterLibrarySubscription(linter, callback, _getTimer(linter)));
+        .add(_AfterLibrarySubscription(rule, callback, _getTimer(rule)));
   }
 
-  /// Get the timer associated with the given [linter].
-  Stopwatch? _getTimer(LintRule linter) {
+  /// Get the timer associated with the given [rule].
+  Stopwatch? _getTimer(AnalysisRule rule) {
     if (enableTiming) {
-      return lintRuleTimers.getTimer(linter);
+      return analysisRuleTimers.getTimer(rule);
     } else {
       return null;
     }
@@ -2071,18 +2028,18 @@ class NodeLintRegistry {
 }
 
 class _AfterLibrarySubscription {
-  final LintRule linter;
+  final AnalysisRule rule;
   final void Function() callback;
   final Stopwatch? timer;
 
-  _AfterLibrarySubscription(this.linter, this.callback, this.timer);
+  _AfterLibrarySubscription(this.rule, this.callback, this.timer);
 }
 
-/// A single subscription for a node type, by the specified [linter].
+/// A single subscription for a node type, by the specified [rule].
 class _Subscription<T> {
-  final LintRule linter;
+  final AnalysisRule rule;
   final AstVisitor visitor;
   final Stopwatch? timer;
 
-  _Subscription(this.linter, this.visitor, this.timer);
+  _Subscription(this.rule, this.visitor, this.timer);
 }

@@ -46,7 +46,7 @@ import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:analyzer/src/lint/lint_rule_timers.dart';
+import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -383,13 +383,13 @@ class LibraryAnalyzer {
     );
 
     for (var linter in _analysisOptions.lintRules) {
-      var timer = enableTiming ? lintRuleTimers.getTimer(linter) : null;
+      var timer = enableTiming ? analysisRuleTimers.getTimer(linter) : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
       timer?.stop();
     }
 
-    var logException = LinterExceptionHandler(
+    var logException = AnalysisRuleExceptionHandler(
       propagateExceptions: _analysisOptions.propagateLinterExceptions,
     ).logException;
 
@@ -408,13 +408,13 @@ class LibraryAnalyzer {
 
       // Run lint rules that handle specific node types.
       unit.accept(
-        LinterVisitor(nodeRegistry, logException),
+        AnalysisRuleVisitor(nodeRegistry, logException),
       );
     }
 
     // Now that all lint rules have visited the code in each of the compilation
     // units, we can accept each lint rule's `afterLibrary` hook.
-    LinterVisitor(nodeRegistry, logException).afterLibrary();
+    AnalysisRuleVisitor(nodeRegistry, logException).afterLibrary();
   }
 
   void _computeVerifyErrors(FileAnalysis fileAnalysis) {

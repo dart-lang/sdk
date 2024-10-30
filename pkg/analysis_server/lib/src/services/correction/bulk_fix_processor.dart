@@ -584,9 +584,9 @@ class BulkFixProcessor {
 
     // Run lints that handle specific node types.
     currentUnit.unit.accept(
-      LinterVisitor(
+      AnalysisRuleVisitor(
         nodeRegistry,
-        LinterExceptionHandler(
+        AnalysisRuleExceptionHandler(
           propagateExceptions: false,
         ).logException,
       ),

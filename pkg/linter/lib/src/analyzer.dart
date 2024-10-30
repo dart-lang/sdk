@@ -10,6 +10,7 @@ export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
+export 'package:analyzer/src/lint/analysis_rule_timers.dart';
 export 'package:analyzer/src/lint/linter.dart'
     show
         dart2_12,
