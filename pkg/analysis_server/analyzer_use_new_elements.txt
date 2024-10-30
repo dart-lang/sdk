@@ -42,6 +42,8 @@ lib/src/computer/computer_highlights.dart
 lib/src/computer/computer_outline.dart
 lib/src/computer/computer_overrides.dart
 lib/src/computer/computer_selection_ranges.dart
+lib/src/computer/computer_signature.dart
+lib/src/computer/computer_type_arguments_signature.dart
 lib/src/context_manager.dart
 lib/src/domain_analysis_flags.dart
 lib/src/domains/analysis/occurrences.dart

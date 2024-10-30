@@ -7,7 +7,7 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -43,27 +43,27 @@ class DartTypeArgumentsSignatureComputer {
       return null;
     }
     var parent = argumentList.parent;
-    Element? element;
+    Element2? element;
     if (parent is NamedType) {
-      element = parent.element;
+      element = parent.element2;
     } else if (parent is MethodInvocation) {
-      element = ElementLocator.locate(parent.methodName);
+      element = ElementLocator.locate2(parent.methodName);
     }
-    if (element is! TypeParameterizedElement ||
-        element.typeParameters.isEmpty) {
+    if (element is! TypeParameterizedElement2 ||
+        element.typeParameters2.isEmpty) {
       return null;
     }
 
     _argumentList = argumentList;
 
-    var label = element.getDisplayString();
-    var documentation = _documentationComputer.computePreferred(
+    var label = element.displayString2();
+    var documentation = _documentationComputer.computePreferred2(
         element, documentationPreference);
 
     return _toSignatureHelp(
       label,
       cleanDartdoc(documentation),
-      element.typeParameters,
+      element.typeParameters2,
     );
   }
 
@@ -85,11 +85,11 @@ class DartTypeArgumentsSignatureComputer {
   lsp.SignatureHelp? _toSignatureHelp(
     String label,
     String? documentation,
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElement2> typeParameters,
   ) {
     var parameters = typeParameters
         .map((param) => lsp.ParameterInformation(
-              label: param.getDisplayString(),
+              label: param.displayString2(),
             ))
         .toList();
 
