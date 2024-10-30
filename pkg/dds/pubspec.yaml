@@ -29,7 +29,7 @@ dependencies:
   sse: ^4.0.0
   stack_trace: ^1.10.0
   stream_channel: ^2.0.0
-  vm_service: ^14.0.0
+  vm_service: ^14.3.0
   web_socket_channel: '>=2.0.0 <4.0.0'
 
 # We use 'any' version constraints here as we get our package versions from

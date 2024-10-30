@@ -284,6 +284,182 @@ void foo() {
       );
     });
 
+    test('variableReferences remain valid while an isolate is paused',
+        () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleBreakpointProgramWith50ExtraLines);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+      // We're paused at a breakpoint. Our evaluate results should continue to
+      // work even after GCs.
+      final threadId = stop.threadId!;
+      final topFrameId = await client.getTopFrameId(threadId);
+
+      // Evaluate something and get back a variablesReference.
+      final result = await client.expectEvalResult(
+        topFrameId,
+        'DateTime(2000, 1, 1)',
+        'DateTime',
+      );
+
+      // Ensure it remains valid even after GCs. This ensures both DAP preserves
+      // the variablesReference, and also that the VM preserved the instance
+      // reference.
+      for (var i = 0; i < 5; i++) {
+        await client.expectVariables(
+          result.variablesReference,
+          'isUtc: false, eval: DateTime(2000, 1, 1).isUtc',
+        );
+        // Force GC.
+        await client.forceGc(threadId);
+      }
+    });
+
+    test('variableReferences become invalid after a resume', () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleBreakpointProgramWith50ExtraLines);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        additionalBreakpoints: [breakpointLine + 1],
+      );
+
+      // We're paused at a breakpoint. Our evaluate results should only continue
+      // to work until we resume.
+      final threadId = stop.threadId!;
+      final topFrameId = await client.getTopFrameId(threadId);
+
+      // Evaluate something and get back a variablesReference.
+      final evalResult = await client.expectEvalResult(
+        topFrameId,
+        'DateTime(2000, 1, 1)',
+        'DateTime',
+      );
+
+      // Resume, which should invalidate the variablesReference.
+      await client.continue_(threadId);
+
+      // Verify the reference is no longer valid. This is because we clear
+      // the threads variable data on resume, and not because of VM Service
+      // Zone IDs. We have no way to validate the VM behaviour because we
+      // don't have the reference (it is abstracted from the DAP client) to
+      // verify.
+      expectResponseError(
+        client.variables(evalResult.variablesReference),
+        equals('Bad state: variablesReference is no longer valid'),
+      );
+    });
+
+    test('variableReferences become invalid after a step', () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleBreakpointProgramWith50ExtraLines);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+      // We're paused at a breakpoint. Our evaluate results should only continue
+      // to work until we resume.
+      final threadId = stop.threadId!;
+      final topFrameId = await client.getTopFrameId(threadId);
+
+      // Evaluate something and get back a variablesReference.
+      final evalResult = await client.expectEvalResult(
+        topFrameId,
+        'DateTime(2000, 1, 1)',
+        'DateTime',
+      );
+
+      // Step, which should also invalidate because we're basically unpausing
+      // and then pausing again.
+      await client.next(threadId);
+
+      // Verify the reference is no longer valid. This is because we clear
+      // the threads variable data on resume/step, and not because of VM Service
+      // Zone IDs. We have no way to validate the VM behaviour because we
+      // don't have the reference (it is abstracted from the DAP client) to
+      // verify.
+      expectResponseError(
+        client.variables(evalResult.variablesReference),
+        equals('Bad state: variablesReference is no longer valid'),
+      );
+    });
+
+    test('evaluation service zones are invalidated on resume', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Enable logging and capture any requests to the VM that are calling
+      // invalidateIdZone.
+      final loggedEvaluateInFrameRequests = client
+          .events('dart.log')
+          .map((event) => event.body as Map<String, Object?>)
+          .map((body) => body['message'] as String)
+          .where((message) => message.contains('"method":"invalidateIdZone"'))
+          .toList();
+      await client.custom('updateSendLogsToClient', {'enabled': true});
+
+      // Trigger an evaluation because evaluation zones are created lazily
+      // and we won't invalidate anything if we haven't created one.
+      await client.evaluate('0', frameId: stop.threadId!);
+
+      // Resume and wait for the app to terminate.
+      await Future.wait([
+        client.continue_(stop.threadId!),
+        client.event('terminated'),
+      ]);
+
+      // Verify that invalidate had been called.
+      expect(
+        await loggedEvaluateInFrameRequests,
+        isNotEmpty,
+      );
+    });
+
+    test('evaluation service zones are invalidated on step', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Enable logging and capture any requests to the VM that are calling
+      // invalidateIdZone.
+      final loggedEvaluateInFrameRequests = client
+          .events('dart.log')
+          .map((event) => event.body as Map<String, Object?>)
+          .map((body) => body['message'] as String)
+          .where((message) => message.contains('"method":"invalidateIdZone"'))
+          .toList();
+      await client.custom('updateSendLogsToClient', {'enabled': true});
+
+      // Trigger an evaluation because evaluation zones are created lazily
+      // and we won't invalidate anything if we haven't created one.
+      await client.evaluate('0', frameId: stop.threadId!);
+
+      // Step, which should also invalidate because we're basically unpausing
+      // and then pausing again.
+      await client.next(stop.threadId!);
+
+      // Then disable logging (so we don't get false positives from shutdown)
+      // and terminate.
+      await client.custom('updateSendLogsToClient', {'enabled': false});
+      await Future.wait([
+        client.terminate(),
+        client.event('terminated'),
+      ]);
+
+      // Verify that invalidate had been called.
+      expect(
+        await loggedEvaluateInFrameRequests,
+        isNotEmpty,
+      );
+    });
+
     group('global evaluation', () {
       test('can evaluate in a bin/ file when not paused given a bin/ URI',
           () async {

@@ -356,7 +356,7 @@ class IsolateManager {
 
     // Finally, when we're resuming, all stored objects become invalid and
     // we can drop them to save memory.
-    thread.clearStoredData();
+    await thread.clearTemporaryData();
 
     thread.hasPendingUserResume = true;
     try {
@@ -400,13 +400,14 @@ class IsolateManager {
       }
     }
 
-    // When we're resuming, all stored objects become invalid and we can drop
-    // to save memory.
-    thread.clearStoredData();
-
+    final isolateId = thread.isolate.id!;
     try {
-      thread.hasPendingDapResume = true;
-      await _adapter.vmService?.readyToResume(thread.isolate.id!);
+      // When we're resuming, all stored objects become invalid and we can drop
+      // to save memory.
+      await thread.clearTemporaryData();
+
+      // Finally, signal that we're ready to resume.
+      await _adapter.vmService?.readyToResume(isolateId);
     } on UnimplementedError {
       // Fallback to a regular resume if the DDS version doesn't support
       // `readyToResume`:
@@ -426,8 +427,6 @@ class IsolateManager {
       } else {
         rethrow;
       }
-    } finally {
-      thread.hasPendingDapResume = false;
     }
   }
 
@@ -570,12 +569,7 @@ class IsolateManager {
     String type,
   ) async {
     try {
-      final result = await _adapter.vmService?.evaluateInFrame(
-        thread.isolate.id!,
-        0,
-        expression,
-        disableBreakpoints: true,
-      );
+      final result = await _adapter.vmEvaluateInFrame(thread, 0, expression);
 
       if (result is vm.InstanceRef) {
         return result;
@@ -1118,6 +1112,32 @@ class ThreadInfo with FileUtils {
   var atAsyncSuspension = false;
   int? exceptionReference;
 
+  /// A [Completer] that completes with the evaluation zone ID for this thread.
+  ///
+  /// The completer is created when the request to create an evaluation zone is
+  /// started (which is lazy, the first time evaluation is performed).
+  ///
+  /// When the Debug Adapter is ready to resume this Isolate, it will first
+  /// invalidate all evaluation IDs in this zone so that they can be collected.
+  /// If the [Completer] is null, no evaluation has occurred and invalidation
+  /// can be skipped.
+  Completer<String?>? _currentEvaluationZoneIdCompleter;
+
+  /// Returns the current evaluation zone ID.
+  ///
+  /// To avoid additional 'await's, may return a String? directly if the value
+  /// is already available.
+  FutureOr<String?> get currentEvaluationZoneId {
+    // We already have the value, avoid the Future.
+    if (_currentEvaluationZoneId != null) {
+      return _currentEvaluationZoneId;
+    }
+    return _createOrGetEvaluationZoneId();
+  }
+
+  /// The current evaluation zone ID (if available).
+  String? _currentEvaluationZoneId;
+
   /// Whether this thread is currently known to be paused in the VM.
   ///
   /// Because requests are async, this is not guaranteed to be always correct
@@ -1165,10 +1185,6 @@ class ThreadInfo with FileUtils {
   /// has not yet been responded to.
   var hasPendingUserResume = false;
 
-  /// Whether this isolate has an in-flight DAP (readyToResume) resume request
-  /// that has not yet been responded to.
-  var hasPendingDapResume = false;
-
   ThreadInfo(this._manager, this.threadId, this.isolate);
 
   Future<T> getObject<T extends vm.Response>(vm.ObjRef ref) =>
@@ -1186,6 +1202,42 @@ class ThreadInfo with FileUtils {
   /// Fetches scripts for a given isolate.
   Future<vm.ScriptList> getScripts() {
     return _manager.getScripts(isolate);
+  }
+
+  /// Returns the evaluation zone ID for this thread.
+  ///
+  /// If it has not been created yet, creates it. If creation is in progress,
+  /// returns the existing future.
+  Future<String?> _createOrGetEvaluationZoneId() async {
+    // If we already have a completer, the request is already in flight (or
+    // has completed).
+    var completer = _currentEvaluationZoneIdCompleter;
+    if (completer != null) {
+      return completer.future;
+    }
+
+    // Otherwise, we need to start the request.
+    _currentEvaluationZoneIdCompleter = completer = Completer();
+
+    try {
+      final response = await _manager._adapter.vmService?.createIdZone(
+        isolate.id!,
+        vm.IdZoneBackingBufferKind.kRing,
+        vm.IdAssignmentPolicy.kAlwaysAllocate,
+        // Default capacity is 512. Since these are short-lived (only while
+        // paused) and we don't want to prevent expanding Lists, use something a
+        // little bigger.
+        capacity: 2048,
+      );
+      _currentEvaluationZoneId = response?.id;
+    } catch (_) {
+      // If this request fails for any reason (perhaps the target VM does not
+      // support this request), we should just use `null` as the zone ID and not
+      // prevent any evaluation requests.
+      _currentEvaluationZoneId = null;
+    }
+    completer.complete(_currentEvaluationZoneId);
+    return _currentEvaluationZoneId;
   }
 
   /// Resolves a source file path (or URI) into a URI for the VM.
@@ -1489,11 +1541,32 @@ class ThreadInfo with FileUtils {
         pathSegments: fileLikeUri.pathSegments.sublist(0, keepSegments));
   }
 
-  /// Clears all data stored for this thread.
+  /// Clears all temporary stored for this thread. This includes:
   ///
-  /// References to stored data become invalid when the thread is resumed.
-  void clearStoredData() {
+  /// - dropping any variablesReferences
+  /// - invalidating the evaluation ID zone
+  ///
+  /// This is generally called when requesting execution continues, since any
+  /// evaluated references are not expected to live past this point.
+  ///
+  /// https://microsoft.github.io/debug-adapter-protocol/overview#lifetime-of-objects-references
+  Future<void> clearTemporaryData() async {
+    // Clear variablesReferences.
     _manager.clearStoredData(this);
+
+    // Invalidate all existing references in this evaluation zone.
+    // If the completer is null, no zone has ever been created (or started to
+    // be created), so this can be skipped.
+    if (_currentEvaluationZoneIdCompleter != null) {
+      final futureOrEvalZoneId = currentEvaluationZoneId;
+      final evalZoneId = futureOrEvalZoneId is String
+          ? futureOrEvalZoneId
+          : await futureOrEvalZoneId;
+      if (evalZoneId != null) {
+        await _manager._adapter.vmService
+            ?.invalidateIdZone(isolate.id!, evalZoneId);
+      }
+    }
   }
 
   /// Attempts to get a [vm.LibraryRef] for the given [scriptFileUri].

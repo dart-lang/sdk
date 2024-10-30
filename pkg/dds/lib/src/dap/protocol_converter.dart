@@ -335,8 +335,8 @@ class ProtocolConverter {
     required bool allowCallingToString,
     required VariableFormat? format,
   }) async {
-    final response = await service.evaluate(
-      thread.isolate.id!,
+    final response = await _adapter.vmEvaluate(
+      thread,
       instance.id!,
       getterName,
     );

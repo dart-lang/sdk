@@ -1170,6 +1170,17 @@ extension DapTestClientExtension on DapTestClient {
         response.body as Map<String, Object?>);
   }
 
+  /// A helper that calls the private `_collectAllGarbage` custom request to
+  /// force a GC.
+  Future<void> forceGc(int threadId) async {
+    await sendRequest(
+      {
+        'threadId': threadId,
+      },
+      overrideCommand: '_collectAllGarbage',
+    );
+  }
+
   /// A helper that verifies the variables list matches [expectedVariables].
   ///
   /// [expectedVariables] is a simple text format of `name: value` for each

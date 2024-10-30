@@ -956,6 +956,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         sendResponse(_noResult);
         break;
 
+      // Used by tests to force a GC for a given DAP threadId.
+      case '_collectAllGarbage':
+        final threadId = args?.args['threadId'] as int;
+        final isolateId = isolateManager.getThread(threadId)?.isolate.id;
+        // Trigger the GC.
+        if (isolateId != null) {
+          await vmService?.callMethod(
+            '_collectAllGarbage',
+            isolateId: isolateId,
+          );
+        }
+
+        // Respond to the incoming request.
+        sendResponse(_noResult);
+        break;
+
       default:
         await super.customRequest(request, args, sendResponse);
     }
@@ -1088,11 +1104,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           thread,
         );
       } else if (thread != null && frameIndex != null) {
-        result = await vmService?.evaluateInFrame(
-          thread.isolate.id!,
+        result = await vmEvaluateInFrame(
+          thread,
           frameIndex,
           expression,
-          disableBreakpoints: true,
         );
       } else if (targetScriptFileUri != null &&
           // Since we can't currently get a thread, we assume the first thread is
@@ -1105,12 +1120,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           throw 'Unable to find the library for $targetScriptFileUri';
         }
 
-        result = await vmService?.evaluate(
-          thread.isolate.id!,
-          library.id!,
-          expression,
-          disableBreakpoints: true,
-        );
+        result = await vmEvaluate(thread, library.id!, expression);
       }
     } catch (e) {
       final rawMessage = '$e';
@@ -2384,11 +2394,54 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final expressionWithoutExceptionExpression =
         expression.substring(threadExceptionExpression.length + 1);
 
-    return vmService?.evaluate(
-      thread.isolate.id!,
+    return vmEvaluate(
+      thread,
       exception.id!,
       expressionWithoutExceptionExpression,
-      disableBreakpoints: true,
+    );
+  }
+
+  /// Sends a VM 'evaluate' request for [thread].
+  Future<vm.Response?> vmEvaluate(
+    ThreadInfo thread,
+    String targetId,
+    String expression, {
+    bool? disableBreakpoints = true,
+  }) async {
+    final isolateId = thread.isolate.id!;
+    final futureOrEvalZoneId = thread.currentEvaluationZoneId;
+    final evalZoneId = futureOrEvalZoneId is String
+        ? futureOrEvalZoneId
+        : await futureOrEvalZoneId;
+
+    return vmService?.evaluate(
+      isolateId,
+      targetId,
+      expression,
+      disableBreakpoints: disableBreakpoints,
+      idZoneId: evalZoneId,
+    );
+  }
+
+  /// Sends a VM 'evaluateInFrame' request for [thread].
+  Future<vm.Response?> vmEvaluateInFrame(
+    ThreadInfo thread,
+    int frameIndex,
+    String expression, {
+    bool? disableBreakpoints = true,
+  }) async {
+    final isolateId = thread.isolate.id!;
+    final futureOrEvalZoneId = thread.currentEvaluationZoneId;
+    final evalZoneId = futureOrEvalZoneId is String
+        ? futureOrEvalZoneId
+        : await futureOrEvalZoneId;
+
+    return vmService?.evaluateInFrame(
+      isolateId,
+      frameIndex,
+      expression,
+      disableBreakpoints: disableBreakpoints,
+      idZoneId: evalZoneId,
     );
   }
 

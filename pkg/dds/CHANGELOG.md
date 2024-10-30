@@ -3,6 +3,11 @@
 - Updated the `devtools_shared` dependency to version `^11.0.0`.
 - Made `runDartDevelopmentServiceFromCLI` pass the specified bind address
   directly into `startDartDevelopmentService` without resolving the address.
+- [DAP] Evaluations now use Service ID Zones to more precisely control the
+  lifetime of instance references returned. This should avoid instances being
+  collected while execution is paused, while releasing them once execution
+  resumes.
+- Updated `vm_service` constraint to ^14.3.0.
 
 # 4.2.7
 - Added a new constant `RpcErrorCodes.kConnectionDisposed = -32010` for requests
