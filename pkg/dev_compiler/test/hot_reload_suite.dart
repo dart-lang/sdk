@@ -195,7 +195,6 @@ Future<void> main(List<String> args) async {
         '--target=dartdevc',
       ];
       controller = HotReloadFrontendServerController(fesArgs);
-      break;
     case RuntimePlatforms.vm:
       final vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
           sdkRoot, vmPlatformDillUri, fe_shared.isWindows);
@@ -205,7 +204,6 @@ Future<void> main(List<String> args) async {
         '--target=vm',
       ];
       controller = HotReloadFrontendServerController(fesArgs);
-      break;
   }
   controller.start();
 
@@ -424,7 +422,6 @@ Future<void> main(List<String> args) async {
             }
           });
         });
-        break;
       case DiffMode.write:
         _print('Generating source file diffs.', label: testName);
         filesByGeneration.forEach((basename, filesQueue) {
@@ -462,7 +459,6 @@ Future<void> main(List<String> args) async {
             reportDiffOutcome(file, 'diff updated for $file', true);
           });
         });
-        break;
       case DiffMode.ignore:
         _print('Ignoring source file diffs.', label: testName);
         filesByGeneration.forEach((basename, filesQueue) {
@@ -471,7 +467,6 @@ Future<void> main(List<String> args) async {
             reportDiffOutcome(file, 'Ignoring diff for $file', true);
           });
         });
-        break;
     }
 
     // Skip this test directory if this platform is excluded.
@@ -658,7 +653,6 @@ Future<void> main(List<String> args) async {
         final d8ExitCode = await d8Suite.runTest(testName: testName);
         testPassed = d8ExitCode == 0;
         await d8Suite.teardownTest(testName: testName);
-        break;
       case RuntimePlatforms.chrome:
         // Run the compiled JS generations with Chrome.
         _print('Creating Chrome hot reload test suite.', label: testName);
@@ -683,7 +677,6 @@ Future<void> main(List<String> args) async {
         final exitCode = await suite.runTest(testName: testName);
         testPassed = exitCode == 0;
         await suite.teardownTest(testName: testName);
-        break;
       case RuntimePlatforms.vm:
         final firstGenerationDillUri =
             tempUri.resolve('generation0/$testName.dill');
