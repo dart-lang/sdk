@@ -121,7 +121,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (element != null) {
-      _addOccurrence(element, node.offset);
+      _addOccurrence(element, node.name2.offset);
     }
 
     super.visitNamedType(node);
