@@ -5978,9 +5978,15 @@ void CachableIdempotentCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       "CachableIdempotentCall pool load and check. pool_index = "
       "%" Pd,
       cacheable_pool_index);
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  __ MoveRegister(TMP, dst);
+#endif
   __ LoadWordFromPoolIndex(dst, cacheable_pool_index);
   __ CompareImmediate(dst, 0);
   __ BranchIf(NOT_EQUAL, need_to_drop_args ? &drop_args : &done);
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  __ MoveRegister(dst, TMP);
+#endif
   __ Comment("CachableIdempotentCall pool load and check - end");
 
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
