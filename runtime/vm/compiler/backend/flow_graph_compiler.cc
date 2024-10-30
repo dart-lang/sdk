@@ -1794,8 +1794,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       switch (instr->RequiredInputRepresentation(i)) {
         case kUnboxedDouble:
           ASSERT(fpu_reg != kNoFpuRegister);
-          ASSERT(instr->SpeculativeModeOfInput(i) ==
-                 Instruction::kNotSpeculative);
           assembler()->LoadUnboxedDouble(
               fpu_reg, reg,
               compiler::target::Double::value_offset() - kHeapObjectTag);
@@ -1803,8 +1801,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         case kUnboxedFloat32x4:
         case kUnboxedFloat64x2:
           ASSERT(fpu_reg != kNoFpuRegister);
-          ASSERT(instr->SpeculativeModeOfInput(i) ==
-                 Instruction::kNotSpeculative);
           assembler()->LoadUnboxedSimd128(
               fpu_reg, reg,
               compiler::target::Float32x4::value_offset() - kHeapObjectTag);

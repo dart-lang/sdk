@@ -335,19 +335,19 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
     if (unboxed_inputs) {
       // Manually add the unbox instruction ourselves instead of leaving it
       // up to the SelectDefinitions pass.
-      length_def =
-          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_length),
-                             DeoptId::kNone, Instruction::kNotSpeculative);
+      length_def = UnboxInstr::Create(
+          kUnboxedWord, new (zone) Value(param_length), DeoptId::kNone,
+          UnboxInstr::ValueMode::kHasValidType);
       flow_graph->InsertBefore(return_instr, length_def, nullptr,
                                FlowGraph::kValue);
-      dest_start_def =
-          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_dest_start),
-                             DeoptId::kNone, Instruction::kNotSpeculative);
+      dest_start_def = UnboxInstr::Create(
+          kUnboxedWord, new (zone) Value(param_dest_start), DeoptId::kNone,
+          UnboxInstr::ValueMode::kHasValidType);
       flow_graph->InsertBefore(length_def, dest_start_def, nullptr,
                                FlowGraph::kValue);
-      src_start_def =
-          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_src_start),
-                             DeoptId::kNone, Instruction::kNotSpeculative);
+      src_start_def = UnboxInstr::Create(
+          kUnboxedWord, new (zone) Value(param_src_start), DeoptId::kNone,
+          UnboxInstr::ValueMode::kHasValidType);
       flow_graph->InsertBefore(dest_start_def, src_start_def, nullptr,
                                FlowGraph::kValue);
     }

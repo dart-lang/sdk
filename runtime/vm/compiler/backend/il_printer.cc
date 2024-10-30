@@ -994,11 +994,6 @@ void InstanceOfInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void RelationalOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s, ", Token::Str(kind()));
-  if (SpeculativeModeOfInputs() == kGuardInputs) {
-    f->AddString("[guard-inputs], ");
-  } else {
-    f->AddString("[non-speculative], ");
-  }
   left()->PrintTo(f);
   f->AddString(", ");
   right()->PrintTo(f);
@@ -1305,10 +1300,8 @@ void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (is_truncating()) {
     f->AddString("[tr], ");
   }
-  if (SpeculativeModeOfInputs() == kGuardInputs) {
-    f->AddString("[guard-inputs], ");
-  } else {
-    f->AddString("[non-speculative], ");
+  if (value_mode() == ValueMode::kCheckType) {
+    f->AddString("[check-type], ");
   }
   Definition::PrintOperandsTo(f);
 }

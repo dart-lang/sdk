@@ -2034,7 +2034,7 @@ bool IntConverterInstr::ComputeCanDeoptimize() const {
 }
 
 bool UnboxIntegerInstr::ComputeCanDeoptimize() const {
-  if (SpeculativeModeOfInputs() == kNotSpeculative) {
+  if (value_mode() == ValueMode::kHasValidType) {
     return false;
   }
   if (!value()->Type()->IsInt()) {
@@ -2185,7 +2185,7 @@ Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
     // F2D(D2F(v)) == v.
     return value()->definition()->AsFloatToDouble()->value()->definition();
   }
-  if (value()->BindsToConstant()) {
+  if (value()->BindsToConstant() && value()->BoundConstant().IsDouble()) {
     double narrowed_val =
         static_cast<float>(Double::Cast(value()->BoundConstant()).value());
     return flow_graph->GetConstant(
@@ -2219,9 +2219,9 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((op_kind() == Token::kMUL) &&
       (left()->definition() == right()->definition())) {
-    UnaryDoubleOpInstr* square = new UnaryDoubleOpInstr(
-        Token::kSQUARE, new Value(left()->definition()), DeoptimizationTarget(),
-        speculative_mode_, representation());
+    UnaryDoubleOpInstr* square =
+        new UnaryDoubleOpInstr(Token::kSQUARE, new Value(left()->definition()),
+                               DeoptimizationTarget(), representation());
     flow_graph->InsertBefore(this, square, env(), FlowGraph::kValue);
     return square;
   }
@@ -2245,7 +2245,6 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
                                                Token::Kind op_kind,
                                                Value* value,
                                                intptr_t deopt_id,
-                                               SpeculativeMode speculative_mode,
                                                Range* range) {
   UnaryIntegerOpInstr* op = nullptr;
   switch (representation) {
@@ -2258,7 +2257,7 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
       op = new UnaryUint32OpInstr(op_kind, value, deopt_id);
       break;
     case kUnboxedInt64:
-      op = new UnaryInt64OpInstr(op_kind, value, deopt_id, speculative_mode);
+      op = new UnaryInt64OpInstr(op_kind, value, deopt_id);
       break;
     default:
       UNREACHABLE();
@@ -2277,13 +2276,11 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
   return op;
 }
 
-BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
-    Representation representation,
-    Token::Kind op_kind,
-    Value* left,
-    Value* right,
-    intptr_t deopt_id,
-    SpeculativeMode speculative_mode) {
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
+                                                 Token::Kind op_kind,
+                                                 Value* left,
+                                                 Value* right,
+                                                 intptr_t deopt_id) {
   BinaryIntegerOpInstr* op = nullptr;
   Range* right_range = nullptr;
   switch (op_kind) {
@@ -2315,7 +2312,7 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case kUnboxedUint32:
       if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
           (op_kind == Token::kUSHR)) {
-        if (speculative_mode == kNotSpeculative) {
+        if (CompilerState::Current().is_aot()) {
           op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
                                       right_range);
         } else {
@@ -2329,7 +2326,7 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case kUnboxedInt64:
       if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
           (op_kind == Token::kUSHR)) {
-        if (speculative_mode == kNotSpeculative) {
+        if (CompilerState::Current().is_aot()) {
           op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
                                      right_range);
         } else {
@@ -2337,8 +2334,7 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
                                                 right_range);
         }
       } else {
-        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id,
-                                    speculative_mode);
+        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
       }
       break;
     default:
@@ -2350,18 +2346,16 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
-BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
-    Representation representation,
-    Token::Kind op_kind,
-    Value* left,
-    Value* right,
-    intptr_t deopt_id,
-    bool can_overflow,
-    bool is_truncating,
-    Range* range,
-    SpeculativeMode speculative_mode) {
-  BinaryIntegerOpInstr* op = BinaryIntegerOpInstr::Make(
-      representation, op_kind, left, right, deopt_id, speculative_mode);
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
+                                                 Token::Kind op_kind,
+                                                 Value* left,
+                                                 Value* right,
+                                                 intptr_t deopt_id,
+                                                 bool can_overflow,
+                                                 bool is_truncating,
+                                                 Range* range) {
+  BinaryIntegerOpInstr* op = BinaryIntegerOpInstr::Make(representation, op_kind,
+                                                        left, right, deopt_id);
   if (op == nullptr) {
     return nullptr;
   }
@@ -2464,14 +2458,13 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if ((rhs > 0) && Utils::IsPowerOfTwo(rhs)) {
         const int64_t shift_amount = Utils::ShiftForPowerOfTwo(rhs);
         const Representation shift_amount_rep =
-            (SpeculativeModeOfInputs() == kNotSpeculative) ? kUnboxedInt64
-                                                           : kTagged;
+            CompilerState::Current().is_aot() ? kUnboxedInt64 : kTagged;
         ConstantInstr* constant_shift_amount = flow_graph->GetConstant(
             Smi::Handle(Smi::New(shift_amount)), shift_amount_rep);
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_shift_amount), GetDeoptId(), can_overflow(),
-            is_truncating(), range(), SpeculativeModeOfInputs());
+            is_truncating(), range());
         if (shift != nullptr) {
           // Assign a range to the shift factor, just in case range
           // analysis no longer runs after this rewriting.
@@ -2517,7 +2510,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == RepresentationMask(representation())) {
         UnaryIntegerOpInstr* bit_not = UnaryIntegerOpInstr::Make(
             representation(), Token::kBIT_NOT, left()->CopyWithType(),
-            GetDeoptId(), SpeculativeModeOfInputs(), range());
+            GetDeoptId(), range());
         if (bit_not != nullptr) {
           flow_graph->InsertBefore(this, bit_not, env(), FlowGraph::kValue);
           return bit_not;
@@ -2537,7 +2530,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == -1) {
         UnaryIntegerOpInstr* negation = UnaryIntegerOpInstr::Make(
             representation(), Token::kNEGATE, left()->CopyWithType(),
-            GetDeoptId(), SpeculativeModeOfInputs(), range());
+            GetDeoptId(), range());
         if (negation != nullptr) {
           flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
           return negation;
@@ -3260,7 +3253,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 
   // For all x, box(unbox(x)) = x.
   if (auto unbox = value()->definition()->AsUnboxInt64()) {
-    if (unbox->SpeculativeModeOfInputs() == kNotSpeculative) {
+    if (unbox->value_mode() == UnboxInstr::ValueMode::kHasValidType) {
       return unbox->value()->definition();
     }
   }
@@ -3394,10 +3387,10 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  if ((SpeculativeModeOfInput(0) == kGuardInputs) && !ComputeCanDeoptimize()) {
+  if ((value_mode() == ValueMode::kCheckType) && HasMatchingType()) {
     // Remember if we ever learn out input doesn't require checking, as
     // the input Value might be later changed that would make us forget.
-    set_speculative_mode(kNotSpeculative);
+    set_value_mode(ValueMode::kHasValidType);
   }
 
   if (value()->BindsToConstant()) {
@@ -3488,7 +3481,8 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     Definition* replacement =
         new UnboxInt32Instr(is_truncating() ? UnboxInt32Instr::kTruncate
                                             : UnboxInt32Instr::kNoTruncation,
-                            unbox_defn->value()->CopyWithType(), GetDeoptId());
+                            unbox_defn->value()->CopyWithType(), GetDeoptId(),
+                            unbox_defn->value_mode());
     flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
     return replacement;
   }
@@ -3687,9 +3681,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == nullptr) || comp->CanDeoptimize() ||
-        ((comp->SpeculativeModeOfInputs() == kGuardInputs) &&
-         comp->HasUnmatchedInputRepresentations())) {
+    if ((comp == nullptr) || comp->CanDeoptimize()) {
       return this;
     }
 
@@ -4043,32 +4035,55 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
 UnboxInstr* UnboxInstr::Create(Representation to,
                                Value* value,
                                intptr_t deopt_id,
-                               SpeculativeMode speculative_mode) {
+                               UnboxInstr::ValueMode value_mode) {
   switch (to) {
     case kUnboxedInt32:
       // We must truncate if we can't deoptimize.
       return new UnboxInt32Instr(
-          speculative_mode == SpeculativeMode::kNotSpeculative
-              ? UnboxInt32Instr::kTruncate
-              : UnboxInt32Instr::kNoTruncation,
-          value, deopt_id, speculative_mode);
+          (value_mode == UnboxInstr::ValueMode::kCheckType)
+              ? UnboxInt32Instr::kNoTruncation
+              : UnboxInt32Instr::kTruncate,
+          value, deopt_id, value_mode);
 
     case kUnboxedUint32:
-      return new UnboxUint32Instr(value, deopt_id, speculative_mode);
+      return new UnboxUint32Instr(value, deopt_id, value_mode);
 
     case kUnboxedInt64:
-      return new UnboxInt64Instr(value, deopt_id, speculative_mode);
+      return new UnboxInt64Instr(value, deopt_id, value_mode);
 
     case kUnboxedDouble:
     case kUnboxedFloat:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
-      return new UnboxInstr(to, value, deopt_id, speculative_mode);
+      return new UnboxInstr(to, value, deopt_id, value_mode);
 
     default:
       UNREACHABLE();
       return nullptr;
+  }
+}
+
+bool UnboxInstr::HasMatchingType() {
+  CompileType* type = value()->Type();
+  switch (representation_) {
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+    case kUnboxedInt64:
+      return type->IsInt();
+
+    case kUnboxedDouble:
+    case kUnboxedFloat:
+      return type->IsDouble() || (type->ToCid() == kSmiCid);
+
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+    case kUnboxedInt32x4:
+      return type->ToCid() == BoxCid();
+
+    default:
+      UNREACHABLE();
+      return false;
   }
 }
 
@@ -6388,12 +6403,14 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 }
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (SpeculativeModeOfInputs() == kNotSpeculative) {
-    if (BoxCid() == kSmiCid) {
-      // Since the representation fits in a Smi, we can extract it directly.
-      ASSERT_EQUAL(value()->Type()->ToCid(), kSmiCid);
-      return EmitSmiConversion(compiler);
-    }
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t box_cid = BoxCid();
+
+  if (box_cid == kSmiCid || (CanConvertSmi() && (value_cid == kSmiCid))) {
+    ASSERT_EQUAL(value_cid, kSmiCid);
+    EmitSmiConversion(compiler);
+
+  } else if (value_mode() == ValueMode::kHasValidType) {
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
@@ -6408,13 +6425,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
 
       case kUnboxedInt64: {
-        if (value()->Type()->ToCid() == kSmiCid) {
-          // Smi -> int64 conversion is more efficient than
-          // handling arbitrary smi/mint.
-          EmitSmiConversion(compiler);
-        } else {
-          EmitLoadInt64FromBoxOrSmi(compiler);
-        }
+        EmitLoadInt64FromBoxOrSmi(compiler);
         break;
       }
       default:
@@ -6422,22 +6433,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
     }
   } else {
-    ASSERT(SpeculativeModeOfInputs() == kGuardInputs);
-    const intptr_t value_cid = value()->Type()->ToCid();
-    const intptr_t box_cid = BoxCid();
-
-    if (box_cid == kSmiCid || (CanConvertSmi() && (value_cid == kSmiCid))) {
-      ASSERT_EQUAL(value_cid, kSmiCid);
-      EmitSmiConversion(compiler);
-    } else if (representation() == kUnboxedInt32 && value()->Type()->IsInt()) {
-      EmitLoadInt32FromBoxOrSmi(compiler);
-    } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
-      EmitLoadInt64FromBoxOrSmi(compiler);
-    } else if ((value_cid == box_cid) || !CanDeoptimize()) {
-      EmitLoadFromBox(compiler);
-    } else {
-      EmitLoadFromBoxWithDeopt(compiler);
-    }
+    EmitLoadFromBoxWithDeopt(compiler);
   }
 }
 
@@ -6551,15 +6547,13 @@ ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
                                                            Value* new_right) {
   return new EqualityCompareInstr(source(), kind(), new_left, new_right,
-                                  operation_cid(), deopt_id(), is_null_aware(),
-                                  speculative_mode_);
+                                  operation_cid(), deopt_id(), is_null_aware());
 }
 
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
                                                         Value* new_right) {
   return new RelationalOpInstr(source(), kind(), new_left, new_right,
-                               operation_cid(), deopt_id(),
-                               SpeculativeModeOfInputs());
+                               operation_cid(), deopt_id());
 }
 
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
@@ -6877,16 +6871,14 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      intptr_t class_id,
                                      AlignmentType alignment,
                                      intptr_t deopt_id,
-                                     const InstructionSource& source,
-                                     SpeculativeMode speculative_mode)
+                                     const InstructionSource& source)
     : TemplateInstruction(source, deopt_id),
       emit_store_barrier_(emit_store_barrier),
       index_unboxed_(index_unboxed),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
-      token_pos_(source.token_pos),
-      speculative_mode_(speculative_mode) {
+      token_pos_(source.token_pos) {
   // In particular, notice that kPointerCid is _not_ supported because it gives
   // no information about whether the elements are signed for elements with
   // unboxed integer representations. The constructor must take that information
@@ -6908,7 +6900,7 @@ Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
           array()->CopyWithType(Z), box->value()->CopyWithType(Z),
           value()->CopyWithType(Z), emit_store_barrier_,
           /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
-          GetDeoptId(), source(), speculative_mode_);
+          GetDeoptId(), source());
       flow_graph->InsertBefore(this, store, env(), FlowGraph::kEffect);
       return nullptr;
     }
@@ -7275,9 +7267,9 @@ Definition* InvokeMathCFunctionInstr::Canonicalize(FlowGraph* flow_graph) {
       default:
         return this;
     }
-    auto* instr = new UnaryDoubleOpInstr(
-        op_kind, new Value(InputAt(0)->definition()), GetDeoptId(),
-        Instruction::kNotSpeculative, kUnboxedDouble);
+    auto* instr =
+        new UnaryDoubleOpInstr(op_kind, new Value(InputAt(0)->definition()),
+                               GetDeoptId(), kUnboxedDouble);
     flow_graph->InsertBefore(this, instr, env(), FlowGraph::kValue);
     return instr;
   }

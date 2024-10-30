@@ -1971,34 +1971,19 @@ void FlowGraph::InsertConversion(Representation from,
   } else {
     insert_before = use->instruction();
   }
-  const Instruction::SpeculativeMode speculative_mode =
-      use->instruction()->SpeculativeModeOfInput(use->use_index());
-  Instruction* deopt_target = nullptr;
-  if (speculative_mode == Instruction::kGuardInputs || to == kUnboxedInt32) {
-    deopt_target = insert_before;
-  }
 
   Definition* converted = nullptr;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
-    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted =
-        new (Z) IntConverterInstr(from, to, use->CopyWithType(), deopt_id);
+    converted = new (Z)
+        IntConverterInstr(from, to, use->CopyWithType(), DeoptId::kNone);
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
   } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&
              CanConvertInt64ToDouble()) {
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
+    converted = new Int64ToDoubleInstr(use->CopyWithType(), DeoptId::kNone);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted =
-        UnboxInstr::Create(to, use->CopyWithType(), deopt_id, speculative_mode);
+    converted = UnboxInstr::Create(to, use->CopyWithType(), DeoptId::kNone,
+                                   UnboxInstr::ValueMode::kHasValidType);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
   } else if ((to == kPairOfTagged) && (from == kTagged)) {
@@ -2042,23 +2027,16 @@ void FlowGraph::InsertConversion(Representation from,
     // trigger a deoptimization if executed. See #12417 for a discussion.
     // If the use is not speculative, then this code should be unreachable.
     // Insert Stop for a graceful error and aid unreachable code elimination.
-    if (speculative_mode == Instruction::kNotSpeculative) {
-      StopInstr* stop = new (Z) StopInstr("Incompatible conversion.");
-      InsertBefore(insert_before, stop, nullptr, FlowGraph::kEffect);
-    }
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
+    StopInstr* stop = new (Z) StopInstr("Incompatible conversion.");
+    InsertBefore(insert_before, stop, nullptr, FlowGraph::kEffect);
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
     use->BindTo(boxed);
     InsertBefore(insert_before, boxed, nullptr, FlowGraph::kValue);
-    converted = UnboxInstr::Create(to, new (Z) Value(boxed), deopt_id,
-                                   speculative_mode);
+    converted = UnboxInstr::Create(to, new (Z) Value(boxed), DeoptId::kNone,
+                                   UnboxInstr::ValueMode::kHasValidType);
   }
   ASSERT(converted != nullptr);
-  InsertBefore(insert_before, converted,
-               (deopt_target != nullptr) ? deopt_target->env() : nullptr,
-               FlowGraph::kValue);
+  InsertBefore(insert_before, converted, nullptr, FlowGraph::kValue);
   if (is_environment_use) {
     use->BindToEnvironment(converted);
   } else {
@@ -2492,13 +2470,6 @@ bool FlowGraph::Canonicalize() {
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* current = it.Current();
-        if (current->HasUnmatchedInputRepresentations() &&
-            (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
-          // Can't canonicalize this instruction until all conversions for its
-          // speculative inputs are inserted.
-          continue;
-        }
-
         Definition* replacement = current->Canonicalize(this);
         ASSERT(replacement != nullptr);
         RELEASE_ASSERT(unmatched_representations_allowed() ||
@@ -2512,13 +2483,6 @@ bool FlowGraph::Canonicalize() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->HasUnmatchedInputRepresentations() &&
-          (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
-        // Can't canonicalize this instruction until all conversions for its
-        // speculative inputs are inserted.
-        continue;
-      }
-
       Instruction* replacement = current->Canonicalize(this);
 
       if (replacement != current) {

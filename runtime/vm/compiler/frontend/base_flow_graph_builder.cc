@@ -502,8 +502,7 @@ Fragment BaseFlowGraphBuilder::FloatToDouble() {
 
 Fragment BaseFlowGraphBuilder::DoubleToFloat() {
   Value* value = Pop();
-  DoubleToFloatInstr* instr = new DoubleToFloatInstr(
-      value, DeoptId::kNone, Instruction::SpeculativeMode::kNotSpeculative);
+  DoubleToFloatInstr* instr = new DoubleToFloatInstr(value, DeoptId::kNone);
   Push(instr);
   return Fragment(instr);
 }
@@ -703,8 +702,7 @@ Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
   Value* c_pointer = Pop();
   StoreIndexedInstr* instr = new (Z) StoreIndexedInstr(
       c_pointer, index, value, kNoStoreBarrier, index_unboxed, index_scale,
-      class_id, alignment, DeoptId::kNone, InstructionSource(),
-      Instruction::SpeculativeMode::kNotSpeculative);
+      class_id, alignment, DeoptId::kNone, InstructionSource());
   return Fragment(instr);
 }
 
@@ -1298,8 +1296,7 @@ Fragment BaseFlowGraphBuilder::DoubleToInteger(
 
 Fragment BaseFlowGraphBuilder::UnaryDoubleOp(Token::Kind op) {
   Value* value = Pop();
-  auto* instr = new (Z) UnaryDoubleOpInstr(op, value, GetNextDeoptId(),
-                                           Instruction::kNotSpeculative);
+  auto* instr = new (Z) UnaryDoubleOpInstr(op, value, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

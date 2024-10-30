@@ -1654,10 +1654,8 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    return BinaryIntegerOpInstr::Make(
-        kUnboxedUint32, op_kind, left, right, deopt_id,
-        def->IsSpeculativeShiftInt64Op() ? Instruction::kGuardInputs
-                                         : Instruction::kNotSpeculative);
+    return BinaryIntegerOpInstr::Make(kUnboxedUint32, op_kind, left, right,
+                                      deopt_id);
   } else if (def->IsBoxInt64()) {
     Value* value = def->AsBoxInt64()->value()->CopyWithType();
     return new (Z) BoxUint32Instr(value);
@@ -1665,8 +1663,7 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     UnboxInstr* unbox = def->AsUnboxInt64();
     Value* value = unbox->value()->CopyWithType();
     intptr_t deopt_id = unbox->DeoptimizationTarget();
-    return new (Z)
-        UnboxUint32Instr(value, deopt_id, def->SpeculativeModeOfInputs());
+    return new (Z) UnboxUint32Instr(value, deopt_id, unbox->value_mode());
   } else if (def->IsUnaryInt64Op()) {
     UnaryInt64OpInstr* op = def->AsUnaryInt64Op();
     Token::Kind op_kind = op->op_kind();

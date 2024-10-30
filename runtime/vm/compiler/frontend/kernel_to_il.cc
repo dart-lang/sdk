@@ -2547,8 +2547,8 @@ Fragment FlowGraphBuilder::PushExplicitParameters(
         ASSERT(target.is_unboxed_double_parameter_at(i));
         to = kUnboxedDouble;
       }
-      const auto unbox = UnboxInstr::Create(to, Pop(), DeoptId::kNone,
-                                            Instruction::kNotSpeculative);
+      const auto unbox = UnboxInstr::Create(
+          to, Pop(), DeoptId::kNone, UnboxInstr::ValueMode::kHasValidType);
       Push(unbox);
       push_param += Fragment(unbox);
     }
@@ -4590,7 +4590,7 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
   auto const unbox_to = to == kUnboxedFloat ? kUnboxedDouble : to;
   Fragment instructions;
   auto* unbox = UnboxInstr::Create(unbox_to, Pop(), DeoptId::kNone,
-                                   Instruction::kNotSpeculative);
+                                   UnboxInstr::ValueMode::kHasValidType);
   instructions <<= unbox;
   Push(unbox);
   if (to == kUnboxedFloat) {
@@ -4680,9 +4680,9 @@ Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
   if (CompilerState::Current().is_aot()) {
     Value* right = Pop();
     Value* left = Pop();
-    RelationalOpInstr* instr = new (Z) RelationalOpInstr(
-        InstructionSource(position), kind, left, right, kMintCid,
-        GetNextDeoptId(), Instruction::SpeculativeMode::kNotSpeculative);
+    RelationalOpInstr* instr =
+        new (Z) RelationalOpInstr(InstructionSource(position), kind, left,
+                                  right, kMintCid, GetNextDeoptId());
     Push(instr);
     return Fragment(instr);
   }

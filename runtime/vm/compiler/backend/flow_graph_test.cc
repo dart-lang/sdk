@@ -46,18 +46,18 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxInt64Phi) {
     BlockBuilder builder(H.flow_graph(), loop_header);
     loop_var = H.Phi(loop_header, {{normal_entry, v0}, {loop_body, &add1}});
     builder.AddPhi(loop_var);
-    builder.AddBranch(new RelationalOpInstr(
-                          InstructionSource(), Token::kLT, new Value(loop_var),
-                          new Value(H.IntConstant(50)), kMintCid,
-                          S.GetNextDeoptId(), Instruction::kNotSpeculative),
-                      loop_body, loop_exit);
+    builder.AddBranch(
+        new RelationalOpInstr(InstructionSource(), Token::kLT,
+                              new Value(loop_var), new Value(H.IntConstant(50)),
+                              kMintCid, S.GetNextDeoptId()),
+        loop_body, loop_exit);
   }
 
   {
     BlockBuilder builder(H.flow_graph(), loop_body);
     add1 = builder.AddDefinition(new BinaryInt64OpInstr(
         Token::kADD, new Value(loop_var), new Value(H.IntConstant(1)),
-        S.GetNextDeoptId(), Instruction::kNotSpeculative));
+        S.GetNextDeoptId()));
     builder.AddInstruction(new GotoInstr(loop_header, S.GetNextDeoptId()));
   }
 
@@ -109,18 +109,18 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LateVariablePhiUnboxing) {
     late_var =
         H.Phi(loop_header, {{normal_entry, sentinel}, {loop_body, &add1}});
     builder.AddPhi(late_var);
-    builder.AddBranch(new RelationalOpInstr(
-                          InstructionSource(), Token::kLT, new Value(loop_var),
-                          new Value(H.IntConstant(10)), kMintCid,
-                          S.GetNextDeoptId(), Instruction::kNotSpeculative),
-                      loop_body, loop_exit);
+    builder.AddBranch(
+        new RelationalOpInstr(InstructionSource(), Token::kLT,
+                              new Value(loop_var), new Value(H.IntConstant(10)),
+                              kMintCid, S.GetNextDeoptId()),
+        loop_body, loop_exit);
   }
 
   {
     BlockBuilder builder(H.flow_graph(), loop_body);
     add1 = builder.AddDefinition(new BinaryInt64OpInstr(
         Token::kADD, new Value(loop_var), new Value(H.IntConstant(1)),
-        S.GetNextDeoptId(), Instruction::kNotSpeculative));
+        S.GetNextDeoptId()));
     builder.AddInstruction(new GotoInstr(loop_header, S.GetNextDeoptId()));
   }
 
@@ -168,16 +168,14 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxedFloatPhi) {
   {
     BlockBuilder builder(H.flow_graph(), then_body);
     double_to_float_1 = builder.AddDefinition(new DoubleToFloatInstr(
-        new Value(H.DoubleConstant(1)), S.GetNextDeoptId(),
-        Instruction::kNotSpeculative));
+        new Value(H.DoubleConstant(1)), S.GetNextDeoptId()));
     builder.AddInstruction(new GotoInstr(join_exit, S.GetNextDeoptId()));
   }
 
   {
     BlockBuilder builder(H.flow_graph(), else_body);
     double_to_float_2 = builder.AddDefinition(new DoubleToFloatInstr(
-        new Value(H.DoubleConstant(2)), S.GetNextDeoptId(),
-        Instruction::kNotSpeculative));
+        new Value(H.DoubleConstant(2)), S.GetNextDeoptId()));
     builder.AddInstruction(new GotoInstr(join_exit, S.GetNextDeoptId()));
   }
 

@@ -54,9 +54,9 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
     BlockBuilder builder(H.flow_graph(), b2);
     v1 = H.Phi(b2, {{b1, v0}, {b3, &v1}});
     builder.AddPhi(v1);
-    auto v2 = builder.AddDefinition(
-        new EqualityCompareInstr(InstructionSource(), Token::kEQ, new Value(v1),
-                                 new Value(v0), kSmiCid, S.GetNextDeoptId()));
+    auto v2 = builder.AddDefinition(new EqualityCompareInstr(
+        InstructionSource(), Token::kEQ, new Value(v1), new Value(v0), kSmiCid,
+        S.GetNextDeoptId(), /*null_aware=*/false));
     builder.AddBranch(new StrictCompareInstr(
                           InstructionSource(), Token::kEQ_STRICT, new Value(v2),
                           new Value(H.flow_graph()->GetConstant(Bool::True())),
@@ -245,7 +245,7 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagator_Regress35371) {
   auto make_int64_add = [](Definition* lhs, Definition* rhs,
                            intptr_t deopt_id) {
     return new BinaryInt64OpInstr(Token::kADD, new Value(lhs), new Value(rhs),
-                                  deopt_id, Instruction::kNotSpeculative);
+                                  deopt_id);
   };
 
   auto make_int32_add = [](Definition* lhs, Definition* rhs,
