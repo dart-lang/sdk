@@ -192,7 +192,17 @@ class LintFixTesterWithSingleFix {
       fileEdit.edits,
     );
     if (actualFixedContent != fixedContent) {
-      throw StateError('Not expected content:\n$actualFixedContent');
+      throw StateError('''
+Expected the following content:
+```
+$fixedContent
+```
+
+but this was applied instead.
+```
+$actualFixedContent
+```
+''');
     }
   }
 
