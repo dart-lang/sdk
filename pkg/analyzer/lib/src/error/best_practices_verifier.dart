@@ -383,7 +383,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             Name name = Name(_currentLibrary.source.uri, element!.name);
             var enclosingElement = element.enclosingElement3!;
             var enclosingDeclaration = enclosingElement is InstanceElement
-                ? enclosingElement.augmented.declaration
+                ? enclosingElement.augmented.firstFragment
                 : enclosingElement;
             if (enclosingDeclaration is InterfaceElement) {
               var overridden = _inheritanceManager
@@ -569,7 +569,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     var enclosingElement = element.enclosingElement3;
     var enclosingDeclaration = enclosingElement is InstanceElement
-        ? enclosingElement.augmented.declaration
+        ? enclosingElement.augmented.firstFragment
         : enclosingElement;
 
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);

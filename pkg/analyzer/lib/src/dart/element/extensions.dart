@@ -48,7 +48,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3.augmented.declaration;
+      interfaceElement = element.enclosingElement3.augmented.firstFragment;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -84,7 +84,7 @@ extension ElementExtension on Element {
   /// If this element is an augmentation, returns the declaration.
   Element get augmentedDeclaration {
     if (this case InstanceElement self) {
-      return self.augmented.declaration;
+      return self.augmented.firstFragment;
     }
     return this;
   }

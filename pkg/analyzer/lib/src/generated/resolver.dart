@@ -4193,7 +4193,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
       var augmented = enclosingClass.augmented;
-      _thisType = augmented.declaration.thisType;
+      _thisType = augmented.firstFragment.thisType;
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {

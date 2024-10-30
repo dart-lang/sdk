@@ -554,7 +554,7 @@ class DeclarationHelper {
   void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
-        redirectingConstructor.enclosingElement3.augmented.declaration;
+        redirectingConstructor.enclosingElement3.augmented.firstFragment;
     var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var unit in library.units) {

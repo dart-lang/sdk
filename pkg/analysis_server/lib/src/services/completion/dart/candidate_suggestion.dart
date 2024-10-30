@@ -173,7 +173,7 @@ final class ConstructorSuggestion extends ExecutableSuggestion
 
   @override
   String get completion {
-    var enclosingClass = element.enclosingElement3.augmented.declaration;
+    var enclosingClass = element.enclosingElement3.augmented.firstFragment;
 
     var className = enclosingClass.name;
 

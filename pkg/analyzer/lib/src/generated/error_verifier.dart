@@ -450,36 +450,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
-      var element = node.declaredElement!;
+      var declaredFragment = node.declaredElement!;
+      var declaredElement = declaredFragment.element;
+      var firstFragment = declaredElement.firstFragment;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
-        element: element,
+        element: declaredFragment,
       );
 
       _checkClassAugmentationModifiers(
         augmentKeyword: node.augmentKeyword,
         augmentationNode: node,
-        augmentationElement: element,
+        augmentationElement: declaredFragment,
       );
 
-      if (element.augmentedIfReally case var augmented?) {
+      if (!identical(firstFragment, declaredFragment)) {
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: firstFragment.typeParameters,
         );
       }
 
       _checkClassAugmentationTargetAlreadyHasExtendsClause(
         node: node,
-        augmentationTarget: element.augmentationTarget,
+        augmentationTarget: declaredFragment.augmentationTarget,
       );
 
       _isInNativeClass = node.nativeClause != null;
 
-      var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var augmented = declaredFragment.augmented;
+      var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -499,7 +501,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var moreChecks = _checkClassInheritance(
             declarationElement, node, superclass, withClause, implementsClause);
         if (moreChecks) {
-          _checkForNoDefaultSuperConstructorImplicit(element, augmented);
+          _checkForNoDefaultSuperConstructorImplicit(
+              declaredFragment, augmented);
         }
       }
 
@@ -508,8 +511,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .addConstructors(errorReporter, augmented, members);
       }
 
-      _checkForConflictingClassMembers(element);
-      _checkForFinalNotInitializedInClass(element, members);
+      _checkForConflictingClassMembers(declaredFragment);
+      _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForBadFunctionUse(
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
@@ -518,7 +521,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
-      _reportMacroDiagnostics(element);
+      _reportMacroDiagnostics(declaredFragment);
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
@@ -536,7 +539,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     var element = node.declaredElement!;
     var augmented = element.augmented;
-    var declarationElement = augmented.declaration;
+    var declarationElement = augmented.firstFragment;
 
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
@@ -668,30 +671,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     try {
-      var element = node.declaredElement as EnumElementImpl;
+      var declaredFragment = node.declaredElement!;
+      var declaredElement = declaredFragment.element;
+      var firstFragment = declaredElement.firstFragment;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
-        element: element,
+        element: declaredFragment,
       );
 
-      if (element.augmentedIfReally case var augmented?) {
+      if (!identical(firstFragment, declaredFragment)) {
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: firstFragment.typeParameters,
         );
       }
 
-      var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var augmented = declaredFragment.augmented;
+      var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForConflictingEnumTypeVariableErrorCodes(element);
+      _checkForConflictingEnumTypeVariableErrorCodes(declaredFragment);
       var implementsClause = node.implementsClause;
       var withClause = node.withClause;
 
@@ -700,8 +705,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             declarationElement, node, null, withClause, implementsClause);
       }
 
-      if (!element.isAugmentation) {
-        if (element.augmented.constants.isEmpty) {
+      if (!declaredFragment.isAugmentation) {
+        if (declaredFragment.augmented.constants.isEmpty) {
           errorReporter.atToken(
             node.name,
             CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
@@ -712,15 +717,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var members = node.members;
       libraryContext.constructorFieldsVerifier
           .addConstructors(errorReporter, augmented, members);
-      _checkForFinalNotInitializedInClass(element, members);
+      _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
-      _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, element);
+      _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredFragment);
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-      ).checkStaticAccessors(element.accessors);
+      ).checkStaticAccessors(declaredFragment.accessors);
 
       super.visitEnumDeclaration(node);
     } finally {
@@ -753,31 +758,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var element = node.declaredElement!;
+    var declaredFragment = node.declaredElement!;
+    var declaredElement = declaredFragment.element;
+    var firstFragment = declaredElement.firstFragment;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
-      element: element,
+      element: declaredFragment,
     );
 
-    if (element.augmentedIfReally case var augmented?) {
+    if (!identical(firstFragment, declaredFragment)) {
       if (node.name case var nameToken?) {
         _checkAugmentationTypeParameters(
           nameToken: nameToken,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: firstFragment.typeParameters,
         );
       }
     }
 
-    _enclosingExtension = element;
+    _enclosingExtension = declaredFragment;
     _checkForConflictingExtensionTypeVariableErrorCodes();
-    _checkForFinalNotInitializedInClass(element, node.members);
+    _checkForFinalNotInitializedInClass(declaredFragment, node.members);
 
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
-    ).checkExtension(element);
+    ).checkExtension(declaredFragment);
 
     var name = node.name;
     if (name != null) {
@@ -793,57 +800,57 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     try {
-      var element = node.declaredElement!;
-      var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var declaredFragment = node.declaredElement!;
+      var declaredElement = declaredFragment.augmented;
+      var firstFragment = declaredElement.firstFragment;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
-        element: element,
+        element: declaredFragment,
       );
 
-      if (element.augmentedIfReally case var augmented?) {
+      if (!identical(firstFragment, declaredFragment)) {
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: firstFragment.typeParameters,
         );
       }
 
-      _enclosingClass = declarationElement;
+      _enclosingClass = firstFragment;
 
       _checkForBuiltInIdentifierAsName(node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
-      _checkForConflictingExtensionTypeTypeVariableErrorCodes(element);
+      _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
 
       var members = node.members;
       _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationElement),
+        libraryContext.setOfImplements(firstFragment),
         node.implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
-      _checkForConflictingClassMembers(element);
+      _checkForConflictingClassMembers(declaredFragment);
       _checkForConflictingGenerics(node);
       libraryContext.constructorFieldsVerifier
-          .addConstructors(errorReporter, augmented, members);
+          .addConstructors(errorReporter, declaredElement, members);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
-          node, element);
-      _checkForExtensionTypeRepresentationDependsOnItself(node, element);
-      _checkForExtensionTypeRepresentationTypeBottom(node, element);
+          node, declaredFragment);
+      _checkForExtensionTypeRepresentationDependsOnItself(node, declaredFragment);
+      _checkForExtensionTypeRepresentationTypeBottom(node, declaredFragment);
       _checkForExtensionTypeImplementsDeferred(node);
-      _checkForExtensionTypeImplementsItself(node, element);
+      _checkForExtensionTypeImplementsItself(node, declaredFragment);
       _checkForExtensionTypeMemberConflicts(
         node: node,
-        element: declarationElement,
+        element: firstFragment,
       );
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
-      var interface = _inheritanceManager.getInterface(declarationElement);
+      var interface = _inheritanceManager.getInterface(firstFragment);
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-      ).checkExtensionType(element, interface);
+      ).checkExtensionType(declaredFragment, interface);
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
@@ -1228,29 +1235,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     // TODO(scheglov): Verify for all mixin errors.
     try {
-      var element = node.declaredElement!;
+      var declaredFragment = node.declaredElement!;
+      var declaredElement = declaredFragment.element;
+      var firstFragment = declaredElement.firstFragment;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
-        element: element,
+        element: declaredFragment,
       );
 
       _checkMixinAugmentationModifiers(
         augmentKeyword: node.augmentKeyword,
         augmentationNode: node,
-        augmentationElement: element,
+        augmentationElement: declaredFragment,
       );
 
-      if (element.augmentedIfReally case var augmented?) {
+      if (!identical(firstFragment, declaredFragment)) {
         _checkAugmentationTypeParameters(
           nameToken: node.name,
           typeParameterList: node.typeParameters,
-          declarationTypeParameters: augmented.declaration.typeParameters,
+          declarationTypeParameters: firstFragment.typeParameters,
         );
       }
 
-      var augmented = element.augmented;
-      var declarationElement = augmented.declaration;
+      var augmented = declaredFragment.augmented;
+      var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -1267,11 +1276,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             declarationElement, node, onClause, implementsClause);
       }
 
-      _checkForConflictingClassMembers(element);
-      _checkForFinalNotInitializedInClass(element, members);
+      _checkForConflictingClassMembers(declaredFragment);
+      _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForMainFunction1(node.name, declarationElement);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _reportMacroDiagnostics(element);
+      _reportMacroDiagnostics(declaredFragment);
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -1791,7 +1800,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var declaration = target.augmented.declaration;
+    var declaration = target.augmented.firstFragment;
 
     void singleModifier({
       required String modifierName,
@@ -6087,7 +6096,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var declaration = target.augmented.declaration;
+    var declaration = target.augmented.firstFragment;
 
     void singleModifier({
       required String modifierName,

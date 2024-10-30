@@ -17,14 +17,14 @@ main() {
 class VariableDeclarationStatementParserTest extends ParserDiagnosticsTest {
   test_recovery_propertyAccess_beforeAwait_hasIdentifier() {
     var parseResult = parseStringWithErrors(r'''
-void f(x) async {
+void f() async {
   x.foo
-  await x.bar();
+  await y.bar();
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 28, 5),
-      error(ParserErrorCode.EXPECTED_TOKEN, 28, 5),
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 27, 5),
+      error(ParserErrorCode.EXPECTED_TOKEN, 27, 5),
     ]);
 
     var node = parseResult.findNode.singleBlock;
@@ -41,17 +41,15 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression: AwaitExpression
-        awaitKeyword: await
-        expression: MethodInvocation
-          target: SimpleIdentifier
-            token: x
-          operator: .
-          methodName: SimpleIdentifier
-            token: bar
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
+      expression: MethodInvocation
+        target: SimpleIdentifier
+          token: y
+        operator: .
+        methodName: SimpleIdentifier
+          token: bar
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
       semicolon: ;
   rightBracket: }
 ''');
@@ -59,13 +57,13 @@ Block
 
   test_recovery_propertyAccess_beforeAwait_noIdentifier() {
     var parseResult = parseStringWithErrors(r'''
-void f(x) async {
+void f() async {
   x.
-  await x.foo();
+  await y.foo();
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 30, 1),
     ]);
 
     var node = parseResult.findNode.singleBlock;
@@ -86,7 +84,7 @@ Block
         awaitKeyword: await
         expression: MethodInvocation
           target: SimpleIdentifier
-            token: x
+            token: y
           operator: .
           methodName: SimpleIdentifier
             token: foo
@@ -100,13 +98,13 @@ Block
 
   test_recovery_propertyAccess_beforeIdentifier_hasIdentifier() {
     var parseResult = parseStringWithErrors(r'''
-void f(x) {
+void f() {
   x.foo
   bar();
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 22, 3),
+      error(ParserErrorCode.EXPECTED_TOKEN, 21, 3),
     ]);
 
     var node = parseResult.findNode.singleBlock;
@@ -123,12 +121,9 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression: MethodInvocation
-        methodName: SimpleIdentifier
-          token: bar
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
+      expression: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
       semicolon: ;
   rightBracket: }
 ''');

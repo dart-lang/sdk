@@ -191,7 +191,7 @@ class _ClassVerifier {
 
     var fragment = classElement;
     var augmented = fragment.augmented;
-    var declaration = augmented.declaration;
+    var declaration = augmented.firstFragment;
 
     if (declaration is! EnumElement &&
         declaration is ClassElement &&

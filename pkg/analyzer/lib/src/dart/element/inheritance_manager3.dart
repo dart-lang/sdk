@@ -170,7 +170,7 @@ class InheritanceManager3 {
   @experimental
   ExecutableElement2? getInherited4(InterfaceElement2 element, Name name) {
     var oldElement = getInheritedMap2(
-        (element as AugmentedInterfaceElement).declaration)[name];
+        (element as AugmentedInterfaceElement).firstFragment)[name];
     return (oldElement as ExecutableFragment?)?.element;
   }
 
@@ -180,7 +180,7 @@ class InheritanceManager3 {
   Map<Name, ExecutableElement2> getInheritedConcreteMap(
       InterfaceElement2 element) {
     var map = getInheritedConcreteMap2(
-        (element as AugmentedInterfaceElement).declaration);
+        (element as AugmentedInterfaceElement).firstFragment);
     return map.map((name, element) =>
         MapEntry(name, (element as ExecutableFragment).element));
   }
@@ -206,7 +206,7 @@ class InheritanceManager3 {
   @experimental
   Map<Name, ExecutableElement2> getInheritedMap(InterfaceElement2 element) {
     var map =
-        getInheritedMap2((element as AugmentedInterfaceElement).declaration);
+        getInheritedMap2((element as AugmentedInterfaceElement).firstFragment);
     return map.map((name, element) =>
         MapEntry(name, (element as ExecutableFragment).element));
   }
@@ -271,7 +271,7 @@ class InheritanceManager3 {
   /// all libraries.
   @experimental
   Interface getInterface2(InterfaceElement2 element) {
-    return getInterface((element as AugmentedInterfaceElement).declaration);
+    return getInterface((element as AugmentedInterfaceElement).firstFragment);
   }
 
   /// Return the result of [getMember2] with [type] substitution.
@@ -378,7 +378,7 @@ class InheritanceManager3 {
     bool forSuper = false,
   }) {
     var oldElement = getMember2(
-      (element as AugmentedInterfaceElement).declaration,
+      (element as AugmentedInterfaceElement).firstFragment,
       name,
       concrete: concrete,
       forMixinIndex: forMixinIndex,
@@ -395,7 +395,7 @@ class InheritanceManager3 {
   List<ExecutableElement2>? getOverridden(
       InterfaceElement2 element, Name name) {
     var elements = getOverridden2(
-      (element as AugmentedInterfaceElement).declaration,
+      (element as AugmentedInterfaceElement).firstFragment,
       name,
     );
     if (elements == null) {

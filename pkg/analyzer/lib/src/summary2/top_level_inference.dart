@@ -254,7 +254,7 @@ class _PropertyInducingElementTypeInference
     var enclosingInterfaceElement = enclosingElement
         .ifTypeOrNull<InterfaceElement>()
         ?.augmented
-        .declaration;
+        .firstFragment;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(

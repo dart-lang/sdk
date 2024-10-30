@@ -125,6 +125,58 @@ class CompileJSCommand extends CompileSubcommandCommand {
   }
 }
 
+class CompileDDCCommand extends CompileSubcommandCommand {
+  static const String cmdName = 'js-dev';
+
+  /// Accept all flags so we can delegate arg parsing to ddc internally.
+  @override
+  final ArgParser argParser = ArgParser.allowAnything();
+
+  // This command is an internal developer command used by tools and is
+  // hidden in the help message.
+  CompileDDCCommand({bool verbose = false})
+      : super(cmdName, 'Compile Dart to JavaScript using ddc.', verbose,
+              hidden:true,);
+
+  @override
+  String get invocation => '${super.invocation} <dart entry point>';
+
+  @override
+  FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+      return genericErrorExitCode;
+    }
+    final args = argResults!;
+    var snapshot = sdk.ddcAotSnapshot;
+    var runtime = sdk.dartAotRuntime;
+    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
+      // AOT snapshots cannot be generated on IA32, so we need this fallback
+      // branch until support for IA32 is dropped (https://dartbug.com/49969).
+      snapshot = sdk.ddcSnapshot;
+      runtime = sdk.dart;
+      if (!Sdk.checkArtifactExists(snapshot)) {
+        return genericErrorExitCode;
+      }
+    }
+    final ddcCommand = <String>[
+      runtime,
+      snapshot,
+      // Add the remaining arguments.
+      if (args.rest.isNotEmpty) ...args.rest.sublist(0),
+    ];
+    try {
+      return await runProcessInheritStdio(ddcCommand);
+    } catch (e, st) {
+      log.stderr('Error: JS compilation failed');
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      return compileErrorExitCode;
+    }
+  }
+}
+
 class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
   static const commandName = 'kernel';
   static const help = 'Compile Dart to a kernel snapshot.\n'
@@ -947,6 +999,7 @@ class CompileCommand extends DartdevCommand {
     bool nativeAssetsExperimentEnabled = false,
   }) : super(cmdName, 'Compile Dart to various formats.', verbose) {
     addSubcommand(CompileJSCommand(verbose: verbose));
+    addSubcommand(CompileDDCCommand(verbose: verbose));
     addSubcommand(CompileJitSnapshotCommand(verbose: verbose));
     addSubcommand(CompileKernelSnapshotCommand(verbose: verbose));
     addSubcommand(CompileNativeCommand(

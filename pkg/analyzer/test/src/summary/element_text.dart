@@ -807,7 +807,7 @@ class _Element2Writer extends _AbstractElementWriter {
         if (element is NotAugmentedInstanceElementImpl) {
           element = element.baseElement;
         } else if (element is MaybeAugmentedInstanceElementMixin) {
-          element = element.declaration;
+          element = element.firstFragment;
         }
       }
     }

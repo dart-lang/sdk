@@ -144,6 +144,17 @@ class BundleWriter {
     );
   }
 
+  void _writeAugmentationTargetAny<T extends AugmentableElement<T>>(
+    T fragment,
+  ) {
+    var target = fragment.augmentationTargetAny;
+    _writeOptionalReference(target?.reference);
+
+    var maybeFragment = fragment.augmentationTarget?.augmentation;
+    var shouldSetAugmentation = identical(maybeFragment, fragment);
+    _sink.writeBool(shouldSetAugmentation);
+  }
+
   void _writeClassElement(ClassElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
@@ -152,6 +163,7 @@ class BundleWriter {
     _sink.writeBool(element.augmentedInternal is AugmentedClassElementImpl);
     _writeFragmentName(element.name2);
     ClassElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -160,8 +172,6 @@ class BundleWriter {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTargetAny);
-      _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedClassElementImpl>(
           element.augmented,
@@ -196,6 +206,7 @@ class BundleWriter {
     _writeReference(element);
     _writeFragmentName(element.name2);
     ConstructorElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
@@ -204,8 +215,6 @@ class BundleWriter {
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
-      _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeElement(element.augmentationTargetAny);
     });
   }
 
@@ -252,14 +261,14 @@ class BundleWriter {
     _sink.writeBool(element.augmentedInternal is AugmentedEnumElementImpl);
     _writeFragmentName(element.name2);
     EnumElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
+
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTargetAny);
-      _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedEnumElementImpl>(
           element.augmented,
@@ -324,12 +333,11 @@ class BundleWriter {
     _sink.writeBool(element.augmentedInternal is AugmentedExtensionElementImpl);
     _writeFragmentName(element.name2);
     ExtensionElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeElement(element.augmentationTargetAny);
-      _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeType(element.augmented.extendedType);
         _resolutionSink.writeIfType<AugmentedExtensionElementImpl>(
@@ -362,12 +370,12 @@ class BundleWriter {
         element.augmentedInternal is AugmentedExtensionTypeElementImpl);
     _writeFragmentName(element.name2);
     ExtensionTypeElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
+
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTargetAny);
-      _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedExtensionTypeElementImpl>(
           element.augmented,
@@ -410,12 +418,12 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
 
-    _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _propertyAugmentations.add(element);
     }
@@ -451,6 +459,7 @@ class BundleWriter {
     _writeReference(element);
     _writeFragmentName(element.name2);
     FunctionElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -459,9 +468,6 @@ class BundleWriter {
       _resolutionSink.writeType(element.returnType);
       _writeList(element.parameters, _writeParameterElement);
     });
-
-    _resolutionSink.writeElement(element.augmentation);
-    _resolutionSink.writeElement(element.augmentationTargetAny);
   }
 
   void _writeImportElement(LibraryImportElementImpl element) {
@@ -522,6 +528,7 @@ class BundleWriter {
     _writeFragmentName(element.name2);
     _sink._writeStringReference(element.name);
     MethodElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -530,8 +537,6 @@ class BundleWriter {
       _writeList(element.parameters, _writeParameterElement);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
-      _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeElement(element.augmentationTargetAny);
     });
   }
 
@@ -543,14 +548,14 @@ class BundleWriter {
     _sink.writeBool(element.augmentedInternal is AugmentedMixinElementImpl);
     _writeFragmentName(element.name2);
     MixinElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
+
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTargetAny);
-      _resolutionSink.writeElement(element.augmentation);
       if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedMixinElementImpl>(
           element.augmented,
@@ -656,6 +661,7 @@ class BundleWriter {
     _writeReference(element);
     _writeFragmentName(element.name2);
     PropertyAccessorElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
@@ -666,7 +672,6 @@ class BundleWriter {
       _writeReference(element.variable2!);
     }
 
-    _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _accessorAugmentations.add(element);
     }
@@ -691,12 +696,12 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
+    _writeAugmentationTargetAny(element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
 
-    _resolutionSink.writeElement(element.augmentationTargetAny);
     if (element.isAugmentation) {
       _propertyAugmentations.add(element);
     }
@@ -712,9 +717,7 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, element);
-
-    _resolutionSink.writeElement(element.augmentationTargetAny);
-    _resolutionSink.writeElement(element.augmentation);
+    _writeAugmentationTargetAny(element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 

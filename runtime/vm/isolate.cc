@@ -863,7 +863,7 @@ Isolate* IsolateGroup::EnterTemporaryIsolate() {
   Dart_IsolateFlags flags;
   Isolate::FlagsInitialize(&flags);
   Isolate* const isolate = Isolate::InitIsolate("temp", this, flags);
-  ASSERT(isolate != nullptr);
+  RELEASE_ASSERT(isolate != nullptr);
   ASSERT(Isolate::Current() == isolate);
   return isolate;
 }

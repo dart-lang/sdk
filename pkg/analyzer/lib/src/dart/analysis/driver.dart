@@ -98,7 +98,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 407;
+  static const int DATA_VERSION = 408;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -129,7 +129,7 @@ class AnalysisDriver {
   /// file analysis.
   final SummaryDataStore? _externalSummaries;
 
-  /// This [ContentCache] is consulted for a file content before reading
+  /// This [FileContentCache] is consulted for a file content before reading
   /// the content from the file.
   final FileContentCache _fileContentCache;
 
@@ -173,10 +173,6 @@ class AnalysisDriver {
 
   /// The file changes that should be applied before processing requests.
   final List<_FileChange> _pendingFileChanges = [];
-
-  /// When [_applyFileChangesSynchronously] is `true`, affected files are
-  /// accumulated here.
-  Set<String> _accumulatedAffected = {};
 
   /// The completers to complete after [_pendingFileChanges] are applied.
   final _pendingFileChangesCompleters = <Completer<List<String>>>[];
@@ -560,9 +556,7 @@ class AnalysisDriver {
       _pendingFileChangesCompleters.add(completer);
       return completer.future;
     } else {
-      var accumulatedAffected = _accumulatedAffected.toList();
-      _accumulatedAffected = {};
-      return Future.value(accumulatedAffected);
+      return Future.value([]);
     }
   }
 

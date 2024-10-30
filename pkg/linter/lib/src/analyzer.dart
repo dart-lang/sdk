@@ -4,10 +4,6 @@
 
 // ignore_for_file: implementation_imports
 
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/util.dart' as util;
-
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/source/line_info.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
@@ -29,30 +25,3 @@ export 'package:analyzer/src/workspace/pub.dart' show PubPackage;
 
 export 'lint_codes.dart';
 export 'lint_names.dart';
-
-const loggedAnalyzerErrorExitCode = 63;
-
-/// Facade for managing access to `analyzer` package APIs.
-class Analyzer {
-  /// Shared instance.
-  static Analyzer facade = Analyzer();
-
-  /// Returns currently registered lint rules.
-  Iterable<LintRule> get registeredRules => Registry.ruleRegistry;
-
-  /// Create a library name prefix based on [libraryPath], [projectRoot] and
-  /// current [packageName].
-  String createLibraryNamePrefix(
-          {required String libraryPath,
-          String? projectRoot,
-          String? packageName}) =>
-      util.createLibraryNamePrefix(
-          libraryPath: libraryPath,
-          projectRoot: projectRoot,
-          packageName: packageName);
-
-  /// Register this [lint] with the analyzer's rule registry.
-  void register(LintRule lint) {
-    Registry.ruleRegistry.registerLintRule(lint);
-  }
-}

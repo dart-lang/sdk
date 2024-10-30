@@ -67,6 +67,14 @@ class Sdk {
         'analysis_server.dart.snapshot',
       );
 
+  String get ddcSnapshot => _snapshotPathFor(
+        'dartdevc.dart.snapshot',
+      );
+
+  String get ddcAotSnapshot => _snapshotPathFor(
+        'dartdevc_aot.dart.snapshot',
+      );
+
   String get dart2jsSnapshot => _snapshotPathFor(
         'dart2js.dart.snapshot',
       );

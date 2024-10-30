@@ -43,7 +43,10 @@ class DynamicTypeImpl extends TypeImpl
   DynamicTypeImpl._();
 
   @override
-  Element2? get element3 => (element as Fragment).element;
+  Element2? get element3 => switch (element) {
+        Fragment(:var element) => element,
+        _ => null,
+      };
 
   @override
   int get hashCode => 1;

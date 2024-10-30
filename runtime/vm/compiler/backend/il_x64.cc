@@ -6000,7 +6000,12 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
                                      Register left,
                                      const Object& right) {
   const int64_t shift = Integer::Cast(right).Value();
-  ASSERT(shift >= 0);
+  if (shift < 0) {
+    // The compiler sometimes fails to eliminate unreachable code.
+    __ Stop("Unreachable shift");
+    return;
+  }
+
   switch (op_kind) {
     case Token::kSHR:
       __ sarq(left, compiler::Immediate(
@@ -6046,7 +6051,12 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
                                       Register left,
                                       const Object& right) {
   const int64_t shift = Integer::Cast(right).Value();
-  ASSERT(shift >= 0);
+  if (shift < 0) {
+    // The compiler sometimes fails to eliminate unreachable code.
+    __ Stop("Unreachable shift");
+    return;
+  }
+
   if (shift >= 32) {
     __ xorl(left, left);
   } else {

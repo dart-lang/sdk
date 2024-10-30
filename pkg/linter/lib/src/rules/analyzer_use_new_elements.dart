@@ -216,7 +216,7 @@ extension on Element2 {
       case FragmentedElementMixin fragmented:
         return fragmented.firstFragment;
       case AugmentedInstanceElement fragmented:
-        return fragmented.declaration as Fragment;
+        return fragmented.firstFragment as Fragment;
     }
     return null;
   }

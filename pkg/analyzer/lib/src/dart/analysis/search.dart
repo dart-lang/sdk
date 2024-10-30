@@ -920,7 +920,7 @@ class SearchResult {
   /// The deep most element that contains this result.
   final Element enclosingElement;
 
-  /// The kind of the [element] usage.
+  /// The kind of the element usage.
   final SearchResultKind kind;
 
   /// The offset relative to the beginning of the containing file.
@@ -929,10 +929,10 @@ class SearchResult {
   /// The length of the usage in the containing file context.
   final int length;
 
-  /// Is `true` if a field or a method is using with a qualifier.
+  /// Whether a field or a method is using with a qualifier.
   final bool isResolved;
 
-  /// Is `true` if the result is a resolved reference to [element].
+  /// Whether the result is a resolved reference to the element.
   final bool isQualified;
 
   SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
@@ -1209,7 +1209,7 @@ class _FindCompilationUnitDeclarations {
   }
 }
 
-/// Searches through [files] for declarations.
+/// Searches through [fileEntries] for declarations.
 class _FindDeclarations {
   final List<MapEntry<Uri, AnalysisDriver>> fileEntries;
   final WorkspaceSymbols result;

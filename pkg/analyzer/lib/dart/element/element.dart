@@ -62,7 +62,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedClassElement implements AugmentedInterfaceElement {
   @override
-  ClassElement get declaration;
+  ClassElement get firstFragment;
 }
 
 /// The result of applying augmentations to an [EnumElement].
@@ -73,7 +73,7 @@ abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
   List<FieldElement> get constants;
 
   @override
-  EnumElement get declaration;
+  EnumElement get firstFragment;
 }
 
 /// The result of applying augmentations to an [ExtensionElement].
@@ -90,7 +90,7 @@ abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
 abstract class AugmentedExtensionTypeElement
     implements AugmentedInterfaceElement {
   @override
-  ExtensionTypeElement get declaration;
+  ExtensionTypeElement get firstFragment;
 
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
@@ -114,14 +114,14 @@ abstract class AugmentedInstanceElement {
   /// other [PropertyAccessorElement]s are appended.
   List<PropertyAccessorElement> get accessors;
 
-  /// The declaration (not augmentation) that owns this result.
-  InstanceElement get declaration;
-
   /// The fields declared in this element.
   ///
-  /// [FieldAugmentationElement]s replace corresponding elements, other
+  /// `FieldAugmentationElement`s replace corresponding elements, other
   /// [FieldElement]s are appended.
   List<FieldElement> get fields;
+
+  /// The declaration (not augmentation) that owns this result.
+  InstanceElement get firstFragment;
 
   /// The metadata associated with this element.
   ///
@@ -131,7 +131,7 @@ abstract class AugmentedInstanceElement {
 
   /// The methods declared in this element.
   ///
-  /// [MethodAugmentationElement]s replace corresponding elements, other
+  /// `MethodAugmentationElement`s replace corresponding elements, other
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
 
@@ -190,12 +190,12 @@ abstract class AugmentedInstanceElement {
 abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
   /// The constructors declared in this element.
   ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
+  /// `ConstructorAugmentationElement`s replace corresponding elements,
   /// other [ConstructorElement]s are appended.
   List<ConstructorElement> get constructors;
 
   @override
-  InterfaceElement get declaration;
+  InterfaceElement get firstFragment;
 
   /// The interfaces implemented by this element.
   ///

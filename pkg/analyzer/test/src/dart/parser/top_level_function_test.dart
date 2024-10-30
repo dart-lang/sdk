@@ -65,7 +65,7 @@ FunctionDeclaration
     // https://github.com/dart-lang/sdk/issues/56355
     var parseResult = parseStringWithErrors(r'''
 void get() {
-  http.Response response = http
+  http.Response response = http2
 }
 ''');
 
@@ -109,25 +109,13 @@ FunctionDeclaration
               identifier: SimpleIdentifier
                 token: T7 Response @20
                   previous: T6 |.|
-                  next: T8 |response|
-            semicolon: T9 ; @45 <synthetic>
-              previousX: T10 http @40
-                previousX: T11 = @38
-                  previous: T8 |response|
-                  next: T10 |http|
-                next: T9 |;|
-              next: T8 |response|
-          ExpressionStatement
-            expression: SimpleIdentifier
-              token: T8 response @29
-                previous: T9 |;|
-                next: T12 |;|
-            semicolon: T12 ; @45 <synthetic>
-              previous: T8 |response|
-              next: T13 |}|
-        rightBracket: T13 } @45
-          previous: T12 |;|
-          next: T14 ||
+                  next: T8 |;|
+            semicolon: T8 ; @46 <synthetic>
+              previous: T7 |Response|
+              next: T9 |}|
+        rightBracket: T9 } @46
+          previous: T8 |;|
+          next: T10 ||
 ''',
     );
   }

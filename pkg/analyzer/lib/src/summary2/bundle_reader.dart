@@ -139,8 +139,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
-    element.augmentation = reader.readElement() as ClassElementImpl?;
 
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
@@ -236,8 +234,6 @@ class ConstructorElementLinkedData
     element.superConstructor = reader.readElement() as ConstructorElement?;
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
-    element.augmentation = reader.readElement() as ConstructorElementImpl?;
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -372,8 +368,6 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
-    element.augmentation = reader.readElement() as EnumElementImpl?;
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
         var augmented = element.augmentedInternal as AugmentedEnumElementImpl;
@@ -412,8 +406,6 @@ class ExtensionElementLinkedData
       unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
-    element.augmentation = reader.readElement() as ExtensionElementImpl?;
     if (element.augmentationTarget == null) {
       var extendedType = reader.readRequiredType();
       if (reader.readBool()) {
@@ -454,8 +446,6 @@ class ExtensionTypeElementLinkedData
     );
     _readTypeParameters(reader, element.typeParameters);
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
-    element.augmentation = reader.readElement() as ExtensionTypeElementImpl?;
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
         var augmented =
@@ -500,12 +490,6 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
-    var augmentationTarget = reader.readElement() as ElementImpl?;
-    element.augmentationTargetAny = augmentationTarget;
-    if (augmentationTarget is FieldElementImpl) {
-      augmentationTarget.augmentation = element;
-    }
-
     if (element is ConstFieldElementImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
@@ -541,8 +525,6 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
-    element.augmentation = reader.readElement() as FunctionElementImpl?;
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -729,6 +711,20 @@ class LibraryReader {
     }
   }
 
+  void _readAugmentationTargetAny<T extends AugmentableElement>(
+    T nextFragment,
+  ) {
+    var augmentationTargetAny = _readOptionalReference()?.element;
+    if (augmentationTargetAny is ElementImpl) {
+      nextFragment.augmentationTargetAny = augmentationTargetAny;
+    }
+
+    var shouldSetAugmentation = _reader.readBool();
+    if (shouldSetAugmentation && augmentationTargetAny is T) {
+      augmentationTargetAny.augmentation = nextFragment;
+    }
+  }
+
   ClassElementImpl _readClassElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -761,8 +757,9 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
-    ClassElementFlags.read(_reader, element);
 
+    ClassElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeParameters = _readTypeParameters();
 
     if (!element.isMixinApplication) {
@@ -815,6 +812,7 @@ class LibraryReader {
       );
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
+      _readAugmentationTargetAny(element);
       element.parameters = _readParameters();
       return element;
     });
@@ -924,8 +922,9 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
-    EnumElementFlags.read(_reader, element);
 
+    EnumElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeParameters = _readTypeParameters();
 
     var accessors = <PropertyAccessorElementImpl>[];
@@ -1028,8 +1027,9 @@ class LibraryReader {
         offset: resolutionOffset,
       ),
     );
-    ExtensionElementFlags.read(_reader, element);
 
+    ExtensionElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeParameters = _readTypeParameters();
 
     var accessors = <PropertyAccessorElementImpl>[];
@@ -1088,8 +1088,9 @@ class LibraryReader {
         offset: resolutionOffset,
       ),
     );
-    ExtensionTypeElementFlags.read(_reader, element);
 
+    ExtensionTypeElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeParameters = _readTypeParameters();
 
     var fields = <FieldElementImpl>[];
@@ -1153,6 +1154,7 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     FieldElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeInferenceError = _readTopLevelInferenceError();
 
     if (!element.isAugmentation) {
@@ -1226,6 +1228,7 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
 
       FunctionElementFlags.read(_reader, element);
+      _readAugmentationTargetAny(element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters();
 
@@ -1354,6 +1357,7 @@ class LibraryReader {
       );
       element.setLinkedData(reference, linkedData);
       MethodElementFlags.read(_reader, element);
+      _readAugmentationTargetAny(element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters();
       element.typeInferenceError = _readTopLevelInferenceError();
@@ -1392,8 +1396,9 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
-    MixinElementFlags.read(_reader, element);
 
+    MixinElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeParameters = _readTypeParameters();
 
     var fields = <FieldElementImpl>[];
@@ -1559,7 +1564,6 @@ class LibraryReader {
 
     var element = PropertyAccessorElementImpl(name, -1);
     element.name2 = fragmentName;
-    PropertyAccessorElementFlags.read(_reader, element);
 
     var linkedData = PropertyAccessorElementLinkedData(
       reference: reference,
@@ -1569,6 +1573,8 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
 
+    PropertyAccessorElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.parameters = _readParameters();
     return element;
   }
@@ -1696,6 +1702,7 @@ class LibraryReader {
 
     element.isConst = isConst;
     TopLevelVariableElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
     element.typeInferenceError = _readTopLevelInferenceError();
 
     if (getterReference != null) {
@@ -1761,6 +1768,7 @@ class LibraryReader {
 
     element.isFunctionTypeAliasBased = isFunctionTypeAliasBased;
     TypeAliasElementFlags.read(_reader, element);
+    _readAugmentationTargetAny(element);
 
     element.typeParameters = _readTypeParameters();
 
@@ -1906,8 +1914,6 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     element.macroDiagnostics = reader.readMacroDiagnostics();
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
-    element.augmentation = reader.readElement() as MethodElementImpl?;
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -1936,8 +1942,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
-    element.augmentation = reader.readElement() as MixinElementImpl?;
 
     if (element.augmentationTarget == null) {
       if (reader.readBool()) {
@@ -1981,14 +1985,6 @@ class PropertyAccessorElementLinkedData
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
-
-    var augmentationTarget = reader.readElement() as ElementImpl?;
-    element.augmentationTargetAny = augmentationTarget;
-    if (augmentationTarget is PropertyAccessorElementImpl) {
-      if (augmentationTarget.kind == element.kind) {
-        augmentationTarget.augmentation = element;
-      }
-    }
 
     applyConstantOffsets?.perform();
   }
@@ -2044,7 +2040,7 @@ class ResolutionReader {
     if (memberFlags == Tag.MemberWithTypeArguments) {
       var enclosing = element.enclosingElement3 as InstanceElement;
 
-      var declaration = enclosing.augmented.declaration;
+      var declaration = enclosing.augmented.firstFragment;
       var declarationTypeParameters = declaration.typeParameters;
 
       var augmentationSubstitution = Substitution.empty;
@@ -2620,12 +2616,6 @@ class TopLevelVariableElementLinkedData
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
-    var augmentationTarget = reader.readElement() as ElementImpl?;
-    element.augmentationTargetAny = augmentationTarget;
-    if (augmentationTarget is TopLevelVariableElementImpl) {
-      augmentationTarget.augmentation = element;
-    }
-
     if (element is ConstTopLevelVariableElementImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
@@ -2655,9 +2645,6 @@ class TypeAliasElementLinkedData
 
   @override
   void _read(element, reader) {
-    element.augmentationTargetAny = reader.readElement() as ElementImpl?;
-    element.augmentation = reader.readElement() as TypeAliasElementImpl?;
-
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );

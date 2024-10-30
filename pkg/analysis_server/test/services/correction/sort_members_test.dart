@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,10 +19,8 @@ void main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
-  LineInfo? lineInfo;
-
   Future<void> test_class_accessor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   set c(x) {}
   set a(x) {}
@@ -46,7 +44,7 @@ class A {
   }
 
   Future<void> test_class_accessor_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   get a => null;
   set a(x) {}
@@ -66,7 +64,7 @@ class A {
   }
 
   Future<void> test_class_constructor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   A.c() {   }
   A.a() { }
@@ -86,7 +84,7 @@ class A {
   }
 
   Future<void> test_class_external_constructorMethod() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class Chart {
   external Pie();
   external Chart();
@@ -102,7 +100,7 @@ class Chart {
   }
 
   Future<void> test_class_field() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   String c;
   int a;
@@ -122,7 +120,7 @@ class A {
   }
 
   Future<void> test_class_field_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   int b;
   int a;
@@ -142,7 +140,7 @@ class A {
   }
 
   Future<void> test_class_method() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   c() {}
   a() {}
@@ -160,7 +158,7 @@ class A {
   }
 
   Future<void> test_class_method_emptyLine() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   b() {}
 
@@ -178,7 +176,7 @@ class A {
   }
 
   Future<void> test_class_method_ignoreCase() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   m_C() {}
   m_a() {}
@@ -196,7 +194,7 @@ class A {
   }
 
   Future<void> test_class_method_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   static a() {}
   b() {}
@@ -212,7 +210,7 @@ class A {
   }
 
   Future<void> test_class_mix() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A {
   /// static field public
   static int nnn;
@@ -312,7 +310,7 @@ class A {
   }
 
   Future<void> test_class_trailingComments() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class A { // classA
   // instanceA
   int instanceA; // instanceA
@@ -340,7 +338,7 @@ class A { // classA
   }
 
   Future<void> test_directives() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 library lib;
 
 export 'dart:bbb';
@@ -402,7 +400,7 @@ void f() {
   }
 
   Future<void> test_directives_docComment_hasLibrary_lines() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 /// Library documentation comment A.
 /// Library documentation comment B.
 library foo.bar;
@@ -432,7 +430,7 @@ import 'b.dart';
   }
 
   Future<void> test_directives_docComment_hasLibrary_stars() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 /**
  * Library documentation comment A.
  * Library documentation comment B.
@@ -470,7 +468,7 @@ import 'b.dart';
   }
 
   Future<void> test_directives_docComment_noLibrary_lines() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 /// Library documentation comment A
 /// Library documentation comment B
 import 'b.dart';
@@ -490,7 +488,7 @@ import 'b.dart';
   }
 
   Future<void> test_directives_docComment_noLibrary_stars() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 /**
  * Library documentation comment A.
  * Library documentation comment B.
@@ -518,7 +516,7 @@ import 'b.dart';
   }
 
   Future<void> test_directives_imports_packageAndPath() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 library lib;
 
 import 'package:product.ui.api.bbb/manager1.dart';
@@ -542,7 +540,7 @@ import 'package:product2.client/entity.dart';
   }
 
   Future<void> test_directives_invalidUri_interpolation() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 library lib;
 
 import 'dart:$bbb';
@@ -562,7 +560,7 @@ import 'dart:$bbb';
   Future<void> test_directives_splits_comments() async {
     // Here, the comments "b" and "ccc1" will be part of the same list
     // of comments so need to be split.
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 // copyright
 import 'b.dart'; // b
 // ccc1
@@ -586,7 +584,7 @@ import 'c.dart'; // c
   }
 
   Future<void> test_enum_accessor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
   set c(x) {}
@@ -612,7 +610,7 @@ enum E {
   }
 
   Future<void> test_enum_accessor_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
   get a => null;
@@ -634,7 +632,7 @@ enum E {
   }
 
   Future<void> test_enum_field_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
   int b;
@@ -656,7 +654,7 @@ enum E {
   }
 
   Future<void> test_enum_method() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
   c() {}
@@ -676,7 +674,7 @@ enum E {
   }
 
   Future<void> test_enum_method_emptyLine() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
 
@@ -698,7 +696,7 @@ enum E {
   }
 
   Future<void> test_enum_method_ignoreCase() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
   m_C() {}
@@ -718,7 +716,7 @@ enum E {
   }
 
   Future<void> test_enum_method_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum E {
   v;
   static a() {}
@@ -736,7 +734,7 @@ enum E {
   }
 
   Future<void> test_extension_accessor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   set c(x) {}
   set a(x) {}
@@ -760,7 +758,7 @@ extension E on int {
   }
 
   Future<void> test_extension_accessor_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   get a => null;
   set a(x) {}
@@ -780,7 +778,7 @@ extension E on int {
   }
 
   Future<void> test_extension_field_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   int b;
   int a;
@@ -800,7 +798,7 @@ extension E on int {
   }
 
   Future<void> test_extension_method() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   c() {}
   a() {}
@@ -818,7 +816,7 @@ extension E on int {
   }
 
   Future<void> test_extension_method_emptyLine() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   b() {}
 
@@ -836,7 +834,7 @@ extension E on int {
   }
 
   Future<void> test_extension_method_ignoreCase() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   m_C() {}
   m_a() {}
@@ -854,7 +852,7 @@ extension E on int {
   }
 
   Future<void> test_extension_method_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on int {
   static a() {}
   b() {}
@@ -870,7 +868,7 @@ extension E on int {
   }
 
   Future<void> test_extensionType_accessor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   set c(x) {}
   set a(x) {}
@@ -894,7 +892,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_accessor_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   get a => null;
   set a(x) {}
@@ -914,7 +912,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_constructor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   A.c() {   }
   A.a() { }
@@ -934,7 +932,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_external_constructorMethod() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type Chart(int it) {
   external Pie();
   external Chart();
@@ -950,7 +948,7 @@ extension type Chart(int it) {
   }
 
   Future<void> test_extensionType_field() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   String c;
   int a;
@@ -970,7 +968,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_field_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   int b;
   int a;
@@ -990,7 +988,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_method() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   c() {}
   a() {}
@@ -1008,7 +1006,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_method_emptyLine() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   b() {}
 
@@ -1026,7 +1024,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_method_ignoreCase() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   m_C() {}
   m_a() {}
@@ -1044,7 +1042,7 @@ extension type A(int it) {
   }
 
   Future<void> test_extensionType_method_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type A(int it) {
   static a() {}
   b() {}
@@ -1059,8 +1057,27 @@ extension type A(int it) {
 ''');
   }
 
+  Future<void> test_lint_constructorsFirst() async {
+    writeAnalysisOptionsFile(
+      analysisOptionsContent(rules: [LintNames.sort_constructors_first]),
+    );
+    await parseTestCode(r'''
+class Z {
+  var a = '';
+  Z();
+}
+''');
+    // validate change
+    _assertSort(r'''
+class Z {
+  Z();
+  var a = '';
+}
+''');
+  }
+
   Future<void> test_mixin_accessor() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   set c(x) {}
   set a(x) {}
@@ -1084,7 +1101,7 @@ mixin M {
   }
 
   Future<void> test_mixin_accessor_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   get a => null;
   set a(x) {}
@@ -1104,7 +1121,7 @@ mixin M {
   }
 
   Future<void> test_mixin_field() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   String c;
   int a;
@@ -1124,7 +1141,7 @@ mixin M {
   }
 
   Future<void> test_mixin_field_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   int b;
   int a;
@@ -1144,7 +1161,7 @@ mixin M {
   }
 
   Future<void> test_mixin_method() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   c() {}
   a() {}
@@ -1162,7 +1179,7 @@ mixin M {
   }
 
   Future<void> test_mixin_method_emptyLine() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   b() {}
 
@@ -1180,7 +1197,7 @@ mixin M {
   }
 
   Future<void> test_mixin_method_ignoreCase() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   m_C() {}
   m_a() {}
@@ -1198,7 +1215,7 @@ mixin M {
   }
 
   Future<void> test_mixin_method_static() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   static a() {}
   b() {}
@@ -1214,7 +1231,7 @@ mixin M {
   }
 
   Future<void> test_mixin_mix() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M {
   /// static field public
   static int nnn;
@@ -1290,7 +1307,7 @@ mixin M {
   }
 
   Future<void> test_mixin_trailingComments() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin M { // mixinM
   // instanceA
   int instanceA; // instanceA
@@ -1322,7 +1339,7 @@ mixin M { // mixinM
 part 'test.dart';
 ''');
 
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 part of 'part.dart';
 
 import 'dart:io';
@@ -1345,7 +1362,7 @@ void f() {}
   }
 
   Future<void> test_unit_class() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class C {}
 class A {}
 class B {}
@@ -1359,7 +1376,7 @@ class C {}
   }
 
   Future<void> test_unit_class_ignoreCase() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class C {}
 class a {}
 class B {}
@@ -1373,7 +1390,7 @@ class C {}
   }
 
   Future<void> test_unit_classTypeAlias() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class M {}
 class C = Object with M;
 class A = Object with M;
@@ -1389,7 +1406,7 @@ class M {}
   }
 
   Future<void> test_unit_directive_hasDirective() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 library lib;
 class C {}
 class A {}
@@ -1405,7 +1422,7 @@ class C {}
   }
 
   Future<void> test_unit_directive_noDirective_hasComment_line() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 // Some comment
 
 class B {}
@@ -1423,7 +1440,7 @@ class B {}
   }
 
   Future<void> test_unit_directive_noDirective_noComment() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 
 class B {}
 
@@ -1439,7 +1456,7 @@ class B {}
   }
 
   Future<void> test_unit_enum() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum C {x, y}
 enum A {x, y}
 enum B {x, y}
@@ -1453,7 +1470,7 @@ enum C {x, y}
   }
 
   Future<void> test_unit_enumClass() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 enum C {x, y}
 class A {}
 class D {}
@@ -1469,7 +1486,7 @@ class D {}
   }
 
   Future<void> test_unit_extensionClass() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E on C {}
 class C {}
 ''');
@@ -1481,7 +1498,7 @@ extension E on C {}
   }
 
   Future<void> test_unit_extensions() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension E2 on String {}
 extension on List {}
 extension E1 on int {}
@@ -1497,7 +1514,7 @@ extension E2 on String {}
   }
 
   Future<void> test_unit_extensionTypes() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 extension type E3(int it) {}
 extension type E2(int it) {}
 extension type _E2(int it) {}
@@ -1517,7 +1534,7 @@ extension type _E2(int it) {}
   }
 
   Future<void> test_unit_function() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 fc() {}
 fa() {}
 fb() {}
@@ -1531,7 +1548,7 @@ fc() {}
   }
 
   Future<void> test_unit_functionTypeAlias() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 typedef FC();
 typedef FA();
 typedef FB();
@@ -1545,7 +1562,7 @@ typedef FC();
   }
 
   Future<void> test_unit_genericTypeAlias() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 typedef FC = void Function();
 typedef FA = void Function();
 typedef FB = void Function();
@@ -1559,7 +1576,7 @@ typedef FC = void Function();
   }
 
   Future<void> test_unit_importsAndDeclarations() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 import 'dart:a';
 import 'package:b';
 
@@ -1582,7 +1599,7 @@ foo() {
   }
 
   Future<void> test_unit_mainFirst() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 class C {}
 aaa() {}
 get bbb() {}
@@ -1602,7 +1619,7 @@ class C {}
   }
 
   Future<void> test_unit_mix() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 _mmm() {}
 typedef nnn();
 typedef GTAF3 = void Function();
@@ -1664,7 +1681,7 @@ class _nnn {}
   }
 
   Future<void> test_unit_mixin() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 mixin C {}
 mixin A {}
 mixin B {}
@@ -1677,7 +1694,7 @@ mixin C {}
   }
 
   Future<void> test_unit_topLevelVariable() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 int c;
 int a;
 int b;
@@ -1691,7 +1708,7 @@ int c;
   }
 
   Future<void> test_unit_topLevelVariable_withConst() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 int c;
 int a;
 const B = 2;
@@ -1709,7 +1726,7 @@ int c;
   }
 
   Future<void> test_unit_trailingComments() async {
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 // Header
 class B {} // B
 // A
@@ -1745,7 +1762,7 @@ class C {} // C
 part of 'test.dart';
 ''');
 
-    await _parseTestUnit(r'''
+    await parseTestCode(r'''
 import 'dart:io';
 import 'dart:async';
 
@@ -1768,17 +1785,13 @@ void f() {}
   }
 
   void _assertSort(String expectedCode) {
-    var sorter = MemberSorter(testCode, testUnit, lineInfo!);
+    var sorter = MemberSorter(
+        testCode,
+        testUnit,
+        testParsedResult.analysisOptions.codeStyleOptions,
+        testParsedResult.lineInfo);
     var edits = sorter.sort();
     var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);
-  }
-
-  Future<void> _parseTestUnit(String code) async {
-    addTestSource(code);
-    var result =
-        (await session).getParsedUnit(testFile.path) as ParsedUnitResult;
-    lineInfo = result.lineInfo;
-    testUnit = result.unit;
   }
 }

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -12,43 +13,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Sorter for unit/class members.
 class MemberSorter {
-  static final List<_PriorityItem> _PRIORITY_ITEMS = [
-    _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
-    _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, false),
-    _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, true),
-    _PriorityItem(false, _MemberKind.UNIT_VARIABLE, false),
-    _PriorityItem(false, _MemberKind.UNIT_VARIABLE, true),
-    _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, false),
-    _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, true),
-    _PriorityItem(false, _MemberKind.UNIT_FUNCTION, false),
-    _PriorityItem(false, _MemberKind.UNIT_FUNCTION, true),
-    _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, false),
-    _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, true),
-    _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, false),
-    _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, true),
-    _PriorityItem(false, _MemberKind.UNIT_CLASS, false),
-    _PriorityItem(false, _MemberKind.UNIT_CLASS, true),
-    _PriorityItem(false, _MemberKind.UNIT_EXTENSION_TYPE, false),
-    _PriorityItem(false, _MemberKind.UNIT_EXTENSION_TYPE, true),
-    _PriorityItem(false, _MemberKind.UNIT_EXTENSION, false),
-    _PriorityItem(false, _MemberKind.UNIT_EXTENSION, true),
-    _PriorityItem(true, _MemberKind.CLASS_FIELD, false),
-    _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, false),
-    _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, true),
-    _PriorityItem(false, _MemberKind.CLASS_FIELD, false),
-    _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, false),
-    _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, true),
-    _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, false),
-    _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, true),
-    _PriorityItem(false, _MemberKind.CLASS_METHOD, false),
-    _PriorityItem(false, _MemberKind.CLASS_METHOD, true),
-    _PriorityItem(true, _MemberKind.CLASS_METHOD, false),
-    _PriorityItem(true, _MemberKind.CLASS_METHOD, true)
-  ];
-
   final String initialCode;
 
   final CompilationUnit unit;
+
+  final CodeStyleOptions codeStyle;
 
   final LineInfo lineInfo;
 
@@ -56,7 +25,7 @@ class MemberSorter {
 
   String endOfLine = '\n';
 
-  MemberSorter(this.initialCode, this.unit, this.lineInfo)
+  MemberSorter(this.initialCode, this.unit, this.codeStyle, this.lineInfo)
       : code = initialCode {
     endOfLine = getEOL(code);
   }
@@ -76,6 +45,32 @@ class MemberSorter {
       edits.add(edit);
     }
     return edits;
+  }
+
+  int _getPriority(_PriorityItem item) {
+    var priorityItems = _getPriorityItems(codeStyle);
+    var priority = priorityItems.indexOf(item);
+    return priority != -1 ? priority : 0;
+  }
+
+  List<_MemberInfo> _getSortedMembers(List<_MemberInfo> members) {
+    var membersSorted = List<_MemberInfo>.from(members);
+    membersSorted.sort((_MemberInfo o1, _MemberInfo o2) {
+      var priority1 = _getPriority(o1.item);
+      var priority2 = _getPriority(o2.item);
+      if (priority1 == priority2) {
+        // don't reorder class fields
+        if (o1.item.kind == _MemberKind.CLASS_FIELD) {
+          return o1.offset - o2.offset;
+        }
+        // sort all other members by name
+        var name1 = o1.name.toLowerCase();
+        var name = o2.name.toLowerCase();
+        return name1.compareTo(name);
+      }
+      return priority1 - priority2;
+    });
+    return membersSorted;
   }
 
   void _sortAndReorderMembers(List<_MemberInfo> members) {
@@ -247,33 +242,46 @@ class MemberSorter {
     }
   }
 
-  static int _getPriority(_PriorityItem item) {
-    for (var i = 0; i < _PRIORITY_ITEMS.length; i++) {
-      if (_PRIORITY_ITEMS[i] == item) {
-        return i;
-      }
-    }
-    return 0;
-  }
-
-  static List<_MemberInfo> _getSortedMembers(List<_MemberInfo> members) {
-    var membersSorted = List<_MemberInfo>.from(members);
-    membersSorted.sort((_MemberInfo o1, _MemberInfo o2) {
-      var priority1 = _getPriority(o1.item);
-      var priority2 = _getPriority(o2.item);
-      if (priority1 == priority2) {
-        // don't reorder class fields
-        if (o1.item.kind == _MemberKind.CLASS_FIELD) {
-          return o1.offset - o2.offset;
-        }
-        // sort all other members by name
-        var name1 = o1.name.toLowerCase();
-        var name = o2.name.toLowerCase();
-        return name1.compareTo(name);
-      }
-      return priority1 - priority2;
-    });
-    return membersSorted;
+  static List<_PriorityItem> _getPriorityItems(CodeStyleOptions codeStyle) {
+    return [
+      _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
+      _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, false),
+      _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, true),
+      _PriorityItem(false, _MemberKind.UNIT_VARIABLE, false),
+      _PriorityItem(false, _MemberKind.UNIT_VARIABLE, true),
+      _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, false),
+      _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, true),
+      _PriorityItem(false, _MemberKind.UNIT_FUNCTION, false),
+      _PriorityItem(false, _MemberKind.UNIT_FUNCTION, true),
+      _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, false),
+      _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, true),
+      _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, false),
+      _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, true),
+      _PriorityItem(false, _MemberKind.UNIT_CLASS, false),
+      _PriorityItem(false, _MemberKind.UNIT_CLASS, true),
+      _PriorityItem(false, _MemberKind.UNIT_EXTENSION_TYPE, false),
+      _PriorityItem(false, _MemberKind.UNIT_EXTENSION_TYPE, true),
+      _PriorityItem(false, _MemberKind.UNIT_EXTENSION, false),
+      _PriorityItem(false, _MemberKind.UNIT_EXTENSION, true),
+      if (codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, false),
+      if (codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, true),
+      _PriorityItem(true, _MemberKind.CLASS_FIELD, false),
+      _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, false),
+      _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, true),
+      _PriorityItem(false, _MemberKind.CLASS_FIELD, false),
+      if (!codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, false),
+      if (!codeStyle.sortConstructorsFirst)
+        _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, true),
+      _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, false),
+      _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, true),
+      _PriorityItem(false, _MemberKind.CLASS_METHOD, false),
+      _PriorityItem(false, _MemberKind.CLASS_METHOD, true),
+      _PriorityItem(true, _MemberKind.CLASS_METHOD, false),
+      _PriorityItem(true, _MemberKind.CLASS_METHOD, true)
+    ];
   }
 }
 
