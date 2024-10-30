@@ -15675,15 +15675,6 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   _SetOrMapKind _resolvedKind = _SetOrMapKind.unresolved;
 
   /// The context type computed by [TypedLiteralResolver].
-  ///
-  /// Note that this isn't the same as the context pushed down by type
-  /// inference (which can be obtained via `InferenceContext.getContext`). For
-  /// example, in the following code:
-  ///
-  ///     var m = {};
-  ///
-  /// The context pushed down by type inference is null, whereas the
-  /// `contextType` is `Map<dynamic, dynamic>`.
   InterfaceType? contextType;
 
   /// Initializes a newly created set or map literal.

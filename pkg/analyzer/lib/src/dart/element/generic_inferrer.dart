@@ -47,9 +47,9 @@ import 'package:collection/collection.dart';
 /// (due to covariant generic types) as would `() -> A <: () -> num`. In
 /// contrast `(A) -> void <: (num) -> void`.
 ///
-/// Once the lower/upper bounds are determined, `infer` should be called to
-/// finish the inference. It will instantiate a generic function type with the
-/// inferred types for each type parameter.
+/// Once the lower/upper bounds are determined, `chooseFinalTypes` should be
+/// called to finish the inference. It will instantiate a generic function type
+/// with the inferred types for each type parameter.
 ///
 /// It can also optionally compute a partial solution, in case some of the type
 /// parameters could not be inferred (because the constraints cannot be
