@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'
-    show TypeParameterElementImpl;
+    show TypeParameterElementImpl2;
 
 import '../analyzer.dart';
 
@@ -137,15 +137,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       case NamedType():
         var arguments = typeAnnotation.typeArguments?.arguments;
         if (arguments != null) {
-          var element = typeAnnotation.element?.declaration;
-          List<TypeParameterElement>? typeParameterList;
+          var element = typeAnnotation.element2?.baseElement;
+          List<TypeParameterElement2>? typeParameterList;
           if (element != null) {
             switch (element) {
-              case ClassElement(:var typeParameters):
-              case MixinElement(:var typeParameters):
-              case EnumElement(:var typeParameters):
-              case TypeAliasElement(:var typeParameters):
-                typeParameterList = typeParameters;
+              case ClassElement2(:var typeParameters2):
+              case MixinElement2(:var typeParameters2):
+              case EnumElement2(:var typeParameters2):
+              case TypeAliasElement2(:var typeParameters2):
+                typeParameterList = typeParameters2;
               default:
                 typeParameterList = null;
             }
@@ -162,13 +162,15 @@ class _Visitor extends SimpleAstVisitor<void> {
             var length = arguments.length;
             for (var i = 0; i < length; ++i) {
               var parameter = typeParameterList[i];
-              if (parameter is! TypeParameterElementImpl) continue;
+              if (parameter is! TypeParameterElementImpl2) continue;
               var argument = arguments[i];
               Variance parameterVariance;
-              if (parameter.isLegacyCovariant ||
-                  parameter.variance.isCovariant) {
+              var parameterFragment = parameter.firstFragment;
+              if (parameterFragment == null) return;
+              if (parameterFragment.isLegacyCovariant ||
+                  parameterFragment.variance.isCovariant) {
                 parameterVariance = variance;
-              } else if (parameter.variance.isContravariant) {
+              } else if (parameterFragment.variance.isContravariant) {
                 parameterVariance = variance.inverse;
               } else {
                 parameterVariance = _inout;
