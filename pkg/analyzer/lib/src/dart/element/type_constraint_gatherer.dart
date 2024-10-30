@@ -20,8 +20,8 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
-/// Creates sets of [TypeConstraint]s for type parameters, based on an attempt
-/// to make one type schema a subtype of another.
+/// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
+/// attempt to make one type schema a subtype of another.
 class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         DartType,
         ParameterElement,

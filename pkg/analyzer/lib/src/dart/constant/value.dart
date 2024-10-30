@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The implementation of the class [DartObject].
+///
+/// @docImport 'package:analyzer/src/dart/constant/evaluation.dart';
 library;
 
 import 'dart:collection';
@@ -627,8 +629,8 @@ class DartObjectImpl implements DartObject, Constant {
     );
   }
 
-  /// Return the result of invoking the '&&' operator on this object with the
-  /// [rightOperand].
+  /// Returns the result of invoking the '&&' operator on this object with the
+  /// [rightOperandComputer].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
@@ -641,8 +643,8 @@ class DartObjectImpl implements DartObject, Constant {
     );
   }
 
-  /// Return the result of invoking the '||' operator on this object with the
-  /// [rightOperand].
+  /// Returns the result of invoking the '||' operator on this object with the
+  /// [rightOperandComputer].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
@@ -1754,8 +1756,8 @@ abstract class InstanceState {
   /// the [rightOperand].
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand);
 
-  /// Return the result of invoking the '&&' operator on this object with the
-  /// [rightOperand].
+  /// Returns the result of invoking the '&&' operator on this object with the
+  /// [rightOperandComputer].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
@@ -1769,8 +1771,8 @@ abstract class InstanceState {
     return rightOperand!.convertToBool();
   }
 
-  /// Return the result of invoking the '||' operator on this object with the
-  /// [rightOperand].
+  /// Returns the result of invoking the '||' operator on this object with the
+  /// [rightOperandComputer].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.

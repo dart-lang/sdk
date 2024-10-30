@@ -62,9 +62,9 @@ ConstructorElement? _getActualConstructorElement(
   return constructor;
 }
 
-/// Return the [LibraryImportElement] that declared [prefix] and imports [element].
+/// Returns the [LibraryImportElement] that declared [prefix] and imports [element].
 ///
-/// [libraryElement] - the [LibraryElement] where reference is.
+/// [libraryFragment] - the [CompilationUnitElementImpl] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
 /// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.

@@ -3222,8 +3222,6 @@ final class CommentImpl extends AstNodeImpl
   ///
   /// The list of [tokens] must contain at least one token.
   ///
-  /// The [type] is the type of the comment.
-  ///
   /// The list of [references] can be empty if the comment doesn't contain any
   /// embedded references.
   CommentImpl({
@@ -4078,7 +4076,7 @@ abstract final class ConstructorDeclaration
   @override
   ConstructorFragment? get declaredFragment;
 
-  /// The token for the `external` keyword to the given [token].
+  /// The token for the `external` keyword to this constructor declaration.
   Token? get externalKeyword;
 
   /// The token for the `factory` keyword, or `null` if the constructor isn't a
@@ -4774,7 +4772,7 @@ sealed class DartPatternImpl extends AstNodeImpl
 
   DartType computePatternSchema(ResolverVisitor resolverVisitor);
 
-  /// Dispatches this pattern to the [resolver], with the given [context]
+  /// Dispatches this pattern to the [resolverVisitor], with the given [context]
   /// information.
   ///
   /// Note: most code shouldn't call this method directly, but should instead
@@ -7144,8 +7142,6 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 
   /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part).
-  ///
-  /// The [awaitKeyword] can be `null` if this isn't an asynchronous for loop.
   ForEachPartsImpl({
     required this.inKeyword,
     required ExpressionImpl iterable,
@@ -7767,8 +7763,6 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   final NodeListImpl<ExpressionImpl> _updaters = NodeListImpl._();
 
   /// Initializes a newly created for statement.
-  ///
-  /// Either the [variableList] or the [initialization] must be `null`.
   ///
   /// Either the [condition] and the list of [updaters] can be `null` if the
   /// loop doesn't have the corresponding attribute.
@@ -10710,10 +10704,12 @@ abstract final class InvocationExpression implements Expression {
   ///
   /// For example:
   ///
-  ///     (o.m)<TArgs>(args); // target is `o.m`
-  ///     o.m<TArgs>(args);   // target is `m`
+  /// ```dart
+  /// (o.m)<TArgs>(args); // target is `o.m`
+  /// o.m<TArgs>(args);   // target is `m`
+  /// ```
   ///
-  /// In either case, the [function.staticType] is the [staticInvokeType] before
+  /// In either case, the `function.staticType` is the [staticInvokeType] before
   /// applying type arguments `TArgs`.
   Expression get function;
 
@@ -15678,11 +15674,10 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   /// whether the kind hasn't or can't be determined.
   _SetOrMapKind _resolvedKind = _SetOrMapKind.unresolved;
 
-  /// The context type computed by
-  /// [ResolverVisitor._computeSetOrMapContextType].
+  /// The context type computed by [TypedLiteralResolver].
   ///
   /// Note that this isn't the same as the context pushed down by type
-  /// inference (which can be obtained via [InferenceContext.getContext]). For
+  /// inference (which can be obtained via `InferenceContext.getContext`). For
   /// example, in the following code:
   ///
   ///     var m = {};
@@ -16827,9 +16822,6 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   /// The [keyword] can be `null` if there's a type.
   ///
   /// The [type] must be `null` if the keyword is `var`.
-  ///
-  /// The [thisKeyword] and [period] can be `null` if the keyword `this` isn't
-  /// provided.
   ///
   /// The[parameters] can be `null` if this isn't a function-typed field formal
   /// parameter.
@@ -18304,7 +18296,7 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
   }
 }
 
-/// Validation codes returned by [UriBasedDirective.validate].
+/// Validation codes returned by [UriBasedDirectiveImpl.validateUri].
 class UriValidationCode {
   static const UriValidationCode INVALID_URI = UriValidationCode('INVALID_URI');
 
@@ -18717,7 +18709,7 @@ sealed class VariablePatternImpl extends DartPatternImpl
 ///    switchCase ::=
 ///        'when' [Expression]
 abstract final class WhenClause implements AstNode {
-  /// The condition that is evaluated when the [pattern] matches, that must
+  /// The condition that is evaluated when the pattern matches, that must
   /// evaluate to `true` in order for the [expression] to be executed.
   Expression get expression;
 
