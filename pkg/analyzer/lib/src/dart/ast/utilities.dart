@@ -11,11 +11,6 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 
-/// A function used to handle exceptions that are thrown by delegates while
-/// using an [ExceptionHandlingDelegatingAstVisitor].
-typedef ExceptionInDelegateHandler = void Function(
-    AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
-
 /// An AstVisitor that compares the structure of two AstNodes to see whether
 /// they are equal.
 class AstComparator implements AstVisitor<bool> {
@@ -30,14 +25,15 @@ class AstComparator implements AstVisitor<bool> {
     return false;
   }
 
-  /// Check whether the values of the [first] and [second] nodes are [equal].
+  /// Checks whether the values of the [first] and [second] nodes are equal.
+  ///
   /// Subclasses can override to throw.
   bool failIfNotEqual(
       AstNode first, Object? firstValue, AstNode second, Object? secondValue) {
     return firstValue == secondValue;
   }
 
-  /// Check whether [second] is null. Subclasses can override to throw.
+  /// Checks whether [second] is `null`. Subclasses can override to throw.
   bool failIfNotNull(Object? first, Object? second) {
     return second == null;
   }
