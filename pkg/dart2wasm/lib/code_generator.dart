@@ -2742,8 +2742,8 @@ abstract class AstCodeGenerator
   w.ValueType makeArrayFromExpressions(
       List<Expression> expressions, InterfaceType elementType) {
     return makeArray(
-        translator.arrayTypeForDartType(elementType), expressions.length,
-        (w.ValueType type, int i) {
+        translator.arrayTypeForDartType(elementType, mutable: true),
+        expressions.length, (w.ValueType type, int i) {
       translateExpression(expressions[i], type);
     });
   }

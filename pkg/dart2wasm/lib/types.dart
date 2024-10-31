@@ -50,7 +50,7 @@ class Types {
 
   /// Wasm array type of `WasmArray<_Type>`
   late final w.ArrayType typeArrayArrayType =
-      translator.arrayTypeForDartType(typeType);
+      translator.arrayTypeForDartType(typeType, mutable: true);
 
   /// Wasm value type of `WasmArray<_Type>`
   late final w.ValueType typeArrayExpectedType =

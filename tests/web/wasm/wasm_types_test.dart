@@ -127,6 +127,11 @@ test() {
 
   Expect.equals(3, funCount);
 
+  testArrays();
+  testImmutableArrays();
+}
+
+void testArrays() {
   // Instantiate some Wasm arrays
   final arrayAN = WasmArray<A?>(3);
   final arrayA = WasmArray<A>.filled(3, A());
@@ -166,6 +171,56 @@ test() {
   Expect.equals(i8Array.readUnsigned(0), 0xff);
 
   Expect.isFalse(arrayA == arrayAlit1);
+  Expect.isFalse(arrayAlit2 == arrayAlit3);
+  Expect.isTrue(arrayAlit3 == arrayAlit4);
+}
+
+void testImmutableArrays() {
+  // Immutable array with default value (0).
+  final arrayA0 = ImmutableWasmArray<WasmI8>(2);
+  Expect.equals(2, arrayA0.length);
+  Expect.identical(0, arrayA0.readSigned(0));
+  Expect.identical(0, arrayA0.readSigned(0));
+
+  // Immutable array with default value (null).
+  final arrayAN = ImmutableWasmArray<A?>(2);
+  Expect.equals(2, arrayAN.length);
+  Expect.identical(null, arrayAN[0]);
+  Expect.identical(null, arrayAN[1]);
+
+  // Immutable array with filled value.
+  final a = A();
+  final arrayA = ImmutableWasmArray<A>.filled(2, a);
+  Expect.equals(2, arrayA.length);
+  Expect.identical(a, arrayA[0]);
+  Expect.identical(a, arrayA[1]);
+
+  // Const and non-const literals.
+  final arrayAlit1 = ImmutableWasmArray<A>.literal([A(), A(), A()]);
+  final arrayAlit2 = ImmutableWasmArray<A>.literal([A(), B(), A()]);
+  final arrayAlit3 = const ImmutableWasmArray<A>.literal([A(), B(), A()]);
+  final arrayAlit4 = const ImmutableWasmArray<A>.literal([A(), B(), A()]);
+  Expect.notIdentical(arrayAlit1[0], arrayAlit1[2]);
+  Expect.notIdentical(arrayAlit2[0], arrayAlit2[1]);
+  Expect.notIdentical(arrayAlit2[0], arrayAlit2[2]);
+  Expect.notIdentical(arrayAlit3[0], arrayAlit3[1]);
+  Expect.identical(arrayAlit3[0], arrayAlit3[2]);
+
+  final int32Array = ImmutableWasmArray<WasmI32>.literal([0, 1, 2, 3]);
+  final int32ArrayC =
+      const ImmutableWasmArray<WasmI32>.literal([0, 10, 20, 30]);
+  for (int i = 0; i < 4; ++i) {
+    Expect.equals(int32Array.readSigned(i), i);
+  }
+  for (int i = 0; i < 4; ++i) {
+    Expect.equals(int32ArrayC.readSigned(i), i * 10);
+  }
+
+  final i8Array = ImmutableWasmArray<WasmI8>.literal([1, 0xff]);
+  Expect.equals(i8Array.readSigned(0), 1);
+  Expect.equals(i8Array.readSigned(1), -1);
+  Expect.equals(i8Array.readUnsigned(1), 0xff);
+
   Expect.isFalse(arrayAlit2 == arrayAlit3);
   Expect.isTrue(arrayAlit3 == arrayAlit4);
 }
