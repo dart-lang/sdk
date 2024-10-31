@@ -83,8 +83,40 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
       ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
 
+  /// Extracts the current document version from [textDocument] if available,
+  /// or uses the version that the server has via
+  /// [LspAnalysisServer.getVersionedDocumentIdentifier].
+  OptionalVersionedTextDocumentIdentifier extractDocumentVersion(
+    TextDocumentIdentifier textDocument,
+    String path,
+  ) {
+    return switch (textDocument) {
+      OptionalVersionedTextDocumentIdentifier() => textDocument,
+      VersionedTextDocumentIdentifier() =>
+        OptionalVersionedTextDocumentIdentifier(
+            uri: textDocument.uri, version: textDocument.version),
+      _ => server.getVersionedDocumentIdentifier(path),
+    };
+  }
+
+  bool fileHasBeenModified(String path, int? clientVersion) {
+    var serverDocumentVersion = server.getDocumentVersion(path);
+    return clientVersion != null && clientVersion != serverDocumentVersion;
+  }
+
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
       ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
+
+  ErrorOr<LineInfo> getLineInfo(String path) {
+    var lineInfo = server.getLineInfo(path);
+
+    if (lineInfo == null) {
+      return error(ServerErrorCodes.InvalidFilePath,
+          'Unable to obtain line information for file', path);
+    } else {
+      return success(lineInfo);
+    }
+  }
 
   /// Returns whether [doc] is a user-editable document or not.
   ///
@@ -251,44 +283,6 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : fileNotAnalyzedError(path);
     }
     return success(result);
-  }
-}
-
-/// Provides some helpers for request handlers to produce common errors or
-/// obtain resolved results after waiting for in-progress analysis.
-mixin LspHandlerHelperMixin {
-  LspAnalysisServer get server;
-
-  /// Extracts the current document version from [textDocument] if available,
-  /// or uses the version that the server has via
-  /// [LspAnalysisServer.getVersionedDocumentIdentifier].
-  OptionalVersionedTextDocumentIdentifier extractDocumentVersion(
-    TextDocumentIdentifier textDocument,
-    String path,
-  ) {
-    return switch (textDocument) {
-      OptionalVersionedTextDocumentIdentifier() => textDocument,
-      VersionedTextDocumentIdentifier() =>
-        OptionalVersionedTextDocumentIdentifier(
-            uri: textDocument.uri, version: textDocument.version),
-      _ => server.getVersionedDocumentIdentifier(path),
-    };
-  }
-
-  bool fileHasBeenModified(String path, int? clientVersion) {
-    var serverDocumentVersion = server.getDocumentVersion(path);
-    return clientVersion != null && clientVersion != serverDocumentVersion;
-  }
-
-  ErrorOr<LineInfo> getLineInfo(String path) {
-    var lineInfo = server.getLineInfo(path);
-
-    if (lineInfo == null) {
-      return error(ServerErrorCodes.InvalidFilePath,
-          'Unable to obtain line information for file', path);
-    } else {
-      return success(lineInfo);
-    }
   }
 }
 

@@ -41,7 +41,7 @@ typedef _ScoredCompletionItem = ({CompletionItem item, double score});
 
 class CompletionHandler
     extends LspMessageHandler<CompletionParams, CompletionList>
-    with LspPluginRequestHandlerMixin, LspHandlerHelperMixin {
+    with LspPluginRequestHandlerMixin {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the completion code running.
   @visibleForTesting
@@ -528,7 +528,7 @@ class CompletionHandler
         for (var suggestion in candidateSuggestions.suggestions) {
           var item = await candidateSuggestionToCompletionItem(suggestion);
           if (item != null) {
-              completionItems.add((item: item, score: suggestion.matcherScore));          
+            completionItems.add((item: item, score: suggestion.matcherScore));
           }
         }
         return completionItems;

@@ -13,8 +13,7 @@ typedef StaticOptions
     = Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>;
 
 class InlayHintHandler
-    extends LspMessageHandler<InlayHintParams, List<InlayHint>>
-    with LspHandlerHelperMixin {
+    extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
   InlayHintHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_inlayHint;

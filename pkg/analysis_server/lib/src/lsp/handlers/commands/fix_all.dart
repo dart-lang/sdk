@@ -16,8 +16,7 @@ import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
 
-class FixAllCommandHandler extends SimpleEditCommandHandler
-    with LspHandlerHelperMixin {
+class FixAllCommandHandler extends SimpleEditCommandHandler {
   FixAllCommandHandler(super.server);
 
   @override
