@@ -120,18 +120,12 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "09c0fca1785c9df39288a48f767994eed80bed40", #
-  "async_rev": "d6a6a4dbe0c636e42d6cf4ede88ed5a33e35a6ca",
   "bazel_worker_rev": "aa3cc9e826350b960e0c5a67e6065bcedba8b0ac",
   "benchmark_harness_rev": "44f125ae1d045aa3de09fe88a8dd70cb7352d563",
   "browser_launcher_rev": "e5fc5d488eb5038bfec2a6690c72ab8dd353e101",
-  "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
   "cli_util_rev": "c36b3941e38092d6d6f87ac27d9e88f153d3ac38",
   "clock_rev": "8dfee808c53302269c62954726d0db049f53bbc6",
-  "collection_rev": "96afcc2fce622ea7e75053af5b73f8db07491bc4",
-  "convert_rev": "836082a3a5e9c6bb890d7fe025098f38fd5b8a3e",
   "core_rev": "9ad68884a10ad75bb859dcac9ab057e78b0d7df3",
-  "crypto_rev": "255edfb5ab8d01e7bb2302b97a7f5124ef82fd1b",
   "csslib_rev": "a3700b05bbcc42782e8a7024790dbf019d89c249",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -146,7 +140,6 @@ vars = {
   "dart_style_rev": "5d35f4d829ffb8532d345d95d3e9504ae6cd839e", # disable tools/rev_sdk_deps.dart
   "dartdoc_rev": "5168f81a7d774effd7f8520cd170ffcb180f7c39",
   "ecosystem_rev": "66ddc4fce068084bc68fe0118ca238b2ab8da9b5",
-  "fixnum_rev": "854397228d1892e1b8374f97d172667c0c1ba9c7",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "00a9c82d31c01ae88ec9ae4021d842e9b832aa52",
   "html_rev": "6d3bc86cf2ab530ef3fa5f84b5980dc318a02af4",
@@ -156,14 +149,12 @@ vars = {
   "json_rpc_2_rev": "c9b616bded8cdb5bfdc836ba7648afa6aba40062",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "19d99bc64a03a6f32f05e71481edf151032ebf5b",
-  "logging_rev": "a41a5089d20f734a21c02739042bace5073cbed3",
   "markdown_rev": "207bb4416f9ca3bb60086e56ed8581da929916ae",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mockito_rev": "57d484f9b8e7f6a504966a901174358a42fa932a",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "native_rev": "659511886501bcce638c3966590df04984909ef0", # disable tools/rev_sdk_deps.dart
   "package_config_rev": "bafff8e90be25e1985f7e3ee40ea1d22571a93e6",
-  "path_rev": "7e3d5d87220133ad9cc99f82e85a826011a62859",
   "pool_rev": "7bfc71b39742753a88688e56e55a828a2f5dc0bf",
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "1d7b0d9a35be9cff5d071f6cf17fcdcde2b7ecc5", # disable tools/rev_sdk_deps.dart
@@ -183,7 +174,6 @@ vars = {
   "test_process_rev": "52ee3f5ab70ed965bb7122c1d499081fbccd0bde",
   "test_reflective_loader_rev": "598af2f503955020af0eaa82558d574a03934078",
   "tools_rev": "f7b2b53dee019834942b32278c3cfaf3e843bc6a",
-  "typed_data_rev": "b269d394681f4378d4147704a96148b3eabaa08c",
   "vector_math_rev": "da9889f5859d7258772d6627abde2f5c530cae8d",
   "watcher_rev": "3b850778ad0b62db3aa2cfe48832870c2461db30",
   "web_rev": "d3a61aa9b4e43cdaf949a69c159038cdecf5681a",
@@ -376,10 +366,6 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
-  Var("dart_root") + "/third_party/pkg/args":
-      Var("dart_git") + "args.git" + "@" + Var("args_rev"),
-  Var("dart_root") + "/third_party/pkg/async":
-      Var("dart_git") + "async.git" + "@" + Var("async_rev"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
       Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_rev"),
   Var("dart_root") + "/third_party/pkg/benchmark_harness":
@@ -387,24 +373,12 @@ deps = {
       Var("benchmark_harness_rev"),
   Var("dart_root") + "/third_party/pkg/browser_launcher":
       Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
-  Var("dart_root") + "/third_party/pkg/characters": {
-    # Contact athom@ or ensure that license requirements are met before using
-    # this dependency in other parts of the Dart SDK.
-    "url": Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
-    "condition": "checkout_flute",
-  },
   Var("dart_root") + "/third_party/pkg/cli_util":
       Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/clock":
       Var("dart_git") + "clock.git" + "@" + Var("clock_rev"),
-  Var("dart_root") + "/third_party/pkg/collection":
-      Var("dart_git") + "collection.git" + "@" + Var("collection_rev"),
-  Var("dart_root") + "/third_party/pkg/convert":
-      Var("dart_git") + "convert.git" + "@" + Var("convert_rev"),
   Var("dart_root") + "/third_party/pkg/core":
       Var("dart_git") + "core.git" + "@" + Var("core_rev"),
-  Var("dart_root") + "/third_party/pkg/crypto":
-      Var("dart_git") + "crypto.git" + "@" + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
       Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg/dart_style":
@@ -413,8 +387,6 @@ deps = {
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/ecosystem":
       Var("dart_git") + "ecosystem.git" + "@" + Var("ecosystem_rev"),
-  Var("dart_root") + "/third_party/pkg/fixnum":
-      Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
   Var("dart_root") + "/third_party/flute": {
     "url": Var("dart_git") + "flute.git" + "@" + Var("flute_rev"),
     "condition": "checkout_flute",
@@ -436,8 +408,6 @@ deps = {
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/lints":
       Var("dart_git") + "lints.git" + "@" + Var("lints_rev"),
-  Var("dart_root") + "/third_party/pkg/logging":
-      Var("dart_git") + "logging.git" + "@" + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/material_color_utilities": {
@@ -453,8 +423,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_rev"),
-  Var("dart_root") + "/third_party/pkg/path":
-      Var("dart_git") + "path.git" + "@" + Var("path_rev"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
@@ -497,8 +465,6 @@ deps = {
       "@" + Var("test_reflective_loader_rev"),
   Var("dart_root") + "/third_party/pkg/tools":
       Var("dart_git") + "tools.git" + "@" + Var("tools_rev"),
-  Var("dart_root") + "/third_party/pkg/typed_data":
-      Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_rev"),
   Var("dart_root") + "/third_party/pkg/vector_math":
       Var("dart_git") + "external/github.com/google/vector_math.dart.git" +
       "@" + Var("vector_math_rev"),

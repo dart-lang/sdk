@@ -9,7 +9,7 @@
     },
     {
       "name": "path",
-      "rootUri": "../../../../third_party/pkg/path",
+      "rootUri": "../../../../third_party/pkg/core/pkgs/path",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },

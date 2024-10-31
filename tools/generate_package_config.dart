@@ -88,6 +88,19 @@ void main(List<String> args) {
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
 
+  // Remove specific packages.
+  final packagesToRemove = {
+    // If we're not using flute (i.e., this is a standard checkout), do not
+    // include package:characters in the generated package config file. Contact
+    // athom@ or ensure that license requirements are met before using this
+    // dependency in other parts of the Dart SDK.
+    if (!fluteExists) 'characters',
+  };
+
+  packages.removeWhere((p) {
+    return packagesToRemove.contains(p.name);
+  });
+
   // Check for duplicate packages - the same package sourced from multiple
   // repositories.
   final uniqueNames = packages.map((p) => p.name).toSet();
