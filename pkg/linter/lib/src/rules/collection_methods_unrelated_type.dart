@@ -259,7 +259,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       case _ExpectedArgumentKind.assignableToIterableOfTypeArgument:
         var iterableType =
-            collectionType.asInstanceOf(typeProvider.iterableElement);
+            collectionType.asInstanceOf2(typeProvider.iterableElement2);
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {
           rule.reportLint(argument, arguments: [
