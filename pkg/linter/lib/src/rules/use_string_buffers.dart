@@ -5,11 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use string buffers to compose strings.';
 
@@ -67,7 +66,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == identifier.staticElement) {
+    if (node.element == identifier.element) {
       rule.reportLint(identifier);
     }
   }
@@ -83,7 +82,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 
 class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final localElements = <Element?>{};
+  final localElements = <Element2?>{};
 
   _UseStringBufferVisitor(this.rule);
 
@@ -100,7 +99,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
         writeType is InterfaceType &&
         writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(node.writeElement?.canonicalElement)) {
+          !localElements.contains(node.writeElement2)) {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {
@@ -128,7 +127,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      localElements.add(variable.declaredElement);
+      localElements.add(variable.declaredElement2);
     }
   }
 }

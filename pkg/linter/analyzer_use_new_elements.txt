@@ -23,6 +23,7 @@ lib/src/rules/avoid_dynamic_calls.dart
 lib/src/rules/avoid_empty_else.dart
 lib/src/rules/avoid_equals_and_hash_code_on_mutable_classes.dart
 lib/src/rules/avoid_escaping_inner_quotes.dart
+lib/src/rules/avoid_field_initializers_in_const_classes.dart
 lib/src/rules/avoid_final_parameters.dart
 lib/src/rules/avoid_function_literals_in_foreach_calls.dart
 lib/src/rules/avoid_futureor_void.dart
@@ -56,6 +57,7 @@ lib/src/rules/camel_case_types.dart
 lib/src/rules/cancel_subscriptions.dart
 lib/src/rules/cast_nullable_to_non_nullable.dart
 lib/src/rules/close_sinks.dart
+lib/src/rules/collection_methods_unrelated_type.dart
 lib/src/rules/combinators_ordering.dart
 lib/src/rules/comment_references.dart
 lib/src/rules/conditional_uri_does_not_exist.dart
@@ -212,6 +214,7 @@ lib/src/rules/use_is_even_rather_than_modulo.dart
 lib/src/rules/use_named_constants.dart
 lib/src/rules/use_raw_strings.dart
 lib/src/rules/use_rethrow_when_possible.dart
+lib/src/rules/use_string_buffers.dart
 lib/src/rules/use_string_in_part_of_directives.dart
 lib/src/rules/use_super_parameters.dart
 lib/src/rules/use_test_throws_matchers.dart
