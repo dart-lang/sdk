@@ -1,0 +1,53 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_update_4/assignment_promotion_in_if_statement.dart:44:7: Error: The getter 'isEven' isn't defined for the class 'num'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
+//     x.isEven; // Error.
+//       ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method nullableInt() → core::int?
+  return 1;
+static method notEqualNull_assignIfNull() → dynamic {
+  has-declared-initializer core::int? x = null;
+  if(!((let final core::int? #t1 = x in #t1 == null ?{core::int?} x = self::nullableInt() : #t1{core::int}) == null)) {
+    x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method notEqualNullNull_eq() → dynamic {
+  has-declared-initializer core::int? x = null;
+  if(!((x = self::nullableInt()) == null)) {
+    x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method is_eq() → dynamic {
+  has-declared-initializer core::int? x = null;
+  if((x = self::nullableInt()) is core::int) {
+    x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method is_plusEq() → dynamic {
+  core::num x = 2;
+  if((x = x.{core::num::+}(1){(core::num) → core::num}) is core::int) {
+    x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method is_postfix() → dynamic {
+  core::num x = 2;
+  if((let final core::num #t2 = x in let final core::num #t3 = x = #t2.{core::num::+}(1){(core::num) → core::num} in #t2) is core::int) {
+    invalid-expression "pkg/front_end/testcases/inference_update_4/assignment_promotion_in_if_statement.dart:44:7: Error: The getter 'isEven' isn't defined for the class 'num'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
+    x.isEven; // Error.
+      ^^^^^^" in x{<unresolved>}.isEven;
+  }
+}
+static method is_prefix() → dynamic {
+  core::num x = 2;
+  if((x = x.{core::num::+}(1){(core::num) → core::num}) is core::int) {
+    x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
