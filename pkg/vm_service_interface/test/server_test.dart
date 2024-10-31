@@ -9,39 +9,46 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 void main() {
-  late MockVmServiceImplementation serviceMock;
-  late StreamController<Map<String, Object>> requestsController;
-  late StreamController<Map<String, Object?>> responsesController;
-  late ServiceExtensionRegistry serviceRegistry;
-
-  setUp(() {
-    serviceMock = MockVmServiceImplementation();
-    requestsController = StreamController<Map<String, Object>>();
-    responsesController = StreamController<Map<String, Object?>>();
-    serviceRegistry = ServiceExtensionRegistry();
-    VmServerConnection(requestsController.stream, responsesController.sink,
-        serviceRegistry, serviceMock);
-  });
-
-  tearDown(() {
-    requestsController.close();
-    responsesController.close();
-  });
-
   group('method delegation', () {
+    late MockVmService serviceMock;
+    late StreamController<Map<String, Object>> requestsController;
+    late StreamController<Map<String, Object?>> responsesController;
+    late ServiceExtensionRegistry serviceRegistry;
+
+    setUp(() {
+      serviceMock = MockVmService();
+      requestsController = StreamController();
+      responsesController = StreamController();
+      serviceRegistry = ServiceExtensionRegistry();
+
+      VmServerConnection(
+        requestsController.stream,
+        responsesController.sink,
+        serviceRegistry,
+        serviceMock,
+      );
+    });
+
+    tearDown(() {
+      requestsController.close();
+      responsesController.close();
+    });
+
     test('works for simple methods', () {
       var request = rpcRequest('getVersion');
       var version = Version(major: 1, minor: 0);
-      when(serviceMock.getVersion()).thenAnswer((_) => Future.value(version));
+
+      serviceMock.version = version;
+
       expect(responsesController.stream, emits(rpcResponse(version)));
       requestsController.add(request);
     });
+
     test('works for methods with parameters', () {
       var isolate = Isolate(
         name: 'isolate',
@@ -63,11 +70,9 @@ void main() {
       );
       var request =
           rpcRequest('getIsolate', params: {'isolateId': isolate.id!});
-      when(serviceMock.getIsolate(isolate.id!))
-          .thenAnswer((Invocation invocation) {
-        expect(invocation.positionalArguments, equals([isolate.id]));
-        return Future.value(isolate);
-      });
+
+      serviceMock.isolates[isolate.id!] = isolate;
+
       expect(responsesController.stream, emits(rpcResponse(isolate)));
       requestsController.add(request);
     });
@@ -97,128 +102,174 @@ void main() {
         // code under test.
         'recordedStreams': <dynamic>['GC', 'Dart', 'Embedder'],
       });
+
+      serviceMock.isolates[isolate.id!] = isolate;
       var response = Success();
-      when(serviceMock.getIsolate(isolate.id!))
-          .thenAnswer((Invocation invocation) {
-        expect(invocation.namedArguments,
-            equals({Symbol('isolateId'): null, Symbol('args'): null}));
-        return Future.value(isolate);
-      });
+
       expect(responsesController.stream, emits(rpcResponse(response)));
       requestsController.add(request);
     });
+  });
 
-    group('custom service extensions', () {
-      test('with no params or isolateId', () {
-        var extension = 'ext.cool';
-        var request = rpcRequest(extension, params: null);
-        var response = Response()..json = {'hello': 'world'};
-        when(serviceMock.callServiceExtension(
-          extension,
-          isolateId: argThat(isNull, named: 'isolateId'),
-          args: argThat(isNull, named: 'args'),
-        )).thenAnswer((Invocation invocation) {
-          expect(invocation.namedArguments,
-              equals({Symbol('isolateId'): null, Symbol('args'): null}));
-          return Future.value(response);
-        });
-        expect(responsesController.stream, emits(rpcResponse(response)));
-        requestsController.add(request);
-      });
+  group('custom service extensions', () {
+    late MockVmService serviceMock;
+    late StreamController<Map<String, Object>> requestsController;
+    late StreamController<Map<String, Object?>> responsesController;
+    late ServiceExtensionRegistry serviceRegistry;
 
-      test('with isolateId and no other params', () {
-        var extension = 'ext.cool';
-        var request = rpcRequest(extension, params: {'isolateId': '1'});
-        var response = Response()..json = {'hello': 'world'};
-        when(serviceMock.callServiceExtension(
-          extension,
-          isolateId: argThat(equals('1'), named: 'isolateId'),
-          args: argThat(equals({}), named: 'args'),
-        )).thenAnswer((Invocation invocation) {
-          expect(invocation.namedArguments,
-              equals({Symbol('isolateId'): '1', Symbol('args'): {}}));
-          return Future.value(response);
-        });
-        expect(responsesController.stream, emits(rpcResponse(response)));
-        requestsController.add(request);
-      });
+    setUp(() {
+      serviceMock = MockVmService();
+      requestsController = StreamController();
+      responsesController = StreamController();
+      serviceRegistry = ServiceExtensionRegistry();
 
-      test('with params and no isolateId', () {
-        var extension = 'ext.cool';
-        var params = {'cool': 'option'};
-        var request = rpcRequest(extension, params: params);
-        var response = Response()..json = {'hello': 'world'};
-        when(serviceMock.callServiceExtension(
-          extension,
-          isolateId: argThat(isNull, named: 'isolateId'),
-          args: argThat(equals(params), named: 'args'),
-        )).thenAnswer((Invocation invocation) {
-          expect(invocation.namedArguments,
-              equals({Symbol('isolateId'): null, Symbol('args'): params}));
-          return Future.value(response);
-        });
-        expect(responsesController.stream, emits(rpcResponse(response)));
-        requestsController.add(request);
-      });
+      VmServerConnection(
+        requestsController.stream,
+        responsesController.sink,
+        serviceRegistry,
+        serviceMock,
+      );
+    });
 
-      test('with params and isolateId', () {
-        var extension = 'ext.cool';
-        var params = {'cool': 'option'};
-        var request =
-            rpcRequest(extension, params: Map.of(params)..['isolateId'] = '1');
-        var response = Response()..json = {'hello': 'world'};
-        when(serviceMock.callServiceExtension(
-          extension,
-          isolateId: argThat(equals('1'), named: 'isolateId'),
-          args: argThat(equals(params), named: 'args'),
-        )).thenAnswer((Invocation invocation) {
-          expect(invocation.namedArguments,
-              equals({Symbol('isolateId'): '1', Symbol('args'): params}));
-          return Future.value(response);
-        });
-        expect(responsesController.stream, emits(rpcResponse(response)));
-        requestsController.add(request);
-      });
+    tearDown(() {
+      requestsController.close();
+      responsesController.close();
+    });
+
+    test('with no params or isolateId', () {
+      var extension = 'ext.cool';
+      var request = rpcRequest(extension, params: null);
+      var response = Response()..json = {'hello': 'world'};
+
+      serviceMock.serviceExtensionResponse = response;
+      requestsController.add(request);
+
+      expect(responsesController.stream, emits(rpcResponse(response)));
+    });
+
+    test('with isolateId and no other params', () {
+      var extension = 'ext.cool';
+      var request = rpcRequest(extension, params: {'isolateId': '1'});
+      var response = Response()..json = {'hello': 'world'};
+
+      serviceMock.serviceExtensionResponse = response;
+      requestsController.add(request);
+
+      expect(responsesController.stream, emits(rpcResponse(response)));
+    });
+
+    test('with params and no isolateId', () {
+      var extension = 'ext.cool';
+      var params = {'cool': 'option'};
+      var request = rpcRequest(extension, params: params);
+      var response = Response()..json = {'hello': 'world'};
+
+      serviceMock.serviceExtensionResponse = response;
+      requestsController.add(request);
+
+      expect(responsesController.stream, emits(rpcResponse(response)));
+    });
+
+    test('with params and isolateId', () {
+      var extension = 'ext.cool';
+      var params = {'cool': 'option'};
+      var request =
+          rpcRequest(extension, params: Map.of(params)..['isolateId'] = '1');
+      var response = Response()..json = {'hello': 'world'};
+
+      serviceMock.serviceExtensionResponse = response;
+      requestsController.add(request);
+
+      expect(responsesController.stream, emits(rpcResponse(response)));
     });
   });
 
   group('error handling', () {
+    late MockVmService serviceMock;
+    late StreamController<Map<String, Object>> requestsController;
+    late StreamController<Map<String, Object?>> responsesController;
+    late ServiceExtensionRegistry serviceRegistry;
+
+    setUp(() {
+      serviceMock = MockVmService();
+      requestsController = StreamController();
+      responsesController = StreamController();
+      serviceRegistry = ServiceExtensionRegistry();
+
+      VmServerConnection(
+        requestsController.stream,
+        responsesController.sink,
+        serviceRegistry,
+        serviceMock,
+      );
+    });
+
+    tearDown(() {
+      requestsController.close();
+      responsesController.close();
+    });
+
     test('special cases RPCError instances', () {
       var request = rpcRequest('getVersion');
       var error =
           RPCError('getVersion', 1234, 'custom message', {'custom': 'data'});
-      when(serviceMock.getVersion()).thenAnswer((_) => Future.error(error));
-      expect(responsesController.stream, emits(rpcErrorResponse(error)));
+
+      serviceMock.versionError = error;
       requestsController.add(request);
+
+      expect(responsesController.stream, emits(rpcErrorResponse(error)));
     });
 
     test('has a fallback for generic exceptions', () {
       var request = rpcRequest('getVersion');
-      var error = UnimplementedError();
-      when(serviceMock.getVersion()).thenAnswer((_) => Future.error(error));
+
+      requestsController.add(request);
+
       expect(
           responsesController.stream.map((response) => '$response'),
-          emits(startsWith(
-              '{jsonrpc: 2.0, id: 1, error: {code: -32603, message: getVersion: UnimplementedError')));
-      requestsController.add(request);
+          emits(startsWith('{jsonrpc: 2.0, id: 1, '
+              'error: {code: -32603, message: getVersion: UnimplementedError')));
     });
   });
 
   group('streams', () {
+    late MockVmService serviceMock;
+    late StreamController<Map<String, Object>> requestsController;
+    late StreamController<Map<String, Object?>> responsesController;
+    late ServiceExtensionRegistry serviceRegistry;
+
+    setUp(() {
+      serviceMock = MockVmService();
+      requestsController = StreamController();
+      responsesController = StreamController();
+      serviceRegistry = ServiceExtensionRegistry();
+
+      VmServerConnection(
+        requestsController.stream,
+        responsesController.sink,
+        serviceRegistry,
+        serviceMock,
+      );
+    });
+
+    tearDown(() {
+      requestsController.close();
+      responsesController.close();
+    });
+
     test('can be listened to and canceled', () async {
-      var streamId = 'Isolate';
-      var responseQueue = StreamQueue(responsesController.stream);
       StreamController<Event> eventController;
+      var responseQueue = StreamQueue(responsesController.stream);
+
       {
         var request =
-            rpcRequest('streamListen', params: {'streamId': streamId});
+            rpcRequest('streamListen', params: {'streamId': 'Isolate'});
         var response = Success();
-        when(serviceMock.streamListen(streamId))
-            .thenAnswer((_) => Future.value(response));
         requestsController.add(request);
+
         await expectLater(responseQueue, emitsThrough(rpcResponse(response)));
 
-        eventController = serviceMock.streamControllers[streamId]!;
+        eventController = serviceMock.streamControllers['Isolate']!;
 
         var events = [
           Event(
@@ -234,15 +285,15 @@ void main() {
         await expectLater(
             responseQueue,
             emitsInOrder(
-                events.map((event) => streamNotifyResponse(streamId, event))));
+                events.map((event) => streamNotifyResponse('Isolate', event))));
       }
+
       {
         var request =
-            rpcRequest('streamCancel', params: {'streamId': streamId});
+            rpcRequest('streamCancel', params: {'streamId': 'Isolate'});
         var response = Success();
-        when(serviceMock.streamListen(streamId))
-            .thenAnswer((_) => Future.value(response));
         requestsController.add(request);
+
         await expectLater(responseQueue, emitsThrough(rpcResponse(response)));
 
         var nextEvent = Event(
@@ -251,38 +302,38 @@ void main() {
         );
         eventController.add(nextEvent);
         expect(responseQueue,
-            neverEmits(streamNotifyResponse(streamId, nextEvent)));
+            neverEmits(streamNotifyResponse('Isolate', nextEvent)));
 
         await pumpEventQueue();
         await eventController.close();
         await responsesController.close();
       }
     });
+
     test("can't be listened to twice", () {
-      var streamId = 'Isolate';
       var responseQueue = StreamQueue(responsesController.stream);
+
       {
         var request =
-            rpcRequest('streamListen', params: {'streamId': streamId});
+            rpcRequest('streamListen', params: {'streamId': 'Isolate'});
         var response = Success();
-        when(serviceMock.streamListen(streamId))
-            .thenAnswer((_) => Future.value(response));
         requestsController.add(request);
+
         expect(responseQueue, emitsThrough(rpcResponse(response)));
       }
+
       {
         var request =
-            rpcRequest('streamListen', params: {'streamId': streamId});
-        var response = Success();
-        when(serviceMock.streamListen(streamId))
-            .thenAnswer((_) => Future.value(response));
+            rpcRequest('streamListen', params: {'streamId': 'Isolate'});
         requestsController.add(request);
+
         expect(
-            responseQueue,
-            emitsThrough(rpcErrorResponse(
-                RPCError('streamSubscribe', 103, 'Stream already subscribed', {
-              'details': "The stream '$streamId' is already subscribed",
-            }))));
+          responseQueue,
+          emitsThrough(rpcErrorResponse(
+              RPCError('streamSubscribe', 103, 'Stream already subscribed', {
+            'details': "The stream 'Isolate' is already subscribed",
+          }))),
+        );
       }
     });
 
@@ -291,110 +342,127 @@ void main() {
       var responseQueue = StreamQueue(responsesController.stream);
 
       var request = rpcRequest('streamCancel', params: {'streamId': streamId});
-      var response = Success();
-      when(serviceMock.streamListen(streamId))
-          .thenAnswer((_) => Future.value(response));
       requestsController.add(request);
+
       expect(
-          responseQueue,
-          emitsThrough(rpcErrorResponse(
-              RPCError('streamCancel', 104, 'Stream not subscribed', {
-            'details': "The stream '$streamId' is not subscribed",
-          }))));
+        responseQueue,
+        emitsThrough(rpcErrorResponse(
+            RPCError('streamCancel', 104, 'Stream not subscribed', {
+          'details': "The stream '$streamId' is not subscribed",
+        }))),
+      );
     });
 
-    group('Service', () {
-      final serviceStream = 'Service';
+    test('gives register and unregister events', () async {
+      var serviceId = 'ext.test.service';
+      var serviceRegisteredEvent = streamNotifyResponse(
+        'Service',
+        Event(
+          kind: EventKind.kServiceRegistered,
+          timestamp: 0,
+          method: serviceId,
+          service: serviceId,
+        ),
+      );
+      var serviceUnRegisteredEvent = streamNotifyResponse(
+        'Service',
+        Event(
+          kind: EventKind.kServiceUnregistered,
+          timestamp: 0,
+          method: serviceId,
+          service: serviceId,
+        ),
+      );
 
-      test('gives register and unregister events', () async {
-        var serviceId = 'ext.test.service';
-        var serviceRegisteredEvent = streamNotifyResponse(
-          serviceStream,
-          Event(
-            kind: EventKind.kServiceRegistered,
-            timestamp: 0,
-            method: serviceId,
-            service: serviceId,
-          ),
-        );
-        var serviceUnRegisteredEvent = streamNotifyResponse(
-          serviceStream,
-          Event(
-            kind: EventKind.kServiceUnregistered,
-            timestamp: 0,
-            method: serviceId,
-            service: serviceId,
-          ),
-        );
+      requestsController
+          .add(rpcRequest('streamListen', params: {'streamId': 'Service'}));
+      requestsController
+          .add(rpcRequest('registerService', params: {'service': serviceId}));
+      await expectLater(
+          responsesController.stream
+              .map((Map response) => stripEventTimestamp(response)),
+          emitsThrough(serviceRegisteredEvent));
 
-        requestsController.add(
-            rpcRequest('streamListen', params: {'streamId': serviceStream}));
-        requestsController
-            .add(rpcRequest('registerService', params: {'service': serviceId}));
-        await expectLater(
-            responsesController.stream
-                .map((Map response) => stripEventTimestamp(response)),
-            emitsThrough(serviceRegisteredEvent));
-
-        // Connect another client to get the previous register events and the
-        // unregister event.
-        var requestsController2 = StreamController<Map<String, Object>>();
-        var responsesController2 = StreamController<Map<String, Object?>>();
-        addTearDown(() {
-          requestsController2.close();
-          responsesController2.close();
-        });
-
-        VmServerConnection(
-          requestsController2.stream,
-          responsesController2.sink,
-          serviceRegistry,
-          MockVmServiceImplementation(),
-        );
-
-        expect(
-            responsesController2.stream
-                .map((Map response) => stripEventTimestamp(response)),
-            emitsThrough(emitsInOrder(
-                [serviceRegisteredEvent, serviceUnRegisteredEvent])));
-
-        // Should get the previously registered extension event, as well as
-        // the unregister event when the client disconnects.
-        requestsController2.add(
-            rpcRequest('streamListen', params: {'streamId': serviceStream}));
-        // Need to give the client a chance to subscribe.
-        await pumpEventQueue();
-        unawaited(requestsController.close());
-        // Give the old client a chance to shut down
-        await pumpEventQueue();
-
-        // Connect yet another client, it should get zero registration or
-        // unregistration events.
-        var requestsController3 = StreamController<Map<String, Object>>();
-        var responsesController3 = StreamController<Map<String, Object?>>();
-
-        VmServerConnection(
-          requestsController3.stream,
-          responsesController3.sink,
-          serviceRegistry,
-          MockVmServiceImplementation(),
-          //VmService(Stream.empty(), (String _) => null),
-        );
-        expect(
-            responsesController3.stream,
-            neverEmits(
-                anyOf(serviceRegisteredEvent, serviceUnRegisteredEvent)));
-        // Give it a chance to deliver events.
-        await pumpEventQueue();
-        // Disconnect the client so the test can shut down.
-        unawaited(requestsController3.close());
-        unawaited(responsesController3.close());
+      // Connect another client to get the previous register events and the
+      // unregister event.
+      var requestsController2 = StreamController<Map<String, Object>>();
+      var responsesController2 = StreamController<Map<String, Object?>>();
+      addTearDown(() {
+        requestsController2.close();
+        responsesController2.close();
       });
+
+      VmServerConnection(
+        requestsController2.stream,
+        responsesController2.sink,
+        serviceRegistry,
+        MockVmService(),
+      );
+
+      expect(
+          responsesController2.stream
+              .map((Map response) => stripEventTimestamp(response)),
+          emitsThrough(emitsInOrder(
+              [serviceRegisteredEvent, serviceUnRegisteredEvent])));
+
+      // Should get the previously registered extension event, as well as
+      // the unregister event when the client disconnects.
+      requestsController2
+          .add(rpcRequest('streamListen', params: {'streamId': 'Service'}));
+      // Need to give the client a chance to subscribe.
+      await pumpEventQueue();
+      unawaited(requestsController.close());
+      // Give the old client a chance to shut down
+      await pumpEventQueue();
+
+      // Connect yet another client, it should get zero registration or
+      // unregistration events.
+      var requestsController3 = StreamController<Map<String, Object>>();
+      var responsesController3 = StreamController<Map<String, Object?>>();
+
+      VmServerConnection(
+        requestsController3.stream,
+        responsesController3.sink,
+        serviceRegistry,
+        MockVmService(),
+      );
+
+      expect(responsesController3.stream,
+          neverEmits(anyOf(serviceRegisteredEvent, serviceUnRegisteredEvent)));
+      // Give it a chance to deliver events.
+      await pumpEventQueue();
+      // Disconnect the client so the test can shut down.
+      unawaited(requestsController3.close());
+      unawaited(responsesController3.close());
     });
   });
 
   group('registerService', () {
-    test('can delegate requests between clients', () async {
+    late MockVmService serviceMock;
+    late StreamController<Map<String, Object>> requestsController;
+    late StreamController<Map<String, Object?>> responsesController;
+    late ServiceExtensionRegistry serviceRegistry;
+
+    setUp(() {
+      serviceMock = MockVmService();
+      requestsController = StreamController();
+      responsesController = StreamController();
+      serviceRegistry = ServiceExtensionRegistry();
+
+      VmServerConnection(
+        requestsController.stream,
+        responsesController.sink,
+        serviceRegistry,
+        serviceMock,
+      );
+    });
+
+    tearDown(() {
+      requestsController.close();
+      responsesController.close();
+    });
+
+    test('registerService can delegate requests between clients', () async {
       var serviceId = 'ext.test.service';
       var responseQueue = StreamQueue(responsesController.stream);
 
@@ -438,12 +506,9 @@ void main() {
       await clientConnection.done;
 
       var mockResponse = Response()..json = {'mock': 'response'};
-      when(serviceMock.callServiceExtension(serviceId,
-              args: argThat(equals(requestParams), named: 'args'),
-              isolateId: argThat(isNull, named: 'isolateId')))
-          .thenAnswer((_) async => mockResponse);
-
+      serviceMock.serviceExtensionResponse = mockResponse;
       requestsController.add(serviceRequest);
+
       expect(await responseQueue.next, rpcResponse(mockResponse));
     });
   });
@@ -506,59 +571,57 @@ Map<String, Object?> stripEventTimestamp(Map response) {
   return response as Map<String, Object?>;
 }
 
-class MockVmServiceImplementation extends Mock implements VmServiceInterface {
+class MockVmService implements VmServiceInterface {
+  Version? version;
+  RPCError? versionError;
+  Response? serviceExtensionResponse;
+
+  final Map<String, Isolate> isolates = {};
   final streamControllers = <String, StreamController<Event>>{};
 
+  // Override `noSuchMethod` to capture any [VmServiceInterface] method we don't
+  // explicitly override for testing purposes.
   @override
-  Future<Version> getVersion() {
-    return super.noSuchMethod(Invocation.method(#getVersion, []),
-        returnValue: Future.value(Version(major: 0, minor: 0)));
+  dynamic noSuchMethod(Invocation invocation) {
+    throw UnimplementedError('$invocation.memberName');
+  }
+
+  @override
+  Future<Response> callServiceExtension(String method,
+      {String? isolateId, Map<String, dynamic>? args}) {
+    return Future.value(serviceExtensionResponse!);
   }
 
   @override
   Future<Isolate> getIsolate(String isolateId) {
-    return super.noSuchMethod(Invocation.method(#getIsolate, [isolateId]),
-        returnValue: Future.value(Isolate(
-            id: null,
-            number: null,
-            name: null,
-            isSystemIsolate: null,
-            isolateFlags: null,
-            startTime: null,
-            runnable: null,
-            livePorts: null,
-            pauseOnExit: null,
-            pauseEvent: null,
-            libraries: null,
-            breakpoints: null,
-            exceptionPauseMode: null)));
+    return Future.sync(() => isolates[isolateId]!);
   }
 
   @override
-  Future<Response> callServiceExtension(
-    String method, {
-    String? isolateId,
-    Map<String, dynamic>? args,
-  }) {
-    return super.noSuchMethod(
-        Invocation.method(#callServiceExtension, [method],
-            {#isolateId: isolateId, #args: args}),
-        returnValue: Future.value(Response()));
+  Future<Version> getVersion() {
+    if (versionError != null) {
+      return Future.error(versionError!);
+    } else if (version != null) {
+      return Future.value(version!);
+    } else {
+      return Future.error(UnimplementedError('getVersion'));
+    }
+  }
+
+  @override
+  Stream<Event> onEvent(String streamId) {
+    return streamControllers
+        .putIfAbsent(streamId, () => StreamController<Event>())
+        .stream;
+  }
+
+  @override
+  Future<Success> setVMTimelineFlags(List<String> recordedStreams) {
+    return Future.value(Success());
   }
 
   @override
   Future<Success> streamListen(String streamId) {
-    return super.noSuchMethod(Invocation.method(#streamListen, [streamId]),
-        returnValue: Future.value(Success()));
-  }
-
-  @override
-  Stream<Event> onEvent(String streamId) => streamControllers
-      .putIfAbsent(streamId, () => StreamController<Event>())
-      .stream;
-
-  @override
-  Future<Success> setVMTimelineFlags(List<String> recordedStreams) async {
-    return Success();
+    return Future.value(Success());
   }
 }
