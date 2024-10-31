@@ -106,11 +106,15 @@ class PluginException implements Exception {
   String toString() => message;
 }
 
+/// The necessary files that define an analyzer plugin on disk.
 class PluginFiles {
+  /// The plugin entry point.
   final File execution;
-  final File packages;
 
-  PluginFiles(this.execution, this.packages);
+  /// The plugin package config file.
+  final File packageConfig;
+
+  PluginFiles(this.execution, this.packageConfig);
 }
 
 /// Information about a single plugin.
@@ -314,9 +318,11 @@ class PluginManager {
   /// Stream emitting an event when known [plugins] change.
   Stream<void> get pluginsChanged => _pluginsChanged.stream;
 
-  /// Add the plugin with the given [path] to the list of plugins that should be
-  /// used when analyzing code for the given [contextRoot]. If the plugin had
-  /// not yet been started, then it will be started by this method.
+  /// Adds the plugin with the given [path] to the list of plugins that should
+  /// be used when analyzing code for the given [contextRoot].
+  ///
+  /// If the plugin had not yet been started, then it will be started by this
+  /// method.
   Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     var plugin = _pluginMap[path];
@@ -336,7 +342,7 @@ class PluginManager {
       plugin = DiscoveredPluginInfo(
           path,
           pluginFiles.execution.path,
-          pluginFiles.packages.path,
+          pluginFiles.packageConfig.path,
           notificationManager,
           instrumentationService);
       _pluginMap[path] = plugin;
@@ -425,8 +431,9 @@ class PluginManager {
     return responses;
   }
 
-  /// Return the files associated with the plugin at the given [pluginPath].
-  /// Throw a [PluginException] if there is a problem that prevents the plugin
+  /// Returns the files associated with the plugin at the given [pluginPath].
+  ///
+  /// Throws a [PluginException] if there is a problem that prevents the plugin
   /// from being executing.
   @visibleForTesting
   PluginFiles filesFor(String pluginPath) {
@@ -443,12 +450,11 @@ class PluginManager {
       // there is exactly one version of each package.
       return _computeFiles(pluginFolder, workspace: workspace);
     }
-    //
+
     // Copy the plugin directory to a unique subdirectory of the plugin
     // manager's state location. The subdirectory's name is selected such that
-    // it will be invariant across sessions, reducing the number of times the
-    // plugin will need to be copied and pub will need to be run.
-    //
+    // it will be invariant across sessions, reducing the number of times we
+    // copy the plugin contents, and the number of times we run `pub`.
     var stateFolder = resourceProvider.getStateLocation('.plugin_manager');
     if (stateFolder == null) {
       throw PluginException('No state location, so plugin could not be copied');
@@ -598,24 +604,25 @@ class PluginManager {
     }));
   }
 
-  /// Compute the files to be returned by the enclosing method given that the
-  /// plugin should exist in the given [pluginFolder].
+  /// Computes the plugin files, given that the plugin should exist in
+  /// [pluginFolder].
   ///
-  /// Runs pub if [pubCommand] is provided and not null.
+  /// Runs `pub` if [pubCommand] is not `null`.
   PluginFiles _computeFiles(Folder pluginFolder,
       {String? pubCommand, Workspace? workspace}) {
     var pluginFile = pluginFolder
         .getChildAssumingFolder('bin')
         .getChildAssumingFile('plugin.dart');
     if (!pluginFile.exists) {
-      throw PluginException('File "${pluginFile.path}" does not exist.');
+      throw PluginException("File '${pluginFile.path}' does not exist.");
     }
-    String? reason;
-    File? packagesFile = pluginFolder
+    File? packageConfigFile = pluginFolder
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
+
     if (pubCommand != null) {
       var result = _runPubCommand(pubCommand, pluginFolder);
+      String? exceptionReason;
       if (result.exitCode != 0) {
         var buffer = StringBuffer();
         buffer.writeln('Failed to run pub $pubCommand');
@@ -623,31 +630,30 @@ class PluginManager {
         buffer.writeln('  exitCode = ${result.exitCode}');
         buffer.writeln('  stdout = ${result.stdout}');
         buffer.writeln('  stderr = ${result.stderr}');
-        reason = buffer.toString();
-        instrumentationService.logError(reason);
+        exceptionReason = buffer.toString();
+        instrumentationService.logError(exceptionReason);
       }
-      if (!packagesFile.exists) {
-        reason ??= 'File "${packagesFile.path}" does not exist.';
-        packagesFile = null;
+      if (!packageConfigFile.exists) {
+        exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
+        throw PluginException(exceptionReason);
       }
-    } else if (!packagesFile.exists) {
-      if (workspace != null) {
-        packagesFile =
-            _createPackagesFile(pluginFolder, workspace.packageUriResolver);
-        if (packagesFile == null) {
-          var name = file_paths.packageConfigJson;
-          reason = 'Could not create $name file in workspace $workspace.';
-        }
-      } else {
-        reason = 'Could not create "${packagesFile.path}".';
-        packagesFile = null;
+      return PluginFiles(pluginFile, packageConfigFile);
+    }
+
+    if (!packageConfigFile.exists) {
+      if (workspace == null) {
+        throw PluginException('Could not create "${packageConfigFile.path}".');
+      }
+
+      packageConfigFile =
+          _createPackageConfigFile(pluginFolder, workspace.packageUriResolver);
+      if (packageConfigFile == null) {
+        throw PluginException(
+            "Could not create the '${file_paths.packageConfigJson}' file in "
+            "the workspace at '$workspace'.");
       }
     }
-    if (packagesFile == null) {
-      reason ??= 'Could not create packages file for an unknown reason.';
-      throw PluginException(reason);
-    }
-    return PluginFiles(pluginFile, packagesFile);
+    return PluginFiles(pluginFile, packageConfigFile);
   }
 
   WatchEventType _convertChangeType(watcher.ChangeType type) {
@@ -663,17 +669,18 @@ class PluginManager {
     return WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
   }
 
-  /// Return a temporary `package_config.json` file that is appropriate for
-  /// the plugin in the given [pluginFolder]. The [packageUriResolver] is
-  /// used to determine the location of the packages that need to be included
-  /// in the packages file.
-  File? _createPackagesFile(
+  /// Returns a temporary `package_config.json` file that is appropriate for
+  /// the plugin in the given [pluginFolder].
+  ///
+  /// The [packageUriResolver] is used to determine the location of the
+  /// packages that need to be included in the package config file.
+  File? _createPackageConfigFile(
       Folder pluginFolder, UriResolver packageUriResolver) {
     var pluginPath = pluginFolder.path;
     var stateFolder = resourceProvider.getStateLocation('.plugin_manager')!;
     var stateName = '${_uniqueDirectoryName(pluginPath)}.packages';
-    var packagesFile = stateFolder.getChildAssumingFile(stateName);
-    if (!packagesFile.exists) {
+    var packageConfigFile = stateFolder.getChildAssumingFile(stateName);
+    if (!packageConfigFile.exists) {
       var pluginPubspec =
           pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
       if (!pluginPubspec.exists) {
@@ -723,7 +730,7 @@ class PluginManager {
             rootPath: package.root.path,
           );
         }
-        packagesFile.writeAsStringSync(
+        packageConfigFile.writeAsStringSync(
           packageConfigBuilder.toContent(
             toUriStr: (path) {
               return resourceProvider.pathContext.toUri(path).toString();
@@ -731,12 +738,12 @@ class PluginManager {
           ),
         );
       } catch (exception) {
-        // If we are not able to produce a .packages file, return null so that
-        // callers will not try to load the plugin.
+        // If we are not able to produce a package config file, return `null` so
+        // that callers will not try to load the plugin.
         return null;
       }
     }
-    return packagesFile;
+    return packageConfigFile;
   }
 
   void _notifyPluginsChanged() => _pluginsChanged.add(null);
@@ -781,7 +788,7 @@ class PluginManager {
     return result;
   }
 
-  /// Return a hex-encoded MD5 signature of the given file [path].
+  /// Returns a hex-encoded MD5 signature of the given file [path].
   String _uniqueDirectoryName(String path) {
     var bytes = md5.convert(path.codeUnits).bytes;
     return hex.encode(bytes);
