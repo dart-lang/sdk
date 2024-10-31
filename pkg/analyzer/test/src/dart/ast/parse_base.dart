@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
@@ -36,12 +36,17 @@ class ParseBase with ResourceProviderMixin {
 
     var token = scanner.tokenize();
     var lineInfo = LineInfo(scanner.lineStarts);
+    var languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: scanner.overrideVersion,
+    );
     featureSet = scanner.featureSet;
 
     var parser = Parser(
       source,
       errorListener,
       featureSet: featureSet,
+      languageVersion: languageVersion,
       lineInfo: lineInfo,
     );
 

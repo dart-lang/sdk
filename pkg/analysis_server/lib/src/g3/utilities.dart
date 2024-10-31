@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -61,12 +62,17 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     );
   var token = scanner.tokenize(reportScannerErrors: false);
   var lineInfo = LineInfo(scanner.lineStarts);
+  var languageVersion = LibraryLanguageVersion(
+    package: ExperimentStatus.currentVersion,
+    override: scanner.overrideVersion,
+  );
 
   var parser = p.Parser(
     source,
     errorListener,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
+    languageVersion: languageVersion,
   );
 
   var unit = parser.parseCompilationUnit(token);

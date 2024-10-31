@@ -13,7 +13,9 @@ import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
@@ -213,7 +215,14 @@ void parseFull(Uri uri, Uint8List source) {
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri, LineInfo lineInfo)
       : super(
-            null, uri, true, FeatureSet.latestLanguageVersion(), lineInfo, uri);
+            null,
+            uri,
+            true,
+            FeatureSet.latestLanguageVersion(),
+            LibraryLanguageVersion(
+                package: ExperimentStatus.currentVersion, override: null),
+            lineInfo,
+            uri);
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

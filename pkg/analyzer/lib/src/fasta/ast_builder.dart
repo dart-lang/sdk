@@ -58,6 +58,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -164,12 +165,14 @@ class AstBuilder extends StackListener {
 
   final FeatureSet _featureSet;
 
+  final LibraryLanguageVersion _languageVersion;
+
   final LineInfo _lineInfo;
 
   Token? _enclosingDeclarationAugmentToken;
 
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
-      this._featureSet, this._lineInfo,
+      this._featureSet, this._languageVersion, this._lineInfo,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
         enableAugmentations = _featureSet.isEnabled(Feature.augmentations),
@@ -1412,6 +1415,7 @@ class AstBuilder extends StackListener {
       endToken: endToken,
       featureSet: _featureSet,
       lineInfo: _lineInfo,
+      languageVersion: _languageVersion,
       invalidNodes: invalidNodes,
     );
     push(unit);
@@ -5791,6 +5795,7 @@ class AstBuilder extends StackListener {
       errorReporter.errorReporter,
       uri,
       _featureSet,
+      _languageVersion,
       _lineInfo,
       dartdoc,
     ).build();

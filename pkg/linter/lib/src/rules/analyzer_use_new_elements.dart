@@ -30,6 +30,7 @@ bool _isOldModelElement(Element2? element) {
         'ElementAnnotation',
         'ElementKind',
         'ElementLocation',
+        'LibraryLanguageVersion',
       }.contains(firstFragment.name2?.name)) {
         return false;
       }
