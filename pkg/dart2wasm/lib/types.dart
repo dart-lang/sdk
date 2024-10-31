@@ -202,7 +202,8 @@ class Types {
 
     final names = translator.constants.makeArrayOf(
         translator.coreTypes.stringNonNullableRawType,
-        type.named.map((t) => StringConstant(t.name)).toList());
+        type.named.map((t) => StringConstant(t.name)).toList(),
+        mutable: false);
 
     translator.constants.instantiateConstant(
         codeGen.b, names, recordTypeNamesFieldExpectedType);

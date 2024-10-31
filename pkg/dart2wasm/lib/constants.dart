@@ -243,7 +243,8 @@ class Constants {
       ...type.named.map((named) => named.type),
     ]);
     final names = makeArrayOf(coreTypes.stringNonNullableRawType,
-        type.named.map((t) => StringConstant(t.name)).toList());
+        type.named.map((t) => StringConstant(t.name)).toList(),
+        mutable: false);
     return _makeTypeConstant(translator.recordTypeClass, type.nullability, {
       translator.recordTypeFieldTypesField.fieldReference: fieldTypes,
       translator.recordTypeNamesField.fieldReference: names,
