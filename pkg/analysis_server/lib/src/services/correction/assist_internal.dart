@@ -60,6 +60,7 @@ import 'package:analysis_server/src/services/correction/dart/import_add_show.dar
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/invert_conditional_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/invert_if_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/join_else_with_if.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_inner.dart';
 import 'package:analysis_server/src/services/correction/dart/join_if_with_outer.dart';
 import 'package:analysis_server/src/services/correction/dart/join_variable_declaration.dart';
@@ -147,6 +148,8 @@ class AssistProcessor {
     InlineInvocation.new,
     InvertConditionalExpression.new,
     InvertIfStatement.new,
+    JoinElseWithIf.new,
+    JoinIfWithElse.new,
     JoinIfWithInner.new,
     JoinIfWithOuter.new,
     JoinVariableDeclaration.new,

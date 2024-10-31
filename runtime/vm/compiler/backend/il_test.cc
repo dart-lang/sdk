@@ -357,8 +357,9 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
         new Value(H.flow_graph()->constant_null()),
         /* dst_name */ String::Handle(String::New("not-null")),
         S.GetNextDeoptId()));
-    unbox = builder.AddDefinition(new UnboxInt64Instr(
-        new Value(cast), S.GetNextDeoptId(), BoxInstr::kGuardInputs));
+    unbox = builder.AddDefinition(
+        new UnboxInt64Instr(new Value(cast), S.GetNextDeoptId(),
+                            UnboxInstr::ValueMode::kCheckType));
 
     builder.AddInstruction(new StoreIndexedInstr(
         new Value(int64_array), new Value(index), new Value(unbox),
@@ -1214,11 +1215,11 @@ static void TestRepresentationChangeDuringCanonicalization(
         new Value(array), Slot::Array_length(), InstructionSource()));
 
     unbox = builder.AddDefinition(new UnboxInt64Instr(
-        new Value(load), DeoptId::kNone, Instruction::kNotSpeculative));
+        new Value(load), DeoptId::kNone, UnboxInstr::ValueMode::kHasValidType));
 
     add = builder.AddDefinition(new BinaryInt64OpInstr(
         Token::kADD, new Value(unbox), new Value(H.IntConstant(1)),
-        S.GetNextDeoptId(), Instruction::kNotSpeculative));
+        S.GetNextDeoptId()));
 
     Definition* box = builder.AddDefinition(new BoxInt64Instr(new Value(add)));
 
@@ -1811,12 +1812,12 @@ static const Function& BuildTestIntFunction(
                                 ? H.IntConstant(immediate_mask.value(), rep)
                                 : builder.AddParameter(1);
           if (rep != lhs->representation()) {
-            lhs =
-                builder.AddUnboxInstr(kUnboxedInt64, lhs, /*is_checked=*/false);
+            lhs = builder.AddUnboxInstr(kUnboxedInt64, lhs,
+                                        UnboxInstr::ValueMode::kHasValidType);
           }
           if (rep != rhs->representation()) {
-            rhs =
-                builder.AddUnboxInstr(kUnboxedInt64, rhs, /*is_checked=*/false);
+            rhs = builder.AddUnboxInstr(kUnboxedInt64, rhs,
+                                        UnboxInstr::ValueMode::kHasValidType);
           }
 
           auto comparison = new TestIntInstr(

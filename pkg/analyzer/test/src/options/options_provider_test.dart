@@ -110,7 +110,7 @@ analyzer:
     );
   }
 
-  test_include_analyzerErrorSeveritiesAreMerged_multipleIncludes() {
+  test_include_analyzerErrorSeveritiesAreMerged_chainOfIncludes() {
     newFile('/first_options.yaml', '''
 analyzer:
   errors:
@@ -136,6 +136,34 @@ include: second_options.yaml
     );
   }
 
+  test_include_analyzerErrorSeveritiesAreMerged_multipleIncludes() {
+    newFile('/first_options.yaml', '''
+analyzer:
+  errors:
+    error_1: error
+''');
+    newFile('/second_options.yaml', '''
+analyzer:
+  errors:
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include:
+  - first_options.yaml
+  - second_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        ErrorProcessorMatcher(ErrorProcessor('error_1', ErrorSeverity.ERROR)),
+        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+      ]),
+    );
+  }
+
   test_include_analyzerErrorSeveritiesAreMerged_outermostWins() {
     newFile('/other_options.yaml', '''
 analyzer:
@@ -148,6 +176,38 @@ include: other_options.yaml
 analyzer:
   errors:
     error_1: ignore
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.errorProcessors,
+      unorderedMatches([
+        // We want to explicitly state the expected severity.
+        // ignore: avoid_redundant_argument_values
+        ErrorProcessorMatcher(ErrorProcessor('error_1', null)),
+        ErrorProcessorMatcher(ErrorProcessor('error_2', ErrorSeverity.WARNING)),
+      ]),
+    );
+  }
+
+  test_include_analyzerErrorSeveritiesAreMerged_subsequentIncludeWins() {
+    newFile('/first_options.yaml', '''
+analyzer:
+  errors:
+    error_1: warning
+    error_2: warning
+''');
+    newFile('/second_options.yaml', '''
+analyzer:
+  errors:
+    error_1: ignore
+    error_2: warning
+''');
+    newFile(optionsFilePath, r'''
+include:
+  - first_options.yaml
+  - second_options.yaml
 ''');
 
     var options = _getOptionsObject('/');

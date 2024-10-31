@@ -893,10 +893,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     switch (_component.mode) {
       case NonNullableByDefaultCompiledMode.Strong:
         soundNullSafety = js_ast.LiteralBool(true);
-        break;
       case NonNullableByDefaultCompiledMode.Weak:
         soundNullSafety = js_ast.LiteralBool(false);
-        break;
       default:
         throw StateError('Unsupported Null Safety mode ${_component.mode}, '
             'in ${_component.location?.file}.');
@@ -3125,7 +3123,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Reserved by JS, not a valid static member name.
       case 'prototype':
         name += '_';
-        break;
       default:
         // All trailing underscores static names are reserved for the compiler
         // or SDK libraries.
@@ -3829,7 +3826,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             wrapBody:
                 _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
             bodyName: bodyName);
-        break;
       case AsyncMarker.SyncStar:
         asyncRewriter = SyncStarRewriter(
             makeSyncStarIterable:
@@ -3842,7 +3838,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             yieldStarSelector: _emitMemberName('_yieldStar',
                 member: _syncStarIteratorYieldStarMember),
             bodyName: bodyName);
-        break;
       case AsyncMarker.AsyncStar:
         asyncRewriter = AsyncStarRewriter(
             asyncStarHelper:
@@ -3859,7 +3854,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             wrapBody:
                 _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
             bodyName: bodyName);
-        break;
     }
     if (asyncRewriter != null) {
       return asyncRewriter.rewrite(fun, functionBody, functionEnd,
@@ -6856,7 +6850,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             var rti = _emitType(mapType);
             return js.call('new #.new(#)', [mapClass, rti]);
           }
-          break;
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
@@ -6871,12 +6864,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             var rti = _emitType(setType);
             return js.call('new #.new(#)', [setClass, rti]);
           }
-          break;
         case 'List':
           if (ctor.name.text == '') {
             return _emitList(type.typeArguments[0], []);
           }
-          break;
       }
     }
     var rti = _requiresRtiForInstantiation(ctorClass)

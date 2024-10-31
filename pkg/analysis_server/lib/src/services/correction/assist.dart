@@ -362,6 +362,16 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     "Invert 'if' statement",
   );
+  static const JOIN_ELSE_WITH_IF = AssistKind(
+    'dart.assist.inlineElseBlock',
+    DartAssistKindPriority.DEFAULT,
+    "Join the 'else' block with inner 'if' statement",
+  );
+  static const JOIN_IF_WITH_ELSE = AssistKind(
+    'dart.assist.inlineEnclosingElseBlock',
+    DartAssistKindPriority.DEFAULT,
+    "Join 'if' statement with outer 'else' block",
+  );
   static const JOIN_IF_WITH_INNER = AssistKind(
     'dart.assist.joinWithInnerIf',
     DartAssistKindPriority.DEFAULT,

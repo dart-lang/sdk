@@ -16,15 +16,18 @@ import 'package:yaml/yaml.dart';
 class AnalysisOptionsProvider {
   /// The source factory used to resolve include declarations
   /// in analysis options files or `null` if include is not supported.
-  SourceFactory? sourceFactory;
+  final SourceFactory? _sourceFactory;
 
-  AnalysisOptionsProvider([this.sourceFactory]);
+  AnalysisOptionsProvider([this._sourceFactory]);
 
-  /// Provide the options found in
-  /// [root]/[file_paths.analysisOptionsYaml].
-  /// Recursively merge options referenced by an include directive
-  /// and remove the include directive from the resulting options map.
-  /// Return an empty options map if the file does not exist or cannot be
+  /// Provides the analysis options that apply to [root].
+  ///
+  /// The analysis options come from either [file_paths.analysisOptionsYaml]
+  /// found directly in [root] or one of [root]'s ancestor directories.
+  ///
+  /// Recursively merges options referenced by any 'include' directives
+  /// and removes any 'include' directives from the resulting options map.
+  /// Returns an empty options map if the file does not exist or cannot be
   /// parsed.
   YamlMap getOptions(Folder root) {
     File? optionsFile = getOptionsFile(root);
@@ -34,7 +37,7 @@ class AnalysisOptionsProvider {
     return getOptionsFromFile(optionsFile);
   }
 
-  /// Return the analysis options file from which options should be read, or
+  /// Returns the analysis options file from which options should be read, or
   /// `null` if there is no analysis options file for code in the given [root].
   ///
   /// The given [root] directory will be searched first. If no file is found,
@@ -49,33 +52,47 @@ class AnalysisOptionsProvider {
     return null;
   }
 
-  /// Provide the options found in [file].
-  /// Recursively merge options referenced by an include directive
-  /// and remove the include directive from the resulting options map.
-  /// Return an empty options map if the file does not exist or cannot be
+  /// Provides the options found in [file].
+  ///
+  /// Recursively merges options referenced by any 'include' directives
+  /// and removes any 'include' directive from the resulting options map.
+  /// Returns an empty options map if the file does not exist or cannot be
   /// parsed.
   YamlMap getOptionsFromFile(File file) {
     return getOptionsFromSource(FileSource(file));
   }
 
-  /// Provide the options found in [source].
+  /// Provides the options found in [source].
   ///
-  /// Recursively merge options referenced by an `include` directive and remove
-  /// the `include` directive from the resulting options map. Return an empty
-  /// options map if the file does not exist or cannot be parsed.
+  /// Recursively merges options referenced by any `include` directives and
+  /// removes any `include` directives from the resulting options map. Returns
+  /// an empty options map if the file does not exist or cannot be parsed.
   YamlMap getOptionsFromSource(Source source) {
     try {
-      YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
-      var node = options.valueAt(AnalyzerOptions.include);
-      var sourceFactory = this.sourceFactory;
-      if (sourceFactory != null && node is YamlScalar) {
-        var path = node.value;
-        if (path is String) {
-          var parent = sourceFactory.resolveUri(source, path);
-          if (parent != null) {
-            options = merge(getOptionsFromSource(parent), options);
-          }
+      var options = getOptionsFromString(_readAnalysisOptions(source));
+      if (_sourceFactory == null) {
+        return options;
+      }
+      var includeValue = options.valueAt(AnalyzerOptions.include);
+      if (includeValue case YamlScalar(value: String path)) {
+        var includeUri = _sourceFactory.resolveUri(source, path);
+        if (includeUri != null) {
+          options = merge(getOptionsFromSource(includeUri), options);
         }
+      } else if (includeValue is YamlList) {
+        var includePaths = includeValue.nodes
+            .whereType<YamlScalar>()
+            .map((e) => e.value)
+            .whereType<String>();
+        var includeOptions = includePaths.fold(YamlMap(), (options, path) {
+          var includeUri = _sourceFactory.resolveUri(source, path);
+          if (includeUri == null) {
+            // Return the existing options, unchanged.
+            return options;
+          }
+          return merge(options, getOptionsFromSource(includeUri));
+        });
+        options = merge(includeOptions, options);
       }
       return options;
     } on OptionsFormatException {

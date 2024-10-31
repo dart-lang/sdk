@@ -42,6 +42,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitClassTypeAlias(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.name case var name?) {
       _addOccurrence(node.declaredElement!, name.offset);
@@ -102,6 +109,20 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _addOccurrence(node.declaredElement!, node.name.offset);
     super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitGenericTypeAlias(node);
   }
 
   @override

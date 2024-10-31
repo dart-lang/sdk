@@ -209,7 +209,8 @@ static Definition* CreateUnboxedResultIfNeeded(BlockBuilder* builder,
   ASSERT(!function.has_unboxed_record_return());
   if (function.has_unboxed_return() && value->representation() == kTagged) {
     return builder->AddUnboxInstr(FlowGraph::ReturnRepresentationOf(function),
-                                  new Value(value), /* is_checked = */ true);
+                                  new Value(value),
+                                  UnboxInstr::ValueMode::kHasValidType);
   } else {
     return value;
   }
@@ -248,14 +249,14 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
     // Use same truncating unbox-instruction for int32 and uint32.
     auto const unbox_rep = rep == kUnboxedInt32 ? kUnboxedUint32 : rep;
     value = builder.AddUnboxInstr(unbox_rep, new Value(value),
-                                  /* is_checked = */ false);
+                                  UnboxInstr::ValueMode::kCheckType);
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     Zone* zone = flow_graph->zone();
     Cids* value_check = Cids::CreateMonomorphic(zone, Boxing::BoxCid(rep));
     builder.AddInstruction(new CheckClassInstr(new Value(value), DeoptId::kNone,
                                                *value_check, builder.Source()));
     value = builder.AddUnboxInstr(rep, new Value(value),
-                                  /* is_checked = */ true);
+                                  UnboxInstr::ValueMode::kHasValidType);
   }
 
   if (IsExternalTypedDataClassId(array_cid)) {
@@ -349,11 +350,11 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(new CheckClassInstr(new Value(right), DeoptId::kNone,
                                              *value_check, builder.Source()));
-  Definition* left_simd = builder.AddUnboxInstr(rep, new Value(left),
-                                                /* is_checked = */ true);
+  Definition* left_simd = builder.AddUnboxInstr(
+      rep, new Value(left), UnboxInstr::ValueMode::kHasValidType);
 
-  Definition* right_simd = builder.AddUnboxInstr(rep, new Value(right),
-                                                 /* is_checked = */ true);
+  Definition* right_simd = builder.AddUnboxInstr(
+      rep, new Value(right), UnboxInstr::ValueMode::kHasValidType);
 
   Definition* unboxed_result = builder.AddDefinition(SimdOpInstr::Create(
       SimdOpInstr::KindForOperator(cid, kind), new Value(left_simd),
@@ -411,7 +412,7 @@ static bool BuildFloat32x4Get(FlowGraph* flow_graph,
   Definition* unboxed_receiver =
       !function.is_unboxed_parameter_at(0)
           ? builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(receiver),
-                                  /* is_checked = */ true)
+                                  UnboxInstr::ValueMode::kHasValidType)
           : receiver;
 
   Definition* unboxed_result = builder.AddDefinition(
@@ -680,10 +681,11 @@ bool GraphIntrinsifier::Build_Integer_shr(FlowGraph* flow_graph) {
   return BuildBinarySmiOp(flow_graph, Token::kUSHR);
 }
 
-static Definition* ConvertOrUnboxDoubleParameter(BlockBuilder* builder,
-                                                 Definition* value,
-                                                 intptr_t index,
-                                                 bool is_checked) {
+static Definition* ConvertOrUnboxDoubleParameter(
+    BlockBuilder* builder,
+    Definition* value,
+    intptr_t index,
+    UnboxInstr::ValueMode value_mode) {
   const auto& function = builder->function();
   if (function.is_unboxed_double_parameter_at(index)) {
     return value;
@@ -696,7 +698,7 @@ static Definition* ConvertOrUnboxDoubleParameter(BlockBuilder* builder,
     return builder->AddDefinition(to_double);
   } else {
     ASSERT(!function.is_unboxed_parameter_at(index));
-    return builder->AddUnboxInstr(kUnboxedDouble, value, is_checked);
+    return builder->AddUnboxInstr(kUnboxedDouble, value, value_mode);
   }
 }
 
@@ -707,7 +709,7 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
 
   Definition* receiver = builder.AddParameter(0);
   Definition* unboxed_value = ConvertOrUnboxDoubleParameter(
-      &builder, receiver, 0, /* is_checked = */ true);
+      &builder, receiver, 0, UnboxInstr::ValueMode::kHasValidType);
   if (unboxed_value == nullptr) {
     return false;
   }

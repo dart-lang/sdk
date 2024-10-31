@@ -372,7 +372,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
       auto input = v3->InputAt(i);
       auto unbox =
           new UnboxInt64Instr(input->CopyWithType(), S.GetNextDeoptId(),
-                              Instruction::kNotSpeculative);
+                              UnboxInstr::ValueMode::kHasValidType);
       H.flow_graph()->InsertBefore(
           v3->block()->PredecessorAt(i)->last_instruction(), unbox, nullptr,
           FlowGraph::kValue);

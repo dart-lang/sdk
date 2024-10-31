@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: omit_local_variable_types
+// ignore_for_file: omit_local_variable_types, unnecessary_breaks
 
 import 'characters.dart' as char_codes;
 import 'nodes.dart';

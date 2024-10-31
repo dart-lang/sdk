@@ -287,11 +287,9 @@ class ExpressionCompilerWorker {
           case 'UpdateDeps':
             sendResponse(await _updateDependencies(
                 UpdateDependenciesRequest.fromJson(request)));
-            break;
           case 'CompileExpression':
             sendResponse(await _compileExpression(
                 CompileExpressionRequest.fromJson(request)));
-            break;
           default:
             throw ArgumentError(
                 'Unrecognized command `$command`, full request was `$request`');
@@ -787,13 +785,10 @@ void Function(DiagnosticMessage) _onDiagnosticHandler(
         case Severity.error:
         case Severity.internalProblem:
           errors.add(message.plainTextFormatted.join('\n'));
-          break;
         case Severity.warning:
           warnings.add(message.plainTextFormatted.join('\n'));
-          break;
         case Severity.info:
           infos.add(message.plainTextFormatted.join('\n'));
-          break;
         case Severity.context:
         case Severity.ignored:
           throw 'Unexpected severity: ${message.severity}';

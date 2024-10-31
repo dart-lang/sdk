@@ -486,12 +486,6 @@ class CallSites : public ValueObject {
         last_unhandled_call_index--;
       }
 
-      // Can't apply canonicalization rule to this definition.
-      if (defn->HasUnmatchedInputRepresentations() &&
-          defn->SpeculativeModeOfInputs() == Instruction::kGuardInputs) {
-        continue;
-      }
-
       auto replacement = defn->Canonicalize(graph);
       if (replacement != defn) {
         changed = true;
@@ -2216,7 +2210,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             call_->source(), Token::kEQ, new Value(load_cid),
             new Value(cid_constant),
             cid_representation == kTagged ? kSmiCid : kIntegerCid,
-            DeoptId::kNone, false, Instruction::kNotSpeculative);
+            DeoptId::kNone, /*null_aware=*/false);
       } else {
         compare = new TestRangeInstr(call_->source(), new Value(load_cid),
                                      variant.cid_start, variant.cid_end,

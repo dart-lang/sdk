@@ -69,7 +69,7 @@ List<AnalysisError> analyzeAnalysisOptions(
     }
   }
 
-  // Validate the specified options and any included option files.
+  // Validates the specified options and any included option files.
   void validate(Source source, YamlMap options, LintRuleProvider? provider) {
     var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
     var validationErrors = OptionsFileValidator(
@@ -90,85 +90,99 @@ List<AnalysisError> analyzeAnalysisOptions(
           sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
       return;
     }
-    var includeSpan = includeNode.span;
-    initialIncludeSpan ??= includeSpan;
-    String includeUri = includeSpan.text;
-    var includedSource = sourceFactory.resolveUri(source, includeUri);
-    if (includedSource == initialSource) {
-      errors.add(
-        AnalysisError.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          errorCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
-          arguments: [includeUri, source.fullName],
-        ),
-      );
-      return;
-    }
-    if (includedSource == null || !includedSource.exists()) {
-      errors.add(
-        AnalysisError.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          errorCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
-          arguments: [includeUri, source.fullName, contextRoot],
-        ),
-      );
-      return;
-    }
-    var spanInChain = includeChain[includedSource];
-    if (spanInChain != null) {
-      errors.add(
-        AnalysisError.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
-          arguments: [
-            includedSource,
-            spanInChain.start.offset,
-            spanInChain.length,
-            'The file includes itself recursively.',
-          ],
-        ),
-      );
-      return;
-    }
-    includeChain[includedSource] = includeSpan;
 
-    try {
-      var includedOptions =
-          optionsProvider.getOptionsFromString(includedSource.contents.data);
-      validate(includedSource, includedOptions, provider);
-      firstPluginName ??= _firstPluginName(includedOptions);
-      // Validate the 'plugins' option in [options], taking into account any
-      // plugins enabled by [includedOptions].
-      addDirectErrorOrIncludedError(
-        _validatePluginsOption(source,
-            options: options, firstEnabledPluginName: firstPluginName),
-        source,
-        sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
-      );
-    } on OptionsFormatException catch (e) {
-      var args = [
-        includedSource.fullName,
-        e.span!.start.offset.toString(),
-        e.span!.end.offset.toString(),
-        e.message,
-      ];
-      // Report errors for included option files on the `include` directive
-      // located in the initial options file.
-      errors.add(
-        AnalysisError.tmp(
-          source: initialSource,
-          offset: initialIncludeSpan!.start.offset,
-          length: initialIncludeSpan!.length,
-          errorCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
-          arguments: args,
-        ),
-      );
+    void validateInclude(YamlNode includeNode) {
+      var includeSpan = includeNode.span;
+      initialIncludeSpan ??= includeSpan;
+      var includeUri = includeSpan.text;
+
+      var includedSource = sourceFactory.resolveUri(source, includeUri);
+      if (includedSource == initialSource) {
+        errors.add(
+          AnalysisError.tmp(
+            source: initialSource,
+            offset: initialIncludeSpan!.start.offset,
+            length: initialIncludeSpan!.length,
+            errorCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+            arguments: [includeUri, source.fullName],
+          ),
+        );
+        return;
+      }
+      if (includedSource == null || !includedSource.exists()) {
+        errors.add(
+          AnalysisError.tmp(
+            source: initialSource,
+            offset: initialIncludeSpan!.start.offset,
+            length: initialIncludeSpan!.length,
+            errorCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+            arguments: [includeUri, source.fullName, contextRoot],
+          ),
+        );
+        return;
+      }
+      var spanInChain = includeChain[includedSource];
+      if (spanInChain != null) {
+        errors.add(
+          AnalysisError.tmp(
+            source: initialSource,
+            offset: initialIncludeSpan!.start.offset,
+            length: initialIncludeSpan!.length,
+            errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+            arguments: [
+              includedSource,
+              spanInChain.start.offset,
+              spanInChain.length,
+              'The file includes itself recursively.',
+            ],
+          ),
+        );
+        return;
+      }
+      includeChain[includedSource] = includeSpan;
+
+      try {
+        var includedOptions =
+            optionsProvider.getOptionsFromString(includedSource.contents.data);
+        validate(includedSource, includedOptions, provider);
+        firstPluginName ??= _firstPluginName(includedOptions);
+        // Validate the 'plugins' option in [options], taking into account any
+        // plugins enabled by [includedOptions].
+        addDirectErrorOrIncludedError(
+          _validatePluginsOption(source,
+              options: options, firstEnabledPluginName: firstPluginName),
+          source,
+          sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+        );
+      } on OptionsFormatException catch (e) {
+        var args = [
+          includedSource.fullName,
+          e.span!.start.offset.toString(),
+          e.span!.end.offset.toString(),
+          e.message,
+        ];
+        // Report errors for included option files on the `include` directive
+        // located in the initial options file.
+        errors.add(
+          AnalysisError.tmp(
+            source: initialSource,
+            offset: initialIncludeSpan!.start.offset,
+            length: initialIncludeSpan!.length,
+            errorCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+            arguments: args,
+          ),
+        );
+      }
+    }
+
+    if (includeNode is YamlScalar) {
+      validateInclude(includeNode);
+    } else if (includeNode is YamlList) {
+      for (var includeValue in includeNode.nodes) {
+        if (includeValue is YamlScalar) {
+          validateInclude(includeValue);
+        }
+      }
     }
   }
 

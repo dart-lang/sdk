@@ -223,7 +223,6 @@ class ExpressionEvaluationTestDriver {
   };
 </script>
 ''');
-        break;
       case ModuleFormat.amd:
         var dartSdkPathNoExtension = escaped(SetupCompilerOptions.buildRoot
             .resolve(p.join(
@@ -288,7 +287,6 @@ class ExpressionEvaluationTestDriver {
 </script>
 ''');
 
-        break;
       default:
         throw Exception('Unsupported module format for SDK evaluation tests: '
             '${setup.moduleFormat}');
@@ -841,7 +839,6 @@ class ExpressionEvaluationTestDriver {
     switch (type) {
       case 'function':
         str = obj.description ?? '';
-        break;
       case 'object':
         if (obj.subtype == 'null') {
           return 'null';
@@ -860,10 +857,8 @@ class ExpressionEvaluationTestDriver {
         } catch (e, s) {
           throw StateError('Failed to stringify remote object $obj: $e:$s');
         }
-        break;
       default:
         str = '${obj.value}';
-        break;
     }
     return str;
   }
