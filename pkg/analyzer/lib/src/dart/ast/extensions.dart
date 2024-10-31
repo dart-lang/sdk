@@ -309,6 +309,15 @@ extension NamedTypeExtension on NamedType {
   }
 }
 
+extension NullableStringExtension on String? {
+  bool get isEmptyOrNull {
+    var str = this;
+    if (str == null) return true;
+    if (str.isEmpty) return true;
+    return false;
+  }
+}
+
 extension PatternFieldImplExtension on PatternFieldImpl {
   /// A [SyntacticEntity] which can be used in error reporting, which is valid
   /// for both explicit getter names (like `Rect(width: var w, height: var h)`)

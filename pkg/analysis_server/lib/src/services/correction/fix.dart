@@ -839,20 +839,40 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 3,
     "Import library '{0}'",
   );
+  static const IMPORT_LIBRARY_PROJECT1_PREFIXED = FixKind(
+    'dart.fix.import.libraryProject1Prefixed',
+    DartFixKindPriority.standard + 3,
+    "Import library '{0}' with prefix '{1}'",
+  );
   static const IMPORT_LIBRARY_PROJECT2 = FixKind(
     'dart.fix.import.libraryProject2',
     DartFixKindPriority.standard + 2,
     "Import library '{0}'",
+  );
+  static const IMPORT_LIBRARY_PROJECT2_PREFIXED = FixKind(
+    'dart.fix.import.libraryProject2Prefixed',
+    DartFixKindPriority.standard + 2,
+    "Import library '{0}' with prefix '{1}'",
   );
   static const IMPORT_LIBRARY_PROJECT3 = FixKind(
     'dart.fix.import.libraryProject3',
     DartFixKindPriority.standard + 1,
     "Import library '{0}'",
   );
+  static const IMPORT_LIBRARY_PROJECT3_PREFIXED = FixKind(
+    'dart.fix.import.libraryProject3Prefixed',
+    DartFixKindPriority.standard + 1,
+    "Import library '{0}' with prefix '{1}'",
+  );
   static const IMPORT_LIBRARY_SDK = FixKind(
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
     "Import library '{0}'",
+  );
+  static const IMPORT_LIBRARY_SDK_PREFIXED = FixKind(
+    'dart.fix.import.librarySdk',
+    DartFixKindPriority.standard + 4,
+    "Import library '{0}' with prefix '{1}'",
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',

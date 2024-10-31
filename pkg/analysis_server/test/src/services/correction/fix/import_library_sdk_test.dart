@@ -11,8 +11,32 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ImportLibrarySdkPrefixedTest);
     defineReflectiveTests(ImportLibrarySdkTest);
   });
+}
+
+@reflectiveTest
+class ImportLibrarySdkPrefixedTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
+
+  Future<void> test_prefixed_class_async() async {
+    await resolveTestCode('''
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+    await assertHasFix('''
+import 'dart:async' as prefix;
+
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+  }
 }
 
 @reflectiveTest
