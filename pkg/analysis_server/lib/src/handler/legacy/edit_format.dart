@@ -12,7 +12,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:dart_style/src/dart_formatter.dart';
 import 'package:dart_style/src/exceptions.dart';
 import 'package:dart_style/src/source_code.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 /// The handler for the `edit.format` request.
 class EditFormatHandler extends LegacyHandler {
@@ -27,11 +26,9 @@ class EditFormatHandler extends LegacyHandler {
         clientUriConverter: server.uriConverter);
     var file = params.file;
 
-    String unformattedCode;
-    try {
-      var resource = server.resourceProvider.getFile(file);
-      unformattedCode = resource.readAsStringSync();
-    } catch (e) {
+    var driver = server.getAnalysisDriver(file);
+    var unit = driver?.parseFileSync(file);
+    if (unit is! ParsedUnitResult) {
       sendResponse(Response.formatInvalidFile(request));
       return;
     }
@@ -45,29 +42,18 @@ class EditFormatHandler extends LegacyHandler {
       length = null;
     }
 
+    var unformattedCode = unit.content;
     var code = SourceCode(
       unformattedCode,
       selectionStart: start,
       selectionLength: length,
     );
 
-    var driver = server.getAnalysisDriver(file);
-    var unit = await driver?.getResolvedUnit(file);
-
-    int? pageWidth;
-    Version effectiveLanguageVersion;
-    if (unit is ResolvedUnitResult) {
-      pageWidth = unit.analysisOptions.formatterOptions.pageWidth;
-      effectiveLanguageVersion = unit.libraryElement2.effectiveLanguageVersion;
-    } else {
-      // If the unit doesn't resolve, don't try to format it since we don't
-      // know what language version (and thus what formatting style) to apply.
-      sendResponse(Response.formatWithErrors(request));
-      return;
-    }
-
+    var effectivePageWidth =
+        unit.analysisOptions.formatterOptions.pageWidth ?? params.lineLength;
+    var effectiveLanguageVersion = unit.unit.languageVersion.effective;
     var formatter = DartFormatter(
-        pageWidth: pageWidth ?? params.lineLength,
+        pageWidth: effectivePageWidth,
         languageVersion: effectiveLanguageVersion);
     SourceCode formattedResult;
     try {
