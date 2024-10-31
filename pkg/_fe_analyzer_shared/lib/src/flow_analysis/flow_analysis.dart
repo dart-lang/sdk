@@ -822,6 +822,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// state that was saved by [pushSubpattern].
   void popSubpattern();
 
+  /// Call this method when writing to the [variable] with type [writtenType] in
+  /// a postfix increment or decrement operation.
+  void postIncDec(Node node, Variable variable, Type writtenType);
+
   /// Retrieves the type that a property named [propertyName] is promoted to, if
   /// the property is currently promoted.  Otherwise returns `null`.
   ///
@@ -1816,6 +1820,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void popSubpattern() {
     _wrap('popSubpattern()', () => _wrapped.popSubpattern());
+  }
+
+  @override
+  void postIncDec(Node node, Variable variable, Type writtenType) {
+    _wrap(
+        'postIncDec()', () => _wrapped.postIncDec(node, variable, writtenType));
   }
 
   @override
@@ -5297,6 +5307,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void postIncDec(Node node, Variable variable, Type writtenType) {
+    _write(node, variable, writtenType, null, isPostfixIncDec: true);
+  }
+
+  @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,
       String propertyName, Object? propertyMember, Type unpromotedType) {
     SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
@@ -6274,8 +6289,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Common logic for handling writes to variables, whether they occur as part
   /// of an ordinary assignment or a pattern assignment.
+  ///
+  /// If [isPostfixIncDec] is `true`, the [node] is a postfix expression and we
+  /// won't store information about [variable].
   void _write(Node node, Variable variable, Type writtenType,
-      ExpressionInfo<Type>? expressionInfo) {
+      ExpressionInfo<Type>? expressionInfo,
+      {bool isPostfixIncDec = false}) {
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
@@ -6292,7 +6311,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         unpromotedType: unpromotedType);
 
     // Update the type of the variable for looking up the write expression.
-    if (inferenceUpdate4Enabled && node is Expression) {
+    if (inferenceUpdate4Enabled && node is Expression && !isPostfixIncDec) {
       _Reference<Type> reference = _variableReference(
         variableKey,
         unpromotedType,
@@ -6890,6 +6909,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void popSubpattern() {}
+
+  @override
+  void postIncDec(Node node, Variable variable, Type writtenType) {}
 
   @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,

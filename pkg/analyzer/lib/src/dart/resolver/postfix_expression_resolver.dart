@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -176,8 +177,17 @@ class PostfixExpressionResolver {
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
         if (element is PromotableElement) {
-          _resolver.flowAnalysis.flow
-              ?.write(node, element, SharedTypeView(operatorReturnType), null);
+          if (_resolver.definingLibrary.featureSet
+              .isEnabled(Feature.inference_update_4)) {
+            _resolver.flowAnalysis.flow?.postIncDec(
+              node,
+              element,
+              SharedTypeView(operatorReturnType),
+            );
+          } else {
+            _resolver.flowAnalysis.flow?.write(
+                node, element, SharedTypeView(operatorReturnType), null);
+          }
         }
       }
       node.recordStaticType(receiverType, resolver: _resolver);
