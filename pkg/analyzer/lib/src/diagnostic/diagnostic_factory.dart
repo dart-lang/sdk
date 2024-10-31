@@ -263,8 +263,6 @@ class DiagnosticFactory {
     );
   }
 
-  /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
-  /// is a duplicate of the [originalKey].
   AnalysisError invalidNullAwareAfterShortCircuit(Source source, int offset,
       int length, List<Object> arguments, Token previousToken) {
     var lexeme = previousToken.lexeme;
@@ -337,7 +335,7 @@ class DiagnosticFactory {
     );
   }
 
-  /// Return a diagnostic indicating that the given [identifier] was referenced
+  /// Return a diagnostic indicating that the given [nameToken] was referenced
   /// before it was declared.
   AnalysisError referencedBeforeDeclaration(
     Source source, {

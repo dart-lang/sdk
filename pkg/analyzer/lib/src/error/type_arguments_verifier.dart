@@ -568,13 +568,8 @@ class TypeArgumentsVerifier {
   /// This function is used by other node-specific type checking functions, and
   /// should only be called when [node] has no explicit `typeArguments`.
   ///
-  /// [inferenceContextNode] is the node that has the downwards context type,
-  /// if any. For example an [InstanceCreationExpression].
+  /// This function will return false if either of the following are true:
   ///
-  /// This function will return false if any of the following are true:
-  ///
-  /// - [inferenceContextNode] has an inference context type that does not
-  ///   contain `_`
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {

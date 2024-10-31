@@ -185,7 +185,7 @@ class NamespaceBuilder {
   }
 
   /// Create a namespace representing the import namespace of the given
-  /// [element].
+  /// [importedLibrary].
   Namespace createImportNamespaceForDirective({
     required LibraryElement importedLibrary,
     required List<NamespaceCombinator> combinators,

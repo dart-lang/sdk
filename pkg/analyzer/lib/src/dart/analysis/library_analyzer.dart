@@ -504,7 +504,7 @@ class LibraryAnalyzer {
       verifier.generateDuplicateExportWarnings(errorReporter);
       verifier.generateDuplicateImportWarnings(errorReporter);
       verifier.generateDuplicateShownHiddenNameWarnings(errorReporter);
-      verifier.generateUnusedImportHints(errorReporter);
+      verifier.generateUnusedImportWarnings(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
       verifier.generateUnnecessaryImportHints(errorReporter);
     }

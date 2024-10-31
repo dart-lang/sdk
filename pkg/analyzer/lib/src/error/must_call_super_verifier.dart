@@ -62,8 +62,8 @@ class MustCallSuperVerifier {
     }
   }
 
-  /// Find a method which is overridden by [node] and which is annotated with
-  /// `@mustCallSuper`.
+  /// Finds a method which is overridden by [element] and which is annotated
+  /// with `@mustCallSuper`.
   ///
   /// As per the definition of `mustCallSuper` [1], every method which overrides
   /// a method annotated with `@mustCallSuper` is implicitly annotated with
@@ -116,7 +116,7 @@ class MustCallSuperVerifier {
     return null;
   }
 
-  /// Returns whether [node] overrides a concrete method.
+  /// Returns whether [element] overrides a concrete method.
   bool _hasConcreteSuperMethod(ExecutableElement element) {
     var classElement = element.enclosingElement3 as InterfaceElement;
     String name = element.name;

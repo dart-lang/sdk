@@ -23,8 +23,8 @@ main() {
 class MissingDependencyTest with ResourceProviderMixin {
   late Source _source;
 
-  /// Assert that when the validator is used on the given [content] the
-  /// [expectedErrorCodes] are produced.
+  /// Asserts that when the validator is used on the given [content], a
+  /// [PubspecWarningCode.MISSING_DEPENDENCY] warning is produced.
   void assertErrors(String content,
       {required Set<String> usedDeps,
       required Set<String> usedDevDeps,
