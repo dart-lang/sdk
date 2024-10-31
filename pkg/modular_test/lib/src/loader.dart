@@ -261,7 +261,7 @@ packages:
   expect: pkg/expect/lib
   smith: pkg/smith/lib
   meta: pkg/meta/lib
-  collection: third_party/pkg/collection/lib
+  collection: third_party/pkg/core/pkgs/collection/lib
 ''';
 
 /// Report an conflict error.

@@ -645,8 +645,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
 
-  /// If the given [expression] has a known Boolean value, return the known
-  /// value, otherwise return `null`.
+  /// If the given [conditionExpression] has a known Boolean value, return the
+  /// known value, otherwise return `null`.
   bool? _knownConditionValue(Expression conditionExpression) {
     // TODO(jwren): Do we want to take all constant expressions into account?
     if (conditionExpression is BooleanLiteral) {

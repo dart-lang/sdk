@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/dart/error/hint_codes.g.dart';
+library;
+
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -1126,7 +1129,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// @param importElement the [LibraryImportElement] retrieved from the node
   /// @return `true` if and only if an error code is generated on the passed
   ///         node
-  /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
+  /// See [HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
   bool _checkForLoadLibraryFunction(
       ImportDirective node, LibraryImportElement importElement) {
     var importedLibrary = importElement.importedLibrary;

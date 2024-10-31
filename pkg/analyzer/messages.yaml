@@ -26000,10 +26000,10 @@ WarningCode:
     comment: |-
       No parameters.
 
-      There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
-      some cases of constructor tearoff features (like `List<int>.filled;`).
-      Other constructor tearoff cases are not realized until resolution
-      (like `List.filled;`).
+      There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
+      catches some cases of constructor tearoff features (like
+      `List<int>.filled;`). Other constructor tearoff cases are not realized
+      until resolution (like `List.filled;`).
     documentation: |-
       #### Description
 

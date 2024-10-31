@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'dart:async';
+library;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -24,12 +27,12 @@ import 'package:collection/collection.dart';
 /// * as the first argument to [Future.catchError],
 /// * as the 'onError' named argument to [Future.then],
 /// * as the first argument to [Stream.handleError],
-/// * as the 'onError' named argument to [Future.onError],
+/// * as the 'onError' argument to [Stream.listen],
 /// * as the first argument to [StreamSubscription.onError],
 ///
 /// Additionally, a function passed as the first argument to
-/// [Future<T>.catchError] must return `FutureOr<T>`, and any return statements in a
-/// function literal must return a value of type `FutureOr<T>`.
+/// `Future<T>.catchError` must return `FutureOr<T>`, and any return statements
+/// in a function literal must return a value of type `FutureOr<T>`.
 class ErrorHandlerVerifier {
   final ErrorReporter _errorReporter;
 
@@ -256,7 +259,8 @@ class ErrorHandlerVerifier {
     }
   }
 
-  /// Returns whether [element] represents the []
+  /// Returns whether [type] represents the type named [typeName], declared in
+  /// the 'dart:async' library.
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
       type.element.name == typeName &&

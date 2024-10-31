@@ -156,7 +156,7 @@ final class DocCommentBuilder {
   }
 
   /// Parses a closing tag for a block doc directive, matching it with it's
-  /// opening tag on [_blockDirectiveTagStack], if one can be found.
+  /// opening tag on [_blockDocDirectiveBuilderStack], if one can be found.
   ///
   /// The algorithm is as follows:
   ///
@@ -455,9 +455,7 @@ final class DocCommentBuilder {
 
   /// Parses a fenced code block, starting with [content].
   ///
-  /// The backticks of the opening delimiter start at [index].
-  ///
-  /// When this method returns, [characterSequence] is postioned at the closing
+  /// When this method returns, [_characterSequence] is postioned at the closing
   /// delimiter line (`.next()` must be called to move to the next line).
   bool _parseFencedCodeBlock({
     required String content,
@@ -811,8 +809,8 @@ final class DocCommentBuilder {
 }
 
 class DocImportStringScanner extends StringScanner {
-  /// A list of offset pairs; each contains an offset in [source], and the
-  /// associated offset in the source text from which [source] is derived.
+  /// A list of offset pairs; each contains an offset in the source, and the
+  /// associated offset in the source text from which the source is derived.
   ///
   /// Always contains a mapping from 0 to the offset of the `@docImport` text.
   ///
@@ -847,7 +845,7 @@ class DocImportStringScanner extends StringScanner {
   @override
 
   /// The position of the start of the next token _in the unit_, not in
-  /// [source].
+  /// the source.
   ///
   /// This is used for constructing [Token] objects, for a Token's offset.
   int get tokenStart => _toOffsetInUnit(super.tokenStart);
@@ -926,7 +924,7 @@ abstract class _CharacterSequence {
         : _CharacterSequenceFromMultiLineComment(token);
   }
 
-  /// The current offset in the compilation unit, which is found in [_token].
+  /// The current offset in the compilation unit.
   int get _offset;
 
   /// Moves the current position of the doc comment to the next line.
