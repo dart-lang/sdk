@@ -4967,7 +4967,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @experimental
   @override
   BindPatternVariableElement2? get declaredElement2 {
-    return declaredElement?.element2;
+    return declaredElement?.element;
   }
 
   @override
@@ -8210,12 +8210,6 @@ abstract final class FunctionDeclaration
   @override
   ExecutableElement? get declaredElement;
 
-  /// The element defined by this local function declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// is not a local function.
-  LocalFunctionElement? get declaredElement2;
-
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
@@ -8263,9 +8257,6 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ExecutableElementImpl? declaredElement;
-
-  @override
-  LocalFunctionElementImpl? declaredElement2;
 
   /// Initializes a newly created function declaration.
   ///
@@ -11354,7 +11345,7 @@ class LocalFunctionDeclarationView {
   LocalFunctionDeclarationView(this.declaration);
 
   LocalFunctionElement? get declaredElement {
-    return declaration.declaredElement2;
+    return declaration.declaredFragment?.element as LocalFunctionElement;
   }
 
   static LocalFunctionDeclarationView? of(AstNode declaration) {

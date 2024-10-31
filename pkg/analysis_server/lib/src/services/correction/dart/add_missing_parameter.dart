@@ -60,7 +60,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
     if (_executableParameters.required.isNotEmpty) {
       var lastElement = _executableParameters.required.last;
       var prevNode = await _executableParameters
-          .getParameterNode2(lastElement.firstFragment!);
+          .getParameterNode2(lastElement.firstFragment);
       await _addParameter(builder, prevNode?.end, prefix, ']');
     } else {
       var parameterList = await _executableParameters.getParameterList();
@@ -122,7 +122,7 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
     if (_executableParameters.required.isNotEmpty) {
       var lastElement = _executableParameters.required.last;
       var prevNode = await _executableParameters
-          .getParameterNode2(lastElement.firstFragment!);
+          .getParameterNode2(lastElement.firstFragment);
       await _addParameter(builder, prevNode?.end, ', ', '');
     } else {
       var parameterList = await _executableParameters.getParameterList();

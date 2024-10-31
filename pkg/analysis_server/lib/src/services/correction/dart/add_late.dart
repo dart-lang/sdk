@@ -67,7 +67,7 @@ class AddLate extends ResolvedCorrectionProducer {
             !variableElement.isSynthetic &&
             !variableElement.isLate &&
             variableElement.setter2 == null) {
-          var variableFragment = variableElement.firstFragment!;
+          var variableFragment = variableElement.firstFragment;
           var declarationResult =
               await sessionHelper.getElementDeclaration2(variableFragment);
           if (declarationResult == null) {

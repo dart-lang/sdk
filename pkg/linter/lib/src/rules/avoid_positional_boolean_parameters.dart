@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't lint augmentations.
     if (node.isAugmentation) return;
 
-    var element = node.element;
+    var element = node.declaredFragment?.element;
     if (element != null && !element.isPrivate) {
       checkParams(node.functionExpression.parameters?.parameters);
     }
@@ -107,11 +107,4 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.declaredFragment?.element.type;
     return !node.isNamed && type is InterfaceType && type.isDartCoreBool;
   }
-}
-
-// TODO(pq): consider moving to `extensions.dart`
-extension on FunctionDeclaration {
-  ExecutableElement2? get element =>
-      // Check for a local function first.
-      declaredElement2 ?? declaredFragment?.element;
 }

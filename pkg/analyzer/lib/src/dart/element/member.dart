@@ -57,7 +57,7 @@ class ConstructorMember extends ExecutableMember
   InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
 
   @override
-  ConstructorFragment? get firstFragment => _element2.firstFragment;
+  ConstructorFragment get firstFragment => _element2.firstFragment;
 
   @override
   bool get isConst => declaration.isConst;
@@ -503,7 +503,7 @@ class FieldMember extends VariableMember
   Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
-  FieldFragment? get firstFragment => _element2.firstFragment;
+  FieldFragment get firstFragment => _element2.firstFragment;
 
   @override
   PropertyAccessorElement? get getter {
@@ -687,7 +687,7 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
   }
 
   @override
-  GetterFragment? get firstFragment => _element2.firstFragment;
+  GetterFragment get firstFragment => _element2.firstFragment;
 
   @override
   PropertyInducingElement2? get variable3 =>
@@ -983,7 +983,7 @@ class MethodMember extends ExecutableMember
   Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
-  MethodFragment? get firstFragment => _element2.firstFragment;
+  MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
   String get name => declaration.name;
@@ -1321,7 +1321,7 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
   }
 
   @override
-  SetterFragment? get firstFragment => _element2.firstFragment;
+  SetterFragment get firstFragment => _element2.firstFragment;
 
   @override
   PropertyInducingElement2? get variable3 =>
