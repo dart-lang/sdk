@@ -745,6 +745,7 @@ class InheritanceManager3 {
       noSuchMethodForwarders: noSuchMethodForwarders,
       overridden: namedCandidates,
       redeclared: const {},
+      redeclared2: const {},
       superImplemented: superImplemented,
       conflicts: conflicts.toFixedList(),
     );
@@ -918,6 +919,22 @@ class InheritanceManager3 {
       }
     }
 
+    var uniqueRedeclared2 = <Name, List<ExecutableElement2>>{};
+    for (var entry in redeclared.entries) {
+      var name = entry.key;
+      var fragments =
+          entry.value.map((fragment) => fragment.asExecutableElement2);
+      if (fragments.length == 1) {
+        uniqueRedeclared2[name] = fragments.toFixedList();
+      } else {
+        var uniqueElements = <ExecutableElement2>{};
+        for (var fragment in fragments) {
+          uniqueElements.add(fragment);
+        }
+        uniqueRedeclared2[name] = uniqueElements.toFixedList();
+      }
+    }
+
     return Interface._(
       map: implemented,
       declared: declared,
@@ -925,6 +942,7 @@ class InheritanceManager3 {
       noSuchMethodForwarders: const {},
       overridden: const {},
       redeclared: uniqueRedeclared,
+      redeclared2: uniqueRedeclared2,
       superImplemented: const [],
       conflicts: conflicts.toFixedList(),
     );
@@ -983,6 +1001,7 @@ class InheritanceManager3 {
       noSuchMethodForwarders: {},
       overridden: interfaceCandidates,
       redeclared: const {},
+      redeclared2: const {},
       superImplemented: [superInterface],
       conflicts: <Conflict>[
         ...superConflicts,
@@ -1201,6 +1220,7 @@ class Interface {
     noSuchMethodForwarders: <Name>{},
     overridden: const {},
     redeclared: const {},
+    redeclared2: const {},
     superImplemented: const [{}],
     conflicts: const [],
   );
@@ -1225,6 +1245,10 @@ class Interface {
   /// declaration in this extension type redeclares.
   final Map<Name, List<ExecutableElement>> redeclared;
 
+  /// The map of names to the signatures from superinterfaces that a member
+  /// declaration in this extension type redeclares.
+  final Map<Name, List<ExecutableElement2>> redeclared2;
+
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
@@ -1247,6 +1271,7 @@ class Interface {
     required this.noSuchMethodForwarders,
     required this.overridden,
     required this.redeclared,
+    required this.redeclared2,
     required this.superImplemented,
     required this.conflicts,
   });
@@ -1411,4 +1436,12 @@ class _ParameterDesc {
         other.index == index &&
         other.name == name;
   }
+}
+
+extension on ExecutableElement {
+  ExecutableElement2 get asExecutableElement2 => switch (this) {
+        ExecutableFragment(:var element) => element,
+        ExecutableMember member => member,
+        _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+      };
 }

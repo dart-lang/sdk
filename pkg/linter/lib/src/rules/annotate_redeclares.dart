@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 
@@ -46,11 +46,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Shouldn't happen.
     if (parent is! ExtensionTypeDeclaration) return;
 
-    var element = node.declaredElement;
-    if (element == null || element.hasRedeclare) return;
+    var element = node.declaredFragment?.element;
+    if (element == null || element.metadata2.hasRedeclare) return;
 
-    var parentElement = parent.declaredElement;
-    var extensionType = parentElement?.augmented.firstFragment;
+    var parentElement = parent.declaredFragment?.element;
+    var extensionType = parentElement?.firstFragment.element;
     if (extensionType == null) return;
 
     if (_redeclaresMember(element, extensionType)) {
@@ -60,10 +60,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Return `true` if the [member] redeclares a member from a superinterface.
   bool _redeclaresMember(
-      ExecutableElement member, InterfaceElement extensionType) {
+      ExecutableElement2 member, InterfaceElement2 extensionType) {
     // TODO(pq): unify with similar logic in `redeclare_verifier` and move to inheritanceManager
-    var uri = member.library.source.uri;
-    var interface = context.inheritanceManager.getInterface(extensionType);
-    return interface.redeclared.containsKey(Name(uri, member.name));
+    var interface = context.inheritanceManager.getInterface2(extensionType);
+    var memberName = member.name3;
+    return memberName != null &&
+        interface.redeclared2
+            .containsKey(Name.forLibrary(member.library2, memberName));
   }
 }
