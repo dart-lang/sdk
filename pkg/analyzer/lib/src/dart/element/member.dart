@@ -1046,7 +1046,7 @@ class MethodMember extends ExecutableMember
 /// type parameters are known.
 class ParameterMember extends VariableMember
     with ParameterElementMixin
-    implements ParameterElement {
+    implements ParameterElement, FormalParameterElement {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -1077,7 +1077,14 @@ class ParameterMember extends VariableMember
   );
 
   @override
+  FormalParameterElement get baseElement => _element2;
+
+  @override
   List<Element> get children => parameters;
+
+  @override
+  List<Element2> get children2 =>
+      children.map((fragment) => fragment.asElement2).nonNulls.toList();
 
   @override
   ParameterElement get declaration => super.declaration as ParameterElement;
@@ -1090,7 +1097,18 @@ class ParameterMember extends VariableMember
   FormalParameterElement get element => declaration.element;
 
   @override
+  Element2? get enclosingElement2 => _element2.enclosingElement2;
+
+  @override
   Element? get enclosingElement3 => declaration.enclosingElement3;
+
+  @override
+  FormalParameterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  // TODO(brianwilkerson): This loses type information.
+  List<FormalParameterElement> get formalParameters =>
+      _element2.formalParameters;
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1105,7 +1123,16 @@ class ParameterMember extends VariableMember
   bool get isSuperFormal => declaration.isSuperFormal;
 
   @override
+  LibraryElement2? get library2 => _element2.library2;
+
+  @override
   String get name => declaration.name;
+
+  @override
+  String? get name3 => _element2.name3;
+
+  @override
+  Element2 get nonSynthetic2 => _element2;
 
   @deprecated
   @override
@@ -1126,12 +1153,54 @@ class ParameterMember extends VariableMember
   Source? get source => _declaration.source;
 
   @override
+  List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
+
+  FormalParameterElement get _element2 =>
+      declaration.asElement2 as FormalParameterElement;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitParameterElement(this);
 
   @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitFormalParameterElement(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
+  }
+
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    _element2.appendToWithoutDelimiters2(buffer);
+  }
+
+  @override
+  String displayString2(
+      {bool multiline = false, bool preferTypeAlias = false}) {
+    return _element2.displayString2(
+        multiline: multiline, preferTypeAlias: preferTypeAlias);
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement2 library) =>
+      _element2.isAccessibleIn2(library);
+
+  @override
+  Element2? thisOrAncestorMatching2(bool Function(Element2 p1) predicate) {
+    return _element2.thisOrAncestorMatching2(predicate);
+  }
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    return _element2.thisOrAncestorOfType2();
+  }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    _element2.visitChildren2(visitor);
   }
 
   static ParameterElement from(
