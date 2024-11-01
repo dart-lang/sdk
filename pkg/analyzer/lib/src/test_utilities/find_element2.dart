@@ -107,7 +107,7 @@ class FindElement2 extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
-        var element = node.functionDeclaration.declaredElement2;
+        var element = node.functionDeclaration.declaredFragment?.element;
         if (element is LocalFunctionElement && element.name3 == name) {
           if (result != null) {
             throw StateError('Not unique: $name');

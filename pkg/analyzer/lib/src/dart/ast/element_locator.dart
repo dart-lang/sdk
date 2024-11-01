@@ -401,7 +401,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element2> {
 
   @override
   Element2? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredElement2 ?? node.declaredFragment?.element;
+    return node.declaredFragment?.element;
   }
 
   @override

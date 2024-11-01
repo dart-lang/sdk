@@ -7,8 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/dart/element/element.dart'
-    show TypeParameterElementImpl2;
+import 'package:analyzer/src/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -162,11 +161,10 @@ class _Visitor extends SimpleAstVisitor<void> {
             var length = arguments.length;
             for (var i = 0; i < length; ++i) {
               var parameter = typeParameterList[i];
-              if (parameter is! TypeParameterElementImpl2) continue;
               var argument = arguments[i];
               Variance parameterVariance;
-              var parameterFragment = parameter.firstFragment;
-              if (parameterFragment == null) return;
+              var parameterFragment =
+                  parameter.firstFragment as TypeParameterElementImpl;
               if (parameterFragment.isLegacyCovariant ||
                   parameterFragment.variance.isCovariant) {
                 parameterVariance = variance;

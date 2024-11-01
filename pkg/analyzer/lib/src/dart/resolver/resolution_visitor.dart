@@ -701,7 +701,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var functionElement = node.declaredElement as FunctionElementImpl;
       element = functionElement;
       expression.declaredElement = functionElement;
-      expression.declaredElement2 = functionElement.element2;
+      expression.declaredElement2 =
+          functionElement.element as LocalFunctionElementImpl?;
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
@@ -767,7 +768,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var element = FunctionElementImpl.forOffset(node.offset);
     _elementHolder.enclose(element);
     node.declaredElement = element;
-    node.declaredElement2 = element.element2;
+    node.declaredElement2 = element.element as LocalFunctionElementImpl?;
 
     element.hasImplicitReturnType = true;
     element.returnType = DynamicTypeImpl.instance;
@@ -1471,14 +1472,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+
+    // The fragment's old enclosing element needs to be set before we can get
+    // the new element for it.
+    _elementHolder.enclose(element);
+
     node.declaredElement = element;
-    node.declaredElement2 = element.element2;
 
     if (!_isWildCardVariable(nameToken.lexeme)) {
       _define(element);
     }
-
-    _elementHolder.enclose(element);
   }
 
   void _buildLocalVariableElements(VariableDeclarationList variableList) {
