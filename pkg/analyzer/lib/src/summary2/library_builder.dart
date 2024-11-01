@@ -729,9 +729,7 @@ class LibraryBuilder with MacroApplicationsContainer {
           if (augmented.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
             interface.superclassConstraints = [objectType];
-            if (augmented is AugmentedMixinElementImpl) {
-              augmented.superclassConstraints = [objectType];
-            }
+            augmented.superclassConstraints = [objectType];
           }
       }
     }

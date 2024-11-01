@@ -44,14 +44,18 @@ class ElementFactory {
   static ClassElementImpl classElement(
       String typeName, InterfaceType? superclassType,
       [List<String>? parameterNames]) {
-    ClassElementImpl element = ClassElementImpl(typeName, 0);
-    NotAugmentedClassElementImpl(Reference.root(), element);
-    element.constructors = const <ConstructorElementImpl>[];
-    element.supertype = superclassType;
+    var fragment = ClassElementImpl(typeName, 0);
+    fragment.constructors = const <ConstructorElementImpl>[];
+    fragment.supertype = superclassType;
     if (parameterNames != null) {
-      element.typeParameters = typeParameters(parameterNames);
+      fragment.typeParameters = typeParameters(parameterNames);
     }
-    return element;
+
+    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+
+    return fragment;
   }
 
   static ClassElementImpl classElement2(String typeName,
@@ -69,14 +73,18 @@ class ElementFactory {
     typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
     supertype ??= objectType;
 
-    var element = ClassElementImpl(name, 0);
-    NotAugmentedClassElementImpl(Reference.root(), element);
-    element.typeParameters = typeParameters;
-    element.supertype = supertype;
-    element.mixins = mixins;
-    element.interfaces = interfaces;
-    element.constructors = const <ConstructorElementImpl>[];
-    return element;
+    var fragment = ClassElementImpl(name, 0);
+    fragment.typeParameters = typeParameters;
+    fragment.supertype = supertype;
+    fragment.mixins = mixins;
+    fragment.interfaces = interfaces;
+    fragment.constructors = const <ConstructorElementImpl>[];
+
+    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+
+    return fragment;
   }
 
   static ClassElementImpl classElement4(String typeName,

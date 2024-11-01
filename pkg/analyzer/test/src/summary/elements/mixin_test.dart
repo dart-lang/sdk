@@ -8191,6 +8191,8 @@ library
               reference: <testLibraryFragment>::@class::I::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::I
           augmented
+            constructors
+              <testLibraryFragment>::@class::I::@constructor::new
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A
@@ -8261,6 +8263,8 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::B
           augmented
+            constructors
+              <testLibraryFragment>::@class::B::@constructor::new
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A

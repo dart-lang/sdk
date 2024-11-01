@@ -1106,7 +1106,6 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
     var A = class_(name: 'A', typeParameters: [
       typeParameter('E'),
     ]);
-    var B = class_(name: 'B');
     var C = class_(name: 'C');
 
     var AofC = A.instantiate(
@@ -1116,8 +1115,7 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest with StringTypes {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    B.interfaces = <InterfaceType>[AofC];
-
+    var B = class_(name: 'B', interfaces: [AofC],);
     var targetType = interfaceTypeNone(B);
     var result = targetType.asInstanceOf(A);
     expect(result, AofC);

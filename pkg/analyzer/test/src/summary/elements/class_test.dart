@@ -10562,6 +10562,8 @@ library
             fields
               <testLibraryFragment>::@class::C::@field::foo::@def::0
               <testLibraryFragment>::@class::C::@field::foo::@def::1
+            constructors
+              <testLibraryFragment>::@class::C::@constructor::new
             accessors
               <testLibraryFragment>::@class::C::@getter::foo::@def::0
               <testLibraryFragment>::@class::C::@getter::foo::@def::1
@@ -10704,6 +10706,8 @@ library
             fields
               <testLibraryFragment>::@class::C::@field::foo::@def::0
               <testLibraryFragment>::@class::C::@field::foo::@def::1
+            constructors
+              <testLibraryFragment>::@class::C::@constructor::new
             accessors
               <testLibraryFragment>::@class::C::@getter::foo
               <testLibraryFragment>::@class::C::@setter::foo::@def::0
@@ -19653,6 +19657,132 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+''');
+  }
+
+  test_class_mixins_generic_superAfter() async {
+    var library = await buildLibrary('''
+mixin M<T extends num> {}
+mixin M2<T extends num> on M<T> {}
+class Z extends S with M2 {}
+class S with M<int> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class Z @67
+          reference: <testLibraryFragment>::@class::Z
+          enclosingElement3: <testLibraryFragment>
+          supertype: S
+          mixins
+            M2<int>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::Z::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::Z
+              superConstructor: <testLibraryFragment>::@class::S::@constructor::new
+        class S @96
+          reference: <testLibraryFragment>::@class::S
+          enclosingElement3: <testLibraryFragment>
+          supertype: Object
+          mixins
+            M<int>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::S::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::S
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+          enclosingElement3: <testLibraryFragment>
+          typeParameters
+            covariant T @8
+              bound: num
+              defaultType: num
+          superclassConstraints
+            Object
+        mixin M2 @32
+          reference: <testLibraryFragment>::@mixin::M2
+          enclosingElement3: <testLibraryFragment>
+          typeParameters
+            covariant T @35
+              bound: num
+              defaultType: num
+          superclassConstraints
+            M<T>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class Z @67
+          reference: <testLibraryFragment>::@class::Z
+          element: <testLibrary>::@class::Z
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::Z::@constructor::new
+              element: <testLibraryFragment>::@class::Z::@constructor::new#element
+              superConstructor: <testLibraryFragment>::@class::S::@constructor::new
+        class S @96
+          reference: <testLibraryFragment>::@class::S
+          element: <testLibrary>::@class::S
+          constructors
+            synthetic <null-name>
+              reference: <testLibraryFragment>::@class::S::@constructor::new
+              element: <testLibraryFragment>::@class::S::@constructor::new#element
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+          element: <testLibrary>::@mixin::M
+          typeParameters
+            T @8
+              element: <not-implemented>
+        mixin M2 @32
+          reference: <testLibraryFragment>::@mixin::M2
+          element: <testLibrary>::@mixin::M2
+          typeParameters
+            T @35
+              element: <not-implemented>
+  classes
+    class Z
+      reference: <testLibrary>::@class::Z
+      firstFragment: <testLibraryFragment>::@class::Z
+      supertype: S
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::Z::@constructor::new
+          superConstructor: <testLibraryFragment>::@class::S::@constructor::new#element
+    class S
+      reference: <testLibrary>::@class::S
+      firstFragment: <testLibraryFragment>::@class::S
+      supertype: Object
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::S::@constructor::new
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: <testLibraryFragment>::@mixin::M
+      typeParameters
+        T
+          bound: num
+      superclassConstraints
+        Object
+    mixin M2
+      reference: <testLibrary>::@mixin::M2
+      firstFragment: <testLibraryFragment>::@mixin::M2
+      typeParameters
+        T
+          bound: num
+      superclassConstraints
+        M<T>
 ''');
   }
 
@@ -41659,6 +41789,8 @@ library
           augmented
             interfaces
               I
+            constructors
+              <testLibraryFragment>::@class::A::@constructor::new
         class I @30
           reference: <testLibraryFragment>::@class::I
           enclosingElement3: <testLibraryFragment>
@@ -41667,6 +41799,8 @@ library
               reference: <testLibraryFragment>::@class::I::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::I
           augmented
+            constructors
+              <testLibraryFragment>::@class::I::@constructor::new
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -41731,6 +41865,8 @@ library
           augmented
             interfaces
               M
+            constructors
+              <testLibraryFragment>::@class::A::@constructor::new
       mixins
         mixin M @30
           reference: <testLibraryFragment>::@mixin::M

@@ -149,6 +149,8 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
+    _updatedAugmented(element, withClause: node.withClause);
+
     _toInferMixins[element] = _ToInferMixins(element, node.withClause);
   }
 

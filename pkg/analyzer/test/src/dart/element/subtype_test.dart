@@ -2603,15 +2603,17 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_25_interfaces() {
-    var A = class_(name: 'A');
     var I = class_(name: 'I');
 
-    A.interfaces = [
-      I.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    ];
+    var A = class_(
+      name: 'A',
+      interfaces: [
+        I.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      ],
+    );
 
     var A_none = A.instantiate(
       typeArguments: const [],
@@ -2627,15 +2629,17 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_26_mixins() {
-    var A = class_(name: 'A');
     var M = class_(name: 'M');
 
-    A.mixins = [
-      M.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    ];
+    var A = class_(
+      name: 'A',
+      mixins: [
+        M.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      ],
+    );
 
     var A_none = A.instantiate(
       typeArguments: const [],
