@@ -829,6 +829,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 5,
     "Update library '{0}' import",
   );
+  static const IMPORT_LIBRARY_HIDE = FixKind(
+    'dart.fix.import.libraryHide',
+    DartFixKindPriority.standard,
+    "Hide others to use '{0}' from '{1}'{2}",
+  );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
     DartFixKindPriority.standard + 5,
@@ -864,6 +869,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 1,
     "Import library '{0}' with prefix '{1}'",
   );
+  static const IMPORT_LIBRARY_REMOVE_SHOW = FixKind(
+    'dart.fix.import.libraryRemoveShow',
+    DartFixKindPriority.standard - 1,
+    "Remove show to use '{0}' from '{1}'{2}",
+  );
   static const IMPORT_LIBRARY_SDK = FixKind(
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
@@ -873,11 +883,6 @@ abstract final class DartFixKind {
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
     "Import library '{0}' with prefix '{1}'",
-  );
-  static const IMPORT_LIBRARY_HIDE = FixKind(
-    'dart.fix.import.libraryHide',
-    DartFixKindPriority.standard,
-    "Use '{0}' from '{1}'{2}{3}",
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',
