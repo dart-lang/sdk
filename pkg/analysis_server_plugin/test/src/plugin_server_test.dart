@@ -34,19 +34,14 @@ class PluginServerTest extends PluginServerTestBase {
   @override
   Future<void> setUp() async {
     await super.setUp();
-    newAnalysisOptionsYamlFile(packagePath, '''
-plugins:
-  no_bools:
-    rules:
-      - no_bools
-''');
 
     pluginServer = PluginServer(
-        resourceProvider: resourceProvider, plugins: [_NoBoolsPlugin()]);
+        resourceProvider: resourceProvider, plugins: [_NoLiteralsPlugin()]);
     await startPlugin();
   }
 
   Future<void> test_handleAnalysisSetContextRoots() async {
+    writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -59,6 +54,7 @@ plugins:
   }
 
   Future<void> test_handleEditGetFixes() async {
+    writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -73,7 +69,33 @@ plugins:
     expect(fixes[0].fixes, hasLength(1));
   }
 
+  Future<void> test_lintRulesAreDisabledByDefault() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'double x = 3.14;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_lintRulesCanBeEnabled() async {
+    writeAnalysisOptionsWithPlugin({'no_doubles': true});
+    newFile(filePath, 'double x = 3.14;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No doubles message');
+  }
+
   Future<void> test_updateContent_addOverlay() async {
+    writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'int b = 7;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -93,6 +115,7 @@ plugins:
   }
 
   Future<void> test_updateContent_changeOverlay() async {
+    writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'int b = 7;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -120,6 +143,7 @@ plugins:
   }
 
   Future<void> test_updateContent_removeOverlay() async {
+    writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -145,6 +169,47 @@ plugins:
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
+  Future<void> test_warningRulesAreEnabledByDefault() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_warningRulesCannotBeDisabled() async {
+    // TODO(srawlins): A warning should be reported in the analysis options file
+    // for this.
+    writeAnalysisOptionsWithPlugin({'no_bools': false});
+    newFile(filePath, 'bool b = false;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = StreamQueue(channel.notifications
+        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+        .where((p) => p.file == filePath));
+    var params = await paramsQueue.next;
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  void writeAnalysisOptionsWithPlugin(
+      [Map<String, bool> ruleConfiguration = const {}]) {
+    var buffer = StringBuffer('''
+plugins:
+  no_literals:
+    rules:
+''');
+    for (var MapEntry(key: ruleName, value: isEnabled)
+        in ruleConfiguration.entries) {
+      buffer.writeln('      $ruleName: $isEnabled');
+    }
+    newAnalysisOptionsYamlFile(packagePath, buffer.toString());
+  }
+
   void _expectAnalysisError(protocol.AnalysisError error,
       {required String message}) {
     expect(
@@ -159,10 +224,11 @@ plugins:
   }
 }
 
-class _NoBoolsPlugin extends Plugin {
+class _NoLiteralsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
+    registry.registerLintRule(NoDoublesRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
   }
 }

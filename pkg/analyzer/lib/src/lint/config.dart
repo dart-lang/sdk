@@ -6,27 +6,24 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/// Parses [optionsMap] into a list of [RuleConfig]s, returning them, or `null`
-/// if [optionsMap] does not have `linter` map.
-List<RuleConfig>? parseLinterSection(YamlMap optionsMap) {
+/// Parses [optionsMap] into [RuleConfig]s mapped from their names, returning
+/// them, or `null` if [optionsMap] does not have `linter` map.
+Map<String, RuleConfig>? parseLinterSection(YamlMap optionsMap) {
   var options = optionsMap.valueAt('linter');
   // Quick check of basic contract.
   if (options is YamlMap) {
-    var ruleConfigs = <RuleConfig>[];
     var rulesNode = options.valueAt(AnalyzerOptions.rules);
-    if (rulesNode != null) {
-      ruleConfigs.addAll(parseRulesSection(rulesNode));
-    }
-
-    return ruleConfigs;
+    return {
+      if (rulesNode != null) ...parseRulesSection(rulesNode),
+    };
   }
 
   return null;
 }
 
 /// Returns the [RuleConfig]s that are parsed from [value], which can be either
-/// a YAML list or a YAML map.
-List<RuleConfig> parseRulesSection(YamlNode value) {
+/// a YAML list or a YAML map, mapped from each rule's name.
+Map<String, RuleConfig> parseRulesSection(YamlNode value) {
   // For example:
   //
   // ```yaml
@@ -34,25 +31,23 @@ List<RuleConfig> parseRulesSection(YamlNode value) {
   // - camel_case_types
   // ```
   if (value is YamlList) {
-    var ruleConfigs = <RuleConfig>[];
-    for (var ruleNode in value.nodes) {
-      if (ruleNode case YamlScalar(value: String ruleName)) {
-        ruleConfigs.add(RuleConfig._(name: ruleName, isEnabled: true));
-      }
-    }
-    return ruleConfigs;
+    return {
+      for (var ruleNode in value.nodes)
+        if (ruleNode case YamlScalar(value: String ruleName))
+          ruleName: RuleConfig._(name: ruleName, isEnabled: true),
+    };
   }
 
   if (value is! YamlMap) {
-    return const [];
+    return const {};
   }
 
-  var ruleConfigs = <RuleConfig>[];
+  var ruleConfigs = <String, RuleConfig>{};
   value.nodes.forEach((configKey, configValue) {
     if (configKey case YamlScalar(value: String configName)) {
       var ruleConfig = _parseRuleConfig(configKey, configValue);
       if (ruleConfig != null) {
-        ruleConfigs.add(ruleConfig);
+        ruleConfigs[ruleConfig.name] = ruleConfig;
         return;
       }
 
@@ -68,7 +63,7 @@ List<RuleConfig> parseRulesSection(YamlNode value) {
         var ruleConfig =
             _parseRuleConfig(ruleName, ruleValue, group: configName);
         if (ruleConfig != null) {
-          ruleConfigs.add(ruleConfig);
+          ruleConfigs[ruleConfig.name] = ruleConfig;
           return;
         }
       });
@@ -89,7 +84,7 @@ RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
   return null;
 }
 
-/// The configuration of a single lint rule within an analysis options file.
+/// The configuration of a single analysis rule within an analysis options file.
 class RuleConfig {
   /// Whether this rule is enabled or disabled in this configuration.
   final bool isEnabled;

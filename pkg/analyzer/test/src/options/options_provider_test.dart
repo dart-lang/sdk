@@ -264,6 +264,25 @@ analyzer:
     expect(options.strictRawTypes, false);
   }
 
+  test_include_legacyPluginCanBeIncluded() {
+    newFile('/other_options.yaml', '''
+analyzer:
+  plugins:
+    toplevelplugin:
+      enabled: true
+''');
+    newFile(optionsFilePath, r'''
+include: other_options.yaml
+''');
+
+    var options = _getOptionsObject('/');
+
+    expect(
+      options.enabledLegacyPluginNames,
+      unorderedEquals(['toplevelplugin']),
+    );
+  }
+
   test_include_linterRulesAreMerged() {
     newFile('/other_options.yaml', '''
 linter:
@@ -326,25 +345,6 @@ linter:
     var options = _getOptionsObject('/');
 
     expect(options.lintRules, isNot(contains(topLevelLint)));
-  }
-
-  test_include_pluginCanBeIncluded() {
-    newFile('/other_options.yaml', '''
-analyzer:
-  plugins:
-    toplevelplugin:
-      enabled: true
-''');
-    newFile(optionsFilePath, r'''
-include: other_options.yaml
-''');
-
-    var options = _getOptionsObject('/');
-
-    expect(
-      options.enabledLegacyPluginNames,
-      unorderedEquals(['toplevelplugin']),
-    );
   }
 
   AnalysisOptions _getOptionsObject(String filePath) =>

@@ -209,7 +209,7 @@ final class AnalysisOptionsBuilder {
         // TODO(srawlins): There may be value in storing the version constraint,
         // `value`.
         pluginConfigurations.add(PluginConfiguration(
-            name: pluginName, ruleConfigs: const [], isEnabled: true));
+            name: pluginName, ruleConfigs: const {}, isEnabled: true));
         return;
       }
 

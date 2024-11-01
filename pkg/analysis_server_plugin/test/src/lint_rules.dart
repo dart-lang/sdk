@@ -23,6 +23,23 @@ class NoBoolsRule extends AnalysisRule {
   }
 }
 
+class NoDoublesRule extends AnalysisRule {
+  static const LintCode code = LintCode('no_doubles', 'No doubles message');
+
+  NoDoublesRule()
+      : super(name: 'no_doubles', description: 'No doubles message');
+
+  @override
+  LintCode get lintCode => code;
+
+  @override
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    var visitor = _NoDoublesVisitor(this);
+    registry.addDoubleLiteral(this, visitor);
+  }
+}
+
 class _NoBoolsVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
@@ -30,6 +47,17 @@ class _NoBoolsVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
+    rule.reportLint(node);
+  }
+}
+
+class _NoDoublesVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  _NoDoublesVisitor(this.rule);
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
     rule.reportLint(node);
   }
 }

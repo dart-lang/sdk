@@ -16,7 +16,7 @@ defineTests() {
   /// Process the given option [fileContents] and produce a corresponding
   /// [LintConfig]. Return `null` if [fileContents] is not a YAML map, or
   /// does not have the `linter` child map.
-  List<RuleConfig>? processAnalysisOptionsFile(String fileContents) {
+  Map<String, RuleConfig>? processAnalysisOptionsFile(String fileContents) {
     var yaml = loadYamlNode(fileContents);
     if (yaml is YamlMap) {
       return parseLinterSection(yaml);
@@ -61,7 +61,7 @@ linter:
       unnecessary_getters: false
 ''') as YamlMap)!;
         expect(ruleConfigs, hasLength(1));
-        var ruleConfig = ruleConfigs[0];
+        var ruleConfig = ruleConfigs.values.first;
         expect(ruleConfig.group, 'style_guide');
         expect(ruleConfig.name, 'unnecessary_getters');
         expect(ruleConfig.isEnabled, isFalse);
@@ -86,7 +86,7 @@ linter:
       camel_case_types: true #enable
 ''';
           var ruleConfigs = processAnalysisOptionsFile(src)!;
-          var ruleNames = ruleConfigs.map((rc) => rc.name);
+          var ruleNames = ruleConfigs.values.map((rc) => rc.name);
           expect(ruleNames, hasLength(2));
           expect(ruleNames, contains('unnecessary_getters'));
           expect(ruleNames, contains('camel_case_types'));
@@ -107,7 +107,7 @@ linter:
           var ruleConfigs = processAnalysisOptionsFile(src)!;
           expect(ruleConfigs, hasLength(1));
           // Verify that defaults are enabled.
-          expect(ruleConfigs[0].isEnabled, isTrue);
+          expect(ruleConfigs.values.first.isEnabled, isTrue);
         });
 
         test('rule map (bools)', () {
@@ -121,7 +121,7 @@ linter:
     camel_case_types: true #enable
     unnecessary_getters: false #disable
 ''';
-          var ruleConfigs = processAnalysisOptionsFile(src)!;
+          var ruleConfigs = processAnalysisOptionsFile(src)!.values.toList();
           ruleConfigs.sort(
               (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
           expect(ruleConfigs, hasLength(2));
@@ -144,7 +144,7 @@ linter:
 
   group('options processing', () {
     group('raw maps', () {
-      List<RuleConfig> parseMap(Map<Object, Object?> map) {
+      Map<String, RuleConfig> parseMap(Map<Object, Object?> map) {
         return parseLinterSection(wrap(map) as YamlMap)!;
       }
 

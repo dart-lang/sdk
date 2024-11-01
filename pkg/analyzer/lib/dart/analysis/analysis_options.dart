@@ -80,7 +80,7 @@ final class PluginConfiguration {
   final String name;
 
   /// The list of specified [RuleConfig]s.
-  final List<RuleConfig> ruleConfigs;
+  final Map<String, RuleConfig> ruleConfigs;
 
   /// Whether the plugin is enabled.
   final bool isEnabled;
