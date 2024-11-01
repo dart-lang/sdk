@@ -129,6 +129,7 @@ lib/src/lsp/handlers/commands/simple_edit_handler.dart
 lib/src/lsp/handlers/commands/sort_members.dart
 lib/src/lsp/handlers/commands/validate_refactor.dart
 lib/src/lsp/handlers/custom/handler_connect_to_dtd.dart
+lib/src/lsp/handlers/custom/handler_dart_text_document_content_provider.dart
 lib/src/lsp/handlers/custom/handler_diagnostic_server.dart
 lib/src/lsp/handlers/custom/handler_reanalyze.dart
 lib/src/lsp/handlers/handler_call_hierarchy.dart
@@ -283,6 +284,7 @@ lib/src/services/correction/dart/convert_into_is_not_empty.dart
 lib/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart
 lib/src/services/correction/dart/convert_part_of_to_uri.dart
 lib/src/services/correction/dart/convert_quotes.dart
+lib/src/services/correction/dart/convert_related_to_cascade.dart
 lib/src/services/correction/dart/convert_to_boolean_expression.dart
 lib/src/services/correction/dart/convert_to_cascade.dart
 lib/src/services/correction/dart/convert_to_constant_pattern.dart
@@ -353,6 +355,7 @@ lib/src/services/correction/dart/insert_body.dart
 lib/src/services/correction/dart/insert_semicolon.dart
 lib/src/services/correction/dart/invert_conditional_expression.dart
 lib/src/services/correction/dart/invert_if_statement.dart
+lib/src/services/correction/dart/join_else_with_if.dart
 lib/src/services/correction/dart/join_if_with_inner.dart
 lib/src/services/correction/dart/join_if_with_outer.dart
 lib/src/services/correction/dart/join_variable_declaration.dart
@@ -1104,6 +1107,8 @@ test/src/services/correction/assist/flutter_wrap_builder_test.dart
 test/src/services/correction/assist/flutter_wrap_center_test.dart
 test/src/services/correction/assist/flutter_wrap_column_test.dart
 test/src/services/correction/assist/flutter_wrap_container_test.dart
+test/src/services/correction/assist/flutter_wrap_expanded_test.dart
+test/src/services/correction/assist/flutter_wrap_flexible_test.dart
 test/src/services/correction/assist/flutter_wrap_generic_test.dart
 test/src/services/correction/assist/flutter_wrap_padding_test.dart
 test/src/services/correction/assist/flutter_wrap_row_test.dart
@@ -1113,6 +1118,7 @@ test/src/services/correction/assist/import_add_show_test.dart
 test/src/services/correction/assist/inline_invocation_test.dart
 test/src/services/correction/assist/invert_conditional_expression_test.dart
 test/src/services/correction/assist/invert_if_statement_test.dart
+test/src/services/correction/assist/join_else_with_if_test.dart
 test/src/services/correction/assist/join_if_with_inner_test.dart
 test/src/services/correction/assist/join_if_with_outer_test.dart
 test/src/services/correction/assist/join_variable_declaration_test.dart
@@ -1192,6 +1198,7 @@ test/src/services/correction/fix/convert_into_block_body_test.dart
 test/src/services/correction/fix/convert_into_expression_body_test.dart
 test/src/services/correction/fix/convert_into_is_not_test.dart
 test/src/services/correction/fix/convert_quotes_test.dart
+test/src/services/correction/fix/convert_related_to_cascade_test.dart
 test/src/services/correction/fix/convert_to_block_function_body_test.dart
 test/src/services/correction/fix/convert_to_boolean_expression_test.dart
 test/src/services/correction/fix/convert_to_cascade_test.dart
@@ -1290,6 +1297,7 @@ test/src/services/correction/fix/fix_processor_map_test.dart
 test/src/services/correction/fix/fix_test.dart
 test/src/services/correction/fix/format_file_test.dart
 test/src/services/correction/fix/ignore_diagnostic_test.dart
+test/src/services/correction/fix/import_library_hide_test.dart
 test/src/services/correction/fix/import_library_prefix_test.dart
 test/src/services/correction/fix/import_library_project_test.dart
 test/src/services/correction/fix/import_library_sdk_test.dart
