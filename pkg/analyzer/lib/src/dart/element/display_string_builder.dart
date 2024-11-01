@@ -252,13 +252,41 @@ class ElementDisplayStringBuilder {
   }
 
   void writePrefixElement(PrefixElementImpl element) {
-    _write('as ');
-    _write(element.displayName);
+    var libraryImports = element.imports;
+    if (libraryImports.isEmpty) {
+      _write('as ');
+      _write(element.displayName);
+      return;
+    }
+    _write("'${element.displayName}'");
+    _write(' is an import prefix for');
+    if (libraryImports case List(length: 1, :var first)) {
+      _write(" '${first.libraryName}'");
+      return;
+    }
+    _write(':');
+    for (var libraryImport in libraryImports) {
+      _write("\n- '${libraryImport.libraryName}'");
+    }
   }
 
   void writePrefixElement2(PrefixElementImpl2 element) {
-    _write('as ');
-    _write(element.displayName);
+    var libraryImports = element.imports;
+    if (element.imports.isEmpty) {
+      _write('as ');
+      _write(element.displayName);
+      return;
+    }
+    _write("'${element.displayName}'");
+    _write(' is an import prefix for');
+    if (libraryImports case List(length: 1, :var first)) {
+      _write(" '${first.libraryName}'");
+      return;
+    }
+    _write(':');
+    for (var libraryImport in libraryImports) {
+      _write("\n- '${libraryImport.libraryName}'");
+    }
   }
 
   void writeRecordType(RecordType type) {
@@ -609,3 +637,12 @@ class ElementDisplayStringBuilder {
 }
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
+
+extension on LibraryImportElement {
+  String get libraryName {
+    if (uri case DirectiveUriWithRelativeUriString uri) {
+      return uri.relativeUriString;
+    }
+    return '<no-relative-uri>';
+  }
+}

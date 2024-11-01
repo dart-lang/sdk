@@ -31,6 +31,21 @@ import 'source_loader.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
+class _FragmentName {
+  final Uri fileUri;
+  final String name;
+  final int nameOffset;
+  final int nameLength;
+  final bool isAugment;
+
+  _FragmentName(
+      {required this.fileUri,
+      required this.name,
+      required this.nameOffset,
+      required this.nameLength,
+      required this.isAugment});
+}
+
 void _computeBuildersFromFragments(String name, List<Fragment> fragments,
     {required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -43,6 +58,230 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
     required ContainerType containerType,
     IndexedContainer? indexedContainer,
     ContainerName? containerName}) {
+  // TODO(johnniwinther): Collect introductory and augmenting fragments.
+  _FragmentName? existingGetable;
+  _FragmentName? existingSetable;
+  _FragmentName? existingConstructor;
+
+  void checkGetable(_FragmentName fragmentName) {
+    if (fragmentName.isAugment) {
+      // TODO(johnniwinther): Check that an introductory fragment exists and
+      //  collect augmentations.
+      return;
+    }
+    if (existingGetable != null) {
+      problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fragmentName.name),
+          fragmentName.nameOffset,
+          fragmentName.nameLength,
+          fragmentName.fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(existingGetable!.name)
+                .withLocation(existingGetable!.fileUri,
+                    existingGetable!.nameOffset, existingGetable!.nameLength)
+          ]);
+    }
+    // TODO(johnniwinther): Check for conflict with setters.
+    /*else if (existingSetable != null) {
+      problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(fragmentName.name),
+          fragmentName.nameOffset,
+          fragmentName.nameLength,
+          fragmentName.fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(existingSetable!.name)
+                .withLocation(existingSetable!.fileUri,
+                    existingSetable!.nameOffset, existingSetable!.nameLength)
+          ]);
+    }*/
+    existingGetable = fragmentName;
+  }
+
+  void checkProperty({_FragmentName? getable, _FragmentName? setable}) {
+    if (getable != null && existingGetable != null) {
+      if (getable.isAugment) {
+        // Check that an introductory fragment exists and collect augmentations.
+        getable = null;
+      } else {
+        problemReporting.addProblem(
+            templateDuplicatedDeclaration.withArguments(getable.name),
+            getable.nameOffset,
+            getable.nameLength,
+            getable.fileUri,
+            context: <LocatedMessage>[
+              templateDuplicatedDeclarationCause
+                  .withArguments(existingGetable!.name)
+                  .withLocation(existingGetable!.fileUri,
+                      existingGetable!.nameOffset, existingGetable!.nameLength)
+            ]);
+      }
+    } else if (setable != null && existingSetable != null) {
+      if (setable.isAugment) {
+        // TODO(johnniwinther): Check that an introductory fragment exists and
+        //  collect augmentations.
+        setable = null;
+      } else {
+        problemReporting.addProblem(
+            templateDuplicatedDeclaration.withArguments(setable.name),
+            setable.nameOffset,
+            setable.nameLength,
+            setable.fileUri,
+            context: <LocatedMessage>[
+              templateDuplicatedDeclarationCause
+                  .withArguments(existingSetable!.name)
+                  .withLocation(existingSetable!.fileUri,
+                      existingSetable!.nameOffset, existingSetable!.nameLength)
+            ]);
+      }
+    }
+    if (getable != null) {
+      existingGetable = getable;
+    }
+    if (setable != null) {
+      existingSetable = setable;
+    }
+  }
+
+  void checkConstructor(_FragmentName constructor) {
+    if (constructor.isAugment) {
+      // TODO(johnniwinther): Check that an introductory fragment exists and
+      //  collect augmentations.
+      return;
+    }
+    if (existingConstructor != null) {
+      problemReporting.addProblem(
+          templateDuplicatedDeclaration.withArguments(constructor.name),
+          constructor.nameOffset,
+          constructor.nameLength,
+          constructor.fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(existingConstructor!.name)
+                .withLocation(
+                    existingConstructor!.fileUri,
+                    existingConstructor!.nameOffset,
+                    existingConstructor!.nameLength)
+          ]);
+    }
+    existingConstructor = constructor;
+  }
+
+  for (Fragment fragment in fragments) {
+    switch (fragment) {
+      case ClassFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment));
+      case EnumFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            // TODO(johnniwinther): Support enum augmentations.
+            isAugment: false));
+      case ExtensionTypeFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment));
+      case MethodFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment));
+      case MixinFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment));
+      case NamedMixinApplicationFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment));
+      case TypedefFragment():
+        checkGetable(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            // TODO(johnniwinther): Support typedef augmentations.
+            isAugment: false));
+      case ExtensionFragment():
+        if (!fragment.isUnnamed) {
+          checkGetable(new _FragmentName(
+              fileUri: fragment.fileUri,
+              name: fragment.name,
+              nameOffset: fragment.fileOffset,
+              nameLength: fragment.name.length,
+              isAugment: fragment.modifiers.isAugment));
+        }
+      // TODO(johnniwinther):
+      case FactoryFragment():
+        checkConstructor(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.constructorName.fullName,
+            nameOffset: fragment.constructorName.fullNameOffset,
+            nameLength: fragment.constructorName.fullNameLength,
+            isAugment: fragment.modifiers.isAugment));
+      case ConstructorFragment():
+        checkConstructor(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.constructorName.fullName,
+            nameOffset: fragment.constructorName.fullNameOffset,
+            nameLength: fragment.constructorName.fullNameLength,
+            isAugment: fragment.modifiers.isAugment));
+      case PrimaryConstructorFragment():
+        checkConstructor(new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.constructorName.fullName,
+            nameOffset: fragment.constructorName.fullNameOffset,
+            nameLength: fragment.constructorName.fullNameLength,
+            isAugment: fragment.modifiers.isAugment));
+      case FieldFragment():
+        _FragmentName fragmentName = new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment);
+        checkProperty(getable: fragmentName
+            // TODO(johnniwinther): Check getter/setter conflict here.
+            /*, setable: fragment.hasSetter ? fragmentName : null*/
+            );
+      case GetterFragment():
+        _FragmentName fragmentName = new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment);
+        checkProperty(getable: fragmentName);
+      case SetterFragment():
+        _FragmentName fragmentName = new _FragmentName(
+            fileUri: fragment.fileUri,
+            name: fragment.name,
+            nameOffset: fragment.nameOffset,
+            nameLength: fragment.name.length,
+            isAugment: fragment.modifiers.isAugment);
+        checkProperty(setable: fragmentName);
+    }
+  }
+
   for (Fragment fragment in fragments) {
     switch (fragment) {
       case TypedefFragment():
@@ -924,18 +1163,8 @@ class LibraryNameSpaceBuilder {
       }
       declaration.next = existing;
       if (isDuplicatedDeclaration(existing, declaration)) {
-        String fullName = name;
-        problemReporting.addProblem(
-            templateDuplicatedDeclaration.withArguments(fullName),
-            charOffset,
-            fullName.length,
-            declaration.fileUri!,
-            context: <LocatedMessage>[
-              templateDuplicatedDeclarationCause
-                  .withArguments(fullName)
-                  .withLocation(
-                      existing!.fileUri!, existing.fileOffset, fullName.length)
-            ]);
+        // Error reporting in [_computeBuildersFromFragments].
+        // TODO(johnniwinther): Avoid the use of [isDuplicatedDeclaration].
       } else if (declaration.isExtension) {
         // We add the extension declaration to the extension scope only if its
         // name is unique. Only the first of duplicate extensions is accessible
@@ -1139,25 +1368,8 @@ class DeclarationNameSpaceBuilder {
     }
     declaration.next = existing;
     if (isDuplicatedDeclaration(existing, declaration)) {
-      String fullName = name;
-      if (isConstructor) {
-        if (name.isEmpty) {
-          fullName = _name;
-        } else {
-          fullName = "${_name}.$name";
-        }
-      }
-      problemReporting.addProblem(
-          templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset,
-          fullName.length,
-          declaration.fileUri!,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(fullName)
-                .withLocation(
-                    existing!.fileUri!, existing.fileOffset, fullName.length)
-          ]);
+      // Error reporting in [_computeBuildersFromFragments].
+      // TODO(johnniwinther): Avoid the use of [isDuplicatedDeclaration].
     } else if (declaration.isAugment) {
       // Coverage-ignore-block(suite): Not run.
       if (existing != null) {

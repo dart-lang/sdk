@@ -141,16 +141,13 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.interfaces = reader._readInterfaceTypeList();
 
     if (element.augmentationTarget == null) {
-      if (reader.readBool()) {
-        var augmented = element.augmentedInternal as AugmentedClassElementImpl;
-        element.augmentedInternal = augmented;
-        augmented.mixins = reader._readInterfaceTypeList();
-        augmented.interfaces = reader._readInterfaceTypeList();
-        augmented.fields = reader.readElementList();
-        augmented.constructors = reader.readElementList();
-        augmented.accessors = reader.readElementList();
-        augmented.methods = reader.readElementList();
-      }
+      var augmented = element.augmentedInternal;
+      augmented.mixins = reader._readInterfaceTypeList();
+      augmented.interfaces = reader._readInterfaceTypeList();
+      augmented.fields = reader.readElementList();
+      augmented.constructors = reader.readElementList();
+      augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
@@ -369,16 +366,13 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
     if (element.augmentationTarget == null) {
-      if (reader.readBool()) {
-        var augmented = element.augmentedInternal as AugmentedEnumElementImpl;
-        element.augmentedInternal = augmented;
-        augmented.mixins = reader._readInterfaceTypeList();
-        augmented.interfaces = reader._readInterfaceTypeList();
-        augmented.fields = reader.readElementList();
-        augmented.constructors = reader.readElementList();
-        augmented.accessors = reader.readElementList();
-        augmented.methods = reader.readElementList();
-      }
+      var augmented = element.augmentedInternal;
+      augmented.mixins = reader._readInterfaceTypeList();
+      augmented.interfaces = reader._readInterfaceTypeList();
+      augmented.fields = reader.readElementList();
+      augmented.constructors = reader.readElementList();
+      augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
     }
     applyConstantOffsets?.perform();
   }
@@ -408,15 +402,11 @@ class ExtensionElementLinkedData
     _readTypeParameters(reader, element.typeParameters);
     if (element.augmentationTarget == null) {
       var extendedType = reader.readRequiredType();
-      if (reader.readBool()) {
-        var augmented =
-            element.augmentedInternal as AugmentedExtensionElementImpl;
-        element.augmentedInternal = augmented;
-        augmented.fields = reader.readElementList();
-        augmented.accessors = reader.readElementList();
-        augmented.methods = reader.readElementList();
-      }
-      element.augmented.extendedType = extendedType;
+      var augmented = element.augmentedInternal;
+      augmented.fields = reader.readElementList();
+      augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
+      augmented.extendedType = extendedType;
     }
 
     applyConstantOffsets?.perform();
@@ -447,17 +437,13 @@ class ExtensionTypeElementLinkedData
     _readTypeParameters(reader, element.typeParameters);
     element.interfaces = reader._readInterfaceTypeList();
     if (element.augmentationTarget == null) {
-      if (reader.readBool()) {
-        var augmented =
-            element.augmentedInternal as AugmentedExtensionTypeElementImpl;
-        element.augmentedInternal = augmented;
-        augmented.interfaces = reader._readInterfaceTypeList();
-        augmented.fields = reader.readElementList();
-        augmented.accessors = reader.readElementList();
-        augmented.constructors = reader.readElementList();
-        augmented.methods = reader.readElementList();
-      }
-      element.augmented
+      var augmented = element.augmentedInternal;
+      augmented.interfaces = reader._readInterfaceTypeList();
+      augmented.fields = reader.readElementList();
+      augmented.accessors = reader.readElementList();
+      augmented.constructors = reader.readElementList();
+      augmented.methods = reader.readElementList();
+      augmented
         ..primaryConstructor = element.constructors.first
         ..representation = element.fields.first
         ..typeErasure = reader.readRequiredType();
@@ -730,7 +716,6 @@ class LibraryReader {
     var reference = _readReference();
 
     var reference2 = _readReference();
-    var isAugmented = _reader.readBool();
 
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
@@ -738,12 +723,10 @@ class LibraryReader {
     var element = ClassElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case MaybeAugmentedClassElementMixin element2?) {
+    if (reference2.element2 case AugmentedClassElementImpl element2?) {
       element.augmentedInternal = element2;
-    } else if (isAugmented) {
-      AugmentedClassElementImpl(reference2, element);
     } else {
-      NotAugmentedClassElementImpl(reference2, element);
+      AugmentedClassElementImpl(reference2, element);
     }
 
     var linkedData = ClassElementLinkedData(
@@ -895,7 +878,6 @@ class LibraryReader {
     var reference = _readReference();
 
     var reference2 = _readReference();
-    var isAugmented = _reader.readBool();
 
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
@@ -903,12 +885,10 @@ class LibraryReader {
     var element = EnumElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case MaybeAugmentedEnumElementMixin element2?) {
+    if (reference2.element2 case AugmentedEnumElementImpl element2?) {
       element.augmentedInternal = element2;
-    } else if (isAugmented) {
-      AugmentedEnumElementImpl(reference2, element);
     } else {
-      NotAugmentedEnumElementImpl(reference2, element);
+      AugmentedEnumElementImpl(reference2, element);
     }
 
     var linkedData = EnumElementLinkedData(
@@ -997,7 +977,6 @@ class LibraryReader {
     var reference = _readReference();
 
     var reference2 = _readReference();
-    var isAugmented = _reader.readBool();
 
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name;
@@ -1005,13 +984,10 @@ class LibraryReader {
     var element = ExtensionElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2
-        case MaybeAugmentedExtensionElementMixin element2?) {
+    if (reference2.element2 case AugmentedExtensionElementImpl element2?) {
       element.augmentedInternal = element2;
-    } else if (isAugmented) {
-      AugmentedExtensionElementImpl(reference2, element);
     } else {
-      NotAugmentedExtensionElementImpl(reference2, element);
+      AugmentedExtensionElementImpl(reference2, element);
     }
 
     element.setLinkedData(
@@ -1058,7 +1034,6 @@ class LibraryReader {
     var reference = _readReference();
 
     var reference2 = _readReference();
-    var isAugmented = _reader.readBool();
 
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
@@ -1066,13 +1041,10 @@ class LibraryReader {
     var element = ExtensionTypeElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2
-        case MaybeAugmentedExtensionTypeElementMixin element2?) {
+    if (reference2.element2 case AugmentedExtensionTypeElementImpl element2?) {
       element.augmentedInternal = element2;
-    } else if (isAugmented) {
-      AugmentedExtensionTypeElementImpl(reference2, element);
     } else {
-      NotAugmentedExtensionTypeElementImpl(reference2, element);
+      AugmentedExtensionTypeElementImpl(reference2, element);
     }
 
     element.setLinkedData(
@@ -1369,7 +1341,6 @@ class LibraryReader {
     var reference = _readReference();
 
     var reference2 = _readReference();
-    var isAugmented = _reader.readBool();
 
     var fragmentName = _readFragmentName();
     var name = fragmentName?.name ?? '';
@@ -1377,12 +1348,10 @@ class LibraryReader {
     var element = MixinElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case MaybeAugmentedMixinElementMixin element2?) {
+    if (reference2.element2 case AugmentedMixinElementImpl element2?) {
       element.augmentedInternal = element2;
-    } else if (isAugmented) {
-      AugmentedMixinElementImpl(reference2, element);
     } else {
-      NotAugmentedMixinElementImpl(reference2, element);
+      AugmentedMixinElementImpl(reference2, element);
     }
 
     var linkedData = MixinElementLinkedData(
@@ -1917,15 +1886,12 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     element.interfaces = reader._readInterfaceTypeList();
 
     if (element.augmentationTarget == null) {
-      if (reader.readBool()) {
-        var augmented = element.augmentedInternal as AugmentedMixinElementImpl;
-        element.augmentedInternal = augmented;
-        augmented.superclassConstraints = reader._readInterfaceTypeList();
-        augmented.interfaces = reader._readInterfaceTypeList();
-        augmented.fields = reader.readElementList();
-        augmented.accessors = reader.readElementList();
-        augmented.methods = reader.readElementList();
-      }
+      var augmented = element.augmentedInternal;
+      augmented.superclassConstraints = reader._readInterfaceTypeList();
+      augmented.interfaces = reader._readInterfaceTypeList();
+      augmented.fields = reader.readElementList();
+      augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();

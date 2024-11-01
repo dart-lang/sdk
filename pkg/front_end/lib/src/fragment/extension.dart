@@ -36,6 +36,8 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
             ? new FixedExtensionName(name)
             : new UnnamedExtensionName();
 
+  bool get isUnnamed => extensionName.isUnnamedExtension;
+
   @override
   SourceExtensionBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");

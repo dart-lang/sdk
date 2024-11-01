@@ -185,11 +185,11 @@ abstract class _AbstractElementWriter {
 
   void _writeReference2(Element2 e) {
     var reference = switch (e) {
-      MaybeAugmentedClassElementMixin() => e.reference,
-      MaybeAugmentedEnumElementMixin() => e.reference,
-      MaybeAugmentedExtensionElementMixin() => e.reference,
-      MaybeAugmentedExtensionTypeElementMixin() => e.reference,
-      MaybeAugmentedMixinElementMixin() => e.reference,
+      AugmentedClassElementImpl() => e.reference,
+      AugmentedEnumElementImpl() => e.reference,
+      AugmentedExtensionElementImpl() => e.reference,
+      AugmentedExtensionTypeElementImpl() => e.reference,
+      AugmentedMixinElementImpl() => e.reference,
       _ => null,
     };
 
@@ -804,9 +804,7 @@ class _Element2Writer extends _AbstractElementWriter {
     } else {
       element = f.element;
       if (element is! ElementImpl) {
-        if (element is NotAugmentedInstanceElementImpl) {
-          element = element.baseElement;
-        } else if (element is MaybeAugmentedInstanceElementMixin) {
+        if (element is AugmentedInstanceElementImpl) {
           element = element.firstFragment;
         }
       }
@@ -2173,7 +2171,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
     // No augmentation, not interesting.
     if (e.augmentation == null) {
-      expect(e.augmented, TypeMatcher<NotAugmentedInstanceElementImpl>());
       if (!configuration.withAugmentedWithoutAugmentation) {
         return;
       }
@@ -2274,9 +2271,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeCodeRange(Element e) {
     if (configuration.withCodeRanges && !e.isSynthetic) {
-      if (e is MaybeAugmentedInstanceElementMixin) {
-        e = e.declaration!;
-      }
       e as ElementImpl;
       _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
       _sink.writelnWithIndent('codeLength: ${e.codeLength}');

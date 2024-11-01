@@ -36,5 +36,5 @@ Future<List<String>> _fetchRulesFromGitHub(String optionsPath) async {
     printToConsole('No config found for: $optionsUrl (SKIPPED)');
     return [];
   }
-  return ruleConfigs.map((r) => r.name).nonNulls.toList(growable: false);
+  return ruleConfigs.values.map((r) => r.name).nonNulls.toList(growable: false);
 }

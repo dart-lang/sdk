@@ -94,6 +94,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(boolElement);
     return boolElement;
   }
 
@@ -113,6 +114,7 @@ class _MockSdkElementsBuilder {
     );
     comparableElement.supertype = objectType;
 
+    _buildClassElement(comparableElement);
     return comparableElement;
   }
 
@@ -128,6 +130,7 @@ class _MockSdkElementsBuilder {
     );
     completerElement.supertype = objectType;
 
+    _buildClassElement(completerElement);
     return completerElement;
   }
 
@@ -154,6 +157,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(deprecatedElement);
     return deprecatedElement;
   }
 
@@ -215,6 +219,7 @@ class _MockSdkElementsBuilder {
       _method('truncate', doubleType),
     ];
 
+    _buildClassElement(doubleElement);
     return doubleElement;
   }
 
@@ -234,6 +239,7 @@ class _MockSdkElementsBuilder {
     );
     functionElement.supertype = objectType;
 
+    _buildClassElement(functionElement);
     return functionElement;
   }
 
@@ -287,6 +293,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(futureElement);
     return futureElement;
   }
 
@@ -301,6 +308,7 @@ class _MockSdkElementsBuilder {
     );
     futureOrElement.supertype = objectType;
 
+    _buildClassElement(futureOrElement);
     return futureOrElement;
   }
 
@@ -349,6 +357,7 @@ class _MockSdkElementsBuilder {
       _method('toString', stringType),
     ];
 
+    _buildClassElement(intElement);
     return intElement;
   }
 
@@ -379,6 +388,7 @@ class _MockSdkElementsBuilder {
       _getter('last', eType),
     ]);
 
+    _buildClassElement(iterableElement);
     return iterableElement;
   }
 
@@ -400,6 +410,7 @@ class _MockSdkElementsBuilder {
       _getter('current', eType),
     ]);
 
+    _buildClassElement(iteratorElement);
     return iteratorElement;
   }
 
@@ -443,6 +454,7 @@ class _MockSdkElementsBuilder {
       ]),
     ];
 
+    _buildClassElement(listElement);
     return listElement;
   }
 
@@ -476,6 +488,7 @@ class _MockSdkElementsBuilder {
       ]),
     ];
 
+    _buildClassElement(mapElement);
     return mapElement;
   }
 
@@ -493,6 +506,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(nullElement);
     return nullElement;
   }
 
@@ -573,6 +587,7 @@ class _MockSdkElementsBuilder {
       _getter('isNegative', boolType),
     ]);
 
+    _buildClassElement(numElement);
     return numElement;
   }
 
@@ -607,6 +622,7 @@ class _MockSdkElementsBuilder {
       _getter('runtimeType', typeType),
     ]);
 
+    _buildClassElement(objectElement);
     return objectElement;
   }
 
@@ -625,6 +641,7 @@ class _MockSdkElementsBuilder {
       _constructor(isConst: true),
     ];
 
+    _buildClassElement(overrideElement);
     return overrideElement;
   }
 
@@ -638,6 +655,7 @@ class _MockSdkElementsBuilder {
     );
     recordElement.supertype = objectType;
 
+    _buildClassElement(recordElement);
     return recordElement;
   }
 
@@ -662,6 +680,7 @@ class _MockSdkElementsBuilder {
       iterableType(eType),
     ];
 
+    _buildClassElement(setElement);
     return setElement;
   }
 
@@ -675,6 +694,7 @@ class _MockSdkElementsBuilder {
     );
     stackTraceElement.supertype = objectType;
 
+    _buildClassElement(stackTraceElement);
     return stackTraceElement;
   }
 
@@ -719,6 +739,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(streamElement);
     return streamElement;
   }
 
@@ -734,6 +755,7 @@ class _MockSdkElementsBuilder {
     );
     streamSubscriptionElement.supertype = objectType;
 
+    _buildClassElement(streamSubscriptionElement);
     return streamSubscriptionElement;
   }
 
@@ -773,6 +795,7 @@ class _MockSdkElementsBuilder {
       _method('toUpperCase', stringType),
     ];
 
+    _buildClassElement(stringElement);
     return stringElement;
   }
 
@@ -800,6 +823,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(symbolElement);
     return symbolElement;
   }
 
@@ -813,6 +837,7 @@ class _MockSdkElementsBuilder {
     );
     typeElement.supertype = objectType;
 
+    _buildClassElement(typeElement);
     return typeElement;
   }
 
@@ -891,6 +916,16 @@ class _MockSdkElementsBuilder {
 
     asyncLibrary.definingCompilationUnit = asyncUnit;
     return asyncLibrary;
+  }
+
+  void _buildClassElement(ClassElementImpl fragment) {
+    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+    element.fields = fragment.fields;
+    element.constructors = fragment.constructors;
+    element.accessors = fragment.accessors;
+    element.methods = fragment.methods;
   }
 
   LibraryElementImpl _buildCore() {
@@ -972,7 +1007,6 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeParameters = const [],
   }) {
     var element = ClassElementImpl(name, 0);
-    NotAugmentedClassElementImpl(Reference.root(), element);
     element.typeParameters = typeParameters;
     element.constructors = <ConstructorElementImpl>[
       _constructor(),

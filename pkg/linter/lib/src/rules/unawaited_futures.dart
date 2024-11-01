@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -87,14 +87,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr.constructorName.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 
-  bool _isMapClass(Element? e) =>
-      e is ClassElement && e.name == 'Map' && e.library.name == 'dart.core';
+  bool _isMapClass(Element2? e) =>
+      e is ClassElement2 && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
 
   /// Detects Map.putIfAbsent invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(expr.methodName.staticElement?.enclosingElement3);
+      _isMapClass(expr.methodName.element?.enclosingElement2);
 
   void _visit(Expression expr) {
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&

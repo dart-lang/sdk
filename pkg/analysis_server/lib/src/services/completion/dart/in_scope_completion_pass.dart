@@ -3940,6 +3940,9 @@ extension on AstNode {
       } else if (enclosingMember is FunctionBody &&
           enclosingMember.parent is ConstructorDeclaration) {
         return false;
+      } else if (enclosingMember is VariableDeclarationList &&
+          enclosingMember.parent is FieldDeclaration) {
+        return !enclosingMember.isLate;
       }
       enclosingMember = enclosingMember.parent;
     }

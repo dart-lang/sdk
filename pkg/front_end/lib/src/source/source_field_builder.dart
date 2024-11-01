@@ -154,14 +154,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateIsSetSetterReference == null);
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
-      _fieldEncoding = new RepresentationFieldEncoding(
-          this,
-          name,
-          nameScheme,
-          fileUri,
-          nameOffset,
-          endOffset,
-          fieldGetterReference);
+      _fieldEncoding = new RepresentationFieldEncoding(this, name, nameScheme,
+          fileUri, nameOffset, endOffset, fieldGetterReference);
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,

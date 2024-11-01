@@ -15,14 +15,23 @@ class ConstructorName {
   final int? nameOffset;
 
   /// The name of the constructor including the enclosing declaration name.
+  ///
+  /// For unnamed constructors the full name is normalized to be the class name,
+  /// regardless of whether the constructor was declared with 'new'.
+  ///
+  /// For invalid constructor names, the full name is normalized to use the
+  /// class name as prefix, regardless of whether the declaration did so.
+  ///
+  /// This means that not in all cases is the text pointed to by
+  /// [fullNameOffset] and [fullNameLength] the same as the [fullName].
   final String fullName;
 
-  /// The offset at which [fullName] occurs.
+  /// The offset at which the full name occurs.
   ///
   /// This is used in messages to put the `^` at the start of the [fullName].
   final int fullNameOffset;
 
-  /// The number of characters of [fullName] that occurs at [fullNameOffset].
+  /// The number of characters of full name that occurs at [fullNameOffset].
   ///
   /// This is used in messages to put the right amount of `^` under the name.
   final int fullNameLength;
@@ -32,5 +41,6 @@ class ConstructorName {
       required this.nameOffset,
       required this.fullName,
       required this.fullNameOffset,
-      required this.fullNameLength});
+      required this.fullNameLength})
+      : assert(name != 'new');
 }

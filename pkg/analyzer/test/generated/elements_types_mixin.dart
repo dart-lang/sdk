@@ -133,18 +133,23 @@ mixin ElementsTypesMixin {
     List<InterfaceType> mixins = const [],
     List<MethodElementImpl> methods = const [],
   }) {
-    var element = ClassElementImpl(name, 0);
-    NotAugmentedClassElementImpl(Reference.root(), element);
-    element.isAbstract = isAbstract;
-    element.isAugmentation = isAugmentation;
-    element.isSealed = isSealed;
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.supertype = superType ?? typeProvider.objectType;
-    element.interfaces = interfaces;
-    element.mixins = mixins;
-    element.methods = methods;
-    return element;
+    var fragment = ClassElementImpl(name, 0);
+    fragment.isAbstract = isAbstract;
+    fragment.isAugmentation = isAugmentation;
+    fragment.isSealed = isSealed;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.supertype = superType ?? typeProvider.objectType;
+    fragment.interfaces = interfaces;
+    fragment.mixins = mixins;
+    fragment.methods = methods;
+
+    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+    element.methods = fragment.methods;
+
+    return fragment;
   }
 
   InterfaceType comparableNone(DartType type) {
@@ -170,7 +175,7 @@ mixin ElementsTypesMixin {
     required List<ConstFieldElementImpl> constants,
   }) {
     var element = EnumElementImpl(name, 0);
-    NotAugmentedEnumElementImpl(Reference.root(), element);
+    AugmentedEnumElementImpl(Reference.root(), element);
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.fields = constants;
     return element;
@@ -190,7 +195,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
-    NotAugmentedExtensionElementImpl(Reference.root(), element);
+    AugmentedExtensionElementImpl(Reference.root(), element);
     element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
@@ -206,21 +211,23 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
-    var element = ExtensionTypeElementImpl(name, -1);
-    NotAugmentedExtensionTypeElementImpl(Reference.root(), element);
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.interfaces = interfaces;
+    var fragment = ExtensionTypeElementImpl(name, -1);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.interfaces = interfaces;
 
     var field = FieldElementImpl(representationName, -1);
     field.type = representationType;
-    element.fields = [field];
+    fragment.fields = [field];
 
-    element.augmented
+    var element = AugmentedExtensionTypeElementImpl(Reference.root(), fragment);
+    element
       ..representation = field
-      ..typeErasure = representationType;
+      ..typeErasure = representationType
+      ..interfaces = fragment.interfaces
+      ..fields = fragment.fields;
 
-    return element;
+    return fragment;
   }
 
   FunctionTypeImpl functionType({
@@ -416,15 +423,20 @@ mixin ElementsTypesMixin {
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
-    var element = MixinElementImpl(name, 0);
-    NotAugmentedMixinElementImpl(Reference.root(), element);
-    element.isAugmentation = isAugmentation;
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.typeParameters = typeParameters;
-    element.superclassConstraints = constraints ?? [typeProvider.objectType];
-    element.interfaces = interfaces;
-    element.constructors = const <ConstructorElementImpl>[];
-    return element;
+    var fragment = MixinElementImpl(name, 0);
+    fragment.isAugmentation = isAugmentation;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters;
+    fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
+    fragment.interfaces = interfaces;
+    fragment.constructors = const <ConstructorElementImpl>[];
+
+    var element = AugmentedMixinElementImpl(Reference.root(), fragment);
+    element.superclassConstraints = fragment.superclassConstraints;
+    element.interfaces = fragment.interfaces;
+    element.methods = fragment.methods;
+
+    return fragment;
   }
 
   ParameterElement namedParameter({
@@ -643,11 +655,6 @@ class _MockSource implements Source {
 
 extension ClassElementImplExtension on ClassElementImpl {
   void addAugmentations(List<ClassElementImpl> augmentations) {
-    expect(this.augmented, TypeMatcher<NotAugmentedClassElementImpl>());
-
-    var augmented = AugmentedClassElementImpl(Reference.root(), this);
-    augmentedInternal = augmented;
-
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
@@ -657,19 +664,22 @@ extension ClassElementImplExtension on ClassElementImpl {
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-      augmented.interfaces.addAll(augmentation.interfaces);
-      augmented.mixins.addAll(augmentation.mixins);
+
+      augmentedInternal.interfaces = [
+        ...augmentedInternal.interfaces,
+        ...augmentation.interfaces,
+      ];
+
+      augmentedInternal.mixins = [
+        ...augmentedInternal.mixins,
+        ...augmentation.mixins,
+      ];
     }
   }
 }
 
 extension MixinElementImplExtension on MixinElementImpl {
   void addAugmentations(List<MixinElementImpl> augmentations) {
-    expect(this.augmented, TypeMatcher<NotAugmentedMixinElementImpl>());
-
-    var augmented = AugmentedMixinElementImpl(Reference.root(), this);
-    augmentedInternal = augmented;
-
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
@@ -679,9 +689,16 @@ extension MixinElementImplExtension on MixinElementImpl {
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-      augmented.superclassConstraints
-          .addAll(augmentation.superclassConstraints);
-      augmented.interfaces.addAll(augmentation.interfaces);
+
+      augmentedInternal.superclassConstraints = [
+        ...augmentedInternal.superclassConstraints,
+        ...augmentation.superclassConstraints,
+      ];
+
+      augmentedInternal.interfaces = [
+        ...augmentedInternal.interfaces,
+        ...augmentation.interfaces,
+      ];
     }
   }
 }

@@ -59,12 +59,6 @@ class HoverHandler
       return null;
     }
 
-    // Import prefix tooltips are not useful currently.
-    // https://github.com/dart-lang/sdk/issues/32735
-    if (hover.elementKind == 'import prefix') {
-      return null;
-    }
-
     var content = StringBuffer();
     const divider = '---';
 

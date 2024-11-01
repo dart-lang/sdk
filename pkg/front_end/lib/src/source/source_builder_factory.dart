@@ -1871,13 +1871,20 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       suffix = identifier.name;
       suffixOffset = identifier.nameOffset;
       charOffset = qualifier.nameOffset;
-      fullName = '${prefix}.${suffix}';
+      String prefixAndSuffix = '${prefix}.${suffix}';
       fullNameOffset = qualifier.nameOffset;
       // If the there is no space between the prefix and suffix we use the full
       // length as the name length. Otherwise the full name has no length.
       fullNameLength = fullNameOffset + prefix.length + 1 == suffixOffset
-          ? fullName.length
+          ? prefixAndSuffix.length
           : noLength;
+      if (suffix == "new") {
+        // Normalize `Class.new` to `Class`.
+        suffix = '';
+        fullName = className;
+      } else {
+        fullName = '$className.$suffix';
+      }
     } else {
       prefix = identifier.name;
       suffix = null;
@@ -1887,9 +1894,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fullNameOffset = identifier.nameOffset;
       fullNameLength = prefix.length;
     }
-    if (libraryFeatures.constructorTearoffs.isEnabled) {
-      suffix = suffix == "new" ? "" : suffix;
-    }
+
     if (prefix == className) {
       return new ConstructorName(
           name: suffix ?? '',
@@ -1897,6 +1902,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           fullName: fullName,
           fullNameOffset: fullNameOffset,
           fullNameLength: fullNameLength);
+    } else if (suffix == null) {
+      // Normalize `foo` in `Class` to `Class.foo`.
+      fullName = '$className.$prefix';
     }
     if (suffix == null && !isFactory) {
       // This method is called because the syntax indicated that this is a
@@ -1921,9 +1929,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     return new ConstructorName(
         name: suffix ?? prefix,
         nameOffset: suffixOffset,
-        fullName: suffix ?? prefix,
+        fullName: fullName,
         fullNameOffset: fullNameOffset,
-        fullNameLength: noLength);
+        fullNameLength: fullNameLength);
   }
 
   void _addNativeGetterFragment(GetterFragment fragment) {
