@@ -105,8 +105,8 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 /// This is used by the VM Service Protocol to invoke extensions registered
 /// with [registerExtension]. For example, in JS:
 ///
-///     await sdk.developer.invokeExtension(
-/// .         "ext.flutter.inspector.getRootWidget", '{"objectGroup":""}');
+///     await dartDevEmbedder.developer.invokeExtension(
+///           "ext.flutter.inspector.getRootWidget", '{"objectGroup":""}');
 ///
 @JSExportName('invokeExtension')
 @ReifyFunctionTypes(false)

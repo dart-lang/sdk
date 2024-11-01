@@ -100,8 +100,6 @@ Program transformModuleFormat(ModuleFormat format, Program module) {
 
 /// Transforms an ES6 [function] into a given module [format].
 ///
-/// If the format is [ModuleFormat.es6] this will return [function] unchanged.
-///
 /// Because JS ASTs are immutable the resulting function will share as much
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the [ImportDeclaration]s from [items].
@@ -115,6 +113,9 @@ Fun transformFunctionModuleFormat(
       return DdcModuleBuilder().buildFunctionWithImports(items, function);
     case ModuleFormat.amd:
       return AmdModuleBuilder().buildFunctionWithImports(items, function);
+    case ModuleFormat.ddcLibraryBundle:
+      return DdcLibraryBundleBuilder()
+          .buildFunctionWithImports(items, function);
     default:
       throw UnsupportedError(
           'Incremental build does not support $format module format');
@@ -492,6 +493,33 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
       }
     }
     return items;
+  }
+
+  /// Build function body with all necessary imports included.
+  ///
+  /// Used for the top level synthetic function generated during expression
+  /// compilation, in order to include all the context needed for evaluation
+  /// inside it.
+  ///
+  /// Returns a new function that combines all statements from transformed
+  /// imports from [items] and the body of the [function].
+  Fun buildFunctionWithImports(List<ModuleItem> items, Fun function) {
+    clear();
+    visitModuleItems(items);
+
+    var moduleImports = _collectModuleImports(imports);
+    var importStatements = <Statement>[];
+
+    for (var p in moduleImports) {
+      var moduleVar = p.key;
+      var import = p.value;
+      importStatements.addAll(buildImports(moduleVar, import));
+    }
+
+    return Fun(
+      function.params,
+      Block([...importStatements, ...statements, ...function.body.statements]),
+    );
   }
 
   Program build(Program module) {
