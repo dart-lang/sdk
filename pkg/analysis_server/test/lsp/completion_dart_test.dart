@@ -2179,6 +2179,29 @@ import 'dart:^';
     expect(item.insertTextMode, isNull);
   }
 
+  Future<void> test_inside_lateFinal() async {
+    await checkCompleteFunctionCallInsertText('''
+class MyClass {
+  String get myGetter => '';
+  late final myField = [!myG^!]
+}
+''', 'myGetter', editText: 'myGetter');
+  }
+
+  Future<void> test_inside_nonLateFinal() async {
+    var content = '''
+class MyClass {
+  String get myGetter => '';
+  final myField = myG^
+}
+''';
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+    expect(res, isEmpty);
+  }
+
   Future<void> test_insideString() async {
     var content = '''
     var a = "This is ^a test"
