@@ -71,6 +71,38 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   TypeSystemOperations get typeAnalyzerOperations => _typeSystemOperations;
 
+  @override
+  void addLowerConstraintForParameter(
+      TypeParameterElement element, DartType lower,
+      {required AstNode? nodeForTesting}) {
+    GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>
+        generatedTypeConstraint = GeneratedTypeConstraint<
+            DartType,
+            TypeParameterElement,
+            PromotableElement>.lower(element, SharedTypeSchemaView(lower));
+    _constraints.add(generatedTypeConstraint);
+    if (dataForTesting != null && nodeForTesting != null) {
+      (dataForTesting!.generatedTypeConstraints[nodeForTesting] ??= [])
+          .add(generatedTypeConstraint);
+    }
+  }
+
+  @override
+  void addUpperConstraintForParameter(
+      TypeParameterElement element, DartType upper,
+      {required AstNode? nodeForTesting}) {
+    GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>
+        generatedTypeConstraint = GeneratedTypeConstraint<
+            DartType,
+            TypeParameterElement,
+            PromotableElement>.upper(element, SharedTypeSchemaView(upper));
+    _constraints.add(generatedTypeConstraint);
+    if (dataForTesting != null && nodeForTesting != null) {
+      (dataForTesting!.generatedTypeConstraints[nodeForTesting] ??= [])
+          .add(generatedTypeConstraint);
+    }
+  }
+
   /// Returns the set of type constraints that was gathered.
   Map<
       TypeParameterElement,
@@ -148,7 +180,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         case var P_element?
         when P_nullability == NullabilitySuffix.none &&
             _typeParameters.contains(P_element)) {
-      _addUpper(P_element, Q, nodeForTesting: nodeForTesting);
+      addUpperConstraintForParameter(P_element, Q,
+          nodeForTesting: nodeForTesting);
       return true;
     }
 
@@ -165,7 +198,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                         P,
                         _typeSystemOperations.greatestClosureOfTypeInternal(
                             Q_element.bound!, [..._typeParameters]))))) {
-      _addLower(Q_element, P, nodeForTesting: nodeForTesting);
+      addLowerConstraintForParameter(Q_element, P,
+          nodeForTesting: nodeForTesting);
       return true;
     }
 
@@ -341,34 +375,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     return false;
-  }
-
-  void _addLower(TypeParameterElement element, DartType lower,
-      {required AstNode? nodeForTesting}) {
-    GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>
-        generatedTypeConstraint = GeneratedTypeConstraint<
-            DartType,
-            TypeParameterElement,
-            PromotableElement>.lower(element, SharedTypeSchemaView(lower));
-    _constraints.add(generatedTypeConstraint);
-    if (dataForTesting != null && nodeForTesting != null) {
-      (dataForTesting!.generatedTypeConstraints[nodeForTesting] ??= [])
-          .add(generatedTypeConstraint);
-    }
-  }
-
-  void _addUpper(TypeParameterElement element, DartType upper,
-      {required AstNode? nodeForTesting}) {
-    GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>
-        generatedTypeConstraint = GeneratedTypeConstraint<
-            DartType,
-            TypeParameterElement,
-            PromotableElement>.upper(element, SharedTypeSchemaView(upper));
-    _constraints.add(generatedTypeConstraint);
-    if (dataForTesting != null && nodeForTesting != null) {
-      (dataForTesting!.generatedTypeConstraints[nodeForTesting] ??= [])
-          .add(generatedTypeConstraint);
-    }
   }
 
   /// Matches [P] against [Q], where [P] and [Q] are both function types.

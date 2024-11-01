@@ -906,6 +906,16 @@ abstract class TypeConstraintGenerator<
 
   TypeConstraintGenerator({required this.inferenceUsingBoundsIsEnabled});
 
+  /// Add constraint: [lower] <: [typeParameter] <: TOP.
+  void addLowerConstraintForParameter(
+      TypeParameterStructure typeParameter, TypeStructure lower,
+      {required AstNode? nodeForTesting});
+
+  /// Add constraint: BOTTOM <: [typeParameter] <: [upper].
+  void addUpperConstraintForParameter(
+      TypeParameterStructure typeParameter, TypeStructure upper,
+      {required AstNode? nodeForTesting});
+
   /// Returns the type arguments of the supertype of [type] that is an
   /// instantiation of [typeDeclaration]. If none of the supertypes of [type]
   /// are instantiations of [typeDeclaration], returns null.

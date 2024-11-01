@@ -599,7 +599,7 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
         case var typeVar?
         when p.nullabilitySuffix == NullabilitySuffix.none &&
             _typeVariablesBeingConstrained.contains(typeVar)) {
-      _constraints.add('$typeVar <: $q');
+      addUpperConstraintForParameter(typeVar, q, nodeForTesting: null);
       return true;
     }
 
@@ -609,7 +609,7 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
         case var typeVar?
         when q.nullabilitySuffix == NullabilitySuffix.none &&
             _typeVariablesBeingConstrained.contains(typeVar)) {
-      _constraints.add('$p <: $typeVar');
+      addLowerConstraintForParameter(typeVar, p, nodeForTesting: null);
       return true;
     }
 
@@ -634,5 +634,17 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   @override
   void restoreState(TypeConstraintGeneratorState state) {
     _constraints.length = state.count;
+  }
+
+  @override
+  void addUpperConstraintForParameter(TypeParameter typeParameter, Type upper,
+      {required Node? nodeForTesting}) {
+    _constraints.add('$typeParameter <: $upper');
+  }
+
+  @override
+  void addLowerConstraintForParameter(TypeParameter typeParameter, Type lower,
+      {required Node? nodeForTesting}) {
+    _constraints.add('$lower <: $typeParameter');
   }
 }

@@ -135,31 +135,33 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         constrainSupertype: false, treeNodeForTesting: treeNodeForTesting);
   }
 
-  /// Add constraint: [lower] <: [parameter] <: TOP.
-  void _constrainParameterLower(StructuralParameter parameter, DartType lower,
-      {required TreeNode? treeNodeForTesting}) {
+  @override
+  void addLowerConstraintForParameter(
+      StructuralParameter parameter, DartType lower,
+      {required TreeNode? nodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.lower(
             parameter, new SharedTypeSchemaView(lower));
-    if (treeNodeForTesting != null && _inferenceResultForTesting != null) {
+    if (nodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
-      (_inferenceResultForTesting
-              .generatedTypeConstraints[treeNodeForTesting] ??= [])
+      (_inferenceResultForTesting.generatedTypeConstraints[nodeForTesting] ??=
+              [])
           .add(generatedTypeConstraint);
     }
     _protoConstraints.add(generatedTypeConstraint);
   }
 
-  /// Add constraint: BOTTOM <: [parameter] <: [upper].
-  void _constrainParameterUpper(StructuralParameter parameter, DartType upper,
-      {required TreeNode? treeNodeForTesting}) {
+  @override
+  void addUpperConstraintForParameter(
+      StructuralParameter parameter, DartType upper,
+      {required TreeNode? nodeForTesting}) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.upper(
             parameter, new SharedTypeSchemaView(upper));
-    if (treeNodeForTesting != null && _inferenceResultForTesting != null) {
+    if (nodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
-      (_inferenceResultForTesting
-              .generatedTypeConstraints[treeNodeForTesting] ??= [])
+      (_inferenceResultForTesting.generatedTypeConstraints[nodeForTesting] ??=
+              [])
           .add(generatedTypeConstraint);
     }
     _protoConstraints.add(generatedTypeConstraint);
@@ -255,8 +257,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         case StructuralParameter pParameter?
         when pNullability == NullabilitySuffix.none &&
             _parametersToConstrain.contains(pParameter)) {
-      _constrainParameterUpper(pParameter, q,
-          treeNodeForTesting: treeNodeForTesting);
+      addUpperConstraintForParameter(pParameter, q,
+          nodeForTesting: treeNodeForTesting);
       return true;
     }
 
@@ -273,8 +275,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                     p,
                     typeOperations.greatestClosureOfTypeInternal(
                         qParameter.bound, _parametersToConstrain)))) {
-      _constrainParameterLower(qParameter, p,
-          treeNodeForTesting: treeNodeForTesting);
+      addLowerConstraintForParameter(qParameter, p,
+          nodeForTesting: treeNodeForTesting);
       return true;
     }
 
@@ -526,17 +528,17 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
                               "Unsupported type '${type.runtimeType}'."));
           for (GeneratedTypeConstraint constraint in constraints) {
             if (constraint.isUpper) {
-              _constrainParameterUpper(
+              addUpperConstraintForParameter(
                   constraint.typeParameter,
                   eliminator.eliminateToLeast(
                       constraint.constraint.unwrapTypeSchemaView()),
-                  treeNodeForTesting: treeNodeForTesting);
+                  nodeForTesting: treeNodeForTesting);
             } else {
-              _constrainParameterLower(
+              addLowerConstraintForParameter(
                   constraint.typeParameter,
                   eliminator.eliminateToGreatest(
                       constraint.constraint.unwrapTypeSchemaView()),
-                  treeNodeForTesting: treeNodeForTesting);
+                  nodeForTesting: treeNodeForTesting);
             }
           }
           return true;
