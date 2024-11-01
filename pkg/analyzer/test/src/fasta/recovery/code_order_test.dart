@@ -189,6 +189,7 @@ part 'foo.dart';
       declarations: unit.declarations,
       endToken: unit.endToken,
       featureSet: unit.featureSet,
+      languageVersion: unit.languageVersion,
       lineInfo: unit.lineInfo,
       invalidNodes: [],
     );

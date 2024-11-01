@@ -57,7 +57,7 @@ extension on WasmArray<_NamedParameter> {
   }
 }
 
-extension on WasmArray<String> {
+extension on ImmutableWasmArray<String> {
   @pragma("wasm:prefer-inline")
   bool get isNotEmpty => length != 0;
 }
@@ -544,7 +544,7 @@ class _AbstractRecordType extends _Type {
 
 @pragma("wasm:entry-point")
 class _RecordType extends _Type {
-  final WasmArray<String> names;
+  final ImmutableWasmArray<String> names;
   final WasmArray<_Type> fieldTypes;
 
   @pragma("wasm:entry-point")

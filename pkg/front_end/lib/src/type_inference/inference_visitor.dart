@@ -6002,6 +6002,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new Let(readVariable, conditional)
         ..fileOffset = node.fileOffset;
     }
+
+    // Forward the expression in cases where flow analysis needs to use the
+    // expression information. For example, for keeping the promotion in the
+    // following if statement in `if ((x ??= 2) == null) { ... }`.
+    flowAnalysis.forwardExpression(replacement, writeResult.expression);
+
     return createNullAwareExpressionInferenceResult(
         inferredType, replacement, nullAwareGuards);
   }

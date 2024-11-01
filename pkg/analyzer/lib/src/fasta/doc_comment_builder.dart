@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -112,6 +113,7 @@ final class DocCommentBuilder {
   final ErrorReporter? _errorReporter;
   final Uri _uri;
   final FeatureSet _featureSet;
+  final LibraryLanguageVersion _languageVersion;
   final LineInfo _lineInfo;
   final List<CommentReferenceImpl> _references = [];
   final List<MdCodeBlock> _codeBlocks = [];
@@ -128,6 +130,7 @@ final class DocCommentBuilder {
     this._errorReporter,
     this._uri,
     this._featureSet,
+    this._languageVersion,
     this._lineInfo,
     this._startToken,
   ) : _characterSequence = _CharacterSequence(_startToken);
@@ -432,6 +435,7 @@ final class DocCommentBuilder {
       _uri,
       true /* isFullAst */,
       _featureSet,
+      _languageVersion,
       _lineInfo,
     );
     var parser = Parser(docImportListener);

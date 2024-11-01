@@ -210,7 +210,7 @@ class int {
   }
 
   // For each radix, 2-36, how many digits are guaranteed to fit in an `int`.
-  static const _PARSE_LIMITS = const WasmArray<WasmI64>.literal([
+  static const _PARSE_LIMITS = const ImmutableWasmArray<WasmI64>.literal([
     0, // unused
     0, // unused
     63, // radix: 2

@@ -3394,6 +3394,9 @@ abstract final class CompilationUnit implements AstNode {
   /// `@dart` directive in a comment at the top of the file.
   FeatureSet get featureSet;
 
+  /// The language version information.
+  LibraryLanguageVersion get languageVersion;
+
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
   LanguageVersionToken? get languageVersionToken;
@@ -3432,8 +3435,8 @@ final class CompilationUnitImpl extends AstNodeImpl
   @override
   final LineInfo lineInfo;
 
-  /// The language version information.
-  LibraryLanguageVersion? languageVersion;
+  @override
+  final LibraryLanguageVersion languageVersion;
 
   @override
   final FeatureSet featureSet;
@@ -3465,6 +3468,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     required this.featureSet,
     required this.lineInfo,
     required this.invalidNodes,
+    required this.languageVersion,
   }) : _scriptTag = scriptTag {
     _becomeParentOf(_scriptTag);
     _directives._initialize(this, directives);

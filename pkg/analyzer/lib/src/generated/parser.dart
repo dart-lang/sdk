@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
@@ -30,12 +31,14 @@ class Parser {
   Parser(Source source, AnalysisErrorListener errorListener,
       {required FeatureSet featureSet,
       bool allowNativeClause = true,
+      required LibraryLanguageVersion languageVersion,
       required LineInfo lineInfo})
       : astBuilder = AstBuilder(
           ErrorReporter(errorListener, source),
           source.uri,
           true,
           featureSet,
+          languageVersion,
           lineInfo,
         ) {
     fastaParser = fasta.Parser(

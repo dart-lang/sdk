@@ -50,7 +50,7 @@ class Types {
 
   /// Wasm array type of `WasmArray<_Type>`
   late final w.ArrayType typeArrayArrayType =
-      translator.arrayTypeForDartType(typeType);
+      translator.arrayTypeForDartType(typeType, mutable: true);
 
   /// Wasm value type of `WasmArray<_Type>`
   late final w.ValueType typeArrayExpectedType =
@@ -202,7 +202,8 @@ class Types {
 
     final names = translator.constants.makeArrayOf(
         translator.coreTypes.stringNonNullableRawType,
-        type.named.map((t) => StringConstant(t.name)).toList());
+        type.named.map((t) => StringConstant(t.name)).toList(),
+        mutable: false);
 
     translator.constants.instantiateConstant(
         codeGen.b, names, recordTypeNamesFieldExpectedType);

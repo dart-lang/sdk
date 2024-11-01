@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -32,15 +32,17 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
 }
 
 class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
-  Iterable<ParameterElement?> parameters;
+  Iterable<FormalParameterElement?> parameters;
 
   bool useParameter = false;
 
-  HasParameterReferenceVisitor(this.parameters);
+  HasParameterReferenceVisitor(
+      Iterable<FormalParameterFragment?> fragmentParameters)
+      : parameters = fragmentParameters.map((p) => p?.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (parameters.contains(node.staticElement)) {
+    if (parameters.contains(node.element)) {
       useParameter = true;
     } else {
       super.visitSimpleIdentifier(node);
@@ -61,14 +63,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       var classDecl = declaration.thisOrAncestorOfType<ClassDeclaration>();
       if (classDecl == null) return;
 
-      var element = classDecl.declaredElement;
+      var element = classDecl.declaredFragment?.element;
       if (element == null) return;
 
       // no lint if several constructors
-      if (element.allConstructors.length > 1) return;
+      if (element.constructors2.length > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
-          declaration.parameters.parameterElements);
+          declaration.parameters.parameterFragments);
       node.expression.accept(visitor);
       if (!visitor.useParameter) {
         rule.reportLint(node);
@@ -84,10 +86,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     // only const class
     var parent = node.parent;
     if (parent is ClassDeclaration) {
-      var declaredElement = parent.declaredElement;
+      var declaredElement = parent.declaredFragment?.element;
       if (declaredElement == null) return;
 
-      if (declaredElement.allConstructors.every((e) => !e.isConst)) {
+      if (declaredElement.constructors2.every((e) => !e.isConst)) {
         return;
       }
       for (var variable in node.fields.variables) {

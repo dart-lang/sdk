@@ -144,7 +144,7 @@ abstract final class CustomMethods {
       Method('dart/textDocumentContentDidChange');
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
-  // should be relying on it as we now support proper $/progress events.
+  //  should be relying on it as we now support proper $/progress events.
   static const analyzerStatus = Method(r'$/analyzerStatus');
 
   /// Semantic tokens are dynamically registered using a single string

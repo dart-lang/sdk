@@ -99,8 +99,7 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
   }
 }
 
-class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
-    with LspHandlerHelperMixin {
+class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
   RenameHandler(super.server);
 
   LspGlobalClientConfiguration get config =>

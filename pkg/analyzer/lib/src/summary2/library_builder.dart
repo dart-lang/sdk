@@ -1321,7 +1321,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       libraryUnitNode.featureSet,
     );
     libraryElement.isSynthetic = !libraryFile.exists;
-    libraryElement.languageVersion = libraryUnitNode.languageVersion!;
+    libraryElement.languageVersion = libraryUnitNode.languageVersion;
     _bindReference(libraryReference, libraryElement);
     elementFactory.setLibraryTypeSystem(libraryElement);
 

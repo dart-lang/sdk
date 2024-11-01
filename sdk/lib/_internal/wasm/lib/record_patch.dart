@@ -12,7 +12,8 @@ abstract class Record {
   _RecordType get _masqueradedRecordRuntimeType;
   _RecordType get _recordRuntimeType;
 
-  bool _checkRecordType(WasmArray<_Type> types, WasmArray<String> names);
+  bool _checkRecordType(
+      WasmArray<_Type> types, ImmutableWasmArray<String> names);
 
   @pragma("wasm:prefer-inline")
   static _RecordType _getRecordRuntimeType(Record record) =>

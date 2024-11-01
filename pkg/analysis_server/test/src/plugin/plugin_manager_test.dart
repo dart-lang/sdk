@@ -210,26 +210,6 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  @failingTest
-  Future<void> test_addPluginToContextRoot_pubspec() async {
-    // We can't successfully run pub until after the analyzer_plugin package has
-    // been published.
-    fail('Cannot run pub');
-//    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-//    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
-//    await withPubspecPlugin(test: (String pluginPath) async {
-//      ContextRoot contextRoot = _newContextRoot(pkgPath);
-//      await manager.addPluginToContextRoot(contextRoot, pluginPath);
-//      String packagesPath =
-//          resourceProvider.pathContext.join(pluginPath, '.packages');
-//      File packagesFile = resourceProvider.getFile(packagesPath);
-//      bool exists = packagesFile.exists;
-//      await manager.stopAll();
-//      expect(exists, isTrue, reason: '.packages file was not created');
-//    });
-//    pkg1Dir.deleteSync(recursive: true);
-  }
-
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
@@ -504,7 +484,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     var files = manager.filesFor(pluginDirPath);
     expect(files.execution, pluginFile);
-    expect(files.packages, packageConfigFile);
+    expect(files.packageConfig, packageConfigFile);
   }
 
   void test_pathsFor_withPubspec_inBlazeWorkspace() {
@@ -540,10 +520,10 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     var files = manager.filesFor(pluginDirPath);
     expect(files.execution, pluginFile);
-    var packagesFile = files.packages;
-    expect(packagesFile.exists, isTrue);
+    var packageConfigFile = files.packageConfig;
+    expect(packageConfigFile.exists, isTrue);
 
-    var content = packagesFile.readAsStringSync();
+    var content = packageConfigFile.readAsStringSync();
     expect(content, '''
 {
   "configVersion": 2,

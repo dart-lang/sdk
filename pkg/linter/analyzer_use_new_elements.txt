@@ -11,6 +11,7 @@ lib/src/rules/always_require_non_null_named_parameters.dart
 lib/src/rules/always_specify_types.dart
 lib/src/rules/always_use_package_imports.dart
 lib/src/rules/annotate_overrides.dart
+lib/src/rules/annotate_redeclares.dart
 lib/src/rules/avoid_annotating_with_dynamic.dart
 lib/src/rules/avoid_as.dart
 lib/src/rules/avoid_bool_literals_in_conditional_expressions.dart
@@ -24,7 +25,9 @@ lib/src/rules/avoid_equals_and_hash_code_on_mutable_classes.dart
 lib/src/rules/avoid_escaping_inner_quotes.dart
 lib/src/rules/avoid_final_parameters.dart
 lib/src/rules/avoid_function_literals_in_foreach_calls.dart
+lib/src/rules/avoid_futureor_void.dart
 lib/src/rules/avoid_implementing_value_types.dart
+lib/src/rules/avoid_init_to_null.dart
 lib/src/rules/avoid_js_rounded_ints.dart
 lib/src/rules/avoid_multiple_declarations_per_line.dart
 lib/src/rules/avoid_null_checks_in_equality_operators.dart

@@ -14,8 +14,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:meta/meta.dart';
 
-class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
-    with LspHandlerHelperMixin {
+class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the refactor running.
   @visibleForTesting

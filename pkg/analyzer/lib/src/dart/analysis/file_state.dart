@@ -674,19 +674,20 @@ class FileState {
         );
       Token token = scanner.tokenize(reportScannerErrors: false);
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
+      var languageVersion = LibraryLanguageVersion(
+        package: packageLanguageVersion,
+        override: scanner.overrideVersion,
+      );
 
       Parser parser = Parser(
         source,
         errorListener,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
+        languageVersion: languageVersion,
       );
 
       var unit = parser.parseCompilationUnit(token);
-      unit.languageVersion = LibraryLanguageVersion(
-        package: packageLanguageVersion,
-        override: scanner.overrideVersion,
-      );
 
       // Ensure the string canonicalization cache size is reasonable.
       pruneStringCanonicalizationCache();

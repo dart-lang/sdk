@@ -226,6 +226,8 @@ class WasmF64 extends _WasmBase {
 }
 
 /// A Wasm array.
+///
+/// NOTE: `T` is invariant.
 @pragma("wasm:entry-point")
 class WasmArray<T> extends WasmArrayRef {
   /// Dummy value field to contain the value for constant instances.
@@ -278,6 +280,52 @@ extension F32ArrayExt on WasmArray<WasmF32> {
 extension F64ArrayExt on WasmArray<WasmF64> {
   external double read(int index);
   external void write(int index, double value);
+}
+
+/// A immutable Wasm array.
+///
+/// NOTE: `T` is covariant.
+@pragma("wasm:entry-point")
+class ImmutableWasmArray<T> extends WasmArrayRef {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<Object?> _value;
+
+  external factory ImmutableWasmArray(int length);
+  external factory ImmutableWasmArray.filled(int length, T value);
+
+  const ImmutableWasmArray.literal(this._value) : super._();
+}
+
+extension ImmutableWasmArrayExt<T> on ImmutableWasmArray<T> {
+  external T operator [](int index);
+}
+
+extension ImmutableI8ArrayExt on ImmutableWasmArray<WasmI8> {
+  external int readSigned(int index);
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI16ArrayExt on ImmutableWasmArray<WasmI16> {
+  external int readSigned(int index);
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI32ArrayExt on ImmutableWasmArray<WasmI32> {
+  external int readSigned(int index);
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI64ArrayExt on ImmutableWasmArray<WasmI64> {
+  external int read(int index);
+}
+
+extension ImmutableF32ArrayExt on ImmutableWasmArray<WasmF32> {
+  external double read(int index);
+}
+
+extension ImmutableF64ArrayExt on ImmutableWasmArray<WasmF64> {
+  external double read(int index);
 }
 
 /// Wasm typed function reference.

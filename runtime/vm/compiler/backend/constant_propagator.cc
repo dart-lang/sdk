@@ -1499,9 +1499,23 @@ void ConstantPropagator::VisitCaseInsensitiveCompare(
 }
 
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
+  Object& value = instr->value()->definition()->constant_value();
   if (IsUnknown(value)) {
     return;
+  }
+
+  if (auto* unbox_int = instr->AsUnboxInteger()) {
+    if (!value.IsInteger()) {
+      SetValue(instr, non_constant_);
+      return;
+    }
+    if (unbox_int->is_truncating() &&
+        ((unbox_int->representation() == kUnboxedInt32) ||
+         (unbox_int->representation() == kUnboxedUint32))) {
+      const int64_t result_val = Evaluator::TruncateTo(
+          Integer::Cast(value).Value(), unbox_int->representation());
+      value = Integer::NewCanonical(result_val);
+    }
   }
 
   SetValue(instr, value);

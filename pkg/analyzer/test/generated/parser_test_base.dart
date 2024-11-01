@@ -12,10 +12,12 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -252,14 +254,22 @@ class FastaParserTestCase
   void createParser(String content,
       {int? expectedEndOffset, FeatureSet? featureSet}) {
     featureSet ??= FeatureSet.latestLanguageVersion();
+    var languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null);
     var result = scanString(content,
         configuration: featureSet.isEnabled(Feature.non_nullable)
             ? ScannerConfiguration.nonNullable
             : ScannerConfiguration.classic,
-        includeComments: true);
+        includeComments: true,
+        languageVersionChanged: (scanner, overrideVersion) {
+      languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion,
+        override: Version(overrideVersion.major, overrideVersion.minor, 0),
+      );
+    });
     var lineInfo = LineInfo(result.lineStarts);
     _fastaTokens = result.tokens;
-    parserProxy = ParserProxy(_fastaTokens, featureSet,
+    parserProxy = ParserProxy(_fastaTokens, featureSet, languageVersion,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset,
         lineInfo: lineInfo);
@@ -391,8 +401,14 @@ class FastaParserTestCase
 
     // Run parser
     ErrorReporter errorReporter = ErrorReporter(listener, source);
-    AstBuilder astBuilder = AstBuilder(errorReporter, source.uri, true,
-        featureSet!, LineInfo.fromContent(content));
+    AstBuilder astBuilder = AstBuilder(
+        errorReporter,
+        source.uri,
+        true,
+        featureSet!,
+        LibraryLanguageVersion(
+            package: ExperimentStatus.currentVersion, override: null),
+        LineInfo.fromContent(content));
     fasta.Parser parser = fasta.Parser(
       astBuilder,
       allowPatterns: featureSet!.isEnabled(Feature.patterns),
@@ -701,24 +717,27 @@ class ParserProxy extends analyzer.Parser {
   /// Creates a [ParserProxy] which is prepared to begin parsing at the given
   /// Fasta token.
   factory ParserProxy(Token firstToken, FeatureSet featureSet,
+      LibraryLanguageVersion languageVersion,
       {bool allowNativeClause = false,
       int? expectedEndOffset,
       required LineInfo lineInfo}) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener();
-    return ParserProxy._(firstToken, source, errorListener, featureSet,
+    return ParserProxy._(
+        firstToken, source, errorListener, featureSet, languageVersion,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset,
         lineInfo: lineInfo);
   }
 
   ParserProxy._(Token firstToken, Source source, this.errorListener,
-      FeatureSet featureSet,
+      FeatureSet featureSet, LibraryLanguageVersion languageVersion,
       {bool allowNativeClause = false,
       this.expectedEndOffset,
       required LineInfo lineInfo})
       : super(source, errorListener,
             featureSet: featureSet,
+            languageVersion: languageVersion,
             allowNativeClause: allowNativeClause,
             lineInfo: lineInfo) {
     _eventListener = ForwardingTestListener(astBuilder);
@@ -957,11 +976,19 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     FeatureSet? featureSet,
   }) {
     featureSet ??= FeatureSet.latestLanguageVersion();
+    var languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null);
     Source source = TestSource();
     listener = GatheringErrorListener();
 
-    fasta.ScannerResult result =
-        fasta.scanString(content, includeComments: true);
+    fasta.ScannerResult result = fasta
+        .scanString(content, includeComments: true,
+            languageVersionChanged: (scanner, overrideVersion) {
+      languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion,
+        override: Version(overrideVersion.major, overrideVersion.minor, 0),
+      );
+    });
     LineInfo lineInfo = LineInfo(result.lineStarts);
     listener.setLineInfo(source, lineInfo);
 
@@ -969,6 +996,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       source,
       listener,
       featureSet: featureSet,
+      languageVersion: languageVersion,
       lineInfo: lineInfo,
     );
     parser.allowNativeClause = allowNativeClause;
@@ -1079,8 +1107,16 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Source source = TestSource();
     GatheringErrorListener listener = GatheringErrorListener();
 
-    fasta.ScannerResult result =
-        fasta.scanString(content, includeComments: true);
+    var languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null);
+    fasta.ScannerResult result = fasta
+        .scanString(content, includeComments: true,
+            languageVersionChanged: (scanner, overrideVersion) {
+      languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion,
+        override: Version(overrideVersion.major, overrideVersion.minor, 0),
+      );
+    });
     LineInfo lineInfo = LineInfo(result.lineStarts);
     listener.setLineInfo(source, lineInfo);
 
@@ -1088,6 +1124,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       source,
       listener,
       featureSet: FeatureSets.latestWithExperiments,
+      languageVersion: languageVersion,
       lineInfo: lineInfo,
     );
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
@@ -1108,14 +1145,23 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Source source = NonExistingSource.unknown;
     listener ??= AnalysisErrorListener.NULL_LISTENER;
 
-    fasta.ScannerResult result =
-        fasta.scanString(content, includeComments: true);
+    var languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null);
+    fasta.ScannerResult result = fasta
+        .scanString(content, includeComments: true,
+            languageVersionChanged: (scanner, overrideVersion) {
+      languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion,
+        override: Version(overrideVersion.major, overrideVersion.minor, 0),
+      );
+    });
     LineInfo lineInfo = LineInfo(result.lineStarts);
 
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
       featureSet: FeatureSet.latestLanguageVersion(),
+      languageVersion: languageVersion,
       lineInfo: lineInfo,
     );
     var unit = parser.parseCompilationUnit(result.tokens);
@@ -1385,8 +1431,16 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     Source source = TestSource();
     listener = GatheringErrorListener();
 
-    fasta.ScannerResult result =
-        fasta.scanString(content, includeComments: true);
+    var languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion, override: null);
+    fasta.ScannerResult result = fasta
+        .scanString(content, includeComments: true,
+            languageVersionChanged: (scanner, overrideVersion) {
+      languageVersion = LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion,
+        override: Version(overrideVersion.major, overrideVersion.minor, 0),
+      );
+    });
     LineInfo lineInfo = LineInfo(result.lineStarts);
     listener.setLineInfo(source, lineInfo);
 
@@ -1394,6 +1448,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
       source,
       listener,
       featureSet: FeatureSet.latestLanguageVersion(),
+      languageVersion: languageVersion,
       lineInfo: lineInfo,
     );
     Statement statement = parser.parseStatement(result.tokens);

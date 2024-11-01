@@ -165,15 +165,17 @@ class Translator with KernelNodes {
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
   late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
-  late final w.ArrayType typeArrayType =
-      arrayTypeForDartType(InterfaceType(typeClass, Nullability.nonNullable));
+  late final w.ArrayType typeArrayType = arrayTypeForDartType(
+      InterfaceType(typeClass, Nullability.nonNullable),
+      mutable: true);
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
           .type as w.RefType)
       .heapType as w.ArrayType;
-  late final w.ArrayType nullableObjectArrayType =
-      arrayTypeForDartType(coreTypes.objectRawType(Nullability.nullable));
+  late final w.ArrayType nullableObjectArrayType = arrayTypeForDartType(
+      coreTypes.objectRawType(Nullability.nullable),
+      mutable: true);
   late final w.RefType typeArrayTypeRef =
       w.RefType.def(typeArrayType, nullable: false);
   late final w.RefType nullableObjectArrayTypeRef =
@@ -555,9 +557,16 @@ class Translator with KernelNodes {
       }
 
       // Wasm array?
-      if (cls.superclass == wasmArrayRefClass) {
+      if (cls == wasmArrayClass) {
         DartType elementType = type.typeArguments.single;
-        return w.RefType.def(arrayTypeForDartType(elementType),
+        return w.RefType.def(arrayTypeForDartType(elementType, mutable: true),
+            nullable: nullable);
+      }
+
+      // Immutable Wasm array?
+      if (cls == immutableWasmArrayClass) {
+        DartType elementType = type.typeArguments.single;
+        return w.RefType.def(arrayTypeForDartType(elementType, mutable: false),
             nullable: nullable);
       }
 
@@ -644,12 +653,13 @@ class Translator with KernelNodes {
     throw "Unsupported type ${type.runtimeType}";
   }
 
-  w.ArrayType arrayTypeForDartType(DartType type) {
+  w.ArrayType arrayTypeForDartType(DartType type, {required bool mutable}) {
     while (type is TypeParameterType) {
       type = type.bound;
     }
     return wasmArrayType(
-        translateStorageType(type), type.toText(defaultAstTextStrategy));
+        translateStorageType(type), type.toText(defaultAstTextStrategy),
+        mutable: mutable);
   }
 
   w.ArrayType wasmArrayType(w.StorageType type, String name,
@@ -657,7 +667,8 @@ class Translator with KernelNodes {
     final cache = mutable ? mutableArrayTypeCache : immutableArrayTypeCache;
     return cache.putIfAbsent(
         type,
-        () => typesBuilder.defineArray("Array<$name>",
+        () => typesBuilder.defineArray(
+            "${mutable ? '' : 'Immutable'}Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
   }
 
@@ -1213,6 +1224,7 @@ class Translator with KernelNodes {
     final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
 
     if (length > maxArrayNewFixedLength) {
+      assert(arrayType.elementType.mutable);
       // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
       b.array_new_default(arrayType);
