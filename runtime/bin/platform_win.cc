@@ -119,6 +119,18 @@ class PlatformWin {
   DISALLOW_IMPLICIT_CONSTRUCTORS(PlatformWin);
 };
 
+class CoInitializeScope : public ValueObject {
+ public:
+  CoInitializeScope() { hres = CoInitializeEx(0, COINIT_MULTITHREADED); }
+
+  ~CoInitializeScope() { CoUninitialize(); }
+
+  bool IsInitialized() const { return !FAILED(hres); }
+
+ private:
+  HRESULT hres;
+};
+
 bool Platform::Initialize() {
   PlatformWin::InitOnce();
   return true;
@@ -178,8 +190,8 @@ static const char* VersionNumber() {
 static const char* GetEdition() {
   HRESULT hres;
 
-  hres = CoInitializeEx(0, COINIT_MULTITHREADED);
-  if (FAILED(hres)) {
+  CoInitializeScope co_initialize_scope;
+  if (!co_initialize_scope.IsInitialized()) {
     return nullptr;
   }
 
@@ -187,7 +199,6 @@ static const char* GetEdition() {
       nullptr, -1, nullptr, nullptr, RPC_C_AUTHN_LEVEL_DEFAULT,
       RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE, nullptr);
   if (FAILED(hres)) {
-    CoUninitialize();
     return nullptr;
   }
 
@@ -195,7 +206,6 @@ static const char* GetEdition() {
   hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
                           IID_PPV_ARGS(&locator));
   if (FAILED(hres)) {
-    CoUninitialize();
     return nullptr;
   }
 
@@ -203,7 +213,6 @@ static const char* GetEdition() {
   hres = locator->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), nullptr, nullptr, 0,
                                 NULL, 0, 0, &service);
   if (FAILED(hres)) {
-    CoUninitialize();
     return nullptr;
   }
 
@@ -211,18 +220,15 @@ static const char* GetEdition() {
                            nullptr, RPC_C_AUTHN_LEVEL_CALL,
                            RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
   if (FAILED(hres)) {
-    CoUninitialize();
     return nullptr;
   }
 
   ComPtr<IEnumWbemClassObject> enumerator;
-  hres = service->ExecQuery(bstr_t("WQL"),
-                            bstr_t("SELECT * FROM Win32_OperatingSystem"),
-                            WBEM_FLAG_FORWARD_ONLY |
-                            WBEM_FLAG_RETURN_IMMEDIATELY, nullptr,
-                            &enumerator);
+  hres = service->ExecQuery(
+      bstr_t("WQL"), bstr_t("SELECT * FROM Win32_OperatingSystem"),
+      WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, nullptr,
+      &enumerator);
   if (FAILED(hres)) {
-    CoUninitialize();
     return nullptr;
   }
 
@@ -233,26 +239,28 @@ static const char* GetEdition() {
   }
 
   hres = enumerator->Next(WBEM_INFINITE, 1, &query_results, &uReturn);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
 
   VARIANT caption;
   hres = query_results->Get(L"Caption", 0, &caption, 0, 0);
-  char* utf8_edition = nullptr;
+  wchar_t* edition;
+
   if (SUCCEEDED(hres)) {
     // We got an edition, skip Microsoft prefix and convert to UTF8.
-    wchar_t* edition = caption.bstrVal;
-    static const wchar_t* kMicrosoftPrefix = L"Microsoft ";
-    static size_t kMicrosoftPrefixLen = wcslen(kMicrosoftPrefix);
+    edition = caption.bstrVal;
+    static const wchar_t kMicrosoftPrefix[] = L"Microsoft ";
+    static constexpr size_t kMicrosoftPrefixLen =
+        ARRAY_SIZE(kMicrosoftPrefix) - 1;
     if (wcsncmp(edition, kMicrosoftPrefix, kMicrosoftPrefixLen) == 0) {
       edition += kMicrosoftPrefixLen;
     }
-    utf8_edition = StringUtilsWin::WideToUtf8(edition);
 
     VariantClear(&caption);
   }
 
-  CoUninitialize();
-
-  return utf8_edition;
+  return StringUtilsWin::WideToUtf8(edition);
 }
 
 const char* Platform::OperatingSystemVersion() {
