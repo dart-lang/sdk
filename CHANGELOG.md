@@ -59,6 +59,29 @@ main() {
 
 [#53576]: https://github.com/dart-lang/sdk/issues/53576
 
+### Tools
+
+#### Analyzer
+
+- Assists and quick fixes that add an import now consider the
+  `prefer_relative_imports` and `always_use_package_imports` lint rules.
+- Add a new fix that converts a `~/` operation into `/`, when the `~/`
+  operation is not available.
+- Add a fix that wraps an expression in `await` if the expression is currently
+  not assignable, but awaiting it would make it assignable.
+- Assists and quick fixes that convert a `forEach` call into a for-loop now
+  consider the `prefer_final_in_for_each` and `always_specify_types` lint
+  rules.
+- Add an additional fix to correct a `cascade_invocations` lint rule violation.
+- Offer additional assists to wrap a Flutter widget with an `Expanded` widget,
+  and with a `Flexible` widget.
+- Offer an assist to "inline" an else-block's inner if-statement with the
+  else-block to read `else if`.
+  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhacements!
+- Add the experimental `specify_nonobvious_property_types` lint rule.
+- Add the experimental `omit_obvious_property_types` lint rule.
+- Deprecate the `package_api_docs` lint rule.
+
 ## 3.6.0
 
 ### Language
