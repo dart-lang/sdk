@@ -533,7 +533,7 @@ final _builtInNonLintMultiProducers = {
     AddExtensionOverride.new,
   ],
   CompileTimeErrorCode.AMBIGUOUS_IMPORT: [
-    ImportAddHide.new,
+    AmbiguousImportFix.new,
   ],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
   CompileTimeErrorCode.CAST_TO_NON_TYPE: [
