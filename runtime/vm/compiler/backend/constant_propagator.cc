@@ -1509,9 +1509,8 @@ void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
       SetValue(instr, non_constant_);
       return;
     }
-    if (unbox_int->is_truncating() &&
-        ((unbox_int->representation() == kUnboxedInt32) ||
-         (unbox_int->representation() == kUnboxedUint32))) {
+    if ((unbox_int->representation() == kUnboxedInt32) ||
+        (unbox_int->representation() == kUnboxedUint32)) {
       const int64_t result_val = Evaluator::TruncateTo(
           Integer::Cast(value).Value(), unbox_int->representation());
       value = Integer::NewCanonical(result_val);

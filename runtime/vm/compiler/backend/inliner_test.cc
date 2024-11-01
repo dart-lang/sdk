@@ -193,7 +193,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_TypedData_Regress7551) {
                  value_param);
   RELEASE_ASSERT(store_instr->InputAt(0)->definition() == list_param);
   RELEASE_ASSERT(store_instr->InputAt(2)->definition() == unbox_instr);
-  RELEASE_ASSERT(unbox_instr->is_truncating());
 }
 
 #if defined(DART_PRECOMPILER)

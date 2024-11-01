@@ -2027,33 +2027,6 @@ void Instruction::Goto(JoinEntryInstr* entry) {
   LinkTo(new GotoInstr(entry, CompilerState::Current().GetNextDeoptId()));
 }
 
-bool IntConverterInstr::ComputeCanDeoptimize() const {
-  return (to() == kUnboxedInt32) && !is_truncating() &&
-         !RangeUtils::Fits(value()->definition()->range(),
-                           RangeBoundary::kRangeBoundaryInt32);
-}
-
-bool UnboxIntegerInstr::ComputeCanDeoptimize() const {
-  if (value_mode() == ValueMode::kHasValidType) {
-    return false;
-  }
-  if (!value()->Type()->IsInt()) {
-    return true;
-  }
-  if (representation() == kUnboxedInt64 || is_truncating()) {
-    return false;
-  }
-  const intptr_t rep_bitsize =
-      RepresentationUtils::ValueSize(representation()) * kBitsPerByte;
-  if (value()->Type()->ToCid() == kSmiCid &&
-      compiler::target::kSmiBits <= rep_bitsize) {
-    return false;
-  }
-  return !RangeUtils::IsWithin(value()->definition()->range(),
-                               RepresentationUtils::MinValue(representation()),
-                               RepresentationUtils::MaxValue(representation()));
-}
-
 bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
   switch (op_kind()) {
     case Token::kBIT_AND:
@@ -3369,19 +3342,9 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       return box_defn->value()->definition();
     } else {
       // Only operate on explicit unboxed operands.
-      IntConverterInstr* converter = new IntConverterInstr(
-          from_representation, representation(),
-          box_defn->value()->CopyWithType(),
-          (representation() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
-      // TODO(vegorov): marking resulting converter as truncating when
-      // unboxing can't deoptimize is a workaround for the missing
-      // deoptimization environment when we insert converter after
-      // EliminateEnvironments and there is a mismatch between predicates
-      // UnboxIntConverterInstr::CanDeoptimize and UnboxInt32::CanDeoptimize.
-      if ((representation() == kUnboxedInt32) &&
-          (is_truncating() || !CanDeoptimize())) {
-        converter->mark_truncating();
-      }
+      IntConverterInstr* converter =
+          new IntConverterInstr(from_representation, representation(),
+                                box_defn->value()->CopyWithType());
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
       return converter;
     }
@@ -3403,13 +3366,11 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       if (RepresentationUtils::IsRepresentable(representation(), intval)) {
         return flow_graph->GetConstant(obj, representation());
       }
-      if (is_truncating()) {
-        const int64_t result = Evaluator::TruncateTo(intval, representation());
-        return flow_graph->GetConstant(
-            Integer::ZoneHandle(flow_graph->zone(),
-                                Integer::NewCanonical(result)),
-            representation());
-      }
+      const int64_t result = Evaluator::TruncateTo(intval, representation());
+      return flow_graph->GetConstant(
+          Integer::ZoneHandle(flow_graph->zone(),
+                              Integer::NewCanonical(result)),
+          representation());
     }
   }
 
@@ -3426,11 +3387,10 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       const int64_t value = Integer::Cast(constant->value()).Value();
       const int64_t result =
           Evaluator::TruncateTo(Evaluator::TruncateTo(value, from()), to());
-      if (is_truncating() || (value == result)) {
-        auto& box = Integer::Handle(Integer::New(result, Heap::kOld));
-        box ^= box.Canonicalize(flow_graph->thread());
-        return flow_graph->GetConstant(box, to());
-      }
+      return flow_graph->GetConstant(
+          Integer::ZoneHandle(flow_graph->zone(),
+                              Integer::NewCanonical(result)),
+          to());
     }
   }
 
@@ -3461,13 +3421,9 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
 
-    IntConverterInstr* converter = new IntConverterInstr(
-        first_converter->from(), representation(),
-        first_converter->value()->CopyWithType(),
-        (to() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
-    if ((representation() == kUnboxedInt32) && is_truncating()) {
-      converter->mark_truncating();
-    }
+    IntConverterInstr* converter =
+        new IntConverterInstr(first_converter->from(), representation(),
+                              first_converter->value()->CopyWithType());
     flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
     return converter;
   }
@@ -3479,9 +3435,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     // and code path that unboxes Mint into Int32. We should just schedule
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
-        new UnboxInt32Instr(is_truncating() ? UnboxInt32Instr::kTruncate
-                                            : UnboxInt32Instr::kNoTruncation,
-                            unbox_defn->value()->CopyWithType(), GetDeoptId(),
+        new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), GetDeoptId(),
                             unbox_defn->value_mode());
     flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
     return replacement;
@@ -4038,12 +3992,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
                                UnboxInstr::ValueMode value_mode) {
   switch (to) {
     case kUnboxedInt32:
-      // We must truncate if we can't deoptimize.
-      return new UnboxInt32Instr(
-          (value_mode == UnboxInstr::ValueMode::kCheckType)
-              ? UnboxInt32Instr::kNoTruncation
-              : UnboxInt32Instr::kTruncate,
-          value, deopt_id, value_mode);
+      return new UnboxInt32Instr(value, deopt_id, value_mode);
 
     case kUnboxedUint32:
       return new UnboxUint32Instr(value, deopt_id, value_mode);

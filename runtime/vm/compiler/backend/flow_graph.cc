@@ -1974,8 +1974,7 @@ void FlowGraph::InsertConversion(Representation from,
 
   Definition* converted = nullptr;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
-    converted = new (Z)
-        IntConverterInstr(from, to, use->CopyWithType(), DeoptId::kNone);
+    converted = new (Z) IntConverterInstr(from, to, use->CopyWithType());
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
   } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&

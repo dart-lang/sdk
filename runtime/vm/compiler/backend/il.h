@@ -8616,24 +8616,10 @@ class UnboxIntegerInstr : public UnboxInstr {
   enum TruncationMode { kTruncate, kNoTruncation };
 
   UnboxIntegerInstr(Representation representation,
-                    TruncationMode truncation_mode,
                     Value* value,
                     intptr_t deopt_id,
                     ValueMode value_mode)
-      : UnboxInstr(representation, value, deopt_id, value_mode),
-        is_truncating_(truncation_mode == kTruncate) {}
-
-  bool is_truncating() const { return is_truncating_; }
-
-  void mark_truncating() { is_truncating_ = true; }
-
-  virtual bool ComputeCanDeoptimize() const;
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    auto const other_unbox = other.AsUnboxInteger();
-    return UnboxInstr::AttributesEqual(other) &&
-           (other_unbox->is_truncating_ == is_truncating_);
-  }
+      : UnboxInstr(representation, value, deopt_id, value_mode) {}
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -8643,12 +8629,7 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(bool, is_truncating_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnboxIntegerInstr,
-                                          UnboxInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_EMPTY_SERIALIZATION(UnboxIntegerInstr, UnboxInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
@@ -8657,15 +8638,10 @@ class UnboxIntegerInstr : public UnboxInstr {
 class UnboxInteger32Instr : public UnboxIntegerInstr {
  public:
   UnboxInteger32Instr(Representation representation,
-                      TruncationMode truncation_mode,
                       Value* value,
                       intptr_t deopt_id,
                       ValueMode value_mode)
-      : UnboxIntegerInstr(representation,
-                          truncation_mode,
-                          value,
-                          deopt_id,
-                          value_mode) {}
+      : UnboxIntegerInstr(representation, value, deopt_id, value_mode) {}
 
   DECLARE_INSTRUCTION_BACKEND()
 
@@ -8678,13 +8654,7 @@ class UnboxInteger32Instr : public UnboxIntegerInstr {
 class UnboxUint32Instr : public UnboxInteger32Instr {
  public:
   UnboxUint32Instr(Value* value, intptr_t deopt_id, ValueMode value_mode)
-      : UnboxInteger32Instr(kUnboxedUint32,
-                            kTruncate,
-                            value,
-                            deopt_id,
-                            value_mode) {
-    ASSERT(is_truncating());
-  }
+      : UnboxInteger32Instr(kUnboxedUint32, value, deopt_id, value_mode) {}
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
 
@@ -8696,15 +8666,8 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
 
 class UnboxInt32Instr : public UnboxInteger32Instr {
  public:
-  UnboxInt32Instr(TruncationMode truncation_mode,
-                  Value* value,
-                  intptr_t deopt_id,
-                  ValueMode value_mode)
-      : UnboxInteger32Instr(kUnboxedInt32,
-                            truncation_mode,
-                            value,
-                            deopt_id,
-                            value_mode) {}
+  UnboxInt32Instr(Value* value, intptr_t deopt_id, ValueMode value_mode)
+      : UnboxInteger32Instr(kUnboxedInt32, value, deopt_id, value_mode) {}
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt32)
 
@@ -8717,11 +8680,7 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
 class UnboxInt64Instr : public UnboxIntegerInstr {
  public:
   UnboxInt64Instr(Value* value, intptr_t deopt_id, ValueMode value_mode)
-      : UnboxIntegerInstr(kUnboxedInt64,
-                          kNoTruncation,
-                          value,
-                          deopt_id,
-                          value_mode) {}
+      : UnboxIntegerInstr(kUnboxedInt64, value, deopt_id, value_mode) {}
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
 
@@ -10788,14 +10747,10 @@ class CheckConditionInstr : public Instruction {
 
 class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  IntConverterInstr(Representation from,
-                    Representation to,
-                    Value* value,
-                    intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
+  IntConverterInstr(Representation from, Representation to, Value* value)
+      : TemplateDefinition(DeoptId::kNone),
         from_representation_(from),
-        to_representation_(to),
-        is_truncating_(to == kUnboxedUint32) {
+        to_representation_(to) {
     ASSERT(from != to);
     // Integer conversion doesn't currently handle non-native representations.
     ASSERT_EQUAL(Boxing::NativeRepresentation(from), from);
@@ -10816,13 +10771,10 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Representation from() const { return from_representation_; }
   Representation to() const { return to_representation_; }
-  bool is_truncating() const { return is_truncating_; }
-
-  void mark_truncating() { is_truncating_ = true; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool ComputeCanDeoptimize() const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return to(); }
 
@@ -10834,8 +10786,7 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool AttributesEqual(const Instruction& other) const {
     ASSERT(other.IsIntConverter());
     auto const converter = other.AsIntConverter();
-    return (converter->from() == from()) && (converter->to() == to()) &&
-           (converter->is_truncating() == is_truncating());
+    return (converter->from() == from()) && (converter->to() == to());
   }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -10850,15 +10801,13 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(IntConverter);
 
-  DECLARE_ATTRIBUTES_NAMED(("from", "to", "is_truncating"),
-                           (from(), to(), is_truncating()))
+  DECLARE_ATTRIBUTES_NAMED(("from", "to"), (from(), to()))
 
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(const Representation, from_representation_)                                \
-  F(const Representation, to_representation_)                                  \
-  F(bool, is_truncating_)
+  F(const Representation, to_representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(IntConverterInstr,
                                           TemplateDefinition,

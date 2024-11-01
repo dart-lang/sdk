@@ -3820,14 +3820,11 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = (!is_truncating() && CanDeoptimize()) ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::SameAsFirstInput());
-  if (kNumTemps > 0) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
   return summary;
 }
 
@@ -3845,10 +3842,6 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (value_cid == kMintCid) {
     __ movq(value, compiler::FieldAddress(value, Mint::value_offset()));
   } else if (!CanDeoptimize()) {
-    // Type information is not conclusive, but range analysis found
-    // the value to be in int64 range. Therefore it must be a smi
-    // or mint value.
-    ASSERT(is_truncating());
     compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
     // Optimistically untag value.
@@ -3893,16 +3886,6 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movq(value, compiler::FieldAddress(value, Mint::value_offset()));
 #endif
     __ Bind(&done);
-  }
-
-  // TODO(vegorov): as it is implemented right now truncating unboxing would
-  // leave "garbage" in the higher word.
-  if (!is_truncating() && (deopt != nullptr)) {
-    ASSERT(representation() == kUnboxedInt32);
-    Register temp = locs()->temp(0).reg();
-    __ movsxd(temp, value);
-    __ cmpq(temp, value);
-    __ j(NOT_EQUAL, deopt);
   }
 }
 
@@ -6436,7 +6419,6 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
   if (from() == kUntagged || to() == kUntagged) {
     ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
            (from() == kUnboxedIntPtr && to() == kUntagged));
-    ASSERT(!CanDeoptimize());
   } else if (from() == kUnboxedInt64) {
     ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
   } else if (to() == kUnboxedInt64) {
@@ -6474,29 +6456,12 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
     __ movsxd(out, value);
-    if (CanDeoptimize()) {
-      compiler::Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
-      __ testl(out, out);
-      __ j(NEGATIVE, deopt);
-    }
   } else if (from() == kUnboxedInt64) {
     ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
-    if (!CanDeoptimize()) {
-      // Copy low.
-      __ movl(out, value);
-    } else {
-      compiler::Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
-      // Sign extend.
-      __ movsxd(out, value);
-      // Compare with original value.
-      __ cmpq(out, value);
-      // Value cannot be held in Int32, deopt.
-      __ j(NOT_EQUAL, deopt);
-    }
+    // Copy low.
+    __ movl(out, value);
   } else if (to() == kUnboxedInt64) {
     ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
     const Register value = locs()->in(0).reg();

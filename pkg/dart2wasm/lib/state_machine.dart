@@ -592,9 +592,10 @@ abstract class ProcedureStateMachineEntryCodeGenerator
   @override
   void generateInternal() {
     final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
-    closures = Closures(translator, member);
     setSourceMapSource(source);
     setSourceMapFileOffset(member.fileOffset);
+
+    closures = Closures(translator, member);
 
     // We don't support inlining state machine functions atm. Only when we
     // inline and have call-site guarantees we would use the unchecked entry.

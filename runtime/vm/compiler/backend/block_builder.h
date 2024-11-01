@@ -109,12 +109,9 @@ class BlockBuilder : public ValueObject {
                                : Boxing::NativeRepresentation(rep);
     Definition* unboxed_value = AddDefinition(
         UnboxInstr::Create(unbox_rep, value, DeoptId::kNone, value_mode));
-    if (rep != unbox_rep && unboxed_value->IsUnboxInteger()) {
-      ASSERT(RepresentationUtils::ValueSize(rep) <
-             RepresentationUtils::ValueSize(unbox_rep));
-      // Mark unboxing of small unboxed integer representations as truncating.
-      unboxed_value->AsUnboxInteger()->mark_truncating();
-    }
+    ASSERT((rep == unbox_rep) || !unboxed_value->IsUnboxInteger() ||
+           (RepresentationUtils::ValueSize(rep) <
+            RepresentationUtils::ValueSize(unbox_rep)));
     if (value_mode == UnboxInstr::ValueMode::kHasValidType) {
       // The type of |value| has already been checked and it is safe to
       // adjust reaching type. This is done manually because there is no type

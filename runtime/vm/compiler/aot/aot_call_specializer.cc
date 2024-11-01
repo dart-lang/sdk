@@ -406,7 +406,7 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
         Smi::ZoneHandle(Z, Smi::New(value)), kUnboxedInt32);
     InsertBefore(instr, const_def, /*env=*/nullptr, FlowGraph::kValue);
     return new (Z) IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
-                                     new (Z) Value(const_def), DeoptId::kNone);
+                                     new (Z) Value(const_def));
 #else
     return new (Z) UnboxedConstantInstr(Smi::ZoneHandle(Z, Smi::New(value)),
                                         kUnboxedInt64);
