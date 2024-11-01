@@ -1936,7 +1936,7 @@ CommentReference
   expression: SimpleIdentifier
     token: foo
     staticElement: package:test/foo.dart::<fragment>::@function::foo
-    element: package:test/foo.dart::<fragment>::@function::foo#element
+    element: package:test/foo.dart::@function::foo
     staticType: null
 ''');
   }
@@ -1958,7 +1958,7 @@ CommentReference
   expression: SimpleIdentifier
     token: foo
     staticElement: package:test/foo.dart::<fragment>::@function::foo
-    element: package:test/foo.dart::<fragment>::@function::foo#element
+    element: package:test/foo.dart::@function::foo
     staticType: null
 ''');
   }
@@ -2024,7 +2024,7 @@ CommentReference
   expression: SimpleIdentifier
     token: foo
     staticElement: package:test/foo.dart::<fragment>::@function::foo
-    element: package:test/foo.dart::<fragment>::@function::foo#element
+    element: package:test/foo.dart::@function::foo
     staticType: null
 ''');
   }
@@ -2067,7 +2067,7 @@ CommentReference
   expression: SimpleIdentifier
     token: foo
     staticElement: package:test/foo.dart::<fragment>::@function::foo
-    element: package:test/foo.dart::<fragment>::@function::foo#element
+    element: package:test/foo.dart::@function::foo
     staticType: null
 ''');
   }

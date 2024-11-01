@@ -30,7 +30,7 @@ class ClassElementBuilder extends InstanceElementBuilder<
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
 
-      fragment.augmentedInternal = firstFragment.element;
+      fragment.augmentedInternal = element;
       _updatedAugmented(fragment);
     }
   }
@@ -55,7 +55,7 @@ class EnumElementBuilder
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
 
-      fragment.augmentedInternal = firstFragment.element;
+      fragment.augmentedInternal = element;
       _updatedAugmented(fragment);
     }
   }
@@ -79,7 +79,7 @@ class ExtensionElementBuilder extends InstanceElementBuilder<
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
 
-      fragment.augmentedInternal = firstFragment.element;
+      fragment.augmentedInternal = element;
       _updatedAugmented(fragment);
     }
   }
@@ -104,7 +104,7 @@ class ExtensionTypeElementBuilder extends InstanceElementBuilder<
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
 
-      fragment.augmentedInternal = firstFragment.element;
+      fragment.augmentedInternal = element;
       _updatedAugmented(fragment);
     }
   }
@@ -138,21 +138,6 @@ class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
   }
 }
 
-class FunctionElementBuilder extends FragmentedElementBuilder<
-    TopLevelFunctionElementImpl, FunctionElementImpl> {
-  FunctionElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
-
-  void addFragment(FunctionElementImpl fragment) {
-    if (!identical(fragment, firstFragment)) {
-      lastFragment.augmentation = fragment;
-      lastFragment = fragment;
-    }
-  }
-}
-
 class GetterElementBuilder extends FragmentedElementBuilder<GetterElementImpl,
     PropertyAccessorElementImpl> {
   GetterElementBuilder({
@@ -164,6 +149,7 @@ class GetterElementBuilder extends FragmentedElementBuilder<GetterElementImpl,
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
+      fragment.element = element;
     }
   }
 }
@@ -385,7 +371,7 @@ class MixinElementBuilder extends InstanceElementBuilder<
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
 
-      fragment.augmentedInternal = firstFragment.element;
+      fragment.augmentedInternal = element;
       _updatedAugmented(fragment);
     }
   }
@@ -402,6 +388,23 @@ class SetterElementBuilder extends FragmentedElementBuilder<SetterElementImpl,
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
+      fragment.element = element;
+    }
+  }
+}
+
+class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
+    TopLevelFunctionElementImpl, FunctionElementImpl> {
+  TopLevelFunctionElementBuilder({
+    required super.element,
+    required super.firstFragment,
+  });
+
+  void addFragment(FunctionElementImpl fragment) {
+    if (!identical(fragment, firstFragment)) {
+      lastFragment.augmentation = fragment;
+      lastFragment = fragment;
+      fragment.element = element;
     }
   }
 }
@@ -417,6 +420,7 @@ class TopLevelVariableElementBuilder extends FragmentedElementBuilder<
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
+      fragment.element = element;
     }
   }
 }
@@ -432,6 +436,7 @@ class TypeAliasElementBuilder extends FragmentedElementBuilder<
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
+      // fragment.element = element;
     }
   }
 }

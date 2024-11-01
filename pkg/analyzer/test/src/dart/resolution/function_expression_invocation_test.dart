@@ -189,7 +189,7 @@ FunctionExpressionInvocation
       expression: SimpleIdentifier
         token: main
         staticElement: <testLibraryFragment>::@function::main
-        element: <testLibraryFragment>::@function::main#element
+        element: <testLibrary>::@function::main
         staticType: dynamic Function()
       asOperator: as
       type: NamedType
@@ -231,7 +231,7 @@ FunctionExpressionInvocation
       expression: SimpleIdentifier
         token: main
         staticElement: <testLibraryFragment>::@function::main
-        element: <testLibraryFragment>::@function::main#element
+        element: <testLibrary>::@function::main
         staticType: dynamic Function()
       asOperator: as
       type: NamedType
@@ -819,7 +819,7 @@ FunctionExpressionInvocation
         expression: SimpleIdentifier
           token: foo
           staticElement: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           staticType: void Function()
     rightBracket: }
     staticType: void Function()

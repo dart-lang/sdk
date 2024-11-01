@@ -48,7 +48,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: inferContraContra
     staticElement: <testLibraryFragment>::@function::inferContraContra
-    element: <testLibraryFragment>::@function::inferContraContra#element
+    element: <testLibrary>::@function::inferContraContra
     staticType: Exactly<T> Function<T>(Contravariant<T>, Contravariant<T>)
   staticInvokeType: Exactly<Middle> Function(Contravariant<Middle>, Contravariant<Middle>)
   staticType: Exactly<Middle>
@@ -113,7 +113,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: inferInvInv
     staticElement: <testLibraryFragment>::@function::inferInvInv
-    element: <testLibraryFragment>::@function::inferInvInv#element
+    element: <testLibrary>::@function::inferInvInv
     staticType: Exactly<T> Function<T>(Invariant<T>, Invariant<T>)
   staticInvokeType: Exactly<Object> Function(Invariant<Object>, Invariant<Object>)
   staticType: Exactly<Object>
@@ -145,7 +145,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: inferCovCov
     staticElement: <testLibraryFragment>::@function::inferCovCov
-    element: <testLibraryFragment>::@function::inferCovCov#element
+    element: <testLibrary>::@function::inferCovCov
     staticType: Exactly<T> Function<T>(Covariant<T>, Covariant<T>)
   staticInvokeType: Exactly<Upper> Function(Covariant<Upper>, Covariant<Upper>)
   staticType: Exactly<Upper>

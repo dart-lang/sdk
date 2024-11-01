@@ -98,6 +98,8 @@ class ElementPrinter {
         var referenceStr = _elementToReferenceString(firstFragment as Element);
         _sink.write(referenceStr);
         _sink.write('#element');
+      case TopLevelFunctionElementImpl element:
+        writeReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;

@@ -521,7 +521,7 @@ PatternVariableDeclaration
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
-      element: <testLibraryFragment>::@function::g#element
+      element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -569,7 +569,7 @@ PatternVariableDeclaration
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
-      element: <testLibraryFragment>::@function::g#element
+      element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (

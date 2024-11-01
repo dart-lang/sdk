@@ -296,7 +296,7 @@ library
                   SimpleIdentifier
                     token: f @130
                     staticElement: <testLibraryFragment>::@function::f
-                    element: <testLibraryFragment>::@function::f#element
+                    element: <testLibrary>::@function::f
                     staticType: D<int, U> Function<U>()
                 rightParenthesis: ) @131
               staticType: C<int>
@@ -364,7 +364,7 @@ library
       functions
         f @96
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             U @98
               element: <not-implemented>
@@ -408,6 +408,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::x
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         U
@@ -485,7 +486,7 @@ library
                   SimpleIdentifier
                     token: f @113
                     staticElement: <testLibraryFragment>::@function::f
-                    element: <testLibraryFragment>::@function::f#element
+                    element: <testLibrary>::@function::f
                     staticType: D<T> Function<T>()
                 rightParenthesis: ) @114
               staticType: C
@@ -545,7 +546,7 @@ library
       functions
         f @79
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @81
               element: <not-implemented>
@@ -582,6 +583,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::x
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -1441,7 +1443,7 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             U @2
               element: <not-implemented>
@@ -1449,6 +1451,7 @@ library
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         U
@@ -1845,12 +1848,13 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @2
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -1890,12 +1894,13 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @2
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -2208,7 +2213,7 @@ library
       functions
         m @4
           reference: <testLibraryFragment>::@function::m
-          element: <testLibraryFragment>::@function::m#element
+          element: <testLibrary>::@function::m
           typeParameters
             T @6
               element: <not-implemented>
@@ -2229,6 +2234,7 @@ library
           type: int
   functions
     m
+      reference: <testLibrary>::@function::m
       firstFragment: <testLibraryFragment>::@function::m
       typeParameters
         T
@@ -3412,7 +3418,7 @@ library
       functions
         h @33
           reference: <testLibraryFragment>::@function::h
-          element: <testLibraryFragment>::@function::h#element
+          element: <testLibrary>::@function::h
           formalParameters
             f @37
               element: <testLibraryFragment>::@function::h::@parameter::f#element
@@ -3437,6 +3443,7 @@ library
           type: dynamic
   functions
     h
+      reference: <testLibrary>::@function::h
       firstFragment: <testLibraryFragment>::@function::h
       formalParameters
         requiredPositional f
@@ -3896,7 +3903,7 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             g @7
               element: <testLibraryFragment>::@function::f::@parameter::g#element
@@ -3917,6 +3924,7 @@ library
           type: dynamic
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional g
@@ -4000,7 +4008,7 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default g @8
               reference: <testLibraryFragment>::@function::f::@parameter::g
@@ -4022,6 +4030,7 @@ library
           type: dynamic
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         optionalNamed g
@@ -4634,13 +4643,13 @@ library
       functions
         f @4
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             x @10
               element: <testLibraryFragment>::@function::f::@parameter::x#element
         g @39
           reference: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           formalParameters
             x @45
               element: <testLibraryFragment>::@function::g::@parameter::x#element
@@ -4661,6 +4670,7 @@ library
           type: List<Object Function(int Function(String))>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional x
@@ -4670,6 +4680,7 @@ library
               type: String
       returnType: int
     g
+      reference: <testLibrary>::@function::g
       firstFragment: <testLibraryFragment>::@function::g
       formalParameters
         requiredPositional x
@@ -7559,7 +7570,7 @@ library
       functions
         f @44
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             p @48
               element: <testLibraryFragment>::@function::f::@parameter::p#element
@@ -7606,6 +7617,7 @@ library
           type: int
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional p

@@ -1751,7 +1751,7 @@ library
       functions
         getC @56
           reference: <testLibraryFragment>::@function::getC
-          element: <testLibraryFragment>::@function::getC#element
+          element: <testLibrary>::@function::getC
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -1809,6 +1809,7 @@ library
           type: int
   functions
     getC
+      reference: <testLibrary>::@function::getC
       firstFragment: <testLibraryFragment>::@function::getC
       returnType: C
 ''');
@@ -1917,10 +1918,10 @@ library
       functions
         fValue @25
           reference: <testLibraryFragment>::@function::fValue
-          element: <testLibraryFragment>::@function::fValue#element
+          element: <testLibrary>::@function::fValue
         fFuture @53
           reference: <testLibraryFragment>::@function::fFuture
-          element: <testLibraryFragment>::@function::fFuture#element
+          element: <testLibrary>::@function::fFuture
   topLevelVariables
     uValue
       firstFragment: <testLibraryFragment>::@topLevelVariable::uValue
@@ -1950,9 +1951,11 @@ library
           type: Future<int> Function()
   functions
     fValue
+      reference: <testLibrary>::@function::fValue
       firstFragment: <testLibraryFragment>::@function::fValue
       returnType: int
     fFuture
+      reference: <testLibrary>::@function::fFuture
       firstFragment: <testLibraryFragment>::@function::fFuture
       returnType: Future<int>
 ''');
@@ -3032,13 +3035,13 @@ library
       functions
         newA @332
           reference: <testLibraryFragment>::@function::newA
-          element: <testLibraryFragment>::@function::newA#element
+          element: <testLibrary>::@function::newA
         newB @353
           reference: <testLibraryFragment>::@function::newB
-          element: <testLibraryFragment>::@function::newB#element
+          element: <testLibrary>::@function::newB
         newC @374
           reference: <testLibraryFragment>::@function::newC
-          element: <testLibraryFragment>::@function::newC#element
+          element: <testLibrary>::@function::newC
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3258,12 +3261,15 @@ library
               type: int
   functions
     newA
+      reference: <testLibrary>::@function::newA
       firstFragment: <testLibraryFragment>::@function::newA
       returnType: A
     newB
+      reference: <testLibrary>::@function::newB
       firstFragment: <testLibraryFragment>::@function::newB
       returnType: B
     newC
+      reference: <testLibrary>::@function::newC
       firstFragment: <testLibraryFragment>::@function::newC
       returnType: C
 ''');
@@ -5110,7 +5116,7 @@ library
       functions
         f @57
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -5156,6 +5162,7 @@ library
           type: bool
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: C
 ''');
@@ -5809,7 +5816,7 @@ library
       functions
         f @2
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @4
               element: <not-implemented>
@@ -5842,6 +5849,7 @@ library
           type: dynamic
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -5944,7 +5952,7 @@ library
       functions
         f @7
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             p @13
               element: <testLibraryFragment>::@function::f::@parameter::p#element
@@ -5977,6 +5985,7 @@ library
           type: String
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional p
@@ -6413,7 +6422,7 @@ library
       functions
         topLevelFunction @7
           reference: <testLibraryFragment>::@function::topLevelFunction
-          element: <testLibraryFragment>::@function::topLevelFunction#element
+          element: <testLibrary>::@function::topLevelFunction
           formalParameters
             p @28
               element: <testLibraryFragment>::@function::topLevelFunction::@parameter::p#element
@@ -6575,6 +6584,7 @@ library
           type: String Function(int)
   functions
     topLevelFunction
+      reference: <testLibrary>::@function::topLevelFunction
       firstFragment: <testLibraryFragment>::@function::topLevelFunction
       formalParameters
         requiredPositional p
@@ -7328,7 +7338,7 @@ library
       functions
         f @8
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   topLevelVariables
     s
       firstFragment: <testLibraryFragment>::@topLevelVariable::s
@@ -7358,6 +7368,7 @@ library
           type: int
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: dynamic
 ''');

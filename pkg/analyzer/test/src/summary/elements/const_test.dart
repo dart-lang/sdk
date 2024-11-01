@@ -858,7 +858,7 @@ library
               function: SimpleIdentifier
                 token: f @48
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
               staticType: void Function(int)
               typeArgumentTypes
@@ -897,7 +897,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
@@ -914,6 +914,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::v
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -947,7 +948,7 @@ library
               function: SimpleIdentifier
                 token: f @28
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
               typeArguments: TypeArgumentList
                 leftBracket: < @29
@@ -995,7 +996,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
@@ -1012,6 +1013,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::v
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -1395,7 +1397,7 @@ library
                     methodName: SimpleIdentifier
                       token: foo @33
                       staticElement: <testLibraryFragment>::@function::foo
-                      element: <testLibraryFragment>::@function::foo#element
+                      element: <testLibrary>::@function::foo
                       staticType: int Function()
                     argumentList: ArgumentList
                       leftParenthesis: ( @36
@@ -1446,7 +1448,7 @@ library
       functions
         foo @46
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1464,6 +1466,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int
 ''');
@@ -1533,7 +1536,7 @@ library
       functions
         foo @39
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1551,6 +1554,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int
 ''');
@@ -2295,7 +2299,7 @@ library
                 methodName: SimpleIdentifier
                   token: foo @14
                   staticElement: <testLibraryFragment>::@function::foo
-                  element: <testLibraryFragment>::@function::foo#element
+                  element: <testLibrary>::@function::foo
                   staticType: int Function()
                 argumentList: ArgumentList
                   leftParenthesis: ( @17
@@ -2334,7 +2338,7 @@ library
       functions
         foo @25
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   topLevelVariables
     const v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -2345,6 +2349,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::v
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int
 ''');
@@ -6301,7 +6306,7 @@ library
               methodName: SimpleIdentifier
                 token: f @28
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>(T)
               typeArguments: TypeArgumentList
                 leftBracket: < @29
@@ -6357,7 +6362,7 @@ library
       functions
         f @2
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @4
               element: <not-implemented>
@@ -6374,6 +6379,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::b
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -6420,7 +6426,7 @@ library
                     SimpleIdentifier
                       token: foo @40
                       staticElement: <testLibraryFragment>::@function::foo
-                      element: <testLibraryFragment>::@function::foo#element
+                      element: <testLibrary>::@function::foo
                       staticType: int Function()
                   field: <testLibraryFragment>::@class::C::@field::x
           accessors
@@ -6463,7 +6469,7 @@ library
       functions
         foo @53
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6485,6 +6491,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int
 ''');
@@ -8236,7 +8243,7 @@ library
             SimpleIdentifier
               token: foo @19
               staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibraryFragment>::@function::foo#element
+              element: <testLibrary>::@function::foo
               staticType: dynamic Function()
       accessors
         synthetic static get V @-1
@@ -8266,7 +8273,7 @@ library
       functions
         foo @0
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   topLevelVariables
     const V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
@@ -8277,6 +8284,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::V
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: dynamic
 ''');
@@ -8304,7 +8312,7 @@ library
             SimpleIdentifier
               token: foo @30
               staticElement: <testLibraryFragment>::@function::foo
-              element: <testLibraryFragment>::@function::foo#element
+              element: <testLibrary>::@function::foo
               staticType: R Function<P, R>(P)
       accessors
         synthetic static get V @-1
@@ -8342,7 +8350,7 @@ library
       functions
         foo @2
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           typeParameters
             P @6
               element: <not-implemented>
@@ -8361,6 +8369,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::V
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       typeParameters
         P
@@ -8400,7 +8409,7 @@ library
             SimpleIdentifier
               token: foo @27
               staticElement: package:test/a.dart::<fragment>::@function::foo
-              element: package:test/a.dart::<fragment>::@function::foo#element
+              element: package:test/a.dart::@function::foo
               staticType: dynamic Function()
       accessors
         synthetic static get V @-1
@@ -8474,10 +8483,10 @@ library
               identifier: SimpleIdentifier
                 token: foo @34
                 staticElement: package:test/a.dart::<fragment>::@function::foo
-                element: package:test/a.dart::<fragment>::@function::foo#element
+                element: package:test/a.dart::@function::foo
                 staticType: dynamic Function()
               staticElement: package:test/a.dart::<fragment>::@function::foo
-              element: package:test/a.dart::<fragment>::@function::foo#element
+              element: package:test/a.dart::@function::foo
               staticType: dynamic Function()
       accessors
         synthetic static get V @-1

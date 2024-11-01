@@ -33,7 +33,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (

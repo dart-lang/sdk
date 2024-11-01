@@ -42,12 +42,13 @@ library
       functions
         main @5
           reference: <testLibraryFragment>::@function::main
-          element: <testLibraryFragment>::@function::main#element
+          element: <testLibrary>::@function::main
           formalParameters
             p @14
               element: <testLibraryFragment>::@function::main::@parameter::p#element
   functions
     main
+      reference: <testLibrary>::@function::main
       firstFragment: <testLibraryFragment>::@function::main
       formalParameters
         requiredPositional p
@@ -824,12 +825,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @9
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -1221,25 +1223,27 @@ library
       functions
         positional @5
           reference: <testLibraryFragment>::@function::positional
-          element: <testLibraryFragment>::@function::positional#element
+          element: <testLibrary>::@function::positional
           formalParameters
             default x @17
               element: <testLibraryFragment>::@function::positional::@parameter::x#element
         named @33
           reference: <testLibraryFragment>::@function::named
-          element: <testLibraryFragment>::@function::named#element
+          element: <testLibrary>::@function::named
           formalParameters
             default x @40
               reference: <testLibraryFragment>::@function::named::@parameter::x
               element: <testLibraryFragment>::@function::named::@parameter::x#element
   functions
     positional
+      reference: <testLibrary>::@function::positional
       firstFragment: <testLibraryFragment>::@function::positional
       formalParameters
         optionalPositional x
           type: dynamic
       returnType: void
     named
+      reference: <testLibrary>::@function::named
       firstFragment: <testLibraryFragment>::@function::named
       formalParameters
         optionalNamed x

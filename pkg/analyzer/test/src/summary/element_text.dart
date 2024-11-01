@@ -190,6 +190,7 @@ abstract class _AbstractElementWriter {
       AugmentedExtensionElementImpl() => e.reference,
       AugmentedExtensionTypeElementImpl() => e.reference,
       AugmentedMixinElementImpl() => e.reference,
+      TopLevelFunctionElementImpl() => e.reference,
       _ => null,
     };
 
@@ -1743,6 +1744,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);

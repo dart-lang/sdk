@@ -2682,7 +2682,7 @@ library
                     methodName: SimpleIdentifier
                       token: foo @39
                       staticElement: <testLibraryFragment>::@function::foo
-                      element: <testLibraryFragment>::@function::foo#element
+                      element: <testLibrary>::@function::foo
                       staticType: int Function()
                     argumentList: ArgumentList
                       leftParenthesis: ( @42
@@ -2730,7 +2730,7 @@ library
                     methodName: SimpleIdentifier
                       token: foo @39
                       staticElement: <testLibraryFragment>::@function::foo
-                      element: <testLibraryFragment>::@function::foo#element
+                      element: <testLibrary>::@function::foo
                       staticType: int Function()
                     argumentList: ArgumentList
                       leftParenthesis: ( @42
@@ -2744,7 +2744,7 @@ library
       functions
         foo @52
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2762,6 +2762,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int
 ''');
@@ -4670,12 +4671,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             super.a @13
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional final a

@@ -411,19 +411,23 @@ class BundleWriter {
     _sink._writeOptionalStringReference(fragment.name2);
   }
 
-  void _writeFunctionElement(FunctionElementImpl element) {
+  void _writeFunctionElement(FunctionElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(element);
-    _writeFragmentName(element);
-    FunctionElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
 
-    _resolutionSink._writeAnnotationList(element.metadata);
+    var element = fragment.element as TopLevelFunctionElementImpl;
 
-    _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
-      _resolutionSink.writeType(element.returnType);
-      _writeList(element.parameters, _writeParameterElement);
+    _writeReference(fragment);
+    _writeReference2(element.reference);
+    _writeFragmentName(fragment);
+    FunctionElementFlags.write(_sink, fragment);
+    _writeAugmentationTargetAny(fragment);
+
+    _resolutionSink._writeAnnotationList(fragment.metadata);
+
+    _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
+      _resolutionSink.writeType(fragment.returnType);
+      _writeList(fragment.parameters, _writeParameterElement);
     });
   }
 

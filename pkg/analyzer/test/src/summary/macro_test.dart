@@ -4772,6 +4772,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
       metadata
         Annotation
@@ -4826,6 +4827,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
       formalParameters
         optionalPositional x
@@ -5311,6 +5313,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
       formalParameters
         requiredPositional x1
@@ -5352,6 +5355,7 @@ library
       firstFragment: <testLibraryFragment>::@class::X
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
       formalParameters
         requiredPositional x
@@ -5521,13 +5525,14 @@ library
       functions
         foo @40
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo#element
+          element: <testLibrary>::@function::foo
   classes
     class A
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@function::foo
       returnType: void
   exportedReferences
@@ -6907,9 +6912,10 @@ library
       functions
         f @59
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: void
 ''');
@@ -7528,12 +7534,13 @@ library
       functions
         foo @79
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           typeParameters
             T @83
               element: <not-implemented>
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       typeParameters
         T
@@ -8093,7 +8100,7 @@ library
       functions
         foo @93
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           formalParameters
             a @101
               element: <testLibraryFragment>::@function::foo::@parameter::a#element
@@ -8105,6 +8112,7 @@ library
               element: <testLibraryFragment>::@function::foo::@parameter::c#element
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
         requiredPositional a
@@ -8179,7 +8187,7 @@ library
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           formalParameters
             a @106
               element: <testLibraryFragment>::@function::foo::@parameter::a#element
@@ -8187,6 +8195,7 @@ library
               element: <testLibraryFragment>::@function::foo::@parameter::b#element
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
         requiredPositional a
@@ -8250,9 +8259,10 @@ library
       functions
         foo @76
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int
 ''');
@@ -8314,9 +8324,10 @@ library
       functions
         foo @144
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int Function(bool, {int b, String c})
 ''');
@@ -8378,9 +8389,10 @@ library
       functions
         foo @139
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int Function(int, String)
 ''');
@@ -8441,9 +8453,10 @@ library
       functions
         foo @103
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: int Function()
 ''');
@@ -8502,9 +8515,10 @@ library
       functions
         foo @88
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: void Function()
 ''');
@@ -8658,12 +8672,13 @@ library
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           formalParameters
             a @102
               element: <testLibraryFragment>::@function::foo::@parameter::a#element
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
         requiredPositional a
@@ -8725,9 +8740,10 @@ library
       functions
         foo @72
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: dynamic
 ''');
@@ -8936,9 +8952,10 @@ library
       functions
         foo @86
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: (int, String)
 ''');
@@ -9008,13 +9025,14 @@ library
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
       aliasedType: List<int>
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: List<int>
         alias: <testLibraryFragment>::@typeAlias::A
@@ -9242,9 +9260,10 @@ library
       functions
         foo @114
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       returnType: Map<int, String>
 ''');

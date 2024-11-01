@@ -1432,16 +1432,16 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f::@def::0
-          element: <testLibraryFragment>::@function::f::@def::0#element
+          element: <testLibrary>::@function::f::@def::0
         f @17
           reference: <testLibraryFragment>::@function::f::@def::1
-          element: <testLibraryFragment>::@function::f::@def::1#element
+          element: <testLibrary>::@function::f::@def::1
           formalParameters
             a @23
               element: <testLibraryFragment>::@function::f::@def::1::@parameter::a#element
         f @34
           reference: <testLibraryFragment>::@function::f::@def::2
-          element: <testLibraryFragment>::@function::f::@def::2#element
+          element: <testLibrary>::@function::f::@def::2
           formalParameters
             default b @41
               element: <testLibraryFragment>::@function::f::@def::2::@parameter::b#element
@@ -1449,15 +1449,18 @@ library
               element: <testLibraryFragment>::@function::f::@def::2::@parameter::c#element
   functions
     f
+      reference: <testLibrary>::@function::f::@def::0
       firstFragment: <testLibraryFragment>::@function::f::@def::0
       returnType: void
     f
+      reference: <testLibrary>::@function::f::@def::1
       firstFragment: <testLibraryFragment>::@function::f::@def::1
       formalParameters
         requiredPositional a
           type: int
       returnType: void
     f
+      reference: <testLibrary>::@function::f::@def::2
       firstFragment: <testLibraryFragment>::@function::f::@def::2
       formalParameters
         optionalPositional b
@@ -1501,7 +1504,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default a @12
               reference: <testLibraryFragment>::@function::f::@parameter::a::@def::0
@@ -1511,6 +1514,7 @@ library
               element: <testLibraryFragment>::@function::f::@parameter::a::@def::1#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         optionalNamed a

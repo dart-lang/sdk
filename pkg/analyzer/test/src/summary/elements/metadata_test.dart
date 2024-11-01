@@ -3567,7 +3567,7 @@ library
       functions
         f @19
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           metadata
             Annotation
               atSign: @ @16
@@ -3588,6 +3588,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       metadata
         Annotation
@@ -3970,7 +3971,7 @@ library
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             g @21
               element: <testLibraryFragment>::@function::f::@parameter::g#element
@@ -3994,6 +3995,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional g
@@ -4076,7 +4078,7 @@ library
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default g @22
               element: <testLibraryFragment>::@function::f::@parameter::g#element
@@ -4100,6 +4102,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         optionalPositional g
@@ -4534,7 +4537,7 @@ library
               name: SimpleIdentifier
                 token: f @9
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @10
@@ -4544,7 +4547,7 @@ library
                     staticType: int
                 rightParenthesis: ) @13
               element: <testLibraryFragment>::@function::f
-              element2: <testLibraryFragment>::@function::f#element
+              element2: <testLibrary>::@function::f
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4574,7 +4577,7 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             _ @2
               element: <testLibraryFragment>::@function::f::@parameter::_#element
@@ -4587,6 +4590,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional _
@@ -7995,7 +7999,7 @@ library
       functions
         f @26
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           metadata
             Annotation
               atSign: @ @16
@@ -8043,6 +8047,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::foo
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       metadata
         Annotation
@@ -8997,7 +9002,7 @@ library
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             x @21
               element: <testLibraryFragment>::@function::f::@parameter::x#element
@@ -9021,6 +9026,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional x
@@ -9349,7 +9355,7 @@ library
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default x @22
               element: <testLibraryFragment>::@function::f::@parameter::x#element
@@ -9373,6 +9379,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         optionalPositional x
@@ -10020,7 +10027,7 @@ library
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @21
               element: <not-implemented>
@@ -10044,6 +10051,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T

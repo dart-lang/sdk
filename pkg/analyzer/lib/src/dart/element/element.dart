@@ -5234,7 +5234,8 @@ class FunctionElementImpl extends ExecutableElementImpl
   /// The element corresponding to this fragment.
   // TODO(brianwilkerson): Use either `LocalFunctionElement` or
   //  `TopLevelFunctionElement` when this class is split.
-  ExecutableElement2? _element;
+  @override
+  late ExecutableElement2 element;
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
@@ -5254,30 +5255,6 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   ExecutableElement get declaration => this;
-
-  @override
-  ExecutableElement2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-    Fragment firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    // TODO(brianwilkerson): We need a better way to identify closures whose
-    //  enclosing element is a compilation unit than checking for an empty name.
-    if (enclosingElement3 is CompilationUnitElement && name.isNotEmpty) {
-      return TopLevelFunctionElementImpl(firstFragment as FunctionElementImpl);
-    } else {
-      return LocalFunctionElementImpl(firstFragment as FunctionElementImpl);
-    }
-  }
-
-  set element(ExecutableElement2 element) => _element = element;
 
   @override
   Fragment? get enclosingFragment {
@@ -6758,11 +6735,13 @@ class LibraryElementImpl extends ElementImpl
   /// Create the [FunctionElement] to be returned by [loadLibraryFunction].
   /// The [typeProvider] must be already set.
   void createLoadLibraryFunction() {
-    _loadLibraryFunction =
-        FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1)
-          ..enclosingElement3 = library
-          ..isSynthetic = true
-          ..returnType = typeProvider.futureDynamicType;
+    var fragment = FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1)
+      ..enclosingElement3 = library
+      ..isSynthetic = true
+      ..returnType = typeProvider.futureDynamicType;
+    _loadLibraryFunction = fragment;
+    // TODO(scheglov): create it sooner, with actual reference.
+    TopLevelFunctionElementImpl(Reference.root(), fragment);
   }
 
   @override
@@ -6987,11 +6966,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   final FunctionElementImpl _wrappedElement;
 
   LocalFunctionElementImpl(this._wrappedElement) {
-    FunctionElementImpl? fragment = _wrappedElement;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment as FunctionElementImpl?;
-    }
+    _wrappedElement.element = this;
   }
 
   @override
@@ -9581,14 +9556,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
         FragmentedElementMixin<TopLevelFunctionFragment>
     implements TopLevelFunctionElement {
   @override
+  final Reference reference;
+
+  @override
   final FunctionElementImpl firstFragment;
 
-  TopLevelFunctionElementImpl(this.firstFragment) {
-    FunctionElementImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment as FunctionElementImpl?;
-    }
+  TopLevelFunctionElementImpl(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.element = this;
   }
 
   @override

@@ -1169,11 +1169,19 @@ class LibraryReader {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var reference2 = _readReference();
       var fragmentName = _readFragmentName();
       var name = reference.elementName;
 
-      var element = FunctionElementImpl(name, -1);
-      element.name2 = fragmentName;
+      var fragment = FunctionElementImpl(name, -1);
+      fragment.name2 = fragmentName;
+
+      if (reference2.element2 case TopLevelFunctionElementImpl element?) {
+        fragment.element = element;
+      } else {
+        TopLevelFunctionElementImpl(reference2, fragment);
+      }
+
 
       var linkedData = FunctionElementLinkedData(
         reference: reference,
@@ -1181,14 +1189,14 @@ class LibraryReader {
         unitElement: unitElement,
         offset: resolutionOffset,
       );
-      element.setLinkedData(reference, linkedData);
+      fragment.setLinkedData(reference, linkedData);
 
-      FunctionElementFlags.read(_reader, element);
-      _readAugmentationTargetAny(element);
-      element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters();
+      FunctionElementFlags.read(_reader, fragment);
+      _readAugmentationTargetAny(fragment);
+      fragment.typeParameters = _readTypeParameters();
+      fragment.parameters = _readParameters();
 
-      return element;
+      return fragment;
     });
   }
 

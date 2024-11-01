@@ -2571,14 +2571,14 @@ library
       functions
         raw @5
           reference: <testLibraryFragment>::@function::raw
-          element: <testLibraryFragment>::@function::raw#element
+          element: <testLibrary>::@function::raw
         hasDocComment @50
           reference: <testLibraryFragment>::@function::hasDocComment
-          element: <testLibraryFragment>::@function::hasDocComment#element
+          element: <testLibrary>::@function::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
         hasAnnotation @85
           reference: <testLibraryFragment>::@function::hasAnnotation
-          element: <testLibraryFragment>::@function::hasAnnotation#element
+          element: <testLibrary>::@function::hasAnnotation
           metadata
             Annotation
               atSign: @ @70
@@ -2594,7 +2594,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         annotationThenComment @150
           reference: <testLibraryFragment>::@function::annotationThenComment
-          element: <testLibraryFragment>::@function::annotationThenComment#element
+          element: <testLibrary>::@function::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -2611,7 +2611,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentThenAnnotation @223
           reference: <testLibraryFragment>::@function::commentThenAnnotation
-          element: <testLibraryFragment>::@function::commentThenAnnotation#element
+          element: <testLibrary>::@function::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -2628,7 +2628,7 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentAroundAnnotation @296
           reference: <testLibraryFragment>::@function::commentAroundAnnotation
-          element: <testLibraryFragment>::@function::commentAroundAnnotation#element
+          element: <testLibrary>::@function::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -2645,13 +2645,16 @@ library
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   functions
     raw
+      reference: <testLibrary>::@function::raw
       firstFragment: <testLibraryFragment>::@function::raw
       returnType: void
     hasDocComment
+      reference: <testLibrary>::@function::hasDocComment
       firstFragment: <testLibraryFragment>::@function::hasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
       returnType: void
     hasAnnotation
+      reference: <testLibrary>::@function::hasAnnotation
       firstFragment: <testLibraryFragment>::@function::hasAnnotation
       metadata
         Annotation
@@ -2668,6 +2671,7 @@ library
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
     annotationThenComment
+      reference: <testLibrary>::@function::annotationThenComment
       firstFragment: <testLibraryFragment>::@function::annotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
@@ -2685,6 +2689,7 @@ library
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
     commentThenAnnotation
+      reference: <testLibrary>::@function::commentThenAnnotation
       firstFragment: <testLibraryFragment>::@function::commentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
@@ -2702,6 +2707,7 @@ library
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       returnType: void
     commentAroundAnnotation
+      reference: <testLibrary>::@function::commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@function::commentAroundAnnotation
       documentationComment: /// Comment 2.
       metadata
@@ -3092,7 +3098,7 @@ library
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
-          element: <testLibraryFragment>::@function::main#element
+          element: <testLibrary>::@function::main
           formalParameters
             default a @10
               reference: <testLibraryFragment>::@function::main::@parameter::a
@@ -3105,6 +3111,7 @@ library
               element: <testLibraryFragment>::@function::main::@parameter::c#element
   functions
     main
+      reference: <testLibrary>::@function::main
       firstFragment: <testLibraryFragment>::@function::main
       formalParameters
         optionalNamed a
@@ -3187,7 +3194,7 @@ library
       functions
         main @0
           reference: <testLibraryFragment>::@function::main
-          element: <testLibraryFragment>::@function::main#element
+          element: <testLibrary>::@function::main
           formalParameters
             a @19
               element: <testLibraryFragment>::@function::main::@parameter::a#element
@@ -3223,6 +3230,7 @@ library
                   element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   functions
     main
+      reference: <testLibrary>::@function::main
       firstFragment: <testLibraryFragment>::@function::main
       formalParameters
         requiredPositional a
@@ -4388,7 +4396,7 @@ library
       functions
         f @19
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             U @21
               element: <not-implemented>
@@ -4403,6 +4411,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         U
@@ -4969,12 +4978,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             f @12
               element: <testLibraryFragment>::@function::f::@parameter::f#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional f
@@ -5020,13 +5030,14 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default f @22
               reference: <testLibraryFragment>::@function::f::@parameter::f
               element: <testLibraryFragment>::@function::f::@parameter::f#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredNamed f
@@ -5067,12 +5078,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T

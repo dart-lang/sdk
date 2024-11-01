@@ -842,17 +842,28 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = true;
-      reference = _enclosingContext.addFunction(name, fragment);
       executableElement = fragment;
+
+      var refName = fragment.name2 ?? '${_nextUnnamedId++}';
+      reference = _enclosingContext.addFunction(name, fragment);
 
       elementBuilder = _libraryBuilder.elementBuilderGetters[name];
       elementBuilder ??= _libraryBuilder.elementBuilderSetters[name];
       elementBuilder?.setPreviousFor(fragment);
-      if (fragment.isAugmentation && elementBuilder is FunctionElementBuilder) {
+      if (fragment.isAugmentation &&
+          elementBuilder is TopLevelFunctionElementBuilder) {
         elementBuilder.addFragment(fragment);
       } else {
-        elementBuilder = FunctionElementBuilder(
-          element: TopLevelFunctionElementImpl(fragment),
+        var libraryRef = _libraryBuilder.reference;
+        var containerRef = libraryRef.getChild('@function');
+        var elementReference = containerRef.addChild(refName);
+        var element = TopLevelFunctionElementImpl(
+          elementReference,
+          fragment,
+        );
+
+        elementBuilder = TopLevelFunctionElementBuilder(
+          element: element,
           firstFragment: fragment,
         );
         _libraryBuilder.elementBuilderGetters[name] = elementBuilder;

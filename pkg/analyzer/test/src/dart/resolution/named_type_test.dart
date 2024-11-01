@@ -701,7 +701,7 @@ void T() {}
 NamedType
   name: T
   element: <testLibraryFragment>::@function::T
-  element2: <testLibraryFragment>::@function::T#element
+  element2: <testLibrary>::@function::T
   type: InvalidType
 ''');
   }
@@ -729,7 +729,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@function::T
-  element2: <testLibraryFragment>::@function::T#element
+  element2: <testLibrary>::@function::T
   type: InvalidType
 ''');
   }
