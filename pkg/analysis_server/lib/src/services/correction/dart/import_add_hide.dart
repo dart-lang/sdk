@@ -11,8 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
-class ImportAddHide extends MultiCorrectionProducer {
-  ImportAddHide({required super.context});
+class AmbiguousImportFix extends MultiCorrectionProducer {
+  AmbiguousImportFix({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -81,6 +81,9 @@ class ImportAddHide extends MultiCorrectionProducer {
           .toSet();
       producers.add(_ImportAddHide(key.element, key.uri, key.prefix, directives,
           context: context));
+      producers.add(_ImportRemoveShow(
+          key.element, key.uri, key.prefix, directives,
+          context: context));
     }
     return producers;
   }
@@ -102,26 +105,11 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
   @override
   List<String> get fixArguments {
-    // Any import directive that imports the element is directly showing it?
-    var removeShow = false;
-    for (var directives in importDirectives
-        .map((d) => d.combinators.whereType<ShowCombinator>())
-        .where((d) => d.isNotEmpty)) {
-      for (var name in directives.first.shownNames) {
-        if (name.name == _elementName) {
-          removeShow = true;
-          break;
-        }
-      }
-    }
-    // If there is a show combinator explicitly showing the element, then
-    // we should remove it.
-    var removeShowStr = removeShow ? ' (removing \'show\')' : '';
     var prefix = '';
     if ((this.prefix ?? '') != '') {
       prefix = ' as ${this.prefix}';
     }
-    return [_elementName, uri, prefix, removeShowStr];
+    return [_elementName, uri, prefix];
   }
 
   @override
@@ -135,43 +123,103 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
       return;
     }
 
+    var hideCombinator =
+        <({ImportDirective directive, HideCombinator? hide})>[];
+
     for (var directive in importDirectives) {
-      var show = directive.combinators.whereType<ShowCombinator>();
-      var hide = directive.combinators.whereType<HideCombinator>();
-      await builder.addDartFileEdit(file, (builder) {
-        if (show.isNotEmpty) {
-          var showCombinator = show.first;
-          var allNames = <String>[];
-          for (var show in showCombinator.shownNames) {
-            if (show.name == _elementName) continue;
-            allNames.add(show.name);
-          }
-          allNames.sort();
-          if (allNames.isEmpty) {
-            builder.addDeletion(SourceRange(
-                showCombinator.offset - 1, showCombinator.length + 1));
-          } else {
-            var combinator = 'show ${allNames.join(', ')}';
-            var range =
-                SourceRange(showCombinator.offset, showCombinator.length);
-            builder.addSimpleReplacement(range, combinator);
-          }
-        }
-        if (hide.isNotEmpty) {
-          var hideCombinator = hide.first;
+      var show = directive.combinators.whereType<ShowCombinator>().firstOrNull;
+      // If there is an import with a show combinator, then we don't want to 
+      // deal with this case here.
+      if (show != null) {
+        return;
+      }
+      var hide = directive.combinators.whereType<HideCombinator>().firstOrNull;
+      hideCombinator.add((directive: directive, hide: hide));
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      for (var (:directive, :hide) in hideCombinator) {
+        if (hide != null) {
           var allNames = <String>[_elementName];
-          for (var name in hideCombinator.hiddenNames) {
+          for (var name in hide.hiddenNames) {
             allNames.add(name.name);
           }
           allNames.sort();
           var combinator = 'hide ${allNames.join(', ')}';
-          var range = SourceRange(hideCombinator.offset, hideCombinator.length);
+          var range = SourceRange(hide.offset, hide.length);
           builder.addSimpleReplacement(range, combinator);
         } else {
           var hideCombinator = ' hide $_elementName';
           builder.addSimpleInsertion(directive.end - 1, hideCombinator);
         }
-      });
+      }
+    });
+  }
+}
+
+class _ImportRemoveShow extends ResolvedCorrectionProducer {
+  final Set<ImportDirective> importDirectives;
+  final Element element;
+  final String uri;
+  final String? prefix;
+
+  _ImportRemoveShow(this.element, this.uri, this.prefix, this.importDirectives,
+      {required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments {
+    var prefix = '';
+    if ((this.prefix ?? '') != '') {
+      prefix = ' as ${this.prefix}';
     }
+    return [_elementName, uri, prefix];
+  }
+
+  @override
+  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
+
+  String get _elementName => element.name ?? '';
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    if (_elementName.isEmpty || uri.isEmpty) {
+      return;
+    }
+
+    var showCombinator = <({ImportDirective directive, ShowCombinator show})>[];
+    for (var directive in importDirectives) {
+      var show = directive.combinators.whereType<ShowCombinator>().firstOrNull;
+      // If there is no show combinator, then we don't want to deal with this 
+      // case here.
+      if (show == null) {
+        return;
+      }
+      showCombinator.add((directive: directive, show: show));
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      for (var (:directive, :show) in showCombinator) {
+        var allNames = <String>[];
+        for (var show in show.shownNames) {
+          if (show.name == _elementName) continue;
+          allNames.add(show.name);
+        }
+        allNames.sort();
+        if (allNames.isEmpty) {
+          builder.addDeletion(SourceRange(show.offset - 1, show.length + 1));
+          var hideCombinator = ' hide $_elementName';
+          builder.addSimpleInsertion(directive.end - 1, hideCombinator);
+        } else {
+          var combinator = 'show ${allNames.join(', ')}';
+          var range = SourceRange(show.offset, show.length);
+          builder.addSimpleReplacement(range, combinator);
+        }
+      }
+    });
   }
 }
