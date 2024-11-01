@@ -268,8 +268,8 @@ Location? newLocation_fromElement2(engine.Element2? element) {
   }
   if (element is engine.FragmentedElement) {
     var fragment = (element as engine.FragmentedElement).firstFragment;
-    var offset = fragment.name2?.nameOffset ?? 0;
-    var length = fragment.name2?.name.length ?? 0;
+    var offset = fragment.nameOffset2 ?? 0;
+    var length = fragment.name2?.length ?? 0;
     var range = engine.SourceRange(offset, length);
     return _locationForArgs2(fragment, range);
   } else {

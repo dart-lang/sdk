@@ -2287,7 +2287,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    element: loadLibrary@null
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3555,7 +3555,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    element: loadLibrary@null
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3589,7 +3589,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: loadLibrary
     staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    element: loadLibrary@null
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (

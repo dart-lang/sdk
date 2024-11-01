@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -1472,6 +1473,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+    element.name2 = nameToken.nameIfNotEmpty;
+    element.nameOffset2 = nameToken.offsetIfNotEmpty;
 
     // The fragment's old enclosing element needs to be set before we can get
     // the new element for it.
@@ -2001,5 +2004,16 @@ class _VariableBinderErrors
       CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
       arguments: [name],
     );
+  }
+}
+
+
+extension on Token {
+  String? get nameIfNotEmpty {
+    return lexeme.isNotEmpty ? lexeme : null;
+  }
+
+  int? get offsetIfNotEmpty {
+    return lexeme.isNotEmpty ? offset : null;
   }
 }

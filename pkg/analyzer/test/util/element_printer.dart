@@ -111,15 +111,18 @@ class ElementPrinter {
       case LabelElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
       case LabelElementImpl2():
-        _sink.write('${element.name3}@${element.nameOffset}');
+      // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
         writeReference(e.reference!);
       case LocalFunctionElementImpl():
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset}');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
       case LocalVariableElementImpl2():
-        _sink.write('${element.name3}@${element.nameOffset}');
+      // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case AugmentedClassElementImpl element:
         writeReference(element.reference);
       case AugmentedEnumElementImpl element:

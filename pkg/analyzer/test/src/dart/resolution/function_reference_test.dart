@@ -2805,10 +2805,10 @@ ExpressionStatement
     identifier: SimpleIdentifier
       token: loadLibrary
       staticElement: loadLibrary@-1
-      element: loadLibrary@-1
+      element: loadLibrary@null
       staticType: Future<dynamic> Function()
     staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    element: loadLibrary@null
     staticType: Future<dynamic> Function()
   semicolon: ;
 ''');

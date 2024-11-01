@@ -1131,6 +1131,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       implicitConstructor.isSynthetic = true;
       implicitConstructor.name = name;
       implicitConstructor.nameOffset = -1;
+      implicitConstructor.name2 = superclassConstructor.name2;
 
       implicitConstructor.element = ConstructorElementImpl2(
         superclassConstructor.element.name3,
@@ -1557,7 +1558,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<MixinFragment> get mixins2 => mixins.cast<MixinFragment>();
 
   @override
-  FragmentName? get name2 => null;
+  String? get name2 => null;
+
+  @override
+  int? get nameOffset2 => null;
 
   @override
   LibraryFragment? get nextFragment {
@@ -1846,7 +1850,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   int? nameEnd;
 
   @override
-  ConstructorFragmentNameImpl? name2;
+  late String name2;
+
+  @override
+  int? nameOffset2;
 
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
@@ -1918,7 +1925,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
     return ConstructorElementImpl2(
-      firstFragment.name2?.name ?? 'new',
+      firstFragment.name2,
       firstFragment,
     );
   }
@@ -2152,18 +2159,6 @@ mixin ConstructorElementMixin implements ConstructorElement {
   bool get isGenerative {
     return !isFactory;
   }
-}
-
-class ConstructorFragmentNameImpl extends FragmentNameImpl
-    implements ConstructorFragmentName {
-  @override
-  int periodOffset;
-
-  ConstructorFragmentNameImpl({
-    required super.name,
-    required super.nameOffset,
-    required this.periodOffset,
-  });
 }
 
 /// A [TopLevelVariableElement] for a top-level 'const' variable that has an
@@ -5222,22 +5217,6 @@ mixin FragmentedTypeParameterizedElementMixin<
   }
 }
 
-class FragmentNameImpl implements FragmentName {
-  @override
-  final String name;
-
-  @override
-  int nameOffset;
-
-  FragmentNameImpl({
-    required this.name,
-    required this.nameOffset,
-  });
-
-  @override
-  int get nameEnd => nameOffset + name.length;
-}
-
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
     with AugmentableElement<FunctionElementImpl>
@@ -5247,7 +5226,10 @@ class FunctionElementImpl extends ExecutableElementImpl
         LocalFunctionFragment,
         TopLevelFunctionFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   /// The element corresponding to this fragment.
   // TODO(brianwilkerson): Use either `LocalFunctionElement` or
@@ -5415,7 +5397,10 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   ElementLinkedData<ElementImpl>? get linkedData => null;
 
   @override
-  FragmentName? get name2 => null;
+  String? get name2 => null;
+
+  @override
+  int? get nameOffset2 => null;
 
   @override
   GenericFunctionTypeFragment? get nextFragment =>
@@ -5580,7 +5565,10 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   ElementLinkedData? linkedData;
 
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
 
@@ -6276,8 +6264,12 @@ class LabelElementImpl extends ElementImpl
   String get name => super.name!;
 
   @override
-  FragmentName? get name2 =>
-      FragmentNameImpl(name: name, nameOffset: nameOffset);
+  // TODO(scheglov): make it a nullable field
+  String? get name2 => name;
+
+  @override
+  // TODO(scheglov): make it a nullable field
+  int? get nameOffset2 => nameOffset;
 
   @override
   LabelFragment? get nextFragment => null;
@@ -6309,9 +6301,6 @@ class LabelElementImpl2 extends ElementImpl2
 
   @override
   LibraryElement2 get library2 => super.library2!;
-
-  @override
-  int get nameOffset => _wrappedElement.nameOffset;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -7108,8 +7097,12 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   LibraryFragment get libraryFragment => enclosingUnit as LibraryFragment;
 
   @override
-  FragmentName? get name2 =>
-      FragmentNameImpl(name: name, nameOffset: nameOffset);
+  // TODO(scheglov): make it a nullable field
+  String? get name2 => name;
+
+  @override
+  // TODO(scheglov): make it a nullable field
+  int? get nameOffset2 => nameOffset;
 
   @override
   LocalVariableFragment? get nextFragment => null;
@@ -7153,9 +7146,6 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
 
   @override
   bool get isStatic => _wrappedElement.isStatic;
-
-  @override
-  int get nameOffset => _wrappedElement.nameOffset;
 
   @override
   DartType get type => _wrappedElement.type;
@@ -7573,7 +7563,10 @@ class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
     implements MethodElement, MethodFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
@@ -7624,7 +7617,7 @@ class MethodElementImpl extends ExecutableElementImpl
 
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
-    return MethodElementImpl2(firstFragment.name2?.name, firstFragment);
+    return MethodElementImpl2(firstFragment.name2, firstFragment);
   }
 
   set element(MethodElement2 element) => _element = element;
@@ -8315,7 +8308,10 @@ class ParameterElementImpl extends VariableElementImpl
     with ParameterElementMixin
     implements ParameterElement, FormalParameterFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
@@ -8810,7 +8806,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   }
 
   @override
-  String? get name3 => firstFragment.name2?.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   // TODO(scheglov): implement scope
@@ -8849,7 +8845,10 @@ class PrefixFragmentImpl implements PrefixFragment {
   final CompilationUnitElementImpl enclosingFragment;
 
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   @override
   final bool isDeferred;
@@ -8866,6 +8865,7 @@ class PrefixFragmentImpl implements PrefixFragment {
   PrefixFragmentImpl({
     required this.enclosingFragment,
     required this.name2,
+    required this.nameOffset2,
     required this.isDeferred,
   });
 
@@ -8884,7 +8884,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     with AugmentableElement<PropertyAccessorElementImpl>
     implements PropertyAccessorElement, GetterFragment, SetterFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   PropertyInducingElementImpl? _variable;
 
@@ -9201,7 +9204,10 @@ abstract class PropertyInducingElementImpl
     with MacroTargetElement
     implements PropertyInducingElement, PropertyInducingFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   /// The getter associated with this element.
   @override
@@ -9754,7 +9760,10 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         MacroTargetElement
     implements TypeAliasElement, TypeAliasFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -10045,7 +10054,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
   @override
-  String? get name3 => firstFragment.name2?.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   List<TypeParameterElement2> get typeParameters2 =>
@@ -10080,7 +10089,10 @@ abstract class TypeDefiningElementImpl2 extends ElementImpl2
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement, TypeParameterFragment {
   @override
-  FragmentNameImpl? name2;
+  String? name2;
+
+  @override
+  int? nameOffset2;
 
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the

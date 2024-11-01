@@ -186,7 +186,7 @@ class InformativeDataApplier {
         element as PropertyAccessorElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
-        _setFragmentNameOffset(element.name2, info.nameOffset2);
+        element.nameOffset2 = info.nameOffset2;
         element.documentationComment = info.documentationComment;
         _applyToFormalParameters(
           element.parameters_unresolved,
@@ -219,7 +219,7 @@ class InformativeDataApplier {
     element as ClassElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -253,7 +253,7 @@ class InformativeDataApplier {
     element as ClassElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -309,12 +309,7 @@ class InformativeDataApplier {
         element.periodOffset = info.periodOffset;
         element.nameOffset = info.nameOffset;
         element.nameEnd = info.nameEnd;
-        if (element.name2 case var name?) {
-          if (info.nameOffsets case var nameOffsets?) {
-            name.periodOffset = nameOffsets.periodOffset;
-            name.nameOffset = nameOffsets.nameOffset;
-          }
-        }
+        element.nameOffset2 = info.nameOffset2;
         element.documentationComment = info.documentationComment;
 
         _applyToFormalParameters(
@@ -348,7 +343,7 @@ class InformativeDataApplier {
     element as EnumElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     _applyToTypeParameters(
@@ -398,7 +393,7 @@ class InformativeDataApplier {
     element as ExtensionElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -431,7 +426,7 @@ class InformativeDataApplier {
     element as ExtensionTypeElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -442,10 +437,7 @@ class InformativeDataApplier {
       var representationField = element.fields.first;
       var infoRep = info.representation;
       representationField.nameOffset = infoRep.fieldNameOffset;
-      _setFragmentNameOffset(
-        representationField.name2,
-        infoRep.fieldNameOffset2,
-      );
+      representationField.nameOffset2 = infoRep.fieldNameOffset2;
       representationField.setCodeRange(
         infoRep.fieldCodeOffset,
         infoRep.fieldCodeLength,
@@ -473,20 +465,12 @@ class InformativeDataApplier {
       primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
       primaryConstructor.nameOffset = infoRep.constructorNameOffset;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-      if (primaryConstructor.name2 case var name?) {
-        if (infoRep.constructorNameOffsets case var nameOffsets?) {
-          name.periodOffset = nameOffsets.periodOffset;
-          name.nameOffset = nameOffsets.nameOffset;
-        }
-      }
+      primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
 
       var primaryConstructorParameter = primaryConstructor
           .parameters_unresolved.first as ParameterElementImpl;
       primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
-      _setFragmentNameOffset(
-        primaryConstructorParameter.name2,
-        infoRep.fieldNameOffset,
-      );
+      primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
       primaryConstructorParameter.setCodeRange(
         infoRep.fieldCodeOffset,
         infoRep.fieldCodeLength,
@@ -532,7 +516,7 @@ class InformativeDataApplier {
         element as FieldElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
-        _setFragmentNameOffset(element.name2, info.nameOffset2);
+        element.nameOffset2 = info.nameOffset2;
         element.documentationComment = info.documentationComment;
 
         var applyOffsets = ApplyConstantOffsets(
@@ -564,7 +548,7 @@ class InformativeDataApplier {
         element as ParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
-        _setFragmentNameOffset(element.name2, info.nameOffset2);
+        element.nameOffset2 = info.nameOffset2;
         _applyToTypeParameters(element.typeParameters, info.typeParameters);
         _applyToFormalParameters(element.parameters, info.parameters);
       },
@@ -578,7 +562,7 @@ class InformativeDataApplier {
     element as FunctionElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -613,7 +597,7 @@ class InformativeDataApplier {
     element as TypeAliasElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -634,7 +618,7 @@ class InformativeDataApplier {
     element as TypeAliasElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -668,9 +652,7 @@ class InformativeDataApplier {
         }
 
         if (element.prefix2 case var prefixFragment?) {
-          if (prefixFragment.name2 case var name?) {
-            name.nameOffset = info.prefixOffset;
-          }
+          prefixFragment.nameOffset2 = info.prefixOffset2;
         }
         _applyToCombinators(element.combinators, info.combinators);
       },
@@ -711,7 +693,7 @@ class InformativeDataApplier {
         element as MethodElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
-        _setFragmentNameOffset(element.name2, info.nameOffset2);
+        element.nameOffset2 = info.nameOffset2;
         element.documentationComment = info.documentationComment;
         _applyToTypeParameters(
           element.typeParameters_unresolved,
@@ -748,7 +730,7 @@ class InformativeDataApplier {
     element as MixinElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -782,7 +764,7 @@ class InformativeDataApplier {
     element as TopLevelVariableElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
-    _setFragmentNameOffset(element.name2, info.nameOffset2);
+    element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
     var applyOffsets = ApplyConstantOffsets(
@@ -812,7 +794,7 @@ class InformativeDataApplier {
         element as TypeParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
-        _setFragmentNameOffset(element.name2, info.nameOffset2);
+        element.nameOffset2 = info.nameOffset2;
       },
     );
   }
@@ -828,12 +810,6 @@ class InformativeDataApplier {
     }
 
     return null;
-  }
-
-  void _setFragmentNameOffset(FragmentNameImpl? name, int? offset) {
-    if (name != null && offset != null) {
-      name.nameOffset = offset;
-    }
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(
@@ -1002,8 +978,8 @@ class _InfoConstructorDeclaration {
   final int codeLength;
   final int? periodOffset;
   final int nameOffset;
-  final int nameEnd;
-  final _InfoConstructorNameOffsets? nameOffsets;
+  final int? nameEnd;
+  final int? nameOffset2;
   final String? documentationComment;
   final List<_InfoFormalParameter> parameters;
   final Uint32List constantOffsets;
@@ -1014,8 +990,8 @@ class _InfoConstructorDeclaration {
       codeLength: reader.readUInt30(),
       periodOffset: reader.readOptionalUInt30(),
       nameOffset: reader.readUInt30(),
-      nameEnd: reader.readUInt30(),
-      nameOffsets: _InfoConstructorNameOffsets.read(reader),
+      nameEnd: reader.readOptionalUInt30(),
+      nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       parameters: reader.readTypedList(
         () => _InfoFormalParameter(reader),
@@ -1030,32 +1006,11 @@ class _InfoConstructorDeclaration {
     required this.periodOffset,
     required this.nameOffset,
     required this.nameEnd,
-    required this.nameOffsets,
+    required this.nameOffset2,
     required this.documentationComment,
     required this.parameters,
     required this.constantOffsets,
   });
-}
-
-class _InfoConstructorNameOffsets {
-  final int periodOffset;
-  final int nameOffset;
-
-  _InfoConstructorNameOffsets._({
-    required this.periodOffset,
-    required this.nameOffset,
-  });
-
-  static _InfoConstructorNameOffsets? read(SummaryDataReader reader) {
-    if (reader.readBool()) {
-      return _InfoConstructorNameOffsets._(
-        periodOffset: reader.readUInt30(),
-        nameOffset: reader.readUInt30(),
-      );
-    } else {
-      return null;
-    }
-  }
 }
 
 class _InfoExport {
@@ -1140,7 +1095,7 @@ class _InfoExtensionTypeRepresentation {
   final int? constructorPeriodOffset;
   final int constructorNameOffset;
   final int? constructorNameEnd;
-  final _InfoConstructorNameOffsets? constructorNameOffsets;
+  final int? constructorNameOffset2;
   final int fieldCodeOffset;
   final int fieldCodeLength;
   final int fieldNameOffset;
@@ -1154,7 +1109,7 @@ class _InfoExtensionTypeRepresentation {
       constructorPeriodOffset: reader.readOptionalUInt30(),
       constructorNameOffset: reader.readUInt30(),
       constructorNameEnd: reader.readOptionalUInt30(),
-      constructorNameOffsets: _InfoConstructorNameOffsets.read(reader),
+      constructorNameOffset2: reader.readOptionalUInt30(),
       fieldCodeOffset: reader.readUInt30(),
       fieldCodeLength: reader.readUInt30(),
       fieldNameOffset: reader.readUInt30(),
@@ -1169,7 +1124,7 @@ class _InfoExtensionTypeRepresentation {
     required this.constructorPeriodOffset,
     required this.constructorNameOffset,
     required this.constructorNameEnd,
-    required this.constructorNameOffsets,
+    required this.constructorNameOffset2,
     required this.fieldCodeOffset,
     required this.fieldCodeLength,
     required this.fieldNameOffset,
@@ -1698,15 +1653,8 @@ class _InformativeDataWriter {
       sink.writeOptionalUInt30(node.period?.offset);
       var nameNode = node.name ?? node.returnType;
       sink.writeUInt30(nameNode.offset);
-      sink.writeUInt30(nameNode.end);
-
-      if ((node.period, node.name) case (var period?, var name?)) {
-        sink.writeBool(true);
-        sink.writeUInt30(period.offset);
-        sink.writeUInt30(name.offset);
-      } else {
-        sink.writeBool(false);
-      }
+      sink.writeOptionalUInt30(nameNode.end);
+      sink.writeOptionalUInt30(node.name?.offsetIfNotEmpty);
 
       _writeDocumentationComment(node);
       _writeFormalParameters(node.parameters);
@@ -1957,21 +1905,16 @@ class _InformativeDataWriter {
     sink.writeUInt30(node.length);
 
     var constructorName = node.constructorName;
-    if (constructorName != null) {
+      if (constructorName != null) {
       sink.writeOptionalUInt30(constructorName.period.offset);
       sink.writeUInt30(constructorName.name.offset);
       sink.writeOptionalUInt30(constructorName.name.end);
+      sink.writeOptionalUInt30(constructorName.name.offsetIfNotEmpty);
     } else {
       sink.writeOptionalUInt30(null);
       sink.writeUInt30(declaration.name.offset);
+      sink.writeOptionalUInt30(declaration.name.end);
       sink.writeOptionalUInt30(null);
-    }
-    if (constructorName != null) {
-      sink.writeBool(true);
-      sink.writeUInt30(constructorName.period.offset);
-      sink.writeUInt30(constructorName.name.offset);
-    } else {
-      sink.writeBool(false);
     }
 
     var fieldBeginToken = node.fieldMetadata.beginToken ?? node.fieldType;

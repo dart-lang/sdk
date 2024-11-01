@@ -45,7 +45,12 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var declaration = NodeLocator(variable.nameOffset).searchWithin(unit);
+    var nameOffset = variable.firstFragment.nameOffset2;
+    if (nameOffset == null) {
+      return;
+    }
+
+    var declaration = NodeLocator(nameOffset).searchWithin(unit);
     var declarationList = declaration?.parent;
 
     if (declaration is VariableDeclaration &&

@@ -31,7 +31,7 @@ bool _isOldModelElement(Element2? element) {
         'ElementKind',
         'ElementLocation',
         'LibraryLanguageVersion',
-      }.contains(firstFragment.name2?.name)) {
+      }.contains(firstFragment.name2)) {
         return false;
       }
       return true;

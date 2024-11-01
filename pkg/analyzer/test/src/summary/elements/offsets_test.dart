@@ -172,42 +172,42 @@ library
           reference: <testLibraryFragment>::@class::Raw
           element: <testLibrary>::@class::Raw
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
               element: <testLibraryFragment>::@class::Raw::@constructor::new#element
         class HasDocComment @50
           reference: <testLibraryFragment>::@class::HasDocComment
           element: <testLibrary>::@class::HasDocComment
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
               element: <testLibraryFragment>::@class::HasDocComment::@constructor::new#element
         class HasAnnotation @84
           reference: <testLibraryFragment>::@class::HasAnnotation
           element: <testLibrary>::@class::HasAnnotation
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::HasAnnotation::@constructor::new#element
         class AnnotationThenComment @148
           reference: <testLibraryFragment>::@class::AnnotationThenComment
           element: <testLibrary>::@class::AnnotationThenComment
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
               element: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new#element
         class CommentThenAnnotation @220
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
           element: <testLibrary>::@class::CommentThenAnnotation
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new#element
         class CommentAroundAnnotation @292
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
           element: <testLibrary>::@class::CommentAroundAnnotation
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new#element
   classes
@@ -504,21 +504,21 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @18
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
         class Raw @30
           reference: <testLibraryFragment>::@class::Raw
           element: <testLibrary>::@class::Raw
           constructors
-            synthetic const <null-name>
+            synthetic const new
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
               element: <testLibraryFragment>::@class::Raw::@constructor::new#element
               constantInitializers
@@ -533,7 +533,7 @@ library
           reference: <testLibraryFragment>::@class::HasDocComment
           element: <testLibrary>::@class::HasDocComment
           constructors
-            synthetic const <null-name>
+            synthetic const new
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
               element: <testLibraryFragment>::@class::HasDocComment::@constructor::new#element
               constantInitializers
@@ -548,7 +548,7 @@ library
           reference: <testLibraryFragment>::@class::HasAnnotation
           element: <testLibrary>::@class::HasAnnotation
           constructors
-            synthetic const <null-name>
+            synthetic const new
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::HasAnnotation::@constructor::new#element
               constantInitializers
@@ -563,7 +563,7 @@ library
           reference: <testLibraryFragment>::@class::AnnotationThenComment
           element: <testLibrary>::@class::AnnotationThenComment
           constructors
-            synthetic const <null-name>
+            synthetic const new
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
               element: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new#element
               constantInitializers
@@ -578,7 +578,7 @@ library
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
           element: <testLibrary>::@class::CommentThenAnnotation
           constructors
-            synthetic const <null-name>
+            synthetic const new
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new#element
               constantInitializers
@@ -593,7 +593,7 @@ library
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
           element: <testLibrary>::@class::CommentAroundAnnotation
           constructors
-            synthetic const <null-name>
+            synthetic const new
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new#element
               constantInitializers
@@ -825,7 +825,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            <null-name>
+            new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               codeOffset: 12
@@ -836,7 +836,6 @@ library
               codeOffset: 20
               codeLength: 10
               periodOffset: 21
-              nameEnd: 25
             hasDocComment @70
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
               element: <testLibraryFragment>::@class::C::@constructor::hasDocComment#element
@@ -844,7 +843,6 @@ library
               codeOffset: 34
               codeLength: 54
               periodOffset: 69
-              nameEnd: 83
             hasAnnotation @106
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
               element: <testLibraryFragment>::@class::C::@constructor::hasAnnotation#element
@@ -864,7 +862,6 @@ library
               codeOffset: 92
               codeLength: 32
               periodOffset: 105
-              nameEnd: 119
             annotationThenComment @176
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
               element: <testLibraryFragment>::@class::C::@constructor::annotationThenComment#element
@@ -885,7 +882,6 @@ library
               codeOffset: 128
               codeLength: 74
               periodOffset: 175
-              nameEnd: 197
             commentThenAnnotation @254
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
               element: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation#element
@@ -906,7 +902,6 @@ library
               codeOffset: 206
               codeLength: 74
               periodOffset: 253
-              nameEnd: 275
             commentAroundAnnotation @332
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
               element: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation#element
@@ -927,7 +922,6 @@ library
               codeOffset: 301
               codeLength: 59
               periodOffset: 331
-              nameEnd: 355
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1165,7 +1159,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            factory <null-name>
+            factory new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               codeOffset: 12
@@ -1176,7 +1170,6 @@ library
               codeOffset: 39
               codeLength: 27
               periodOffset: 48
-              nameEnd: 52
             factory hasDocComment @114
               reference: <testLibraryFragment>::@class::C::@constructor::hasDocComment
               element: <testLibraryFragment>::@class::C::@constructor::hasDocComment#element
@@ -1184,7 +1177,6 @@ library
               codeOffset: 70
               codeLength: 71
               periodOffset: 113
-              nameEnd: 127
             factory hasAnnotation @167
               reference: <testLibraryFragment>::@class::C::@constructor::hasAnnotation
               element: <testLibraryFragment>::@class::C::@constructor::hasAnnotation#element
@@ -1204,7 +1196,6 @@ library
               codeOffset: 145
               codeLength: 49
               periodOffset: 166
-              nameEnd: 180
             factory annotationThenComment @254
               reference: <testLibraryFragment>::@class::C::@constructor::annotationThenComment
               element: <testLibraryFragment>::@class::C::@constructor::annotationThenComment#element
@@ -1225,7 +1216,6 @@ library
               codeOffset: 198
               codeLength: 91
               periodOffset: 253
-              nameEnd: 275
             factory commentThenAnnotation @349
               reference: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation
               element: <testLibraryFragment>::@class::C::@constructor::commentThenAnnotation#element
@@ -1246,7 +1236,6 @@ library
               codeOffset: 293
               codeLength: 91
               periodOffset: 348
-              nameEnd: 370
             factory commentAroundAnnotation @444
               reference: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation
               element: <testLibraryFragment>::@class::C::@constructor::commentAroundAnnotation#element
@@ -1267,7 +1256,6 @@ library
               codeOffset: 405
               codeLength: 76
               periodOffset: 443
-              nameEnd: 467
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1496,7 +1484,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
       extensions
@@ -1706,7 +1694,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithInit2
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -2219,7 +2207,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::commentAroundAnnotation2
               setter2: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -2883,7 +2871,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -4394,7 +4382,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
       functions
@@ -4461,14 +4449,13 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            <null-name>
+            new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
             named @21
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
               periodOffset: 20
-              nameEnd: 26
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -4516,7 +4503,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            <null-name>
+            new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               formalParameters
@@ -4591,7 +4578,7 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -4677,7 +4664,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -4745,7 +4732,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -4826,7 +4813,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           setters
@@ -4893,7 +4880,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
   classes
