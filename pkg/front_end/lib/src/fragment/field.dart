@@ -34,6 +34,19 @@ class FieldFragment implements Fragment {
       : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
+  // Coverage-ignore(suite): Not run.
+  bool get hasSetter {
+    if (modifiers.isFinal) {
+      if (modifiers.isLate) {
+        return !modifiers.hasInitializer;
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
   Token? get initializerToken {
     Token? result = _initializerToken;
     // Ensure that we don't hold onto the token.
