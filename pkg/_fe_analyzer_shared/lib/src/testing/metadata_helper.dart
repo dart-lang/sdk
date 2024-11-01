@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/ast.dart';
 
+import '../metadata/evaluate.dart';
+
 /// Returns the arguments expression, if [expression] is of the form
 /// `Helper(foo)`, and [expression] otherwise.
 ///
@@ -24,6 +26,19 @@ Expression unwrap(Expression expression) {
 }
 
 /// Creates a list containing structured and readable textual representation of
+/// the [resolved] expression and the result of evaluating [resolved].
+List<String> evaluationToText(Expression resolved) {
+  List<String> list = [];
+
+  Expression unwrappedResolved = unwrap(resolved);
+  list.add('resolved=${expressionToText(unwrappedResolved)}');
+  list.add(
+      'evaluate=${expressionToText(evaluateExpression(unwrappedResolved))}');
+
+  return list;
+}
+
+/// Creates a list containing structured and readable textual representation of
 /// the [unresolved] and [resolved] expressions.
 List<String> expressionsToText(
     {required Expression unresolved, required Expression resolved}) {
@@ -35,7 +50,8 @@ List<String> expressionsToText(
   // its resolved equivalent.
   Expression lateResolved = unresolved.resolve() ?? unresolved;
 
-  String earlyResolvedText = expressionToText(unwrap(resolved));
+  Expression unwrappedResolved = unwrap(resolved);
+  String earlyResolvedText = expressionToText(unwrappedResolved);
   String lateResolvedText = expressionToText(unwrap(lateResolved));
 
   // These should always be the same. If not we include both to
@@ -46,6 +62,7 @@ List<String> expressionsToText(
     list.add('early-resolved=${earlyResolvedText}');
     list.add('late-resolved=${lateResolvedText}');
   }
+
   return list;
 }
 
