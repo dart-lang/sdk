@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -135,8 +134,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var element = AugmentedClassElementImpl(elementReference, fragment);
 
       elementBuilder = ClassElementBuilder(
-        firstFragment: fragment,
         element: element,
+        firstFragment: fragment,
       );
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
@@ -766,7 +765,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     Reference reference;
     ExecutableElementImpl executableElement;
-    FragmentedElementBuilder<Fragment>? elementBuilder;
+    FragmentedElementBuilder? elementBuilder;
     if (node.isGetter) {
       var fragment = PropertyAccessorElementImpl(name, nameOffset);
       fragment.name2 = _getFragmentName(nameToken);
@@ -784,6 +783,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           accessorElement: fragment,
         ) as TopLevelVariableElementImpl;
         var elementBuilder = TopLevelVariableElementBuilder(
+          element: TopLevelVariableElementImpl2(variable),
           firstFragment: variable,
         );
         _libraryBuilder.elementBuilderVariables[name] = elementBuilder;
@@ -795,7 +795,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       if (fragment.isAugmentation && elementBuilder is GetterElementBuilder) {
         elementBuilder.addFragment(fragment);
       } else {
-        elementBuilder = GetterElementBuilder(firstFragment: fragment);
+        elementBuilder = GetterElementBuilder(
+          element: GetterElementImpl(fragment),
+          firstFragment: fragment,
+        );
         _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
       }
     } else if (node.isSetter) {
@@ -815,6 +818,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           accessorElement: fragment,
         ) as TopLevelVariableElementImpl;
         var elementBuilder = TopLevelVariableElementBuilder(
+          element: TopLevelVariableElementImpl2(variable),
           firstFragment: variable,
         );
         _libraryBuilder.elementBuilderVariables[name] = elementBuilder;
@@ -826,7 +830,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       if (fragment.isAugmentation && elementBuilder is SetterElementBuilder) {
         elementBuilder.addFragment(fragment);
       } else {
-        elementBuilder = SetterElementBuilder(firstFragment: fragment);
+        elementBuilder = SetterElementBuilder(
+          element: SetterElementImpl(fragment),
+          firstFragment: fragment,
+        );
         _libraryBuilder.elementBuilderSetters[name] = elementBuilder;
       }
     } else {
@@ -844,7 +851,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       if (fragment.isAugmentation && elementBuilder is FunctionElementBuilder) {
         elementBuilder.addFragment(fragment);
       } else {
-        elementBuilder = FunctionElementBuilder(firstFragment: fragment);
+        elementBuilder = FunctionElementBuilder(
+          element: TopLevelFunctionElementImpl(fragment),
+          firstFragment: fragment,
+        );
         _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
       }
     }
@@ -901,7 +911,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     elementBuilder?.setPreviousFor(fragment);
     if (fragment.isAugmentation && elementBuilder is TypeAliasElementBuilder) {
     } else {
-      elementBuilder = TypeAliasElementBuilder(firstFragment: fragment);
+      elementBuilder = TypeAliasElementBuilder(
+        element: TypeAliasElementImpl2(fragment),
+        firstFragment: fragment,
+      );
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
@@ -1029,7 +1042,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     elementBuilder?.setPreviousFor(fragment);
     if (fragment.isAugmentation && elementBuilder is TypeAliasElementBuilder) {
     } else {
-      elementBuilder = TypeAliasElementBuilder(firstFragment: fragment);
+      elementBuilder = TypeAliasElementBuilder(
+        element: TypeAliasElementImpl2(fragment),
+        firstFragment: fragment,
+      );
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
@@ -1419,6 +1435,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           _libraryBuilder.declare(name, ref);
 
           var elementBuilder = GetterElementBuilder(
+            element: GetterElementImpl(getter),
             firstFragment: getter,
           );
           _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
@@ -1431,6 +1448,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           _libraryBuilder.declare('$name=', ref);
 
           var elementBuilder = SetterElementBuilder(
+            element: SetterElementImpl(setter),
             firstFragment: setter,
           );
           _libraryBuilder.elementBuilderSetters[name] = elementBuilder;
@@ -1448,6 +1466,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         elementBuilder.addFragment(fragment);
       } else {
         elementBuilder = TopLevelVariableElementBuilder(
+          element: TopLevelVariableElementImpl2(fragment),
           firstFragment: fragment,
         );
         _libraryBuilder.elementBuilderVariables[name] = elementBuilder;
