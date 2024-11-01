@@ -19,6 +19,11 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include <comdef.h>
+#include <Wbemidl.h>
+#include <string>
+
+#pragma comment(lib, "wbemuuid.lib")
 
 namespace dart {
 namespace bin {
@@ -166,10 +171,108 @@ static const char* VersionNumber() {
   return DartUtils::ScopedCStringFormatted("%d.%d", major, minor);
 }
 
+const char* getEdition() {
+  HRESULT hres;
+
+  hres = CoInitializeEx(0, COINIT_MULTITHREADED);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  hres = CoInitializeSecurity(
+      nullptr, -1, nullptr, nullptr, RPC_C_AUTHN_LEVEL_DEFAULT,
+      RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE, nullptr);
+  if (FAILED(hres)) {
+    CoUninitialize();
+    return nullptr;
+  }
+
+  IWbemLocator* pLoc = nullptr;
+  hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
+                          IID_IWbemLocator, (LPVOID*)&pLoc);
+  if (FAILED(hres)) {
+    CoUninitialize();
+    return nullptr;
+  }
+
+  IWbemServices* pSvc = nullptr;
+  hres = pLoc->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), nullptr, nullptr, 0, NULL,
+                             0, 0, &pSvc);
+  if (FAILED(hres)) {
+    pLoc->Release();
+    CoUninitialize();
+    return nullptr;
+  }
+
+  hres = CoSetProxyBlanket(pSvc, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, nullptr,
+                           RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE,
+                           nullptr, EOAC_NONE);
+  if (FAILED(hres)) {
+    pSvc->Release();
+    pLoc->Release();
+    CoUninitialize();
+    return nullptr;
+  }
+
+  IEnumWbemClassObject* pEnumerator = nullptr;
+  hres = pSvc->ExecQuery(bstr_t("WQL"),
+                         bstr_t("SELECT * FROM Win32_OperatingSystem"),
+                         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+                         nullptr, &pEnumerator);
+  if (FAILED(hres)) {
+    pSvc->Release();
+    pLoc->Release();
+    CoUninitialize();
+    return nullptr;
+  }
+
+  IWbemClassObject* pclsObj = nullptr;
+  ULONG uReturn = 0;
+  std::wstring edition;
+  while (pEnumerator) {
+    hres = pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturn);
+    if (0 == uReturn) {
+      break;
+    }
+
+    VARIANT vtProp;
+    hres = pclsObj->Get(L"Caption", 0, &vtProp, 0, 0);
+    if (SUCCEEDED(hres)) {
+      std::wstring editionString(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
+
+      size_t pos = editionString.find(L"Microsoft ");
+      if (pos == 0) {
+        editionString.erase(0, wcslen(L"Microsoft "));
+      }
+      edition = editionString.c_str();
+
+      VariantClear(&vtProp);
+    }
+
+    pclsObj->Release();
+  }
+
+  pEnumerator->Release();
+  pSvc->Release();
+  pLoc->Release();
+  CoUninitialize();
+
+  static std::string editionString;
+  int len = WideCharToMultiByte(CP_UTF8, 0, edition.c_str(), -1, nullptr, 0,
+                                nullptr, nullptr);
+  if (len > 0) {
+    editionString.resize(len);
+    WideCharToMultiByte(CP_UTF8, 0, edition.c_str(), -1, &editionString[0], len,
+                        nullptr, nullptr);
+  }
+
+  return editionString.c_str();
+}
+
 const char* Platform::OperatingSystemVersion() {
-  // Get the product name, e.g. "Windows 10 Home".
-  const char* name;
-  if (!GetCurrentVersionString(L"ProductName", &name)) {
+  // Get the product name, e.g. "Windows 11 Home" via WMI and fallback to the ProductName on error.
+  const char* name = getEdition();
+  if (name == nullptr && !GetCurrentVersionString(L"ProductName", &name)) {
     return nullptr;
   }
 
