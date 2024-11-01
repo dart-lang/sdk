@@ -268,19 +268,12 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     List<w.ValueType> arguments = _getInputTypes(
         translator, target, null, false, translator.translateType);
 
-    if (translator.constructorClosures[node.reference] == null) {
-      // We need the contexts of the constructor before generating the
-      // initializer and constructor body functions, as these functions will
-      // return/take a context argument if context must be shared between them.
-      // Generate the contexts the first time we visit a constructor.
-      Closures closures = Closures(translator, node);
-
-      closures.findCaptures(node);
-      closures.collectContexts(node);
-      closures.buildContexts();
-
-      translator.constructorClosures[node.reference] = closures;
-    }
+    // We need the contexts of the constructor before generating the initializer
+    // and constructor body functions, as these functions will return/take a
+    // context argument if context must be shared between them. Generate the
+    // contexts the first time we visit a constructor.
+    translator.constructorClosures[node.reference] ??=
+        Closures(translator, node);
 
     if (target.isInitializerReference) {
       return _getInitializerType(node, target, arguments);

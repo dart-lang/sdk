@@ -420,10 +420,6 @@ abstract class AstCodeGenerator
     setupParameters(member.reference,
         canSafelyOmitImplicitChecks: canSafelyOmitImplicitChecks);
 
-    closures.findCaptures(member);
-    closures.collectContexts(member);
-    closures.buildContexts();
-
     allocateContext(member.function!);
     captureParameters();
   }
@@ -601,23 +597,23 @@ abstract class AstCodeGenerator
 
   void allocateContext(TreeNode node) {
     Context? context = closures.contexts[node];
-    if (context != null && !context.isEmpty) {
-      w.Local contextLocal =
-          addLocal(w.RefType.def(context.struct, nullable: true));
-      context.currentLocal = contextLocal;
-      b.struct_new_default(context.struct);
-      b.local_set(contextLocal);
-      if (context.containsThis) {
-        b.local_get(contextLocal);
-        b.local_get(preciseThisLocal!);
-        b.struct_set(context.struct, context.thisFieldIndex);
-      }
-      if (context.parent != null) {
-        w.Local parentLocal = context.parent!.currentLocal;
-        b.local_get(contextLocal);
-        b.local_get(parentLocal);
-        b.struct_set(context.struct, context.parentFieldIndex);
-      }
+    if (context == null || context.isEmpty) return;
+
+    w.Local contextLocal =
+        addLocal(w.RefType.def(context.struct, nullable: true));
+    context.currentLocal = contextLocal;
+    b.struct_new_default(context.struct);
+    b.local_set(contextLocal);
+    if (context.containsThis) {
+      b.local_get(contextLocal);
+      b.local_get(preciseThisLocal!);
+      b.struct_set(context.struct, context.thisFieldIndex);
+    }
+    if (context.parent != null) {
+      w.Local parentLocal = context.parent!.currentLocal;
+      b.local_get(contextLocal);
+      b.local_get(parentLocal);
+      b.struct_set(context.struct, context.parentFieldIndex);
     }
   }
 
@@ -2409,9 +2405,9 @@ abstract class AstCodeGenerator
 
     // Evaluate receiver
     w.StructType struct = representation.closureStruct;
-    w.Local temp = addLocal(w.RefType.def(struct, nullable: false));
-    translateExpression(receiver, temp.type);
-    b.local_tee(temp);
+    w.Local closureLocal = addLocal(w.RefType.def(struct, nullable: false));
+    translateExpression(receiver, closureLocal.type);
+    b.local_tee(closureLocal);
     b.struct_get(struct, FieldIndex.closureContext);
 
     // Type arguments
@@ -2441,7 +2437,7 @@ abstract class AstCodeGenerator
         representation.fieldIndexForSignature(posArgCount, argNames);
     w.FunctionType functionType =
         representation.getVtableFieldType(vtableFieldIndex);
-    b.local_get(temp);
+    b.local_get(closureLocal);
     b.struct_get(struct, FieldIndex.closureVtable);
     b.struct_get(representation.vtableStruct, vtableFieldIndex);
     b.call_ref(functionType);
@@ -3210,12 +3206,14 @@ class TearOffCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
-    closures = Closures(translator, member);
-    generateTearOffGetter(member as Procedure);
-  }
+    // Initialize [Closures] without [Closures.captures]: [Closures.captures] is
+    // used by `makeType` below, when generating runtime types of type
+    // parameters of the function type, but the type parameters are not
+    // captured, always loaded from the `this` struct.
+    closures = Closures(translator, member, findCaptures: false);
 
-  void generateTearOffGetter(Procedure procedure) {
     _initializeThis(member.reference);
+    Procedure procedure = member as Procedure;
     DartType functionType = translator.getTearOffType(procedure);
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
@@ -3242,7 +3240,10 @@ class TypeCheckerCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
-    closures = Closures(translator, member);
+    // Initialize [Closures] without [Closures.captures]: Similar to
+    // [TearOffCodeGenerator], type parameters will be loaded from the `this`
+    // struct.
+    closures = Closures(translator, member, findCaptures: false);
     if (member is Field ||
         (member is Procedure && (member as Procedure).isSetter)) {
       _generateFieldSetterTypeCheckerMethod();
@@ -3849,9 +3850,6 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
 
     // Static field initializer function
     closures = Closures(translator, field);
-    closures.findCaptures(field);
-    closures.collectContexts(field);
-    closures.buildContexts();
 
     w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
@@ -3947,7 +3945,7 @@ class ImplicitFieldAccessorCodeGenerator extends AstCodeGenerator {
     // that instantiates types uses closure information to see whether a type
     // parameter was captured (and loads it from context chain) or not (and
     // loads it directly from `this`).
-    closures = Closures(translator, field);
+    closures = Closures(translator, field, findCaptures: false);
 
     final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
