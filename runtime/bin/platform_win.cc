@@ -10,6 +10,8 @@
 #include <Wbemidl.h>
 #include <comdef.h>
 #include <crtdbg.h>
+#include <wrl/client.h>
+#undef interface
 #include <string>
 
 #include "bin/console.h"
@@ -24,6 +26,8 @@
 #include "bin/utils_win.h"
 
 #pragma comment(lib, "wbemuuid.lib")
+
+using Microsoft::WRL::ComPtr;
 
 namespace dart {
 namespace bin {
@@ -171,7 +175,7 @@ static const char* VersionNumber() {
   return DartUtils::ScopedCStringFormatted("%d.%d", major, minor);
 }
 
-const char* getEdition() {
+static const char* GetEdition() {
   HRESULT hres;
 
   hres = CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -187,92 +191,74 @@ const char* getEdition() {
     return nullptr;
   }
 
-  IWbemLocator* pLoc = nullptr;
+  ComPtr<IWbemLocator> locator;
   hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
-                          IID_IWbemLocator, reinterpret_cast<LPVOID*>(&pLoc));
+                          IID_PPV_ARGS(&locator));
   if (FAILED(hres)) {
     CoUninitialize();
     return nullptr;
   }
 
-  IWbemServices* pSvc = nullptr;
-  hres = pLoc->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), nullptr, nullptr, 0, NULL,
-                             0, 0, &pSvc);
+  ComPtr<IWbemServices> service;
+  hres = locator->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), nullptr, nullptr, 0,
+                                NULL, 0, 0, &service);
   if (FAILED(hres)) {
-    pLoc->Release();
     CoUninitialize();
     return nullptr;
   }
 
-  hres = CoSetProxyBlanket(pSvc, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, nullptr,
-                           RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE,
-                           nullptr, EOAC_NONE);
+  hres = CoSetProxyBlanket(service.Get(), RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE,
+                           nullptr, RPC_C_AUTHN_LEVEL_CALL,
+                           RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
   if (FAILED(hres)) {
-    pSvc->Release();
-    pLoc->Release();
     CoUninitialize();
     return nullptr;
   }
 
-  IEnumWbemClassObject* pEnumerator = nullptr;
-  hres = pSvc->ExecQuery(bstr_t("WQL"),
-                         bstr_t("SELECT * FROM Win32_OperatingSystem"),
-                         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-                         nullptr, &pEnumerator);
+  ComPtr<IEnumWbemClassObject> enumerator;
+  hres = service->ExecQuery(bstr_t("WQL"),
+                            bstr_t("SELECT * FROM Win32_OperatingSystem"),
+                            WBEM_FLAG_FORWARD_ONLY |
+                            WBEM_FLAG_RETURN_IMMEDIATELY, nullptr,
+                            &enumerator);
   if (FAILED(hres)) {
-    pSvc->Release();
-    pLoc->Release();
     CoUninitialize();
     return nullptr;
   }
 
-  IWbemClassObject* pclsObj = nullptr;
+  ComPtr<IWbemClassObject> query_results;
   ULONG uReturn = 0;
-  std::wstring edition;
-  while (pEnumerator) {
-    hres = pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturn);
-    if (0 == uReturn) {
-      break;
-    }
-
-    VARIANT vtProp;
-    hres = pclsObj->Get(L"Caption", 0, &vtProp, 0, 0);
-    if (SUCCEEDED(hres)) {
-      std::wstring editionString(vtProp.bstrVal, SysStringLen(vtProp.bstrVal));
-
-      size_t pos = editionString.find(L"Microsoft ");
-      if (pos == 0) {
-        editionString.erase(0, wcslen(L"Microsoft "));
-      }
-      edition = editionString.c_str();
-
-      VariantClear(&vtProp);
-    }
-
-    pclsObj->Release();
+  if (FAILED(hres) || enumerator == nullptr) {
+    return nullptr;
   }
 
-  pEnumerator->Release();
-  pSvc->Release();
-  pLoc->Release();
+  hres = enumerator->Next(WBEM_INFINITE, 1, &query_results, &uReturn);
+
+  VARIANT caption;
+  hres = query_results->Get(L"Caption", 0, &caption, 0, 0);
+  char* utf8_edition = nullptr;
+  if (SUCCEEDED(hres)) {
+    // We got an edition, skip Microsoft prefix and convert to UTF8.
+    wchar_t* edition = caption.bstrVal;
+    static const wchar_t* kMicrosoftPrefix = L"Microsoft ";
+    static size_t kMicrosoftPrefixLen = wcslen(kMicrosoftPrefix);
+    if (wcsncmp(edition, kMicrosoftPrefix, kMicrosoftPrefixLen) == 0) {
+      edition += kMicrosoftPrefixLen;
+    }
+    utf8_edition = StringUtilsWin::WideToUtf8(edition);
+
+    VariantClear(&caption);
+  }
+
   CoUninitialize();
 
-  static std::string editionString;
-  int len = WideCharToMultiByte(CP_UTF8, 0, edition.c_str(), -1, nullptr, 0,
-                                nullptr, nullptr);
-  if (len > 0) {
-    editionString.resize(len);
-    WideCharToMultiByte(CP_UTF8, 0, edition.c_str(), -1, &editionString[0], len,
-                        nullptr, nullptr);
-  }
-
-  return editionString.c_str();
+  return utf8_edition;
 }
 
 const char* Platform::OperatingSystemVersion() {
   // Get the product name, e.g. "Windows 11 Home" via WMI and fallback to the
   // ProductName on error.
-  const char* name = getEdition();
+  const char* name = GetEdition();
   if (name == nullptr && !GetCurrentVersionString(L"ProductName", &name)) {
     return nullptr;
   }
