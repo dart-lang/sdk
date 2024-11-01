@@ -217,10 +217,10 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
     v0 = builder.AddParameter(0, initial);
     v0->set_range(Range(RangeBoundary::FromConstant(min_value),
                         RangeBoundary::FromConstant(max_value)));
-    auto conv1 = builder.AddDefinition(new IntConverterInstr(
-        initial, intermediate, new Value(v0), S.GetNextDeoptId()));
-    auto conv2 = builder.AddDefinition(new IntConverterInstr(
-        intermediate, initial, new Value(conv1), S.GetNextDeoptId()));
+    auto conv1 = builder.AddDefinition(
+        new IntConverterInstr(initial, intermediate, new Value(v0)));
+    auto conv2 = builder.AddDefinition(
+        new IntConverterInstr(intermediate, initial, new Value(conv1)));
     ret = builder.AddReturn(new Value(conv2));
   }
 
@@ -373,7 +373,7 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
   H.FinishGraph();
 
   FlowGraphTypePropagator::Propagate(H.flow_graph());
-  EXPECT(!unbox->ComputeCanDeoptimize());
+  EXPECT(unbox->ComputeCanDeoptimize());
 
   H.flow_graph()->Canonicalize();
   EXPECT(!unbox->ComputeCanDeoptimize());
@@ -724,8 +724,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
                            FlowGraph::kValue);
   auto load_thread_value = Value(load_thread_instr);
 
-  auto* const convert_instr = new (zone) IntConverterInstr(
-      kUntagged, kUnboxedAddress, &load_thread_value, DeoptId::kNone);
+  auto* const convert_instr = new (zone)
+      IntConverterInstr(kUntagged, kUnboxedAddress, &load_thread_value);
   flow_graph->InsertBefore(return_instr, convert_instr, nullptr,
                            FlowGraph::kValue);
   auto convert_value = Value(convert_instr);
@@ -886,8 +886,7 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
         kUnboxedIntPtr, kUntagged,
         new (Z) Value(flow_graph->GetConstant(
             Integer::Handle(Z, Integer::NewCanonical(native_entry)),
-            kUnboxedIntPtr)),
-        DeoptId::kNone);
+            kUnboxedIntPtr)));
     flow_graph->InsertBefore(static_call, load_entry_point, /*env=*/nullptr,
                              FlowGraph::kValue);
 

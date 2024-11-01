@@ -1297,9 +1297,6 @@ void PhiInstr::PrintTo(BaseTextBuffer* f) const {
 }
 
 void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (is_truncating()) {
-    f->AddString("[tr], ");
-  }
   if (value_mode() == ValueMode::kCheckType) {
     f->AddString("[check-type], ");
   }
@@ -1307,9 +1304,8 @@ void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void IntConverterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s->%s%s, ", RepresentationUtils::ToCString(from()),
-            RepresentationUtils::ToCString(to()),
-            is_truncating() ? "[tr]" : "");
+  f->Printf("%s->%s, ", RepresentationUtils::ToCString(from()),
+            RepresentationUtils::ToCString(to()));
   Definition::PrintOperandsTo(f);
 }
 

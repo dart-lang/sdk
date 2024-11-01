@@ -4909,9 +4909,8 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
   // isn't automatically added that thinks it can deopt.
   Representation from_representation = Peek(0)->representation();
   if (from_representation != representation) {
-    IntConverterInstr* convert = new IntConverterInstr(
-        from_representation, representation, Pop(), DeoptId::kNone);
-    convert->mark_truncating();
+    IntConverterInstr* convert =
+        new IntConverterInstr(from_representation, representation, Pop());
     Push(convert);
     body <<= convert;
   }

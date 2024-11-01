@@ -3838,32 +3838,16 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(out, value);
   } else if (value_cid == kMintCid) {
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
-  } else if (!CanDeoptimize()) {
-    // Type information is not conclusive, but range analysis found
-    // the value to be in int64 range. Therefore it must be a smi
-    // or mint value.
-    ASSERT(is_truncating());
-    compiler::Label done;
-    __ SmiUntag(out, value);
-    __ BranchIfSmi(value, &done);
-    __ LoadFieldFromOffset(out, value, Mint::value_offset());
-    __ Bind(&done);
   } else {
     compiler::Label done;
     __ SmiUntag(out, value);
     __ BranchIfSmi(value, &done);
-    __ CompareClassId(value, kMintCid);
-    __ b(deopt, NE);
+    if (CanDeoptimize()) {
+      __ CompareClassId(value, kMintCid);
+      __ b(deopt, NE);
+    }
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
     __ Bind(&done);
-  }
-
-  // TODO(vegorov): as it is implemented right now truncating unboxing would
-  // leave "garbage" in the higher word.
-  if (!is_truncating() && (deopt != nullptr)) {
-    ASSERT(representation() == kUnboxedInt32);
-    __ cmp(out, compiler::Operand(out, SXTW, 0));
-    __ b(deopt, NE);
   }
 }
 
@@ -6121,7 +6105,6 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
   if (from() == kUntagged || to() == kUntagged) {
     ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
            (from() == kUnboxedIntPtr && to() == kUntagged));
-    ASSERT(!CanDeoptimize());
   } else if (from() == kUnboxedInt64) {
     ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
   } else if (to() == kUnboxedInt64) {
@@ -6131,11 +6114,7 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
     ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
   }
   summary->set_in(0, Location::RequiresRegister());
-  if (CanDeoptimize()) {
-    summary->set_out(0, Location::RequiresRegister());
-  } else {
-    summary->set_out(0, Location::SameAsFirstInput());
-  }
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -6152,41 +6131,20 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
-  compiler::Label* deopt =
-      !CanDeoptimize()
-          ? nullptr
-          : compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
   if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
-    if (CanDeoptimize()) {
-      __ tbnz(deopt, value,
-              31);  // If sign bit is set it won't fit in a uint32.
-    }
     if (out != value) {
       __ mov(out, value);  // For positive values the bits are the same.
     }
   } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
-    if (CanDeoptimize()) {
-      __ tbnz(deopt, value,
-              31);  // If high bit is set it won't fit in an int32.
-    }
     if (out != value) {
       __ mov(out, value);  // For 31 bit values the bits are the same.
     }
   } else if (from() == kUnboxedInt64) {
     if (to() == kUnboxedInt32) {
-      if (is_truncating() || out != value) {
-        __ sxtw(out, value);  // Signed extension 64->32.
-      }
+      __ sxtw(out, value);  // Signed extension 64->32.
     } else {
       ASSERT(to() == kUnboxedUint32);
-      if (is_truncating() || out != value) {
-        __ uxtw(out, value);  // Unsigned extension 64->32.
-      }
-    }
-    if (CanDeoptimize()) {
-      ASSERT(to() == kUnboxedInt32);
-      __ cmp(out, compiler::Operand(value));
-      __ b(deopt, NE);  // Value cannot be held in Int32, deopt.
+      __ uxtw(out, value);  // Unsigned extension 64->32.
     }
   } else if (to() == kUnboxedInt64) {
     if (from() == kUnboxedUint32) {

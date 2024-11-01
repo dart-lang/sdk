@@ -467,18 +467,14 @@ Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
 
 Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed() {
   Value* value = Pop();
-  auto converted = new (Z)
-      IntConverterInstr(kUntagged, kUnboxedAddress, value, DeoptId::kNone);
-  converted->mark_truncating();
+  auto converted = new (Z) IntConverterInstr(kUntagged, kUnboxedAddress, value);
   Push(converted);
   return Fragment(converted);
 }
 
 Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged() {
   Value* value = Pop();
-  auto converted = new (Z)
-      IntConverterInstr(kUnboxedAddress, kUntagged, value, DeoptId::kNone);
-  converted->mark_truncating();
+  auto converted = new (Z) IntConverterInstr(kUnboxedAddress, kUntagged, value);
   Push(converted);
   return Fragment(converted);
 }
