@@ -187,6 +187,7 @@ lib/src/rules/unnecessary_const.dart
 lib/src/rules/unnecessary_constructor_name.dart
 lib/src/rules/unnecessary_final.dart
 lib/src/rules/unnecessary_getters_setters.dart
+lib/src/rules/unnecessary_lambdas.dart
 lib/src/rules/unnecessary_late.dart
 lib/src/rules/unnecessary_library_directive.dart
 lib/src/rules/unnecessary_library_name.dart
