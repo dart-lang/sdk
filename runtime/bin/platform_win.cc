@@ -7,7 +7,10 @@
 
 #include "bin/platform.h"
 
+#include <Wbemidl.h>
+#include <comdef.h>
 #include <crtdbg.h>
+#include <string>
 
 #include "bin/console.h"
 #include "bin/file.h"
@@ -19,9 +22,6 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
-#include <comdef.h>
-#include <Wbemidl.h>
-#include <string>
 
 #pragma comment(lib, "wbemuuid.lib")
 
@@ -189,7 +189,7 @@ const char* getEdition() {
 
   IWbemLocator* pLoc = nullptr;
   hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
-                          IID_IWbemLocator, (LPVOID*)&pLoc);
+                          IID_IWbemLocator, reinterpret_cast<LPVOID*>(&pLoc));
   if (FAILED(hres)) {
     CoUninitialize();
     return nullptr;
@@ -270,7 +270,8 @@ const char* getEdition() {
 }
 
 const char* Platform::OperatingSystemVersion() {
-  // Get the product name, e.g. "Windows 11 Home" via WMI and fallback to the ProductName on error.
+  // Get the product name, e.g. "Windows 11 Home" via WMI and fallback to the
+  // ProductName on error.
   const char* name = getEdition();
   if (name == nullptr && !GetCurrentVersionString(L"ProductName", &name)) {
     return nullptr;
