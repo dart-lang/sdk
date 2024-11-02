@@ -245,22 +245,22 @@ static const char* GetEdition() {
 
   VARIANT caption;
   hres = query_results->Get(L"Caption", 0, &caption, 0, 0);
-  wchar_t* edition;
-
-  if (SUCCEEDED(hres)) {
-    // We got an edition, skip Microsoft prefix and convert to UTF8.
-    edition = caption.bstrVal;
-    static const wchar_t kMicrosoftPrefix[] = L"Microsoft ";
-    static constexpr size_t kMicrosoftPrefixLen =
-        ARRAY_SIZE(kMicrosoftPrefix) - 1;
-    if (wcsncmp(edition, kMicrosoftPrefix, kMicrosoftPrefixLen) == 0) {
-      edition += kMicrosoftPrefixLen;
-    }
-
-    VariantClear(&caption);
+  if (FAILED(hres)) {
+    return nullptr;
   }
 
-  return StringUtilsWin::WideToUtf8(edition);
+  // We got an edition, skip Microsoft prefix and convert to UTF8.
+  wchar_t* edition = caption.bstrVal;
+  static const wchar_t kMicrosoftPrefix[] = L"Microsoft ";
+  static constexpr size_t kMicrosoftPrefixLen =
+      ARRAY_SIZE(kMicrosoftPrefix) - 1;
+  if (wcsncmp(edition, kMicrosoftPrefix, kMicrosoftPrefixLen) == 0) {
+    edition += kMicrosoftPrefixLen;
+  }
+
+  char* result = StringUtilsWin::WideToUtf8(edition);
+  VariantClear(&caption);
+  return result;
 }
 
 const char* Platform::OperatingSystemVersion() {
