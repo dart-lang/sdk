@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -119,7 +120,96 @@ class Options {
 /// Modes for running diff check tests on the hot reload suite.
 enum DiffMode { check, write, ignore }
 
+/// A single test for the hot reload test suite.
+///
+/// A hot reload test is made of a collection of one or more Dart files over a
+/// number of generational edits that represent interactions with source files
+/// over the life of a running test program.
+///
+/// Tests in this suite also define a config.json file with further information
+/// describing how the test runs.
+class HotReloadTest {
+  /// Root [Directory] containing the files for this test.
+  final Directory directory;
+
+  /// Test name used in results.
+  ///
+  /// By convention this matches the name of the [directory].
+  final String name;
+
+  /// The files that make up this test.
+  final List<TestFile> files;
+
+  /// The number of generations in this test (one-based).
+  final int generationCount;
+
+  /// Platforms that should not run this test.
+  final Set<RuntimePlatforms> excludedPlatforms;
+
+  /// Edit rejection error message expected from this test when a hot reload is
+  /// triggered.
+  ///
+  /// Specified in the `config.json` file.
+  final String? expectedError;
+
+  HotReloadTest(this.directory, this.name, this.generationCount, this.files,
+      ReloadTestConfiguration config)
+      : excludedPlatforms = config.excludedPlatforms,
+        expectedError = config.expectedError;
+
+  /// The files edited in the provided [generation] (zero-based).
+  List<TestFile> filesEditedInGeneration(int generation) => [
+        for (final file in files)
+          if (file._editsByGeneration.containsKey(generation)) file
+      ];
+}
+
+/// An individual test file for a hot reload test across all generations.
+class TestFile {
+  /// The reconstructed name of the file after removing the generation tag.
+  ///
+  /// For example given the files foo.0.dart, foo.1.dart, and foo.2.dart the
+  /// [baseName] would be 'foo.dart'.
+  final String baseName;
+
+  /// The individual edits of this file by their generations (zero-based).
+  ///
+  /// By convention, iterating the entries produces them in generational order
+  /// but there could be gaps in the generation numbers.
+  // TODO(nshahan): Ensure the iteration order by moving the creation of this
+  // data structure to this class.
+  final LinkedHashMap<int, TestFileEdit> _editsByGeneration;
+
+  TestFile(this.baseName, this._editsByGeneration);
+
+  /// Returns the [TestFileEdit] for the given [generation] (zero-based) for
+  /// this file.
+  TestFileEdit editForGeneration(int generation) {
+    final edit = _editsByGeneration[generation];
+    if (edit == null) {
+      throw Exception('File: $baseName has no generation: $generation.');
+    }
+    return edit;
+  }
+
+  /// All edits for this file in order by generation.
+  List<TestFileEdit> get edits => _editsByGeneration.values.toList();
+}
+
+/// A single version of a test file at a specific generation.
+class TestFileEdit {
+  /// The generation this edit belongs to.
+  final int generation;
+
+  /// The location of this file on disk.
+  final Uri fileUri;
+
+  TestFileEdit(this.generation, this.fileUri);
+}
+
 late final bool verbose;
+late final bool debug;
+
 Future<void> main(List<String> args) async {
   final options = Options.parse(args);
   if (options.help) {
@@ -127,6 +217,7 @@ Future<void> main(List<String> args) async {
     return;
   }
   verbose = options.verbose;
+  debug = options.debug;
 
   // Used to communicate individual test failures to our test bots.
   final emitTestResultsJson = options.testResultsOutputDir != null;
@@ -234,25 +325,88 @@ Future<void> main(List<String> args) async {
   }
 
   final testOutcomes = <TestResultOutcome>[];
-  final validTestSourceName = RegExp(r'.*[a-zA-Z0-9]+.[0-9]+.dart');
-  for (var testDir in Directory.fromUri(allTestsUri).listSync()) {
-    if (testDir is! Directory) {
-      if (testDir is File) {
-        // Ignore Dart source files, which may be imported as helpers
+
+  /// Returns a suite of hot reload tests discovered in the directory
+  /// [allTestsUri].
+  ///
+  /// Assumes all files that makeup a hot reload test are named like
+  /// '$name.$integer.dart', where 0 is the first generation.
+  ///
+  /// Count the number of generations and ensure they're capped.
+  // TODO(markzipan): Account for subdirectories.
+  List<HotReloadTest> collectTestSources(Options options) {
+    // Set an arbitrary cap on generations.
+    final globalMaxGenerations = 100;
+    final validTestSourceName = RegExp(r'.*[a-zA-Z0-9]+.[0-9]+.dart');
+    final testSuite = <HotReloadTest>[];
+    for (var testDir in Directory.fromUri(allTestsUri).listSync()) {
+      if (testDir is! Directory) {
+        if (testDir is File) {
+          // Ignore Dart source files, which may be imported as helpers.
+          continue;
+        }
+        throw Exception('Non-directory or file entity found in '
+            '${allTestsUri.toFilePath()}: $testDir');
+      }
+      final testDirParts = testDir.uri.pathSegments;
+      final testName = testDirParts[testDirParts.length - 2];
+
+      // Skip tests that don't match the name filter.
+      if (!options.testNameFilter.hasMatch(testName)) {
+        _print('Skipping test', label: testName);
         continue;
       }
-      throw Exception('Non-directory or file entity found in '
-          '${allTestsUri.toFilePath()}: $testDir');
+      var maxGenerations = 0;
+      late ReloadTestConfiguration testConfig;
+      // All files in this test clustered by file name - in generation order.
+      final filesByGeneration = <String, PriorityQueue<TestFileEdit>>{};
+      for (final file in testDir.listSync()) {
+        if (file is File) {
+          final fileName = file.uri.pathSegments.last;
+          // Process config files.
+          if (fileName == 'config.json') {
+            testConfig = ReloadTestConfiguration.fromJsonFile(file.uri);
+          } else if (fileName.endsWith('.dart')) {
+            if (!validTestSourceName.hasMatch(fileName)) {
+              throw Exception('Invalid test source file name: $fileName\n'
+                  'Valid names look like "file_name.10.dart".');
+            }
+            final strippedName =
+                fileName.substring(0, fileName.length - '.dart'.length);
+            final generationIndex = strippedName.lastIndexOf('.');
+            final generationId =
+                int.parse(strippedName.substring(generationIndex + 1));
+            maxGenerations = max(maxGenerations, generationId);
+            final basename = strippedName.substring(0, generationIndex);
+            filesByGeneration
+                .putIfAbsent(
+                    basename,
+                    () => PriorityQueue((TestFileEdit a, TestFileEdit b) =>
+                        a.generation - b.generation))
+                .add(TestFileEdit(generationId, file.uri));
+          }
+        }
+      }
+      if (maxGenerations > globalMaxGenerations) {
+        throw Exception('Too many generations specified in test '
+            '(requested: $maxGenerations, max: $globalMaxGenerations).');
+      }
+      final testFiles = <TestFile>[];
+      for (final entry in filesByGeneration.entries) {
+        final name = entry.key;
+        final fileEdits = entry.value.toList();
+        final editsByGeneration = LinkedHashMap<int, TestFileEdit>.from(
+            {for (final edit in fileEdits) edit.generation: edit});
+        testFiles.add(TestFile('$name.dart', editsByGeneration));
+      }
+      testSuite.add(HotReloadTest(
+          testDir, testName, maxGenerations + 1, testFiles, testConfig));
     }
-    final testDirParts = testDir.uri.pathSegments;
-    final testName = testDirParts[testDirParts.length - 2];
+    return testSuite;
+  }
 
-    // Skip tests that don't match the name filter.
-    if (!options.testNameFilter.hasMatch(testName)) {
-      _print('Skipping test', label: testName);
-      continue;
-    }
-
+  for (final test in collectTestSources(options)) {
+    final testName = test.name;
     var outcome = TestResultOutcome(
       configuration: options.namedConfiguration,
       testName: testName,
@@ -303,51 +457,6 @@ Future<void> main(List<String> args) async {
 
     var filesystem = HotReloadMemoryFilesystem(tempUri);
 
-    // Perform checks on this test's files. Checks include:
-    // 1) Count the number of generations and ensure they're capped.
-    // 2) Validate or generate diffs if specified
-    //
-    // Assumes all files are named like '$name.$integer.dart', where 0 is the
-    // first generation.
-    //
-    // TODO(markzipan): Account for subdirectories.
-    var maxGenerations = 0;
-    late ReloadTestConfiguration testConfig;
-    // All files in this test clustered by file name - in generation order.
-    final filesByGeneration = <String, PriorityQueue<(int, Uri)>>{};
-
-    for (final file in testDir.listSync()) {
-      if (file is File) {
-        final fileName = file.uri.pathSegments.last;
-        // Process config files.
-        if (fileName == 'config.json') {
-          testConfig = ReloadTestConfiguration.fromJsonFile(file.uri);
-        } else if (fileName.endsWith('.dart')) {
-          if (!validTestSourceName.hasMatch(fileName)) {
-            throw Exception('Invalid test source file name: $fileName\n'
-                'Valid names look like "file_name.10.dart".');
-          }
-          final strippedName =
-              fileName.substring(0, fileName.length - '.dart'.length);
-          final generationIndex = strippedName.lastIndexOf('.');
-          final generationId =
-              int.parse(strippedName.substring(generationIndex + 1));
-          maxGenerations = max(maxGenerations, generationId);
-          final basename = strippedName.substring(0, generationIndex);
-          filesByGeneration
-              .putIfAbsent(
-                  basename,
-                  () => PriorityQueue(
-                      ((int, Uri) a, (int, Uri) b) => a.$1 - b.$1))
-              .add((generationId, file.uri));
-        }
-      }
-    }
-    if (maxGenerations > globalMaxGenerations) {
-      throw Exception('Too many generations specified in test '
-          '(requested: $maxGenerations, max: $globalMaxGenerations).');
-    }
-
     var diffMode = options.diffMode;
     if (fe_shared.isWindows && diffMode != DiffMode.ignore) {
       _print("Diffing isn't supported on Windows. Defaulting to 'ignore'.",
@@ -357,135 +466,151 @@ Future<void> main(List<String> args) async {
     switch (diffMode) {
       case DiffMode.check:
         _print('Checking source file diffs.', label: testName);
-        filesByGeneration.forEach((basename, filesQueue) {
-          final files = filesQueue.toList();
-          _debugPrint('Checking source file diffs for $files.',
-              label: testName);
-          files.forEachIndexed((i, (int, Uri) element) {
-            var (_, file) = element;
-            if (i == 0) {
-              // Check that the first file does not have a diff.
-              !File.fromUri(file).readAsStringSync().contains(testDiffSeparator)
-                  ? reportDiffOutcome(
-                      file, 'First generation does not have a diff', true)
-                  : reportDiffOutcome(file,
-                      'First generation should not have any diffs', false);
-            } else {
-              // Check that exactly one diff exists.
-              final currentText = File.fromUri(file).readAsStringSync();
-              final diffCount =
-                  testDiffSeparator.allMatches(currentText).length;
-              if (diffCount == 0) {
-                reportDiffOutcome(file, 'No diff found for $file', false);
-                return;
-              }
-              if (diffCount > 1) {
-                reportDiffOutcome(
-                    file, 'Too many diffs found for $file (expected 1)', false);
-                return;
-              }
-              // Check that the diff is properly generated.
-              final (_, previousFile) = files[i - 1];
-              final (previousCode, _) = _splitTestByDiff(previousFile);
-              final (currentCode, currentDiff) = _splitTestByDiff(file);
-              // 'main' is allowed to have empty diffs since the first
-              // generation must be specified.
-              if (basename != 'main' && previousCode == currentCode) {
-                // TODO(markzipan): Should we make this an error?
-                _print(
-                    'Extraneous file detected. $file is identical to '
-                    '$previousFile and can be removed.',
-                    label: testName);
-              }
-              final previousTempUri = generatedCodeUri.resolve('__previous');
-              final currentTempUri = generatedCodeUri.resolve('__current');
-              File.fromUri(previousTempUri).writeAsStringSync(previousCode);
-              File.fromUri(currentTempUri).writeAsStringSync(currentCode);
-              final diffOutput = _diffWithFileUris(
-                  previousTempUri, currentTempUri,
-                  label: testName);
-              File.fromUri(previousTempUri).deleteSync();
-              File.fromUri(currentTempUri).deleteSync();
-              var (filteredDiffOutput, filteredCurrentDiff) =
-                  _filterLineDeltas(diffOutput, currentDiff);
-              if (filteredDiffOutput != filteredCurrentDiff) {
-                reportDiffOutcome(
-                    file,
-                    'Unexpected diff found for $file:\n'
-                    '-- Expected --\n$diffOutput\n'
-                    '-- Actual --\n$currentDiff',
-                    false);
-                return;
-              }
-              reportDiffOutcome(file, 'Correct diff found for $file', true);
-              return;
+        for (final file in test.files) {
+          _debugPrint('Checking source file diffs for $file.',
+              label: test.name);
+          var edits = file.edits.iterator;
+          if (!edits.moveNext()) {
+            throw Exception('Test file created with no generation edits.');
+          }
+          var currentEdit = edits.current;
+          // Check that the first file does not have a diff.
+          var (currentCode, currentDiff) =
+              _splitTestByDiff(currentEdit.fileUri);
+          var diffCount = testDiffSeparator.allMatches(currentDiff).length;
+          if (diffCount == 0) {
+            reportDiffOutcome(currentEdit.fileUri,
+                'First generation does not have a diff', true);
+          } else {
+            reportDiffOutcome(currentEdit.fileUri,
+                'First generation should not have any diffs', false);
+          }
+          while (edits.moveNext()) {
+            final previousEdit = currentEdit;
+            currentEdit = edits.current;
+            final previousCode = currentCode;
+            (currentCode, currentDiff) = _splitTestByDiff(currentEdit.fileUri);
+            // Check that exactly one diff exists.
+            diffCount = testDiffSeparator.allMatches(currentDiff).length;
+            if (diffCount == 0) {
+              reportDiffOutcome(currentEdit.fileUri,
+                  'No diff found for ${currentEdit.fileUri}', false);
+              continue;
+            } else if (diffCount > 1) {
+              reportDiffOutcome(
+                  currentEdit.fileUri,
+                  'Too many diffs found for ${currentEdit.fileUri} '
+                  '(expected 1)',
+                  false);
+              continue;
             }
-          });
-        });
-      case DiffMode.write:
-        _print('Generating source file diffs.', label: testName);
-        filesByGeneration.forEach((basename, filesQueue) {
-          final files = filesQueue.toList();
-          _debugPrint('Generating source file diffs for $files.',
-              label: testName);
-          files.forEachIndexed((i, (int, Uri) element) {
-            final (_, file) = element;
-            final (currentCode, currentDiff) = _splitTestByDiff(file);
-            // Don't generate a diff for the first file of any generation,
-            // and delete any diffs encountered.
-            if (i == 0) {
-              if (currentDiff.isNotEmpty) {
-                _print('Removing extraneous diff from $file', label: testName);
-                File.fromUri(file).writeAsStringSync(currentCode);
-              }
-              return;
+            // Check that the diff is properly generated.
+            // 'main' is allowed to have empty diffs since the first
+            // generation must be specified.
+            if (file.baseName != 'main.dart' && previousCode == currentCode) {
+              // TODO(markzipan): Should we make this an error?
+              _print(
+                  'Extraneous file detected. ${currentEdit.fileUri} '
+                  'is identical to ${previousEdit.fileUri} and can be removed.',
+                  label: test.name);
             }
-            final (_, previousFile) = files[i - 1];
-            final (previousCode, _) = _splitTestByDiff(previousFile);
-            final previousTempUri = generatedCodeUri.resolve('__previous');
-            final currentTempUri = generatedCodeUri.resolve('__current');
+            final previousTempUri = generatedCodeDir.uri.resolve('__previous');
+            final currentTempUri = generatedCodeDir.uri.resolve('__current');
             File.fromUri(previousTempUri).writeAsStringSync(previousCode);
             File.fromUri(currentTempUri).writeAsStringSync(currentCode);
             final diffOutput = _diffWithFileUris(
                 previousTempUri, currentTempUri,
-                label: testName);
+                label: test.name);
             File.fromUri(previousTempUri).deleteSync();
             File.fromUri(currentTempUri).deleteSync();
-            final newCurrentText =
-                '$currentCode${currentCode.endsWith('\n') ? '' : '\n'}$diffOutput\n';
-            File.fromUri(file).writeAsStringSync(newCurrentText);
-            _print('Writing updated diff to $file', label: testName);
-            _debugPrint('Updated diff:\n$diffOutput', label: testName);
-            reportDiffOutcome(file, 'diff updated for $file', true);
-          });
-        });
+            var (filteredDiffOutput, filteredCurrentDiff) =
+                _filterLineDeltas(diffOutput, currentDiff);
+            if (filteredDiffOutput != filteredCurrentDiff) {
+              reportDiffOutcome(
+                  currentEdit.fileUri,
+                  'Unexpected diff found for ${currentEdit.fileUri}:\n'
+                  '-- Expected --\n$diffOutput\n'
+                  '-- Actual --\n$currentDiff',
+                  false);
+            } else {
+              reportDiffOutcome(currentEdit.fileUri,
+                  'Correct diff found for ${currentEdit.fileUri}', true);
+            }
+          }
+        }
+      case DiffMode.write:
+        _print('Generating source file diffs.', label: test.name);
+        for (final file in test.files) {
+          _debugPrint('Generating source file diffs for ${file.edits}.',
+              label: test.name);
+          var edits = file.edits.iterator;
+          if (!edits.moveNext()) {
+            throw Exception('Test file created with no generation edits.');
+          }
+          var currentEdit = edits.current;
+          var (currentCode, currentDiff) =
+              _splitTestByDiff(currentEdit.fileUri);
+          // Don't generate a diff for the first file of any generation,
+          // and delete any diffs encountered.
+          if (currentDiff.isNotEmpty) {
+            _print('Removing extraneous diff from ${currentEdit.fileUri}',
+                label: test.name);
+            File.fromUri(currentEdit.fileUri).writeAsStringSync(currentCode);
+          }
+          while (edits.moveNext()) {
+            currentEdit = edits.current;
+            final previousCode = currentCode;
+            (currentCode, currentDiff) = _splitTestByDiff(currentEdit.fileUri);
+            final previousTempUri = generatedCodeDir.uri.resolve('__previous');
+            final currentTempUri = generatedCodeDir.uri.resolve('__current');
+            File.fromUri(previousTempUri).writeAsStringSync(previousCode);
+            File.fromUri(currentTempUri).writeAsStringSync(currentCode);
+            final diffOutput = _diffWithFileUris(
+                previousTempUri, currentTempUri,
+                label: test.name);
+            File.fromUri(previousTempUri).deleteSync();
+            File.fromUri(currentTempUri).deleteSync();
+            final newCurrentText = '$currentCode'
+                '${currentCode.endsWith('\n') ? '' : '\n'}'
+                '$diffOutput\n';
+            File.fromUri(currentEdit.fileUri).writeAsStringSync(newCurrentText);
+            _print('Writing updated diff to $currentEdit.fileUri',
+                label: test.name);
+            _debugPrint('Updated diff:\n$diffOutput', label: test.name);
+            reportDiffOutcome(currentEdit.fileUri,
+                'diff updated for $currentEdit.fileUri', true);
+          }
+        }
       case DiffMode.ignore:
-        _print('Ignoring source file diffs.', label: testName);
-        filesByGeneration.forEach((basename, filesQueue) {
-          filesQueue.unorderedElements.forEach(((int, Uri) element) {
-            final (_, file) = element;
-            reportDiffOutcome(file, 'Ignoring diff for $file', true);
-          });
-        });
+        _print('Ignoring source file diffs.', label: test.name);
+        for (final file in test.files) {
+          for (final edit in file.edits) {
+            var uri = edit.fileUri;
+            _debugPrint('Ignoring source file diffs for $uri.',
+                label: test.name);
+            reportDiffOutcome(uri, 'Ignoring diff for $uri', true);
+          }
+        }
     }
 
     // Skip this test directory if this platform is excluded.
-    if (testConfig.excludedPlatforms.contains(options.runtime)) {
+    if (test.excludedPlatforms.contains(options.runtime)) {
       _print('Skipping test on platform: ${options.runtime.text}',
           label: testName);
       continue;
     }
 
     // TODO(markzipan): replace this with a test-configurable main entrypoint.
-    final mainDartFilePath = testDir.uri.resolve('main.dart').toFilePath();
+    final mainDartFilePath =
+        test.directory.uri.resolve('main.dart').toFilePath();
     _debugPrint('Test entrypoint: $mainDartFilePath', label: testName);
-    _print('Generating code over ${maxGenerations + 1} generations.',
+    _print('Generating code over ${test.generationCount} generations.',
         label: testName);
 
     var hasCompileError = false;
     // Generate hot reload/restart generations as subdirectories in a loop.
     var currentGeneration = 0;
-    while (currentGeneration <= maxGenerations) {
+    while (currentGeneration < test.generationCount) {
       _debugPrint('Entering generation $currentGeneration', label: testName);
       var updatedFilesInCurrentGeneration = <String>[];
 
@@ -496,32 +621,20 @@ Future<void> main(List<String> args) async {
           'Copying Dart files to snapshot directory: '
           '${snapshotUri.toFilePath()}',
           label: testName);
-      for (var file in testDir.listSync()) {
-        // Convert a name like `/path/foo.bar.25.dart` to `/path/foo.bar.dart`.
-        if (file is File && file.path.endsWith('.dart')) {
-          final baseName = file.uri.pathSegments.last;
-          final parts = baseName.split('.');
-          final generationId = int.parse(parts[parts.length - 2]);
-          if (generationId == currentGeneration) {
-            // Reconstruct the name of the file without generation indicators.
-            parts.removeLast(); // Remove `.dart`.
-            parts.removeLast(); // Remove the generation id.
-            parts.add('.dart'); // Re-add `.dart`.
-            final restoredName = parts.join();
-            final fileSnapshotUri = snapshotUri.resolve(restoredName);
-            final relativeSnapshotPath = fe_shared.relativizeUri(
-                filesystemRootUri, fileSnapshotUri, fe_shared.isWindows);
-            final snapshotPathWithScheme =
-                '$filesystemScheme:///$relativeSnapshotPath';
-            updatedFilesInCurrentGeneration.add(snapshotPathWithScheme);
-            file.copySync(fileSnapshotUri.toFilePath());
-          }
-        }
+      for (final file in test.filesEditedInGeneration(currentGeneration)) {
+        final fileSnapshotUri = snapshotDir.uri.resolve(file.baseName);
+        final editUri = file.editForGeneration(currentGeneration).fileUri;
+        File.fromUri(editUri).copySync(fileSnapshotUri.toFilePath());
+        final relativeSnapshotPath = fe_shared.relativizeUri(
+            snapshotDir.uri, fileSnapshotUri, fe_shared.isWindows);
+        final snapshotPathWithScheme =
+            '$filesystemScheme:///$relativeSnapshotPath';
+        updatedFilesInCurrentGeneration.add(snapshotPathWithScheme);
       }
       _print(
           'Updated files in generation $currentGeneration: '
-          '[${updatedFilesInCurrentGeneration.join(', ')}]',
-          label: testName);
+          '$updatedFilesInCurrentGeneration',
+          label: test.name);
 
       // The first generation calls `compile`, but subsequent ones call
       // `recompile`.
@@ -555,11 +668,11 @@ Future<void> main(List<String> args) async {
         await controller.sendReject();
         // TODO(markzipan): Determine if 'contains' is good enough to determine
         // compilation error correctness.
-        if (testConfig.expectedError != null &&
-            compilerOutput.outputText.contains(testConfig.expectedError!)) {
+        if (test.expectedError != null &&
+            compilerOutput.outputText.contains(test.expectedError!)) {
           await reportTestOutcome(
               'Expected error found during compilation: '
-              '${testConfig.expectedError}',
+              '${test.expectedError}',
               true);
         } else {
           await reportTestOutcome(
