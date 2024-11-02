@@ -1622,7 +1622,296 @@ if (!self.deferred_loader) {
     }
   }
 
+  // This is closed-upon to avoid exposing it through the `dartDevEmbedder`.
   const libraryManager = new LibraryManager();
+
+  function dartDebuggerLibrary() {
+    return libraryManager.initializeAndLinkLibrary('dart:_debugger');
+  }
+
+  function dartDeveloperLibrary() {
+    return libraryManager.initializeAndLinkLibrary('dart:developer')
+  }
+
+  function dartRuntimeLibrary() {
+    return libraryManager.initializeAndLinkLibrary('dart:_runtime');
+  }
+
+  /**
+     * Common debugging APIs that may be useful for metadata, invocations,
+     * developer extensions, bootstrapping, and more.
+   */
+  // TODO(56966): A number of APIs in this class consume and return Dart
+  // objects, nested or otherwise. We should replace them with some kind of
+  // metadata instead so users don't accidentally rely on the object's
+  // representation. For now, we warn users to not do so in the APIs below.
+  class Debugger {
+    /**
+     * Returns a JavaScript array of all class names in a Dart library.
+     *
+     * @param {string} libraryUri URI of the Dart library.
+     * @returns {Array<string>} Array containing the class names in the library.
+     */
+    getClassesInLibrary(libraryUri) {
+      return dartRuntimeLibrary().getLibraryMetadata(libraryUri, libraryManager.libraries);
+    }
+
+    /**
+     * Returns a JavaScript object containing metadata of a class in a given
+     * Dart library.
+     *
+     * The object will be formatted as such:
+     * ```
+     * {
+     *   'className': <dart class name>,
+     *   'superClassName': <super class name, if any>
+     *   'superClassLibraryId': <super class library ID, if any>
+     *   'fields': {
+     *     <name>: {
+     *       'isConst': <true if the member is const>,
+     *       'isFinal': <true if the member is final>,
+     *       'isStatic':  <true if the member is final>,
+     *       'className': <class name for a field type>,
+     *       'classLibraryId': <library id for a field type>,
+     *     }
+     *   },
+     *   'methods': {
+     *     <name>: {
+     *       'isConst': <true if the member is const>,
+     *       'isStatic':  <true if the member is static>,
+     *       'isSetter" <true if the member is a setter>,
+     *       'isGetter" <true if the member is a getter>,
+     *     }
+     *   },
+     * }
+     * ```
+     *
+     * @param {string} libraryUri URI of the Dart library that the class is in.
+     * @param {string} name Name of the Dart class.
+     * @param {any} objectInstance Optional instance of the Dart class that's
+     * needed to determine the type of any generic members.
+     * @returns {Object<String, any>} Object containing the metadata in the
+     * above format.
+     */
+    getClassMetadata(libraryUri, name, objectInstance) {
+      return dartRuntimeLibrary().getClassMetadata(libraryUri, name, objectInstance, libraryManager.libraries);
+    }
+
+    /**
+     * Returns a JavaScript object containing metadata about a Dart value.
+     *
+     * The object will be formatted as such:
+     * ```
+     * {
+     *   'className': <dart class name>,
+     *   'libraryId': <library URI for the object type>,
+     *   'runtimeKind': <kind of the object for display purposes>,
+     *   'length': <length of the object if applicable>,
+     *   'typeName': <name of the type represented if object is a Type>,
+     * }
+     * ```
+     *
+     * @param {Object} value Dart value for which metadata is computed.
+     * @returns {Object<String, any>} Object containing the metadata in the
+     * above format.
+     */
+    getObjectMetadata(value) {
+      return dartRuntimeLibrary().getObjectMetadata(value);
+    }
+
+    /**
+     * Returns the name of the given function. If it's bound to an object of
+     * class `C`, returns `C.<name>` instead.
+     *
+     * @param {Object} fun Dart function for which the name is returned.
+     * @returns {string} Name of the given function in the above format.
+     */
+    getFunctionName(fun) {
+      return dartRuntimeLibrary().getFunctionMetadata(fun);
+    }
+
+    /**
+     * Returns an array of all the field names in the Dart object.
+     *
+     * @param {Object} object Dart object whose field names are collected.
+     * @returns {Array<string>} Array of field names.
+     */
+    getObjectFieldNames(object) {
+      return dartRuntimeLibrary().getObjectFieldNames(object);
+    }
+
+    /**
+     * If given a Dart `Set`, `List`, or `Map`, returns a sub-range array of at
+     * most the given number of elements starting at the given offset. If given
+     * any other Dart value, returns the original value. Any Dart values
+     * returned from this API should be treated as opaque pointers and should
+     * not be interacted with.
+     *
+     * @param {Object} object Dart object for which the sub-range is computed.
+     * @param {number} offset Integer index at which the sub-range should start.
+     * @param {number} count Integer number of values in the sub-range.
+     * @returns {any} Either the sub-range or the original object.
+     */
+    getSubRange(object, offset, count) {
+      return dartRuntimeLibrary().getSubRange(object, offset, count);
+    }
+
+    /**
+     * Returns a JavaScript object containing the entries for a given Dart `Map`
+     * that will be formatted as:
+     *
+     * ```
+     * {
+     *   'keys': [ <key>, ...],
+     *   'values': [ <value>, ...],
+     * }
+     * ```
+     *
+     * Any Dart values returned from this API should be treated as opaque
+     * pointers and should not be interacted with.
+     *
+     * @param {Object} map Dart `Map` whose entries will be copied.
+     * @returns {Object<String, Array>} Object containing the entries in
+     * the above format.
+     */
+    getMapElements(map) {
+      return dartRuntimeLibrary().getMapElements(map);
+    }
+
+    /**
+     * Returns a JavaScript object containing the entries for a given Dart `Set`
+     * that will be formatted as:
+     *
+     * ```
+     * {
+     *   'entries': [ <entry>, ...],
+     * }
+     * ```
+     *
+     * Any Dart values returned from this API should be treated as opaque
+     * pointers and should not be interacted with.
+     *
+     * @param {Object} set Dart `Set` whose entries will be copied.
+     * @returns {Object<String, Array} Object containing the entries in the
+     * above format.
+     */
+    getSetElements(set) {
+      return dartRuntimeLibrary().getSetElements(set);
+    }
+
+    /**
+     * Returns a JavaScript object containing metadata for a given Dart `Record`
+     * that will be formatted as:
+     *
+     * ```
+     * {
+     *   'positionalCount': <number of positional elements>,
+     *   'named': [ <name>, ...],
+     *   'values': [ <positional value>, ..., <named value>, ... ],
+     * }
+     * ```
+     *
+     * Any Dart values returned from this API should be treated as opaque
+     * pointers and should not be interacted with.
+     *
+     * @param {Object} record Dart `Record` whose metadata will be computed.
+     * @returns {Object<String, any>} Object containing the metadata in the
+     * above format.
+     */
+    getRecordFields(record) {
+      return dartRuntimeLibrary().getRecordFields(record);
+    }
+
+    /**
+     * Returns a JavaScript object containing metadata for a given Dart
+     * `Record`'s runtime type that will be formatted as:
+     *
+     * ```
+     * {
+     *   'positionalCount': <number of positional types>,
+     *   'named': [ <name>, ...],
+     *   'types': [ <positional type>, ..., <named type>, ... ],
+     * }
+     * ```
+     *
+     * Any Dart values returned from this API should be treated as opaque
+     * pointers and should not be interacted with.
+     *
+     * @param {Object} recordType Dart `Type` of a `Record` whose metadata will
+     * be computed.
+     * @returns {Object<String, any>} Object containing the metadata in the
+     * above format.
+     */
+    getRecordTypeFields(recordType) {
+      return dartRuntimeLibrary().getRecordTypeFields(recordType);
+    }
+
+    /**
+     * Given a Dart instance, calls the method with the given name in that
+     * instance and returns the result.
+     *
+     * Any Dart values returned from this API should be treated as opaque
+     * pointers and should not be interacted with.
+     *
+     * @param {Object} instance Dart instance whose method will be called.
+     * @param {string} name Name of the method.
+     * @param {Array} args Array of arguments passed to the method.
+     * @returns {any} Result of calling the method.
+     */
+    callInstanceMethod(instance, name, args) {
+      return dartRuntimeLibrary().dsendRepl(instance, name, args);
+    }
+
+    /**
+     * Given a Dart library URI, calls the method with the given name in that
+     * library and returns the result.
+     *
+     * Any Dart values returned from this API should be treated as opaque
+     * pointers and should not be interacted with.
+     *
+     * @param {any} libraryUri Dart library URI in which the method exists.
+     * @param {string} name Name of the method.
+     * @param {Array} args Array of arguments passed to the method.
+     * @returns {any} Result of calling the method.
+     */
+    callLibraryMethod(libraryUri, name, args) {
+      let library = libraryManager.initializeAndLinkLibrary(libraryUri);
+      return library[name].apply(library, args);
+    }
+
+    /**
+     * Register the DDC Chrome DevTools custom formatter into the global
+     * `devtoolsFormatters` property.
+     */
+    registerDevtoolsFormatter() {
+      dartDebuggerLibrary().registerDevtoolsFormatter();
+    }
+
+    /**
+     * Invoke a registered extension with the given name and encoded map.
+     *
+     * @param {String} methodName The name of the registered extension.
+     * @param {String} encodedJson The encoded string map that will be passed as
+     * a parameter to the invoked method.
+     * @returns {Promise} Promise that will await the invocation of the
+     * extension.
+     */
+    invokeExtension(methodName, encodedJson) {
+      return dartDeveloperLibrary().invokeExtension(methodName, encodedJson);
+    }
+
+    /**
+     * Returns a JavaScript array containing the names of the extensions
+     * registered in `dart:developer`.
+     *
+     * @returns {Array<string>} Array containing the extension names.
+     */
+    get extensionNames() {
+      return dartDeveloperLibrary()._extensions.keys().toList();
+    }
+  }
+
+  const debugger_ = new Debugger();
 
   /** The API for embedding a Dart application in the page at development time
    *  that supports stateful hot reloading.
@@ -1710,7 +1999,7 @@ if (!self.deferred_loader) {
 
     /**
      * @return {Number} The current hot reload generation of the running
-     *  application.
+     * application.
      */
     get hotReloadGeneration() {
       return libraryManager.hotReloadGeneration;
@@ -1722,6 +2011,14 @@ if (!self.deferred_loader) {
      */
     get hotRestartGeneration() {
       return libraryManager.hotRestartGeneration;
+    }
+
+    /**
+     * @return {Debugger} Common debugging APIs that may be useful for metadata,
+     * invocations, developer extensions, bootstrapping, and more.
+     */
+    get debugger() {
+      return debugger_;
     }
   }
 

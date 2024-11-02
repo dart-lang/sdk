@@ -199,7 +199,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: void
 ''');
   }
@@ -270,7 +270,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: int
 ''');
   }
@@ -303,7 +303,7 @@ AugmentedInvocation
         literal: ''
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: String
 ''');
   }
@@ -357,7 +357,7 @@ AugmentedInvocation
         staticType: String Function(int)
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: String
 ''');
   }
@@ -387,7 +387,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: int
 ''');
   }
@@ -424,7 +424,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: int
 ''');
   }
@@ -463,7 +463,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: String
 ''');
   }
@@ -507,7 +507,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: dynamic
 ''');
   }

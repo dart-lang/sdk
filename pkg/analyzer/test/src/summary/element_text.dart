@@ -190,6 +190,7 @@ abstract class _AbstractElementWriter {
       AugmentedExtensionElementImpl() => e.reference,
       AugmentedExtensionTypeElementImpl() => e.reference,
       AugmentedMixinElementImpl() => e.reference,
+      TopLevelFunctionElementImpl() => e.reference,
       _ => null,
     };
 
@@ -364,9 +365,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
-      if (f.name2 case var name?) {
-        _sink.writelnWithIndent('periodOffset: ${name.periodOffset}');
-        _sink.writelnWithIndent('nameEnd: ${name.nameEnd}');
+      if (f.periodOffset case var periodOffset?) {
+        _sink.writelnWithIndent('periodOffset: $periodOffset');
       }
 
       _writeFragmentList(
@@ -777,12 +777,13 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFragmentName(Fragment f) {
-    if (f.name2 case var name?) {
-      _sink.write(name.name);
-      _sink.write(' @');
-      _sink.write(name.nameOffset);
-    } else {
-      _sink.write('<null-name>');
+    if (f.name2 == null) {
+      expect(f.nameOffset2, isNull);
+    }
+
+    _sink.write(f.name2 ?? '<null-name>');
+    if (f.nameOffset2 case var nameOffset?) {
+      _sink.write(' @$nameOffset');
     }
   }
 
@@ -1103,13 +1104,7 @@ class _Element2Writer extends _AbstractElementWriter {
           // _writeNotSimplyBounded(f);
           _sink.write('mixin ');
       }
-      if (f.name2 case var name?) {
-        _sink.write(name.name);
-        _sink.write(' @');
-        _sink.write(name.nameOffset);
-      } else {
-        _sink.write('<null-name>');
-      }
+      _writeFragmentName(f);
     });
     _sink.withIndent(() {
       _writeFragmentReference('reference', f);
@@ -1597,12 +1592,8 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('fragments: ');
         _sink.write(e.fragments.map((f) {
           expect(f.element, same(e));
-          if (f.name2 case var name?) {
-            expect(name.name, e.name3);
-            return '@${name.nameOffset}';
-          } else {
-            return '<null-name>';
-          }
+          expect(f.name2, e.name3);
+          return '@${f.nameOffset2}';
         }).join(' '));
       });
     });
@@ -1753,6 +1744,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);

@@ -8228,7 +8228,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       });
 
       items.add(js_ast.ImportDeclaration(
-          namedImports: exports, from: js.string(module, "'")));
+          namedImports: exports,
+          from: js.string(current.importUri.toString(), "'")));
     }
   }
 

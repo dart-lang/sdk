@@ -1288,7 +1288,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: max
     staticElement: <testLibraryFragment>::@function::max
-    element: <testLibraryFragment>::@function::max#element
+    element: <testLibrary>::@function::max
     staticType: T Function<T extends num>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1435,7 +1435,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1475,7 +1475,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1515,7 +1515,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1555,7 +1555,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1620,7 +1620,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1660,7 +1660,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1700,7 +1700,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1740,7 +1740,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1805,7 +1805,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1845,7 +1845,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1885,7 +1885,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1925,7 +1925,7 @@ Block
         methodName: SimpleIdentifier
           token: _mergeSort
           staticElement: <testLibraryFragment>::@function::_mergeSort
-          element: <testLibraryFragment>::@function::_mergeSort#element
+          element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1984,7 +1984,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>(T Function(T))
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1993,7 +1993,7 @@ MethodInvocation
         function: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: S Function<S>(S)
         parameter: ParameterMember
           base: <testLibraryFragment>::@function::f::@parameter::x
@@ -2078,7 +2078,7 @@ MethodInvocation
         function: SimpleIdentifier
           token: max
           staticElement: <testLibraryFragment>::@function::max
-          element: <testLibraryFragment>::@function::max#element
+          element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
         parameter: ParameterMember
           base: root::@parameter::f

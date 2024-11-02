@@ -47,9 +47,10 @@ library
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: dynamic
 ''');
@@ -98,7 +99,7 @@ library
       functions
         main @18
           reference: <testLibraryFragment>::@function::main
-          element: <testLibraryFragment>::@function::main#element
+          element: <testLibrary>::@function::main
           formalParameters
             f @25
               element: <testLibraryFragment>::@function::main::@parameter::f#element
@@ -108,6 +109,7 @@ library
       aliasedType: dynamic Function(int)
   functions
     main
+      reference: <testLibrary>::@function::main
       firstFragment: <testLibraryFragment>::@function::main
       formalParameters
         requiredPositional f
@@ -353,7 +355,7 @@ library
       functions
         f @35
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   topLevelVariables
     x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
@@ -383,6 +385,7 @@ library
           type: InvalidType
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: FutureOr<int>
 ''');
@@ -456,7 +459,7 @@ library
             U @11
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -583,7 +586,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -594,7 +597,7 @@ library
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
           constructors
-            const <null-name>
+            const new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               formalParameters
@@ -629,7 +632,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::named
               element: <testLibraryFragment>::@class::D::@constructor::named#element
               periodOffset: 82
-              nameEnd: 88
               formalParameters
                 f @105
                   element: <testLibraryFragment>::@class::D::@constructor::named::@parameter::f#element
@@ -1082,7 +1084,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -1149,9 +1151,10 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: void
 ''');
@@ -1256,7 +1259,7 @@ library
           reference: <testLibraryFragment>::@class::X1
           element: <testLibrary>::@class::X1
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::X1::@constructor::new
               element: <testLibraryFragment>::@class::X1::@constructor::new#element
               superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new
@@ -1271,7 +1274,7 @@ library
           reference: <testLibraryFragment>::@class::X2
           element: <testLibrary>::@class::X2
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::X2::@constructor::new
               element: <testLibraryFragment>::@class::X2::@constructor::new#element
               superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new
@@ -1286,7 +1289,7 @@ library
           reference: <testLibraryFragment>::@class::X3
           element: <testLibrary>::@class::X3
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::X3::@constructor::new
               element: <testLibraryFragment>::@class::X3::@constructor::new#element
               superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new
@@ -1403,7 +1406,7 @@ library
             T @23
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       topLevelVariables
@@ -1553,7 +1556,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
         class B @56
@@ -1566,7 +1569,7 @@ library
               getter2: <testLibraryFragment>::@class::B::@getter::c3
               setter2: <testLibraryFragment>::@class::B::@setter::c3
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
           getters
@@ -1732,7 +1735,7 @@ library
             U @27
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       topLevelVariables
@@ -1835,7 +1838,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -2036,7 +2039,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
         class B @20
@@ -2048,7 +2051,7 @@ library
             U @48
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
       topLevelVariables
@@ -2287,7 +2290,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::values#element
               getter2: <testLibraryFragment>::@class::A::@getter::values
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           getters
@@ -2301,7 +2304,7 @@ library
             T @57
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
   classes
@@ -2389,7 +2392,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
       topLevelVariables
@@ -2505,7 +2508,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -2590,12 +2593,13 @@ library
       functions
         foo @34
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           formalParameters
             default p @39
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
         optionalPositional p
@@ -2636,7 +2640,7 @@ library
                 SimpleIdentifier
                   token: V @26
                   staticElement: package:test/a.dart::<fragment>::@function::V
-                  element: package:test/a.dart::<fragment>::@function::V#element
+                  element: package:test/a.dart::@function::V
                   staticType: dynamic Function()
           returnType: dynamic
 ----------------------------------------
@@ -2650,12 +2654,13 @@ library
       functions
         foo @17
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           formalParameters
             default p @22
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
         optionalPositional p
@@ -2738,13 +2743,13 @@ library
       functions
         foo @0
           reference: <testLibraryFragment>::@function::foo
-          element: <testLibraryFragment>::@function::foo#element
+          element: <testLibrary>::@function::foo
           formalParameters
             default p @5
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
         V @16
           reference: <testLibraryFragment>::@function::V
-          element: <testLibraryFragment>::@function::V#element
+          element: <testLibrary>::@function::V
   topLevelVariables
     V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
@@ -2762,12 +2767,14 @@ library
           type: dynamic
   functions
     foo
+      reference: <testLibrary>::@function::foo
       firstFragment: <testLibraryFragment>::@function::foo
       formalParameters
         optionalPositional p
           type: dynamic
       returnType: dynamic
     V
+      reference: <testLibrary>::@function::V
       firstFragment: <testLibraryFragment>::@function::V
       returnType: dynamic
 ''');
@@ -3077,7 +3084,7 @@ library
             U @11
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -3169,7 +3176,7 @@ library
             U @11
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -3235,7 +3242,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
@@ -3243,6 +3250,7 @@ library
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -3292,7 +3300,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
@@ -3300,6 +3308,7 @@ library
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -3336,9 +3345,10 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: void
 ''');
@@ -3390,7 +3400,7 @@ library
       functions
         f @52
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   topLevelVariables
     final v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -3401,6 +3411,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::v
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: bool
 ''');
@@ -3441,7 +3452,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
@@ -3452,6 +3463,7 @@ library
               element: <testLibraryFragment>::@function::f::@parameter::b#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -3535,7 +3547,7 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::v
               setter2: <testLibraryFragment>::@class::C::@setter::v
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           getters
@@ -3552,7 +3564,7 @@ library
       functions
         f @74
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -3580,6 +3592,7 @@ library
               type: int Function(T, U)
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: bool
 ''');
@@ -3620,7 +3633,7 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @7
               element: <not-implemented>
@@ -3631,6 +3644,7 @@ library
               element: <testLibraryFragment>::@function::f::@parameter::b#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -3688,7 +3702,7 @@ library
       functions
         f @40
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   topLevelVariables
     final v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -3699,6 +3713,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::v
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: bool
 ''');
@@ -3750,7 +3765,7 @@ library
       functions
         f @70
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   topLevelVariables
     final v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
@@ -3761,6 +3776,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::v
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: bool
 ''');

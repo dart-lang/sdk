@@ -569,10 +569,10 @@ PrefixedIdentifier
   identifier: SimpleIdentifier
     token: foo
     staticElement: package:test/a.dart::<fragment>::@function::foo
-    element: package:test/a.dart::<fragment>::@function::foo#element
+    element: package:test/a.dart::@function::foo
     staticType: void Function()
   staticElement: package:test/a.dart::<fragment>::@function::foo
-  element: package:test/a.dart::<fragment>::@function::foo#element
+  element: package:test/a.dart::@function::foo
   staticType: void Function()
 ''');
   }

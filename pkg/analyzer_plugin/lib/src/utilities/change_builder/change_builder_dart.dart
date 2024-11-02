@@ -2814,7 +2814,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
                 if (combinator is HideElementCombinator)
                   combinator.hiddenNames.toList(),
             ],
-            prefix: import.prefix2?.name2?.name ?? '',
+            prefix: import.prefix2?.name2 ?? '',
           );
         }
       }

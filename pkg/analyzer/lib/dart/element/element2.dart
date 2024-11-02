@@ -307,19 +307,19 @@ abstract class ConstructorFragment implements ExecutableFragment {
   InstanceFragment? get enclosingFragment;
 
   @override
-  ConstructorFragmentName? get name2;
+  String get name2;
 
   @override
   ConstructorFragment? get nextFragment;
 
+  /// The offset of the `.` before the name.
+  ///
+  /// It is `null` if the fragment is synthetic, or does not specify an
+  /// explicit name, even if [name2] is `new` in this case.
+  int? get periodOffset;
+
   @override
   ConstructorFragment? get previousFragment;
-}
-
-/// The name of a [ConstructorFragment].
-abstract class ConstructorFragmentName extends FragmentName {
-  /// The offset of the `.` before the name.
-  int? get periodOffset;
 }
 
 /// The base class for all of the elements in the element model.
@@ -916,17 +916,43 @@ abstract class Fragment {
   /// This will be the fragment itself if it is a library fragment.
   LibraryFragment get libraryFragment;
 
-  /// The name of this fragment.
+  /// The name of the fragment.
   ///
-  /// Returns `null` if the fragment does not have a name, e.g. an unnamed
-  /// [ExtensionFragment].
+  /// Never empty.
   ///
-  /// Returns `null` if the fragment is an unnamed [ConstructorFragment],
-  /// even if its [ConstructorElement2] has the name `new`.
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the name is `null`.
   ///
-  /// Returns `null` if the fragment declaration node does not have the name
-  /// specified, and the parser inserted a synthetic identifier.
-  FragmentName? get name2;
+  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset2]
+  /// is `null`. If there is an explicit `ClassName.new`, the name is also
+  /// `new`, and [nameOffset2] is not `null`. For a synthetic default unnamed
+  /// [ConstructorElement2] there is always a synthetic [ConstructorFragment]
+  /// with the name `new`, and [nameOffset2] is `null`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the name is `null`, and
+  /// [nameOffset2] is `null`.
+  ///
+  /// For a synthetic [GetterFragment] or [SetterFragment] the name is the
+  /// name of the corresponding non-synthetic [PropertyInducingFragment],
+  /// which is usually not `null`, but could be. And `nameOffset2` is `null`
+  /// for such synthetic fragments.
+  ///
+  /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  String? get name2;
+
+  /// The offset of the [name2] of this element.
+  ///
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the name offset is `null`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the name is `null`, and
+  /// the name offset is `null`.
+  ///
+  /// For a synthetic fragment, e.g. [ConstructorFragment] the name offset
+  /// is `null`.
+  int? get nameOffset2;
 
   /// The next fragment in the augmentation chain.
   ///
@@ -947,32 +973,6 @@ abstract class FragmentedElement {
   /// The other fragments in the chain can be accessed using successive
   /// invocations of [Fragment.nextFragment].
   Fragment get firstFragment;
-}
-
-/// The name of a [Fragment].
-abstract class FragmentName {
-  /// The name of the fragment.
-  ///
-  /// Never empty.
-  ///
-  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
-  /// then the whole [FragmentName] is `null`.
-  ///
-  /// Similarly, an unnamed [ConstructorFragment] does not have a name, even
-  /// if the [ConstructorElement2] has the name `new`.
-  ///
-  /// If the fragment declaration node does not have the name specified, and
-  /// the parser inserted a synthetic token, then the whole [FragmentName]
-  /// is `null`.
-  ///
-  /// For a [SetterFragment] this is the identifier, without `=` at the end.
-  String get name;
-
-  /// The offset of the end of the name.
-  int get nameEnd;
-
-  /// The offset of the name in the file.
-  int get nameOffset;
 }
 
 /// An element that has a [FunctionType] as its [type].
@@ -1315,9 +1315,6 @@ abstract class LabelElement2 implements Element2, FragmentedElement {
 
   @override
   LibraryElement2 get library2;
-
-  /// The offset of the name in this element.
-  int get nameOffset;
 }
 
 /// The portion of a [LabelElement2] contributed by a single declaration.
@@ -1667,9 +1664,6 @@ abstract class LocalVariableElement2
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
-
-  /// The offset of the name in this element.
-  int get nameOffset;
 }
 
 /// The portion of a [LocalVariableElement2] contributed by a single

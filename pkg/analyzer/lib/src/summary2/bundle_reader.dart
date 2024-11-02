@@ -718,7 +718,7 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName?.name ?? '';
+    var name = fragmentName ?? '';
 
     var element = ClassElementImpl(name, -1);
     element.name2 = fragmentName;
@@ -776,13 +776,7 @@ class LibraryReader {
       var reference = _readReference();
       var name = reference.elementName.ifEqualThen('new', '');
       var element = ConstructorElementImpl(name, -1);
-      element.name2 = _reader.readOptionalObject((reader) {
-        return ConstructorFragmentNameImpl(
-          name: _reader.readStringReference(),
-          nameOffset: -1,
-          periodOffset: -1,
-        );
-      });
+      element.name2 = _reader.readStringReference();
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
         libraryReader: this,
@@ -880,7 +874,7 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName?.name ?? '';
+    var name = fragmentName ?? '';
 
     var element = EnumElementImpl(name, -1);
     element.name2 = fragmentName;
@@ -979,7 +973,7 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName?.name;
+    var name = fragmentName;
 
     var element = ExtensionElementImpl(name, -1);
     element.name2 = fragmentName;
@@ -1036,7 +1030,7 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName?.name ?? '';
+    var name = fragmentName ?? '';
 
     var element = ExtensionTypeElementImpl(name, -1);
     element.name2 = fragmentName;
@@ -1164,14 +1158,8 @@ class LibraryReader {
     }
   }
 
-  FragmentNameImpl? _readFragmentName() {
-    return _reader.readOptionalObject((reader) {
-      return ConstructorFragmentNameImpl(
-        name: _reader.readStringReference(),
-        nameOffset: -1,
-        periodOffset: -1,
-      );
-    });
+  String? _readFragmentName() {
+    return _reader.readOptionalStringReference();
   }
 
   void _readFunctions(
@@ -1181,11 +1169,19 @@ class LibraryReader {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var reference2 = _readReference();
       var fragmentName = _readFragmentName();
       var name = reference.elementName;
 
-      var element = FunctionElementImpl(name, -1);
-      element.name2 = fragmentName;
+      var fragment = FunctionElementImpl(name, -1);
+      fragment.name2 = fragmentName;
+
+      if (reference2.element2 case TopLevelFunctionElementImpl element?) {
+        fragment.element = element;
+      } else {
+        TopLevelFunctionElementImpl(reference2, fragment);
+      }
+
 
       var linkedData = FunctionElementLinkedData(
         reference: reference,
@@ -1193,14 +1189,14 @@ class LibraryReader {
         unitElement: unitElement,
         offset: resolutionOffset,
       );
-      element.setLinkedData(reference, linkedData);
+      fragment.setLinkedData(reference, linkedData);
 
-      FunctionElementFlags.read(_reader, element);
-      _readAugmentationTargetAny(element);
-      element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters();
+      FunctionElementFlags.read(_reader, fragment);
+      _readAugmentationTargetAny(fragment);
+      fragment.typeParameters = _readTypeParameters();
+      fragment.parameters = _readParameters();
 
-      return element;
+      return fragment;
     });
   }
 
@@ -1286,6 +1282,7 @@ class LibraryReader {
       var fragment = PrefixFragmentImpl(
         enclosingFragment: libraryFragment,
         name2: fragmentName,
+        nameOffset2: null,
         isDeferred: isDeferred,
       );
 
@@ -1343,7 +1340,7 @@ class LibraryReader {
     var reference2 = _readReference();
 
     var fragmentName = _readFragmentName();
-    var name = fragmentName?.name ?? '';
+    var name = fragmentName ?? '';
 
     var element = MixinElementImpl(name, -1);
     element.name2 = fragmentName;

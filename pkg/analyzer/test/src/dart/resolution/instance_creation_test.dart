@@ -1909,7 +1909,7 @@ InstanceCreationExpression
         methodName: SimpleIdentifier
           token: g1
           staticElement: <testLibraryFragment>::@function::g1
-          element: <testLibraryFragment>::@function::g1#element
+          element: <testLibrary>::@function::g1
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1931,7 +1931,7 @@ InstanceCreationExpression
           methodName: SimpleIdentifier
             token: g3
             staticElement: <testLibraryFragment>::@function::g3
-            element: <testLibraryFragment>::@function::g3#element
+            element: <testLibrary>::@function::g3
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -1945,7 +1945,7 @@ InstanceCreationExpression
         methodName: SimpleIdentifier
           token: g2
           staticElement: <testLibraryFragment>::@function::g2
-          element: <testLibraryFragment>::@function::g2#element
+          element: <testLibrary>::@function::g2
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1967,7 +1967,7 @@ InstanceCreationExpression
           methodName: SimpleIdentifier
             token: g4
             staticElement: <testLibraryFragment>::@function::g4
-            element: <testLibraryFragment>::@function::g4#element
+            element: <testLibrary>::@function::g4
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (

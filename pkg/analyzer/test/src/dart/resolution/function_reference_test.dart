@@ -286,7 +286,7 @@ FunctionReference
       methodName: SimpleIdentifier
         token: f
         staticElement: <testLibraryFragment>::@function::f
-        element: <testLibraryFragment>::@function::f#element
+        element: <testLibrary>::@function::f
         staticType: dynamic Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -906,7 +906,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
@@ -950,7 +950,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function<T, U>(T, U)
     period: .
     identifier: SimpleIdentifier
@@ -995,7 +995,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function(String)
     period: .
     identifier: SimpleIdentifier
@@ -1034,7 +1034,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function<T extends num>(T)
     period: .
     identifier: SimpleIdentifier
@@ -1081,7 +1081,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
@@ -1128,7 +1128,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function<T>(T)
     period: .
     identifier: SimpleIdentifier
@@ -2805,10 +2805,10 @@ ExpressionStatement
     identifier: SimpleIdentifier
       token: loadLibrary
       staticElement: loadLibrary@-1
-      element: loadLibrary@-1
+      element: <exception>
       staticType: Future<dynamic> Function()
     staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    element: <exception>
     staticType: Future<dynamic> Function()
   semicolon: ;
 ''');
@@ -3682,7 +3682,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3724,10 +3724,10 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       staticElement: package:test/a.dart::<fragment>::@function::foo
-      element: package:test/a.dart::<fragment>::@function::foo#element
+      element: package:test/a.dart::@function::foo
       staticType: void Function<T>(T)
     staticElement: package:test/a.dart::<fragment>::@function::foo
-    element: package:test/a.dart::<fragment>::@function::foo#element
+    element: package:test/a.dart::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3772,10 +3772,10 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       staticElement: package:test/a.dart::<fragment>::@function::foo
-      element: package:test/a.dart::<fragment>::@function::foo#element
+      element: package:test/a.dart::@function::foo
       staticType: void Function<T>(T)
     staticElement: package:test/a.dart::<fragment>::@function::foo
-    element: package:test/a.dart::<fragment>::@function::foo#element
+    element: package:test/a.dart::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3847,7 +3847,7 @@ PropertyAccess
     function: SimpleIdentifier
       token: foo
       staticElement: <testLibraryFragment>::@function::foo
-      element: <testLibraryFragment>::@function::foo#element
+      element: <testLibrary>::@function::foo
       staticType: void Function<T>(T)
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3888,7 +3888,7 @@ FunctionReference
   function: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <

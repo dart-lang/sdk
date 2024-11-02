@@ -43,11 +43,17 @@ class RuntimeObjectKind {
 /// ]
 /// ```
 ///
-/// TODO(annagrin): remove when debugger consumes debug symbols.
-/// Issue: https://github.com/dart-lang/sdk/issues/40273.
+/// If [libraries] is not null, assumes it's the set of libraries from the
+/// `LibraryManager` within the `dartDevEmbedder`, and queries that object
+/// instead.
+// TODO(annagrin): remove when debugger consumes debug symbols.
+// Issue: https://github.com/dart-lang/sdk/issues/40273.
 @notNull
-List<String> getLibraryMetadata(@notNull String libraryUri) {
-  var library = getLibrary('$libraryUri');
+List<String> getLibraryMetadata(@notNull String libraryUri,
+    [Object? libraries]) {
+  var library = libraries != null
+      ? _get<Object?>(libraries, libraryUri)
+      : getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
   final classes = <String>[];
@@ -70,7 +76,7 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 ///
 /// Returns a JavaScript descriptor for the class [name] class in [libraryUri].
 ///
-/// /// ```
+/// ```
 /// {
 ///   'className': <dart class name>,
 ///   'superClassName': <super class name, if any>
@@ -94,11 +100,22 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 ///   },
 /// }
 /// ```
-/// TODO(annagrin): remove when debugger reads symbols.
-/// Issue: https://github.com/dart-lang/sdk/issues/40273
+///
+/// If [libraries] is not null, assumes it's the set of libraries from the
+/// `LibraryManager` within the `dartDevEmbedder`, and queries that object
+/// instead.
+///
+// TODO(annagrin): remove when debugger reads symbols.
+// Issue: https://github.com/dart-lang/sdk/issues/40273
+// TODO(srujzs): Field `className` and `classLibraryId` should actually be
+// labeled as `typeName`/`typeLibraryId` or
+// `staticTypeName`/`staticTypeLibraryId` as it describes the static type and
+// the library in which the type is declared.
 Object? getClassMetadata(@notNull String libraryUri, @notNull String name,
-    {Object? objectInstance}) {
-  var library = getLibrary('$libraryUri');
+    [Object? objectInstance, Object? libraries]) {
+  var library = libraries != null
+      ? _get<Object?>(libraries, libraryUri)
+      : getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
   final rawName = name.split('<').first;
@@ -106,11 +123,8 @@ Object? getClassMetadata(@notNull String libraryUri, @notNull String name,
   if (cls == null) return null;
 
   var fieldDescriptors = <String, Object>{};
-  _collectFieldDescriptors(
-    fieldDescriptors,
-    getFields(cls),
-    objectInstance: objectInstance,
-  );
+  _collectFieldDescriptors(fieldDescriptors, getFields(cls),
+      objectInstance: objectInstance);
   _collectFieldDescriptorsFromNames(
     fieldDescriptors,
     getStaticFields(cls),
@@ -230,8 +244,8 @@ void _collectFieldDescriptors(
 
   for (var symbol in getOwnNamesAndSymbols(fields)) {
     var fieldInfo = _get<Object>(fields, symbol);
-    // An object instance is required to resolve the type of a field.
     var typeSignature = _get(fieldInfo, 'type');
+    // An object instance is required to resolve the type of a field.
     var typeRti = rtiFromSignature(objectInstance, typeSignature);
     var className = typeRti == null ? '?' : typeName(typeRti);
     var isConst = _get(fieldInfo, 'isConst');

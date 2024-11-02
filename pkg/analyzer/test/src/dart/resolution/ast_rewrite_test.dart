@@ -835,7 +835,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@function::A
-    element: <testLibraryFragment>::@function::A#element
+    element: <testLibrary>::@function::A
     staticType: void Function<T, U>(int)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1571,7 +1571,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: A
     staticElement: package:test/a.dart::<fragment>::@function::A
-    element: package:test/a.dart::<fragment>::@function::A#element
+    element: package:test/a.dart::@function::A
     staticType: void Function<T, U>(int)
   typeArguments: TypeArgumentList
     leftBracket: <

@@ -42,12 +42,13 @@ library
       functions
         main @5
           reference: <testLibraryFragment>::@function::main
-          element: <testLibraryFragment>::@function::main#element
+          element: <testLibrary>::@function::main
           formalParameters
             p @14
               element: <testLibraryFragment>::@function::main::@parameter::p#element
   functions
     main
+      reference: <testLibrary>::@function::main
       firstFragment: <testLibraryFragment>::@function::main
       formalParameters
         requiredPositional p
@@ -97,7 +98,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -165,7 +166,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -231,7 +232,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -328,7 +329,7 @@ library
             T @8
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -345,7 +346,7 @@ library
             T @50
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: ConstructorMember
@@ -454,7 +455,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           methods
@@ -469,7 +470,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
@@ -554,7 +555,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -634,7 +635,7 @@ library
             B @11
               element: <not-implemented>
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -702,7 +703,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -764,7 +765,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -824,12 +825,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @9
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -902,7 +904,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::positional
               element: <testLibraryFragment>::@class::C::@constructor::positional#element
               periodOffset: 13
-              nameEnd: 24
               formalParameters
                 default x @26
                   element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::x#element
@@ -910,7 +911,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
               periodOffset: 38
-              nameEnd: 44
               formalParameters
                 default x @46
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
@@ -1021,7 +1021,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::positional
               element: <testLibraryFragment>::@class::C::@constructor::positional#element
               periodOffset: 22
-              nameEnd: 33
               formalParameters
                 default this.x @40
                   element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::x#element
@@ -1029,7 +1028,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
               periodOffset: 52
-              nameEnd: 58
               formalParameters
                 default this.x @65
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
@@ -1138,7 +1136,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           constructors
-            synthetic <null-name>
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           methods
@@ -1225,25 +1223,27 @@ library
       functions
         positional @5
           reference: <testLibraryFragment>::@function::positional
-          element: <testLibraryFragment>::@function::positional#element
+          element: <testLibrary>::@function::positional
           formalParameters
             default x @17
               element: <testLibraryFragment>::@function::positional::@parameter::x#element
         named @33
           reference: <testLibraryFragment>::@function::named
-          element: <testLibraryFragment>::@function::named#element
+          element: <testLibrary>::@function::named
           formalParameters
             default x @40
               reference: <testLibraryFragment>::@function::named::@parameter::x
               element: <testLibraryFragment>::@function::named::@parameter::x#element
   functions
     positional
+      reference: <testLibrary>::@function::positional
       firstFragment: <testLibraryFragment>::@function::positional
       formalParameters
         optionalPositional x
           type: dynamic
       returnType: void
     named
+      reference: <testLibrary>::@function::named
       firstFragment: <testLibraryFragment>::@function::named
       formalParameters
         optionalNamed x

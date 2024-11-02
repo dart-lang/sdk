@@ -180,6 +180,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
+      constructor.name2 = 'new';
 
       classElement.constructors = [constructor].toFixedList();
 
@@ -251,6 +252,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
+      constructor.name2 = 'new';
 
       enumElement.constructors = [
         ...enumElement.constructors,
@@ -1150,17 +1152,10 @@ class LibraryBuilder with MacroApplicationsContainer {
     required UnlinkedLibraryImportPrefixName? unlinkedName,
     required bool isDeferred,
   }) {
-    FragmentNameImpl? fragmentName;
-    if (unlinkedName != null) {
-      fragmentName = FragmentNameImpl(
-        name: unlinkedName.name,
-        nameOffset: unlinkedName.nameOffset,
-      );
-    }
-
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
-      name2: fragmentName,
+      name2: unlinkedName?.name,
+      nameOffset2: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     );
 

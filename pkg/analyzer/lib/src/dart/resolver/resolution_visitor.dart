@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -765,34 +766,36 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var element = FunctionElementImpl.forOffset(node.offset);
-    _elementHolder.enclose(element);
-    node.declaredElement = element;
-    node.declaredElement2 = element.element as LocalFunctionElementImpl?;
+    var fragment = FunctionElementImpl.forOffset(node.offset);
+    _elementHolder.enclose(fragment);
+    node.declaredElement = fragment;
 
-    element.hasImplicitReturnType = true;
-    element.returnType = DynamicTypeImpl.instance;
+    var element = LocalFunctionElementImpl(fragment);
+    node.declaredElement2 = element;
+
+    fragment.hasImplicitReturnType = true;
+    fragment.returnType = DynamicTypeImpl.instance;
 
     FunctionBody body = node.body;
-    element.isAsynchronous = body.isAsynchronous;
-    element.isGenerator = body.isGenerator;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isGenerator = body.isGenerator;
 
-    var holder = ElementHolder(element);
+    var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
 
         node.parameters!.accept(this);
-        element.parameters = holder.parameters;
+        fragment.parameters = holder.parameters;
 
-        _defineParameters(element.parameters);
+        _defineParameters(fragment.parameters);
         node.body.accept(this);
       });
     });
 
-    _setCodeRange(element, node);
+    _setCodeRange(fragment, node);
   }
 
   @override
@@ -1471,16 +1474,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       covariant FunctionDeclarationStatementImpl statement) {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
-    var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+
+    var fragment = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+    fragment.name2 = nameToken.nameIfNotEmpty;
+    fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
+    node.declaredElement = fragment;
+
+    var element = LocalFunctionElementImpl(fragment);
+    node.functionExpression.declaredElement2 = element;
 
     // The fragment's old enclosing element needs to be set before we can get
     // the new element for it.
-    _elementHolder.enclose(element);
-
-    node.declaredElement = element;
+    _elementHolder.enclose(fragment);
 
     if (!_isWildCardVariable(nameToken.lexeme)) {
-      _define(element);
+      _define(fragment);
     }
   }
 
@@ -2001,5 +2009,15 @@ class _VariableBinderErrors
       CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
       arguments: [name],
     );
+  }
+}
+
+extension on Token {
+  String? get nameIfNotEmpty {
+    return lexeme.isNotEmpty ? lexeme : null;
+  }
+
+  int? get offsetIfNotEmpty {
+    return lexeme.isNotEmpty ? offset : null;
   }
 }

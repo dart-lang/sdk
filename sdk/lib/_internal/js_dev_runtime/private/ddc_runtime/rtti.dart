@@ -261,6 +261,8 @@ _computeLibraryMetadata() {
 /// Returns the JS library object for a given library [uri] or
 /// undefined / null if it isn't loaded.  Top-level types and
 /// methods are available on this object.
+// TODO(srujzs): This is unused with the new DDC module format. Consider
+// removing.
 Object? getLibrary(String uri) {
   if (_libraryObjects == null) {
     _computeLibraryMetadata();
@@ -271,6 +273,7 @@ Object? getLibrary(String uri) {
 /// Returns a JSArray of library uris (e.g,
 /// ['dart:core', 'dart:_internal', ..., 'package:foo/bar.dart', ... 'main.dart'])
 /// loaded in this application.
+// TODO(srujzs): This is unused. Consider removing.
 List<String> getLibraries() {
   if (_libraries == null) {
     _computeLibraryMetadata();
@@ -291,6 +294,7 @@ List<String> getLibraries() {
 ///
 /// If [libraryUri] doesn't map to a library or maps to a library with no
 /// parts, an empty list is returned.
+// TODO(srujzs): This is unused. Consider removing.
 List<String> getParts(String libraryUri) {
   if (_parts == null) {
     _computeLibraryMetadata();

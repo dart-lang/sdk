@@ -36,7 +36,7 @@ VariableDeclaration
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
-      element: <testLibraryFragment>::@function::f#element
+      element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
@@ -47,7 +47,7 @@ VariableDeclaration
             base: <testLibraryFragment>::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -106,7 +106,7 @@ VariableDeclaration
     methodName: SimpleIdentifier
       token: f
       staticElement: <testLibraryFragment>::@function::f
-      element: <testLibraryFragment>::@function::f#element
+      element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
@@ -117,7 +117,7 @@ VariableDeclaration
             base: <testLibraryFragment>::@function::f::@parameter::a
             substitution: {T: String}
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
