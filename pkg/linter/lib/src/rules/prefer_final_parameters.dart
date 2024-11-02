@@ -71,11 +71,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             param is SuperFormalParameter) {
           continue;
         }
-        var declaredElement = param.declaredElement;
+        var declaredElement = param.declaredFragment?.element;
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
             !declaredElement.isWildcardVariable &&
-            !body.isPotentiallyMutatedInScope(declaredElement)) {
+            !body.isPotentiallyMutatedInScope2(declaredElement)) {
           rule.reportLint(param, arguments: [param.name!.lexeme]);
         }
       }

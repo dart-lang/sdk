@@ -137,6 +137,7 @@ lib/src/rules/prefer_equal_for_default_values.dart
 lib/src/rules/prefer_expression_function_bodies.dart
 lib/src/rules/prefer_final_in_for_each.dart
 lib/src/rules/prefer_final_locals.dart
+lib/src/rules/prefer_final_parameters.dart
 lib/src/rules/prefer_for_elements_to_map_fromIterable.dart
 lib/src/rules/prefer_foreach.dart
 lib/src/rules/prefer_function_declarations_over_variables.dart
@@ -179,6 +180,7 @@ lib/src/rules/tighten_type_of_initializing_formals.dart
 lib/src/rules/type_annotate_public_apis.dart
 lib/src/rules/type_init_formals.dart
 lib/src/rules/type_literal_in_constant_pattern.dart
+lib/src/rules/unawaited_futures.dart
 lib/src/rules/unintended_html_in_doc_comment.dart
 lib/src/rules/unnecessary_await_in_return.dart
 lib/src/rules/unnecessary_brace_in_string_interps.dart
