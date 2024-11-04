@@ -176,15 +176,9 @@ void _validateExpectedLints(
     FileSpelunker(file.absolute.path, featureSet: features).spelunk();
     printToConsole('');
     // Lints.
-    ResultReporter(errorInfos).write();
+    ReportFormatter(errorInfos, stdout).write();
 
     // Rethrow and fail.
     rethrow;
   }
-}
-
-/// A [DetailedReporter] that filters no lint, only used in debug mode, when
-/// actual lints do not match expectations.
-class ResultReporter extends DetailedReporter {
-  ResultReporter(Iterable<AnalysisErrorInfo> errors) : super(errors, stdout);
 }
