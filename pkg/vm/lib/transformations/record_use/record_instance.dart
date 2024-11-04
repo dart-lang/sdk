@@ -2,30 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/kernel/record_use.dart' as recordUse;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
-class InstanceUseRecorder {
-  final Map<ast.Class, Usage<InstanceReference>> instancesForClass = {};
+import 'constant_collector.dart';
+
+/// Record a const instance by calling [recordConstantExpression]. After all the
+/// const instances have been recorded, retrieve them using [foundInstances].
+class InstanceRecorder {
+  /// The collection of recorded instances found so far.
+  Iterable<Usage<InstanceReference>> get foundInstances =>
+      _instancesForClass.values;
+
+  /// Keep track of the classes which are recorded, to easily add found
+  /// instances.
+  final Map<ast.Class, Usage<InstanceReference>> _instancesForClass = {};
+
+  /// The ordered list of loading units to retrieve the loading unit index from.
   final List<LoadingUnit> _loadingUnits;
-  final Uri source;
 
-  InstanceUseRecorder(this.source, this._loadingUnits);
+  /// The source uri to base relative URIs off of.
+  final Uri _source;
 
-  void recordAnnotationUse(ast.ConstantExpression node) {
-    final constant = node.constant;
-    if (constant is ast.InstanceConstant) {
-      if (recordUse.findRecordUseAnnotation(constant.classNode).isNotEmpty) {
-        _collectUseInformation(node, constant);
-      }
-    }
+  /// A visitor traversing and collecting constants.
+  late final ConstantCollector collector;
+
+  InstanceRecorder(this._source, this._loadingUnits) {
+    collector = ConstantCollector.collectWith(_collectInstance);
   }
 
-  void _collectUseInformation(
-    ast.ConstantExpression node,
+  void recordConstantExpression(ast.ConstantExpression node) =>
+      collector.collect(node);
+
+  void _collectInstance(
+    ast.ConstantExpression expression,
     ast.InstanceConstant constant,
   ) {
     // Collect the name and definition location of the invocation. This is
@@ -33,47 +45,47 @@ class InstanceUseRecorder {
     final existingInstance = _getCall(constant.classNode);
 
     // Collect the (int, bool, double, or String) arguments passed in the call.
-    existingInstance.references.add(_createInstanceReference(node, constant));
+    existingInstance.references
+        .add(_createInstanceReference(expression, constant));
   }
 
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   Usage<InstanceReference> _getCall(ast.Class cls) {
     final definition = _definitionFromClass(cls);
-    return instancesForClass.putIfAbsent(
-      cls,
-      () => Usage(definition: definition, references: []),
-    );
+    return _instancesForClass[cls] ??=
+        Usage(definition: definition, references: []);
   }
 
   Definition _definitionFromClass(ast.Class cls) {
     final enclosingLibrary = cls.enclosingLibrary;
-    String file = getImportUri(enclosingLibrary, source);
+    final file = getImportUri(enclosingLibrary, _source);
 
     return Definition(
       identifier: Identifier(importUri: file, name: cls.name),
-      location: cls.location!.recordLocation(source),
+      location: cls.location!.recordLocation(_source),
       loadingUnit:
           loadingUnitForNode(cls.enclosingLibrary, _loadingUnits).toString(),
     );
   }
 
   InstanceReference _createInstanceReference(
-    ast.ConstantExpression node,
+    ast.ConstantExpression expression,
     ast.InstanceConstant constant,
   ) =>
       InstanceReference(
-        location: node.location!.recordLocation(source),
+        location: expression.location!.recordLocation(_source),
         instanceConstant: _fieldsFromConstant(constant),
-        loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
+        loadingUnit: loadingUnitForNode(expression, _loadingUnits).toString(),
       );
 
   InstanceConstant _fieldsFromConstant(ast.InstanceConstant constant) =>
       InstanceConstant(
-          fields: constant.fieldValues.map(
-        (key, value) => MapEntry(
-          key.asField.name.text,
-          evaluateConstant(value),
+        fields: constant.fieldValues.map(
+          (key, value) => MapEntry(
+            key.asField.name.text,
+            evaluateConstant(value),
+          ),
         ),
-      ));
+      );
 }

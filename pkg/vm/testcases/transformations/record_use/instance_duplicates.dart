@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart' show RecordUse;
+
 void main() {
-  print(SomeClass.someStaticMethod(42));
+  print(const MyClass(42));
+  print(const MyClass(42));
+  print(const MyClass(43));
 }
 
-class SomeClass {
-  @RecordUse()
-  static someStaticMethod(int i) {
-    return i + 1;
-  }
-}
+@RecordUse()
+class MyClass {
+  final int i;
 
-class RecordUse {
-  const RecordUse();
+  const MyClass(this.i);
 }
