@@ -51,13 +51,13 @@ Run "${runner!.executableName} help" to see global options.''');
         return DartdevCommand.errorExitCode;
       }
     } else {
-      final (success, assets) =
+      final assetsYamlFileUri =
           await compileNativeAssetsJitYamlFile(verbose: verbose);
-      if (!success) {
+      if (assetsYamlFileUri == null) {
         log.stderr('Error: Compiling native assets failed.');
         return DartdevCommand.errorExitCode;
       }
-      nativeAssets = assets?.toFilePath();
+      nativeAssets = assetsYamlFileUri.toFilePath();
     }
 
     try {

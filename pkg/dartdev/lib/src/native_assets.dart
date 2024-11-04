@@ -9,6 +9,8 @@ import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
 import 'package:logging/logging.dart';
 import 'package:native_assets_builder/native_assets_builder.dart';
+import 'package:native_assets_cli/code_assets_builder.dart';
+import 'package:native_assets_cli/data_assets_builder.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
 
 import 'core.dart';
@@ -17,7 +19,7 @@ import 'core.dart';
 ///
 /// If provided, only native assets of all transitive dependencies of
 /// [runPackageName] are built.
-Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
+Future<List<EncodedAsset>?> compileNativeAssetsJit({
   required bool verbose,
   String? runPackageName,
 }) async {
@@ -32,10 +34,10 @@ Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
       // `getExecutableForCommand` later.
       final result = await Process.run(sdk.dart, ['pub', 'get']);
       if (result.exitCode != 0) {
-        return (true, <EncodedAsset>[]);
+        return null;
       }
     } else {
-      return (true, <EncodedAsset>[]);
+      return null;
     }
   }
   final nativeAssetsBuildRunner = NativeAssetsBuildRunner(
@@ -46,17 +48,26 @@ Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
   final target = Target.current;
   final targetMacOSVersion =
       target.os == OS.macOS ? minimumSupportedMacOSVersion : null;
+  final cCompilerConfig = getCCompilerConfig();
   final buildResult = await nativeAssetsBuildRunner.build(
+    configCreator: () => BuildConfigBuilder()
+      ..setupCodeConfig(
+        targetArchitecture: target.architecture,
+        // When running in JIT mode, only dynamic libraries are supported.
+        linkModePreference: LinkModePreference.dynamic,
+        targetMacOSVersion: targetMacOSVersion,
+        cCompilerConfig: cCompilerConfig,
+      ),
+    configValidator: (config) async => [
+      ...await validateCodeAssetBuildConfig(config),
+      ...await validateDataAssetBuildConfig(config),
+    ],
     workingDirectory: workingDirectory,
-    // When running in JIT mode, only the host OS needs to be build.
-    target: target,
-    // When running in JIT mode, only dynamic libraries are supported.
-    linkModePreference: LinkModePreference.dynamic,
+    targetOS: target.os,
     // Dart has no concept of release vs debug, default to release.
     buildMode: BuildMode.release,
     includeParentEnvironment: true,
     runPackageName: runPackageName,
-    targetMacOSVersion: targetMacOSVersion,
     linkingEnabled: false,
     supportedAssetTypes: [
       CodeAsset.type,
@@ -66,14 +77,11 @@ Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
       ...await validateCodeAssetBuildOutput(config, output),
     ],
     applicationAssetValidator: (assets) async => [
-      ...await validateCodeAssetsInApplication(assets),
+      ...await validateCodeAssetInApplication(assets),
     ],
   );
-
-  return (
-    buildResult.success,
-    buildResult.encodedAssets,
-  );
+  if (buildResult == null) return null;
+  return buildResult.encodedAssets;
 }
 
 /// Compiles all native assets for host OS in JIT mode, and creates the
@@ -83,17 +91,15 @@ Future<(bool success, List<EncodedAsset> assets)> compileNativeAssetsJit({
 /// [runPackageName] are built.
 ///
 /// Used in `dart run` and `dart test`.
-Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile({
+Future<Uri?> compileNativeAssetsJitYamlFile({
   required bool verbose,
   String? runPackageName,
 }) async {
-  final (success, assets) = await compileNativeAssetsJit(
+  final assets = await compileNativeAssetsJit(
     verbose: verbose,
     runPackageName: runPackageName,
   );
-  if (!success) {
-    return (false, null);
-  }
+  if (assets == null) return null;
   final codeAssets = assets
       .where((e) => e.type == CodeAsset.type)
       .map(CodeAsset.fromEncoded)
@@ -118,7 +124,7 @@ Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile({
 ${kernelAssets.toNativeAssetsFile()}''';
   final assetFile = File(assetsUri.toFilePath());
   await assetFile.writeAsString(nativeAssetsYaml);
-  return (true, assetsUri);
+  return assetsUri;
 }
 
 KernelAsset _targetLocation(CodeAsset asset) {
@@ -199,3 +205,35 @@ Logger logger(bool verbose) => Logger('')
       log.trace(record.message);
     }
   });
+
+CCompilerConfig? getCCompilerConfig() {
+  // Specifically for running our tests on Dart CI with the test runner, we
+  // recognize specific variables to setup the C Compiler configuration.
+  final env = Platform.environment;
+  final cc = env['DART_HOOK_TESTING_C_COMPILER__CC'];
+  final ar = env['DART_HOOK_TESTING_C_COMPILER__AR'];
+  final ld = env['DART_HOOK_TESTING_C_COMPILER__LD'];
+  final envScript = env['DART_HOOK_TESTING_C_COMPILER__ENV_SCRIPT'];
+  final envScriptArgs =
+      env['DART_HOOK_TESTING_C_COMPILER__ENV_SCRIPT_ARGUMENTS']
+          ?.split(' ')
+          .map((arg) => arg.trim())
+          .where((arg) => arg.isNotEmpty)
+          .toList();
+  final hasEnvScriptArgs = envScriptArgs != null && envScriptArgs.isNotEmpty;
+
+  if (cc != null ||
+      ar != null ||
+      ld != null ||
+      envScript != null ||
+      hasEnvScriptArgs) {
+    return CCompilerConfig(
+      archiver: ar != null ? Uri.file(ar) : null,
+      compiler: cc != null ? Uri.file(cc) : null,
+      envScript: envScript != null ? Uri.file(envScript) : null,
+      envScriptArgs: hasEnvScriptArgs ? envScriptArgs : null,
+      linker: ld != null ? Uri.file(ld) : null,
+    );
+  }
+  return null;
+}
