@@ -81,6 +81,23 @@ void f(int a, int b) {
 ''');
   }
 
+  test_binaryExpressionInside_assignment() async {
+    await assertNoDiagnostics(r'''
+void f(bool x) {
+  x = (1 == 1);
+}
+''');
+  }
+
+  test_binaryExpressionInside_binaryExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (1 == 1) || "".isEmpty;
+
+}
+''');
+  }
+
   test_binaryExpressionInside_constructorFieldInitializer() async {
     await assertDiagnostics(r'''
 class C {
@@ -146,6 +163,39 @@ bool f() {
     ]);
   }
 
+  test_binaryExpressionInside_switchStatementVariable() async {
+    await assertDiagnostics(r'''
+void f() {
+  switch ((5 == 6)) {
+    case true:
+      return;
+    default:
+      return;
+  }
+}
+''', [
+      lint(21, 8),
+    ]);
+  }
+
+  test_binaryExpressionInside_variableDeclarationInitializer() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var x = (1 == 1);
+}
+''');
+  }
+
+  test_binaryExpressionInside_whileCondition() async {
+    await assertDiagnostics(r'''
+void f() {
+  while ((1 == 1)) {}
+}
+''', [
+      lint(20, 8),
+    ]);
+  }
+
   test_binaryOperationInside_binaryOperation() async {
     await assertNoDiagnostics(r'''
 void f(bool a, bool b) {
@@ -206,10 +256,28 @@ void f(int p) {
     ]);
   }
 
+  test_conditionalExpressionInside_argumentList() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  'a'.substring((1 == 1 ? 2 : 3), 1);
+}
+''');
+  }
+
   test_conditionalExpressionInside_expressionBody() async {
     await assertNoDiagnostics(r'''
 int f() => (1 == 1 ? 2 : 3);
 ''');
+  }
+
+  test_conditionalExpressionInside_ifCondition() async {
+    await assertDiagnostics(r'''
+void f() {
+  if ((1 == 1 ? true : false)) {}
+}
+''', [
+      lint(17, 23),
+    ]);
   }
 
   test_conditionalExpressionInside_listLiteral() async {
@@ -234,6 +302,14 @@ void f() {
     await assertNoDiagnostics(r'''
 void f(bool b) {
   (b ? [] : [])..add('');
+}
+''');
+  }
+
+  test_conditionalExpressionInside_variableDeclarationInitiailizer() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var x = (1 == 1 ? 2 : 3);
 }
 ''');
   }
@@ -441,6 +517,16 @@ void f() {
 ''');
   }
 
+  test_intLiteralInside_recordLiteral() async {
+    await assertDiagnostics(r'''
+void f() {
+  var x = (1, (2));
+}
+''', [
+      lint(25, 3),
+    ]);
+  }
+
   test_listLiteral() async {
     await assertDiagnostics(r'''
 final items = [1, (DateTime.now())];
@@ -461,6 +547,22 @@ bool f() {
     await assertNoDiagnostics(r'''
 void f(int? a) {
   (a?..abs()).hashCode;
+}
+''');
+  }
+
+  test_nullAwareIndexExpressionInside_conditionExpression() async {
+    await assertNoDiagnostics(r'''
+void f(List<int>? a, bool b) {
+  var x = b ? (a?[7]) : 7;
+}
+''');
+  }
+
+  test_nullAwareIndexExpressionInside_mapLiteralKey() async {
+    await assertNoDiagnostics(r'''
+void f(List<int>? a) {
+  var x = {(a?[7]): 7};
 }
 ''');
   }
@@ -561,6 +663,16 @@ abstract class A {
 ''');
   }
 
+  test_prefixedIdentifierInside_recordLiteral() async {
+    await assertDiagnostics(r'''
+void f() {
+  var x = ((''.isEmpty), 2);
+}
+''', [
+      lint(22, 12),
+    ]);
+  }
+
   test_prefixedIdentifierInside_targetOfMethodCall() async {
     await assertDiagnostics(r'''
 void f() {
@@ -587,6 +699,16 @@ void f(bool b) {
   (!b).toString();
 }
 ''');
+  }
+
+  test_propertyAccessInside_prefixExpression() async {
+    await assertDiagnostics(r'''
+void f() {
+  !([].isEmpty);
+}
+''', [
+      lint(14, 12),
+    ]);
   }
 
   test_propertyAccessInside_recordLiteral() async {
@@ -842,6 +964,16 @@ void f() {
 }
 ''', [
       lint(18, 4),
+    ]);
+  }
+
+  test_stringLiteralInside_variableDeclarationInitializer() async {
+    await assertDiagnostics(r'''
+void f() {
+  var x = ('');
+}
+''', [
+      lint(21, 4),
     ]);
   }
 
