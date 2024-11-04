@@ -1864,7 +1864,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool isConstantEvaluated = false;
 
   /// The element corresponding to this fragment.
-  ConstructorElement2? _element;
+  ConstructorElementImpl2? _element;
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
@@ -1909,7 +1909,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElement2 get element {
+  ConstructorElementImpl2 get element {
     if (_element != null) {
       return _element!;
     }
@@ -1930,7 +1930,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
     );
   }
 
-  set element(ConstructorElement2 element) => _element = element;
+  set element(ConstructorElementImpl2 element) {
+    _element = element;
+  }
 
   @override
   InterfaceElement get enclosingElement3 =>

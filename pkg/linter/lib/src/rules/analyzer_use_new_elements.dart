@@ -16,10 +16,24 @@ import '../analyzer.dart';
 const _desc = r'Use new element model in opted-in files.';
 
 bool _isOldModelElement(Element2? element) {
-  var firstFragment = element?.firstFragment;
-  if (firstFragment != null) {
-    var libraryFragment = firstFragment.libraryFragment;
-    var uriStr = libraryFragment.source.uri.toString();
+  if (element == null) {
+    return false;
+  }
+
+  // Skip synthetic formal parameters.
+  if (element is FormalParameterElement && element.enclosingElement2 == null) {
+    return false;
+  }
+
+  var firstFragment = element.firstFragment;
+  if (firstFragment == null) {
+    return false;
+  }
+
+  var libraryFragment = firstFragment.libraryFragment;
+  var uriStr = libraryFragment.source.uri.toString();
+
+  if (element is InstanceElement2) {
     if (uriStr == 'package:analyzer/dart/element/element.dart') {
       // Skip classes that don't required migration.
       if (const {
@@ -35,6 +49,12 @@ bool _isOldModelElement(Element2? element) {
         return false;
       }
       return true;
+    }
+  }
+
+  if (element is GetterElement) {
+    if (uriStr == 'package:analyzer/src/dart/ast/ast.dart') {
+      return element.name3 == 'declaredElement';
     }
   }
   return false;
@@ -147,7 +167,6 @@ class _FilesRegistry {
     }
 
     try {
-      // TODO(scheglov): include this file into the results signature.
       var lines = rootFolder
           .getChildAssumingFile('analyzer_use_new_elements.txt')
           .readAsStringSync()
@@ -203,6 +222,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (invocation.methodName == node) {
         return;
       }
+    }
+
+    if (_isOldModelElement(node.element)) {
+      rule.reportLint(node);
     }
 
     if (_isOldModelType(node.staticType)) {

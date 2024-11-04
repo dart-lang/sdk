@@ -6,7 +6,6 @@ import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:collection/collection.dart';
@@ -308,7 +307,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitTopLevelVariableDeclaration(node);
   }
 
-  /// Finds the [LibraryImportElement] that is used to import [element] for use
+  /// Finds the [LibraryImport] that is used to import [element] for use
   /// in [node].
   LibraryImport? _getImportForElement(AstNode? node, Element2 element) {
     var prefix = _getPrefixFromExpression(node)?.name3;

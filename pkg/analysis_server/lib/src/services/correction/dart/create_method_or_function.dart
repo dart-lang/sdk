@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -133,7 +132,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   }
 
   /// Adds proposal for creating method corresponding to the given
-  /// [FunctionType] in the given [ClassElement].
+  /// [FunctionType] inside the target element.
   Future<void> _createFunction(
       ChangeBuilder builder, FunctionType functionType) async {
     var name = (node as SimpleIdentifier).name;
@@ -159,7 +158,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   }
 
   /// Adds proposal for creating method corresponding to the given
-  /// [FunctionType] in the given [ClassElement].
+  /// [FunctionType] inside the target element.
   Future<void> _createMethod(
     ChangeBuilder builder,
     InterfaceElement2 targetClassElement,
