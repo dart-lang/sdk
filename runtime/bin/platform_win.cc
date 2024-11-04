@@ -7,7 +7,12 @@
 
 #include "bin/platform.h"
 
+#include <comdef.h>
 #include <crtdbg.h>
+#include <wbemidl.h>
+#include <wrl/client.h>
+#undef interface
+#include <string>
 
 #include "bin/console.h"
 #include "bin/file.h"
@@ -19,6 +24,10 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+
+#pragma comment(lib, "wbemuuid.lib")
+
+using Microsoft::WRL::ComPtr;
 
 namespace dart {
 namespace bin {
@@ -110,6 +119,18 @@ class PlatformWin {
   DISALLOW_IMPLICIT_CONSTRUCTORS(PlatformWin);
 };
 
+class CoInitializeScope : public ValueObject {
+ public:
+  CoInitializeScope() { hres = CoInitializeEx(0, COINIT_MULTITHREADED); }
+
+  ~CoInitializeScope() { CoUninitialize(); }
+
+  bool IsInitialized() const { return !FAILED(hres); }
+
+ private:
+  HRESULT hres;
+};
+
 bool Platform::Initialize() {
   PlatformWin::InitOnce();
   return true;
@@ -166,10 +187,87 @@ static const char* VersionNumber() {
   return DartUtils::ScopedCStringFormatted("%d.%d", major, minor);
 }
 
+static const char* GetEdition() {
+  HRESULT hres;
+
+  CoInitializeScope co_initialize_scope;
+  if (!co_initialize_scope.IsInitialized()) {
+    return nullptr;
+  }
+
+  hres = CoInitializeSecurity(
+      nullptr, -1, nullptr, nullptr, RPC_C_AUTHN_LEVEL_DEFAULT,
+      RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE, nullptr);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  ComPtr<IWbemLocator> locator;
+  hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
+                          IID_PPV_ARGS(&locator));
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  ComPtr<IWbemServices> service;
+  hres = locator->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), nullptr, nullptr, 0,
+                                NULL, 0, 0, &service);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  hres = CoSetProxyBlanket(service.Get(), RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE,
+                           nullptr, RPC_C_AUTHN_LEVEL_CALL,
+                           RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  ComPtr<IEnumWbemClassObject> enumerator;
+  hres = service->ExecQuery(
+      bstr_t("WQL"), bstr_t("SELECT * FROM Win32_OperatingSystem"),
+      WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, nullptr,
+      &enumerator);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  ComPtr<IWbemClassObject> query_results;
+  ULONG uReturn = 0;
+  if (FAILED(hres) || enumerator == nullptr) {
+    return nullptr;
+  }
+
+  hres = enumerator->Next(WBEM_INFINITE, 1, &query_results, &uReturn);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  VARIANT caption;
+  hres = query_results->Get(L"Caption", 0, &caption, 0, 0);
+  if (FAILED(hres)) {
+    return nullptr;
+  }
+
+  // We got an edition, skip Microsoft prefix and convert to UTF8.
+  wchar_t* edition = caption.bstrVal;
+  static const wchar_t kMicrosoftPrefix[] = L"Microsoft ";
+  static constexpr size_t kMicrosoftPrefixLen =
+      ARRAY_SIZE(kMicrosoftPrefix) - 1;
+  if (wcsncmp(edition, kMicrosoftPrefix, kMicrosoftPrefixLen) == 0) {
+    edition += kMicrosoftPrefixLen;
+  }
+
+  char* result = StringUtilsWin::WideToUtf8(edition);
+  VariantClear(&caption);
+  return result;
+}
+
 const char* Platform::OperatingSystemVersion() {
-  // Get the product name, e.g. "Windows 10 Home".
-  const char* name;
-  if (!GetCurrentVersionString(L"ProductName", &name)) {
+  // Get the product name, e.g. "Windows 11 Home" via WMI and fallback to the
+  // ProductName on error.
+  const char* name = GetEdition();
+  if (name == nullptr && !GetCurrentVersionString(L"ProductName", &name)) {
     return nullptr;
   }
 
