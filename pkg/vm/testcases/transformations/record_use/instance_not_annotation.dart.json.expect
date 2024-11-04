@@ -3,7 +3,42 @@
     "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
     "version": "0.1.0"
   },
-  "uris": [],
-  "ids": [],
-  "constants": []
+  "uris": [
+    "instance_not_annotation.dart"
+  ],
+  "ids": [
+    {
+      "uri": 0,
+      "name": "MyClass"
+    }
+  ],
+  "constants": [
+    {
+      "type": "Instance"
+    }
+  ],
+  "instances": [
+    {
+      "definition": {
+        "id": 0,
+        "@": {
+          "uri": 0,
+          "line": 13,
+          "column": 7
+        },
+        "loadingUnit": "1"
+      },
+      "references": [
+        {
+          "instanceConstant": 0,
+          "loadingUnit": "1",
+          "@": {
+            "uri": 0,
+            "line": 9,
+            "column": 9
+          }
+        }
+      ]
+    }
+  ]
 }

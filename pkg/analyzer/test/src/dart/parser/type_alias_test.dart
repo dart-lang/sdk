@@ -61,30 +61,19 @@ GenericTypeAlias
 typedef = int;
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 0, 7),
       error(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-      error(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 1),
-      error(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 1),
-      error(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 10, 3),
     ]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations
-    FunctionTypeAlias
+    GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
-      parameters: FormalParameterList
-        leftParenthesis: ( <synthetic>
-        rightParenthesis: ) <synthetic>
-      semicolon: ; <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: int
-      semicolon: ;
+      equals: =
+      type: NamedType
+        name: int
 ''');
   }
 }

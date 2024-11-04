@@ -552,8 +552,8 @@ Remove debugging information from the output and save it separately to the speci
         return 255;
       }
     } else {
-      final (success, assets) = await compileNativeAssetsJit(verbose: verbose);
-      if (!success) {
+      final assets = await compileNativeAssetsJit(verbose: verbose);
+      if (assets == null) {
         stderr.writeln('Native assets build failed.');
         return 255;
       }

@@ -721,6 +721,19 @@ class Parser {
             context.parseExtensionModifiers(modifierStart, keyword);
             return parseExtension(beginToken, context.augmentToken, keyword);
           }
+        } else if (identical(value, 'typedef')) {
+          // Having a method called typedef is ok, but we might also want to
+          // recover.
+          if (keyword.next!.endGroup?.next?.isA(TokenType.EQ) ?? false) {
+            // Recovery:
+            // `typedef` `<` [...] `>` `=`
+            // This isn't a legal method name. Assume we're missing the name of
+            // the typedef.
+            ModifierContext context = new ModifierContext(this);
+            context.parseTypedefModifiers(modifierStart, keyword);
+            directiveState?.checkDeclaration();
+            return parseTypedef(context.augmentToken, keyword);
+          }
         }
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(modifierStart);
@@ -1385,14 +1398,44 @@ class Parser {
     Token? equals;
     TypeParamOrArgInfo typeParam =
         computeTypeParamOrArg(next, /* inDeclaration = */ true);
-    if (typeInfo == noType && typeParam.skip(next).next!.isA(TokenType.EQ)) {
-      // New style typedef, e.g. typedef foo = void Function();".
+    bool newStyle = false;
+    bool newStyleParseAsRecovered = false;
+    if (typeInfo == noType) {
+      Token skip = typeParam.skip(next);
+      if (skip.next!.isA(TokenType.EQ)) {
+        newStyle = true;
 
-      // Parse as recovered here to 'force' using it as an identifier as we've
-      // already established that the next token is the equal sign we're looking
-      // for.
-      token = ensureIdentifierPotentiallyRecovered(token,
-          IdentifierContext.typedefDeclaration, /* isRecovered = */ true);
+        // Parse as recovered here to 'force' using it as an identifier as we've
+        // already established that the next token is the equal sign we're
+        // looking for.
+        newStyleParseAsRecovered = true;
+      } else if (skip.isA(TokenType.EQ)) {
+        // Recovery: `typedef =` insert missing identifier and parse as new
+        // style.
+        newStyle = true;
+        newStyleParseAsRecovered = false;
+      } else if (skip.isA(TokenType.LT)) {
+        if (skip.endGroup?.next?.isA(TokenType.EQ) ?? false) {
+          TypeParamOrArgInfo newTypeParam =
+              computeTypeParamOrArg(token, /* inDeclaration = */ true);
+          skip = newTypeParam.skip(token);
+          // This if shouldn't be necessary, but let's do it anyway.
+          if (skip.next!.isA(TokenType.EQ)) {
+            // Recovery: `typedef <whatever> =` insert missing identifier and
+            // parse as new style.
+            typeParam = newTypeParam;
+            newStyle = true;
+            newStyleParseAsRecovered = false;
+          }
+        }
+      }
+    }
+    if (newStyle) {
+      // New style typedef, e.g. typedef foo = void Function();".
+      token = ensureIdentifierPotentiallyRecovered(
+          token,
+          IdentifierContext.typedefDeclaration,
+          /* isRecovered = */ newStyleParseAsRecovered);
 
       token = typeParam.parseVariables(token, this);
       next = token.next!;

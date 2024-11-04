@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:native_assets_cli/native_assets_cli.dart';
+import 'package:native_assets_cli/code_assets.dart';
 import 'package:record_use/record_use.dart';
 
 final callIdAdd = const Identifier(
@@ -32,7 +32,7 @@ void main(List<String> arguments) async {
     final usages =
         RecordedUsages.fromJson(jsonDecode(string) as Map<String, dynamic>);
 
-    final codeAssets = config.codeAssets.all;
+    final codeAssets = config.codeAssets;
     print('Received assets: ${codeAssets.map((a) => a.id).join(', ')}.');
 
     final symbols = <String>{};
