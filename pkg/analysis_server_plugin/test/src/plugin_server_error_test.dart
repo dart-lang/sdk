@@ -36,7 +36,7 @@ class PluginServerErrorTest extends PluginServerTestBase {
     newAnalysisOptionsYamlFile(packagePath, '''
 plugins:
   no_bools:
-    rules:
+    diagnostics:
       - no_bools
 ''');
   }

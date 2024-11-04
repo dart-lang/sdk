@@ -209,7 +209,7 @@ final class AnalysisOptionsBuilder {
         // TODO(srawlins): There may be value in storing the version constraint,
         // `value`.
         pluginConfigurations.add(PluginConfiguration(
-            name: pluginName, ruleConfigs: const {}, isEnabled: true));
+            name: pluginName, diagnosticConfigs: const {}, isEnabled: true));
         return;
       }
 
@@ -217,16 +217,16 @@ final class AnalysisOptionsBuilder {
         return;
       }
 
-      var rules = pluginNode.valueAt(AnalyzerOptions.rules);
-      if (rules == null) {
+      var diagnostics = pluginNode.valueAt(AnalyzerOptions.diagnostics);
+      if (diagnostics == null) {
         return;
       }
 
-      var ruleConfigurations = parseRulesSection(rules);
+      var diagnosticConfigurations = parseDiagnosticsSection(diagnostics);
 
       pluginConfigurations.add(PluginConfiguration(
         name: pluginName,
-        ruleConfigs: ruleConfigurations,
+        diagnosticConfigs: diagnosticConfigurations,
         // TODO(srawlins): Implement `enabled: false`.
         isEnabled: true,
       ));

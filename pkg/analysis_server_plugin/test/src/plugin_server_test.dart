@@ -69,7 +69,7 @@ class PluginServerTest extends PluginServerTestBase {
     expect(fixes[0].fixes, hasLength(1));
   }
 
-  Future<void> test_lintRulesAreDisabledByDefault() async {
+  Future<void> test_lintDiagnosticsAreDisabledByDefault() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'double x = 3.14;');
     await channel
@@ -81,7 +81,7 @@ class PluginServerTest extends PluginServerTestBase {
     expect(params.errors, isEmpty);
   }
 
-  Future<void> test_lintRulesCanBeEnabled() async {
+  Future<void> test_lintDiagnosticsCanBeEnabled() async {
     writeAnalysisOptionsWithPlugin({'no_doubles': true});
     newFile(filePath, 'double x = 3.14;');
     await channel
@@ -169,7 +169,7 @@ class PluginServerTest extends PluginServerTestBase {
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
-  Future<void> test_warningRulesAreEnabledByDefault() async {
+  Future<void> test_warningDiagnosticsAreEnabledByDefault() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
     await channel
@@ -182,9 +182,7 @@ class PluginServerTest extends PluginServerTestBase {
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
-  Future<void> test_warningRulesCannotBeDisabled() async {
-    // TODO(srawlins): A warning should be reported in the analysis options file
-    // for this.
+  Future<void> test_warningDiagnosticsCanBeDisabled() async {
     writeAnalysisOptionsWithPlugin({'no_bools': false});
     newFile(filePath, 'bool b = false;');
     await channel
@@ -193,19 +191,19 @@ class PluginServerTest extends PluginServerTestBase {
         .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
         .where((p) => p.file == filePath));
     var params = await paramsQueue.next;
-    _expectAnalysisError(params.errors.single, message: 'No bools message');
+    expect(params.errors, isEmpty);
   }
 
   void writeAnalysisOptionsWithPlugin(
-      [Map<String, bool> ruleConfiguration = const {}]) {
+      [Map<String, bool> diagnosticConfiguration = const {}]) {
     var buffer = StringBuffer('''
 plugins:
   no_literals:
-    rules:
+    diagnostics:
 ''');
-    for (var MapEntry(key: ruleName, value: isEnabled)
-        in ruleConfiguration.entries) {
-      buffer.writeln('      $ruleName: $isEnabled');
+    for (var MapEntry(key: diagnosticName, value: isEnabled)
+        in diagnosticConfiguration.entries) {
+      buffer.writeln('      $diagnosticName: $isEnabled');
     }
     newAnalysisOptionsYamlFile(packagePath, buffer.toString());
   }
