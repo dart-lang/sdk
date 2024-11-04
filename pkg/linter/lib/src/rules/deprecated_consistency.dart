@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 
@@ -40,9 +40,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredElement;
+    var constructorElement = node.declaredFragment?.element;
     if (constructorElement != null &&
-        constructorElement.enclosingElement3.hasDeprecated &&
+        constructorElement.enclosingElement2.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
       rule.reportLintForOffset(nodeToAnnotate.offset, nodeToAnnotate.length,
@@ -52,10 +52,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement is! FieldFormalParameterElement) return;
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement is! FieldFormalParameterElement2) return;
 
-    var field = declaredElement.field;
+    var field = declaredElement.field2;
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
@@ -63,8 +63,17 @@ class _Visitor extends SimpleAstVisitor<void> {
           errorCode: LinterLintCode.deprecated_consistency_field);
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
-      rule.reportLintForOffset(field.nameOffset, field.nameLength,
+      var fieldFragment = field.firstFragment;
+      var nameOffset = fieldFragment.nameOffset2;
+      if (nameOffset == null) return;
+      var nameLength = fieldFragment.name2?.length;
+      if (nameLength == null) return;
+      rule.reportLintForOffset(nameOffset, nameLength,
           errorCode: LinterLintCode.deprecated_consistency_parameter);
     }
   }
+}
+
+extension on Annotatable {
+  bool get hasDeprecated => metadata2.hasDeprecated;
 }

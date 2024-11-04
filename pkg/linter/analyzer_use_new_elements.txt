@@ -65,6 +65,7 @@ lib/src/rules/constant_identifier_names.dart
 lib/src/rules/control_flow_in_finally.dart
 lib/src/rules/curly_braces_in_flow_control_structures.dart
 lib/src/rules/dangling_library_doc_comments.dart
+lib/src/rules/deprecated_consistency.dart
 lib/src/rules/diagnostic_describe_all_properties.dart
 lib/src/rules/directives_ordering.dart
 lib/src/rules/discarded_futures.dart
@@ -499,7 +500,6 @@ test_data/rules/require_trailing_commas.dart
 test_data/rules/type_init_formals.dart
 test_data/rules/unawaited_futures.dart
 test_data/rules/unmocked/unsafe_html.dart
-test_data/rules/unnecessary_parenthesis.dart
 test_data/rules/void_checks.dart
 tool/benchmark.dart
 tool/changelog.dart
