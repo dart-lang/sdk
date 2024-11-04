@@ -6,21 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 /// The result of attempting to resolve an identifier to elements.
-class ResolutionResult {
-  /// An instance that can be used anywhere that no element was found.
-  static const ResolutionResult none =
-      ResolutionResult._(_ResolutionResultState.none);
-
-  /// An instance that can be used anywhere that multiple elements were found.
-  static const ResolutionResult ambiguous =
-      ResolutionResult._(_ResolutionResultState.ambiguous);
-
-  /// The state of the result.
-  final _ResolutionResultState state;
-
-  /// Return the element that is invoked for reading.
-  final ExecutableElement? getter;
-
+class ResolutionResult extends SimpleResolutionResult {
   /// If `true`, then the [getter] is `null`, and this is an error that has
   /// not yet been reported, and the client should report it.
   ///
@@ -33,9 +19,6 @@ class ResolutionResult {
 
   /// If `true`, the result type must be invalid.
   final bool isGetterInvalid;
-
-  /// Return the element that is invoked for writing.
-  final ExecutableElement? setter;
 
   /// If `true`, then the [setter] is `null`, and this is an error that has
   /// not yet been reported, and the client should report it.
@@ -56,38 +39,22 @@ class ResolutionResult {
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
   ResolutionResult({
-    this.getter,
+    super.getter,
     this.needsGetterError = true,
     this.isGetterInvalid = false,
-    this.setter,
+    super.setter,
     this.needsSetterError = true,
     this.callFunctionType,
     this.recordField,
-  }) : state = _ResolutionResultState.single;
-
-  /// Initialize a newly created result with no elements and the given [state].
-  const ResolutionResult._(this.state)
-      : getter = null,
-        needsGetterError = true,
-        isGetterInvalid = false,
-        setter = null,
-        needsSetterError = true,
-        callFunctionType = null,
-        recordField = null;
-
-  /// Return `true` if this result represents the case where multiple ambiguous
-  /// elements were found.
-  bool get isAmbiguous => state == _ResolutionResultState.ambiguous;
+  });
 }
 
-/// The state of a [ResolutionResult].
-enum _ResolutionResultState {
-  /// Indicates that no element was found.
-  none,
+class SimpleResolutionResult {
+  /// Return the element that is invoked for reading.
+  final ExecutableElement? getter;
 
-  /// Indicates that a single element was found.
-  single,
+  /// Return the element that is invoked for writing.
+  final ExecutableElement? setter;
 
-  /// Indicates that multiple ambiguous elements were found.
-  ambiguous
+  const SimpleResolutionResult({this.getter, this.setter});
 }

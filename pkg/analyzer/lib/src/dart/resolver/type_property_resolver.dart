@@ -234,8 +234,8 @@ class TypePropertyResolver {
     var getterName = Name(_definingLibrary.source.uri, _name);
     var result =
         _extensionResolver.findExtension(type, _nameErrorEntity, getterName);
-    _reportedGetterError = result.isAmbiguous;
-    _reportedSetterError = result.isAmbiguous;
+    _reportedGetterError = result == ExtensionResolutionError.ambiguous;
+    _reportedSetterError = result == ExtensionResolutionError.ambiguous;
 
     if (result.getter != null) {
       _needsGetterError = false;
