@@ -1258,6 +1258,25 @@ class LibraryBuilder with MacroApplicationsContainer {
     );
   }
 
+  /// We want to have stable references for `loadLibrary` function. But we
+  /// cannot create the function itself right now, because the type provider
+  /// might be not available yet. So, we create references together with the
+  /// library, and create the fragment and element later.
+  void _createLoadLibraryReferences() {
+    var name = FunctionElement.LOAD_LIBRARY_NAME;
+
+    var fragmentContainer = units[0].reference.getChild('@function');
+    var fragmentReference = fragmentContainer.addChild(name);
+
+    var elementContainer = reference.getChild('@function');
+    var elementReference = elementContainer.addChild(name);
+
+    element.loadLibraryProvider = LoadLibraryFunctionProvider(
+      fragmentReference: fragmentReference,
+      elementReference: elementReference,
+    );
+  }
+
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
@@ -1316,7 +1335,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     libraryElement.isSynthetic = !libraryFile.exists;
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
     _bindReference(libraryReference, libraryElement);
-    elementFactory.setLibraryTypeSystem(libraryElement);
 
     var unitContainerRef = libraryReference.getChild('@fragment');
 
@@ -1353,6 +1371,9 @@ class LibraryBuilder with MacroApplicationsContainer {
       element: libraryElement,
       units: linkingUnits,
     );
+
+    builder._createLoadLibraryReferences();
+    elementFactory.setLibraryTypeSystem(libraryElement);
 
     if (inputMacroResult != null) {
       var import = inputLibrary.addMacroPart(

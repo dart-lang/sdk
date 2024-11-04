@@ -2532,16 +2532,23 @@ ASSEMBLER_TEST_RUN(RemainderUnsignedWord, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalWord_Success, assembler) {
   __ SetExtensions(RV_G);
+
+  Label retry;
+  __ Bind(&retry);
   __ lrw(T0, Address(A0));
   __ addi(T0, T0, 1);
-  __ scw(A0, T0, Address(A0));
+  __ scw(A1, T0, Address(A0));
+  __ bnez(A1, &retry);
+  __ mv(A0, A1);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Success, test) {
   EXPECT_DISASSEMBLY(
       "100522af lr.w t0, (a0)\n"
       "00128293 addi t0, t0, 1\n"
-      "1855252f sc.w a0, t0, (a0)\n"
+      "185525af sc.w a1, t0, (a0)\n"
+      "fe059ae3 bnez a1, -12\n"
+      "00058513 mv a0, a1\n"
       "00008067 ret\n");
 
   int32_t* value = reinterpret_cast<int32_t*>(malloc(sizeof(int32_t)));
@@ -2742,16 +2749,23 @@ ASSEMBLER_TEST_RUN(AmoMaxUnsignedWord, test) {
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalDoubleWord_Success,
                         assembler) {
   __ SetExtensions(RV_G);
+
+  Label retry;
+  __ Bind(&retry);
   __ lrd(T0, Address(A0));
   __ addi(T0, T0, 1);
-  __ scd(A0, T0, Address(A0));
+  __ scd(A1, T0, Address(A0));
+  __ bnez(A1, &retry);
+  __ mv(A0, A1);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalDoubleWord_Success, test) {
   EXPECT_DISASSEMBLY(
       "100532af lr.d t0, (a0)\n"
       "00128293 addi t0, t0, 1\n"
-      "1855352f sc.d a0, t0, (a0)\n"
+      "185535af sc.d a1, t0, (a0)\n"
+      "fe059ae3 bnez a1, -12\n"
+      "00058513 mv a0, a1\n"
       "00008067 ret\n");
 
   int64_t* value = reinterpret_cast<int64_t*>(malloc(sizeof(int64_t)));

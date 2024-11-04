@@ -2804,11 +2804,11 @@ ExpressionStatement
     period: .
     identifier: SimpleIdentifier
       token: loadLibrary
-      staticElement: loadLibrary@-1
-      element: <exception>
+      staticElement: package:test/a.dart::<fragment>::@function::loadLibrary
+      element: package:test/a.dart::@function::loadLibrary
       staticType: Future<dynamic> Function()
-    staticElement: loadLibrary@-1
-    element: <exception>
+    staticElement: package:test/a.dart::<fragment>::@function::loadLibrary
+    element: package:test/a.dart::@function::loadLibrary
     staticType: Future<dynamic> Function()
   semicolon: ;
 ''');

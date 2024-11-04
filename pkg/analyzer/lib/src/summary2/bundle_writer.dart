@@ -104,6 +104,7 @@ class BundleWriter {
     _writeLanguageVersion(libraryElement.languageVersion);
     _writeExportedReferences(libraryElement.exportedReferences);
     _sink.writeUint30List(libraryElement.nameUnion.mask);
+    _writeLoadLibraryFunctionReferences(libraryElement);
 
     // Write the library units.
     // This will write also resolution data, e.g. for classes.
@@ -481,6 +482,12 @@ class BundleWriter {
     for (var element in elements) {
       writeElement(element);
     }
+  }
+
+  void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
+    var element = library.loadLibraryFunction2;
+    _writeReference2(element.firstFragment.reference);
+    _writeReference2(element.reference);
   }
 
   void _writeMethodElement(MethodElementImpl element) {

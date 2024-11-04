@@ -151,7 +151,6 @@ vars = {
   "lints_rev": "19d99bc64a03a6f32f05e71481edf151032ebf5b",
   "markdown_rev": "a4b1d2cae8042a653e41ea31c0a24cde7d8a6499",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "mockito_rev": "f72791d3dd5cb2acc4f5c7da065ffe70d2ad1e0b",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
   "native_rev": "51647776372aa9e1f839efb811aa959fe445c0cf", # disable tools/rev_sdk_deps.dart
   "package_config_rev": "bafff8e90be25e1985f7e3ee40ea1d22571a93e6",
@@ -416,8 +415,6 @@ deps = {
            "@" + Var("material_color_utilities_rev"),
     "condition": "checkout_flute",
   },
-  Var("dart_root") + "/third_party/pkg/mockito":
-      Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
   Var("dart_root") + "/third_party/pkg/native":
       Var("dart_git") + "native.git" + "@" + Var("native_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
