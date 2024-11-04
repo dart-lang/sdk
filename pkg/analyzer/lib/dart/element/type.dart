@@ -247,20 +247,12 @@ abstract class FunctionType
   /// named parameters declared, then the map will be empty.
   Map<String, DartType> get namedParameterTypes;
 
-  /// The names of the required positional parameters of this type of function,
-  /// not necessarily in the order that the parameters appear.
-  List<String> get normalParameterNames;
-
   /// A list containing the types of the normal parameters of this type of
   /// function.
   ///
   /// The parameter types are not necessarily in the same order as they appear
   /// in the declaration of the function.
   List<DartType> get normalParameterTypes;
-
-  /// The names of the optional positional parameters of this type of function,
-  /// not necessarily in the order that the parameters appear.
-  List<String> get optionalParameterNames;
 
   /// A map from the names of optional (positional) parameters to the types of
   /// the optional parameters of this type of function.
