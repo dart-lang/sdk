@@ -6875,7 +6875,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
     PairLocation* in_pair = locs()->in(0).AsPairLocation();
     Register in_lo = in_pair->At(0).reg();
-    Register in_hi = in_pair->At(1).reg();
     Register out = locs()->out(0).reg();
     // Copy low word.
     __ mv(out, in_lo);
