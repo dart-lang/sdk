@@ -7,9 +7,9 @@
 
 #include "bin/platform.h"
 
-#include <Wbemidl.h>
 #include <comdef.h>
 #include <crtdbg.h>
+#include <wbemidl.h>
 #include <wrl/client.h>
 #undef interface
 #include <string>
