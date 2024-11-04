@@ -42,7 +42,7 @@ main(List<String> args) async {
     print("Writing to 'analyzer_use_new_elements.txt'...");
     print('-' * 20);
     File('analyzer_use_new_elements.txt')
-        .writeAsStringSync('${migratedFilesSorted.join('\n')}\n');
+        .writeAsStringSync('${unmigratedFilesSorted.join('\n')}\n');
   } else {
     print('Migrated files:\n');
     print(migratedFilesSorted.join('\n'));
