@@ -661,6 +661,11 @@ class LibraryReader {
       _reader.readUInt30List(),
     );
 
+    libraryElement.loadLibraryProvider = LoadLibraryFunctionProvider(
+      fragmentReference: _readReference(),
+      elementReference: _readReference(),
+    );
+
     // Read the library units.
     libraryElement.definingCompilationUnit = _readUnitElement(
       libraryElement: libraryElement,
@@ -1181,7 +1186,6 @@ class LibraryReader {
       } else {
         TopLevelFunctionElementImpl(reference2, fragment);
       }
-
 
       var linkedData = FunctionElementLinkedData(
         reference: reference,

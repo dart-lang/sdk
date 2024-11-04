@@ -6328,10 +6328,9 @@ class LibraryElementImpl extends ElementImpl
   /// an entry point.
   FunctionElement? _entryPoint;
 
-  /// The element representing the synthetic function `loadLibrary` that is
-  /// defined for this library, or `null` if the element has not yet been
-  /// created.
-  late FunctionElement _loadLibraryFunction;
+  /// The provider for the synthetic function `loadLibrary` that is defined
+  /// for this library.
+  late final LoadLibraryFunctionProvider loadLibraryProvider;
 
   @override
   int nameLength;
@@ -6605,13 +6604,14 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  FunctionElement get loadLibraryFunction {
-    return _loadLibraryFunction;
+  FunctionElementImpl get loadLibraryFunction {
+    return loadLibraryFunction2.firstFragment;
   }
 
   @override
-  TopLevelFunctionElement get loadLibraryFunction2 =>
-      loadLibraryFunction as TopLevelFunctionElement;
+  TopLevelFunctionElementImpl get loadLibraryFunction2 {
+    return loadLibraryProvider.getElement(this);
+  }
 
   @override
   List<ElementAnnotationImpl> get metadata {
@@ -6730,18 +6730,6 @@ class LibraryElementImpl extends ElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeLibraryElement(this);
-  }
-
-  /// Create the [FunctionElement] to be returned by [loadLibraryFunction].
-  /// The [typeProvider] must be already set.
-  void createLoadLibraryFunction() {
-    var fragment = FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1)
-      ..enclosingElement3 = library
-      ..isSynthetic = true
-      ..returnType = typeProvider.futureDynamicType;
-    _loadLibraryFunction = fragment;
-    // TODO(scheglov): create it sooner, with actual reference.
-    TopLevelFunctionElementImpl(Reference.root(), fragment);
   }
 
   @override
@@ -6956,6 +6944,38 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeImportElement(this);
+  }
+}
+
+/// The provider for the lazily created `loadLibrary` function.
+final class LoadLibraryFunctionProvider {
+  final Reference fragmentReference;
+  final Reference elementReference;
+  TopLevelFunctionElementImpl? _element;
+
+  LoadLibraryFunctionProvider({
+    required this.fragmentReference,
+    required this.elementReference,
+  });
+
+  TopLevelFunctionElementImpl getElement(LibraryElementImpl library) {
+    return _element ??= _create(library);
+  }
+
+  TopLevelFunctionElementImpl _create(LibraryElementImpl library) {
+    var name = FunctionElement.LOAD_LIBRARY_NAME;
+
+    var fragment = FunctionElementImpl(name, -1);
+    fragment.name2 = name;
+    fragment.isSynthetic = true;
+    fragment.isStatic = true;
+    fragment.returnType = library.typeProvider.futureDynamicType;
+    fragment.enclosingElement3 = library.definingCompilationUnit;
+
+    fragment.reference = fragmentReference;
+    fragmentReference.element = fragment;
+
+    return TopLevelFunctionElementImpl(elementReference, fragment);
   }
 }
 

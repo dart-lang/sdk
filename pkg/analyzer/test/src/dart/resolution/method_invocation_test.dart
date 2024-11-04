@@ -2286,8 +2286,8 @@ MethodInvocation
   operator: ?.
   methodName: SimpleIdentifier
     token: loadLibrary
-    staticElement: loadLibrary@-1
-    element: <exception>
+    staticElement: dart:math::<fragment>::@function::loadLibrary
+    element: dart:math::@function::loadLibrary
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3554,8 +3554,8 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: loadLibrary
-    staticElement: loadLibrary@-1
-    element: <exception>
+    staticElement: dart:math::<fragment>::@function::loadLibrary
+    element: dart:math::@function::loadLibrary
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3588,8 +3588,8 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: loadLibrary
-    staticElement: loadLibrary@-1
-    element: <exception>
+    staticElement: dart:math::<fragment>::@function::loadLibrary
+    element: dart:math::@function::loadLibrary
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
