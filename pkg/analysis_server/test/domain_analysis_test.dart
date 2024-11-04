@@ -1824,6 +1824,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
 ''');
   }
 

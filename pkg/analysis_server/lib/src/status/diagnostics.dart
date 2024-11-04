@@ -29,7 +29,6 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -938,10 +937,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
 
     h3('Dartdoc template info');
-    var info = server.declarationsTracker
-            ?.getContext(driver.analysisContext!)
-            ?.dartdocDirectiveInfo ??
-        DartdocDirectiveInfo();
+    var info = driver.dartdocDirectiveInfo;
     buf.write('<p class="scroll-table">');
     writeMap(info.templateMap);
     buf.write('</p>');

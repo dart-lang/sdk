@@ -10,7 +10,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
@@ -65,6 +64,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -78,7 +78,6 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
@@ -164,8 +163,6 @@ abstract class AnalysisServer {
   late analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
   late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
-
-  DeclarationsTracker? declarationsTracker;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -341,17 +338,6 @@ abstract class AnalysisServer {
         analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
 
-    if (options.featureSet.completion) {
-      // TODO(brianwilkerson): The DeclarationsTracker is used to find Dartdoc
-      //  templates for substitution in doc comments, and probably shouldn't be
-      //  gated on completion support being enabled, especially given that it
-      //  will no longer used for available suggestions.
-      var tracker = declarationsTracker =
-          DeclarationsTracker(byteStore, resourceProvider);
-      analysisDriverScheduler.outOfBandWorker =
-          CompletionLibrariesWorker(tracker);
-    }
-
     contextManager = ContextManagerImpl(
       resourceProvider,
       sdkManager,
@@ -474,21 +460,12 @@ abstract class AnalysisServer {
   UserPromptSender? get userPromptSender =>
       supportsShowMessageRequest ? showUserPrompt : null;
 
-  void addContextsToDeclarationsTracker() {
-    declarationsTracker?.discardContexts();
-    for (var driver in driverMap.values) {
-      declarationsTracker?.addContext(driver.analysisContext!);
-    }
-  }
-
   void afterContextsCreated() {
     _timingByteStore?.newTimings('after contexts created');
     isFirstAnalysisSinceContextsBuilt = true;
-    addContextsToDeclarationsTracker();
   }
 
   void afterContextsDestroyed() {
-    declarationsTracker?.discardContexts();
   }
 
   /// Broadcast a request built from the given [params] to all of the plugins
@@ -621,10 +598,9 @@ abstract class AnalysisServer {
   DartdocDirectiveInfo getDartdocDirectiveInfoForSession(
     AnalysisSession session,
   ) {
-    return declarationsTracker
-            ?.getContext(session.analysisContext)
-            ?.dartdocDirectiveInfo ??
-        DartdocDirectiveInfo();
+    var analysisContext = session.analysisContext;
+    analysisContext as DriverBasedAnalysisContext;
+    return analysisContext.driver.dartdocDirectiveInfo;
   }
 
   /// Gets the current version number of a document (if known).
@@ -856,7 +832,6 @@ abstract class AnalysisServer {
   /// Notify the declarations tracker that the file with the given [path] was
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
-    declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify();
   }
 
