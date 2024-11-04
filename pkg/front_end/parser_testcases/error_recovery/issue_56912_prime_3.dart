@@ -1,0 +1,1 @@
+typedef foo<E> = Map<E, int>;
