@@ -250,6 +250,9 @@ library
       superclassConstraints
         A
         B
+      interfaces
+        C
+        D
       fields
         f
           firstFragment: <testLibraryFragment>::@mixin::M::@field::f
@@ -732,6 +735,8 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
+      mixins
+        M<int>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -885,6 +890,8 @@ library
       typeParameters
         T
       supertype: Object
+      mixins
+        A<T>
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -892,6 +899,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<int>
+      mixins
+        B<dynamic>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1081,12 +1090,17 @@ library
       typeParameters
         T
       supertype: Object
+      mixins
+        A1<T>
+        A2<T>
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
     class Base
       reference: <testLibrary>::@class::Base
       firstFragment: <testLibraryFragment>::@class::Base
+      interfaces
+        A1<int>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::Base::@constructor::new
@@ -1094,6 +1108,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: Base
+      mixins
+        B<int>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1198,6 +1214,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<int Function(String)>
+      mixins
+        M<int, String>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1307,6 +1325,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<List<int>>
+      mixins
+        M<int>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1448,6 +1468,9 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       supertype: I<int>
+      mixins
+        M1<int>
+        M2<int>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
@@ -1588,6 +1611,11 @@ library
       reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       supertype: S<String>
+      mixins
+        M<String, int>
+          alias: <testLibraryFragment>::@typeAlias::M2
+            typeArguments
+              String
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
@@ -1745,6 +1773,11 @@ library
       reference: <testLibrary>::@class::X
       firstFragment: <testLibraryFragment>::@class::X
       supertype: S<String>
+      mixins
+        M<String, int>
+          alias: <testLibraryFragment>::@typeAlias::M3
+            typeArguments
+              String
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@constructor::new
@@ -1864,6 +1897,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -1879,6 +1914,9 @@ library
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
+      interfaces
+        A
+        C
 ''');
   }
 
@@ -2283,6 +2321,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2535,6 +2575,8 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       supertype: Object
+      mixins
+        M
       allSupertypes
         M
         Object
@@ -2618,6 +2660,8 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        M
       allSupertypes
         A
         M
@@ -5526,6 +5570,9 @@ library
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
+      interfaces
+        I1
+        I2
 ''');
   }
 
@@ -5704,6 +5751,10 @@ library
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
+      interfaces
+        I1
+        I2
+        I3
 ''');
   }
 
@@ -7855,6 +7906,8 @@ library
       firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
+      interfaces
+        A
       methods
         foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
@@ -8237,6 +8290,8 @@ library
       firstFragment: <testLibraryFragment>::@mixin::A
       superclassConstraints
         Object
+      interfaces
+        I
 ''');
   }
 

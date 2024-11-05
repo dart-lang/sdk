@@ -1232,6 +1232,8 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
+      interfaces
+        A<T>
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -1240,6 +1242,8 @@ library
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
+      interfaces
+        A<Iterable<T>>
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new

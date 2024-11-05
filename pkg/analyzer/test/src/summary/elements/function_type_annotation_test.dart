@@ -1496,6 +1496,8 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<void Function()>
+      mixins
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new

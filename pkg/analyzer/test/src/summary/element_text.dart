@@ -1017,32 +1017,48 @@ class _Element2Writer extends _AbstractElementWriter {
           'typeParameters', e, e.typeParameters2, _writeTypeParameterElement);
       _writeMacroDiagnostics(e);
 
-      if (e is InterfaceElement2) {
-        var supertype = e.supertype;
-        if (supertype != null &&
-            (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
-          _writeType('supertype', supertype);
+      void writeSupertype(InterfaceElement2 e) {
+        if (e.supertype case var supertype?) {
+          if (supertype.element.name != 'Object' || e.mixins.isNotEmpty) {
+            _writeType('supertype', supertype);
+          }
         }
       }
 
-      if (e is ExtensionTypeElement2) {
-        // _elementPrinter.writeNamedElement('representation', e.representation2);
-        // _elementPrinter.writeNamedElement(
-        //     'primaryConstructor', e.primaryConstructor2);
-        _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+      switch (e) {
+        case ClassElement2():
+          writeSupertype(e);
+          _elementPrinter.writeTypeList('mixins', e.mixins);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        case EnumElement2():
+          writeSupertype(e);
+          _elementPrinter.writeTypeList('mixins', e.mixins);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        case ExtensionElement2():
+          break;
+        case ExtensionTypeElement2():
+          expect(e.supertype, isNull);
+          _elementPrinter.writelnNamedElement2(
+            'representation',
+            e.representation2,
+          );
+          _elementPrinter.writelnNamedElement2(
+            'primaryConstructor',
+            e.primaryConstructor2,
+          );
+          _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        case MixinElement2():
+          expect(e.supertype, isNull);
+          _elementPrinter.writeTypeList(
+            'superclassConstraints',
+            e.superclassConstraints,
+          );
+          expect(e.mixins, isEmpty);
+          _elementPrinter.writeTypeList('interfaces', e.interfaces);
+        default:
+          throw UnimplementedError('${e.runtimeType}');
       }
-
-      if (e is MixinElement2) {
-        _elementPrinter.writeTypeList(
-          'superclassConstraints',
-          e.superclassConstraints,
-        );
-      }
-
-      // TODO(brianwilkerson): Add a `writeTypeList2` that will use the new API
-      //  version of the elements of type parameters.
-      // _elementPrinter.writeTypeList('mixins', e.mixins);
-      // _elementPrinter.writeTypeList('interfaces', e.interfaces);
 
       if (configuration.withAllSupertypes && e is InterfaceElement2) {
         var sorted = e.allSupertypes.sortedBy((t) => t.element.name);

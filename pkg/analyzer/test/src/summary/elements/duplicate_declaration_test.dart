@@ -729,6 +729,8 @@ library
       reference: <testLibrary>::@class::X::@def::1
       firstFragment: <testLibraryFragment>::@class::X::@def::1
       supertype: B
+      mixins
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@def::1::@constructor::new
@@ -1352,6 +1354,8 @@ library
     extension type E
       reference: <testLibrary>::@extensionType::E::@def::0
       firstFragment: <testLibraryFragment>::@extensionType::E::@def::0
+      representation: <testLibraryFragment>::@extensionType::E::@def::0::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -1370,6 +1374,8 @@ library
     extension type E
       reference: <testLibrary>::@extensionType::E::@def::1
       firstFragment: <testLibraryFragment>::@extensionType::E::@def::1
+      representation: <testLibraryFragment>::@extensionType::E::@def::1::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new#element
       typeErasure: double
       fields
         final it

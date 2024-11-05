@@ -3294,6 +3294,8 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      interfaces
+        I
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -3440,6 +3442,9 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      interfaces
+        A
+        C
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -3458,6 +3463,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -3615,6 +3622,8 @@ library
       typeParameters
         U
       supertype: Enum
+      interfaces
+        I<U>
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -3784,6 +3793,9 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      interfaces
+        X
+        Z
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -4338,6 +4350,8 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      mixins
+        M
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -4490,6 +4504,9 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      mixins
+        A
+        C
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -4508,6 +4525,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -4656,6 +4675,9 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
+      mixins
+        M1<int>
+        M2<int>
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
@@ -6987,6 +7009,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -6997,6 +7021,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: Object
+      mixins
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -7007,6 +7033,8 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: Object
+      mixins
+        M
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -16358,6 +16386,9 @@ library
       reference: <testLibrary>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      interfaces
+        I1
+        I2
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -16605,6 +16636,10 @@ library
       reference: <testLibrary>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      interfaces
+        I1
+        I2
+        I3
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -16819,6 +16854,9 @@ library
       typeParameters
         T
       supertype: Enum
+      interfaces
+        I1
+        I2<T>
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -17036,6 +17074,8 @@ library
       typeParameters
         T
       supertype: Enum
+      interfaces
+        I1
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -18693,6 +18733,9 @@ library
       reference: <testLibrary>::@enum::A
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
+      mixins
+        M1
+        M2
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -18951,6 +18994,10 @@ library
       typeParameters
         T1
       supertype: Enum
+      mixins
+        M1<T1>
+        M2<T1>
+        M3<T1>
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -20896,6 +20943,8 @@ library
       reference: <testLibrary>::@enum::B
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      interfaces
+        A
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
@@ -21075,6 +21124,8 @@ library
       reference: <testLibrary>::@enum::B
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      interfaces
+        A
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
@@ -21254,6 +21305,8 @@ library
       reference: <testLibrary>::@enum::B
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
+      mixins
+        A
       fields
         static const v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v

@@ -621,6 +621,9 @@ library
       reference: <testLibrary>::@class::Raw
       firstFragment: <testLibraryFragment>::@class::Raw
       supertype: Object
+      mixins
+        A
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
@@ -629,6 +632,9 @@ library
       firstFragment: <testLibraryFragment>::@class::HasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
       supertype: Object
+      mixins
+        A
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
@@ -636,6 +642,9 @@ library
       reference: <testLibrary>::@class::HasAnnotation
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
       supertype: Object
+      mixins
+        A
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
@@ -644,6 +653,9 @@ library
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
       supertype: Object
+      mixins
+        A
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
@@ -652,6 +664,9 @@ library
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
       supertype: Object
+      mixins
+        A
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
@@ -660,6 +675,9 @@ library
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
       documentationComment: /// Comment 2.
       supertype: Object
+      mixins
+        A
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new

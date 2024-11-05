@@ -10480,6 +10480,8 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       supertype: Object
+      mixins
+        M
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new

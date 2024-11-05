@@ -980,6 +980,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      mixins
+        E
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1918,6 +1920,8 @@ library
       typeParameters
         T
       supertype: A
+      mixins
+        B
       constructors
         synthetic const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
@@ -2638,6 +2642,8 @@ library
       typeParameters
         T
       supertype: A
+      mixins
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -6641,6 +6647,8 @@ library
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       supertype: A
+      mixins
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -9940,6 +9948,8 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       supertype: D
+      mixins
+        E
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new

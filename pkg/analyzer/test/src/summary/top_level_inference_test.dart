@@ -1544,6 +1544,8 @@ library
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        I
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -1777,6 +1779,8 @@ library
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        I
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -4952,6 +4956,8 @@ library
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        I
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -5142,6 +5148,8 @@ library
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        I
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -11752,6 +11760,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -12144,6 +12154,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -12328,6 +12340,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -12634,6 +12648,8 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
+      interfaces
+        A<T>
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -12818,6 +12834,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -12987,6 +13005,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -13215,6 +13235,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -13474,6 +13496,8 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
+      interfaces
+        A<T>
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -13672,6 +13696,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -13848,6 +13875,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -14040,6 +14070,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A<int>
+        B<String>
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -14215,6 +14248,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -14483,6 +14519,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -14680,6 +14719,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -14871,6 +14913,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -15073,6 +15118,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -15264,6 +15312,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -15454,6 +15505,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -15705,6 +15759,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -15920,6 +15976,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -16113,6 +16172,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
@@ -16501,6 +16563,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -16661,6 +16725,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       fields
         synthetic x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
@@ -17131,6 +17197,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A
+      interfaces
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -17292,6 +17360,9 @@ library
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -17430,6 +17501,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A
+      interfaces
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -17609,6 +17682,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<int>
+      interfaces
+        B<double>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -17796,6 +17871,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<int, String>
+      interfaces
+        B<double>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -18897,6 +18974,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -19060,6 +19139,8 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -19888,6 +19969,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A<int, String>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -20000,6 +20083,8 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -20168,6 +20253,8 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        B<int, String>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -20389,6 +20476,8 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -20574,6 +20663,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A<int, String>
+      interfaces
+        B<String>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -20735,6 +20826,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: A
+      interfaces
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new

@@ -4707,6 +4707,11 @@ library
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
+      interfaces
+        A<int, String>
+          alias: <testLibraryFragment>::@typeAlias::X
+            typeArguments
+              String
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -4845,6 +4850,9 @@ library
     class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
+      interfaces
+        B
+        C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -4987,6 +4995,13 @@ library
     class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
+      interfaces
+        B
+        A<int?>
+          alias: <testLibraryFragment>::@typeAlias::X
+            typeArguments
+              int
+        C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -5216,6 +5231,9 @@ library
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         U
+      interfaces
+        A
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -5319,6 +5337,9 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
@@ -5409,6 +5430,9 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        A<int>
+          alias: <testLibraryFragment>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -5519,6 +5543,9 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        M1
+        M2
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -5642,6 +5669,11 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: Object
+      mixins
+        M1
+        A<int?>
+          alias: <testLibraryFragment>::@typeAlias::X
+        M2
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
