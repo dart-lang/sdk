@@ -1802,6 +1802,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitMapLiteralEntry(MapLiteralEntry node) {
     if (offset == node.offset) {
       node.parent?.accept(this);
+    } else if (node.keyQuestion != null && offset == node.key.offset) {
+      // This is the case of the marker standing after the null-aware marker
+      // '?', but before the key expression. It is a place where an expression
+      // is expected.
+      node.parent?.accept(this);
+      collector.completionLocation = 'NullAwareElement_value';
+    } else if (node.valueQuestion != null &&
+        (offset == node.separator.end ||
+            offset == node.valueQuestion!.offset ||
+            offset == node.value.offset)) {
+      // This is the case of the marker standing either before or after the
+      // null-aware marker '?' in the value. It is a place where an expression
+      // is expected.
+      node.parent?.accept(this);
+      collector.completionLocation = 'NullAwareElement_value';
     } else if (offset >= node.separator.end) {
       collector.completionLocation = 'MapLiteralEntry_value';
       declarationHelper(mustBeStatic: node.inStaticContext)
@@ -2043,6 +2058,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       node,
       excludeTypeNames: node.parent?.parent is InstanceCreationExpression,
     );
+  }
+
+  @override
+  void visitNullAwareElement(NullAwareElement node) {
+    collector.completionLocation = 'NullAwareElement_value';
+    _forExpression(node);
   }
 
   @override
