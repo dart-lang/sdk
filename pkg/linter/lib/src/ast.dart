@@ -129,6 +129,12 @@ Element? getWriteOrReadElement(SimpleIdentifier node) {
   return node.staticElement;
 }
 
+/// If the [node] is the finishing identifier of an assignment, return its
+/// "writeElement", otherwise return its "element", which might be
+/// thought as the "readElement".
+Element2? getWriteOrReadElement2(SimpleIdentifier node) =>
+    _getWriteElement2(node) ?? node.element;
+
 bool hasConstantError(Expression node) =>
     node.computeConstantValue().errors.isNotEmpty;
 
@@ -151,7 +157,7 @@ bool isIndex(ClassMember element) => _hasFieldOrMethod(element, 'index');
 /// [package]'s `lib/` directory tree.
 bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  var cuPath = node.declaredElement?.library.source.fullName;
+  var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
   var libDir = path.join(package.root, 'lib');
   return path.isWithin(libDir, cuPath);
@@ -164,7 +170,7 @@ bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
 // TODO(jakemac): move into WorkspacePackage
 bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  var cuPath = node.declaredElement?.library.source.fullName;
+  var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
   var libDir = path.join(package.root, 'lib');
   var binDir = path.join(package.root, 'bin');
@@ -279,16 +285,11 @@ bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
 File? locatePubspecFile(CompilationUnit compilationUnit) {
-  var fullName = compilationUnit.declaredElement?.source.fullName;
-  if (fullName == null) {
-    return null;
-  }
+  var declaredFragment = compilationUnit.declaredFragment;
+  if (declaredFragment == null) return null;
 
-  var resourceProvider =
-      compilationUnit.declaredElement?.session.resourceProvider;
-  if (resourceProvider == null) {
-    return null;
-  }
+  var fullName = declaredFragment.source.fullName;
+  var resourceProvider = declaredFragment.element.session.resourceProvider;
 
   var file = resourceProvider.getFile(fullName);
 
@@ -311,13 +312,13 @@ void visitChildren(Element2 element, ElementProcessor processor) {
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
-    var staticElement = expression.staticElement;
-    if (staticElement is PropertyAccessorElement) {
-      var enclosingElement = getter.declaredElement?.enclosingElement3;
+    var staticElement = expression.element;
+    if (staticElement is GetterElement) {
+      var enclosingElement = getter.declaredFragment?.element.enclosingElement2;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement3 == enclosingElement) {
-        var variable = staticElement.variable2;
+      if (staticElement.enclosingElement2 == enclosingElement) {
+        var variable = staticElement.variable3;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;
         }
@@ -338,8 +339,8 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = expression.leftHandSide;
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = expression.writeElement;
-    if (leftElement is! PropertyAccessorElement || !leftElement.isSynthetic) {
+    var leftElement = expression.writeElement2;
+    if (leftElement is! SetterElement || !leftElement.isSynthetic) {
       return false;
     }
 
@@ -348,14 +349,14 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
       return false;
     }
 
-    var rightElement = rightHandSide.staticElement;
-    if (rightElement is! ParameterElement) {
+    var rightElement = rightHandSide.element;
+    if (rightElement is! FormalParameterElement) {
       return false;
     }
 
     var parameters = setter.parameters?.parameters;
     if (parameters != null && parameters.length == 1) {
-      return rightElement == parameters.first.declaredElement;
+      return rightElement == parameters.first.declaredFragment?.element;
     }
   }
 
@@ -407,6 +408,29 @@ Element? _getWriteElement(AstNode node) {
 
   if (parent is PropertyAccess && parent.propertyName == node) {
     return _getWriteElement(parent);
+  }
+
+  return null;
+}
+
+Element2? _getWriteElement2(AstNode node) {
+  var parent = node.parent;
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.writeElement2;
+  }
+  if (parent is PostfixExpression) {
+    return parent.writeElement2;
+  }
+  if (parent is PrefixExpression) {
+    return parent.writeElement2;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _getWriteElement2(parent);
+  }
+
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _getWriteElement2(parent);
   }
 
   return null;
