@@ -87,6 +87,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -186,6 +188,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::named#element
       typeErasure: int
       fields
         final it
@@ -289,6 +293,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: num
       fields
         final it
@@ -397,6 +403,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: num
       fields
         final it
@@ -530,6 +538,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: num
       fields
         final it
@@ -631,6 +641,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -720,6 +732,8 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       documentationComment: /// Docs
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -813,6 +827,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -906,6 +922,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -995,6 +1013,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -1100,6 +1120,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -1188,6 +1210,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -1294,11 +1318,19 @@ library
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
+      interfaces
+        A
+        B
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
+      representation: <testLibraryFragment>::@extensionType::X::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::X::@constructor::new#element
       typeErasure: C
+      interfaces
+        A
+        B
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
@@ -1396,7 +1428,11 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        B
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1408,7 +1444,11 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
+      interfaces
+        A
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1475,7 +1515,11 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        A
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1571,6 +1615,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: num
       fields
         final it
@@ -1583,7 +1629,11 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
+      interfaces
+        A
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1650,7 +1700,11 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        num
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1715,6 +1769,8 @@ library
     extension type X
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
+      representation: <testLibraryFragment>::@extensionType::X::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::X::@constructor::new#element
       typeErasure: int?
       fields
         final it
@@ -1788,6 +1844,8 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: T
       fields
         final it
@@ -1864,7 +1922,11 @@ library
     extension type X
       reference: <testLibrary>::@extensionType::X
       firstFragment: <testLibraryFragment>::@extensionType::X
+      representation: <testLibraryFragment>::@extensionType::X::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::X::@constructor::new#element
       typeErasure: int
+      interfaces
+        num
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::X::@field::it
@@ -1970,6 +2032,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::_it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int?
       fields
         final _it
@@ -2076,6 +2140,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2164,6 +2230,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2258,6 +2326,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2330,6 +2400,8 @@ library
     extension type 
       reference: <testLibrary>::@extensionType::0
       firstFragment: <testLibraryFragment>::@extensionType::0
+      representation: <testLibraryFragment>::@extensionType::0::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::0::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2420,6 +2492,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: InvalidType
       fields
         final <empty>
@@ -2501,6 +2575,8 @@ library
       typeParameters
         T
           bound: A<dynamic>
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2590,6 +2666,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2695,6 +2773,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: InvalidType
       fields
         final it
@@ -2707,6 +2787,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: InvalidType
       fields
         final it
@@ -2802,6 +2884,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: InvalidType
       fields
         final it
@@ -2814,6 +2898,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: InvalidType
       fields
         final it
@@ -2879,6 +2965,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: InvalidType
       fields
         final it
@@ -2974,6 +3062,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -2986,6 +3076,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int Function(int)
       fields
         final it
@@ -3089,6 +3181,8 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: T
       fields
         final it
@@ -3101,6 +3195,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: double
       fields
         final it
@@ -3196,6 +3292,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -3208,6 +3306,8 @@ library
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: List<int>
       fields
         final it
@@ -3273,6 +3373,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -3367,6 +3469,8 @@ library
         T
           bound: num
         U
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: Map<T, U>
       fields
         final it
@@ -3524,6 +3628,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -3690,6 +3796,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
+      representation: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new#element
       typeErasure: int
       fields
         final it
@@ -3830,6 +3938,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -3989,6 +4099,8 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T1
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -4129,6 +4241,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::named#element
       typeErasure: int
       fields
         final it
@@ -4317,6 +4431,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -4561,6 +4677,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -4805,6 +4923,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -5055,6 +5175,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -5254,6 +5376,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -5435,6 +5559,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -5657,6 +5783,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -5858,6 +5986,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -6064,6 +6194,8 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T1
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -6262,6 +6394,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -6506,6 +6640,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -6707,6 +6843,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -6930,6 +7068,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7106,7 +7246,12 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        I1
+        I2
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -7118,6 +7263,8 @@ library
     extension type I1
       reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
+      representation: <testLibraryFragment>::@extensionType::I1::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7130,6 +7277,8 @@ library
     extension type I2
       reference: <testLibrary>::@extensionType::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+      representation: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7416,7 +7565,13 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        I1
+        I2
+        I3
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -7434,6 +7589,8 @@ library
     extension type I1
       reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
+      representation: <testLibraryFragment>::@extensionType::I1::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7452,6 +7609,8 @@ library
     extension type I2
       reference: <testLibrary>::@extensionType::I2
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
+      representation: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7470,6 +7629,8 @@ library
     extension type I3
       reference: <testLibrary>::@extensionType::I3
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3
+      representation: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7706,7 +7867,12 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        I1
+        I2<T>
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -7724,6 +7890,8 @@ library
     extension type I1
       reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
+      representation: <testLibraryFragment>::@extensionType::I1::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7744,6 +7912,8 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeParameters
         E
+      representation: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -7983,7 +8153,11 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
+      interfaces
+        I1
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -8001,6 +8175,8 @@ library
     extension type I1
       reference: <testLibrary>::@extensionType::I1
       firstFragment: <testLibraryFragment>::@extensionType::I1
+      representation: <testLibraryFragment>::@extensionType::I1::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -8021,6 +8197,8 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2
       typeParameters
         E
+      representation: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -8167,6 +8345,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -8330,6 +8510,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -8528,6 +8710,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -8693,6 +8877,8 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -8863,6 +9049,8 @@ library
       firstFragment: <testLibraryFragment>::@extensionType::A
       typeParameters
         T
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9032,6 +9220,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9226,6 +9416,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9437,6 +9629,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9657,6 +9851,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9809,6 +10005,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9954,6 +10152,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A::@def::0
       firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       fields
         final it
@@ -9966,6 +10166,8 @@ library
     extension type A
       reference: <testLibrary>::@extensionType::A::@def::1
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
+      representation: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@field::it#element
+      primaryConstructor: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new#element
       typeErasure: int
       fields
         final it

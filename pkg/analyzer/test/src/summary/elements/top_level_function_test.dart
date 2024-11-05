@@ -1534,6 +1534,8 @@ library
       reference: <testLibrary>::@class::main
       firstFragment: <testLibraryFragment>::@class::main
       supertype: C
+      mixins
+        D
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::main::@constructor::new

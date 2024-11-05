@@ -6,24 +6,9 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/// Parses [optionsMap] into [RuleConfig]s mapped from their names, returning
-/// them, or `null` if [optionsMap] does not have `linter` map.
-Map<String, RuleConfig>? parseLinterSection(YamlMap optionsMap) {
-  var options = optionsMap.valueAt('linter');
-  // Quick check of basic contract.
-  if (options is YamlMap) {
-    var rulesNode = options.valueAt(AnalyzerOptions.rules);
-    return {
-      if (rulesNode != null) ...parseRulesSection(rulesNode),
-    };
-  }
-
-  return null;
-}
-
 /// Returns the [RuleConfig]s that are parsed from [value], which can be either
 /// a YAML list or a YAML map, mapped from each rule's name.
-Map<String, RuleConfig> parseRulesSection(YamlNode value) {
+Map<String, RuleConfig> parseDiagnosticsSection(YamlNode value) {
   // For example:
   //
   // ```yaml
@@ -72,6 +57,21 @@ Map<String, RuleConfig> parseRulesSection(YamlNode value) {
   return ruleConfigs;
 }
 
+/// Parses [optionsMap] into [RuleConfig]s mapped from their names, returning
+/// them, or `null` if [optionsMap] does not have `linter` map.
+Map<String, RuleConfig>? parseLinterSection(YamlMap optionsMap) {
+  var options = optionsMap.valueAt('linter');
+  // Quick check of basic contract.
+  if (options is YamlMap) {
+    var rulesNode = options.valueAt(AnalyzerOptions.rules);
+    return {
+      if (rulesNode != null) ...parseDiagnosticsSection(rulesNode),
+    };
+  }
+
+  return null;
+}
+
 RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
     {String? group}) {
   // For example: `{unnecessary_getters: false}`.
@@ -83,6 +83,15 @@ RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
 
   return null;
 }
+
+/// An alias for a [RuleConfig], but which is configured under a 'diagnostics'
+/// key in an analysis options file.
+///
+/// In an analyzer plugin, diagnostics are enabled and disabled via their name.
+/// (For the built-in lint diagnostics, which are configured in an analysis
+/// options file's top-level 'linter' key, diagnostics are enabled and disabled
+/// via the name of the lint rule that reports the diagnostic.)
+typedef DiagnosticConfig = RuleConfig;
 
 /// The configuration of a single analysis rule within an analysis options file.
 class RuleConfig {

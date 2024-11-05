@@ -257,7 +257,8 @@ class PluginServer {
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
       // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
-      var rules = Registry.ruleRegistry.enabled(configuration.ruleConfigs);
+      var rules =
+          Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
       for (var rule in rules) {
         rule.reporter = errorReporter;
         var timer = enableTiming ? analysisRuleTimers.getTimer(rule) : null;

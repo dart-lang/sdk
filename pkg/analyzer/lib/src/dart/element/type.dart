@@ -200,20 +200,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       };
 
   @override
-  List<String> get normalParameterNames => parameters
-      .where((p) => p.isRequiredPositional)
-      .map((p) => p.name)
-      .toList();
-
-  @override
   List<DartType> get normalParameterTypes =>
       positionalParameterTypes.sublist(0, requiredPositionalParameterCount);
-
-  @override
-  List<String> get optionalParameterNames => parameters
-      .where((p) => p.isOptionalPositional)
-      .map((p) => p.name)
-      .toList();
 
   @override
   List<DartType> get optionalParameterTypes =>

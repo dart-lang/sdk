@@ -79,15 +79,15 @@ final class PluginConfiguration {
   /// The name of the plugin being configured.
   final String name;
 
-  /// The list of specified [RuleConfig]s.
-  final Map<String, RuleConfig> ruleConfigs;
+  /// The list of specified [DiagnosticConfig]s.
+  final Map<String, DiagnosticConfig> diagnosticConfigs;
 
   /// Whether the plugin is enabled.
   final bool isEnabled;
 
   PluginConfiguration({
     required this.name,
-    required this.ruleConfigs,
+    required this.diagnosticConfigs,
     required this.isEnabled,
   });
 }

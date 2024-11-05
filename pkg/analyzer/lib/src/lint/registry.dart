@@ -48,8 +48,9 @@ class Registry with IterableMixin<AnalysisRule> {
   ///
   /// enables `my_rule`.
   Iterable<AnalysisRule> enabled(Map<String, RuleConfig> ruleConfigs) => [
-        // All warning rules (which cannot be disabled).
-        ..._warningRules.values,
+        // All warning rules that haven't explicitly been disabled.
+        ..._warningRules.values
+            .where((rule) => ruleConfigs[rule.name]?.isEnabled ?? true),
         // All lint rules that have explicitly been enabled.
         ..._lintRules.values
             .where((rule) => ruleConfigs[rule.name]?.isEnabled ?? false),

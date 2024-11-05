@@ -283,6 +283,9 @@ class AnalyzerOptions {
   // Linter options.
   static const String rules = 'rules';
 
+  /// Plugin options.
+  static const String diagnostics = 'diagnostics';
+
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 
   /// Ways to say `true` or `false`.

@@ -1056,6 +1056,7 @@
     },
     {
       "builders": [
+        "vm-linux-debug-simriscv32",
         "vm-linux-debug-simriscv64",
         "vm-linux-debug-x64c",
         "vm-linux-release-simarm",
@@ -1152,6 +1153,7 @@
     },
     {
       "builders": [
+        "vm-aot-linux-debug-simriscv32",
         "vm-aot-linux-debug-simriscv64",
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
