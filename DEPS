@@ -120,13 +120,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "bazel_worker_rev": "7d36032df76891b84500e548f8c518cb217aa3ef",
-  "benchmark_harness_rev": "ccdb583e38a440b8caf749be5a4c96d0da53ffbe",
-  "browser_launcher_rev": "f9b48d2e5de3721c939dbd65cedbffda5a74dc99",
-  "cli_util_rev": "6a61e53ba1a9f200becaaa7210ac0d7ec3e8aef9",
-  "clock_rev": "8dfee808c53302269c62954726d0db049f53bbc6",
   "core_rev": "4b6279294026f71697f28d4958a7c7a6fdb991e1",
-  "csslib_rev": "3cfa58c32314c3129bb376a4bf55ebdf04106f25",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -142,11 +136,9 @@ vars = {
   "ecosystem_rev": "52e4ceb6f0715bab5c47495429c4a2b7ce708a66",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "b6319d6c2880b44039e75dfed80f7ce150f76d51",
-  "html_rev": "929b6de1ba53772205413d5329c9a90f1159cde5",
   "http_rev": "8db0d0ae3e8dece7cf56c025e30ecb1082cf9c5d",
   "http_multi_server_rev": "c8aabe36268aa38c906eae46728c10d883b9aced",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
-  "json_rpc_2_rev": "cd94cefbe3deda854c85f3df2795148fad020930",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "f72e5ce9b4bc6550ecb3437cb50c8a0c9f00fe18",
   "markdown_rev": "776689c8749ebddd4ea0ec899085bd2aae0e25ba",
@@ -365,21 +357,8 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
-  Var("dart_root") + "/third_party/pkg/bazel_worker":
-      Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_rev"),
-  Var("dart_root") + "/third_party/pkg/benchmark_harness":
-      Var("dart_git") + "benchmark_harness.git" + "@" +
-      Var("benchmark_harness_rev"),
-  Var("dart_root") + "/third_party/pkg/browser_launcher":
-      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
-  Var("dart_root") + "/third_party/pkg/cli_util":
-      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
-  Var("dart_root") + "/third_party/pkg/clock":
-      Var("dart_git") + "clock.git" + "@" + Var("clock_rev"),
   Var("dart_root") + "/third_party/pkg/core":
       Var("dart_git") + "core.git" + "@" + Var("core_rev"),
-  Var("dart_root") + "/third_party/pkg/csslib":
-      Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
@@ -392,8 +371,7 @@ deps = {
   },
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_rev"),
-  Var("dart_root") + "/third_party/pkg/html":
-      Var("dart_git") + "html.git" + "@" + Var("html_rev"),
+
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
@@ -401,8 +379,6 @@ deps = {
       "@" + Var("http_multi_server_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
       Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
-  Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      Var("dart_git") + "json_rpc_2.git" + "@" + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/lints":
