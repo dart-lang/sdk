@@ -283,7 +283,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   final VersionConstraint? sourceLanguageConstraint =
       VersionConstraint.parse('>= 2.12.0');
 
-  ExperimentStatus _contextFeatures = ExperimentStatus();
+  ExperimentStatus _contextFeatures;
 
   /// The language version to use for libraries that are not in a package.
   ///
@@ -497,6 +497,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addInt(enabledLegacyPluginNames.length);
       for (var enabledLegacyPluginName in enabledLegacyPluginNames) {
         buffer.addString(enabledLegacyPluginName);
+      }
+
+      // Append plugin configurations.
+      buffer.addInt(pluginConfigurations.length);
+      for (var pluginConfiguration in pluginConfigurations) {
+        buffer.addString(pluginConfiguration.name);
+        buffer.addBool(pluginConfiguration.isEnabled);
+        buffer.addInt(pluginConfiguration.diagnosticConfigs.length);
+        for (var diagnosticConfig
+            in pluginConfiguration.diagnosticConfigs.values) {
+          buffer.addString(diagnosticConfig.group ?? '');
+          buffer.addString(diagnosticConfig.name);
+          buffer.addBool(diagnosticConfig.isEnabled);
+        }
       }
 
       // Hash and convert to Uint32List.
