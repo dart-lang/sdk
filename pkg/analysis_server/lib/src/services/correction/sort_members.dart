@@ -17,18 +17,19 @@ class MemberSorter {
 
   final CompilationUnit unit;
 
-  final CodeStyleOptions codeStyle;
-
   final LineInfo lineInfo;
+
+  final String endOfLine;
+
+  final List<_PriorityItem> _priorityItems;
 
   String code;
 
-  String endOfLine = '\n';
-
-  MemberSorter(this.initialCode, this.unit, this.codeStyle, this.lineInfo)
-      : code = initialCode {
-    endOfLine = getEOL(code);
-  }
+  MemberSorter(
+      this.initialCode, this.unit, CodeStyleOptions codeStyle, this.lineInfo)
+      : endOfLine = getEOL(initialCode),
+        code = initialCode,
+        _priorityItems = _getPriorityItems(codeStyle);
 
   /// Return the [SourceEdit]s that sort [unit].
   List<SourceEdit> sort() {
@@ -48,13 +49,12 @@ class MemberSorter {
   }
 
   int _getPriority(_PriorityItem item) {
-    var priorityItems = _getPriorityItems(codeStyle);
-    var priority = priorityItems.indexOf(item);
+    var priority = _priorityItems.indexOf(item);
     return priority != -1 ? priority : 0;
   }
 
   List<_MemberInfo> _getSortedMembers(List<_MemberInfo> members) {
-    var membersSorted = List<_MemberInfo>.from(members);
+    var membersSorted = List.of(members);
     membersSorted.sort((_MemberInfo o1, _MemberInfo o2) {
       var priority1 = _getPriority(o1.item);
       var priority2 = _getPriority(o2.item);
@@ -302,28 +302,21 @@ class _MemberInfo {
   }
 }
 
-class _MemberKind {
-  static const CLASS_ACCESSOR = _MemberKind('CLASS_ACCESSOR');
-  static const CLASS_CONSTRUCTOR = _MemberKind('CLASS_CONSTRUCTOR');
-  static const CLASS_FIELD = _MemberKind('CLASS_FIELD');
-  static const CLASS_METHOD = _MemberKind('CLASS_METHOD');
-  static const UNIT_ACCESSOR = _MemberKind('UNIT_ACCESSOR');
-  static const UNIT_CLASS = _MemberKind('UNIT_CLASS');
-  static const UNIT_EXTENSION = _MemberKind('UNIT_EXTENSION');
-  static const UNIT_EXTENSION_TYPE = _MemberKind('UNIT_EXTENSION_TYPE');
-  static const UNIT_FUNCTION = _MemberKind('UNIT_FUNCTION');
-  static const UNIT_FUNCTION_MAIN = _MemberKind('UNIT_FUNCTION_MAIN');
-  static const UNIT_FUNCTION_TYPE = _MemberKind('UNIT_FUNCTION_TYPE');
-  static const UNIT_GENERIC_TYPE_ALIAS = _MemberKind('UNIT_GENERIC_TYPE_ALIAS');
-  static const UNIT_VARIABLE = _MemberKind('UNIT_VARIABLE');
-  static const UNIT_VARIABLE_CONST = _MemberKind('UNIT_VARIABLE_CONST');
-
-  final String name;
-
-  const _MemberKind(this.name);
-
-  @override
-  String toString() => name;
+enum _MemberKind {
+  CLASS_ACCESSOR,
+  CLASS_CONSTRUCTOR,
+  CLASS_FIELD,
+  CLASS_METHOD,
+  UNIT_ACCESSOR,
+  UNIT_CLASS,
+  UNIT_EXTENSION,
+  UNIT_EXTENSION_TYPE,
+  UNIT_FUNCTION,
+  UNIT_FUNCTION_MAIN,
+  UNIT_FUNCTION_TYPE,
+  UNIT_GENERIC_TYPE_ALIAS,
+  UNIT_VARIABLE,
+  UNIT_VARIABLE_CONST,
 }
 
 class _PriorityItem {
