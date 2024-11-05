@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/util/comment.dart';
+
 /// Information about the directives found in Dartdoc comments.
 class DartdocDirectiveInfo {
   // TODO(brianwilkerson): Consider moving the method
@@ -32,13 +35,17 @@ class DartdocDirectiveInfo {
   /// Initialize a newly created set of information about Dartdoc directives.
   DartdocDirectiveInfo();
 
+  void addTemplate(String name, String value) {
+    templateMap[name] = value;
+  }
+
   /// Add corresponding pairs from the [names] and [values] to the set of
   /// defined templates.
   void addTemplateNamesAndValues(List<String> names, List<String> values) {
     int length = names.length;
     assert(length == values.length);
     for (int i = 0; i < length; i++) {
-      templateMap[names[i]] = values[i];
+      addTemplate(names[i], values[i]);
     }
   }
 
@@ -182,6 +189,41 @@ class DartdocDirectiveInfo {
       return const <String>[];
     }
     return lines.sublist(firstNonEmpty, lastNonEmpty + 1);
+  }
+
+  static DartdocDirectiveInfo extractFromUnit(CompilationUnit unit) {
+    var result = DartdocDirectiveInfo();
+
+    for (var directive in unit.directives) {
+      var comment = directive.documentationComment;
+      var rawText = getCommentNodeRawText(comment);
+      result.extractTemplate(rawText);
+    }
+
+    for (var declaration in unit.declarations) {
+      var comment = declaration.documentationComment;
+      var rawText = getCommentNodeRawText(comment);
+      result.extractTemplate(rawText);
+
+      var members = switch (declaration) {
+        ClassDeclaration() => declaration.members,
+        EnumDeclaration() => [...declaration.members, ...declaration.constants],
+        MixinDeclaration() => declaration.members,
+        ExtensionDeclaration() => declaration.members,
+        ExtensionTypeDeclaration() => declaration.members,
+        _ => null,
+      };
+
+      if (members != null) {
+        for (var member in members) {
+          var comment = member.documentationComment;
+          var rawText = getCommentNodeRawText(comment);
+          result.extractTemplate(rawText);
+        }
+      }
+    }
+
+    return result;
   }
 }
 

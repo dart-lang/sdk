@@ -27,4 +27,5 @@ dev_dependencies:
   http: any
   lints: any
   test: any
+  test_descriptor: any
   test_reflective_loader: any

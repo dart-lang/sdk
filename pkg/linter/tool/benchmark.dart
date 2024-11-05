@@ -26,6 +26,9 @@ Future<void> main(List<String> args) async {
   await runLinter(args);
 }
 
+// Number of times to perform linting to get stable benchmarks.
+const benchmarkRuns = 10;
+
 const loggedAnalyzerErrorExitCode = 63;
 
 const unableToProcessExitCode = 64;

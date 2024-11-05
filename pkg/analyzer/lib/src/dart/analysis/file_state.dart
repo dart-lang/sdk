@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
@@ -746,6 +747,13 @@ class FileState {
 
     _prefetchDirectReferences();
 
+    for (var template in unlinked2.dartdocTemplates) {
+      _fsState.dartdocDirectiveInfo.addTemplate(
+        template.name,
+        template.value,
+      );
+    }
+
     // Prepare API signature.
     var newApiSignature = _unlinked2!.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&
@@ -1129,6 +1137,15 @@ class FileState {
       }
     }
 
+    var dartdocDirectiveInfo = DartdocDirectiveInfo.extractFromUnit(unit);
+    var dartdocTemplates =
+        dartdocDirectiveInfo.templateMap.entries.map((entry) {
+      return UnlinkedDartdocTemplate(
+        name: entry.key,
+        value: entry.value,
+      );
+    }).toList();
+
     var apiSignature = performance.run('apiSignature', (performance) {
       var signatureBuilder = ApiSignature();
       signatureBuilder.addBytes(computeUnlinkedApiSignature(unit));
@@ -1150,6 +1167,7 @@ class FileState {
       partOfNameDirective: partOfNameDirective,
       partOfUriDirective: partOfUriDirective,
       topLevelDeclarations: topLevelDeclarations,
+      dartdocTemplates: dartdocTemplates,
     );
   }
 
@@ -1317,6 +1335,9 @@ class FileSystemState {
 
   final FileContentStrategy fileContentStrategy;
   final UnlinkedUnitStore unlinkedUnitStore;
+
+  /// The dartdoc directives in this context.
+  final DartdocDirectiveInfo dartdocDirectiveInfo = DartdocDirectiveInfo();
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.

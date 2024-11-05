@@ -130,6 +130,30 @@ abstract class UnlinkedConfigurableUriDirective {
   });
 }
 
+class UnlinkedDartdocTemplate {
+  final String name;
+  final String value;
+
+  UnlinkedDartdocTemplate({
+    required this.name,
+    required this.value,
+  });
+
+  factory UnlinkedDartdocTemplate.read(
+    SummaryDataReader reader,
+  ) {
+    return UnlinkedDartdocTemplate(
+      name: reader.readStringUtf8(),
+      value: reader.readStringUtf8(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(name);
+    sink.writeStringUtf8(value);
+  }
+}
+
 class UnlinkedLibraryDirective {
   /// `@docImport` directives in the doc comment.
   final List<UnlinkedLibraryImportDirective> docImports;
@@ -531,6 +555,9 @@ class UnlinkedUnit {
   /// Top-level declarations of the unit.
   final Set<String> topLevelDeclarations;
 
+  /// The Dartdoc templates of the unit.
+  final List<UnlinkedDartdocTemplate> dartdocTemplates;
+
   UnlinkedUnit({
     required this.apiSignature,
     required this.exports,
@@ -545,6 +572,7 @@ class UnlinkedUnit {
     required this.partOfNameDirective,
     required this.partOfUriDirective,
     required this.topLevelDeclarations,
+    required this.dartdocTemplates,
   });
 
   factory UnlinkedUnit.read(SummaryDataReader reader) {
@@ -576,6 +604,9 @@ class UnlinkedUnit {
         UnlinkedPartOfUriDirective.read,
       ),
       topLevelDeclarations: reader.readStringUtf8Set(),
+      dartdocTemplates: reader.readTypedList(
+        () => UnlinkedDartdocTemplate.read(reader),
+      ),
     );
   }
 
@@ -610,5 +641,8 @@ class UnlinkedUnit {
       (x) => x.write(sink),
     );
     sink.writeStringUtf8Iterable(topLevelDeclarations);
+    sink.writeList(dartdocTemplates, (x) {
+      x.write(sink);
+    });
   }
 }

@@ -1286,8 +1286,8 @@ class Interface {
   /// The map of names to their signature in the interface.
   @experimental
   Map<Name, ExecutableElement2> get map2 {
-    return map.map((name, element) =>
-        MapEntry(name, (element as ExecutableFragment).element));
+    return map
+        .map((name, element) => MapEntry(name, element.asExecutableElement2));
   }
 
   /// Return `true` if the [name] is implemented in the supertype.

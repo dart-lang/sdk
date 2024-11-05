@@ -4215,8 +4215,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @experimental
   @override
-  ConstructorFragment? get declaredFragment =>
-      declaredElement as ConstructorFragment;
+  ConstructorElementImpl? get declaredFragment =>
+      declaredElement as ConstructorElementImpl;
 
   @override
   Token get endToken {
@@ -11336,26 +11336,6 @@ sealed class Literal implements Expression {}
 sealed class LiteralImpl extends ExpressionImpl implements Literal {
   @override
   Precedence get precedence => Precedence.primary;
-}
-
-// TODO(scheglov): parse into actual `LocalFunctionDeclarationImpl`.
-class LocalFunctionDeclarationView {
-  final FunctionDeclarationImpl declaration;
-
-  LocalFunctionDeclarationView(this.declaration);
-
-  LocalFunctionElement? get declaredElement {
-    return declaration.declaredFragment?.element as LocalFunctionElement;
-  }
-
-  static LocalFunctionDeclarationView? of(AstNode declaration) {
-    if (declaration is FunctionDeclarationImpl) {
-      if (declaration.parent is FunctionDeclarationStatement) {
-        return LocalFunctionDeclarationView(declaration);
-      }
-    }
-    return null;
-  }
 }
 
 /// Additional information about local variables within a function or method

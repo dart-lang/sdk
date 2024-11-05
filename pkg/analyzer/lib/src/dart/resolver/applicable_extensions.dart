@@ -11,8 +11,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 
 class InstantiatedExtensionWithMember {
@@ -26,8 +26,8 @@ class InstantiatedExtensionWithMember {
     this.extendedType,
   );
 
-  ResolutionResult get asResolutionResult {
-    return ResolutionResult(getter: getter, setter: setter);
+  ExtensionResolutionResult get asResolutionResult {
+    return SingleExtensionResolutionResult(getter: getter, setter: setter);
   }
 
   ExtensionElement get extension => candidate.extension;

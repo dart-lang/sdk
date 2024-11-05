@@ -147,6 +147,16 @@ class C {
 ''');
   }
 
+  test_class_withGenericSuper() async {
+    // https://github.com/dart-lang/sdk/issues/57022
+    await assertNoDiagnostics(r'''
+class A<T> {
+  void m() {}
+}
+class C extends A<Object> { }
+''');
+  }
+
   test_class_withInstanceField() async {
     await assertNoDiagnostics(r'''
 class C {

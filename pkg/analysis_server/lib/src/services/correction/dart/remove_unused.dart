@@ -40,9 +40,7 @@ class RemoveUnusedElement extends _RemoveUnused {
     }
 
     Element2? element;
-    if (LocalFunctionDeclarationView.of(node) case var localFunction?) {
-      element = localFunction.declaredElement;
-    } else if (node is FragmentDeclaration) {
+    if (node is FragmentDeclaration) {
       element = node.declaredFragment?.element;
     }
     if (element == null) {

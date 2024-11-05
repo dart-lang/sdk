@@ -153,6 +153,18 @@ void f(ClassDeclaration a) {
     ]);
   }
 
+  test_propertyAccess_declaredElement_src() async {
+    await assertDiagnostics(r'''
+import 'package:analyzer/src/dart/ast/ast.dart';
+
+void f(ClassDeclarationImpl a) {
+  a.declaredElement;
+}
+''', [
+      lint(87, 15),
+    ]);
+  }
+
   test_propertyAccess_nestedType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:analyzer/dart/element/element.dart';

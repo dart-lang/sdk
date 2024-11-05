@@ -49,7 +49,9 @@ class PropertyElementResolver with ScopeHelpers {
       var result = _extensionResolver.getOverrideMember(target, '[]');
 
       // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
-      if (hasRead && result.getter == null && !result.isAmbiguous) {
+      if (hasRead &&
+          result.getter == null &&
+          result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
         _reportUnresolvedIndex(
@@ -59,7 +61,9 @@ class PropertyElementResolver with ScopeHelpers {
         );
       }
 
-      if (hasWrite && result.setter == null && !result.isAmbiguous) {
+      if (hasWrite &&
+          result.setter == null &&
+          result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
         _reportUnresolvedIndex(
@@ -889,7 +893,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _toIndexResult(
-    ResolutionResult result, {
+    SimpleResolutionResult result, {
     required bool atDynamicTarget,
     required bool hasRead,
     required bool hasWrite,
