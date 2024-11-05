@@ -10,11 +10,11 @@ distinguish between three kinds of code editing features:
 
 - a [quick assist](quick_assist.md) is a code edit that is both local in scope
   and doesn't require any user input. They are available when the selection is
-  within the assist's [available range][].
+  within the assist's [available range](#choosing-an-available-range).
 
 - a [refactoring]() is a code edit that is either non-local in scope or that
   requires user input. They are available when the selection is within the
-  assist's [available range][].
+  assist's [available range](#choosing-an-available-range).
 
 ## Scope
 
