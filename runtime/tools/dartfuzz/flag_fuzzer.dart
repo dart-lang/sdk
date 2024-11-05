@@ -183,7 +183,7 @@ test(int taskIndex) async {
         "out/dartfuzz/$taskIndex.dill",
       ],
       [
-        "$buildDir/dartaotruntime",
+        "$buildDir/dart_precompiled_runtime",
         "--profiler", // Off by default unless VM service enabled
         ...someOf(profilerFlags),
         ...someOf(gcFlags),

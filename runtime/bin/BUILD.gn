@@ -903,21 +903,15 @@ dart_executable("dart") {
   }
 }
 
-# This rule is here to ensure benchmark suites do not break, it can be
-# removed once the benchmark suites are updated.
-group("dart_precompiled_runtime") {
-  deps = [ ":dartaotruntime" ]
-}
-
-dart_executable("dartaotruntime") {
+dart_executable("dart_precompiled_runtime") {
   extra_configs = [
-    "..:dart_aotruntime_config",
+    "..:dart_precompiled_runtime_config",
     "..:add_empty_macho_section_config",
   ]
   extra_deps = [
     ":icudtl_cc",
-    "..:libdart_aotruntime",
-    "../platform:libdart_platform_aotruntime",
+    "..:libdart_precompiled_runtime",
+    "../platform:libdart_platform_precompiled_runtime",
   ]
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
@@ -950,15 +944,15 @@ dart_executable("dartaotruntime") {
   }
 }
 
-dart_executable("dartaotruntime_product") {
+dart_executable("dart_precompiled_runtime_product") {
   use_product_mode = true
   extra_configs = [
-    "..:dart_aotruntime_config",
+    "..:dart_precompiled_runtime_config",
     "..:add_empty_macho_section_config",
   ]
   extra_deps = [
-    "..:libdart_aotruntime_product",
-    "../platform:libdart_platform_aotruntime_product",
+    "..:libdart_precompiled_runtime_product",
+    "../platform:libdart_platform_precompiled_runtime_product",
   ]
   extra_sources = [
     "builtin.cc",
@@ -984,17 +978,17 @@ dart_executable("dartaotruntime_product") {
 if (build_analyze_snapshot) {
   dart_executable("analyze_snapshot") {
     use_product_mode = dart_runtime_mode == "release"
-    extra_configs = [ "..:dart_aotruntime_config" ]
+    extra_configs = [ "..:dart_precompiled_runtime_config" ]
 
     if (use_product_mode) {
       extra_deps = [
-        "..:libdart_aotruntime_product",
-        "../platform:libdart_platform_aotruntime_product",
+        "..:libdart_precompiled_runtime_product",
+        "../platform:libdart_platform_precompiled_runtime_product",
       ]
     } else {
       extra_deps = [
-        "..:libdart_aotruntime",
-        "../platform:libdart_platform_aotruntime",
+        "..:libdart_precompiled_runtime",
+        "../platform:libdart_platform_precompiled_runtime",
       ]
     }
 

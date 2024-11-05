@@ -54,8 +54,8 @@ class Sdk {
       ? path.absolute(
           sdkPath,
           Platform.isWindows
-              ? 'dartaotruntime_product.exe'
-              : 'dartaotruntime_product',
+              ? 'dart_precompiled_runtime_product.exe'
+              : 'dart_precompiled_runtime_product',
         )
       : path.absolute(
           sdkPath,
