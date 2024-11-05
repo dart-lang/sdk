@@ -53,6 +53,7 @@ import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_declaration_test.dart' as mixin_declaration;
 import 'named_expression_test.dart' as named_expression;
 import 'named_type_test.dart' as named_type;
+import 'null_aware_element_test.dart' as null_aware_element;
 import 'object_pattern_test.dart' as object_pattern;
 import 'parameter_list_test.dart' as parameter_list;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
@@ -133,6 +134,7 @@ void main() {
     mixin_declaration.main();
     named_expression.main();
     named_type.main();
+    null_aware_element.main();
     object_pattern.main();
     parameter_list.main();
     parenthesized_pattern.main();

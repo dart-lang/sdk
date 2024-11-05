@@ -525,7 +525,7 @@ class CollectReportPage extends DiagnosticPage {
 
       var isolateData = [];
       collectedData['isolates'] = isolateData;
-      var isolates = vm.isolates ?? [];
+      var isolates = [...?vm.isolates, ...?vm.systemIsolates];
       for (var isolate in isolates) {
         String? id = isolate.id;
         if (id == null) continue;
