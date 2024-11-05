@@ -71,7 +71,7 @@ class DartUnitHoverComputer {
         if (_useNonSyntheticElement(element)) {
           element = element.nonSynthetic;
         }
-        // description
+        // short code that illustrates the element meaning.
         hover.elementDescription = _elementDisplayString(node, element);
         hover.elementKind = element.kind.displayName;
         hover.isDeprecated = element.hasDeprecated;

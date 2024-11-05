@@ -282,7 +282,7 @@ import 'dart:core' as [!l^ib!];
 ''';
     var expected = '''
 ```dart
-'lib' is an import prefix for 'dart:core'
+import 'dart:core' as lib;
 ```
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -296,7 +296,7 @@ const bug = 'bug';
 ''';
     var expected = '''
 ```dart
-'lib' is an import prefix for '<no-relative-uri>'
+import '<unknown>' as lib;
 ```
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -313,9 +313,8 @@ import 'lib.dart' as [!l^ib!];
 ''';
     var expected = '''
 ```dart
-'lib' is an import prefix for:
-- 'dart:math'
-- 'lib.dart'
+import 'dart:math' as lib;
+import 'lib.dart' as lib;
 ```
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -331,7 +330,7 @@ import 'package:test/lib.dart' as [!l^ib!];
 ''';
     var expected = '''
 ```dart
-'lib' is an import prefix for 'package:test/lib.dart'
+import 'package:test/lib.dart' as lib;
 ```
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -345,7 +344,7 @@ import 'lib.dart' as [!l^ib!];
 ''';
     var expected = '''
 ```dart
-'lib' is an import prefix for 'lib.dart'
+import 'lib.dart' as lib;
 ```
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
@@ -363,7 +362,7 @@ import 'lib.dart' as lib;
 ''';
     var expected = '''
 ```dart
-'lib' is an import prefix for 'lib.dart'
+import 'lib.dart' as lib;
 ```
 *package:test/main.dart*''';
     await assertStringContents(content, equals(expected));
