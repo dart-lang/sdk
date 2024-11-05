@@ -2154,6 +2154,27 @@ main() {
       ]);
     });
 
+    test('postIncDec() does not store expressionInfo in the write', () {
+      // num x;
+      // if (x++ is int) {
+      //   x is not promoted.
+      // }
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num'),
+        if_(
+            x
+                .postIncDec()
+                .is_('int')
+                .getExpressionInfo((info) => expect(info, isNull)),
+            [
+              checkNotPromoted(x),
+            ]),
+        checkNotPromoted(x),
+      ]);
+    });
+
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [
