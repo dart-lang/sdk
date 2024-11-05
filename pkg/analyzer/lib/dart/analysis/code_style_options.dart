@@ -19,6 +19,9 @@ abstract class CodeStyleOptions {
   /// Whether local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 
+  /// Whether `prefer_const_declarations` is enabled.
+  bool get preferConstDeclarations;
+
   /// Whether `prefer_int_literals` is enabled.
   bool get preferIntLiterals;
 
