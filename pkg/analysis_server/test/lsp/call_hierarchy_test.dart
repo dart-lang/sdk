@@ -94,6 +94,162 @@ class Bar {
     );
   }
 
+  Future<void> test_constructorFromNullAwareElementInList() async {
+    var code = TestCode.parse('''
+class Foo {
+  Fo^o();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = <Object>[?Foo()];
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+                otherCode, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [
+            rangeOfString(otherCode, 'Foo'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_constructorFromNullAwareElementInMapKey() async {
+    var code = TestCode.parse('''
+class Foo {
+  Fo^o();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = <Object, String>{?Foo(): ""};
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+                otherCode, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [
+            rangeOfString(otherCode, 'Foo'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_constructorFromNullAwareElementInMapValue() async {
+    var code = TestCode.parse('''
+class Foo {
+  Fo^o();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = <String, Object>{"": ?Foo()};
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+                otherCode, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [
+            rangeOfString(otherCode, 'Foo'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_constructorFromNullAwareElementInSet() async {
+    var code = TestCode.parse('''
+class Foo {
+  Fo^o();
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = <Object>{?Foo()};
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+                otherCode, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [
+            rangeOfString(otherCode, 'Foo'),
+          ],
+        ),
+      ],
+    );
+  }
+
   Future<void> test_function() async {
     var code = TestCode.parse('''
 void fo^o() {}
@@ -430,6 +586,150 @@ void bar() {}
             kind: SymbolKind.Function,
             uri: otherFileUri,
             range: rangeOfString(otherCode, 'void bar() {}'),
+            selectionRange: rangeOfString(otherCode, 'bar'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [
+            rangeOfString(code, 'bar'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_functionInNullAwareElementInList() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void fo^o() {
+  <int>[?bar()];
+}
+''');
+
+    var otherCode = TestCode.parse('''
+int? bar() => null;
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Function,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'int? bar() => null;'),
+            selectionRange: rangeOfString(otherCode, 'bar'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [
+            rangeOfString(code, 'bar'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_functionInNullAwareElementInMapKey() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void fo^o() {
+  <int, String>{?bar(): ""};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+int? bar() => null;
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Function,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'int? bar() => null;'),
+            selectionRange: rangeOfString(otherCode, 'bar'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [
+            rangeOfString(code, 'bar'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_functionInNullAwareElementInMapValue() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void fo^o() {
+  <String, int>{"": ?bar()};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+int? bar() => null;
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Function,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'int? bar() => null;'),
+            selectionRange: rangeOfString(otherCode, 'bar'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [
+            rangeOfString(code, 'bar'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_functionInNullAwareElementInSet() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+void fo^o() {
+  <int>{?bar()};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+int? bar() => null;
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Function,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'int? bar() => null;'),
             selectionRange: rangeOfString(otherCode, 'bar'),
           ),
           // Ranges of the outbound call.
@@ -820,6 +1120,118 @@ class Foo {}
           uri: otherFileUri,
           range: rangeOfString(otherCode, 'class Foo {}'),
           selectionRange: rangeOfString(otherCode, 'Foo')),
+    );
+  }
+
+  Future<void> test_insideNullAwareElementInList() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  final foo = <Foo>[?Foo.Ba^r()];
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  Foo.Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+          name: 'Foo.Bar',
+          detail: 'Foo', // Containing class name
+          kind: SymbolKind.Constructor,
+          uri: otherFileUri,
+          range: rangeOfString(otherCode, 'Foo.Bar();'),
+          selectionRange: rangeOfString(otherCode, 'Bar')),
+    );
+  }
+
+  Future<void> test_insideNullAwareElementInMapKey() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  final foo = <Foo, String>{?Foo.Ba^r(): ""};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  Foo.Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+          name: 'Foo.Bar',
+          detail: 'Foo', // Containing class name
+          kind: SymbolKind.Constructor,
+          uri: otherFileUri,
+          range: rangeOfString(otherCode, 'Foo.Bar();'),
+          selectionRange: rangeOfString(otherCode, 'Bar')),
+    );
+  }
+
+  Future<void> test_insideNullAwareElementInMapValue() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  final foo = <String, Foo>{"": ?Foo.Ba^r()};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  Foo.Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+          name: 'Foo.Bar',
+          detail: 'Foo', // Containing class name
+          kind: SymbolKind.Constructor,
+          uri: otherFileUri,
+          range: rangeOfString(otherCode, 'Foo.Bar();'),
+          selectionRange: rangeOfString(otherCode, 'Bar')),
+    );
+  }
+
+  Future<void> test_insideNullAwareElementInSet() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+main() {
+  final foo = <Foo>{?Foo.Ba^r()};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Foo {
+  Foo.Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResult: CallHierarchyItem(
+          name: 'Foo.Bar',
+          detail: 'Foo', // Containing class name
+          kind: SymbolKind.Constructor,
+          uri: otherFileUri,
+          range: rangeOfString(otherCode, 'Foo.Bar();'),
+          selectionRange: rangeOfString(otherCode, 'Bar')),
     );
   }
 
