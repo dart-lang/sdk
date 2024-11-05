@@ -132,11 +132,11 @@ class BlockBuilder : public ValueObject {
     return AddUnboxInstr(rep, new Value(boxed), value_mode);
   }
 
-  BranchInstr* AddBranch(ComparisonInstr* comp,
+  BranchInstr* AddBranch(ConditionInstr* cond,
                          TargetEntryInstr* true_successor,
                          TargetEntryInstr* false_successor) {
     auto branch =
-        new BranchInstr(comp, CompilerState::Current().GetNextDeoptId());
+        new BranchInstr(cond, CompilerState::Current().GetNextDeoptId());
     // Some graph transformations use environments from branches.
     branch->SetEnvironment(dummy_env_);
     current_->AppendInstruction(branch);

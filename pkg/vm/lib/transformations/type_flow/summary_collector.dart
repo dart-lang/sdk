@@ -1425,8 +1425,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   Class get _superclass => _staticTypeContext!.thisType!.classNode.superclass!;
 
-  Type _boolLiteralType(bool value) => value ? _boolTrue : _boolFalse;
-
   Type _intLiteralType(int value, Constant? constant) {
     final Class? concreteClass =
         target.concreteIntLiteralClass(_environment.coreTypes, value);
@@ -1464,6 +1462,19 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           .constantConcreteType(constant);
     }
     return _stringType;
+  }
+
+  Type _boolLiteralType(bool value, Constant? constant) {
+    final Class? concreteClass =
+        target.concreteBoolLiteralClass(_environment.coreTypes, value);
+    if (concreteClass != null) {
+      constant ??= BoolConstant(value);
+      return _entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
+    }
+    return value ? _boolTrue : _boolFalse;
   }
 
   TypeExpr _closureType(LocalFunction node) {
@@ -1682,7 +1693,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitBoolLiteral(BoolLiteral node) {
-    return _boolLiteralType(node.value);
+    return _boolLiteralType(node.value, null);
   }
 
   @override
@@ -2845,7 +2856,7 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitBoolConstant(BoolConstant constant) {
-    return summaryCollector._boolLiteralType(constant.value);
+    return summaryCollector._boolLiteralType(constant.value, constant);
   }
 
   @override

@@ -527,9 +527,9 @@ class FlowGraph : public ZoneAllocated {
 
   // Logical-AND (for use in short-circuit diamond).
   struct LogicalAnd {
-    LogicalAnd(ComparisonInstr* x, ComparisonInstr* y) : oper1(x), oper2(y) {}
-    ComparisonInstr* oper1;
-    ComparisonInstr* oper2;
+    LogicalAnd(ConditionInstr* x, ConditionInstr* y) : oper1(x), oper2(y) {}
+    ConditionInstr* oper1;
+    ConditionInstr* oper2;
   };
 
   // Constructs a diamond control flow at the instruction, inheriting
@@ -538,7 +538,7 @@ class FlowGraph : public ZoneAllocated {
   // relation, but not the succ/pred ordering on block.
   JoinEntryInstr* NewDiamond(Instruction* instruction,
                              Instruction* inherit,
-                             ComparisonInstr* compare,
+                             ConditionInstr* condition,
                              TargetEntryInstr** block_true,
                              TargetEntryInstr** block_false);
 

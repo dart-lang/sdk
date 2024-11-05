@@ -229,7 +229,7 @@ void FlowGraphCompiler::InitCompiler() {
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
         if (auto* branch = current->AsBranch()) {
-          current = branch->comparison();
+          current = branch->condition();
         }
         if (auto* instance_call = current->AsInstanceCall()) {
           const ICData* ic_data = instance_call->ic_data();

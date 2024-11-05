@@ -1090,7 +1090,7 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
 bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
   auto const other_op = other.AsStrictCompare();
   ASSERT(other_op != nullptr);
-  return ComparisonInstr::AttributesEqual(other) &&
+  return ConditionInstr::AttributesEqual(other) &&
          (needs_number_check() == other_op->needs_number_check());
 }
 
@@ -1665,19 +1665,19 @@ void Definition::ReplaceWith(Definition* other,
   ReplaceWithResult(other, other, iterator);
 }
 
-void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
-  for (intptr_t i = new_comparison->InputCount() - 1; i >= 0; --i) {
-    Value* input = new_comparison->InputAt(i);
+void BranchInstr::SetCondition(ConditionInstr* new_condition) {
+  for (intptr_t i = new_condition->InputCount() - 1; i >= 0; --i) {
+    Value* input = new_condition->InputAt(i);
     input->definition()->AddInputUse(input);
     input->set_instruction(this);
   }
   // There should be no need to copy or unuse an environment.
-  ASSERT(comparison()->env() == nullptr);
-  ASSERT(new_comparison->env() == nullptr);
-  // Remove the current comparison's input uses.
-  comparison()->UnuseAllInputs();
-  ASSERT(!new_comparison->HasUses());
-  comparison_ = new_comparison;
+  ASSERT(condition()->env() == nullptr);
+  ASSERT(new_condition->env() == nullptr);
+  // Remove the current condition's input uses.
+  condition()->UnuseAllInputs();
+  ASSERT(!new_condition->HasUses());
+  condition_ = new_condition;
 }
 
 // ==== Postorder graph traversal.
@@ -3444,11 +3444,11 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-// Tests for a FP comparison that cannot be negated
+// Tests for a FP condition that cannot be negated
 // (to preserve NaN semantics).
-static bool IsFpCompare(ComparisonInstr* comp) {
-  if (comp->IsRelationalOp()) {
-    return comp->operation_cid() == kDoubleCid;
+static bool IsFpCompare(ConditionInstr* cond) {
+  if (cond->IsRelationalOp()) {
+    return cond->operation_cid() == kDoubleCid;
   }
   return false;
 }
@@ -3456,11 +3456,11 @@ static bool IsFpCompare(ComparisonInstr* comp) {
 Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
   // Convert e.g. !(x > y) into (x <= y) for non-FP x, y.
-  if (defn->IsComparison() && defn->HasOnlyUse(value()) &&
+  if (defn->IsCondition() && defn->HasOnlyUse(value()) &&
       defn->Type()->ToCid() == kBoolCid) {
-    ComparisonInstr* comp = defn->AsComparison();
-    if (!IsFpCompare(comp)) {
-      comp->NegateComparison();
+    ConditionInstr* cond = defn->AsCondition();
+    if (!IsFpCompare(cond)) {
+      cond->NegateCondition();
       return defn;
     }
   }
@@ -3528,8 +3528,8 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
 
   // We now have `e !== true` or `e === false`: these cases require
   // negation.
-  if (auto comp = other_defn->AsComparison()) {
-    if (other_defn->HasOnlyUse(other) && !IsFpCompare(comp)) {
+  if (auto cond = other_defn->AsCondition()) {
+    if (other_defn->HasOnlyUse(other) && !IsFpCompare(cond)) {
       *negated = true;
       return other_defn;
     }
@@ -3545,8 +3545,8 @@ static bool IsSingleUseUnboxOrConstant(Value* use) {
 
 // Canonicalize [instr]. Either return [instr] or a new
 // comparison instruction which is not inserted into the flow graph.
-static ComparisonInstr* CanonicalizeEqualityCompare(EqualityCompareInstr* instr,
-                                                    FlowGraph* flow_graph) {
+static ConditionInstr* CanonicalizeEqualityCompare(EqualityCompareInstr* instr,
+                                                   FlowGraph* flow_graph) {
   if (instr->is_null_aware()) {
     ASSERT(instr->operation_cid() == kMintCid);
     // Select more efficient instructions based on operand types.
@@ -3627,85 +3627,85 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
 
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   Zone* zone = flow_graph->zone();
-  if (comparison()->IsStrictCompare()) {
+  if (auto* strict_compare = condition()->AsStrictCompare()) {
     bool negated = false;
-    Definition* replacement = CanonicalizeStrictCompare(
-        comparison()->AsStrictCompare(), &negated, /*is_branch=*/true);
-    if (replacement == comparison()) {
+    Definition* replacement =
+        CanonicalizeStrictCompare(strict_compare, &negated, /*is_branch=*/true);
+    if (replacement == condition()) {
       return this;
     }
-    ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == nullptr) || comp->CanDeoptimize()) {
+    ConditionInstr* cond = replacement->AsCondition();
+    if ((cond == nullptr) || cond->CanDeoptimize()) {
       return this;
     }
 
-    // Replace the comparison if the replacement is used at this branch,
+    // Replace the condition if the replacement is used at this branch,
     // and has exactly one use.
-    Value* use = comp->input_use_list();
-    if ((use->instruction() == this) && comp->HasOnlyUse(use)) {
+    Value* use = cond->input_use_list();
+    if ((use->instruction() == this) && cond->HasOnlyUse(use)) {
       if (negated) {
-        comp->NegateComparison();
+        cond->NegateCondition();
       }
       RemoveEnvironment();
-      flow_graph->CopyDeoptTarget(this, comp);
-      // Unlink environment from the comparison since it is copied to the
+      flow_graph->CopyDeoptTarget(this, cond);
+      // Unlink environment from the condition since it is copied to the
       // branch instruction.
-      comp->RemoveEnvironment();
+      cond->RemoveEnvironment();
 
-      comp->RemoveFromGraph();
-      SetComparison(comp);
+      cond->RemoveFromGraph();
+      SetCondition(cond);
       if (FLAG_trace_optimization && flow_graph->should_print()) {
-        THR_Print("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
+        THR_Print("Merging condition v%" Pd "\n", cond->ssa_temp_index());
       }
-      // Clear the comparison's temp index and ssa temp index since the
-      // value of the comparison is not used outside the branch anymore.
-      ASSERT(comp->input_use_list() == nullptr);
-      comp->ClearSSATempIndex();
-      comp->ClearTempIndex();
+      // Clear the condition's temp index and ssa temp index since the
+      // value of the condition is not used outside the branch anymore.
+      ASSERT(cond->input_use_list() == nullptr);
+      cond->ClearSSATempIndex();
+      cond->ClearTempIndex();
     }
 
     return this;
   }
 
-  if (comparison()->IsEqualityCompare() &&
-      (comparison()->operation_cid() == kSmiCid ||
-       comparison()->operation_cid() == kMintCid)) {
-    const auto representation =
-        comparison()->operation_cid() == kSmiCid ? kTagged : kUnboxedInt64;
-    if (TestIntInstr::IsSupported(representation)) {
-      BinaryIntegerOpInstr* bit_and = nullptr;
-      bool negate = false;
-      if (RecognizeTestPattern(comparison()->left(), comparison()->right(),
-                               &negate)) {
-        bit_and = comparison()->left()->definition()->AsBinaryIntegerOp();
-      } else if (RecognizeTestPattern(comparison()->right(),
-                                      comparison()->left(), &negate)) {
-        bit_and = comparison()->right()->definition()->AsBinaryIntegerOp();
-      }
-      if (bit_and != nullptr) {
-        if (FLAG_trace_optimization && flow_graph->should_print()) {
-          THR_Print("Merging test integer v%" Pd "\n",
-                    bit_and->ssa_temp_index());
+  if (auto* equality = condition()->AsEqualityCompare()) {
+    if (equality->operation_cid() == kSmiCid ||
+        equality->operation_cid() == kMintCid) {
+      const auto representation =
+          equality->operation_cid() == kSmiCid ? kTagged : kUnboxedInt64;
+      if (TestIntInstr::IsSupported(representation)) {
+        BinaryIntegerOpInstr* bit_and = nullptr;
+        bool negate = false;
+        if (RecognizeTestPattern(equality->left(), equality->right(),
+                                 &negate)) {
+          bit_and = equality->left()->definition()->AsBinaryIntegerOp();
+        } else if (RecognizeTestPattern(equality->right(), equality->left(),
+                                        &negate)) {
+          bit_and = equality->right()->definition()->AsBinaryIntegerOp();
         }
-        TestIntInstr* test = new TestIntInstr(
-            comparison()->source(),
-            negate ? Token::NegateComparison(comparison()->kind())
-                   : comparison()->kind(),
-            representation, bit_and->left()->Copy(zone),
-            bit_and->right()->Copy(zone));
-        ASSERT(!CanDeoptimize());
-        RemoveEnvironment();
-        flow_graph->CopyDeoptTarget(this, bit_and);
-        SetComparison(test);
-        bit_and->RemoveFromGraph();
-        return this;
+        if (bit_and != nullptr) {
+          if (FLAG_trace_optimization && flow_graph->should_print()) {
+            THR_Print("Merging test integer v%" Pd "\n",
+                      bit_and->ssa_temp_index());
+          }
+          TestIntInstr* test = new TestIntInstr(
+              equality->source(),
+              negate ? Token::NegateComparison(equality->kind())
+                     : equality->kind(),
+              representation, bit_and->left()->Copy(zone),
+              bit_and->right()->Copy(zone));
+          ASSERT(!CanDeoptimize());
+          RemoveEnvironment();
+          flow_graph->CopyDeoptTarget(this, bit_and);
+          SetCondition(test);
+          bit_and->RemoveFromGraph();
+          return this;
+        }
       }
     }
 
-    auto replacement = CanonicalizeEqualityCompare(
-        comparison()->AsEqualityCompare(), flow_graph);
-    if (replacement != comparison()) {
-      SetComparison(replacement);
+    auto replacement = CanonicalizeEqualityCompare(equality, flow_graph);
+    if (replacement != condition()) {
+      SetCondition(replacement);
       replacement->ClearSSATempIndex();
       replacement->ClearTempIndex();
     }
@@ -3720,9 +3720,9 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated,
                                                       /*is_branch=*/false);
-  if (negated && replacement->IsComparison()) {
+  if (negated && replacement->IsCondition()) {
     ASSERT(replacement != this);
-    replacement->AsComparison()->NegateComparison();
+    replacement->AsCondition()->NegateCondition();
   }
   return replacement;
 }
@@ -3779,7 +3779,7 @@ TestCidsInstr::TestCidsInstr(const InstructionSource& source,
                              Value* value,
                              const ZoneGrowableArray<intptr_t>& cid_results,
                              intptr_t deopt_id)
-    : TemplateComparison(source, kind, deopt_id), cid_results_(cid_results) {
+    : TemplateCondition(source, kind, deopt_id), cid_results_(cid_results) {
   ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
   SetInputAt(0, value);
   set_operation_cid(kObjectCid);
@@ -3827,7 +3827,7 @@ TestRangeInstr::TestRangeInstr(const InstructionSource& source,
                                uword lower,
                                uword upper,
                                Representation value_representation)
-    : TemplateComparison(source, Token::kIS, DeoptId::kNone),
+    : TemplateCondition(source, Token::kIS, DeoptId::kNone),
       lower_(lower),
       upper_(upper),
       value_representation_(value_representation) {
@@ -4989,15 +4989,13 @@ StrictCompareInstr::StrictCompareInstr(const InstructionSource& source,
                                        Value* right,
                                        bool needs_number_check,
                                        intptr_t deopt_id)
-    : TemplateComparison(source, kind, deopt_id),
+    : ComparisonInstr(source, kind, left, right, deopt_id),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
-  SetInputAt(0, left);
-  SetInputAt(1, right);
 }
 
-Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                                 BranchLabels labels) {
+Condition StrictCompareInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
   Location left = locs()->in(0);
   Location right = locs()->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
@@ -5084,8 +5082,8 @@ LocationSummary* TestRangeInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-Condition TestRangeInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
-                                             BranchLabels labels) {
+Condition TestRangeInstr::EmitConditionCode(FlowGraphCompiler* compiler,
+                                            BranchLabels labels) {
   intptr_t lower = lower_;
   intptr_t upper = upper_;
   if (value_representation_ == kTagged) {
@@ -6487,51 +6485,51 @@ void Environment::DeepCopyToOuter(Zone* zone,
   }
 }
 
-ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
-                                                        Value* new_right) {
+ConditionInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
+                                                       Value* new_right) {
   UNREACHABLE();
   return nullptr;
 }
 
-ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
-                                                           Value* new_right) {
+ConditionInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
+                                                          Value* new_right) {
   return new EqualityCompareInstr(source(), kind(), new_left, new_right,
                                   operation_cid(), deopt_id(), is_null_aware());
 }
 
-ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
-                                                        Value* new_right) {
+ConditionInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
+                                                       Value* new_right) {
   return new RelationalOpInstr(source(), kind(), new_left, new_right,
                                operation_cid(), deopt_id());
 }
 
-ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
-                                                         Value* new_right) {
+ConditionInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
+                                                        Value* new_right) {
   return new StrictCompareInstr(source(), kind(), new_left, new_right,
                                 needs_number_check(), DeoptId::kNone);
 }
 
-ComparisonInstr* TestIntInstr::CopyWithNewOperands(Value* new_left,
-                                                   Value* new_right) {
+ConditionInstr* TestIntInstr::CopyWithNewOperands(Value* new_left,
+                                                  Value* new_right) {
   return new TestIntInstr(source(), kind(), representation_, new_left,
                           new_right);
 }
 
-ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
-                                                    Value* new_right) {
+ConditionInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
+                                                   Value* new_right) {
   return new TestCidsInstr(source(), kind(), new_left, cid_results(),
                            deopt_id());
 }
 
-ComparisonInstr* TestRangeInstr::CopyWithNewOperands(Value* new_left,
-                                                     Value* new_right) {
+ConditionInstr* TestRangeInstr::CopyWithNewOperands(Value* new_left,
+                                                    Value* new_right) {
   return new TestRangeInstr(source(), new_left, lower_, upper_,
                             value_representation_);
 }
 
 bool TestCidsInstr::AttributesEqual(const Instruction& other) const {
   auto const other_instr = other.AsTestCids();
-  if (!ComparisonInstr::AttributesEqual(other)) {
+  if (!ConditionInstr::AttributesEqual(other)) {
     return false;
   }
   if (cid_results().length() != other_instr->cid_results().length()) {
@@ -6547,24 +6545,23 @@ bool TestCidsInstr::AttributesEqual(const Instruction& other) const {
 
 bool TestRangeInstr::AttributesEqual(const Instruction& other) const {
   auto const other_instr = other.AsTestRange();
-  if (!ComparisonInstr::AttributesEqual(other)) {
+  if (!ConditionInstr::AttributesEqual(other)) {
     return false;
   }
   return lower_ == other_instr->lower_ && upper_ == other_instr->upper_ &&
          value_representation_ == other_instr->value_representation_;
 }
 
-bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+bool IfThenElseInstr::Supports(ConditionInstr* condition,
                                Value* v1,
                                Value* v2) {
   bool is_smi_result = v1->BindsToSmiConstant() && v2->BindsToSmiConstant();
-  if (comparison->IsStrictCompare()) {
+  if (condition->IsStrictCompare()) {
     // Strict comparison with number checks calls a stub and is not supported
     // by if-conversion.
-    return is_smi_result &&
-           !comparison->AsStrictCompare()->needs_number_check();
+    return is_smi_result && !condition->AsStrictCompare()->needs_number_check();
   }
-  if (comparison->operation_cid() != kSmiCid) {
+  if (condition->operation_cid() != kSmiCid) {
     // Non-smi comparisons are not supported by if-conversion.
     return false;
   }
@@ -6674,7 +6671,7 @@ void PhiIterator::RemoveCurrentFromGraph() {
 }
 
 Instruction* CheckConditionInstr::Canonicalize(FlowGraph* graph) {
-  if (StrictCompareInstr* strict_compare = comparison()->AsStrictCompare()) {
+  if (StrictCompareInstr* strict_compare = condition()->AsStrictCompare()) {
     if ((InputAt(0)->definition()->OriginalDefinition() ==
          InputAt(1)->definition()->OriginalDefinition()) &&
         strict_compare->kind() == Token::kEQ_STRICT) {
@@ -6686,9 +6683,9 @@ Instruction* CheckConditionInstr::Canonicalize(FlowGraph* graph) {
 
 LocationSummary* CheckConditionInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  comparison()->InitializeLocationSummary(zone, opt);
-  comparison()->locs()->set_out(0, Location::NoLocation());
-  return comparison()->locs();
+  condition()->InitializeLocationSummary(zone, opt);
+  condition()->locs()->set_out(0, Location::NoLocation());
+  return condition()->locs();
 }
 
 void CheckConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -6696,7 +6693,7 @@ void CheckConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* if_false =
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnknown);
   BranchLabels labels = {&if_true, if_false, &if_true};
-  Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
+  Condition true_condition = condition()->EmitConditionCode(compiler, labels);
   if (true_condition != kInvalidCondition) {
     __ BranchIf(InvertCondition(true_condition), if_false);
   }

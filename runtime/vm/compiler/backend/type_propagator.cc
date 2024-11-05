@@ -379,7 +379,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
-  StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
+  StrictCompareInstr* comparison = instr->condition()->AsStrictCompare();
   if (comparison == nullptr) return;
   bool negated = comparison->kind() == Token::kNE_STRICT;
   LoadClassIdInstr* load_cid =

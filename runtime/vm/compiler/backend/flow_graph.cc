@@ -2818,9 +2818,9 @@ static GotoInstr* NewGoto(FlowGraph* graph,
 }
 
 static BranchInstr* NewBranch(FlowGraph* graph,
-                              ComparisonInstr* cmp,
+                              ConditionInstr* cond,
                               Instruction* inherit) {
-  BranchInstr* bra = new (graph->zone()) BranchInstr(cmp, DeoptId::kNone);
+  BranchInstr* bra = new (graph->zone()) BranchInstr(cond, DeoptId::kNone);
   bra->InheritDeoptTarget(graph->zone(), inherit);
   return bra;
 }
@@ -2841,7 +2841,7 @@ static BranchInstr* NewBranch(FlowGraph* graph,
 //
 JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
                                       Instruction* inherit,
-                                      ComparisonInstr* compare,
+                                      ConditionInstr* condition,
                                       TargetEntryInstr** b_true,
                                       TargetEntryInstr** b_false) {
   BlockEntryInstr* entry = instruction->GetBlock();
@@ -2851,7 +2851,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
   JoinEntryInstr* join = NewJoin(this, inherit);
   GotoInstr* gotot = NewGoto(this, join, inherit);
   GotoInstr* gotof = NewGoto(this, join, inherit);
-  BranchInstr* bra = NewBranch(this, compare, inherit);
+  BranchInstr* bra = NewBranch(this, condition, inherit);
 
   instruction->AppendInstruction(bra);
   entry->set_last_instruction(bra);
