@@ -972,8 +972,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
       ASSERT(constant->representation() == kTagged);
       __ CompareObject(left.reg(), right.constant());
     }
-  } else if (right.IsStackSlot()) {
-    __ OBJ(cmp)(left.reg(), LocationToStackSlotAddress(right));
   } else {
     __ OBJ(cmp)(left.reg(), right.reg());
   }
@@ -1009,8 +1007,6 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
     } else {
       UNREACHABLE();
     }
-  } else if (right.IsStackSlot()) {
-    __ cmpq(left.reg(), LocationToStackSlotAddress(right));
   } else {
     __ cmpq(left.reg(), right.reg());
   }

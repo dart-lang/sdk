@@ -766,8 +766,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
-  } else if (right.IsStackSlot()) {
-    __ cmpl(left.reg(), LocationToStackSlotAddress(right));
   } else {
     __ cmpl(left.reg(), right.reg());
   }
@@ -793,8 +791,6 @@ static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
     __ CompareImmediate(
         left.reg(),
         static_cast<uword>(Integer::Cast(right.constant()).Value()));
-  } else if (right.IsStackSlot()) {
-    __ cmpl(left.reg(), LocationToStackSlotAddress(right));
   } else {
     __ cmpl(left.reg(), right.reg());
   }
