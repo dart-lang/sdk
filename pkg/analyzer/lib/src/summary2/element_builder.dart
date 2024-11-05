@@ -131,7 +131,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@class');
       var elementReference = containerRef.addChild(refName);
-      var element = AugmentedClassElementImpl(elementReference, fragment);
+      var element = ClassElementImpl2(elementReference, fragment);
 
       elementBuilder = ClassElementBuilder(
         element: element,
@@ -185,7 +185,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
     var elementReference =
         _libraryBuilder.reference.getChild('@class').addChild(refName);
-    AugmentedClassElementImpl(elementReference, fragment);
+    ClassElementImpl2(elementReference, fragment);
 
     node.declaredElement = fragment;
     _linker.elementNodes[fragment] = node;
@@ -288,7 +288,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@enum');
       var elementReference = containerRef.addChild(refName);
-      var element = AugmentedEnumElementImpl(elementReference, fragment);
+      var element = EnumElementImpl2(elementReference, fragment);
 
       elementBuilder = EnumElementBuilder(
         firstFragment: fragment,
@@ -529,7 +529,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       } else {
         var elementReference =
             _libraryBuilder.reference.getChild('@extension').addChild(refName);
-        var element = AugmentedExtensionElementImpl(elementReference, fragment);
+        var element = ExtensionElementImpl2(elementReference, fragment);
 
         elementBuilder = ExtensionElementBuilder(
           firstFragment: fragment,
@@ -540,7 +540,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     } else {
       var elementReference =
           _libraryBuilder.reference.getChild('@extension').addChild(refName);
-      var element = AugmentedExtensionElementImpl(elementReference, fragment);
+      var element = ExtensionElementImpl2(elementReference, fragment);
       elementBuilder = ExtensionElementBuilder(
         firstFragment: fragment,
         element: element,
@@ -599,8 +599,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@extensionType');
       var elementReference = containerRef.addChild(refName);
-      var element =
-          AugmentedExtensionTypeElementImpl(elementReference, fragment);
+      var element = ExtensionTypeElementImpl2(elementReference, fragment);
 
       elementBuilder = ExtensionTypeElementBuilder(
         firstFragment: fragment,
@@ -1226,7 +1225,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var libraryRef = _libraryBuilder.reference;
       var containerRef = libraryRef.getChild('@mixin');
       var elementReference = containerRef.addChild(refName);
-      var element = AugmentedMixinElementImpl(elementReference, fragment);
+      var element = MixinElementImpl2(elementReference, fragment);
 
       elementBuilder = MixinElementBuilder(
         firstFragment: fragment,

@@ -106,601 +106,6 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   ElementLinkedData? get linkedData;
 }
 
-class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedClassElement, ClassElement2 {
-  final Reference reference;
-
-  @override
-  final ClassElementImpl firstFragment;
-
-  AugmentedClassElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
-    firstFragment.augmentedInternal = this;
-  }
-
-  @override
-  bool get hasNonFinalField => firstFragment.hasNonFinalField;
-
-  @override
-  bool get isAbstract => firstFragment.isAbstract;
-
-  @override
-  bool get isBase => firstFragment.isBase;
-
-  @override
-  bool get isConstructable => firstFragment.isConstructable;
-
-  @override
-  bool get isDartCoreEnum => firstFragment.isDartCoreEnum;
-
-  @override
-  bool get isDartCoreObject => firstFragment.isDartCoreObject;
-
-  @override
-  bool get isExhaustive => firstFragment.isExhaustive;
-
-  @override
-  bool get isFinal => firstFragment.isFinal;
-
-  @override
-  bool get isInterface => firstFragment.isInterface;
-
-  @override
-  bool get isMacro => firstFragment.isMacro;
-
-  @override
-  bool get isMixinApplication => firstFragment.isMixinApplication;
-
-  @override
-  bool get isMixinClass => firstFragment.isMixinClass;
-
-  @override
-  bool get isSealed => firstFragment.isSealed;
-
-  @override
-  bool get isValidMixin => firstFragment.isValidMixin;
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    return visitor.visitClassElement(this);
-  }
-
-  @override
-  bool isExtendableIn2(LibraryElement2 library) =>
-      firstFragment.isExtendableIn(library as LibraryElement);
-
-  @override
-  bool isImplementableIn2(LibraryElement2 library) =>
-      firstFragment.isImplementableIn(library as LibraryElement);
-
-  @override
-  bool isMixableIn2(LibraryElement2 library) =>
-      firstFragment.isMixableIn(library as LibraryElement);
-}
-
-class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedEnumElement, EnumElement2 {
-  final Reference reference;
-
-  @override
-  final EnumElementImpl firstFragment;
-
-  AugmentedEnumElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
-    firstFragment.augmentedInternal = this;
-  }
-
-  @override
-  List<FieldElement> get constants {
-    return fields.where((field) => field.isEnumConstant).toList();
-  }
-
-  @override
-  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    return visitor.visitEnumElement(this);
-  }
-}
-
-class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement, ExtensionElement2 {
-  final Reference reference;
-
-  @override
-  final ExtensionElementImpl firstFragment;
-
-  @override
-  DartType extendedType = InvalidTypeImpl.instance;
-
-  AugmentedExtensionElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
-    firstFragment.augmentedInternal = this;
-  }
-
-  @override
-  DartType get thisType => extendedType;
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    return visitor.visitExtensionElement(this);
-  }
-}
-
-class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement, ExtensionTypeElement2 {
-  final Reference reference;
-
-  @override
-  final ExtensionTypeElementImpl firstFragment;
-
-  @override
-  late ConstructorElementImpl primaryConstructor;
-
-  @override
-  late FieldElementImpl representation;
-
-  @override
-  late DartType typeErasure;
-
-  AugmentedExtensionTypeElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
-    firstFragment.augmentedInternal = this;
-  }
-
-  @override
-  ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
-
-  @override
-  FieldElement2 get representation2 =>
-      representation.asElement2 as FieldElement2;
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    return visitor.visitExtensionTypeElement(this);
-  }
-}
-
-abstract class AugmentedInstanceElementImpl
-    implements
-        AugmentedInstanceElement,
-        InstanceElement2,
-        TypeParameterizedElement2 {
-  @override
-  List<FieldElement> fields = [];
-
-  @override
-  List<PropertyAccessorElement> accessors = [];
-
-  @override
-  List<MethodElement> methods = [];
-
-  @override
-  InstanceElement2 get baseElement => this;
-
-  @override
-  List<Element2> get children2 {
-    return [
-      ...fields2,
-      ...getters2,
-      ...setters2,
-      ...methods2,
-    ];
-  }
-
-  @override
-  String get displayName => firstFragment.displayName;
-
-  @override
-  String? get documentationComment => firstFragment.documentationComment;
-
-  @override
-  LibraryElement2 get enclosingElement2 => firstFragment.library;
-
-  @override
-  List<FieldElement2> get fields2 =>
-      fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
-
-  @override
-  InstanceElementImpl get firstFragment;
-
-  @override
-  List<GetterElement> get getters2 => accessors
-      .where((e) => e.isGetter)
-      .map((e) => e.asElement2 as GetterElement?)
-      .nonNulls
-      .toList();
-
-  @override
-  int get id => firstFragment.id;
-
-  @override
-  bool get isPrivate => firstFragment.isPrivate;
-
-  @override
-  bool get isPublic => firstFragment.isPublic;
-
-  @override
-  bool get isSimplyBounded => firstFragment.isSimplyBounded;
-
-  @override
-  bool get isSynthetic => firstFragment.isSynthetic;
-
-  @override
-  ElementKind get kind => firstFragment.kind;
-
-  @override
-  LibraryElement2 get library2 => firstFragment.library2!;
-
-  @override
-  ElementLocation? get location => firstFragment.location;
-
-  @override
-  List<ElementAnnotation> get metadata => firstFragment.metadata;
-
-  @override
-  Metadata get metadata2 => firstFragment.metadata2;
-
-  @override
-  List<MethodElement2> get methods2 =>
-      methods.map((e) => e.asElement2 as MethodElement2?).nonNulls.toList();
-
-  @override
-  String? get name3 => firstFragment.name;
-
-  @override
-  Element2 get nonSynthetic2 =>
-      isSynthetic ? enclosingElement2 : this as Element2;
-
-  @override
-  AnalysisSession? get session => firstFragment.session;
-
-  @override
-  List<SetterElement> get setters2 => accessors
-      .where((e) => e.isSetter)
-      .map((e) => e.asElement2 as SetterElement?)
-      .nonNulls
-      .toList();
-
-  @override
-  List<TypeParameterElement2> get typeParameters2 =>
-      firstFragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element)
-          .toList();
-
-  @override
-  String displayString2(
-          {bool multiline = false, bool preferTypeAlias = false}) =>
-      firstFragment.getDisplayString(
-          multiline: multiline, preferTypeAlias: preferTypeAlias);
-
-  @override
-  FieldElement? getField(String name) {
-    var length = fields.length;
-    for (var i = 0; i < length; i++) {
-      var field = fields[i];
-      if (field.name == name) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    var length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      var accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == name) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    var length = methods.length;
-    for (var i = 0; i < length; i++) {
-      var method = methods[i];
-      if (method.name == name) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    if (!name.endsWith('=')) {
-      name += '=';
-    }
-    return accessors.firstWhereOrNull(
-        (accessor) => accessor.isSetter && accessor.name == name);
-  }
-
-  @override
-  bool isAccessibleIn2(LibraryElement2 library) =>
-      firstFragment.isAccessibleIn(library as LibraryElement);
-
-  @override
-  PropertyAccessorElement? lookUpGetter({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return _implementationsOfGetter(name)
-        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
-  }
-
-  @override
-  MethodElement? lookUpMethod({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return _implementationsOfMethod(name).firstWhereOrNull(
-        (MethodElement method) => method.isAccessibleIn(library));
-  }
-
-  @override
-  PropertyAccessorElement? lookUpSetter({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return _implementationsOfSetter(name).firstWhereOrNull(
-        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
-  }
-
-  @override
-  Element2? thisOrAncestorMatching2(
-    bool Function(Element2) predicate,
-  ) {
-    if (predicate(this)) {
-      return this;
-    }
-    return library2.thisOrAncestorMatching2(predicate);
-  }
-
-  @override
-  E? thisOrAncestorOfType2<E extends Element2>() {
-    if (this case E result) {
-      return result;
-    }
-    return library2.thisOrAncestorOfType2<E>();
-  }
-
-  @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    for (var child in children2) {
-      child.accept2(visitor);
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a getter with
-  /// the given [name] that are defined in this class and any superclass of this
-  /// class (but not in interfaces).
-  ///
-  /// The getters that are returned are not filtered in any way. In particular,
-  /// they can include getters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The getters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the getter it will occur first, if
-  /// Object contains a definition of the getter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfGetter(
-      String name) sync* {
-    var visitedClasses = <AugmentedInstanceElement>{};
-    AugmentedInstanceElement? augmented = this;
-    while (augmented != null && visitedClasses.add(augmented)) {
-      var getter = augmented.getGetter(name);
-      if (getter != null) {
-        yield getter;
-      }
-      if (augmented is! AugmentedInterfaceElement) {
-        return;
-      }
-      for (InterfaceType mixin in augmented.mixins.reversed) {
-        getter = mixin.element.augmented.getGetter(name);
-        if (getter != null) {
-          yield getter;
-        }
-      }
-      augmented = augmented.firstFragment.supertype?.element.augmented;
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a method with
-  /// the given [name] that are defined in this class and any superclass of this
-  /// class (but not in interfaces).
-  ///
-  /// The methods that are returned are not filtered in any way. In particular,
-  /// they can include methods that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The methods are returned based on the depth of their defining class; if
-  /// this class contains a definition of the method it will occur first, if
-  /// Object contains a definition of the method it will occur last.
-  Iterable<MethodElement> _implementationsOfMethod(String name) sync* {
-    var visitedClasses = <AugmentedInstanceElement>{};
-    AugmentedInstanceElement? augmented = this;
-    while (augmented != null && visitedClasses.add(augmented)) {
-      var method = augmented.getMethod(name);
-      if (method != null) {
-        yield method;
-      }
-      if (augmented is! AugmentedInterfaceElement) {
-        return;
-      }
-      for (InterfaceType mixin in augmented.mixins.reversed) {
-        method = mixin.element.augmented.getMethod(name);
-        if (method != null) {
-          yield method;
-        }
-      }
-      augmented = augmented.firstFragment.supertype?.element.augmented;
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a setter with
-  /// the given [name] that are defined in this class and any superclass of this
-  /// class (but not in interfaces).
-  ///
-  /// The setters that are returned are not filtered in any way. In particular,
-  /// they can include setters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The setters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the setter it will occur first, if
-  /// Object contains a definition of the setter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfSetter(
-      String name) sync* {
-    var visitedClasses = <AugmentedInstanceElement>{};
-    AugmentedInstanceElement? augmented = this;
-    while (augmented != null && visitedClasses.add(augmented)) {
-      var setter = augmented.getSetter(name);
-      if (setter != null) {
-        yield setter;
-      }
-      if (augmented is! AugmentedInterfaceElement) {
-        return;
-      }
-      for (InterfaceType mixin in augmented.mixins.reversed) {
-        setter = mixin.element.augmented.getSetter(name);
-        if (setter != null) {
-          yield setter;
-        }
-      }
-      augmented = augmented.firstFragment.supertype?.element.augmented;
-    }
-  }
-}
-
-abstract class AugmentedInterfaceElementImpl
-    extends AugmentedInstanceElementImpl
-    implements AugmentedInterfaceElement, InterfaceElement2 {
-  @override
-  List<InterfaceType> interfaces = [];
-
-  List<InterfaceType> _mixins = [];
-
-  @override
-  List<ConstructorElement> constructors = [];
-
-  InterfaceType? _thisType;
-
-  @override
-  List<InterfaceType> get allSupertypes => firstFragment.allSupertypes;
-
-  @override
-  List<Element2> get children2 {
-    return [
-      ...super.children2,
-      ...constructors2,
-    ];
-  }
-
-  @override
-  List<ConstructorElement2> get constructors2 {
-    return constructors
-        .map((constructor) =>
-            (constructor.declaration as ConstructorElementImpl).element)
-        .toList();
-  }
-
-  @override
-  InterfaceElementImpl get firstFragment;
-
-  @override
-  List<InterfaceType> get mixins {
-    if (firstFragment.mixinInferenceCallback case var callback?) {
-      var mixins = callback(firstFragment);
-      if (mixins != null) {
-        return _mixins = mixins;
-      }
-    }
-
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> value) {
-    _mixins = value;
-  }
-
-  @override
-  InterfaceType? get supertype => firstFragment.supertype;
-
-  @override
-  InterfaceType get thisType {
-    if (_thisType == null) {
-      List<DartType> typeArguments;
-      var typeParameters = firstFragment.typeParameters;
-      if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<DartType>((t) {
-          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-        }).toFixedList();
-      } else {
-        typeArguments = const <DartType>[];
-      }
-      return _thisType = firstFragment.instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-    return _thisType!;
-  }
-
-  @override
-  ConstructorElement? get unnamedConstructor {
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
-  @override
-  ConstructorElement2? get unnamedConstructor2 =>
-      unnamedConstructor.asElement2 as ConstructorElement2;
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    name = name.ifEqualThen('new', '');
-    return constructors.firstWhereOrNull((element) => element.name == name);
-  }
-
-  @override
-  InterfaceType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) =>
-      firstFragment.instantiate(
-          typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
-}
-
-class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedMixinElement, MixinElement2 {
-  final Reference reference;
-
-  @override
-  final MixinElementImpl firstFragment;
-
-  @override
-  List<InterfaceType> superclassConstraints = [];
-
-  AugmentedMixinElementImpl(this.reference, this.firstFragment) {
-    reference.element2 = this;
-    firstFragment.augmentedInternal = this;
-  }
-
-  @override
-  bool get isBase => firstFragment.isBase;
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    return visitor.visitMixinElement(this);
-  }
-
-  @override
-  bool isImplementableIn2(LibraryElement2 library) =>
-      firstFragment.isImplementableIn(library as LibraryElement);
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement, BindPatternVariableFragment {
   final DeclaredVariablePatternImpl node;
@@ -743,7 +148,7 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 class ClassElementImpl extends ClassOrMixinElementImpl
     with AugmentableElement<ClassElementImpl>
     implements ClassElement, ClassFragment {
-  late AugmentedClassElementImpl augmentedInternal;
+  late ClassElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -807,7 +212,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  AugmentedClassElementImpl get augmented {
+  ClassElementImpl2 get augmented {
     return element;
   }
 
@@ -823,7 +228,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  AugmentedClassElementImpl get element {
+  ClassElementImpl2 get element {
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -1222,6 +627,78 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
     augmentedInternal.constructors = _constructors;
   }
+}
+
+class ClassElementImpl2 extends InterfaceElementImpl2
+    implements AugmentedClassElement, ClassElement2 {
+  final Reference reference;
+
+  @override
+  final ClassElementImpl firstFragment;
+
+  ClassElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.augmentedInternal = this;
+  }
+
+  @override
+  bool get hasNonFinalField => firstFragment.hasNonFinalField;
+
+  @override
+  bool get isAbstract => firstFragment.isAbstract;
+
+  @override
+  bool get isBase => firstFragment.isBase;
+
+  @override
+  bool get isConstructable => firstFragment.isConstructable;
+
+  @override
+  bool get isDartCoreEnum => firstFragment.isDartCoreEnum;
+
+  @override
+  bool get isDartCoreObject => firstFragment.isDartCoreObject;
+
+  @override
+  bool get isExhaustive => firstFragment.isExhaustive;
+
+  @override
+  bool get isFinal => firstFragment.isFinal;
+
+  @override
+  bool get isInterface => firstFragment.isInterface;
+
+  @override
+  bool get isMacro => firstFragment.isMacro;
+
+  @override
+  bool get isMixinApplication => firstFragment.isMixinApplication;
+
+  @override
+  bool get isMixinClass => firstFragment.isMixinClass;
+
+  @override
+  bool get isSealed => firstFragment.isSealed;
+
+  @override
+  bool get isValidMixin => firstFragment.isValidMixin;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitClassElement(this);
+  }
+
+  @override
+  bool isExtendableIn2(LibraryElement2 library) =>
+      firstFragment.isExtendableIn(library as LibraryElement);
+
+  @override
+  bool isImplementableIn2(LibraryElement2 library) =>
+      firstFragment.isImplementableIn(library as LibraryElement);
+
+  @override
+  bool isMixableIn2(LibraryElement2 library) =>
+      firstFragment.isMixableIn(library as LibraryElement);
 }
 
 abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
@@ -3887,14 +3364,14 @@ class ElementLocationImpl implements ElementLocation {
 class EnumElementImpl extends InterfaceElementImpl
     with AugmentableElement<EnumElementImpl>
     implements EnumElement, EnumFragment {
-  late AugmentedEnumElementImpl augmentedInternal;
+  late EnumElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
 
   @override
-  AugmentedEnumElementImpl get augmented {
+  EnumElementImpl2 get augmented {
     return element;
   }
 
@@ -3911,7 +3388,7 @@ class EnumElementImpl extends InterfaceElementImpl
   List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
 
   @override
-  AugmentedEnumElementImpl get element {
+  EnumElementImpl2 get element {
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -3944,6 +3421,32 @@ class EnumElementImpl extends InterfaceElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
+  }
+}
+
+class EnumElementImpl2 extends InterfaceElementImpl2
+    implements AugmentedEnumElement, EnumElement2 {
+  final Reference reference;
+
+  @override
+  final EnumElementImpl firstFragment;
+
+  EnumElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.augmentedInternal = this;
+  }
+
+  @override
+  List<FieldElement> get constants {
+    return fields.where((field) => field.isEnumConstant).toList();
+  }
+
+  @override
+  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitEnumElement(this);
   }
 }
 
@@ -4151,7 +3654,7 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 class ExtensionElementImpl extends InstanceElementImpl
     with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement, ExtensionFragment {
-  late AugmentedExtensionElementImpl augmentedInternal;
+  late ExtensionElementImpl2 augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
@@ -4159,7 +3662,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedExtensionElementImpl get augmented {
+  ExtensionElementImpl2 get augmented {
     return element;
   }
 
@@ -4181,7 +3684,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   String get displayName => name ?? '';
 
   @override
-  AugmentedExtensionElementImpl get element {
+  ExtensionElementImpl2 get element {
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -4271,10 +3774,34 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 }
 
+class ExtensionElementImpl2 extends InstanceElementImpl2
+    implements AugmentedExtensionElement, ExtensionElement2 {
+  final Reference reference;
+
+  @override
+  final ExtensionElementImpl firstFragment;
+
+  @override
+  DartType extendedType = InvalidTypeImpl.instance;
+
+  ExtensionElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.augmentedInternal = this;
+  }
+
+  @override
+  DartType get thisType => extendedType;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitExtensionElement(this);
+  }
+}
+
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with AugmentableElement<ExtensionTypeElementImpl>
     implements ExtensionTypeElement, ExtensionTypeFragment {
-  late AugmentedExtensionTypeElementImpl augmentedInternal;
+  late ExtensionTypeElementImpl2 augmentedInternal;
 
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
@@ -4287,7 +3814,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedExtensionTypeElementImpl get augmented {
+  ExtensionTypeElementImpl2 get augmented {
     return element;
   }
 
@@ -4297,7 +3824,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  AugmentedExtensionTypeElementImpl get element {
+  ExtensionTypeElementImpl2 get element {
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -4345,6 +3872,40 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionTypeElement(this);
+  }
+}
+
+class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
+    implements AugmentedExtensionTypeElement, ExtensionTypeElement2 {
+  final Reference reference;
+
+  @override
+  final ExtensionTypeElementImpl firstFragment;
+
+  @override
+  late ConstructorElementImpl primaryConstructor;
+
+  @override
+  late FieldElementImpl representation;
+
+  @override
+  late DartType typeErasure;
+
+  ExtensionTypeElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.augmentedInternal = this;
+  }
+
+  @override
+  ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
+
+  @override
+  FieldElement2 get representation2 =>
+      representation.asElement2 as FieldElement2;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitExtensionTypeElement(this);
   }
 }
 
@@ -5649,6 +5210,319 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   }
 }
 
+abstract class InstanceElementImpl2
+    implements
+        AugmentedInstanceElement,
+        InstanceElement2,
+        TypeParameterizedElement2 {
+  @override
+  List<FieldElement> fields = [];
+
+  @override
+  List<PropertyAccessorElement> accessors = [];
+
+  @override
+  List<MethodElement> methods = [];
+
+  @override
+  InstanceElement2 get baseElement => this;
+
+  @override
+  List<Element2> get children2 {
+    return [
+      ...fields2,
+      ...getters2,
+      ...setters2,
+      ...methods2,
+    ];
+  }
+
+  @override
+  String get displayName => firstFragment.displayName;
+
+  @override
+  String? get documentationComment => firstFragment.documentationComment;
+
+  @override
+  LibraryElement2 get enclosingElement2 => firstFragment.library;
+
+  @override
+  List<FieldElement2> get fields2 =>
+      fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
+
+  @override
+  InstanceElementImpl get firstFragment;
+
+  @override
+  List<GetterElement> get getters2 => accessors
+      .where((e) => e.isGetter)
+      .map((e) => e.asElement2 as GetterElement?)
+      .nonNulls
+      .toList();
+
+  @override
+  int get id => firstFragment.id;
+
+  @override
+  bool get isPrivate => firstFragment.isPrivate;
+
+  @override
+  bool get isPublic => firstFragment.isPublic;
+
+  @override
+  bool get isSimplyBounded => firstFragment.isSimplyBounded;
+
+  @override
+  bool get isSynthetic => firstFragment.isSynthetic;
+
+  @override
+  ElementKind get kind => firstFragment.kind;
+
+  @override
+  LibraryElement2 get library2 => firstFragment.library2!;
+
+  @override
+  ElementLocation? get location => firstFragment.location;
+
+  @override
+  List<ElementAnnotation> get metadata => firstFragment.metadata;
+
+  @override
+  Metadata get metadata2 => firstFragment.metadata2;
+
+  @override
+  List<MethodElement2> get methods2 =>
+      methods.map((e) => e.asElement2 as MethodElement2?).nonNulls.toList();
+
+  @override
+  String? get name3 => firstFragment.name;
+
+  @override
+  Element2 get nonSynthetic2 =>
+      isSynthetic ? enclosingElement2 : this as Element2;
+
+  @override
+  AnalysisSession? get session => firstFragment.session;
+
+  @override
+  List<SetterElement> get setters2 => accessors
+      .where((e) => e.isSetter)
+      .map((e) => e.asElement2 as SetterElement?)
+      .nonNulls
+      .toList();
+
+  @override
+  List<TypeParameterElement2> get typeParameters2 =>
+      firstFragment.typeParameters
+          .map((fragment) => (fragment as TypeParameterFragment).element)
+          .toList();
+
+  @override
+  String displayString2(
+          {bool multiline = false, bool preferTypeAlias = false}) =>
+      firstFragment.getDisplayString(
+          multiline: multiline, preferTypeAlias: preferTypeAlias);
+
+  @override
+  FieldElement? getField(String name) {
+    var length = fields.length;
+    for (var i = 0; i < length; i++) {
+      var field = fields[i];
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String name) {
+    var length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      var accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == name) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement? getMethod(String name) {
+    var length = methods.length;
+    for (var i = 0; i < length; i++) {
+      var method = methods[i];
+      if (method.name == name) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String name) {
+    if (!name.endsWith('=')) {
+      name += '=';
+    }
+    return accessors.firstWhereOrNull(
+        (accessor) => accessor.isSetter && accessor.name == name);
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement2 library) =>
+      firstFragment.isAccessibleIn(library as LibraryElement);
+
+  @override
+  PropertyAccessorElement? lookUpGetter({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return _implementationsOfGetter(name)
+        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
+  }
+
+  @override
+  MethodElement? lookUpMethod({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return _implementationsOfMethod(name).firstWhereOrNull(
+        (MethodElement method) => method.isAccessibleIn(library));
+  }
+
+  @override
+  PropertyAccessorElement? lookUpSetter({
+    required String name,
+    required LibraryElement library,
+  }) {
+    return _implementationsOfSetter(name).firstWhereOrNull(
+        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
+  }
+
+  @override
+  Element2? thisOrAncestorMatching2(
+    bool Function(Element2) predicate,
+  ) {
+    if (predicate(this)) {
+      return this;
+    }
+    return library2.thisOrAncestorMatching2(predicate);
+  }
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    if (this case E result) {
+      return result;
+    }
+    return library2.thisOrAncestorOfType2<E>();
+  }
+
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a getter with
+  /// the given [name] that are defined in this class and any superclass of this
+  /// class (but not in interfaces).
+  ///
+  /// The getters that are returned are not filtered in any way. In particular,
+  /// they can include getters that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The getters are returned based on the depth of their defining class; if
+  /// this class contains a definition of the getter it will occur first, if
+  /// Object contains a definition of the getter it will occur last.
+  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+      String name) sync* {
+    var visitedClasses = <AugmentedInstanceElement>{};
+    AugmentedInstanceElement? augmented = this;
+    while (augmented != null && visitedClasses.add(augmented)) {
+      var getter = augmented.getGetter(name);
+      if (getter != null) {
+        yield getter;
+      }
+      if (augmented is! AugmentedInterfaceElement) {
+        return;
+      }
+      for (InterfaceType mixin in augmented.mixins.reversed) {
+        getter = mixin.element.augmented.getGetter(name);
+        if (getter != null) {
+          yield getter;
+        }
+      }
+      augmented = augmented.firstFragment.supertype?.element.augmented;
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a method with
+  /// the given [name] that are defined in this class and any superclass of this
+  /// class (but not in interfaces).
+  ///
+  /// The methods that are returned are not filtered in any way. In particular,
+  /// they can include methods that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The methods are returned based on the depth of their defining class; if
+  /// this class contains a definition of the method it will occur first, if
+  /// Object contains a definition of the method it will occur last.
+  Iterable<MethodElement> _implementationsOfMethod(String name) sync* {
+    var visitedClasses = <AugmentedInstanceElement>{};
+    AugmentedInstanceElement? augmented = this;
+    while (augmented != null && visitedClasses.add(augmented)) {
+      var method = augmented.getMethod(name);
+      if (method != null) {
+        yield method;
+      }
+      if (augmented is! AugmentedInterfaceElement) {
+        return;
+      }
+      for (InterfaceType mixin in augmented.mixins.reversed) {
+        method = mixin.element.augmented.getMethod(name);
+        if (method != null) {
+          yield method;
+        }
+      }
+      augmented = augmented.firstFragment.supertype?.element.augmented;
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a setter with
+  /// the given [name] that are defined in this class and any superclass of this
+  /// class (but not in interfaces).
+  ///
+  /// The setters that are returned are not filtered in any way. In particular,
+  /// they can include setters that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The setters are returned based on the depth of their defining class; if
+  /// this class contains a definition of the setter it will occur first, if
+  /// Object contains a definition of the setter it will occur last.
+  Iterable<PropertyAccessorElement> _implementationsOfSetter(
+      String name) sync* {
+    var visitedClasses = <AugmentedInstanceElement>{};
+    AugmentedInstanceElement? augmented = this;
+    while (augmented != null && visitedClasses.add(augmented)) {
+      var setter = augmented.getSetter(name);
+      if (setter != null) {
+        yield setter;
+      }
+      if (augmented is! AugmentedInterfaceElement) {
+        return;
+      }
+      for (InterfaceType mixin in augmented.mixins.reversed) {
+        setter = mixin.element.augmented.getSetter(name);
+        if (setter != null) {
+          yield setter;
+        }
+      }
+      augmented = augmented.firstFragment.supertype?.element.augmented;
+    }
+  }
+}
+
 abstract class InterfaceElementImpl extends InstanceElementImpl
     implements InterfaceElement, InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
@@ -6106,6 +5980,103 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     return accessors.firstWhereOrNull(
         (accessor) => accessor.isSetter && accessor.name == setterName);
   }
+}
+
+abstract class InterfaceElementImpl2 extends InstanceElementImpl2
+    implements AugmentedInterfaceElement, InterfaceElement2 {
+  @override
+  List<InterfaceType> interfaces = [];
+
+  List<InterfaceType> _mixins = [];
+
+  @override
+  List<ConstructorElement> constructors = [];
+
+  InterfaceType? _thisType;
+
+  @override
+  List<InterfaceType> get allSupertypes => firstFragment.allSupertypes;
+
+  @override
+  List<Element2> get children2 {
+    return [
+      ...super.children2,
+      ...constructors2,
+    ];
+  }
+
+  @override
+  List<ConstructorElement2> get constructors2 {
+    return constructors
+        .map((constructor) =>
+            (constructor.declaration as ConstructorElementImpl).element)
+        .toList();
+  }
+
+  @override
+  InterfaceElementImpl get firstFragment;
+
+  @override
+  List<InterfaceType> get mixins {
+    if (firstFragment.mixinInferenceCallback case var callback?) {
+      var mixins = callback(firstFragment);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
+    }
+
+    return _mixins;
+  }
+
+  set mixins(List<InterfaceType> value) {
+    _mixins = value;
+  }
+
+  @override
+  InterfaceType? get supertype => firstFragment.supertype;
+
+  @override
+  InterfaceType get thisType {
+    if (_thisType == null) {
+      List<DartType> typeArguments;
+      var typeParameters = firstFragment.typeParameters;
+      if (typeParameters.isNotEmpty) {
+        typeArguments = typeParameters.map<DartType>((t) {
+          return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+        }).toFixedList();
+      } else {
+        typeArguments = const <DartType>[];
+      }
+      return _thisType = firstFragment.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+    return _thisType!;
+  }
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  }
+
+  @override
+  ConstructorElement2? get unnamedConstructor2 =>
+      unnamedConstructor.asElement2 as ConstructorElement2;
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    name = name.ifEqualThen('new', '');
+    return constructors.firstWhereOrNull((element) => element.name == name);
+  }
+
+  @override
+  InterfaceType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) =>
+      firstFragment.instantiate(
+          typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
@@ -7723,14 +7694,14 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
 
-  late AugmentedMixinElementImpl augmentedInternal;
+  late MixinElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
 
   @override
-  AugmentedMixinElementImpl get augmented {
+  MixinElementImpl2 get augmented {
     return element;
   }
 
@@ -7740,7 +7711,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  AugmentedMixinElementImpl get element {
+  MixinElementImpl2 get element {
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -7803,6 +7774,34 @@ class MixinElementImpl extends ClassOrMixinElementImpl
     }
     return !isBase;
   }
+}
+
+class MixinElementImpl2 extends InterfaceElementImpl2
+    implements AugmentedMixinElement, MixinElement2 {
+  final Reference reference;
+
+  @override
+  final MixinElementImpl firstFragment;
+
+  @override
+  List<InterfaceType> superclassConstraints = [];
+
+  MixinElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.augmentedInternal = this;
+  }
+
+  @override
+  bool get isBase => firstFragment.isBase;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitMixinElement(this);
+  }
+
+  @override
+  bool isImplementableIn2(LibraryElement2 library) =>
+      firstFragment.isImplementableIn(library as LibraryElement);
 }
 
 /// The constants for all of the modifiers defined by the Dart language and for

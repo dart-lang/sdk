@@ -26,6 +26,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get makeLocalsFinal => _isLintEnabled('prefer_final_locals');
 
   @override
+  bool get preferConstDeclarations =>
+      _isLintEnabled('prefer_const_declarations');
+
+  @override
   bool get preferIntLiterals => _isLintEnabled('prefer_int_literals');
 
   @override

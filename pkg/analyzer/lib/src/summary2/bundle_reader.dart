@@ -728,10 +728,10 @@ class LibraryReader {
     var element = ClassElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case AugmentedClassElementImpl element2?) {
+    if (reference2.element2 case ClassElementImpl2 element2?) {
       element.augmentedInternal = element2;
     } else {
-      AugmentedClassElementImpl(reference2, element);
+      ClassElementImpl2(reference2, element);
     }
 
     var linkedData = ClassElementLinkedData(
@@ -884,10 +884,10 @@ class LibraryReader {
     var element = EnumElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case AugmentedEnumElementImpl element2?) {
+    if (reference2.element2 case EnumElementImpl2 element2?) {
       element.augmentedInternal = element2;
     } else {
-      AugmentedEnumElementImpl(reference2, element);
+      EnumElementImpl2(reference2, element);
     }
 
     var linkedData = EnumElementLinkedData(
@@ -983,10 +983,10 @@ class LibraryReader {
     var element = ExtensionElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case AugmentedExtensionElementImpl element2?) {
+    if (reference2.element2 case ExtensionElementImpl2 element2?) {
       element.augmentedInternal = element2;
     } else {
-      AugmentedExtensionElementImpl(reference2, element);
+      ExtensionElementImpl2(reference2, element);
     }
 
     element.setLinkedData(
@@ -1040,10 +1040,10 @@ class LibraryReader {
     var element = ExtensionTypeElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case AugmentedExtensionTypeElementImpl element2?) {
+    if (reference2.element2 case ExtensionTypeElementImpl2 element2?) {
       element.augmentedInternal = element2;
     } else {
-      AugmentedExtensionTypeElementImpl(reference2, element);
+      ExtensionTypeElementImpl2(reference2, element);
     }
 
     element.setLinkedData(
@@ -1349,10 +1349,10 @@ class LibraryReader {
     var element = MixinElementImpl(name, -1);
     element.name2 = fragmentName;
 
-    if (reference2.element2 case AugmentedMixinElementImpl element2?) {
+    if (reference2.element2 case MixinElementImpl2 element2?) {
       element.augmentedInternal = element2;
     } else {
-      AugmentedMixinElementImpl(reference2, element);
+      MixinElementImpl2(reference2, element);
     }
 
     var linkedData = MixinElementLinkedData(

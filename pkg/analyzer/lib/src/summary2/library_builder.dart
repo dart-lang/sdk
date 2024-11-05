@@ -184,7 +184,7 @@ class LibraryBuilder with MacroApplicationsContainer {
 
       classElement.constructors = [constructor].toFixedList();
 
-      if (classElement.augmented case AugmentedClassElementImpl augmented) {
+      if (classElement.augmented case ClassElementImpl2 augmented) {
         augmented.constructors = classElement.constructors;
       }
     }
@@ -259,7 +259,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         constructor,
       ].toFixedList();
 
-      if (enumElement.augmented case AugmentedEnumElementImpl augmented) {
+      if (enumElement.augmented case EnumElementImpl2 augmented) {
         augmented.constructors = enumElement.constructors;
       }
     }

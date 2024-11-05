@@ -253,39 +253,37 @@ class ElementDisplayStringBuilder {
 
   void writePrefixElement(PrefixElementImpl element) {
     var libraryImports = element.imports;
+    var displayName = element.displayName;
     if (libraryImports.isEmpty) {
       _write('as ');
-      _write(element.displayName);
+      _write(displayName);
       return;
     }
-    _write("'${element.displayName}'");
-    _write(' is an import prefix for');
-    if (libraryImports case List(length: 1, :var first)) {
-      _write(" '${first.libraryName}'");
+    var first = libraryImports.first;
+    _write("import '${first.libraryName}' as $displayName;");
+    if (libraryImports.length == 1) {
       return;
     }
-    _write(':');
-    for (var libraryImport in libraryImports) {
-      _write("\n- '${libraryImport.libraryName}'");
+    for (var libraryImport in libraryImports.sublist(1)) {
+      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
     }
   }
 
   void writePrefixElement2(PrefixElementImpl2 element) {
     var libraryImports = element.imports;
-    if (element.imports.isEmpty) {
+    var displayName = element.displayName;
+    if (libraryImports.isEmpty) {
       _write('as ');
-      _write(element.displayName);
+      _write(displayName);
       return;
     }
-    _write("'${element.displayName}'");
-    _write(' is an import prefix for');
-    if (libraryImports case List(length: 1, :var first)) {
-      _write(" '${first.libraryName}'");
+    var first = libraryImports.first;
+    _write("import '${first.libraryName}' as $displayName;");
+    if (libraryImports.length == 1) {
       return;
     }
-    _write(':');
-    for (var libraryImport in libraryImports) {
-      _write("\n- '${libraryImport.libraryName}'");
+    for (var libraryImport in libraryImports.sublist(1)) {
+      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
     }
   }
 
@@ -643,6 +641,6 @@ extension on LibraryImportElement {
     if (uri case DirectiveUriWithRelativeUriString uri) {
       return uri.relativeUriString;
     }
-    return '<no-relative-uri>';
+    return '<unknown>';
   }
 }

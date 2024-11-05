@@ -8,11 +8,10 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Handles textDocument/colorPresentation.
@@ -74,7 +73,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
   Future<ColorPresentation> _createColorPresentation({
     required ResolvedUnitResult unit,
     required SourceRange editRange,
-    required InterfaceElement colorType,
+    required InterfaceElement2 colorType,
     required String typeName,
     required String invocationString,
     required bool includeConstKeyword,
@@ -152,7 +151,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       var editRange = SourceRange(editStart, editEnd - editStart);
 
       var sessionHelper = AnalysisSessionHelper(unit.session);
-      var colorType = await sessionHelper.getFlutterClass('Color');
+      var colorType = await sessionHelper.getFlutterClass2('Color');
       if (colorType == null) {
         // If we can't find the class (perhaps because this isn't a Flutter
         // project) we will not include any results. In theory the client should
@@ -246,14 +245,16 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       return node.isConst;
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
-      var staticElement = parent is PrefixedIdentifier
-          ? parent.staticElement
-          : node.staticElement;
-      var target = staticElement is PropertyAccessorElement
-          ? staticElement.variable2
-          : staticElement;
+      var element =
+          parent is PrefixedIdentifier ? parent.element : node.element;
 
-      return target is ConstVariableElement;
+      return switch (element) {
+        GetterElement(:var variable3) ||
+        SetterElement(:var variable3) =>
+          variable3?.isConst ?? false,
+        VariableElement2() => element.isConst,
+        _ => false,
+      };
     } else {
       return false;
     }
