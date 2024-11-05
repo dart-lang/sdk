@@ -1609,9 +1609,9 @@ void IRRegExpMacroAssembler::CheckPosition(intptr_t cp_offset,
   }
 }
 
-void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
+void IRRegExpMacroAssembler::BranchOrBacktrack(ConditionInstr* condition,
                                                BlockLabel* true_successor) {
-  if (comparison == nullptr) {  // No condition
+  if (condition == nullptr) {  // No condition
     if (true_successor == nullptr) {
       Backtrack();
       return;
@@ -1631,7 +1631,7 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
   // If the condition is not true, fall through to a new block.
   BlockLabel fallthrough;
 
-  BranchInstr* branch = new (Z) BranchInstr(comparison, GetNextDeoptId());
+  BranchInstr* branch = new (Z) BranchInstr(condition, GetNextDeoptId());
   *branch->true_successor_address() = TargetWithJoinGoto(true_successor_block);
   *branch->false_successor_address() = TargetWithJoinGoto(fallthrough.block());
 

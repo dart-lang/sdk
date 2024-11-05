@@ -133,7 +133,7 @@ class CalleeGraphValidator : public AllStatic {
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
         if (current->IsBranch()) {
-          current = current->AsBranch()->comparison();
+          current = current->AsBranch()->condition();
         }
         // The following instructions are not safe to inline, since they make
         // assumptions about the frame layout.
@@ -2202,21 +2202,21 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       // For all variants except the last, use a branch on the loaded class
       // id.
       BlockEntryInstr* cid_test_entry_block = current_block;
-      ComparisonInstr* compare;
+      ConditionInstr* condition;
       if (variant.cid_start == variant.cid_end) {
         ConstantInstr* cid_constant = owner_->caller_graph()->GetConstant(
             Smi::ZoneHandle(Smi::New(variant.cid_end)), cid_representation);
-        compare = new EqualityCompareInstr(
+        condition = new EqualityCompareInstr(
             call_->source(), Token::kEQ, new Value(load_cid),
             new Value(cid_constant),
             cid_representation == kTagged ? kSmiCid : kIntegerCid,
             DeoptId::kNone, /*null_aware=*/false);
       } else {
-        compare = new TestRangeInstr(call_->source(), new Value(load_cid),
-                                     variant.cid_start, variant.cid_end,
-                                     cid_representation);
+        condition = new TestRangeInstr(call_->source(), new Value(load_cid),
+                                       variant.cid_start, variant.cid_end,
+                                       cid_representation);
       }
-      BranchInstr* branch = new BranchInstr(compare, DeoptId::kNone);
+      BranchInstr* branch = new BranchInstr(condition, DeoptId::kNone);
 
       branch->InheritDeoptTarget(zone(), call_);
       AppendInstruction(cursor, branch);

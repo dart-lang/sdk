@@ -298,8 +298,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   // Equivalent to a conditional branch to the label, unless the label
   // is nullptr, in which case it is a conditional Backtrack.
-  void BranchOrBacktrack(ComparisonInstr* comparison,
-                         BlockLabel* true_successor);
+  void BranchOrBacktrack(ConditionInstr* condition, BlockLabel* true_successor);
 
   // Set up all local variables and parameters.
   void InitializeLocals();

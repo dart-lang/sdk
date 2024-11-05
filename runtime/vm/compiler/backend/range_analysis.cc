@@ -203,7 +203,7 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
 
 bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   BranchInstr* branch = use->instruction()->AsBranch();
-  RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
+  RelationalOpInstr* rel_op = branch->condition()->AsRelationalOp();
   if ((rel_op != nullptr) && ((rel_op->operation_cid() == kSmiCid) ||
                               (rel_op->operation_cid() == kMintCid))) {
     // Found comparison of two integers. Constrain defn at true and false

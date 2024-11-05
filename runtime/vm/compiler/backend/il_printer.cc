@@ -132,7 +132,7 @@ class IlTestPrinter : public AllStatic {
     }
     writer->PrintProperty("o", instr->DebugName());
     if (auto branch = instr->AsBranch()) {
-      PrintInstruction(writer, branch->comparison(), "cc");
+      PrintInstruction(writer, branch->condition(), "cc");
     } else {
       if (instr->InputCount() != 0) {
         writer->OpenArray("i");
@@ -870,7 +870,7 @@ void StrictCompareInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void TestCidsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  left()->PrintTo(f);
+  value()->PrintTo(f);
   f->Printf(" %s [", Token::Str(kind()));
   intptr_t length = cid_results().length();
   for (intptr_t i = 0; i < length; i += 2) {
@@ -888,7 +888,7 @@ void TestCidsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void TestRangeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  left()->PrintTo(f);
+  value()->PrintTo(f);
   f->Printf(" %s [%" Pd "-%" Pd "]", kind() == Token::kIS ? "in" : "not in",
             lower_, upper_);
 }
@@ -966,7 +966,7 @@ void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void IfThenElseInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  comparison()->PrintOperandsTo(f);
+  condition()->PrintOperandsTo(f);
   f->Printf(" ? %" Pd " : %" Pd, if_true_, if_false_);
 }
 
@@ -1209,7 +1209,7 @@ void CheckClassInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void CheckConditionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  comparison()->PrintOperandsTo(f);
+  condition()->PrintOperandsTo(f);
 }
 
 void InvokeMathCFunctionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1627,7 +1627,7 @@ void IndirectGotoInstr::PrintTo(BaseTextBuffer* f) const {
 void BranchInstr::PrintTo(BaseTextBuffer* f) const {
   f->Printf("%s ", DebugName());
   f->AddString("if ");
-  comparison()->PrintTo(f);
+  condition()->PrintTo(f);
 
   f->Printf(" goto (%" Pd ", %" Pd ")", true_successor()->block_id(),
             false_successor()->block_id());

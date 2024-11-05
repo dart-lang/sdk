@@ -219,11 +219,11 @@ bool FlowGraphDeserializer::ReadTrait<bool>::Read(FlowGraphDeserializer* d) {
 }
 
 void BranchInstr::WriteExtra(FlowGraphSerializer* s) {
-  // Branch reuses inputs from its embedded Comparison.
+  // Branch reuses inputs from its embedded Condition.
   // Instruction::WriteExtra is not called to avoid
   // writing/reading inputs twice.
   WriteExtraWithoutInputs(s);
-  comparison_->WriteExtra(s);
+  condition_->WriteExtra(s);
   s->WriteRef<TargetEntryInstr*>(true_successor_);
   s->WriteRef<TargetEntryInstr*>(false_successor_);
   s->WriteRef<TargetEntryInstr*>(constant_target_);
@@ -231,9 +231,9 @@ void BranchInstr::WriteExtra(FlowGraphSerializer* s) {
 
 void BranchInstr::ReadExtra(FlowGraphDeserializer* d) {
   ReadExtraWithoutInputs(d);
-  comparison_->ReadExtra(d);
-  for (intptr_t i = comparison_->InputCount() - 1; i >= 0; --i) {
-    comparison_->InputAt(i)->set_instruction(this);
+  condition_->ReadExtra(d);
+  for (intptr_t i = condition_->InputCount() - 1; i >= 0; --i) {
+    condition_->InputAt(i)->set_instruction(this);
   }
   true_successor_ = d->ReadRef<TargetEntryInstr*>();
   false_successor_ = d->ReadRef<TargetEntryInstr*>();
@@ -359,18 +359,18 @@ const char* FlowGraphDeserializer::ReadTrait<const char*>::Read(
 }
 
 void CheckConditionInstr::WriteExtra(FlowGraphSerializer* s) {
-  // CheckCondition reuses inputs from its embedded Comparison.
+  // CheckCondition reuses inputs from its embedded Condition.
   // Instruction::WriteExtra is not called to avoid
   // writing/reading inputs twice.
   WriteExtraWithoutInputs(s);
-  comparison_->WriteExtra(s);
+  condition_->WriteExtra(s);
 }
 
 void CheckConditionInstr::ReadExtra(FlowGraphDeserializer* d) {
   ReadExtraWithoutInputs(d);
-  comparison_->ReadExtra(d);
-  for (intptr_t i = comparison_->InputCount() - 1; i >= 0; --i) {
-    comparison_->InputAt(i)->set_instruction(this);
+  condition_->ReadExtra(d);
+  for (intptr_t i = condition_->InputCount() - 1; i >= 0; --i) {
+    condition_->InputAt(i)->set_instruction(this);
   }
 }
 
@@ -1017,18 +1017,18 @@ const ICData* FlowGraphDeserializer::ReadTrait<const ICData*>::Read(
 }
 
 void IfThenElseInstr::WriteExtra(FlowGraphSerializer* s) {
-  // IfThenElse reuses inputs from its embedded Comparison.
+  // IfThenElse reuses inputs from its embedded Condition.
   // Definition::WriteExtra is not called to avoid
   // writing/reading inputs twice.
   WriteExtraWithoutInputs(s);
-  comparison_->WriteExtra(s);
+  condition_->WriteExtra(s);
 }
 
 void IfThenElseInstr::ReadExtra(FlowGraphDeserializer* d) {
   ReadExtraWithoutInputs(d);
-  comparison_->ReadExtra(d);
-  for (intptr_t i = comparison_->InputCount() - 1; i >= 0; --i) {
-    comparison_->InputAt(i)->set_instruction(this);
+  condition_->ReadExtra(d);
+  for (intptr_t i = condition_->InputCount() - 1; i >= 0; --i) {
+    condition_->InputAt(i)->set_instruction(this);
   }
 }
 
@@ -1121,7 +1121,7 @@ void Instruction::ReadExtraWithoutInputs(FlowGraphDeserializer* d) {
 }
 
 #define INSTRUCTIONS_SERIALIZABLE_AS_INSTRUCTION(V)                            \
-  V(Comparison, ComparisonInstr)                                               \
+  V(Condition, ConditionInstr)                                                 \
   V(Constant, ConstantInstr)                                                   \
   V(Definition, Definition)                                                    \
   V(ParallelMove, ParallelMoveInstr)                                           \

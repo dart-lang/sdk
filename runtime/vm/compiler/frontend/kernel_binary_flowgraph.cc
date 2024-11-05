@@ -1939,12 +1939,12 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
         stack()->definition() == instructions.current) {
       StrictCompareInstr* compare = Pop()->definition()->AsStrictCompare();
       if (negate) {
-        compare->NegateComparison();
+        compare->NegateCondition();
         negate = false;
       }
       branch =
           new (Z) BranchInstr(compare, flow_graph_builder_->GetNextDeoptId());
-      branch->comparison()->ClearTempIndex();
+      branch->condition()->ClearTempIndex();
       ASSERT(instructions.current->previous() != nullptr);
       instructions.current = instructions.current->previous();
     } else {

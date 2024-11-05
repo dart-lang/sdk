@@ -48,7 +48,7 @@ class BoxIntegerInstr;
 class CallTargets;
 class CatchBlockEntryInstr;
 class CheckBoundBaseInstr;
-class ComparisonInstr;
+class ConditionInstr;
 class Definition;
 class Environment;
 class FlowGraph;
@@ -563,6 +563,7 @@ struct InstrAttrs {
   M(BoxInteger, _)                                                             \
   M(CheckBoundBase, _)                                                         \
   M(Comparison, _)                                                             \
+  M(Condition, _)                                                              \
   M(InstanceCallBase, _)                                                       \
   M(ReturnBase, _)                                                             \
   M(ShiftIntegerOp, _)                                                         \
@@ -613,8 +614,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define DECLARE_COMPARISON_METHODS                                             \
   virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
       const;                                                                   \
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
-                                       BranchLabels labels);
+  virtual Condition EmitConditionCode(FlowGraphCompiler* compiler,             \
+                                      BranchLabels labels);
 
 #define DECLARE_COMPARISON_INSTRUCTION(type)                                   \
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
@@ -1399,7 +1400,7 @@ class Instruction : public ZoneAllocated {
   // GetDeoptId and/or CopyDeoptIdFrom.
   friend class CallSiteInliner;
   friend class LICM;
-  friend class ComparisonInstr;
+  friend class ConditionInstr;
   friend class Scheduler;
   friend class BlockEntryInstr;
   friend class CatchBlockEntryInstr;  // deopt_id_
@@ -1415,7 +1416,7 @@ class Instruction : public ZoneAllocated {
 
   // Write/read locs and environment, but not inputs.
   // Used when one instruction embeds another and reuses their inputs
-  // (e.g. Branch/IfThenElse/CheckCondition wrap Comparison).
+  // (e.g. Branch/IfThenElse/CheckCondition wrap Condition).
   void WriteExtraWithoutInputs(FlowGraphSerializer* s);
   void ReadExtraWithoutInputs(FlowGraphDeserializer* d);
 
@@ -3832,20 +3833,19 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(IndirectGotoInstr);
 };
 
-class ComparisonInstr : public Definition {
+// Base class for instructions which can be used as conditions in Branch,
+// IfThenElse and CheckCondition instructions.
+class ConditionInstr : public Definition {
  public:
-  Value* left() const { return InputAt(0); }
-  Value* right() const { return InputAt(1); }
-
   virtual TokenPosition token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
   DECLARE_ATTRIBUTE(kind())
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
 
-  // Emits instructions to do the comparison and branch to the true or false
+  // Emits instructions for the condition and branch to the true or false
   // label depending on the result.  This implementation will call
-  // EmitComparisonCode and then generate the branch instructions afterwards.
+  // EmitConditionCode and then generate the branch instructions afterwards.
   virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
 
   // Used by EmitBranchCode and EmitNativeCode depending on whether the boolean
@@ -3853,13 +3853,13 @@ class ComparisonInstr : public Definition {
   // condition in which case the caller is expected to emit a branch to the
   // true label based on that condition (or a branch to the false label on the
   // opposite condition).  May also branch directly to the labels.
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels) = 0;
+  virtual Condition EmitConditionCode(FlowGraphCompiler* compiler,
+                                      BranchLabels labels) = 0;
 
-  // Emits code that generates 'true' or 'false', depending on the comparison.
-  // This implementation will call EmitComparisonCode.  If EmitComparisonCode
-  // does not use the labels (merely returning a condition) then EmitNativeCode
-  // may be able to use the condition to avoid a branch.
+  // Emits code that generates 'true' or 'false', depending on the condition.
+  // This implementation will call EmitConditionCode.  If EmitConditionCode
+  // does not use the labels (merely setting condition flags) then
+  // EmitNativeCode may be able to use the condition flags to avoid a branch.
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   void SetDeoptId(const Instruction& instr) { CopyDeoptIdFrom(instr); }
@@ -3868,16 +3868,87 @@ class ComparisonInstr : public Definition {
   void set_operation_cid(intptr_t value) { operation_cid_ = value; }
   intptr_t operation_cid() const { return operation_cid_; }
 
-  virtual void NegateComparison() { kind_ = Token::NegateComparison(kind_); }
+  virtual void NegateCondition() { kind_ = Token::NegateComparison(kind_); }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    auto const other_comparison = other.AsComparison();
-    return kind() == other_comparison->kind() &&
-           (operation_cid() == other_comparison->operation_cid());
+    auto const other_condition = other.AsCondition();
+    return kind() == other_condition->kind() &&
+           (operation_cid() == other_condition->operation_cid());
   }
+
+  DECLARE_ABSTRACT_INSTRUCTION(Condition)
+
+#define FIELD_LIST(F)                                                          \
+  F(const TokenPosition, token_pos_)                                           \
+  F(Token::Kind, kind_)                                                        \
+  /* Set by optimizer. */                                                      \
+  F(intptr_t, operation_cid_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ConditionInstr,
+                                          Definition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ protected:
+  ConditionInstr(const InstructionSource& source,
+                 Token::Kind kind,
+                 intptr_t deopt_id = DeoptId::kNone)
+      : Definition(source, deopt_id),
+        token_pos_(source.token_pos),
+        kind_(kind),
+        operation_cid_(kIllegalCid) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ConditionInstr);
+};
+
+class PureCondition : public ConditionInstr {
+ public:
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  DECLARE_EMPTY_SERIALIZATION(PureCondition, ConditionInstr)
+ protected:
+  PureCondition(const InstructionSource& source,
+                Token::Kind kind,
+                intptr_t deopt_id)
+      : ConditionInstr(source, kind, deopt_id) {}
+};
+
+template <intptr_t N,
+          typename ThrowsTrait,
+          template <typename Impure, typename Pure> class CSETrait = NoCSE>
+class TemplateCondition : public CSETrait<ConditionInstr, PureCondition>::Base {
+ public:
+  using BaseClass = typename CSETrait<ConditionInstr, PureCondition>::Base;
+
+  TemplateCondition(const InstructionSource& source,
+                    Token::Kind kind,
+                    intptr_t deopt_id = DeoptId::kNone)
+      : BaseClass(source, kind, deopt_id), inputs_() {}
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
+
+  DECLARE_EMPTY_SERIALIZATION(TemplateCondition, BaseClass)
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+};
+
+// Compares left and right.
+class ComparisonInstr : public TemplateCondition<2, NoThrow, Pure> {
+ public:
+  Value* left() const { return InputAt(0); }
+  Value* right() const { return InputAt(1); }
 
   // Detects comparison with a constant and returns constant and the other
   // operand.
@@ -3895,129 +3966,76 @@ class ComparisonInstr : public Definition {
   }
 
   DECLARE_ABSTRACT_INSTRUCTION(Comparison)
-
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(Token::Kind, kind_)                                                        \
-  /* Set by optimizer. */                                                      \
-  F(intptr_t, operation_cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ComparisonInstr,
-                                          Definition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_EMPTY_SERIALIZATION(ComparisonInstr, TemplateCondition)
 
  protected:
   ComparisonInstr(const InstructionSource& source,
                   Token::Kind kind,
-                  intptr_t deopt_id = DeoptId::kNone)
-      : Definition(source, deopt_id),
-        token_pos_(source.token_pos),
-        kind_(kind),
-        operation_cid_(kIllegalCid) {}
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
-};
-
-class PureComparison : public ComparisonInstr {
- public:
-  virtual bool AllowsCSE() const { return true; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-
-  DECLARE_EMPTY_SERIALIZATION(PureComparison, ComparisonInstr)
- protected:
-  PureComparison(const InstructionSource& source,
-                 Token::Kind kind,
-                 intptr_t deopt_id)
-      : ComparisonInstr(source, kind, deopt_id) {}
-};
-
-template <intptr_t N,
-          typename ThrowsTrait,
-          template <typename Impure, typename Pure> class CSETrait = NoCSE>
-class TemplateComparison
-    : public CSETrait<ComparisonInstr, PureComparison>::Base {
- public:
-  using BaseClass = typename CSETrait<ComparisonInstr, PureComparison>::Base;
-
-  TemplateComparison(const InstructionSource& source,
-                     Token::Kind kind,
-                     intptr_t deopt_id = DeoptId::kNone)
-      : BaseClass(source, kind, deopt_id), inputs_() {}
-
-  virtual intptr_t InputCount() const { return N; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
-
-  DECLARE_EMPTY_SERIALIZATION(TemplateComparison, BaseClass)
-
- protected:
-  EmbeddedArray<Value*, N> inputs_;
-
- private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+                  Value* left,
+                  Value* right,
+                  intptr_t deopt_id)
+      : TemplateCondition(source, kind, deopt_id) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
 };
 
 class BranchInstr : public Instruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison, intptr_t deopt_id)
-      : Instruction(deopt_id), comparison_(comparison) {
-    ASSERT(comparison->env() == nullptr);
-    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
-      comparison->InputAt(i)->set_instruction(this);
+  explicit BranchInstr(ConditionInstr* condition, intptr_t deopt_id)
+      : Instruction(deopt_id), condition_(condition) {
+    ASSERT(condition->env() == nullptr);
+    for (intptr_t i = condition->InputCount() - 1; i >= 0; --i) {
+      condition->InputAt(i)->set_instruction(this);
     }
   }
 
   DECLARE_INSTRUCTION(Branch)
 
   virtual intptr_t ArgumentCount() const {
-    return comparison()->ArgumentCount();
+    return condition()->ArgumentCount();
   }
   virtual void SetMoveArguments(MoveArgumentsArray* move_arguments) {
-    comparison()->SetMoveArguments(move_arguments);
+    condition()->SetMoveArguments(move_arguments);
   }
   virtual MoveArgumentsArray* GetMoveArguments() const {
-    return comparison()->GetMoveArguments();
+    return condition()->GetMoveArguments();
   }
 
-  intptr_t InputCount() const { return comparison()->InputCount(); }
+  intptr_t InputCount() const { return condition()->InputCount(); }
 
-  Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+  Value* InputAt(intptr_t i) const { return condition()->InputAt(i); }
 
-  virtual TokenPosition token_pos() const { return comparison_->token_pos(); }
-  virtual intptr_t inlining_id() const { return comparison_->inlining_id(); }
+  virtual TokenPosition token_pos() const { return condition_->token_pos(); }
+  virtual intptr_t inlining_id() const { return condition_->inlining_id(); }
   virtual void set_inlining_id(intptr_t value) {
-    return comparison_->set_inlining_id(value);
+    return condition_->set_inlining_id(value);
   }
-  virtual bool has_inlining_id() const {
-    return comparison_->has_inlining_id();
-  }
+  virtual bool has_inlining_id() const { return condition_->has_inlining_id(); }
 
   virtual bool ComputeCanDeoptimize() const {
-    return comparison()->ComputeCanDeoptimize();
+    return condition()->ComputeCanDeoptimize();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
-    return comparison()->CanBecomeDeoptimizationTarget();
+    return condition()->CanBecomeDeoptimizationTarget();
   }
 
   virtual bool HasUnknownSideEffects() const {
-    return comparison()->HasUnknownSideEffects();
+    return condition()->HasUnknownSideEffects();
   }
 
-  virtual bool CanCallDart() const { return comparison()->CanCallDart(); }
+  virtual bool CanCallDart() const { return condition()->CanCallDart(); }
 
-  ComparisonInstr* comparison() const { return comparison_; }
-  void SetComparison(ComparisonInstr* comp);
+  ConditionInstr* condition() const { return condition_; }
+  void SetCondition(ConditionInstr* new_condition);
 
   virtual intptr_t DeoptimizationTarget() const {
-    return comparison()->DeoptimizationTarget();
+    return condition()->DeoptimizationTarget();
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
-    return comparison()->RequiredInputRepresentation(i);
+    return condition()->RequiredInputRepresentation(i);
   }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
@@ -4030,10 +4048,10 @@ class BranchInstr : public Instruction {
 
   virtual void CopyDeoptIdFrom(const Instruction& instr) {
     Instruction::CopyDeoptIdFrom(instr);
-    comparison()->CopyDeoptIdFrom(instr);
+    condition()->CopyDeoptIdFrom(instr);
   }
 
-  virtual bool MayThrow() const { return comparison()->MayThrow(); }
+  virtual bool MayThrow() const { return condition()->MayThrow(); }
 
   TargetEntryInstr* true_successor() const { return true_successor_; }
   TargetEntryInstr* false_successor() const { return false_successor_; }
@@ -4046,7 +4064,7 @@ class BranchInstr : public Instruction {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F) F(ComparisonInstr*, comparison_)
+#define FIELD_LIST(F) F(ConditionInstr*, condition_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BranchInstr, Instruction, FIELD_LIST)
 #undef FIELD_LIST
@@ -4054,7 +4072,7 @@ class BranchInstr : public Instruction {
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
-    comparison()->RawSetInputAt(i, value);
+    condition()->RawSetInputAt(i, value);
   }
 
   TargetEntryInstr* true_successor_ = nullptr;
@@ -4194,8 +4212,8 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   // Constraints for branches have their target block stored in order
-  // to find the comparison that generated the constraint:
-  // target->predecessor->last_instruction->comparison.
+  // to find the condition that generated the constraint:
+  // target->predecessor->last_instruction->condition.
   void set_target(TargetEntryInstr* target) { target_ = target; }
   TargetEntryInstr* target() const { return target_; }
 
@@ -5043,7 +5061,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
   DISALLOW_COPY_AND_ASSIGN(DispatchTableCallInstr);
 };
 
-class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
+class StrictCompareInstr : public ComparisonInstr {
  public:
   StrictCompareInstr(const InstructionSource& source,
                      Token::Kind kind,
@@ -5054,7 +5072,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   DECLARE_COMPARISON_INSTRUCTION(StrictCompare)
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
@@ -5075,7 +5093,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   F(bool, needs_number_check_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StrictCompareInstr,
-                                          TemplateComparison,
+                                          ComparisonInstr,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -5093,16 +5111,15 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(StrictCompareInstr);
 };
 
-// Comparison instruction that is equivalent to the (left & right) == 0
-// comparison pattern.
-class TestIntInstr : public TemplateComparison<2, NoThrow, Pure> {
+// Test (left & right) == 0 pattern.
+class TestIntInstr : public TemplateCondition<2, NoThrow, Pure> {
  public:
   TestIntInstr(const InstructionSource& source,
                Token::Kind kind,
                Representation representation,
                Value* left,
                Value* right)
-      : TemplateComparison(source, kind), representation_(representation) {
+      : TemplateCondition(source, kind), representation_(representation) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
     ASSERT(IsSupported(representation));
     SetInputAt(0, left);
@@ -5111,7 +5128,10 @@ class TestIntInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   DECLARE_COMPARISON_INSTRUCTION(TestInt);
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  Value* left() const { return InputAt(0); }
+  Value* right() const { return InputAt(1); }
+
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
@@ -5142,7 +5162,7 @@ class TestIntInstr : public TemplateComparison<2, NoThrow, Pure> {
 #define FIELD_LIST(F) F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestIntInstr,
-                                          TemplateComparison,
+                                          TemplateCondition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -5159,7 +5179,7 @@ class TestIntInstr : public TemplateComparison<2, NoThrow, Pure> {
 // the opposite for cids not on the list.  The first element in the table must
 // always be the result for the Smi class-id and is allowed to differ from the
 // other results even in the no-deopt case.
-class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
+class TestCidsInstr : public TemplateCondition<1, NoThrow, Pure> {
  public:
   TestCidsInstr(const InstructionSource& source,
                 Token::Kind kind,
@@ -5173,7 +5193,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   DECLARE_COMPARISON_INSTRUCTION(TestCids);
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
@@ -5195,7 +5215,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 #define FIELD_LIST(F) F(const ZoneGrowableArray<intptr_t>&, cid_results_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestCidsInstr,
-                                          TemplateComparison,
+                                          TemplateCondition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -5203,7 +5223,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
-class TestRangeInstr : public TemplateComparison<1, NoThrow, Pure> {
+class TestRangeInstr : public TemplateCondition<1, NoThrow, Pure> {
  public:
   TestRangeInstr(const InstructionSource& source,
                  Value* value,
@@ -5216,7 +5236,7 @@ class TestRangeInstr : public TemplateComparison<1, NoThrow, Pure> {
   uword lower() const { return lower_; }
   uword upper() const { return upper_; }
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
@@ -5239,7 +5259,7 @@ class TestRangeInstr : public TemplateComparison<1, NoThrow, Pure> {
   F(const Representation, value_representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestRangeInstr,
-                                          TemplateComparison,
+                                          TemplateCondition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -5247,7 +5267,7 @@ class TestRangeInstr : public TemplateComparison<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(TestRangeInstr);
 };
 
-class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
+class EqualityCompareInstr : public ComparisonInstr {
  public:
   EqualityCompareInstr(const InstructionSource& source,
                        Token::Kind kind,
@@ -5256,16 +5276,15 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                        intptr_t cid,
                        intptr_t deopt_id,
                        bool null_aware)
-      : TemplateComparison(source, kind, deopt_id), null_aware_(null_aware) {
+      : ComparisonInstr(source, kind, left, right, deopt_id),
+        null_aware_(null_aware) {
     ASSERT(Token::IsEqualityOperator(kind));
-    SetInputAt(0, left);
-    SetInputAt(1, right);
     set_operation_cid(cid);
   }
 
   DECLARE_COMPARISON_INSTRUCTION(EqualityCompare)
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
@@ -5284,7 +5303,7 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    return ComparisonInstr::AttributesEqual(other) &&
+    return ConditionInstr::AttributesEqual(other) &&
            (null_aware_ == other.AsEqualityCompare()->null_aware_);
   }
 
@@ -5295,7 +5314,7 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 #define FIELD_LIST(F) F(bool, null_aware_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(EqualityCompareInstr,
-                                          TemplateComparison,
+                                          ComparisonInstr,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -5303,7 +5322,7 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
 
-class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
+class RelationalOpInstr : public ComparisonInstr {
  public:
   RelationalOpInstr(const InstructionSource& source,
                     Token::Kind kind,
@@ -5311,17 +5330,15 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
                     Value* right,
                     intptr_t cid,
                     intptr_t deopt_id)
-      : TemplateComparison(source, kind, deopt_id) {
+      : ComparisonInstr(source, kind, left, right, deopt_id) {
     ASSERT(Token::IsRelationalOperator(kind));
     ASSERT((cid == kSmiCid) || (cid == kMintCid) || (cid == kDoubleCid));
-    SetInputAt(0, left);
-    SetInputAt(1, right);
     set_operation_cid(cid);
   }
 
   DECLARE_COMPARISON_INSTRUCTION(RelationalOp)
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
@@ -5336,90 +5353,90 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DECLARE_EMPTY_SERIALIZATION(RelationalOpInstr, TemplateComparison)
+  DECLARE_EMPTY_SERIALIZATION(RelationalOpInstr, ComparisonInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
 };
 
-// TODO(vegorov): ComparisonInstr should be switched to use IfTheElseInstr for
+// TODO(vegorov): ConditionInstr should be switched to use IfTheElseInstr for
 // materialization of true and false constants.
 class IfThenElseInstr : public Definition {
  public:
-  IfThenElseInstr(ComparisonInstr* comparison,
+  IfThenElseInstr(ConditionInstr* condition,
                   Value* if_true,
                   Value* if_false,
                   intptr_t deopt_id)
       : Definition(deopt_id),
-        comparison_(comparison),
+        condition_(condition),
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
-    // Adjust uses at the comparison.
-    ASSERT(comparison->env() == nullptr);
-    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
-      comparison->InputAt(i)->set_instruction(this);
+    // Adjust uses at the condition.
+    ASSERT(condition->env() == nullptr);
+    for (intptr_t i = condition->InputCount() - 1; i >= 0; --i) {
+      condition->InputAt(i)->set_instruction(this);
     }
   }
 
-  // Returns true if this combination of comparison and values flowing on
+  // Returns true if this combination of condition and values flowing on
   // the true and false paths is supported on the current platform.
-  static bool Supports(ComparisonInstr* comparison, Value* v1, Value* v2);
+  static bool Supports(ConditionInstr* condition, Value* v1, Value* v2);
 
   DECLARE_INSTRUCTION(IfThenElse)
 
-  intptr_t InputCount() const { return comparison()->InputCount(); }
+  intptr_t InputCount() const { return condition()->InputCount(); }
 
-  Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+  Value* InputAt(intptr_t i) const { return condition()->InputAt(i); }
 
   virtual bool ComputeCanDeoptimize() const {
-    return comparison()->ComputeCanDeoptimize();
+    return condition()->ComputeCanDeoptimize();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
-    return comparison()->CanBecomeDeoptimizationTarget();
+    return condition()->CanBecomeDeoptimizationTarget();
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    return comparison()->DeoptimizationTarget();
+    return condition()->DeoptimizationTarget();
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
-    return comparison()->RequiredInputRepresentation(i);
+    return condition()->RequiredInputRepresentation(i);
   }
 
   virtual CompileType ComputeType() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  ComparisonInstr* comparison() const { return comparison_; }
+  ConditionInstr* condition() const { return condition_; }
   intptr_t if_true() const { return if_true_; }
   intptr_t if_false() const { return if_false_; }
 
-  virtual bool AllowsCSE() const { return comparison()->AllowsCSE(); }
+  virtual bool AllowsCSE() const { return condition()->AllowsCSE(); }
   virtual bool HasUnknownSideEffects() const {
-    return comparison()->HasUnknownSideEffects();
+    return condition()->HasUnknownSideEffects();
   }
-  virtual bool CanCallDart() const { return comparison()->CanCallDart(); }
+  virtual bool CanCallDart() const { return condition()->CanCallDart(); }
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_if_then_else = other.AsIfThenElse();
-    return (comparison()->tag() == other_if_then_else->comparison()->tag()) &&
-           comparison()->AttributesEqual(*other_if_then_else->comparison()) &&
+    return (condition()->tag() == other_if_then_else->condition()->tag()) &&
+           condition()->AttributesEqual(*other_if_then_else->condition()) &&
            (if_true_ == other_if_then_else->if_true_) &&
            (if_false_ == other_if_then_else->if_false_);
   }
 
-  virtual bool MayThrow() const { return comparison()->MayThrow(); }
+  virtual bool MayThrow() const { return condition()->MayThrow(); }
 
   virtual void CopyDeoptIdFrom(const Instruction& instr) {
     Definition::CopyDeoptIdFrom(instr);
-    comparison()->CopyDeoptIdFrom(instr);
+    condition()->CopyDeoptIdFrom(instr);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
-  F(ComparisonInstr*, comparison_)                                             \
+  F(ConditionInstr*, condition_)                                               \
   F(const intptr_t, if_true_)                                                  \
   F(const intptr_t, if_false_)
 
@@ -5431,7 +5448,7 @@ class IfThenElseInstr : public Definition {
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
-    comparison()->RawSetInputAt(i, value);
+    condition()->RawSetInputAt(i, value);
   }
 
   DISALLOW_COPY_AND_ASSIGN(IfThenElseInstr);
@@ -8889,13 +8906,13 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
 
-class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
+class DoubleTestOpInstr : public TemplateCondition<1, NoThrow, Pure> {
  public:
   DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
                     Value* value,
                     intptr_t deopt_id,
                     const InstructionSource& source)
-      : TemplateComparison(source, Token::kEQ, deopt_id), op_kind_(op_kind) {
+      : TemplateCondition(source, Token::kEQ, deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
   }
 
@@ -8920,15 +8937,15 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const {
     return op_kind_ == other.AsDoubleTestOp()->op_kind() &&
-           ComparisonInstr::AttributesEqual(other);
+           ConditionInstr::AttributesEqual(other);
   }
 
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+  virtual ConditionInstr* CopyWithNewOperands(Value* left, Value* right);
 
 #define FIELD_LIST(F) F(const MethodRecognizer::Kind, op_kind_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleTestOpInstr,
-                                          TemplateComparison,
+                                          TemplateCondition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -10688,20 +10705,20 @@ class CheckWritableInstr : public TemplateDefinition<1, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckWritableInstr);
 };
 
-// Instruction evaluates the given comparison and deoptimizes if it evaluates
+// Instruction evaluates the given condition and deoptimizes if it evaluates
 // to false.
 class CheckConditionInstr : public Instruction {
  public:
-  CheckConditionInstr(ComparisonInstr* comparison, intptr_t deopt_id)
-      : Instruction(deopt_id), comparison_(comparison) {
-    ASSERT(comparison->ArgumentCount() == 0);
-    ASSERT(comparison->env() == nullptr);
-    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
-      comparison->InputAt(i)->set_instruction(this);
+  CheckConditionInstr(ConditionInstr* condition, intptr_t deopt_id)
+      : Instruction(deopt_id), condition_(condition) {
+    ASSERT(condition->ArgumentCount() == 0);
+    ASSERT(condition->env() == nullptr);
+    for (intptr_t i = condition->InputCount() - 1; i >= 0; --i) {
+      condition->InputAt(i)->set_instruction(this);
     }
   }
 
-  ComparisonInstr* comparison() const { return comparison_; }
+  ConditionInstr* condition() const { return condition_; }
 
   DECLARE_INSTRUCTION(CheckCondition)
 
@@ -10713,23 +10730,22 @@ class CheckConditionInstr : public Instruction {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    return other.AsCheckCondition()->comparison()->AttributesEqual(
-        *comparison());
+    return other.AsCheckCondition()->condition()->AttributesEqual(*condition());
   }
 
-  virtual intptr_t InputCount() const { return comparison()->InputCount(); }
-  virtual Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+  virtual intptr_t InputCount() const { return condition()->InputCount(); }
+  virtual Value* InputAt(intptr_t i) const { return condition()->InputAt(i); }
 
   virtual bool MayThrow() const { return false; }
 
   virtual void CopyDeoptIdFrom(const Instruction& instr) {
     Instruction::CopyDeoptIdFrom(instr);
-    comparison()->CopyDeoptIdFrom(instr);
+    condition()->CopyDeoptIdFrom(instr);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(ComparisonInstr*, comparison_)
+#define FIELD_LIST(F) F(ConditionInstr*, condition_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckConditionInstr,
                                           Instruction,
@@ -10739,7 +10755,7 @@ class CheckConditionInstr : public Instruction {
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
-    comparison()->RawSetInputAt(i, value);
+    condition()->RawSetInputAt(i, value);
   }
 
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);

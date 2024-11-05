@@ -403,11 +403,11 @@ void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
 void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
   for (auto branch : branches_) {
     // Proper comparison?
-    ComparisonInstr* compare = branch->comparison();
-    if (compare->InputCount() != 2) {
+    ConditionInstr* condition = branch->condition();
+    if (condition->InputCount() != 2) {
       continue;
     }
-    Token::Kind cmp = compare->kind();
+    Token::Kind cmp = condition->kind();
     // Proper loop exit? Express the condition in "loop while true" form.
     TargetEntryInstr* ift = branch->true_successor();
     TargetEntryInstr* iff = branch->false_successor();
@@ -421,10 +421,10 @@ void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
     // Comparison against linear constant stride induction?
     // Express the comparison such that induction appears left.
     int64_t stride = 0;
-    auto left = compare->left()
+    auto left = condition->InputAt(0)
                     ->definition()
                     ->OriginalDefinitionIgnoreBoxingAndConstraints();
-    auto right = compare->right()
+    auto right = condition->InputAt(1)
                      ->definition()
                      ->OriginalDefinitionIgnoreBoxingAndConstraints();
     InductionVar* x = Lookup(loop, left);

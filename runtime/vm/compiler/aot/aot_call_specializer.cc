@@ -1127,7 +1127,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
       new (Z) LoadClassIdInstr(new (Z) Value(left), kUnboxedUword);
   InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
 
-  ComparisonInstr* check_range;
+  ConditionInstr* check_range;
   if (lower_limit == upper_limit) {
     ConstantInstr* cid_constant = flow_graph()->GetConstant(
         Smi::Handle(Z, Smi::New(lower_limit)), kUnboxedUword);

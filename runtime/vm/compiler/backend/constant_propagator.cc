@@ -239,7 +239,7 @@ void ConstantPropagator::VisitIndirectGoto(IndirectGotoInstr* instr) {
 }
 
 void ConstantPropagator::VisitBranch(BranchInstr* instr) {
-  instr->comparison()->Accept(this);
+  instr->condition()->Accept(this);
 
   // The successors may be reachable, but only if this instruction is.  (We
   // might be analyzing it because the constant value of one of its inputs
@@ -250,7 +250,7 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
              (instr->constant_target() == instr->false_successor()));
       SetReachable(instr->constant_target());
     } else {
-      const Object& value = instr->comparison()->constant_value();
+      const Object& value = instr->condition()->constant_value();
       if (IsNonConstant(value)) {
         SetReachable(instr->true_successor());
         SetReachable(instr->false_successor());
@@ -557,8 +557,8 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 }
 
 void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
-  instr->comparison()->Accept(this);
-  const Object& value = instr->comparison()->constant_value();
+  instr->condition()->Accept(this);
+  const Object& value = instr->condition()->constant_value();
   ASSERT(!value.IsNull());
   if (IsUnknown(value)) {
     return;
@@ -656,8 +656,6 @@ static bool CompareIntegers(Token::Kind kind,
   }
 }
 
-// Comparison instruction that is equivalent to the (left & right) == 0
-// comparison pattern.
 void ConstantPropagator::VisitTestInt(TestIntInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -1614,10 +1612,11 @@ static RedefinitionInstr* InsertRedefinition(FlowGraph* graph,
 void ConstantPropagator::InsertRedefinitionsAfterEqualityComparisons() {
   for (auto block : graph_->reverse_postorder()) {
     if (auto branch = block->last_instruction()->AsBranch()) {
-      auto comparison = branch->comparison();
-      if (comparison->IsStrictCompare() ||
-          (comparison->IsEqualityCompare() &&
-           comparison->operation_cid() != kDoubleCid)) {
+      auto comparison = branch->condition()->AsComparison();
+      if (comparison != nullptr &&
+          (comparison->IsStrictCompare() ||
+           (comparison->IsEqualityCompare() &&
+            comparison->operation_cid() != kDoubleCid))) {
         Value* value;
         ConstantInstr* constant_defn;
         if (comparison->IsComparisonWithConstant(&value, &constant_defn) &&
