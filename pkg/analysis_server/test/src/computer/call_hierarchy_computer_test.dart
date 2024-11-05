@@ -328,6 +328,110 @@ void f() {
         ));
   }
 
+  Future<void> test_functionCallInNullAwareElementInList() async {
+    var code = TestCode.parse('''
+import 'other.dart' as other;
+
+void f() {
+  <String>[?other.myFun^ction()];
+}
+''');
+
+    var otherCode = TestCode.parse('''
+[!String? myFunction() => null;!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+        code,
+        _isItem(
+          CallHierarchyKind.function,
+          'myFunction',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('myFunction', otherCode),
+          codeRange: otherCode.range.sourceRange,
+        ));
+  }
+
+  Future<void> test_functionCallInNullAwareElementInMapKey() async {
+    var code = TestCode.parse('''
+import 'other.dart' as other;
+
+void f() {
+  <String, int>{?other.myFun^ction(): 0};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+[!String? myFunction() => null;!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+        code,
+        _isItem(
+          CallHierarchyKind.function,
+          'myFunction',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('myFunction', otherCode),
+          codeRange: otherCode.range.sourceRange,
+        ));
+  }
+
+  Future<void> test_functionCallInNullAwareElementInMapValue() async {
+    var code = TestCode.parse('''
+import 'other.dart' as other;
+
+void f() {
+  <int, String>{0: ?other.myFun^ction()};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+[!String? myFunction() => null;!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+        code,
+        _isItem(
+          CallHierarchyKind.function,
+          'myFunction',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('myFunction', otherCode),
+          codeRange: otherCode.range.sourceRange,
+        ));
+  }
+
+  Future<void> test_functionCallInNullAwareElementInSet() async {
+    var code = TestCode.parse('''
+import 'other.dart' as other;
+
+void f() {
+  <String>{?other.myFun^ction()};
+}
+''');
+
+    var otherCode = TestCode.parse('''
+[!String? myFunction() => null;!]
+''');
+
+    newFile(otherFile, otherCode.code);
+    await expectTarget(
+        code,
+        _isItem(
+          CallHierarchyKind.function,
+          'myFunction',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('myFunction', otherCode),
+          codeRange: otherCode.range.sourceRange,
+        ));
+  }
+
   Future<void> test_getter() async {
     var code = TestCode.parse('''
 class Foo {
@@ -1158,6 +1262,166 @@ augment class Foo {
     ]);
   }
 
+  Future<void> test_methodInNullAwareElementInList() async {
+    var code = TestCode.parse('''
+class Foo {
+  bool? myMet^hod() => null;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'test.dart';
+
+[!void f() {
+  dynamic tearoff;
+  <bool>[
+    ?Foo().myMethod(),
+    ?tearoff = Foo().myMethod,
+  ];
+}!]
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix) =>
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfter('Foo().'),
+              rangeAfter('tearoff = Foo().'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_methodInNullAwareElementInMapKey() async {
+    var code = TestCode.parse('''
+class Foo {
+  bool? myMet^hod() => null;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'test.dart';
+
+[!void f() {
+  dynamic tearoff;
+  <bool, num>{
+    ?Foo().myMethod(): 0,
+    ?tearoff = Foo().myMethod: 1,
+  };
+}!]
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix) =>
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfter('Foo().'),
+              rangeAfter('tearoff = Foo().'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_methodInNullAwareElementInMapValue() async {
+    var code = TestCode.parse('''
+class Foo {
+  bool? myMet^hod() => null;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'test.dart';
+
+[!void f() {
+  dynamic tearoff;
+  <String, bool>{
+    "foo": ?Foo().myMethod(),
+    "bar": ?tearoff = Foo().myMethod,
+  };
+}!]
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix) =>
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfter('Foo().'),
+              rangeAfter('tearoff = Foo().'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_methodInNullAwareElementInSet() async {
+    var code = TestCode.parse('''
+class Foo {
+  bool? myMet^hod() => null;
+}
+''');
+
+    var otherCode = TestCode.parse('''
+import 'test.dart';
+
+[!void f() {
+  dynamic tearoff;
+  <bool>{
+    ?Foo().myMethod(),
+    ?tearoff = Foo().myMethod,
+  };
+}!]
+''');
+
+    // Gets the expected range that follows the string [prefix].
+    SourceRange rangeAfter(String prefix) =>
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findIncomingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfter('Foo().'),
+              rangeAfter('tearoff = Foo().'),
+            ]),
+      ]),
+    );
+  }
+
   Future<void> test_mixin_method() async {
     var code = TestCode.parse('''
 mixin Bar {
@@ -1722,6 +1986,170 @@ class A {
             ranges: [
               rangeAfterPrefix('a = A.', code, 'named'),
               rangeAfterPrefix('constructorTearoff = A.', code, 'named'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_namedConstructorInNullAwareElementInList() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.B^ar(bool b) {
+    dynamic a1;
+    dynamic a2;
+    <Object>[
+      ?a1 = b ? A.named() : null,
+      ?a2 = b ? A.named : null,
+    ];
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+void f() {}
+class A {
+  [!A.named();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
+            containerName: 'A',
+            nameRange: rangeAtSearch('named', otherCode),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_namedConstructorInNullAwareElementInMapKey() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.B^ar(bool b) {
+    dynamic a1;
+    dynamic a2;
+    <Object, Symbol>{
+      ?a1 = b ? A.named() : null: #foo,
+      ?a2 = b ? A.named : null: #bar,
+    };
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+void f() {}
+class A {
+  [!A.named();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
+            containerName: 'A',
+            nameRange: rangeAtSearch('named', otherCode),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_namedConstructorInNullAwareElementInMapValue() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.B^ar(bool b) {
+    dynamic a1;
+    dynamic a2;
+    <Symbol, Object>{
+      #foo: ?a1 = b ? A.named() : null,
+      #bar: ?a2 = b ? A.named : null,
+    };
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+void f() {}
+class A {
+  [!A.named();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
+            containerName: 'A',
+            nameRange: rangeAtSearch('named', otherCode),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+            ]),
+      ]),
+    );
+  }
+
+  Future<void> test_namedConstructorInNullAwareElementInSet() async {
+    var code = TestCode.parse('''
+// ignore_for_file: unused_local_variable
+import 'other.dart';
+
+class Foo {
+  Foo.B^ar(bool b) {
+    dynamic a1;
+    dynamic a2;
+    <Object>{
+      ?a1 = b ? A.named() : null,
+      ?a2 = b ? A.named : null,
+    };
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+void f() {}
+class A {
+  [!A.named();!]
+}
+''');
+
+    newFile(otherFile, otherCode.code);
+    var calls = await findOutgoingCalls(code);
+    expect(
+      calls,
+      unorderedEquals([
+        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
+            containerName: 'A',
+            nameRange: rangeAtSearch('named', otherCode),
+            codeRange: otherCode.range.sourceRange,
+            ranges: [
+              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
             ]),
       ]),
     );
