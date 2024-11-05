@@ -185,11 +185,11 @@ abstract class _AbstractElementWriter {
 
   void _writeReference2(Element2 e) {
     var reference = switch (e) {
-      AugmentedClassElementImpl() => e.reference,
-      AugmentedEnumElementImpl() => e.reference,
-      AugmentedExtensionElementImpl() => e.reference,
-      AugmentedExtensionTypeElementImpl() => e.reference,
-      AugmentedMixinElementImpl() => e.reference,
+      ClassElementImpl2() => e.reference,
+      EnumElementImpl2() => e.reference,
+      ExtensionElementImpl2() => e.reference,
+      ExtensionTypeElementImpl2() => e.reference,
+      MixinElementImpl2() => e.reference,
       TopLevelFunctionElementImpl() => e.reference,
       _ => null,
     };
@@ -805,7 +805,7 @@ class _Element2Writer extends _AbstractElementWriter {
     } else {
       element = f.element;
       if (element is! ElementImpl) {
-        if (element is AugmentedInstanceElementImpl) {
+        if (element is InstanceElementImpl2) {
           element = element.firstFragment;
         }
       }
@@ -2195,7 +2195,7 @@ class _ElementWriter extends _AbstractElementWriter {
       if (!configuration.withConstructors) {
         return;
       }
-      if (augmented is AugmentedInterfaceElementImpl) {
+      if (augmented is InterfaceElementImpl2) {
         var sorted = augmented.constructors.sortedBy((e) => e.name);
         expect(sorted, isNotEmpty);
         _elementPrinter.writeElementList('constructors', sorted);

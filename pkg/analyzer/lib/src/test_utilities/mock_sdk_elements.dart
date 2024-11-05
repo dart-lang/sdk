@@ -919,7 +919,7 @@ class _MockSdkElementsBuilder {
   }
 
   void _buildClassElement(ClassElementImpl fragment) {
-    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
     element.fields = fragment.fields;

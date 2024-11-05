@@ -125,15 +125,15 @@ class ElementPrinter {
       case LocalVariableElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
         _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
-      case AugmentedClassElementImpl element:
+      case ClassElementImpl2 element:
         writeReference(element.reference);
-      case AugmentedEnumElementImpl element:
+      case EnumElementImpl2 element:
         writeReference(element.reference);
-      case AugmentedExtensionElementImpl element:
+      case ExtensionElementImpl2 element:
         writeReference(element.reference);
-      case AugmentedExtensionTypeElementImpl element:
+      case ExtensionTypeElementImpl2 element:
         writeReference(element.reference);
-      case AugmentedMixinElementImpl element:
+      case MixinElementImpl2 element:
         writeReference(element.reference);
       case MethodElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;

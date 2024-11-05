@@ -11,8 +11,8 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
-class ClassElementBuilder extends InstanceElementBuilder<
-    AugmentedClassElementImpl, ClassElementImpl> {
+class ClassElementBuilder
+    extends InstanceElementBuilder<ClassElementImpl2, ClassElementImpl> {
   ClassElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -37,7 +37,7 @@ class ClassElementBuilder extends InstanceElementBuilder<
 }
 
 class EnumElementBuilder
-    extends InstanceElementBuilder<AugmentedEnumElementImpl, EnumElementImpl> {
+    extends InstanceElementBuilder<EnumElementImpl2, EnumElementImpl> {
   EnumElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -62,7 +62,7 @@ class EnumElementBuilder
 }
 
 class ExtensionElementBuilder extends InstanceElementBuilder<
-    AugmentedExtensionElementImpl, ExtensionElementImpl> {
+    ExtensionElementImpl2, ExtensionElementImpl> {
   ExtensionElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -86,7 +86,7 @@ class ExtensionElementBuilder extends InstanceElementBuilder<
 }
 
 class ExtensionTypeElementBuilder extends InstanceElementBuilder<
-    AugmentedExtensionTypeElementImpl, ExtensionTypeElementImpl> {
+    ExtensionTypeElementImpl2, ExtensionTypeElementImpl> {
   ExtensionTypeElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -154,7 +154,7 @@ class GetterElementBuilder extends FragmentedElementBuilder<GetterElementImpl,
   }
 }
 
-abstract class InstanceElementBuilder<E extends AugmentedInstanceElementImpl,
+abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     F extends InstanceElementImpl> extends FragmentedElementBuilder<E, F> {
   final Map<String, FieldElementImpl> fields = {};
   final Map<String, ConstructorElementImpl> constructors = {};
@@ -252,7 +252,7 @@ abstract class InstanceElementBuilder<E extends AugmentedInstanceElementImpl,
     augmented.accessors.addAll(firstFragment.accessors);
     augmented.methods.addAll(firstFragment.methods);
 
-    if (augmented is AugmentedInterfaceElementImpl) {
+    if (augmented is InterfaceElementImpl2) {
       if (firstFragment is InterfaceElementImpl) {
         augmented.mixins.addAll(firstFragment.mixins);
         augmented.interfaces.addAll(firstFragment.interfaces);
@@ -260,7 +260,7 @@ abstract class InstanceElementBuilder<E extends AugmentedInstanceElementImpl,
       }
     }
 
-    if (augmented is AugmentedMixinElementImpl) {
+    if (augmented is MixinElementImpl2) {
       if (firstFragment is MixinElementImpl) {
         augmented.superclassConstraints.addAll(
           firstFragment.superclassConstraints,
@@ -304,7 +304,7 @@ abstract class InstanceElementBuilder<E extends AugmentedInstanceElementImpl,
 
     if (augmentation is InterfaceElementImpl &&
         firstFragment is InterfaceElementImpl &&
-        element is AugmentedInterfaceElementImpl) {
+        element is InterfaceElementImpl2) {
       element.constructors = [
         ...element.constructors.notAugmented,
         ...augmentation.constructors.notAugmented.map((element) {
@@ -353,8 +353,8 @@ abstract class InstanceElementBuilder<E extends AugmentedInstanceElementImpl,
   }
 }
 
-class MixinElementBuilder extends InstanceElementBuilder<
-    AugmentedMixinElementImpl, MixinElementImpl> {
+class MixinElementBuilder
+    extends InstanceElementBuilder<MixinElementImpl2, MixinElementImpl> {
   MixinElementBuilder({
     required super.element,
     required super.firstFragment,

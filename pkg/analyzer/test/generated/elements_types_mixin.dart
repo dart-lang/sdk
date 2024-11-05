@@ -144,7 +144,7 @@ mixin ElementsTypesMixin {
     fragment.mixins = mixins;
     fragment.methods = methods;
 
-    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
     element.methods = fragment.methods;
@@ -175,7 +175,7 @@ mixin ElementsTypesMixin {
     required List<ConstFieldElementImpl> constants,
   }) {
     var element = EnumElementImpl(name, 0);
-    AugmentedEnumElementImpl(Reference.root(), element);
+    EnumElementImpl2(Reference.root(), element);
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.fields = constants;
     return element;
@@ -195,7 +195,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
-    AugmentedExtensionElementImpl(Reference.root(), element);
+    ExtensionElementImpl2(Reference.root(), element);
     element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
@@ -220,7 +220,7 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
-    var element = AugmentedExtensionTypeElementImpl(Reference.root(), fragment);
+    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
     element
       ..representation = field
       ..typeErasure = representationType
@@ -431,7 +431,7 @@ mixin ElementsTypesMixin {
     fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorElementImpl>[];
 
-    var element = AugmentedMixinElementImpl(Reference.root(), fragment);
+    var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
     element.interfaces = fragment.interfaces;
     element.methods = fragment.methods;

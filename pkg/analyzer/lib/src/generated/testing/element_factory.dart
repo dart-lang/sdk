@@ -51,7 +51,7 @@ class ElementFactory {
       fragment.typeParameters = typeParameters(parameterNames);
     }
 
-    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
 
@@ -80,7 +80,7 @@ class ElementFactory {
     fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorElementImpl>[];
 
-    var element = AugmentedClassElementImpl(Reference.root(), fragment);
+    var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
 
