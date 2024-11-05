@@ -19,7 +19,7 @@ $ tools/test.py -n dartkp-linux-release-x64 $path_to_an_il_test
 $ tools/test.py -c dartkp -m release $path_to_an_il_test
 ```
 
-Tests require `gen_snapshot`, `dart_precompiled_runtime` and
+Tests require `gen_snapshot`, `dartaotruntime` and
 `vm_platform_strong.dill` to be built for the target configuration.
 
 Each IL test should contain one or more of the functions marked with a

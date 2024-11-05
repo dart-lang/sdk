@@ -22,8 +22,14 @@ aot_snapshot("dartdevc_aot") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
   name = "dartdevc_aot"
   output = "$root_gen_dir/dartdevc_aot.dart.snapshot"
+}
 
-  # dartaotruntime has dart_product_config applied to it,
+aot_snapshot("dartdevc_aot_product") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+  name = "dartdevc_aot_product"
+  output = "$root_gen_dir/dartdevc_aot_product.dart.snapshot"
+
+  # dartaotruntime in the dart sdk has dart_product_config applied to it,
   # so it is built in product mode in both release and
   # product builds, and is only built in debug mode in debug
   # builds. The following line ensures that the dartaotruntime

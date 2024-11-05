@@ -86,9 +86,8 @@ Uri genSnapshotBin =
     buildRootUri.resolve(useProduct ? 'gen_snapshot_product' : 'gen_snapshot');
 Uri dart2bytecodeSnapshot =
     buildRootUri.resolve('gen/dart2bytecode.dart.snapshot');
-Uri aotRuntimeBin = buildRootUri.resolve(useProduct
-    ? 'dart_precompiled_runtime_product'
-    : 'dart_precompiled_runtime');
+Uri aotRuntimeBin = buildRootUri
+    .resolve(useProduct ? 'dartaotruntime_product' : 'dartaotruntime');
 Uri vmPlatformDill = buildRootUri.resolve('vm_platform_strong.dill');
 
 // Encodes test results in the format expected by Dart's CI infrastructure.
