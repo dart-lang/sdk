@@ -10144,7 +10144,7 @@ class TypeParameterElementImpl extends ElementImpl
     if (_element != null) {
       return _element!;
     }
-    TypeParameterFragment firstFragment = this;
+    var firstFragment = this;
     var previousFragment = firstFragment.previousFragment;
     while (previousFragment != null) {
       firstFragment = previousFragment;
@@ -10153,7 +10153,7 @@ class TypeParameterElementImpl extends ElementImpl
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl2(
-      wrappedElement: firstFragment as TypeParameterElementImpl,
+      firstFragment: firstFragment,
       name3: firstFragment.name,
       bound: firstFragment.bound,
     );
@@ -10184,11 +10184,11 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragment? get nextFragment => null;
+  TypeParameterElementImpl? get nextFragment => null;
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragment? get previousFragment => null;
+  TypeParameterElementImpl? get previousFragment => null;
 
   shared.Variance get variance {
     return _variance ?? shared.Variance.covariant;
@@ -10284,43 +10284,29 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
     implements TypeParameterElement2 {
-  final TypeParameterElementImpl wrappedElement;
+  @override
+  final TypeParameterElementImpl firstFragment;
 
   @override
   final String name3;
 
-  DartType? _bound;
-
-  /// When [firstFragment] is `null`, we still want to have some for the
-  /// old element model.
-  TypeParameterElementImpl? _syntheticFirstFragment;
+  @override
+  DartType? bound;
 
   TypeParameterElementImpl2({
-    required this.wrappedElement,
+    required this.firstFragment,
     required this.name3,
-    required DartType? bound,
-  }) : _bound = bound {
-    TypeParameterElementImpl? fragment = wrappedElement;
+    required this.bound,
+  }) {
+    TypeParameterElementImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
-      fragment = fragment.nextFragment as TypeParameterElementImpl?;
+      fragment = fragment.nextFragment;
     }
   }
 
   @override
   TypeParameterElement2 get baseElement => this;
-
-  @override
-  DartType? get bound => _bound;
-
-  set bound(DartType? value) {
-    _bound = value;
-    _syntheticFirstFragment?.bound = _bound;
-  }
-
-  @override
-  TypeParameterFragment get firstFragment =>
-      wrappedElement as TypeParameterFragment;
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
@@ -10329,7 +10315,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   LibraryElement2 get library2 => super.library2!;
 
   @override
-  Element? get _enclosingFunction => wrappedElement._enclosingElement3;
+  Element? get _enclosingFunction => firstFragment._enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -10340,7 +10326,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterType instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return wrappedElement.instantiate(
+    return firstFragment.instantiate(
       nullabilitySuffix: nullabilitySuffix,
     );
   }
