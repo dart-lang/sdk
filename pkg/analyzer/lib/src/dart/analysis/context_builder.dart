@@ -33,7 +33,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
-import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 /// A utility class used to build an analysis context based on a context root.
@@ -79,7 +78,7 @@ class ContextBuilderImpl {
     PerformanceLog? performanceLog,
     bool retainDataForTesting = false,
     AnalysisDriverScheduler? scheduler,
-    String? sdkPath,
+    required String sdkPath,
     String? sdkSummaryPath,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
@@ -92,10 +91,6 @@ class ContextBuilderImpl {
     MacroSupport? macroSupport,
     OwnedFiles? ownedFiles,
   }) {
-    // TODO(scheglov): Remove this, and make `sdkPath` required.
-    sdkPath ??= getSdkPath();
-    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
-
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
 
