@@ -7,7 +7,7 @@
 #include <string.h>
 
 // TODO(dartbug.com/40579): This requires static linking to either link
-// dart.exe or dart_precompiled_runtime.exe on Windows.
+// dart.exe or dartaotruntime.exe on Windows.
 // The sample currently fails on Windows in AOT mode.
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
@@ -29,12 +29,12 @@
     abort();                                                                   \
   }
 
-static bool is_dart_precompiled_runtime = true;
+static bool is_dartaotruntime = true;
 
 // Some invalid accesses are allowed in AOT since we don't retain @pragma
 // annotations. Therefore we skip the negative tests in AOT.
 #define FAIL(name, result)                                                     \
-  if (!is_dart_precompiled_runtime) {                                          \
+  if (!is_dartaotruntime) {                                                    \
     Fail(name, result);                                                        \
   }
 
@@ -46,7 +46,7 @@ void Fail(const char* name, Dart_Handle result) {
 }
 
 #define FAIL_INVOKE_FIELD(name, result)                                        \
-  if (!is_dart_precompiled_runtime) {                                          \
+  if (!is_dartaotruntime) {                                                    \
     FailInvokeField(name, result);                                             \
   }
 
@@ -94,7 +94,7 @@ static void TestFields(Dart_Handle target) {
 }
 
 DART_EXPORT void RunTests() {
-  is_dart_precompiled_runtime = Dart_IsPrecompiledRuntime();
+  is_dartaotruntime = Dart_IsPrecompiledRuntime();
 
   Dart_Handle lib = Dart_RootLibrary();
 

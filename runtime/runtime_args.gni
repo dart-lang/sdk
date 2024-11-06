@@ -23,7 +23,7 @@ declare_args() {
   #
   # TODO(rmacnak): dart_runtime_mode no longer selects whether libdart is build
   # for JIT or AOT, since libdart waw split into libdart_jit and
-  # libdart_precompiled_runtime. We should remove this flag and just set
+  # libdart_aotruntime. We should remove this flag and just set
   # dart_debug/dart_product.
   dart_runtime_mode = "develop"
 

@@ -315,7 +315,7 @@ executable("offsets_extractor") {
   include_dirs = [ ".." ]
 }
 
-executable("offsets_extractor_precompiled_runtime") {
+executable("offsets_extractor_aotruntime") {
   # The timeline cannot be accessed from the generated executable, so we define
   # DART_DISABLE_TIMELINE to strip out the timeline source code. The precise
   # reason why we do this is to avoid missing header errors, as the Perfetto
@@ -326,7 +326,7 @@ executable("offsets_extractor_precompiled_runtime") {
   configs += [
     "..:dart_arch_config",
     "..:dart_config",
-    "..:dart_precompiled_runtime_config",
+    "..:dart_aotruntime_config",
     "..:dart_maybe_product_config",
     ":libdart_vm_config",
   ]

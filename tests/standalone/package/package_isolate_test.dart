@@ -30,8 +30,7 @@ ReceivePort expectResponse() {
 void main() {
   // No support for tests that attempt to Isolate.spawnUri() in AOT of some
   // script other than self.
-  if (path.basenameWithoutExtension(Platform.executable) ==
-      "dart_precompiled_runtime") {
+  if (path.basenameWithoutExtension(Platform.executable) == "dartaotruntime") {
     return;
   }
 

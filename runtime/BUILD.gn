@@ -51,7 +51,7 @@ config("dart_product_config") {
   }
 }
 
-config("dart_precompiled_runtime_config") {
+config("dart_aotruntime_config") {
   defines = []
   defines += [
     "DART_PRECOMPILED_RUNTIME",

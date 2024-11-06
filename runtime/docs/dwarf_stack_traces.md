@@ -56,7 +56,7 @@ $ out/ReleaseX64/gen_snapshot --snapshot_kind=app-aot-elf --elf=snapshot.so thro
 # as including it in the generated ELF snapshot for future examples.
 $ out/ReleaseX64/gen_snapshot --dwarf-stack-traces --save-debugging-info=debug.data --snapshot_kind=app-aot-elf --elf=dwarf_snapshot.so throws.dill
 
-$ out/ReleaseX64/dart_precompiled_runtime snapshot.so
+$ out/ReleaseX64/dartaotruntime snapshot.so
 Unhandled exception:
 Throw of null.
 #0      bar (file:///.../sdk/throws.dart:2)
@@ -65,7 +65,7 @@ Throw of null.
 #3      _startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:307)
 #4      _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
-$ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so
+$ out/ReleaseX64/dartaotruntime dwarf_snapshot.so
 Unhandled exception:
 Throw of null.
 Warning: This VM has been configured to produce stack traces that violate the Dart standard.
@@ -147,7 +147,7 @@ stack traces as follows:
 
 ```bash
 # Using the unstripped ELF snapshot and piping all output to the tool's stdin.
-$ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so |& out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e dwarf_snapshot.so
+$ out/ReleaseX64/dartaotruntime dwarf_snapshot.so |& out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e dwarf_snapshot.so
 Unhandled exception:
 Throw of null.
 Warning: This VM has been configured to produce stack traces that violate the Dart standard.
@@ -161,7 +161,7 @@ isolate_instructions: 7fc7ad076000 vm_instructions: 0
 #4	_RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
 # Using the separately saved debugging information and piping all output to the tool's stdin.
-$ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so |& out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e debug.data
+$ out/ReleaseX64/dartaotruntime dwarf_snapshot.so |& out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e debug.data
 Unhandled exception:
 Throw of null.
 Warning: This VM has been configured to produce stack traces that violate the Dart standard.
@@ -175,7 +175,7 @@ isolate_instructions: 7f0df76e1000 vm_instructions: 0
 #4	_RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:174)
 
 # Saving all output to the file "output.txt".
-$ out/ReleaseX64/dart_precompiled_runtime dwarf_snapshot.so >output.txt 2>&1
+$ out/ReleaseX64/dartaotruntime dwarf_snapshot.so >output.txt 2>&1
 
 # Reading the input to convert from the file "output.txt" instead of stdin.
 $ out/ReleaseX64/dart pkg/native_stack_traces/bin/decode.dart -e debug.data -i output.txt
