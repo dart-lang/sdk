@@ -507,7 +507,6 @@ abstract class Target {
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
-  Class? concreteBoolLiteralClass(CoreTypes coreTypes, bool value) => null;
 
   Class? concreteAsyncResultClass(CoreTypes coreTypes) => null;
   Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
