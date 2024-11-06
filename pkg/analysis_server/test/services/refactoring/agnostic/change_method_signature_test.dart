@@ -746,7 +746,11 @@ NotAvailableNoExecutableElement
 class ChangeMethodSignatureTest_computeSourceChange
     extends AbstractChangeMethodSignatureTest {
   Future<void> test_argumentsTrailingComma_always_add() async {
+    // The newer formatting style adds and removes trailing commas, so use a
+    // language version comment to pin to the older style so we can verify the
+    // analyzer behavior.
     await _analyzeValidSelection(r'''
+// @dart=3.6
 void ^test(int a, double b) {}
 
 void f() {
@@ -771,6 +775,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
+// @dart=3.6
 void test(double b, int a) {}
 
 void f() {
@@ -783,7 +788,11 @@ void f() {
   }
 
   Future<void> test_argumentsTrailingComma_ifPresent_false() async {
+    // The newer formatting style adds and removes trailing commas, so use a
+    // language version comment to pin to the older style so we can verify the
+    // analyzer behavior.
     await _analyzeValidSelection(r'''
+// @dart=3.6
 void ^test(int a, double b) {}
 
 void f() {
@@ -808,6 +817,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
+// @dart=3.6
 void test(double b, int a) {}
 
 void f() {
@@ -817,7 +827,11 @@ void f() {
   }
 
   Future<void> test_argumentsTrailingComma_ifPresent_true() async {
+    // The newer formatting style adds and removes trailing commas, so use a
+    // language version comment to pin to the older style so we can verify the
+    // analyzer behavior.
     await _analyzeValidSelection(r'''
+// @dart=3.6
 void ^test(int a, double b) {}
 
 void f() {
@@ -845,6 +859,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
+// @dart=3.6
 void test(double b, int a) {}
 
 void f() {
@@ -857,7 +872,11 @@ void f() {
   }
 
   Future<void> test_argumentsTrailingComma_never_remove() async {
+    // The newer formatting style adds and removes trailing commas, so use a
+    // language version comment to pin to the older style so we can verify the
+    // analyzer behavior.
     await _analyzeValidSelection(r'''
+// @dart=3.6
 void ^test(int a, double b) {}
 
 void f() {
@@ -885,6 +904,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
+// @dart=3.6
 void test(double b, int a) {}
 
 void f() {
@@ -1049,10 +1069,7 @@ void f() {
 class A {
   final int a;
   final int b;
-  A({
-    required this.b,
-    required this.a,
-  });
+  A({required this.b, required this.a});
 }
 
 class B extends A {
@@ -1207,10 +1224,7 @@ void f() {
 class A {
   final int a;
   final int b;
-  A({
-    required this.a,
-    required this.b,
-  });
+  A({required this.a, required this.b});
 }
 
 class B extends A {
@@ -1262,19 +1276,11 @@ void f() {
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
 class A {
-  A(
-    int a,
-    int c, {
-    required int b,
-  });
+  A(int a, int c, {required int b});
 }
 
 class B extends A {
-  B(
-    int a,
-    int c, {
-    required int super.b,
-  }) : super(a, c);
+  B(int a, int c, {required int super.b}) : super(a, c);
 }
 
 void f() {
@@ -1330,21 +1336,11 @@ void f() {
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
 class A {
-  A(
-    int a,
-    int d, {
-    required int b,
-    required int c,
-  });
+  A(int a, int d, {required int b, required int c});
 }
 
 class B extends A {
-  B(
-    int a,
-    int x,
-    int d, {
-    required int super.c,
-  }) : super(a, d, b: x);
+  B(int a, int x, int d, {required int super.c}) : super(a, d, b: x);
 }
 
 void f() {
@@ -1390,17 +1386,11 @@ void f() {
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
 class A {
-  A({
-    required int a,
-    required int b,
-  });
+  A({required int a, required int b});
 }
 
 class B extends A {
-  B({
-    required int super.a,
-    int super.b = 0,
-  }) : super();
+  B({required int super.a, int super.b = 0}) : super();
 }
 
 void f() {
@@ -1445,17 +1435,11 @@ void f() {
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
 class A {
-  A({
-    required int a,
-    required int b,
-  });
+  A({required int a, required int b});
 }
 
 class B extends A {
-  B({
-    required int super.a,
-    required int super.b,
-  }) : super();
+  B({required int super.a, required int super.b}) : super();
 }
 
 void f() {
@@ -1719,17 +1703,11 @@ void f(A a, B b) {
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
 class A {
-  void test({
-    required int a,
-    required int c,
-  }) {}
+  void test({required int a, required int c}) {}
 }
 
 class B extends A {
-  void test({
-    required int a,
-    required int c,
-  }) {}
+  void test({required int a, required int c}) {}
 }
 
 void f(A a, B b) {
@@ -1904,10 +1882,7 @@ void ^test({required int a, required int b}) {}
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int b,
-  required int a,
-}) {}
+void test({required int b, required int a}) {}
 ''');
   }
 
@@ -1964,10 +1939,7 @@ void ^test({
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int b,
-  required int a,
-}) {}
+void test({required int b, required int a}) {}
 ''');
   }
 
@@ -2024,10 +1996,7 @@ void ^test(int a, int b) {}
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test(
-  int b,
-  int a,
-) {}
+void test(int b, int a) {}
 ''');
   }
 
@@ -2271,9 +2240,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a(),
-}) {}
+void test({required int a()}) {}
 
 void f() {
   test(a: () => 0);
@@ -2317,9 +2284,7 @@ void f() {
   test(a: 0);
 }
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a,
-}) {}
+void test({required int a}) {}
 
 void f() {
   test(a: 1);
@@ -2391,10 +2356,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  double b = 1.2,
-  int a = 0,
-}) {}
+void test({double b = 1.2, int a = 0}) {}
 
 void f() {
   test(b: 1.2, a: 0);
@@ -2502,10 +2464,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a,
-  required double b,
-}) {}
+void test({required int a, required double b}) {}
 
 void f() {
   test(a: 0, b: 1.2);
@@ -2539,10 +2498,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int? a,
-  required double? b,
-}) {}
+void test({required int? a, required double? b}) {}
 
 void f() {
   test(a: 0);
@@ -2744,10 +2700,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a,
-  required double b,
-}) {}
+void test({required int a, required double b}) {}
 
 void f() {
   test(a: 0, b: 1.2);
@@ -2879,10 +2832,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int b,
-  required int c,
-}) {}
+void test({required int b, required int c}) {}
 
 void f() {
   test(b: 1, c: 2);
@@ -2921,10 +2871,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a,
-  required int b,
-}) {}
+void test({required int a, required int b}) {}
 
 void f() {
   test(a: 0, b: 1);
@@ -2963,10 +2910,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a,
-  required int c,
-}) {}
+void test({required int a, required int c}) {}
 
 void f() {
   test(a: 0, c: 2);
@@ -3003,10 +2947,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required double b,
-  required int a,
-}) {}
+void test({required double b, required int a}) {}
 
 void f() {
   test(b: 1.2, a: 0);
@@ -3015,7 +2956,11 @@ void f() {
   }
 
   Future<void> test_topFunction_requiredNamed_reorder_hasTrailingComma() async {
+    // The newer formatting style adds and removes trailing commas, so use a
+    // language version comment to pin to the older style so we can verify the
+    // analyzer behavior.
     await _analyzeValidSelection(r'''
+// @dart=3.6
 void ^test({
   required int a,
   required double b,
@@ -3046,6 +2991,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
+// @dart=3.6
 void test({
   required double b,
   required int a,
@@ -3527,10 +3473,7 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 >>>>>>> /home/test/lib/test.dart
-void test({
-  required int a,
-  required double b,
-}) {}
+void test({required int a, required double b}) {}
 
 void f() {
   test(a: 0, b: 1.2);

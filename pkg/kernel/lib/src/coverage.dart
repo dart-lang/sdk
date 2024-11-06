@@ -16,7 +16,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitAuxiliaryConstant(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary node $node (${node.runtimeType}).");
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -105,7 +106,8 @@ class CoverageVisitor implements Visitor<void> {
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node) {
+    RedirectingFactoryTearOffConstant node,
+  ) {
     visited.add(ConstantKind.RedirectingFactoryTearOffConstant);
     node.visitChildren(this);
   }
@@ -185,7 +187,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitAuxiliaryExpression(AuxiliaryExpression node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary node $node (${node.runtimeType}).");
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -623,7 +626,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary node $node (${node.runtimeType}).");
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -839,7 +843,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitAuxiliaryStatement(AuxiliaryStatement node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary node $node (${node.runtimeType}).");
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -1007,7 +1012,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary node $node (${node.runtimeType}).");
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -1105,7 +1111,8 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitAuxiliaryConstantReference(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary node $node (${node.runtimeType}).");
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -1188,14 +1195,16 @@ class CoverageVisitor implements Visitor<void> {
 
   @override
   void visitConstructorTearOffConstantReference(
-      ConstructorTearOffConstant node) {
+    ConstructorTearOffConstant node,
+  ) {
     visited.add(ConstantKind.ConstructorTearOffConstant);
     node.visitChildren(this);
   }
 
   @override
   void visitRedirectingFactoryTearOffConstantReference(
-      RedirectingFactoryTearOffConstant node) {
+    RedirectingFactoryTearOffConstant node,
+  ) {
     visited.add(ConstantKind.RedirectingFactoryTearOffConstant);
     node.visitChildren(this);
   }
@@ -1268,11 +1277,7 @@ enum NodeKind {
   Typedef,
 }
 
-enum MemberKind {
-  Constructor,
-  Field,
-  Procedure,
-}
+enum MemberKind { Constructor, Field, Procedure }
 
 enum ExpressionKind {
   AbstractSuperMethodInvocation,
@@ -1456,8 +1461,9 @@ Set<ExpressionKind> missingExpressions(CoverageVisitor visitor) {
 
 /// Returns the set of [InitializerKind]s that were not visited by [visitor].
 Set<InitializerKind> missingInitializers(CoverageVisitor visitor) {
-  Set<InitializerKind> all =
-      new Set<InitializerKind>.of(InitializerKind.values);
+  Set<InitializerKind> all = new Set<InitializerKind>.of(
+    InitializerKind.values,
+  );
   all.removeAll(visitor.visited);
   return all;
 }

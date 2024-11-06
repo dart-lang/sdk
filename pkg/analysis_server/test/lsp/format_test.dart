@@ -100,11 +100,7 @@ ErrorOr<Pair<A, List<B>>> c(
 
     ''';
     var expected = '''
-ErrorOr<Pair<A, List<B>>> c(
-  String d,
-  List<Either2<E, F>> g, {
-  h = false,
-}) {}
+ErrorOr<Pair<A, List<B>>> c(String d, List<Either2<E, F>> g, {h = false}) {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -375,7 +371,8 @@ print(
     ''';
     var expectedDefault = '''
 void f() => print(
-    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
+  '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789',
+);
 ''';
     var expectedLongLines = '''
 void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
@@ -479,9 +476,10 @@ void f() {
     const expectedContents = '''
 void f() {
   print(
-      '123456789 '
-      '123456789 '
-      '123456789 ');
+    '123456789 '
+    '123456789 '
+    '123456789 ',
+  );
 }
 ''';
 
@@ -507,9 +505,10 @@ void f() {
     const expectedContents = '''
 void f() {
   print(
-      '123456789 '
-      '123456789 '
-      '123456789 ');
+    '123456789 '
+    '123456789 '
+    '123456789 ',
+  );
 }
 ''';
 
@@ -535,9 +534,10 @@ void f() {
     const expectedContents = '''
 void f() {
   print(
-      '123456789 '
-      '123456789 '
-      '123456789 ');
+    '123456789 '
+    '123456789 '
+    '123456789 ',
+  );
 }
 ''';
 

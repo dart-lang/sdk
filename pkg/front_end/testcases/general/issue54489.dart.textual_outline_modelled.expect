@@ -1,6 +1,6 @@
 class Chk {
   const Chk(Object? v, {required Object? id})
-      : assert(identical(v, id), "Not identical${(v, id: id)}");
+    : assert(identical(v, id), "Not identical${(v, id: id)}");
 }
 
 void main() {}

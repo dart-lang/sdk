@@ -2,9 +2,7 @@ class C<as> {}
 
 mixin M<as> {}
 
-enum E<as> {
-  e1;
-}
+enum E<as> { e1 }
 
 void foo<as>() {}
 

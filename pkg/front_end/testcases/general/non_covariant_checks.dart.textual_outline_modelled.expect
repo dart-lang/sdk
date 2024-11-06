@@ -1,19 +1,19 @@
 class C<T> {
   C(this.field1)
-      : field2 = (() => field1),
-        field3 = ((T t) {}),
-        field4 = ((T t) => t),
-        field5 = (() => () => field1),
-        field6 = ((T Function() f) {}),
-        field7 = ((T Function() f) => field1),
-        field8 = ((void Function(T) f) {}),
-        field9 = ((void Function(T) f) => field1),
-        field10 = ((T Function(T) f) {}),
-        field11 = ((T Function(T) f) => field1),
-        field12 = <S extends T>() => throw '',
-        field13 = <S extends T>(S s) {},
-        field14 = <S extends T>(S s) => s,
-        field15 = ((S Function<S extends T>() f) {});
+    : field2 = (() => field1),
+      field3 = ((T t) {}),
+      field4 = ((T t) => t),
+      field5 = (() => () => field1),
+      field6 = ((T Function() f) {}),
+      field7 = ((T Function() f) => field1),
+      field8 = ((void Function(T) f) {}),
+      field9 = ((void Function(T) f) => field1),
+      field10 = ((T Function(T) f) {}),
+      field11 = ((T Function(T) f) => field1),
+      field12 = <S extends T>() => throw '',
+      field13 = <S extends T>(S s) {},
+      field14 = <S extends T>(S s) => s,
+      field15 = ((S Function<S extends T>() f) {});
   S Function<S extends T>() field12;
   S Function<S extends T>() get getter12 => field12;
   S Function<S extends T>(S) field14;

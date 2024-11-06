@@ -21,75 +21,93 @@ mixin NotificationHandler {
     switch (notification.event) {
       case ANALYSIS_NOTIFICATION_ANALYZED_FILES:
         onAnalysisAnalyzedFiles(
-            AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params));
+          AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_CLOSING_LABELS:
         onAnalysisClosingLabels(
-            AnalysisClosingLabelsParams.fromJson(decoder, 'params', params));
+          AnalysisClosingLabelsParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_ERRORS:
         onAnalysisErrors(
-            AnalysisErrorsParams.fromJson(decoder, 'params', params));
+          AnalysisErrorsParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
         onAnalysisFlushResults(
-            AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
+          AnalysisFlushResultsParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_FOLDING:
         onAnalysisFolding(
-            AnalysisFoldingParams.fromJson(decoder, 'params', params));
+          AnalysisFoldingParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_HIGHLIGHTS:
         onAnalysisHighlights(
-            AnalysisHighlightsParams.fromJson(decoder, 'params', params));
+          AnalysisHighlightsParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_IMPLEMENTED:
         onAnalysisImplemented(
-            AnalysisImplementedParams.fromJson(decoder, 'params', params));
+          AnalysisImplementedParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_INVALIDATE:
         onAnalysisInvalidate(
-            AnalysisInvalidateParams.fromJson(decoder, 'params', params));
+          AnalysisInvalidateParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_NAVIGATION:
         onAnalysisNavigation(
-            AnalysisNavigationParams.fromJson(decoder, 'params', params));
+          AnalysisNavigationParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_OCCURRENCES:
         onAnalysisOccurrences(
-            AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
+          AnalysisOccurrencesParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_OUTLINE:
         onAnalysisOutline(
-            AnalysisOutlineParams.fromJson(decoder, 'params', params));
+          AnalysisOutlineParams.fromJson(decoder, 'params', params),
+        );
         break;
       case ANALYSIS_NOTIFICATION_OVERRIDES:
         onAnalysisOverrides(
-            AnalysisOverridesParams.fromJson(decoder, 'params', params));
+          AnalysisOverridesParams.fromJson(decoder, 'params', params),
+        );
         break;
       case COMPLETION_NOTIFICATION_EXISTING_IMPORTS:
-        onCompletionExistingImports(CompletionExistingImportsParams.fromJson(
-            decoder, 'params', params));
+        onCompletionExistingImports(
+          CompletionExistingImportsParams.fromJson(decoder, 'params', params),
+        );
         break;
       case EXECUTION_NOTIFICATION_LAUNCH_DATA:
         onExecutionLaunchData(
-            ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
+          ExecutionLaunchDataParams.fromJson(decoder, 'params', params),
+        );
         break;
       case FLUTTER_NOTIFICATION_OUTLINE:
         onFlutterOutline(
-            FlutterOutlineParams.fromJson(decoder, 'params', params));
+          FlutterOutlineParams.fromJson(decoder, 'params', params),
+        );
         break;
       case LSP_NOTIFICATION_NOTIFICATION:
         onLspNotification(
-            LspNotificationParams.fromJson(decoder, 'params', params));
+          LspNotificationParams.fromJson(decoder, 'params', params),
+        );
         break;
       case SEARCH_NOTIFICATION_RESULTS:
         onSearchResults(
-            SearchResultsParams.fromJson(decoder, 'params', params));
+          SearchResultsParams.fromJson(decoder, 'params', params),
+        );
         break;
       case SERVER_NOTIFICATION_CONNECTED:
         onServerConnected(
-            ServerConnectedParams.fromJson(decoder, 'params', params));
+          ServerConnectedParams.fromJson(decoder, 'params', params),
+        );
         break;
       case SERVER_NOTIFICATION_ERROR:
         onServerError(ServerErrorParams.fromJson(decoder, 'params', params));
