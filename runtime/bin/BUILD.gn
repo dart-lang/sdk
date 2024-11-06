@@ -903,15 +903,32 @@ dart_executable("dart") {
   }
 }
 
-dart_executable("dart_precompiled_runtime") {
+# This rule is here to ensure benchmark suites do not break, it can be
+# removed once the benchmark suites are updated.
+group("dart_precompiled_runtime") {
+  deps = [
+    ":copy_dart_precompiled_runtime",
+    ":dartaotruntime",
+  ]
+}
+
+copy("copy_dart_precompiled_runtime") {
+  visibility = [ ":dart_precompiled_runtime" ]
+  deps = [ ":dartaotruntime" ]
+  src_dir = get_label_info(":dartaotruntime", "root_out_dir")
+  sources = [ "$src_dir/dartaotruntime${executable_suffix}" ]
+  outputs = [ "$root_out_dir/dart_precompiled_runtime${executable_suffix}" ]
+}
+
+dart_executable("dartaotruntime") {
   extra_configs = [
-    "..:dart_precompiled_runtime_config",
+    "..:dart_aotruntime_config",
     "..:add_empty_macho_section_config",
   ]
   extra_deps = [
     ":icudtl_cc",
-    "..:libdart_precompiled_runtime",
-    "../platform:libdart_platform_precompiled_runtime",
+    "..:libdart_aotruntime",
+    "../platform:libdart_platform_aotruntime",
   ]
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
@@ -944,15 +961,15 @@ dart_executable("dart_precompiled_runtime") {
   }
 }
 
-dart_executable("dart_precompiled_runtime_product") {
+dart_executable("dartaotruntime_product") {
   use_product_mode = true
   extra_configs = [
-    "..:dart_precompiled_runtime_config",
+    "..:dart_aotruntime_config",
     "..:add_empty_macho_section_config",
   ]
   extra_deps = [
-    "..:libdart_precompiled_runtime_product",
-    "../platform:libdart_platform_precompiled_runtime_product",
+    "..:libdart_aotruntime_product",
+    "../platform:libdart_platform_aotruntime_product",
   ]
   extra_sources = [
     "builtin.cc",
@@ -978,17 +995,17 @@ dart_executable("dart_precompiled_runtime_product") {
 if (build_analyze_snapshot) {
   dart_executable("analyze_snapshot") {
     use_product_mode = dart_runtime_mode == "release"
-    extra_configs = [ "..:dart_precompiled_runtime_config" ]
+    extra_configs = [ "..:dart_aotruntime_config" ]
 
     if (use_product_mode) {
       extra_deps = [
-        "..:libdart_precompiled_runtime_product",
-        "../platform:libdart_platform_precompiled_runtime_product",
+        "..:libdart_aotruntime_product",
+        "../platform:libdart_platform_aotruntime_product",
       ]
     } else {
       extra_deps = [
-        "..:libdart_precompiled_runtime",
-        "../platform:libdart_platform_precompiled_runtime",
+        "..:libdart_aotruntime",
+        "../platform:libdart_platform_aotruntime",
       ]
     }
 

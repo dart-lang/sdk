@@ -181,7 +181,7 @@ EOF
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot ddc_stable_test ddc_canary_test dart2wasm_benchmark
+    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dartaotruntime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot ddc_stable_test ddc_canary_test dart2wasm_benchmark
   elif [ "$command" = linux-x64-archive ]; then
     export GZIP=-1
     strip -w \
@@ -259,7 +259,7 @@ EOF
       -K '_ZN4dart7Version14snapshot_hash_E' \
       -K '_ZN4dart7Version4str_E' \
       -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dart_precompiled_runtime
+      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dartaotruntime
     tar -czf linux-x64.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -281,7 +281,7 @@ EOF
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \
       third_party/firefox_jsshell/ \
-      out/ReleaseX64/dart_precompiled_runtime \
+      out/ReleaseX64/dartaotruntime \
       out/ReleaseX64/gen/utils/ddc \
       out/ReleaseX64/ddc_outline_unsound.dill \
       out/ReleaseX64/ddc_outline.dill \

@@ -24,7 +24,7 @@ declare_args() {
 
   # Path to stripped dart binaries relative to build output directory.
   dart_stripped_binary = "dart"
-  dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
+  dart_aotruntime_stripped_binary = "dartaotruntime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
   analyze_snapshot_binary = "analyze_snapshot"
   wasm_opt_stripped_binary = "wasm-opt"
@@ -116,41 +116,49 @@ _platform_sdk_snapshots = [
   [
     "analysis_server",
     "../utils/analysis_server",
+    "analysis_server",
   ],
   [
     "dartdev",
     "../utils/dartdev:dartdev",
+    "dartdev",
   ],
   [
     "dart_tooling_daemon",
     "../utils/dtd:dtd",
+    "dart_tooling_daemon",
   ],
   [
     "dds",
     "../utils/dds:dds",
+    "dds",
   ],
 ]
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _platform_sdk_snapshots += [ [
+        "frontend_server_aot_product",
+        "../utils/kernel-service:frontend_server_aot_product",
         "frontend_server_aot",
-        "../utils/kernel-service:frontend_server_aot",
       ] ]
 } else {
   _platform_sdk_snapshots += [ [
         "frontend_server",
         "../utils/kernel-service:frontend_server",
+        "frontend_server",
       ] ]
 }
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
+        "kernel-service",
       ] ]
 }
 if (dart_dynamic_modules) {
   _platform_sdk_snapshots += [ [
         "dart2bytecode",
         "../utils/dart2bytecode:dart2bytecode",
+        "dart2bytecode",
       ] ]
 }
 
@@ -161,16 +169,19 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _full_sdk_snapshots =
       _platform_sdk_snapshots + [
         [
+          "dart2js_aot_product",
+          "../utils/compiler:dart2js_sdk_aot_product",
           "dart2js_aot",
-          "../utils/compiler:dart2js_sdk_aot",
         ],
         [
+          "dartdevc_aot_product",
+          "../utils/ddc:dartdevc_aot_product",
           "dartdevc_aot",
-          "../utils/ddc:dartdevc_aot",
         ],
         [
+          "kernel_worker_aot_product",
+          "../utils/bazel:kernel_worker_aot_product",
           "kernel_worker_aot",
-          "../utils/bazel:kernel_worker_aot",
         ],
 
         # Remove these JIT snapshot in Dart SDK version 3.7
@@ -178,10 +189,12 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
         [
           "dartdevc",
           "../utils/ddc:dartdevc",
+          "dartdevc",
         ],
         [
           "kernel_worker",
           "../utils/bazel:kernel_worker",
+          "kernel_worker",
         ],
       ]
 } else {
@@ -189,14 +202,17 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
                           [
                             "dart2js",
                             "../utils/compiler:dart2js",
+                            "dart2js",
                           ],
                           [
                             "dartdevc",
                             "../utils/ddc:dartdevc",
+                            "dartdevc",
                           ],
                           [
                             "kernel_worker",
                             "../utils/bazel:kernel_worker",
+                            "kernel_worker",
                           ],
                         ]
 }
@@ -340,14 +356,13 @@ if (target_os != current_os && target_os == "fuchsia") {
   }
 }
 
-copy("copy_dartaotruntime") {
+copy("copy_dart_aotruntime") {
   visibility = [ ":group_dart2native" ]
-  deps = [ "../runtime/bin:dart_precompiled_runtime_product" ]
-  src_dir = get_label_info("../runtime/bin:dart_precompiled_runtime_product",
-                           "root_out_dir")
-  sources = [
-    "$src_dir/${dart_precompiled_runtime_stripped_binary}${executable_suffix}",
-  ]
+  deps = [ "../runtime/bin:dartaotruntime_product" ]
+  src_dir =
+      get_label_info("../runtime/bin:dartaotruntime_product", "root_out_dir")
+  sources =
+      [ "$src_dir/${dart_aotruntime_stripped_binary}${executable_suffix}" ]
   outputs = [
     "$root_out_dir/$dart_sdk_output/bin/dartaotruntime${executable_suffix}",
   ]
@@ -398,7 +413,7 @@ copy("copy_gen_kernel_snapshot") {
 
 group("group_dart2native") {
   deps = [
-    ":copy_dartaotruntime",
+    ":copy_dart_aotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
     ":copy_vm_platform_strong_product",
@@ -448,7 +463,7 @@ group("copy_full_sdk_scripts") {
   }
 }
 
-# This loop generates "copy" targets that put AppJIT snapshots into
+# This loop generates "copy" targets that put snapshots into
 # bin/snapshots
 foreach(snapshot, _full_sdk_snapshots) {
   root = root_gen_dir
@@ -456,6 +471,7 @@ foreach(snapshot, _full_sdk_snapshots) {
   # The frontend_server is output to root_out_dir so that it doesn't conflict
   # with the flutter snapshot by the same name under root_gen_dir.
   if (snapshot[0] == "frontend_server" ||
+      snapshot[0] == "frontend_server_aot_product" ||
       snapshot[0] == "frontend_server_aot") {
     root = root_out_dir
   }
@@ -466,8 +482,7 @@ foreach(snapshot, _full_sdk_snapshots) {
     ]
     deps = [ snapshot[1] ]
     sources = [ "$root/${snapshot[0]}.dart.snapshot" ]
-    outputs =
-        [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
+    outputs = [ "$root_out_dir/$dart_sdk_output/bin/snapshots/${snapshot[2]}.dart.snapshot" ]
   }
 }
 
