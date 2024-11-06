@@ -3467,6 +3467,19 @@ Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+// Make sure constant operand of comparison is on the right.
+void ComparisonInstr::MoveConstantOperandToTheRight() {
+  if (left()->BindsToConstant() && !right()->BindsToConstant()) {
+    Value* l = left();
+    Value* r = right();
+    // Call SetInputAt from {l, r}->instruction() as this comparison could be
+    // wrapped into another instruction which is registered in the use list.
+    r->instruction()->SetInputAt(0, r);
+    l->instruction()->SetInputAt(1, l);
+    set_kind(Token::FlipComparison(kind()));
+  }
+}
+
 static bool MayBeBoxableNumber(intptr_t cid) {
   return (cid == kDynamicCid) || (cid == kMintCid) || (cid == kDoubleCid);
 }
@@ -3627,6 +3640,9 @@ static bool RecognizeTestPattern(Value* left, Value* right, bool* negate) {
 
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   Zone* zone = flow_graph->zone();
+  if (auto comparison = condition()->AsComparison()) {
+    comparison->MoveConstantOperandToTheRight();
+  }
   if (auto* strict_compare = condition()->AsStrictCompare()) {
     bool negated = false;
     Definition* replacement =
@@ -3716,7 +3732,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return nullptr;
-
+  MoveConstantOperandToTheRight();
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated,
                                                       /*is_branch=*/false);
@@ -3728,11 +3744,19 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  MoveConstantOperandToTheRight();
   auto replacement = CanonicalizeEqualityCompare(this, flow_graph);
   if (replacement != this) {
     flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
     return replacement;
   }
+  return this;
+}
+
+Definition* RelationalOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  MoveConstantOperandToTheRight();
   return this;
 }
 
@@ -4998,16 +5022,8 @@ Condition StrictCompareInstr::EmitConditionCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
   Location left = locs()->in(0);
   Location right = locs()->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
   Condition true_condition;
-  if (left.IsConstant()) {
-    if (TryEmitBoolTest(compiler, labels, 1, left.constant(),
-                        &true_condition)) {
-      return true_condition;
-    }
-    true_condition = EmitComparisonCodeRegConstant(
-        compiler, labels, right.reg(), left.constant());
-  } else if (right.IsConstant()) {
+  if (right.IsConstant()) {
     if (TryEmitBoolTest(compiler, labels, 0, right.constant(),
                         &true_condition)) {
       return true_condition;

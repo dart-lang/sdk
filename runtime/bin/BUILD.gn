@@ -1193,3 +1193,32 @@ if (defined(is_linux) && is_linux && defined(is_asan) && is_asan &&
     }
   }
 }
+
+source_set("dart_embedder_runtime_jit_set") {
+  include_dirs = [
+    "..",
+    "//third_party/boringssl/src/include",
+    "//third_party",
+  ]
+
+  sources = [
+    "dart_embedder_api_impl.cc",
+    "dfe.cc",
+    "dfe.h",
+    "vmservice_impl.cc",
+    "vmservice_impl.h",
+  ]
+
+  deps = [
+    ":dart_io_api",
+    ":dart_kernel_platform_cc",
+    ":libdart_builtin",
+    "..:libdart_jit",
+  ]
+}
+
+static_library("dart_embedder_runtime_jit") {
+  complete_static_lib = true
+  output_name = "dart_embedder_runtime_jit"
+  deps = [ ":dart_embedder_runtime_jit_set" ]
+}

@@ -29,7 +29,12 @@ group("most") {
     ":dartanalyzer",
     ":ddc",
     ":runtime",
+    ":samples",
   ]
+}
+
+group("samples") {
+  deps = [ "samples/embedder:all" ]
 }
 
 group("runtime") {

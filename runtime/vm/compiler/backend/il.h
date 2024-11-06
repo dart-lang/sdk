@@ -3868,7 +3868,7 @@ class ConditionInstr : public Definition {
   void set_operation_cid(intptr_t value) { operation_cid_ = value; }
   intptr_t operation_cid() const { return operation_cid_; }
 
-  virtual void NegateCondition() { kind_ = Token::NegateComparison(kind_); }
+  void NegateCondition() { kind_ = Token::NegateComparison(kind_); }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -3900,6 +3900,8 @@ class ConditionInstr : public Definition {
         token_pos_(source.token_pos),
         kind_(kind),
         operation_cid_(kIllegalCid) {}
+
+  void set_kind(Token::Kind value) { kind_ = value; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ConditionInstr);
@@ -3964,6 +3966,9 @@ class ComparisonInstr : public TemplateCondition<2, NoThrow, Pure> {
       return false;
     }
   }
+
+  // Make sure constant operand of comparison is on the right.
+  void MoveConstantOperandToTheRight();
 
   DECLARE_ABSTRACT_INSTRUCTION(Comparison)
   DECLARE_EMPTY_SERIALIZATION(ComparisonInstr, TemplateCondition)
@@ -5350,6 +5355,8 @@ class RelationalOpInstr : public ComparisonInstr {
     if (operation_cid() == kMintCid) return kUnboxedInt64;
     return kTagged;
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
 

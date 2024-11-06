@@ -1,0 +1,25 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../utils/application_snapshot.gni")
+
+# All samples.
+group("all") {
+  deps = [ ":run_kernel" ]
+}
+
+# Sample binary to run given kernel snapshot.
+executable("run_kernel") {
+  sources = [ "run_kernel.cc" ]
+  deps = [ "../../runtime/bin:dart_embedder_runtime_jit" ]
+  include_dirs = [ "../../runtime" ]
+  data_deps = [ ":hello_kernel" ]
+}
+
+# Kernel snapshot of ./hello.dart.
+application_snapshot("hello_kernel") {
+  main_dart = "hello.dart"
+  dart_snapshot_kind = "kernel"
+  training_args = []  # Not used
+}

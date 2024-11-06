@@ -1127,17 +1127,11 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    if (CanBePairOfImmediateOperands(left(), &o, &o)) {
-      locs->set_in(0, Location::Constant(left()->definition()->AsConstant()));
-      locs->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                     Location::RequiresRegister()));
-    } else if (CanBePairOfImmediateOperands(right(), &o, &o)) {
-      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                     Location::RequiresRegister()));
+    locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
+    if (CanBePairOfImmediateOperands(right(), &o, &o)) {
       locs->set_in(1, Location::Constant(right()->definition()->AsConstant()));
     } else {
-      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                     Location::RequiresRegister()));
       locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
     }
@@ -1157,12 +1151,8 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, LocationRegisterOrConstant(left()));
-    // Only one input can be a constant operand. The case of two constant
-    // operands should be handled by constant propagation.
-    locs->set_in(1, locs->in(0).IsConstant()
-                        ? Location::RequiresRegister()
-                        : LocationRegisterOrConstant(right()));
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, LocationRegisterOrConstant(right()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -1240,11 +1230,7 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToIntCondition(kind);
-
-  if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
-    true_condition = FlipCondition(true_condition);
-  } else if (right.IsConstant()) {
+  if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else {
     __ cmp(left.reg(), compiler::Operand(right.reg()));
@@ -1257,16 +1243,9 @@ static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
                                       Token::Kind kind) {
   Location left = locs->in(0);
   Location right = locs->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToIntCondition(kind);
-
-  if (left.IsConstant()) {
-    __ CompareImmediate(
-        right.reg(),
-        static_cast<uword>(Integer::Cast(left.constant()).Value()));
-    true_condition = FlipCondition(true_condition);
-  } else if (right.IsConstant()) {
+  if (right.IsConstant()) {
     __ CompareImmediate(
         left.reg(),
         static_cast<uword>(Integer::Cast(right.constant()).Value()));
@@ -1312,28 +1291,20 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              LocationSummary* locs,
                                              Token::Kind kind,
                                              BranchLabels labels) {
-  PairLocation* left_pair;
-  compiler::Operand right_lo, right_hi;
   Condition true_condition = TokenKindToIntCondition(kind);
-  if (locs->in(0).IsConstant()) {
-    const bool ok = CanBePairOfImmediateOperands(locs->in(0).constant(),
-                                                 &right_lo, &right_hi);
-    RELEASE_ASSERT(ok);
-    left_pair = locs->in(1).AsPairLocation();
-    true_condition = FlipCondition(true_condition);
-  } else if (locs->in(1).IsConstant()) {
+  PairLocation* left_pair = locs->in(0).AsPairLocation();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
+  compiler::Operand right_lo, right_hi;
+  if (locs->in(1).IsConstant()) {
     const bool ok = CanBePairOfImmediateOperands(locs->in(1).constant(),
                                                  &right_lo, &right_hi);
     RELEASE_ASSERT(ok);
-    left_pair = locs->in(0).AsPairLocation();
   } else {
-    left_pair = locs->in(0).AsPairLocation();
     PairLocation* right_pair = locs->in(1).AsPairLocation();
     right_lo = compiler::Operand(right_pair->At(0).reg());
     right_hi = compiler::Operand(right_pair->At(1).reg());
   }
-  Register left_lo = left_pair->At(0).reg();
-  Register left_hi = left_pair->At(1).reg();
 
   // 64-bit comparison.
   Condition hi_cond, lo_cond;
@@ -1576,17 +1547,11 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    if (CanBePairOfImmediateOperands(left(), &o, &o)) {
-      locs->set_in(0, Location::Constant(left()->definition()->AsConstant()));
-      locs->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                     Location::RequiresRegister()));
-    } else if (CanBePairOfImmediateOperands(right(), &o, &o)) {
-      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                     Location::RequiresRegister()));
+    locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
+    if (CanBePairOfImmediateOperands(right(), &o, &o)) {
       locs->set_in(1, Location::Constant(right()->definition()->AsConstant()));
     } else {
-      locs->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                     Location::RequiresRegister()));
       locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
     }
@@ -1594,24 +1559,20 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
     return locs;
   }
   if (operation_cid() == kDoubleCid) {
-    LocationSummary* summary = new (zone)
+    LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresFpuRegister());
-    summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_out(0, Location::RequiresRegister());
-    return summary;
+    locs->set_in(0, Location::RequiresFpuRegister());
+    locs->set_in(1, Location::RequiresFpuRegister());
+    locs->set_out(0, Location::RequiresRegister());
+    return locs;
   }
   ASSERT(operation_cid() == kSmiCid);
-  LocationSummary* summary = new (zone)
+  LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, LocationRegisterOrConstant(left()));
-  // Only one input can be a constant operand. The case of two constant
-  // operands should be handled by constant propagation.
-  summary->set_in(1, summary->in(0).IsConstant()
-                         ? Location::RequiresRegister()
-                         : LocationRegisterOrConstant(right()));
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, LocationRegisterOrConstant(right()));
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
 }
 
 Condition RelationalOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
@@ -7288,25 +7249,14 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   }
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-
+  locs->set_in(0, Location::RequiresRegister());
   // If a constant has more than one use, make sure it is loaded in register
   // so that multiple immediate loads can be avoided.
-  ConstantInstr* constant = left()->definition()->AsConstant();
-  if ((constant != nullptr) && !left()->IsSingleUse()) {
-    locs->set_in(0, Location::RequiresRegister());
-  } else {
-    locs->set_in(0, LocationRegisterOrConstant(left()));
-  }
-
-  constant = right()->definition()->AsConstant();
+  ConstantInstr* constant = right()->definition()->AsConstant();
   if ((constant != nullptr) && !right()->IsSingleUse()) {
     locs->set_in(1, Location::RequiresRegister());
   } else {
-    // Only one of the inputs can be a constant. Choose register if the first
-    // one is a constant.
-    locs->set_in(1, locs->in(0).IsConstant()
-                        ? Location::RequiresRegister()
-                        : LocationRegisterOrConstant(right()));
+    locs->set_in(1, LocationRegisterOrConstant(right()));
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;

@@ -842,37 +842,21 @@ static Condition TokenKindToIntCondition(Token::Kind kind) {
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
-  if (operation_cid() == kDoubleCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (is_null_aware()) {
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+  } else if (operation_cid() == kDoubleCid) {
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
+  } else {
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, LocationRegisterOrConstant(right()));
   }
-  if (operation_cid() == kSmiCid || operation_cid() == kMintCid ||
-      operation_cid() == kIntegerCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    if (is_null_aware()) {
-      locs->set_in(0, Location::RequiresRegister());
-      locs->set_in(1, Location::RequiresRegister());
-    } else {
-      locs->set_in(0, LocationRegisterOrConstant(left()));
-      // Only one input can be a constant operand. The case of two constant
-      // operands should be handled by constant propagation.
-      // Only right can be a stack slot.
-      locs->set_in(1, locs->in(0).IsConstant()
-                          ? Location::RequiresRegister()
-                          : LocationRegisterOrConstant(right()));
-    }
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
-  }
-  UNREACHABLE();
-  return nullptr;
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
@@ -891,34 +875,6 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   }
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
-}
-
-static Condition FlipCondition(Condition condition) {
-  switch (condition) {
-    case EQUAL:
-      return EQUAL;
-    case NOT_EQUAL:
-      return NOT_EQUAL;
-    case LESS:
-      return GREATER;
-    case LESS_EQUAL:
-      return GREATER_EQUAL;
-    case GREATER:
-      return LESS;
-    case GREATER_EQUAL:
-      return LESS_EQUAL;
-    case BELOW:
-      return ABOVE;
-    case BELOW_EQUAL:
-      return ABOVE_EQUAL;
-    case ABOVE:
-      return BELOW;
-    case ABOVE_EQUAL:
-      return BELOW_EQUAL;
-    default:
-      UNIMPLEMENTED();
-      return EQUAL;
-  }
 }
 
 static void EmitBranchOnCondition(
@@ -950,28 +906,8 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToIntCondition(kind);
-  if (left.IsConstant() || right.IsConstant()) {
-    // Ensure constant is on the right.
-    ConstantInstr* constant = nullptr;
-    if (left.IsConstant()) {
-      constant = left.constant_instruction();
-      Location tmp = right;
-      right = left;
-      left = tmp;
-      true_condition = FlipCondition(true_condition);
-    } else {
-      constant = right.constant_instruction();
-    }
-
-    if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
-      int64_t value;
-      const bool ok = compiler::HasIntegerValue(constant->value(), &value);
-      RELEASE_ASSERT(ok);
-      __ OBJ(cmp)(left.reg(), compiler::Immediate(value));
-    } else {
-      ASSERT(constant->representation() == kTagged);
-      __ CompareObject(left.reg(), right.constant());
-    }
+  if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
   } else {
     __ OBJ(cmp)(left.reg(), right.reg());
   }
@@ -986,27 +922,11 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToIntCondition(kind);
-  if (left.IsConstant() || right.IsConstant()) {
-    // Ensure constant is on the right.
-    ConstantInstr* constant = nullptr;
-    if (left.IsConstant()) {
-      constant = left.constant_instruction();
-      Location tmp = right;
-      right = left;
-      left = tmp;
-      true_condition = FlipCondition(true_condition);
-    } else {
-      constant = right.constant_instruction();
-    }
-
-    if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
-      int64_t value;
-      const bool ok = compiler::HasIntegerValue(constant->value(), &value);
-      RELEASE_ASSERT(ok);
-      __ cmpq(left.reg(), compiler::Immediate(value));
-    } else {
-      UNREACHABLE();
-    }
+  if (right.IsConstant()) {
+    int64_t value;
+    const bool ok = compiler::HasIntegerValue(right.constant(), &value);
+    RELEASE_ASSERT(ok);
+    __ cmpq(left.reg(), compiler::Immediate(value));
   } else {
     __ cmpq(left.reg(), right.reg());
   }
@@ -1217,28 +1137,17 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (operation_cid() == kDoubleCid) {
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresFpuRegister());
-    summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_out(0, Location::RequiresRegister());
-    return summary;
+    locs->set_in(0, Location::RequiresFpuRegister());
+    locs->set_in(1, Location::RequiresFpuRegister());
+  } else {
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, LocationRegisterOrConstant(right()));
   }
-  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, LocationRegisterOrConstant(left()));
-    // Only one input can be a constant operand. The case of two constant
-    // operands should be handled by constant propagation.
-    summary->set_in(1, summary->in(0).IsConstant()
-                           ? Location::RequiresRegister()
-                           : LocationRegisterOrConstant(right()));
-    summary->set_out(0, Location::RequiresRegister());
-    return summary;
-  }
-  UNREACHABLE();
-  return nullptr;
+  locs->set_out(0, Location::RequiresRegister());
+  return locs;
 }
 
 Condition RelationalOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
@@ -6570,12 +6479,8 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   }
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, LocationRegisterOrConstant(left()));
-  // Only one of the inputs can be a constant. Choose register if the first one
-  // is a constant.
-  locs->set_in(1, locs->in(0).IsConstant()
-                      ? Location::RequiresRegister()
-                      : LocationRegisterOrConstant(right()));
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, LocationRegisterOrConstant(right()));
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
