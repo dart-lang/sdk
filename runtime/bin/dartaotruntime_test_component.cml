@@ -7,7 +7,7 @@
     "//runtime/vm.shard.cml",
   ],
   program: {
-    binary: "exe.stripped/dart_precompiled_runtime",
+    binary: "exe.stripped/dartaotruntime",
     runner: "elf_test_runner",
   },
   capabilities: [

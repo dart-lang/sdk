@@ -52,7 +52,7 @@ $ sudo $(which dart) runtime/tools/profiling/bin/set_uprobe.dart alloc Allocatio
 Record the profile:
 
 ```
-$ sudo perf record -g -e uprobes:alloc out/ReleaseX64/dart_precompiled_runtime test.aot
+$ sudo perf record -g -e uprobes:alloc out/ReleaseX64/dartaotruntime test.aot
 $ sudo chmod 0755 perf.data
 ```
 

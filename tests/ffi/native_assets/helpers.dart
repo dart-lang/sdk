@@ -56,7 +56,7 @@ final genSnapshotUri =
 final dartUri = buildUriAbsolute.resolve('dart$standaloneExtensionExe');
 
 final dartPrecompiledRuntimeUri =
-    buildUriAbsolute.resolve('dart_precompiled_runtime$standaloneExtensionExe');
+    buildUriAbsolute.resolve('dartaotruntime$standaloneExtensionExe');
 
 final platformDillUri = buildUriAbsolute.resolve('vm_platform_strong.dill');
 

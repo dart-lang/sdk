@@ -12,7 +12,7 @@ they are a way of allowing a package author to specify API-specific quick fixes.
 
 Before you read this you should be familiar with both
 - [Writing a quick fix](quick_fix.md), and
-- [Data-driven Fixes](https://github.com/flutter/flutter/wiki/Data-driven-Fixes).
+- [Data-driven Fixes](https://github.com/flutter/flutter/blob/main/docs/contributing/Data-driven-Fixes.md).
 
 ## How data-driven fixes work
 
@@ -78,7 +78,7 @@ you would instead modify something that already exists.
 The first step is to design the changes to the data-file format that will allow
 users to specify the change. Follow the design principles outlined in the
 Overview in
-[Data-driven Fixes](https://github.com/flutter/flutter/wiki/Data-driven-Fixes).
+[Data-driven Fixes](https://github.com/flutter/flutter/blob/main/docs/contributing/Data-driven-Fixes.md).
 
 In addition, look at the existing changes to ensure that a new kind of change is
 required. It might make more sense to extend an existing change rather than to

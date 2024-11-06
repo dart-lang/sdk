@@ -85,8 +85,8 @@ class AotTestRunner extends TestRunner {
           '$buildDir/gen_snapshot',
           ['--snapshot-kind=app-aot-elf', '--elf=$elfFile', ...arguments],
           crashes)) {
-        await run('$buildDir/dart_precompiled_runtime',
-            [...aotArguments, elfFile], crashes);
+        await run(
+            '$buildDir/dartaotruntime', [...aotArguments, elfFile], crashes);
       }
     });
   }

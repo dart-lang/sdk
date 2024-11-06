@@ -2529,6 +2529,9 @@ abstract class LValue extends Expression {
         location: location);
   }
 
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType);
+
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs);
 }
@@ -3851,6 +3854,31 @@ mixin PossiblyGuardedPattern on Node implements ProtoSwitchHead {
   }
 }
 
+/// Representation of a postfix increment or decrement operation.
+class PostIncDec extends Expression {
+  final LValue lhs;
+
+  PostIncDec(this.lhs, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor, disposition: _LValueDisposition.readWrite);
+  }
+
+  @override
+  String toString() => '$lhs++';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
+    Type type = h.typeAnalyzer
+        .analyzeExpression(lhs, h.operations.unknownType)
+        .unwrapTypeView();
+    lhs._visitPostIncDec(h, this, type);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(type));
+  }
+}
+
 /// Data structure holding information needed during the "pre-visit" phase of
 /// type analysis.
 class PreVisitor {
@@ -3914,6 +3942,12 @@ class Property extends PromotableLValue {
         .promotedPropertyType(ExpressionPropertyTarget(target), propertyName,
             member, SharedTypeView(member!._type))
         ?.unwrapTypeView();
+  }
+
+  @override
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType) {
+    // No flow analysis impact
   }
 
   @override
@@ -4674,6 +4708,12 @@ class ThisOrSuperProperty extends PromotableLValue {
   }
 
   @override
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType) {
+    // No flow analysis impact
+  }
+
+  @override
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs) {
     // No flow analysis impact
@@ -4856,6 +4896,16 @@ class Var extends Node
   @override
   void preVisit(PreVisitor visitor) {}
 
+  /// Creates an expression representing a postfix increment or decrement
+  /// operation applied to this variable.
+  Expression postIncDec() {
+    var location = computeLocation();
+    return new PostIncDec(
+      new VariableReference._(this, null, location: location),
+      location: location,
+    );
+  }
+
   /// Creates an expression representing a read of this variable, which as a
   /// side effect will call the given callback with the returned promoted type.
   Expression readAndCheckPromotedType(void Function(Type?) callback) =>
@@ -4976,6 +5026,16 @@ class VariableReference extends LValue {
     var result = h.typeAnalyzer.analyzeVariableGet(this, variable, callback);
     h.irBuilder.atom(variable.name, Kind.expression, location: location);
     return result;
+  }
+
+  @override
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType) {
+    h.flow.postIncDec(
+      postIncDecExpression,
+      variable,
+      SharedTypeView(writtenType),
+    );
   }
 
   @override
