@@ -311,7 +311,9 @@ class ClassInfoCollector {
       // directly below the public classes they implement.
       // All other classes sit below their superclass.
       ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
-              cls == translator.coreTypes.numClass
+              cls == translator.coreTypes.numClass ||
+              cls == translator.boxedIntClass ||
+              cls == translator.boxedDoubleClass
           ? topInfo
           : (!translator.options.jsCompatibility &&
                       cls == translator.wasmStringBaseClass) ||
