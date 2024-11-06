@@ -2044,16 +2044,34 @@ void MicroAssembler::EmitBranch(Register rs1,
       EmitBType(offset, rs2, rs1, func, BRANCH);
     } else if (far_branch_level() == 1) {
       intptr_t start = Position();
-      const intptr_t kFarBranchLength = 8;
-      EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
+      intptr_t kFarBranchLength;
+      if (Supports(RV_C) && (func == BEQ || func == BNE) &&
+          ((rs1 == ZR && IsCRs1p(rs2)) || (rs2 == ZR && IsCRs1p(rs1)))) {
+        kFarBranchLength = 6;
+        Emit16((func == BEQ ? C_BNEZ : C_BEQZ) |
+               EncodeCRs1p(rs1 == ZR ? rs2 : rs1) |
+               EncodeCBImm(kFarBranchLength));
+      } else {
+        kFarBranchLength = 8;
+        EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
+      }
       offset = label->link_j(Position());
       EmitJType(offset, ZR, JAL);
       intptr_t end = Position();
       ASSERT_EQUAL(end - start, kFarBranchLength);
     } else {
       intptr_t start = Position();
-      const intptr_t kFarBranchLength = 12;
-      EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
+      intptr_t kFarBranchLength;
+      if (Supports(RV_C) && (func == BEQ || func == BNE) &&
+          ((rs1 == ZR && IsCRs1p(rs2)) || (rs2 == ZR && IsCRs1p(rs1)))) {
+        kFarBranchLength = 10;
+        Emit16((func == BEQ ? C_BNEZ : C_BEQZ) |
+               EncodeCRs1p(rs1 == ZR ? rs2 : rs1) |
+               EncodeCBImm(kFarBranchLength));
+      } else {
+        kFarBranchLength = 12;
+        EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
+      }
       offset = label->link_far(Position());
       intx_t lo = ImmLo(offset);
       intx_t hi = ImmHi(offset);
