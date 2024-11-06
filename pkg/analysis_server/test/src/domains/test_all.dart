@@ -4,12 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'execution/test_all.dart' as execution;
 import 'flutter/test_all.dart' as flutter;
 
 void main() {
   defineReflectiveSuite(() {
-    execution.main();
     flutter.main();
   });
 }
