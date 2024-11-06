@@ -205,11 +205,14 @@ final class AnalysisOptionsBuilder {
         return;
       }
       var pluginName = nameNode.toString();
-      if (pluginNode is YamlScalar) {
-        // TODO(srawlins): There may be value in storing the version constraint,
-        // `value`.
+
+      // If the plugin name just maps to a String, then that is the version
+      // constraint; use it and move on.
+      if (pluginNode case YamlScalar(:String value)) {
         pluginConfigurations.add(PluginConfiguration(
-            name: pluginName, diagnosticConfigs: const {}, isEnabled: true));
+          name: pluginName,
+          source: VersionedPluginSource(constraint: value),
+        ));
         return;
       }
 
@@ -217,18 +220,39 @@ final class AnalysisOptionsBuilder {
         return;
       }
 
-      var diagnostics = pluginNode.valueAt(AnalyzerOptions.diagnostics);
-      if (diagnostics == null) {
+      // Grab either the source value from 'version', 'git', or 'path'. In the
+      // erroneous case that multiple are specified, just take the first. A
+      // warning should be reported by `OptionsFileValidator`.
+      // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
+
+      PluginSource? source;
+      var versionSource = pluginNode.valueAt(AnalyzerOptions.version);
+      if (versionSource case YamlScalar(:String value)) {
+        // TODO(srawlins): Handle the 'hosted' key.
+        source = VersionedPluginSource(constraint: value);
+      } else {
+        var pathSource = pluginNode.valueAt(AnalyzerOptions.path);
+        if (pathSource case YamlScalar(:String value)) {
+          source = PathPluginSource(path: value);
+        }
+      }
+
+      if (source == null) {
+        // Either the source data is malformed, or neither 'version' nor 'git'
+        // was provided. A warning should be reported by OptionsFileValidator.
         return;
       }
 
-      var diagnosticConfigurations = parseDiagnosticsSection(diagnostics);
+      var diagnostics = pluginNode.valueAt(AnalyzerOptions.diagnostics);
+      var diagnosticConfigurations = diagnostics == null
+          ? const <String, RuleConfig>{}
+          : parseDiagnosticsSection(diagnostics);
 
       pluginConfigurations.add(PluginConfiguration(
         name: pluginName,
+        source: source,
         diagnosticConfigs: diagnosticConfigurations,
         // TODO(srawlins): Implement `enabled: false`.
-        isEnabled: true,
       ));
     });
   }

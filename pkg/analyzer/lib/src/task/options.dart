@@ -285,6 +285,8 @@ class AnalyzerOptions {
 
   /// Plugin options.
   static const String diagnostics = 'diagnostics';
+  static const String path = 'path';
+  static const String version = 'version';
 
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 
@@ -849,6 +851,7 @@ class OptionsFileValidator {
             sdkVersionConstraint: sdkVersionConstraint,
             sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
           ),
+          // TODO(srawlins): validate the top-level 'plugins' section.
         ];
 
   List<AnalysisError> validate(YamlMap options) {
