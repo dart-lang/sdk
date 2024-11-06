@@ -73,7 +73,7 @@
     "dart2wasm_hostasserts": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
-      "out/ReleaseX64/dartaotruntime",
+      "out/ReleaseX64/dart_precompiled_runtime",
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2wasm.snapshot",
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
@@ -798,7 +798,7 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dartaotruntime",
+            "dart_precompiled_runtime",
             "--os=android"
           ]
         },
@@ -874,7 +874,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--use-qemu",
-            "dartaotruntime",
+            "dart_precompiled_runtime",
             "runtime"
           ]
         },
@@ -922,7 +922,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--use-qemu",
-            "dartaotruntime",
+            "dart_precompiled_runtime",
             "runtime"
           ]
         },
@@ -1103,7 +1103,7 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1135,7 +1135,7 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1171,7 +1171,7 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1236,7 +1236,7 @@
           "arguments": [
             "--codesigning-identity=-",
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1263,7 +1263,7 @@
           "arguments": [
             "--codesigning-identity=-",
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1287,7 +1287,7 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1313,7 +1313,7 @@
           "script": "tools/build.py",
           "arguments": [
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -1809,7 +1809,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
-            "dartaotruntime",
+            "dart_precompiled_runtime",
             "gen_snapshot",
             "runtime"
           ]
@@ -3366,7 +3366,7 @@
             "create_sdk",
             "runtime",
             "gen_snapshot",
-            "dartaotruntime",
+            "dart_precompiled_runtime",
             "dart2js_platform.dill",
             "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot",
@@ -3498,7 +3498,7 @@
             "--mode=debug,release",
             "--arch=x64,x64c",
             "runtime",
-            "dartaotruntime",
+            "dart_precompiled_runtime",
             "dart2js_platform.dill"
           ]
         },
@@ -3509,7 +3509,7 @@
             "--mode=debug,release",
             "--arch=simarm64,simarm64c",
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -3519,7 +3519,7 @@
             "--mode=debug,release",
             "--arch=simriscv32,simriscv64",
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -3580,7 +3580,7 @@
             "--mode=debug,release",
             "--arch=x64",
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {
@@ -3591,7 +3591,7 @@
             "--arch=x64",
             "--sanitizer=tsan",
             "runtime",
-            "dartaotruntime"
+            "dart_precompiled_runtime"
           ]
         },
         {

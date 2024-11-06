@@ -11,7 +11,7 @@ import "package:expect/expect.dart";
 
 final executableSuffix = Platform.isWindows ? '.exe' : '';
 final jitExecutableName = 'dart$executableSuffix';
-final aotExecutableName = 'dartaotruntime$executableSuffix';
+final aotExecutableName = 'dart_precompiled_runtime$executableSuffix';
 
 bool hasJitOrAotExecutableName(String executable) =>
     executable.endsWith(jitExecutableName) ||

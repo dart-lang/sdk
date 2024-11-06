@@ -646,9 +646,11 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
     steps.add(() => device.pushCachedData(
-        '$buildPath/exe.stripped/dartaotruntime', '$devicedir/dartaotruntime'));
+        '$buildPath/exe.stripped/dart_precompiled_runtime',
+        '$devicedir/dart_precompiled_runtime'));
     steps.add(() => device.pushCachedData(
-        '$buildPath/dartaotruntime.sym', '$devicedir/dartaotruntime.sym'));
+        '$buildPath/dart_precompiled_runtime.sym',
+        '$devicedir/dart_precompiled_runtime.sym'));
     steps.add(
         () => device.pushCachedData(processTest, '$devicedir/process_test'));
     steps.add(() => device.pushCachedData(
@@ -656,7 +658,7 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device.runAdbShellCommand([
           'chmod',
           '777',
-          '$devicedir/dartaotruntime $devicedir/process_test $devicedir/abstract_socket_test'
+          '$devicedir/dart_precompiled_runtime $devicedir/process_test $devicedir/abstract_socket_test'
         ]));
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
@@ -669,7 +671,7 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device.runAdbShellCommand([
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               'export TEST_COMPILATION_DIR=$deviceTestDir;'
-              '$devicedir/dartaotruntime',
+              '$devicedir/dart_precompiled_runtime',
           '--android-log-to-stderr',
           ...arguments,
         ], timeout: timeoutDuration));

@@ -39,9 +39,10 @@ main() async {
   var nonePlatform = "$out/$mode$arch/vm_platform_strong.dill";
   var noneGenSnapshot = "$out/$mode$arch/gen_snapshot";
   var noneJitRuntime = "$out/$mode$arch/dart";
-  var noneAotRuntime = "$out/$mode$arch/dartaotruntime";
+  var noneAotRuntime = "$out/$mode$arch/dart_precompiled_runtime";
   var sanitizerGenSnapshot = "$out/$mode$sanitizer$arch/gen_snapshot";
-  var sanitizerAotRuntime = "$out/$mode$sanitizer$arch/dartaotruntime";
+  var sanitizerAotRuntime =
+      "$out/$mode$sanitizer$arch/dart_precompiled_runtime";
 
   checkExists(noneGenSnapshot);
   checkExists(noneJitRuntime);

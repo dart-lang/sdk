@@ -31,7 +31,7 @@ void main(List<String> args) async {
       '-m$mode',
       '--no-rbe',
       'offsets_extractor',
-      'offsets_extractor_aotruntime'
+      'offsets_extractor_precompiled_runtime'
     ]);
     print('Building $buildDir - done');
   });
@@ -41,7 +41,7 @@ void main(List<String> args) async {
       return await run(['$buildDir/offsets_extractor']);
     }).then<String>((lines) => lines.join('\n')),
     forAllConfigurationsMode((String buildDir, _, _) async {
-      return await run(['$buildDir/offsets_extractor_aotruntime']);
+      return await run(['$buildDir/offsets_extractor_precompiled_runtime']);
     }).then<String>((lines) => lines.join('\n')),
   ).wait;
 
