@@ -1140,7 +1140,7 @@ LintCode:
   avoid_futureor_void:
     problemMessage: "Don't use the type 'FutureOr<void>'."
     correctionMessage: "Try using 'Future<void>?' or 'void'."
-    addedIn: "3.6-wip"
+    addedIn: "3.6"
     categories: [errorProne, unintentional]
     hasPublishedDocs: true
     documentation: |-
@@ -1456,6 +1456,10 @@ LintCode:
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
+      **NOTE:** This lint has been replaced by the
+      `non_nullable_equals_parameter` warning and is deprecated.
+      Remove all inclusions of this lint from your analysis options.
+
       **DON'T** check for `null` in custom `==` operators.
 
       As `null` is a special value, no instance of any class (other than `Null`) can
@@ -6898,7 +6902,7 @@ LintCode:
   omit_obvious_local_variable_types:
     problemMessage: "Omit the type annotation on a local variable when the type is obvious."
     correctionMessage: "Try removing the type annotation."
-    addedIn: "3.6-wip"
+    addedIn: "3.6"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -6968,7 +6972,7 @@ LintCode:
   omit_obvious_property_types:
     problemMessage: "The type annotation isn't needed because it is obvious."
     correctionMessage: "Try removing the type annotation."
-    addedIn: "3.6-wip"
+    addedIn: "3.7-wip"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -10442,7 +10446,7 @@ LintCode:
   specify_nonobvious_local_variable_types:
     problemMessage: "Specify the type of a local variable when the type is non-obvious."
     correctionMessage: "Try adding a type annotation."
-    addedIn: "3.6-wip"
+    addedIn: "3.6"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -10523,7 +10527,7 @@ LintCode:
   specify_nonobvious_property_types:
     problemMessage: "A type annotation is needed because it isn't obvious."
     correctionMessage: "Try adding a type annotation."
-    addedIn: "3.6-wip"
+    addedIn: "3.7-wip"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -12763,6 +12767,9 @@ LintCode:
     categories: [errorProne]
     hasPublishedDocs: false
     deprecatedDetails: |-
+      **NOTE:** This lint is deprecated and will be removed in a future release.
+      Remove all inclusions of this lint from your analysis options.
+  
       **AVOID**
 
       * assigning directly to the `href` field of an AnchorElement
@@ -13894,7 +13901,7 @@ LintCode:
   use_truncating_division:
     problemMessage: "Use truncating division."
     correctionMessage: "Try using truncating division, '~/', instead of regular division ('/') followed by 'toInt()'."
-    addedIn: "3.6-wip"
+    addedIn: "3.6"
     categories: [languageFeatureUsage]
     hasPublishedDocs: false
     deprecatedDetails: |-

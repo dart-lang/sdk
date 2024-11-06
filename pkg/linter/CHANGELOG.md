@@ -1,6 +1,8 @@
 # 3.7.0-wip
 
 - deprecated lint: `package_api_docs`
+- _(soon to be)_ deprecated lint: `avoid_null_checks_in_equality_operators`
+- _(soon to be)_ deprecated lint: `unsafe_html`
 - new _(experimental)_ lint: `omit_obvious_property_types`
 - new _(experimental)_ lint: `specify_nonobvious_property_types`
 
