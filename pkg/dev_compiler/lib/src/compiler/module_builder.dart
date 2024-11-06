@@ -259,7 +259,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
 
     return Fun(
       function.params,
-      Block([...importStatements, ...statements, ...function.body.statements]),
+      Block([...importStatements, ...function.body.statements]),
     );
   }
 
@@ -429,7 +429,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
 
     return Fun(
       function.params,
-      Block([...importStatements, ...statements, ...function.body.statements]),
+      Block([...importStatements, ...function.body.statements]),
     );
   }
 
@@ -518,7 +518,7 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
 
     return Fun(
       function.params,
-      Block([...importStatements, ...statements, ...function.body.statements]),
+      Block([...importStatements, ...function.body.statements]),
     );
   }
 
