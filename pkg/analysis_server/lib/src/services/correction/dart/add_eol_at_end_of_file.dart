@@ -13,8 +13,9 @@ class AddEolAtEndOfFile extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_EOL_AT_END_OF_FILE;
@@ -38,7 +39,9 @@ class AddEolAtEndOfFile extends ResolvedCorrectionProducer {
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-            SourceRange(index, content.length - index), eol);
+          SourceRange(index, content.length - index),
+          eol,
+        );
       });
     }
   }

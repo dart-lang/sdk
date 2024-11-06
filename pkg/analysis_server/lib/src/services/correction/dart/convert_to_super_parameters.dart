@@ -71,9 +71,11 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     var named = <_ParameterData>[];
     var argumentList = superInvocation.argumentList;
     var arguments = argumentList.arguments;
-    for (var argumentIndex = 0;
-        argumentIndex < arguments.length;
-        argumentIndex++) {
+    for (
+      var argumentIndex = 0;
+      argumentIndex < arguments.length;
+      argumentIndex++
+    ) {
       var argument = arguments[argumentIndex];
       if (argument is NamedExpression) {
         var parameter = _parameterFor(parameterMap, argument.expression);
@@ -148,7 +150,9 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
             var tokenAfterKeyword = keyword.next!;
             if (tokenAfterKeyword.offset == nameOffset) {
               builder.addSimpleReplacement(
-                  range.startStart(keyword, tokenAfterKeyword), 'super.');
+                range.startStart(keyword, tokenAfterKeyword),
+                'super.',
+              );
             } else {
               builder.addDeletion(range.startStart(keyword, tokenAfterKeyword));
               builder.addSimpleInsertion(nameOffset, 'super.');
@@ -173,12 +177,13 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
               var tokenAfterKeyword = keyword.next!;
               if (tokenAfterKeyword.offset == primaryRange.offset) {
                 builder.addSimpleReplacement(
-                    range.startOffsetEndOffset(
-                        keyword.offset, primaryRange.end),
-                    'super.');
+                  range.startOffsetEndOffset(keyword.offset, primaryRange.end),
+                  'super.',
+                );
               } else {
-                builder
-                    .addDeletion(range.startStart(keyword, tokenAfterKeyword));
+                builder.addDeletion(
+                  range.startStart(keyword, tokenAfterKeyword),
+                );
                 builder.addSimpleReplacement(primaryRange, 'super.');
               }
             }
@@ -204,8 +209,10 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
           var initializers = constructor.initializers;
           SourceRange initializerRange;
           if (initializers.length == 1) {
-            initializerRange =
-                range.endEnd(constructor.parameters, superInvocation);
+            initializerRange = range.endEnd(
+              constructor.parameters,
+              superInvocation,
+            );
           } else {
             initializerRange = range.nodeInList(initializers, superInvocation);
           }
@@ -213,8 +220,12 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
         } else {
           // Leave the invocation, but remove all of the arguments, including
           // any trailing comma.
-          builder.addDeletion(range.endStart(
-              argumentList.leftParenthesis, argumentList.rightParenthesis));
+          builder.addDeletion(
+            range.endStart(
+              argumentList.leftParenthesis,
+              argumentList.rightParenthesis,
+            ),
+          );
         }
       } else {
         // Remove just the arguments that are no longer needed.
@@ -228,8 +239,11 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
   /// If the [parameter] can be converted into a super initializing formal
   /// parameter then return the data needed to do so.
-  _ParameterData? _dataForParameter(_Parameter parameter, int argumentIndex,
-      FormalParameterElement? superParameter) {
+  _ParameterData? _dataForParameter(
+    _Parameter parameter,
+    int argumentIndex,
+    FormalParameterElement? superParameter,
+  ) {
     if (superParameter == null) {
       return null;
     }
@@ -252,8 +266,11 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     // Return the data.
     return _ParameterData(
       argumentIndex: argumentIndex,
-      defaultValueRange:
-          _defaultValueRange(parameterNode, superParameter, parameter.element),
+      defaultValueRange: _defaultValueRange(
+        parameterNode,
+        superParameter,
+        parameter.element,
+      ),
       finalKeyword: _finalKeyword(parameterNode),
       name: identifier,
       nullInitializer: _nullInitializer(parameterNode, superParameter),
@@ -351,8 +368,9 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// expression isn't a simple reference to one of the normal parameters in the
   /// constructor being converted.
   _Parameter? _parameterFor(
-      Map<FormalParameterElement, _Parameter> parameterMap,
-      Expression expression) {
+    Map<FormalParameterElement, _Parameter> parameterMap,
+    Expression expression,
+  ) {
     if (expression is SimpleIdentifier) {
       var element = expression.element;
       return parameterMap[element];
@@ -363,7 +381,8 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// Return a map from parameter elements to the parameters that define those
   /// elements.
   Map<FormalParameterElement, _Parameter> _parameterMap(
-      FormalParameterList parameterList) {
+    FormalParameterList parameterList,
+  ) {
     bool validParameter(FormalParameter parameter) {
       parameter = parameter.notDefault;
       return parameter is SimpleFormalParameter ||
@@ -387,7 +406,8 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// Return a set containing the elements of all of the parameters that are
   /// referenced in the body of the [constructor].
   Set<FormalParameterElement> _referencedParameters(
-      ConstructorDeclaration constructor) {
+    ConstructorDeclaration constructor,
+  ) {
     var collector = _ReferencedParameterCollector();
     constructor.body.accept(collector);
     return collector.foundParameters;
@@ -395,7 +415,8 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
   /// Return the invocation of the super constructor.
   SuperConstructorInvocation? _superInvocation(
-      ConstructorDeclaration constructor) {
+    ConstructorDeclaration constructor,
+  ) {
     var initializers = constructor.initializers;
     // Search all of the initializers in case the code is invalid, but start
     // from the end because the code will usually be correct.
@@ -418,15 +439,18 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
       var typeAnnotation = parameter.type;
       if (typeAnnotation != null) {
         return _TypeData(
-            primaryRange: range.startStart(typeAnnotation, parameter.name!));
+          primaryRange: range.startStart(typeAnnotation, parameter.name!),
+        );
       }
     } else if (parameter is FunctionTypedFormalParameter) {
       var returnType = parameter.returnType;
       return _TypeData(
-          primaryRange: returnType != null
-              ? range.startStart(returnType, parameter.name)
-              : null,
-          parameterRange: range.node(parameter.parameters));
+        primaryRange:
+            returnType != null
+                ? range.startStart(returnType, parameter.name)
+                : null,
+        parameterRange: range.node(parameter.parameters),
+      );
     }
     return null;
   }
@@ -476,14 +500,15 @@ class _ParameterData {
   final int argumentIndex;
 
   /// Initialize a newly create data object.
-  _ParameterData(
-      {required this.finalKeyword,
-      required this.typeToDelete,
-      required this.name,
-      required this.defaultValueRange,
-      required this.nullInitializer,
-      required this.parameterIndex,
-      required this.argumentIndex});
+  _ParameterData({
+    required this.finalKeyword,
+    required this.typeToDelete,
+    required this.name,
+    required this.defaultValueRange,
+    required this.nullInitializer,
+    required this.parameterIndex,
+    required this.argumentIndex,
+  });
 }
 
 class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {

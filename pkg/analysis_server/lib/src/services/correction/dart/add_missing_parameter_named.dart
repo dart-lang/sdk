@@ -16,8 +16,9 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_parameterName];
@@ -47,8 +48,10 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     }
 
     // Prepare the invoked element.
-    var context =
-        ExecutableParameters.forInvocation(sessionHelper, argumentList.parent);
+    var context = ExecutableParameters.forInvocation(
+      sessionHelper,
+      argumentList.parent,
+    );
     if (context == null) {
       return;
     }
@@ -63,8 +66,11 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
         await builder.addDartFileEdit(context.file, (builder) {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
-            builder
-                .writeParameterMatchingArgument(namedExpression, 0, <String>{});
+            builder.writeParameterMatchingArgument(
+              namedExpression,
+              0,
+              <String>{},
+            );
             builder.write(suffix);
           });
         });

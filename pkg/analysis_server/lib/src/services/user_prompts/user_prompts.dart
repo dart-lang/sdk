@@ -26,11 +26,14 @@ abstract class UserPromptPreferences {
       );
       return _NotPersistableUserPromptPreferences();
     }
-    var preferencesFile =
-        (stateFolder..create()).getChildAssumingFile('preferences.json');
+    var preferencesFile = (stateFolder..create()).getChildAssumingFile(
+      'preferences.json',
+    );
 
     return _PersistableUserPromptPreferences(
-        preferencesFile, instrumentationService);
+      preferencesFile,
+      instrumentationService,
+    );
   }
 
   bool get canPersist;
@@ -78,7 +81,9 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
   final File preferencesFile;
 
   _PersistableUserPromptPreferences(
-      this.preferencesFile, this._instrumentationService);
+    this.preferencesFile,
+    this._instrumentationService,
+  );
 
   @override
   bool get canPersist => true;
@@ -144,8 +149,9 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
       return true;
     } catch (e) {
       // Don't fail if we can't write (eg. file locked by another process).
-      _instrumentationService
-          .logError('Failed to write prompt preferences: $e');
+      _instrumentationService.logError(
+        'Failed to write prompt preferences: $e',
+      );
       return false;
     }
   }

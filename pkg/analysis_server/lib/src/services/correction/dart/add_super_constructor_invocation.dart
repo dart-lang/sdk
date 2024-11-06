@@ -47,8 +47,9 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
-        producers.add(_AddInvocation(constructor, insertOffset, prefix,
-            context: context));
+        producers.add(
+          _AddInvocation(constructor, insertOffset, prefix, context: context),
+        );
       }
     }
     return producers;
@@ -76,8 +77,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -127,7 +129,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           }
           // A default value to pass as an argument.
           builder.addSimpleLinkedEdit(
-              parameter.name, parameter.type.defaultArgumentCode);
+            parameter.name,
+            parameter.type.defaultArgumentCode,
+          );
         }
         builder.write(')');
       });

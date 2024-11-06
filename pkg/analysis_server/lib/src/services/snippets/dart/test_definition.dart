@@ -34,12 +34,7 @@ class TestDefinition extends DartSnippetProducer {
       });
     });
 
-    return Snippet(
-      prefix,
-      label,
-      'Insert a test block.',
-      builder.sourceChange,
-    );
+    return Snippet(prefix, label, 'Insert a test block.', builder.sourceChange);
   }
 
   @override

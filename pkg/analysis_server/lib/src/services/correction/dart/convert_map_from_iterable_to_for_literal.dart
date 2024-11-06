@@ -58,7 +58,8 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
 
     var keyClosure =
         _extractClosure('key', secondArg) ?? _extractClosure('key', thirdArg);
-    var valueClosure = _extractClosure('value', thirdArg) ??
+    var valueClosure =
+        _extractClosure('value', thirdArg) ??
         _extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return;
@@ -103,7 +104,10 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
           // referenced in the value expression.
           loopVariableName = computeUnusedVariableName();
           keyExpressionText = keyFinder.replaceName(
-              keyExpressionText, loopVariableName, keyClosure.body.offset);
+            keyExpressionText,
+            loopVariableName,
+            keyClosure.body.offset,
+          );
         } else {
           loopVariableName = keyParameterName;
         }
@@ -114,7 +118,10 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
           // referenced in the key expression.
           loopVariableName = computeUnusedVariableName();
           valueExpressionText = valueFinder.replaceName(
-              valueExpressionText, loopVariableName, valueClosure.body.offset);
+            valueExpressionText,
+            loopVariableName,
+            valueClosure.body.offset,
+          );
         } else {
           loopVariableName = valueParameterName;
         }
@@ -124,9 +131,15 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
         // either the key or value expressions.
         loopVariableName = computeUnusedVariableName();
         keyExpressionText = keyFinder.replaceName(
-            keyExpressionText, loopVariableName, keyClosure.body.offset);
+          keyExpressionText,
+          loopVariableName,
+          keyClosure.body.offset,
+        );
         valueExpressionText = valueFinder.replaceName(
-            valueExpressionText, loopVariableName, valueClosure.body.offset);
+          valueExpressionText,
+          loopVariableName,
+          valueClosure.body.offset,
+        );
       }
     }
     //

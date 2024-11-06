@@ -31,11 +31,9 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
-        producers.add(_CreateConstructor(
-          constructor,
-          targetClassNode,
-          context: context,
-        ));
+        producers.add(
+          _CreateConstructor(constructor, targetClassNode, context: context),
+        );
       }
     }
     return producers;
@@ -59,8 +57,9 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -99,10 +98,12 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
   Future<void> _computeWithoutSuperParameters(ChangeBuilder builder) async {
     var constructorName = _constructor.name;
-    var requiredPositionalParameters = _constructor.parameters
-        .where((parameter) => parameter.isRequiredPositional);
-    var requiredNamedParameters =
-        _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
+    var requiredPositionalParameters = _constructor.parameters.where(
+      (parameter) => parameter.isRequiredPositional,
+    );
+    var requiredNamedParameters = _constructor.parameters.where(
+      (parameter) => parameter.isRequiredNamed,
+    );
     await builder.addDartFileEdit(file, (builder) {
       builder.insertConstructor(_targetClass, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
@@ -180,10 +181,12 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
   Future<void> _computeWithSuperParameters(ChangeBuilder builder) async {
     var constructorName = _constructor.name;
-    var requiredPositionalParameters = _constructor.parameters
-        .where((parameter) => parameter.isRequiredPositional);
-    var requiredNamedParameters =
-        _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
+    var requiredPositionalParameters = _constructor.parameters.where(
+      (parameter) => parameter.isRequiredPositional,
+    );
+    var requiredNamedParameters = _constructor.parameters.where(
+      (parameter) => parameter.isRequiredNamed,
+    );
     await builder.addDartFileEdit(file, (builder) {
       builder.insertConstructor(_targetClass, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`

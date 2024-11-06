@@ -20,8 +20,9 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
@@ -101,11 +102,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
         cases.add(elseCase);
       }
     } else if (elseStatement != null) {
-      cases.add(
-        _IfCaseElse(
-          statement: elseStatement,
-        ),
-      );
+      cases.add(_IfCaseElse(statement: elseStatement));
     }
 
     return cases;
@@ -142,7 +139,8 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
   }
 
   ({String expressionCode, String patternCode})? _patternOfBoolCondition(
-      Expression node) {
+    Expression node,
+  ) {
     if (node is BinaryExpression) {
       if (node.isNotEqNull) {
         return (
@@ -166,10 +164,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
         InterfaceType() => '$typeCode()',
         _ => '$typeCode _',
       };
-      return (
-        expressionCode: expressionCode,
-        patternCode: patternCode,
-      );
+      return (expressionCode: expressionCode, patternCode: patternCode);
     }
     return null;
   }
@@ -217,8 +212,9 @@ class ConvertSwitchExpressionToSwitchStatement
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
@@ -284,10 +280,7 @@ class ConvertSwitchExpressionToSwitchStatement
       // `_ =>` -> `default:`
       // `X _ =>` -> `X _:`
       if (guardedPattern.isPureUntypedWildcard) {
-        builder.addSimpleReplacement(
-          range.node(guardedPattern),
-          'default',
-        );
+        builder.addSimpleReplacement(range.node(guardedPattern), 'default');
       } else {
         builder.addSimpleInsertion(guardedPattern.offset, 'case ');
       }
@@ -304,9 +297,7 @@ class ConvertSwitchExpressionToSwitchStatement
         builder.addSimpleInsertion(case_.expression.end, ';');
       }
     }
-    builder.addDeletion(
-      range.token(semicolon),
-    );
+    builder.addDeletion(range.token(semicolon));
   }
 
   Future<void> _singleVariableDeclaration({
@@ -339,20 +330,16 @@ class ConvertSwitchExpressionToSwitchStatement
         var keyword = declarationList.keyword;
         if (keyword != null) {
           if (keyword.keyword == Keyword.FINAL) {
-            builder.addReplacement(
-              range.startLength(declaration.name, 0),
-              (builder) {
-                builder.writeType(switchExpression.typeOrThrow);
-                builder.write(' ');
-              },
-            );
+            builder.addReplacement(range.startLength(declaration.name, 0), (
+              builder,
+            ) {
+              builder.writeType(switchExpression.typeOrThrow);
+              builder.write(' ');
+            });
           } else {
-            builder.addReplacement(
-              range.token(keyword),
-              (builder) {
-                builder.writeType(switchExpression.typeOrThrow);
-              },
-            );
+            builder.addReplacement(range.token(keyword), (builder) {
+              builder.writeType(switchExpression.typeOrThrow);
+            });
           }
         }
       }
@@ -419,15 +406,11 @@ class ConvertSwitchExpressionToSwitchStatement
 sealed class _IfCase {
   final Statement statement;
 
-  _IfCase({
-    required this.statement,
-  });
+  _IfCase({required this.statement});
 }
 
 class _IfCaseElse extends _IfCase {
-  _IfCaseElse({
-    required super.statement,
-  });
+  _IfCaseElse({required super.statement});
 }
 
 class _IfCaseThen extends _IfCase {

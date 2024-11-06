@@ -57,7 +57,9 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
   }
 
   _StringStyle _extractComponentsInto(
-      Expression expression, List<AstNode> components) {
+    Expression expression,
+    List<AstNode> components,
+  ) {
     if (expression is SingleStringLiteral) {
       components.add(expression);
       return _StringStyle(
@@ -80,10 +82,14 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
       return style;
     } else if (expression is BinaryExpression &&
         _isStringConcatenation(expression)) {
-      var leftStyle =
-          _extractComponentsInto(expression.leftOperand, components);
-      var rightStyle =
-          _extractComponentsInto(expression.rightOperand, components);
+      var leftStyle = _extractComponentsInto(
+        expression.leftOperand,
+        components,
+      );
+      var rightStyle = _extractComponentsInto(
+        expression.rightOperand,
+        components,
+      );
       if (leftStyle.isUnknown) {
         return rightStyle;
       } else if (rightStyle.isUnknown) {
@@ -115,8 +121,12 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
     for (var i = 0; i < components.length; i++) {
       var component = components[i];
       if (component is SingleStringLiteral) {
-        var contents = utils.getRangeText(range.startOffsetEndOffset(
-            component.contentsOffset, component.contentsEnd));
+        var contents = utils.getRangeText(
+          range.startOffsetEndOffset(
+            component.contentsOffset,
+            component.contentsEnd,
+          ),
+        );
         buffer.write(contents);
       } else if (component is SimpleIdentifier) {
         if (_nextStartsWithIdentifierContinuation(components, i)) {
@@ -141,7 +151,9 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
   /// is one that would begin with a valid identifier continuation character
   /// when written into the resulting string.
   bool _nextStartsWithIdentifierContinuation(
-      List<AstNode> components, int index) {
+    List<AstNode> components,
+    int index,
+  ) {
     bool startsWithIdentifierContinuation(String string) =>
         string.startsWith(RegExp(r'[a-zA-Z0-9_$]'));
 
@@ -153,7 +165,8 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
       return startsWithIdentifierContinuation(next.value);
     } else if (next is StringInterpolation) {
       return startsWithIdentifierContinuation(
-          (next.elements[0] as InterpolationString).value);
+        (next.elements[0] as InterpolationString).value,
+      );
     }
     return false;
   }
@@ -175,9 +188,11 @@ class _StringStyle {
     required bool raw,
     required bool singleQuoted,
   }) {
-    return _StringStyle._((multiline ? multilineBit : 0) +
-        (raw ? rawBit : 0) +
-        (singleQuoted ? singleQuotedBit : 0));
+    return _StringStyle._(
+      (multiline ? multilineBit : 0) +
+          (raw ? rawBit : 0) +
+          (singleQuoted ? singleQuotedBit : 0),
+    );
   }
 
   _StringStyle._(this.state);

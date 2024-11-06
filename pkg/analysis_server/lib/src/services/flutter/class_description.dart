@@ -21,10 +21,7 @@ class ClassDescription {
   final ClassElement element;
   final ConstructorElement constructor;
 
-  ClassDescription(
-    this.element,
-    this.constructor,
-  );
+  ClassDescription(this.element, this.constructor);
 }
 
 /// The lazy-fill registry of [ClassDescription].

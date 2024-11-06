@@ -20,8 +20,10 @@ class TransformSet {
   /// Return a list of the transforms that match the [matcher]. The flag
   /// [applyingBulkFixes] indicates whether the transforms are being applied in
   /// the context of a bulk fix.
-  List<Transform> transformsFor(ElementMatcher matcher,
-      {required bool applyingBulkFixes}) {
+  List<Transform> transformsFor(
+    ElementMatcher matcher, {
+    required bool applyingBulkFixes,
+  }) {
     var result = <Transform>[];
     for (var transform in _transforms) {
       if (transform.appliesTo(matcher, applyingBulkFixes: applyingBulkFixes)) {

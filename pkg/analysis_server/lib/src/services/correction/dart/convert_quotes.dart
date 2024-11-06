@@ -132,12 +132,15 @@ abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
   }
 
   Future<void> _simpleStringLiteral(
-      ChangeBuilder builder, SimpleStringLiteral node,
-      {bool addBackslash = true}) async {
+    ChangeBuilder builder,
+    SimpleStringLiteral node, {
+    bool addBackslash = true,
+  }) async {
     if (_fromDouble ? !node.isSingleQuoted : node.isSingleQuoted) {
-      var newQuote = node.isMultiline
-          ? (_fromDouble ? "'''" : '"""')
-          : (_fromDouble ? "'" : '"');
+      var newQuote =
+          node.isMultiline
+              ? (_fromDouble ? "'''" : '"""')
+              : (_fromDouble ? "'" : '"');
       var quoteLength = node.isMultiline ? 3 : 1;
       var token = node.literal;
 
@@ -161,11 +164,14 @@ abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
   }
 
   Future<void> _stringInterpolation(
-      ChangeBuilder builder, StringInterpolation node) async {
+    ChangeBuilder builder,
+    StringInterpolation node,
+  ) async {
     if (_fromDouble ? !node.isSingleQuoted : node.isSingleQuoted) {
-      var newQuote = node.isMultiline
-          ? (_fromDouble ? "'''" : '"""')
-          : (_fromDouble ? "'" : '"');
+      var newQuote =
+          node.isMultiline
+              ? (_fromDouble ? "'''" : '"""')
+              : (_fromDouble ? "'" : '"');
       var quoteLength = node.isMultiline ? 3 : 1;
       var elements = node.elements;
       for (var i = 0; i < elements.length; i++) {

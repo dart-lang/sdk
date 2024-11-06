@@ -21,7 +21,7 @@ class SetSubscriptionsInvalidTest
     // current subscriptions are unchanged.
     expect(() async {
       await server.send('server.setSubscriptions', {
-        'subscriptions': ['bogus']
+        'subscriptions': ['bogus'],
       });
     }, throwsA(const TypeMatcher<ServerErrorMessage>()));
   }

@@ -16,8 +16,9 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_IS_NAN;
@@ -30,12 +31,14 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
     var needsBang = node.operator.type == TokenType.BANG_EQ;
     var rightOperand = node.rightOperand;
     var leftOperand = node.leftOperand;
-    var isRightNan = rightOperand is PrefixedIdentifier &&
+    var isRightNan =
+        rightOperand is PrefixedIdentifier &&
         (rightOperand.staticType?.isDartCoreDouble ?? false) &&
         rightOperand.identifier.name == 'nan';
 
     var expression = isRightNan ? leftOperand : rightOperand;
-    var needsParentheses = expression is PostfixExpression ||
+    var needsParentheses =
+        expression is PostfixExpression ||
         expression.precedence < Precedence.postfix;
 
     var prefix = '${needsBang ? '!' : ''}${needsParentheses ? '(' : ''}';
@@ -47,10 +50,14 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
           builder.addSimpleInsertion(leftOperand.offset, prefix);
         }
         builder.addSimpleReplacement(
-            range.endStart(leftOperand, rightOperand.endToken.next!), suffix);
+          range.endStart(leftOperand, rightOperand.endToken.next!),
+          suffix,
+        );
       } else {
         builder.addSimpleReplacement(
-            range.startStart(leftOperand, rightOperand), prefix);
+          range.startStart(leftOperand, rightOperand),
+          prefix,
+        );
         builder.addSimpleInsertion(rightOperand.end, suffix);
       }
     });

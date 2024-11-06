@@ -198,8 +198,8 @@ void baz() {
   variable = await bar();
 }
 ''',
-      errorFilter: (error) =>
-          error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      errorFilter:
+          (error) => error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
     );
   }
 
@@ -212,8 +212,8 @@ void baz() {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) =>
-          error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      errorFilter:
+          (error) => error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
     );
   }
 
@@ -233,8 +233,8 @@ void baz() {
   String variable = await bar();
 }
 ''',
-      errorFilter: (error) =>
-          error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      errorFilter:
+          (error) => error.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
     );
   }
 }

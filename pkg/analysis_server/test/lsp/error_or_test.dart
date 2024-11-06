@@ -91,16 +91,22 @@ class ErrorOrRecord3ExtensionTest {
   }
 
   test_mapResults_error() async {
-    var result =
-        await (success(1), success(2), errorX).mapResults((a, b, c) async {
+    var result = await (success(1), success(2), errorX).mapResults((
+      a,
+      b,
+      c,
+    ) async {
       throw 'function should not be called';
     });
     expect(result, errorX);
   }
 
   test_mapResults_result() async {
-    var result =
-        await (success(1), success(2), success(3)).mapResults((a, b, c) async {
+    var result = await (success(1), success(2), success(3)).mapResults((
+      a,
+      b,
+      c,
+    ) async {
       expect(a, 1);
       expect(b, 2);
       expect(c, 3);
@@ -131,8 +137,12 @@ class ErrorOrRecord3ExtensionTest {
 class ErrorOrRecord4ExtensionTest {
   test_ifResults_error() {
     var called = false;
-    (success(1), success(1), success(1), errorX)
-        .ifResults((_, _, _, _) => called = true);
+    (
+      success(1),
+      success(1),
+      success(1),
+      errorX,
+    ).ifResults((_, _, _, _) => called = true);
     expect(called, isFalse);
   }
 
@@ -149,16 +159,24 @@ class ErrorOrRecord4ExtensionTest {
   }
 
   test_mapResults_error() async {
-    var result = await (success(1), success(2), success(3), errorX)
-        .mapResults((a, b, c, d) async {
+    var result = await (success(1), success(2), success(3), errorX).mapResults((
+      a,
+      b,
+      c,
+      d,
+    ) async {
       throw 'function should not be called';
     });
     expect(result, errorX);
   }
 
   test_mapResults_result() async {
-    var result = await (success(1), success(2), success(3), success(4))
-        .mapResults((a, b, c, d) async {
+    var result = await (
+      success(1),
+      success(2),
+      success(3),
+      success(4),
+    ).mapResults((a, b, c, d) async {
       expect(a, 1);
       expect(b, 2);
       expect(c, 3);
@@ -169,16 +187,24 @@ class ErrorOrRecord4ExtensionTest {
   }
 
   test_mapResultsSync_error() async {
-    var result = (success(1), success(2), success(3), errorX)
-        .mapResultsSync((a, b, c, d) {
+    var result = (success(1), success(2), success(3), errorX).mapResultsSync((
+      a,
+      b,
+      c,
+      d,
+    ) {
       throw 'function should not be called';
     });
     expect(result, errorX);
   }
 
   test_mapResultsSync_result() async {
-    var result = (success(1), success(2), success(3), success(4))
-        .mapResultsSync((a, b, c, d) {
+    var result = (
+      success(1),
+      success(2),
+      success(3),
+      success(4),
+    ).mapResultsSync((a, b, c, d) {
       expect(a, 1);
       expect(b, 2);
       expect(c, 3);
@@ -247,24 +273,15 @@ class ErrorOrTest {
   }
 
   test_iterableExtension_errorOrResults_noError() {
-    expect(
-      [success(1), success('x')].errorOrResults.result,
-      [1, 'x'],
-    );
+    expect([success(1), success('x')].errorOrResults.result, [1, 'x']);
   }
 
   test_iterableExtension_errorOrResults_oneError() {
-    expect(
-      [success(1), errorX].errorOrResults,
-      errorX,
-    );
+    expect([success(1), errorX].errorOrResults, errorX);
   }
 
   test_iterableExtension_errorOrResults_twoErrors() {
-    expect(
-      [errorX, errorY].errorOrResults,
-      errorX,
-    );
+    expect([errorX, errorY].errorOrResults, errorX);
   }
 
   test_mapResult_error() async {

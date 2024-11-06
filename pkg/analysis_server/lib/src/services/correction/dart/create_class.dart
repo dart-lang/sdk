@@ -18,8 +18,9 @@ class CreateClass extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [className];
@@ -82,8 +83,10 @@ class CreateClass extends ResolvedCorrectionProducer {
     String? filePath;
     if (prefixElement == null) {
       targetUnit = unit.declaredFragment!;
-      var enclosingMember = targetNode.thisOrAncestorMatching((node) =>
-          node is CompilationUnitMember && node.parent is CompilationUnit);
+      var enclosingMember = targetNode.thisOrAncestorMatching(
+        (node) =>
+            node is CompilationUnitMember && node.parent is CompilationUnit,
+      );
       if (enclosingMember == null) {
         return;
       }
@@ -123,17 +126,20 @@ class CreateClass extends ResolvedCorrectionProducer {
         if (arguments == null && !requiresConstConstructor) {
           builder.writeClassDeclaration(className2, nameGroupName: 'NAME');
         } else {
-          builder.writeClassDeclaration(className2, nameGroupName: 'NAME',
-              membersWriter: () {
-            builder.write('  ');
-            builder.writeConstructorDeclaration(
-              className2,
-              argumentList: arguments,
-              classNameGroupName: 'NAME',
-              isConst: requiresConstConstructor,
-            );
-            builder.writeln();
-          });
+          builder.writeClassDeclaration(
+            className2,
+            nameGroupName: 'NAME',
+            membersWriter: () {
+              builder.write('  ');
+              builder.writeConstructorDeclaration(
+                className2,
+                argumentList: arguments,
+                classNameGroupName: 'NAME',
+                isConst: requiresConstConstructor,
+              );
+              builder.writeln();
+            },
+          );
         }
         builder.write(suffix);
       });

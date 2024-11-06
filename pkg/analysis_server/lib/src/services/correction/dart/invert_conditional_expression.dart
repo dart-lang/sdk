@@ -14,8 +14,9 @@ class InvertConditionalExpression extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.INVERT_CONDITIONAL_EXPRESSION;
@@ -36,9 +37,13 @@ class InvertConditionalExpression extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(condition), invertedCondition);
       builder.addSimpleReplacement(
-          range.node(conditionalExpression.thenExpression), elseCode);
+        range.node(conditionalExpression.thenExpression),
+        elseCode,
+      );
       builder.addSimpleReplacement(
-          range.node(conditionalExpression.elseExpression), thenCode);
+        range.node(conditionalExpression.elseExpression),
+        thenCode,
+      );
     });
   }
 
@@ -81,8 +86,9 @@ class InvertConditionalExpression extends ResolvedCorrectionProducer {
     }
 
     node = booleanExpression ?? node;
-    ParenthesizedExpression? parenthesizedExpression =
-        _thisOrParentOfType(node);
+    ParenthesizedExpression? parenthesizedExpression = _thisOrParentOfType(
+      node,
+    );
 
     node = parenthesizedExpression ?? node;
     AwaitExpression? awaitExp2 = _thisOrParentOfType(node);

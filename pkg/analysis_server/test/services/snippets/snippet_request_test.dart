@@ -622,16 +622,15 @@ foo() {
   ///
   /// `^`, `[!` and `!]` will be removed from the code before resolving.
   Future<void> testRequest(
-      String content, SnippetContext expectedContext) async {
+    String content,
+    SnippetContext expectedContext,
+  ) async {
     var code = TestCode.parse(normalizeNewlinesForPlatform(content));
     var offset = code.position.offset;
     var expectedReplacementRange = code.range.sourceRange;
     await resolveTestCode(code.code);
 
-    var request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: offset,
-    );
+    var request = DartSnippetRequest(unit: testAnalysisResult, offset: offset);
 
     expect(request.filePath, testFile.path);
     expect(request.offset, offset);

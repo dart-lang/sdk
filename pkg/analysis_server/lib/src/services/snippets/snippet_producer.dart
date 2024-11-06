@@ -36,18 +36,21 @@ abstract class DartSnippetProducer extends SnippetProducer {
   /// repeated searches where they may add imports for the same elements.
   final Map<Element2, LibraryElement2?> _elementImportCache;
 
-  DartSnippetProducer(super.request,
-      {required Map<Element2, LibraryElement2?> elementImportCache})
-      : sessionHelper = AnalysisSessionHelper(request.analysisSession),
-        utils = CorrectionUtils(request.unit),
-        libraryElement = request.unit.libraryElement2,
-        useSuperParams = request.unit.libraryElement2.featureSet
-            .isEnabled(Feature.super_parameters),
-        _elementImportCache = elementImportCache;
+  DartSnippetProducer(
+    super.request, {
+    required Map<Element2, LibraryElement2?> elementImportCache,
+  }) : sessionHelper = AnalysisSessionHelper(request.analysisSession),
+       utils = CorrectionUtils(request.unit),
+       libraryElement = request.unit.libraryElement2,
+       useSuperParams = request.unit.libraryElement2.featureSet.isEnabled(
+         Feature.super_parameters,
+       ),
+       _elementImportCache = elementImportCache;
 
-  CodeStyleOptions get codeStyleOptions => sessionHelper.session.analysisContext
-      .getAnalysisOptionsForFile(request.unit.file)
-      .codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(request.unit.file)
+          .codeStyleOptions;
 
   bool get isInTestDirectory => request.unit.unit.inTestDir;
 
@@ -55,8 +58,14 @@ abstract class DartSnippetProducer extends SnippetProducer {
   /// to [builder].
   Future<void> addImports(DartFileEditBuilder builder) async {
     var dartBuilder = builder as DartFileEditBuilderImpl;
-    await Future.wait(requiredElementImports.map((element) => dartBuilder
-        .importElementLibrary2(element, resultCache: _elementImportCache)));
+    await Future.wait(
+      requiredElementImports.map(
+        (element) => dartBuilder.importElementLibrary2(
+          element,
+          resultCache: _elementImportCache,
+        ),
+      ),
+    );
   }
 }
 
@@ -85,11 +94,10 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   DartType getType(
     InterfaceElement2 classElement, [
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none,
-  ]) =>
-      classElement.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: nullabilitySuffix,
-      );
+  ]) => classElement.instantiate(
+    typeArguments: const [],
+    nullabilitySuffix: nullabilitySuffix,
+  );
 
   @override
   @mustCallSuper
@@ -126,10 +134,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
       'build',
       returnType: getType(classWidget),
       parameterWriter: () {
-        builder.writeParameter(
-          'context',
-          type: getType(classBuildContext),
-        );
+        builder.writeParameter('context', type: getType(classBuildContext));
       },
       bodyWriter: () {
         builder.writeln('{');

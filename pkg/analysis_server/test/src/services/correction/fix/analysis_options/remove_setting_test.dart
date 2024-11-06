@@ -15,37 +15,46 @@ void main() {
 @reflectiveTest
 class RemoveSettingTest extends AnalysisOptionsFixTest {
   Future<void> test_invalidExperiment_first() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 analyzer:
   enable-experiment:
     - not-an-experiment
     - test-experiment
-''', '''
+''',
+      '''
 analyzer:
   enable-experiment:
     - test-experiment
-''');
+''',
+    );
   }
 
   Future<void> test_invalidExperiment_last() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 analyzer:
   enable-experiment:
     - test-experiment
     - not-an-experiment
-''', '''
+''',
+      '''
 analyzer:
   enable-experiment:
     - test-experiment
-''');
+''',
+    );
   }
 
   Future<void> test_invalidExperiment_only() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 analyzer:
   enable-experiment:
     - not-an-experiment
-''', '''
-''');
+''',
+      '''
+''',
+    );
   }
 }

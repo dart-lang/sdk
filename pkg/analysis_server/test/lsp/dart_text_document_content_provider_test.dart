@@ -22,11 +22,12 @@ void main() {
 class DartTextDocumentContentProviderTest
     extends AbstractLspAnalysisServerTest {
   @override
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
-    ..enabledExperiments = [
-      ...super.serverOptions.enabledExperiments,
-      ...experimentsForTests,
-    ];
+  AnalysisServerOptions get serverOptions =>
+      AnalysisServerOptions()
+        ..enabledExperiments = [
+          ...super.serverOptions.enabledExperiments,
+          ...experimentsForTests,
+        ];
 
   @override
   void setUp() {
@@ -42,7 +43,8 @@ class DartTextDocumentContentProviderTest
       throwsA(
         isResponseError(
           ErrorCodes.InvalidParams,
-          message: "Fetching content for scheme 'abcde' is not supported. "
+          message:
+              "Fetching content for scheme 'abcde' is not supported. "
               "Supported schemes are '$macroClientUriScheme'.",
         ),
       ),
@@ -57,7 +59,8 @@ class DartTextDocumentContentProviderTest
       throwsA(
         isResponseError(
           ErrorCodes.InvalidParams,
-          message: "Fetching content for scheme 'file' is not supported. "
+          message:
+              "Fetching content for scheme 'file' is not supported. "
               "Supported schemes are '$macroClientUriScheme'.",
         ),
       ),
@@ -75,12 +78,9 @@ class DartTextDocumentContentProviderTest
 
   Future<void> test_supported_static() async {
     await initialize();
-    expect(
-      experimentalServerCapabilities['dartTextDocumentContentProvider'],
-      {
-        'schemes': [macroClientUriScheme],
-      },
-    );
+    expect(experimentalServerCapabilities['dartTextDocumentContentProvider'], {
+      'schemes': [macroClientUriScheme],
+    });
   }
 
   Future<void> test_valid_content() async {
@@ -99,17 +99,15 @@ class A {}
       waitForAnalysisComplete(),
     ]);
 
-    var macroGeneratedContent =
-        await getDartTextDocumentContent(mainFileMacroUri);
+    var macroGeneratedContent = await getDartTextDocumentContent(
+      mainFileMacroUri,
+    );
 
     // Verify the contents appear correct without doing an exact string
     // check that might make this text fragile.
     expect(
       macroGeneratedContent!.content,
-      allOf([
-        contains('augment class A'),
-        contains('void foo() {'),
-      ]),
+      allOf([contains('augment class A'), contains('void foo() {')]),
     );
   }
 
@@ -130,20 +128,22 @@ class A {}
     ]);
 
     // Verify initial contents of the macro.
-    var macroGeneratedContent =
-        await getDartTextDocumentContent(mainFileMacroUri);
+    var macroGeneratedContent = await getDartTextDocumentContent(
+      mainFileMacroUri,
+    );
     expect(macroGeneratedContent!.content, contains('void foo() {'));
 
     // Modify the file and expect a change event.
     await Future.wait([
-      dartTextDocumentContentDidChangeNotifications
-          .firstWhere((notification) => notification.uri == mainFileMacroUri),
+      dartTextDocumentContentDidChangeNotifications.firstWhere(
+        (notification) => notification.uri == mainFileMacroUri,
+      ),
       // Replace the main file to produce a `foo2()` method instead of `foo()`.
       replaceFile(
         2,
         mainFileUri,
         content.replaceAll('void foo() {', 'void foo2() {'),
-      )
+      ),
     ]);
 
     // Verify updated contents of the macro.

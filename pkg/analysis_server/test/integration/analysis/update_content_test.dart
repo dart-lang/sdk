@@ -37,13 +37,13 @@ void f() {
 
     // There should be errors now because we've removed the semicolon.
     await sendAnalysisUpdateContent({
-      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 1, '')])
+      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 1, '')]),
     });
     expect(await waitForFileErrors(path), isNotEmpty);
 
     // There should be no errors now because we've added the semicolon back.
     await sendAnalysisUpdateContent({
-      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 0, ';')])
+      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 0, ';')]),
     });
     expect(await waitForFileErrors(path), isEmpty);
 
@@ -88,7 +88,7 @@ void f() {
   p.name = "Faker";
   print(p);
 }
-''')
+'''),
     });
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);

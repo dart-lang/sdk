@@ -16,8 +16,9 @@ class JoinIfWithInner extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_INNER;
@@ -93,8 +94,10 @@ class JoinIfWithInner extends ResolvedCorrectionProducer {
     var newSource = utils.indentSourceLeftRight(oldSource);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(targetIfStatement),
-          'if ($condition) {$eol$newSource$prefix}');
+      builder.addSimpleReplacement(
+        range.node(targetIfStatement),
+        'if ($condition) {$eol$newSource$prefix}',
+      );
     });
   }
 }

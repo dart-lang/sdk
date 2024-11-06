@@ -26,8 +26,10 @@ class StatementCompletionTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetStatementCompletionParams('test.dart', 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetStatementCompletionParams(
+      'test.dart',
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -38,8 +40,9 @@ class StatementCompletionTest extends PubPackageAnalysisServerTest {
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetStatementCompletionParams(
-            convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      convertPath('/foo/../bar/test.dart'),
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -90,22 +93,28 @@ void f() {
     var match = 'v =';
     await _prepareCompletion(match, atEnd: true);
     _assertHasChange(
-        'Insert a newline at the end of the current line',
-        '''
+      'Insert a newline at the end of the current line',
+      '''
 void f() {
   int v =
   x
 }
 ''',
-        (s) => s.indexOf(match) + match.length); // Ensure cursor after '='.
+      (s) => s.indexOf(match) + match.length,
+    ); // Ensure cursor after '='.
   }
 
-  void _assertHasChange(String message, String expectedCode,
-      [int Function(String)? cmp]) {
+  void _assertHasChange(
+    String message,
+    String expectedCode, [
+    int Function(String)? cmp,
+  ]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        var resultCode =
-            SourceEdit.applySequence(testFileContent, change.edits[0].edits);
+        var resultCode = SourceEdit.applySequence(
+          testFileContent,
+          change.edits[0].edits,
+        );
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
           var offset = cmp(resultCode);
@@ -122,8 +131,12 @@ void f() {
     fail('Expected to find |$message| but got: ${change.message}');
   }
 
-  Future<void> _prepareCompletion(String search,
-      {bool atStart = false, bool atEnd = false, int delta = 0}) async {
+  Future<void> _prepareCompletion(
+    String search, {
+    bool atStart = false,
+    bool atEnd = false,
+    int delta = 0,
+  }) async {
     var offset = findOffset(search);
     if (atStart) {
       delta = 0;
@@ -134,11 +147,15 @@ void f() {
   }
 
   Future<void> _prepareCompletionAt(int offset) async {
-    var request = EditGetStatementCompletionParams(testFile.path, offset)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetStatementCompletionParams(
+      testFile.path,
+      offset,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditGetStatementCompletionResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetStatementCompletionResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     change = result.change;
   }
 }

@@ -13,10 +13,12 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        CreateConstructorForFinalFieldsRequiredPositionalTest);
+      CreateConstructorForFinalFieldsRequiredPositionalTest,
+    );
     defineReflectiveTests(CreateConstructorForFinalFieldsRequiredNamedTest);
     defineReflectiveTests(
-        CreateConstructorForFinalFieldsWithoutSuperParametersTest);
+      CreateConstructorForFinalFieldsWithoutSuperParametersTest,
+    );
   });
 }
 
@@ -58,7 +60,8 @@ class B extends A {
   final int f22;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   final int? f11;
   final int? f12;
@@ -72,9 +75,11 @@ class B extends A {
 
   B({super.f11, super.f12, required this.f21, required this.f22});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'f21'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'f21'");
+      },
+    );
   }
 
   Future<void> test_class_hasSuperClass_withRequiredNamed() async {
@@ -91,7 +96,8 @@ class B extends A {
   final int f22;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   final int f11;
   final int f12;
@@ -105,9 +111,11 @@ class B extends A {
 
   B({required super.f11, required super.f12, required this.f21, required this.f22});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'f21'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'f21'");
+      },
+    );
   }
 
   Future<void> test_class_lint_sortConstructorsFirst() async {
@@ -119,7 +127,8 @@ class Test {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class Test {
   Test({required this.a, required this.c});
 
@@ -127,9 +136,11 @@ class Test {
   final int b = 2;
   final int c;
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_noSuperClass() async {
@@ -140,7 +151,8 @@ class Test {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class Test {
   final int a;
   final int b = 2;
@@ -148,9 +160,11 @@ class Test {
 
   Test({required this.a, required this.c});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_noSuperClass_hasPrivate() async {
@@ -161,7 +175,8 @@ class Test {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class Test {
   final int _a;
   final int _b;
@@ -169,10 +184,12 @@ class Test {
 
   Test({required int a, required int b, required this.c}) : _a = a, _b = b;
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED &&
-          error.message.contains("'_a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED &&
+            error.message.contains("'_a'");
+      },
+    );
   }
 
   Future<void> test_class_noSuperClass_hasPrivate_onlyUnderscores() async {
@@ -183,9 +200,11 @@ class Test {
   final int __;
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_enum() async {
@@ -197,7 +216,8 @@ enum E {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 enum E {
   v(a: 0, c: 2);
   final int a;
@@ -206,9 +226,11 @@ enum E {
 
   const E({required this.a, required this.c});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a' must be initialized");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a' must be initialized");
+      },
+    );
   }
 }
 
@@ -246,7 +268,8 @@ class MyWidget extends StatelessWidget {
   final int? c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -256,9 +279,11 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({super.key, required this.a, this.c});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_flutter_childLast() async {
@@ -272,7 +297,8 @@ class MyWidget extends StatelessWidget {
   final int? b;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -282,9 +308,11 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({super.key, required this.a, this.b, required this.child});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_flutter_childrenLast() async {
@@ -298,7 +326,8 @@ class MyWidget extends StatelessWidget {
   final int? b;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -308,9 +337,11 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({super.key, required this.a, this.b, required this.children});
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_hasPrivate() async {
@@ -321,7 +352,8 @@ class Test {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class Test {
   final int a;
   final int _b;
@@ -329,9 +361,11 @@ class Test {
 
   Test(this.a, this._b, this.c);
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_inTopLevelMethod() async {
@@ -353,7 +387,8 @@ class Test {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class Test {
   Test(this.a, this.c);
 
@@ -361,9 +396,11 @@ class Test {
   final int b = 2;
   final int c;
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_simple() async {
@@ -374,7 +411,8 @@ class Test {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class Test {
   final int a;
   final int b = 2;
@@ -382,9 +420,11 @@ class Test {
 
   Test(this.a, this.c);
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_enum_simple() async {
@@ -396,7 +436,8 @@ enum E {
   final int c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 enum E {
   v(0, 2);
   final int a;
@@ -405,9 +446,11 @@ enum E {
 
   const E(this.a, this.c);
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_topLevelField() async {
@@ -438,7 +481,8 @@ class MyWidget extends StatelessWidget {
   final int? c;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -448,9 +492,11 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({Key? key, required this.a, this.c}) : super(key: key);
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_flutter_childLast() async {
@@ -464,7 +510,8 @@ class MyWidget extends StatelessWidget {
   final int? b;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -474,9 +521,11 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({Key? key, required this.a, this.b, required this.child}) : super(key: key);
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 
   Future<void> test_class_flutter_childrenLast() async {
@@ -490,7 +539,8 @@ class MyWidget extends StatelessWidget {
   final int? b;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -500,8 +550,10 @@ class MyWidget extends StatelessWidget {
 
   const MyWidget({Key? key, required this.a, this.b, this.children}) : super(key: key);
 }
-''', errorFilter: (error) {
-      return error.message.contains("'a'");
-    });
+''',
+      errorFilter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
   }
 }

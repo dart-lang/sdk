@@ -15,8 +15,9 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN;
@@ -42,18 +43,25 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      _convertFlutterChildToChildren(namedExp, eol, utils.getNodeText,
-          utils.getLinePrefix, utils.getText, builder);
+      _convertFlutterChildToChildren(
+        namedExp,
+        eol,
+        utils.getNodeText,
+        utils.getLinePrefix,
+        utils.getText,
+        builder,
+      );
     });
   }
 
   void _convertFlutterChildToChildren(
-      NamedExpression namedExp,
-      String eol,
-      String Function(Expression) getNodeText,
-      String Function(int) getLinePrefix,
-      String Function(int, int) getText,
-      FileEditBuilder builder) {
+    NamedExpression namedExp,
+    String eol,
+    String Function(Expression) getNodeText,
+    String Function(int) getLinePrefix,
+    String Function(int, int) getText,
+    FileEditBuilder builder,
+  ) {
     var childArg = namedExp.expression;
     var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
@@ -70,14 +78,17 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
       var indentOld = getLinePrefix(childArg.offset + eol.length + newlineLoc);
       var indentNew = '$indentOld${utils.oneIndent}';
       // The separator includes 'child:' but that has no newlines.
-      var separator =
-          getText(namedExp.offset, childArg.offset - namedExp.offset);
+      var separator = getText(
+        namedExp.offset,
+        childArg.offset - namedExp.offset,
+      );
       var prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
         builder.addSimpleInsertion(namedExp.offset + 'child:'.length, ' [');
         var argOffset = childArg.offset;
-        builder
-            .addDeletion(range.startOffsetEndOffset(argOffset - 2, argOffset));
+        builder.addDeletion(
+          range.startOffsetEndOffset(argOffset - 2, argOffset),
+        );
       } else {
         builder.addSimpleInsertion(listLoc, '[');
       }

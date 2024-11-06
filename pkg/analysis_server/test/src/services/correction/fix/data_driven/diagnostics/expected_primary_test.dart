@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class ExpectedPrimaryTest extends AbstractTransformSetParserTest {
   void test_integer() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
   - title: 'Remove nullOk'
@@ -28,8 +29,8 @@ transforms:
     oneOf:
       - if: "'x' =="
         changes: []
-''', [
-      error(TransformSetErrorCode.expectedPrimary, 177, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.expectedPrimary, 177, 2)],
+    );
   }
 }

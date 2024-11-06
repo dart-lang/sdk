@@ -52,7 +52,8 @@ Element convertElement2(engine.Element2 element) {
     name,
     Element.makeFlags(
       isPrivate: element.isPrivate,
-      isDeprecated: (element is engine.Annotatable) &&
+      isDeprecated:
+          (element is engine.Annotatable) &&
           (element as engine.Annotatable).metadata2.hasDeprecated,
       isAbstract: _isAbstract2(element),
       isConst: _isConst2(element),
@@ -397,15 +398,19 @@ bool _isStatic2(engine.Element2 element) {
 
 /// Sort required named parameters before optional ones.
 int _preferRequiredParams(
-    engine.ParameterElement e1, engine.ParameterElement e2) {
-  var rank1 = (e1.isRequiredNamed || e1.hasRequired)
-      ? 0
-      : !e1.isNamed
+  engine.ParameterElement e1,
+  engine.ParameterElement e2,
+) {
+  var rank1 =
+      (e1.isRequiredNamed || e1.hasRequired)
+          ? 0
+          : !e1.isNamed
           ? -1
           : 1;
-  var rank2 = (e2.isRequiredNamed || e2.hasRequired)
-      ? 0
-      : !e2.isNamed
+  var rank2 =
+      (e2.isRequiredNamed || e2.hasRequired)
+          ? 0
+          : !e2.isNamed
           ? -1
           : 1;
   return rank1 - rank2;
@@ -413,15 +418,19 @@ int _preferRequiredParams(
 
 /// Sort required named parameters before optional ones.
 int _preferRequiredParams2(
-    engine.FormalParameterElement e1, engine.FormalParameterElement e2) {
-  var rank1 = (e1.isRequiredNamed || e1.metadata2.hasRequired)
-      ? 0
-      : !e1.isNamed
+  engine.FormalParameterElement e1,
+  engine.FormalParameterElement e2,
+) {
+  var rank1 =
+      (e1.isRequiredNamed || e1.metadata2.hasRequired)
+          ? 0
+          : !e1.isNamed
           ? -1
           : 1;
-  var rank2 = (e2.isRequiredNamed || e2.metadata2.hasRequired)
-      ? 0
-      : !e2.isNamed
+  var rank2 =
+      (e2.isRequiredNamed || e2.metadata2.hasRequired)
+          ? 0
+          : !e2.isNamed
           ? -1
           : 1;
   return rank1 - rank2;

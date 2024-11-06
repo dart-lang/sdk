@@ -115,7 +115,7 @@ suggestions
   }
 
   Future<void>
-      test_class_suggestions_onlyNotSpecified_requiredPositional() async {
+  test_class_suggestions_onlyNotSpecified_requiredPositional() async {
     await _checkContainers(
       declarations: 'final int x; final int y;',
       constructorParameters: 'this.x, this.^',

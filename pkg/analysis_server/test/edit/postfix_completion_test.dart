@@ -44,8 +44,11 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetPostfixCompletionParams('test.dart', '.for', 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetPostfixCompletionParams(
+      'test.dart',
+      '.for',
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -56,8 +59,10 @@ void f() {
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetPostfixCompletionParams(
-            convertPath('/foo/../bar/test.dart'), '.for', 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      convertPath('/foo/../bar/test.dart'),
+      '.for',
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -83,8 +88,10 @@ void f() {
   void _assertHasChange(String message, String expectedCode) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        var resultCode =
-            SourceEdit.applySequence(testFileContent, change.edits[0].edits);
+        var resultCode = SourceEdit.applySequence(
+          testFileContent,
+          change.edits[0].edits,
+        );
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
       }
       return;
@@ -92,10 +99,7 @@ void f() {
     fail('Expected to find |$message| but got: ${change.message}');
   }
 
-  Future<bool> _isApplicable({
-    required int offset,
-    required String key,
-  }) async {
+  Future<bool> _isApplicable({required int offset, required String key}) async {
     var response = await handleSuccessfulRequest(
       EditIsPostfixCompletionApplicableParams(
         testFile.path,
@@ -103,15 +107,14 @@ void f() {
         offset,
       ).toRequest('0', clientUriConverter: server.uriConverter),
     );
-    var result = EditIsPostfixCompletionApplicableResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditIsPostfixCompletionApplicableResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     return result.value;
   }
 
-  int _newFileForCompletion(
-    String key,
-    String content,
-  ) {
+  int _newFileForCompletion(String key, String content) {
     var keyOffset = content.indexOf(key);
     expect(keyOffset, isNot(equals(-1)), reason: 'missing "$key"');
 
@@ -125,10 +128,7 @@ void f() {
   }
 
   Future<void> _prepareCompletionAt(int offset, String key) async {
-    var isApplicable = await _isApplicable(
-      offset: offset,
-      key: key,
-    );
+    var isApplicable = await _isApplicable(offset: offset, key: key);
 
     if (!isApplicable) {
       fail('Postfix completion not applicable at given location');
@@ -142,8 +142,10 @@ void f() {
       ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
-    var result = EditGetPostfixCompletionResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetPostfixCompletionResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     change = result.change;
   }
 }

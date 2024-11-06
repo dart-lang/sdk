@@ -18,8 +18,9 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AstNode? get coveringNode {
@@ -64,8 +65,10 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       if (problemMessage == null) {
         return;
       }
-      var errorRange =
-          SourceRange(problemMessage.offset, problemMessage.length);
+      var errorRange = SourceRange(
+        problemMessage.offset,
+        problemMessage.length,
+      );
       for (var statement in coveringNode.statements) {
         if (range.node(statement).intersects(errorRange)) {
           statementsToRemove.add(statement);
@@ -114,14 +117,17 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       }
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(
-            range.deletionRange(coveringNode, overrideEnd: overrideEnd));
+          range.deletionRange(coveringNode, overrideEnd: overrideEnd),
+        );
       });
     }
   }
 
   /// Return `true` if the fix is processed.
   Future<bool> _computeDoStatement(
-      ChangeBuilder builder, DoStatement statement) async {
+    ChangeBuilder builder,
+    DoStatement statement,
+  ) async {
     if (statement.hasBreakStatement) {
       // TODO(asashour): consider modifying the do statement to a label
       // https://github.com/dart-lang/sdk/issues/49091#issuecomment-1135489675
@@ -139,16 +145,22 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(range.startStart(doKeyword, doKeyword.next!));
           _deleteLineRange(
-              builder, range.startEnd(whileKeyword, statement.semicolon));
+            builder,
+            range.startEnd(whileKeyword, statement.semicolon),
+          );
         });
       }
 
       Future<void> deleteBrackets(Block block) async {
         await builder.addDartFileEdit(file, (builder) {
           _deleteLineRange(
-              builder, range.startEnd(doKeyword, block.leftBracket));
+            builder,
+            range.startEnd(doKeyword, block.leftBracket),
+          );
           _deleteLineRange(
-              builder, range.startEnd(block.rightBracket, statement.semicolon));
+            builder,
+            range.startEnd(block.rightBracket, statement.semicolon),
+          );
         });
       }
 
@@ -180,8 +192,11 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
     return false;
   }
 
-  Future<void> _computeForStatementParts(ChangeBuilder builder,
-      ForStatement forStatement, ForParts forParts) async {
+  Future<void> _computeForStatementParts(
+    ChangeBuilder builder,
+    ForStatement forStatement,
+    ForParts forParts,
+  ) async {
     var beginNode = coveringNode;
     if (beginNode == null) return;
     var updaters = forParts.updaters;
@@ -211,10 +226,13 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
 
     var previous = beginNode.beginToken.previous!;
 
-    var deletionRange = isComma
-        ? range.endStart(previous, rightParenthesis)
-        : range.startStart(
-            isFirstNode ? beginNode : previous, rightParenthesis);
+    var deletionRange =
+        isComma
+            ? range.endStart(previous, rightParenthesis)
+            : range.startStart(
+              isFirstNode ? beginNode : previous,
+              rightParenthesis,
+            );
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(deletionRange);

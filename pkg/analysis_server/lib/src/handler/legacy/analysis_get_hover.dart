@@ -15,12 +15,18 @@ class AnalysisGetHoverHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisGetHoverHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = AnalysisGetHoverParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisGetHoverParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -29,7 +35,9 @@ class AnalysisGetHoverHandler extends LegacyHandler {
 
     // Prepare the resolved units.
     var result = await performance.runAsync(
-        'getResolvedUnit', (_) async => await server.getResolvedUnit(file));
+      'getResolvedUnit',
+      (_) async => await server.getResolvedUnit(file),
+    );
     if (result is! ResolvedUnitResult) {
       sendResponse(Response.fileNotAnalyzed(request, file));
       return;
@@ -39,9 +47,14 @@ class AnalysisGetHoverHandler extends LegacyHandler {
     // Prepare the hovers.
     var hovers = <HoverInformation>[];
     var computer = DartUnitHoverComputer(
-        server.getDartdocDirectiveInfoFor(result), unit, params.offset);
-    var hoverInformation =
-        performance.run('compute', (_) => computer.compute());
+      server.getDartdocDirectiveInfoFor(result),
+      unit,
+      params.offset,
+    );
+    var hoverInformation = performance.run(
+      'compute',
+      (_) => computer.compute(),
+    );
     if (hoverInformation != null) {
       hovers.add(hoverInformation);
     }

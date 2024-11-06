@@ -507,28 +507,41 @@ class NoProducerOverlapsTest {
 
     var dataDrivenCodes = <String>{};
     var bulkFixCodes = registeredFixGenerators.lintProducers.entries
-        .where((e) => e.value
-            .where((generator) =>
-                generator(context: StubCorrectionProducerContext.instance)
-                    .canBeAppliedAcrossFiles)
-            .isNotEmpty)
+        .where(
+          (e) =>
+              e.value
+                  .where(
+                    (generator) =>
+                        generator(
+                          context: StubCorrectionProducerContext.instance,
+                        ).canBeAppliedAcrossFiles,
+                  )
+                  .isNotEmpty,
+        )
         .map((e) => e.key);
     var nonDataDrivenCodes = {
       ...bulkFixCodes,
       ...registeredFixGenerators.nonLintProducers.entries
-          .where((e) => e.value
-              .where((generator) =>
-                  generator(context: StubCorrectionProducerContext.instance)
-                      .canBeAppliedAcrossFiles)
-              .isNotEmpty)
+          .where(
+            (e) =>
+                e.value
+                    .where(
+                      (generator) =>
+                          generator(
+                            context: StubCorrectionProducerContext.instance,
+                          ).canBeAppliedAcrossFiles,
+                    )
+                    .isNotEmpty,
+          )
           .map((e) => e.key.uniqueName),
     };
 
     for (var MapEntry(key: code, value: generators)
         in BulkFixProcessor.nonLintMultiProducerMap.entries) {
       for (var generator in generators) {
-        var producer =
-            generator(context: StubCorrectionProducerContext.instance);
+        var producer = generator(
+          context: StubCorrectionProducerContext.instance,
+        );
         if (producer is DataDriven) {
           dataDrivenCodes.add(code.uniqueName);
         } else {
@@ -540,8 +553,9 @@ class NoProducerOverlapsTest {
     var intersection = dataDrivenCodes.intersection(nonDataDrivenCodes);
     if (intersection.isNotEmpty) {
       fail(
-          'Error codes $intersection have both data-driven and non-data-driven '
-          'fixes');
+        'Error codes $intersection have both data-driven and non-data-driven '
+        'fixes',
+      );
     }
   }
 }
@@ -1376,8 +1390,10 @@ class _DataDrivenTest extends BulkFixProcessorTest {
   /// Add the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
-    newFile('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
-        content);
+    newFile(
+      '$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
+      content,
+    );
   }
 
   /// Set the content of the library that defines the element referenced by the
@@ -1385,8 +1401,9 @@ class _DataDrivenTest extends BulkFixProcessorTest {
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
 

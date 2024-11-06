@@ -115,10 +115,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     required String requestId,
     required RequestErrorCode errorCode,
   }) {
-    expect(
-      response,
-      isResponseFailure(requestId, errorCode),
-    );
+    expect(response, isResponseFailure(requestId, errorCode));
   }
 
   void createDefaultFiles() {}
@@ -172,10 +169,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   void setUp() {
     serverChannel = MockServerChannel();
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     createDefaultFiles();
 

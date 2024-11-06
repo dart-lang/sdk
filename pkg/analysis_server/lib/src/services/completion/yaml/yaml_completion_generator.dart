@@ -56,18 +56,21 @@ abstract class YamlCompletionGenerator {
           // It's possible that `offset` is after the end of `value` because we
           // could be in whitespace after the value.
           offset - completionNode.span.start.offset <= value.length) {
-        precedingText =
-            value.substring(0, offset - completionNode.span.start.offset);
+        precedingText = value.substring(
+          0,
+          offset - completionNode.span.start.offset,
+        );
       } else if (value != null) {
         // There are no completions at the given location.
         return const YamlCompletionResults.empty();
       }
     }
     var request = YamlCompletionRequest(
-        filePath: filePath,
-        precedingText: precedingText,
-        resourceProvider: resourceProvider,
-        pubPackageService: pubPackageService);
+      filePath: filePath,
+      precedingText: precedingText,
+      resourceProvider: resourceProvider,
+      pubPackageService: pubPackageService,
+    );
     return getSuggestionsForPath(request, nodePath, offset);
   }
 
@@ -75,7 +78,10 @@ abstract class YamlCompletionGenerator {
   /// which completions are being requested and the offset of the cursor, return
   /// the completions appropriate at that location.
   YamlCompletionResults getSuggestionsForPath(
-      YamlCompletionRequest request, List<YamlNode> nodePath, int offset) {
+    YamlCompletionRequest request,
+    List<YamlNode> nodePath,
+    int offset,
+  ) {
     var producer = _producerForPath(nodePath);
     if (producer == null) {
       return const YamlCompletionResults.empty();
@@ -104,7 +110,11 @@ abstract class YamlCompletionGenerator {
       replacementLength = 0;
     }
     return YamlCompletionResults(
-        suggestions, targetPrefix, replacementOffset, replacementLength);
+      suggestions,
+      targetPrefix,
+      replacementOffset,
+      replacementLength,
+    );
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
@@ -210,12 +220,16 @@ class YamlCompletionResults {
   final int replacementOffset;
   final int replacementLength;
 
-  const YamlCompletionResults(this.suggestions, this.targetPrefix,
-      this.replacementOffset, this.replacementLength);
+  const YamlCompletionResults(
+    this.suggestions,
+    this.targetPrefix,
+    this.replacementOffset,
+    this.replacementLength,
+  );
 
   const YamlCompletionResults.empty()
-      : suggestions = const [],
-        targetPrefix = '',
-        replacementOffset = 0,
-        replacementLength = 0;
+    : suggestions = const [],
+      targetPrefix = '',
+      replacementOffset = 0,
+      replacementLength = 0;
 }

@@ -18,8 +18,9 @@ class CreateMixin extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_mixinName];
@@ -73,8 +74,10 @@ class CreateMixin extends ResolvedCorrectionProducer {
     String? filePath;
     if (prefixElement == null) {
       targetUnit = unit.declaredFragment!;
-      var enclosingMember = node.thisOrAncestorMatching((node) =>
-          node is CompilationUnitMember && node.parent is CompilationUnit);
+      var enclosingMember = node.thisOrAncestorMatching(
+        (node) =>
+            node is CompilationUnitMember && node.parent is CompilationUnit,
+      );
       if (enclosingMember == null) {
         return;
       }

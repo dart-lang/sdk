@@ -16,8 +16,9 @@ import 'package:dart_style/dart_style.dart';
 import 'generate_all.dart';
 import 'meta_model.dart';
 
-final formatter =
-    DartFormatter(languageVersion: DartFormatter.latestLanguageVersion);
+final formatter = DartFormatter(
+  languageVersion: DartFormatter.latestLanguageVersion,
+);
 
 final _canParseFunctions = SplayTreeMap<String, String>();
 Map<String, Interface> _interfaces = {};
@@ -61,9 +62,9 @@ String generateDartForTypes(List<LspEntity> types) {
 }
 
 void recordTypes(List<LspEntity> types) {
-  types
-      .whereType<TypeAlias>()
-      .forEach((alias) => _typeAliases[alias.name] = alias);
+  types.whereType<TypeAlias>().forEach(
+    (alias) => _typeAliases[alias.name] = alias,
+  );
   types.whereType<Interface>().forEach((interface) {
     _interfaces[interface.name] = interface;
     // Keep track of our base classes so they can look up their super classes
@@ -73,9 +74,9 @@ void recordTypes(List<LspEntity> types) {
       subTypes.add(interface.name);
     }
   });
-  types
-      .whereType<LspEnum>()
-      .forEach((namespace) => _namespaces[namespace.name] = namespace);
+  types.whereType<LspEnum>().forEach(
+    (namespace) => _namespaces[namespace.name] = namespace,
+  );
   _sortSubtypes();
 }
 
@@ -85,8 +86,11 @@ void recordTypes(List<LspEntity> types) {
 ///
 /// If [onlyRenames] is true, references to [TypeAlias]es will only be resolved
 /// if they are renames.
-TypeBase resolveTypeAlias(TypeBase type,
-    {bool resolveEnums = false, bool onlyRenames = false}) {
+TypeBase resolveTypeAlias(
+  TypeBase type, {
+  bool resolveEnums = false,
+  bool onlyRenames = false,
+}) {
   if (type is TypeReference) {
     if (resolveEnums) {
       // Enums are no longer recorded with TypeAliases (as they were in the
@@ -102,8 +106,11 @@ TypeBase resolveTypeAlias(TypeBase type,
       // Resolve aliases recursively.
       var resolved = alias.baseType;
       for (int i = 0; i < 10; i++) {
-        var newResolved = resolveTypeAlias(resolved,
-            resolveEnums: resolveEnums, onlyRenames: onlyRenames);
+        var newResolved = resolveTypeAlias(
+          resolved,
+          resolveEnums: resolveEnums,
+          onlyRenames: onlyRenames,
+        );
         if (newResolved == resolved) {
           return resolved;
         }
@@ -133,7 +140,9 @@ String _buildContent(List<LspEntity> types) {
 }
 
 String _determineVariableName(
-    Interface interface, Iterable<String> suggestions) {
+  Interface interface,
+  Iterable<String> suggestions,
+) {
   var fieldNames = _getAllFields(interface).map((f) => f.name).toList();
   var suggestion = suggestions.firstWhereOrNull((s) => !fieldNames.contains(s));
   if (suggestion != null) {
@@ -278,15 +287,16 @@ String _memberNameForType(TypeBase type) {
     type = resolveTypeAlias(type);
   }
 
-  var dartType = type is NullableType
-      ? '${type.dartType}?'
-      : type is UnionType
+  var dartType =
+      type is NullableType
+          ? '${type.dartType}?'
+          : type is UnionType
           ? type.types.map(_memberNameForType).join()
           : type is ArrayType
-              ? 'List${_memberNameForType(type.elementType)}'
-              : type is MapType
-                  ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
-                  : type.dartType;
+          ? 'List${_memberNameForType(type.elementType)}'
+          : type is MapType
+          ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
+          : type.dartType;
   return capitalize(dartType.replaceAll('?', 'Nullable'));
 }
 
@@ -323,16 +333,16 @@ String _sortContent(String content) {
 /// Subtypes will be sorted such that types with the most required fields appear
 /// first to ensure `fromJson` constructors delegate to the most specific type.
 void _sortSubtypes() {
-  int requiredFieldCount(String interfaceName) => _interfaces[interfaceName]!
-      .members
-      .whereType<Field>()
-      .where((field) => !field.allowsUndefined && !field.allowsNull)
-      .length;
-  int optionalFieldCount(String interfaceName) => _interfaces[interfaceName]!
-      .members
-      .whereType<Field>()
-      .where((field) => field.allowsUndefined || field.allowsNull)
-      .length;
+  int requiredFieldCount(String interfaceName) =>
+      _interfaces[interfaceName]!.members
+          .whereType<Field>()
+          .where((field) => !field.allowsUndefined && !field.allowsNull)
+          .length;
+  int optionalFieldCount(String interfaceName) =>
+      _interfaces[interfaceName]!.members
+          .whereType<Field>()
+          .where((field) => field.allowsUndefined || field.allowsNull)
+          .length;
   for (var entry in _subtypes.entries) {
     var subtypes = entry.value;
     subtypes.sort((subtype1, subtype2) {
@@ -343,8 +353,8 @@ void _sortSubtypes() {
       return requiredFields1 != requiredFields2
           ? requiredFields2.compareTo(requiredFields1)
           : optionalFields1 != optionalFields2
-              ? optionalFields2.compareTo(optionalFields1)
-              : subtype1.compareTo(subtype2);
+          ? optionalFields2.compareTo(optionalFields1)
+          : subtype1.compareTo(subtype2);
     });
   }
 }
@@ -394,21 +404,24 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
 void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln(
-        'static bool canParse(Object? obj, LspJsonReporter reporter) {')
+      'static bool canParse(Object? obj, LspJsonReporter reporter) {',
+    )
     ..indent()
     ..writeIndentedln('if (obj is Map<String, Object?>) {')
     ..indent();
   // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
-  var fields = _getAllFields(interface)
-      .whereNot((f) => isNullableAnyType(f.type))
-      .toList();
+  var fields =
+      _getAllFields(
+        interface,
+      ).whereNot((f) => isNullableAnyType(f.type)).toList();
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     var type = field.type;
     var functionName = '_canParse${_memberNameForType(type)}';
-    var invocation = "$functionName(obj, reporter, '${field.name}', "
+    var invocation =
+        "$functionName(obj, reporter, '${field.name}', "
         'allowsUndefined: ${field.allowsUndefined}, allowsNull: ${field.allowsNull}'
         '${type is LiteralType ? ', literal: ${type.valueAsLiteral}' : ''}'
         '${type is LiteralUnionType ? ', literals: {${type.literalTypes.map((t) => t.valueAsLiteral).join(', ')}}' : ''}'
@@ -438,7 +451,8 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln(
-        "reporter.reportError('must be of type ${interface.name}');")
+      "reporter.reportError('must be of type ${interface.name}');",
+    )
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')
@@ -446,14 +460,19 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('}');
 }
 
-void _writeCanParseType(IndentableStringBuffer buffer, Interface? interface,
-    TypeBase type, String functionName) {
+void _writeCanParseType(
+  IndentableStringBuffer buffer,
+  Interface? interface,
+  TypeBase type,
+  String functionName,
+) {
   buffer.writeln(
-      'bool $functionName(Map<String, Object?> map, LspJsonReporter reporter, '
-      'String fieldName, {required bool allowsUndefined, required bool allowsNull'
-      '${type is LiteralType ? ', required String literal' : ''}'
-      '${type is LiteralUnionType ? ', required Iterable<String> literals' : ''}'
-      '}) {');
+    'bool $functionName(Map<String, Object?> map, LspJsonReporter reporter, '
+    'String fieldName, {required bool allowsUndefined, required bool allowsNull'
+    '${type is LiteralType ? ', required String literal' : ''}'
+    '${type is LiteralUnionType ? ', required Iterable<String> literals' : ''}'
+    '}) {',
+  );
 
   buffer
     ..writeIndentedln('reporter.push(fieldName);')
@@ -478,8 +497,15 @@ void _writeCanParseType(IndentableStringBuffer buffer, Interface? interface,
     ..writeIndentedln('}');
 
   buffer.writeIndented('if ((!nullCheck || value != null) && ');
-  _writeTypeCheckCondition(buffer, interface, 'value', type, 'reporter',
-      negation: true, parenForCollection: true);
+  _writeTypeCheckCondition(
+    buffer,
+    interface,
+    'value',
+    type,
+    'reporter',
+    negation: true,
+    parenForCollection: true,
+  );
 
   var failureMessage = _getTypeCheckFailureMessage(type);
   var quote = failureMessage.contains("'") ? '"' : "'";
@@ -514,17 +540,20 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
   }
   buffer
     ..writeIndented('${interface.name}({')
-    ..write(allFields.map((field) {
-      var isLiteral = field.type is LiteralType;
-      var isRequired = !isLiteral &&
-          !field.allowsNull &&
-          !field.allowsUndefined &&
-          !isNullableAnyType(field.type);
-      var requiredKeyword = isRequired ? 'required' : '';
-      var valueCode =
-          isLiteral ? ' = ${(field.type as LiteralType).valueAsLiteral}' : '';
-      return '$requiredKeyword this.${field.name}$valueCode, ';
-    }).join())
+    ..write(
+      allFields.map((field) {
+        var isLiteral = field.type is LiteralType;
+        var isRequired =
+            !isLiteral &&
+            !field.allowsNull &&
+            !field.allowsUndefined &&
+            !isNullableAnyType(field.type);
+        var requiredKeyword = isRequired ? 'required' : '';
+        var valueCode =
+            isLiteral ? ' = ${(field.type as LiteralType).valueAsLiteral}' : '';
+        return '$requiredKeyword this.${field.name}$valueCode, ';
+      }).join(),
+    )
     ..write('})');
   var fieldsWithValidation =
       allFields.where((f) => f.type is LiteralType).toList();
@@ -539,7 +568,8 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
           ..writeIndentedln('if (${field.name} != ${type.valueAsLiteral}) {')
           ..indent()
           ..writeIndentedln(
-              "throw '${field.name} may only be the literal ${type.valueAsLiteral.replaceAll("'", "\\'")}';")
+            "throw '${field.name} may only be the literal ${type.valueAsLiteral.replaceAll("'", "\\'")}';",
+          )
           ..outdent()
           ..writeIndentedln('}');
       }
@@ -553,14 +583,18 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeDocCommentsAndAnnotations(
-    IndentableStringBuffer buffer, LspEntity node) {
+  IndentableStringBuffer buffer,
+  LspEntity node,
+) {
   var comment = node.comment?.trim();
   if (comment != null && comment.isNotEmpty) {
     comment = _rewriteCommentReference(comment);
     var originalLines = comment.split('\n');
     // Wrap at 80 - 4 ('/// ') - indent characters.
-    var wrappedLines =
-        _wrapLines(originalLines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
+    var wrappedLines = _wrapLines(
+      originalLines,
+      (80 - 4 - buffer.totalIndent).clamp(0, 80),
+    );
     for (var l in wrappedLines) {
       buffer.writeIndentedln('/// $l'.trim());
     }
@@ -593,7 +627,8 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
     ..writeIndentedln('final $dartType _value;')
     ..writeln()
     ..writeIndented(
-        'static bool canParse(Object? obj, LspJsonReporter reporter) ');
+      'static bool canParse(Object? obj, LspJsonReporter reporter) ',
+    );
   if (allowsAnyValue) {
     buffer.writeIndentedln('=> ');
     _writeTypeCheckCondition(buffer, null, 'obj', typeOfValues, 'reporter');
@@ -626,7 +661,8 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
     var memberName = _makeValidIdentifier(cons.name);
     var value = cons.valueAsLiteral;
     buffer.writeIndentedln(
-        'static const $memberName = $namespaceName$constructorName($value);');
+      'static const $memberName = $namespaceName$constructorName($value);',
+    );
   });
   buffer
     ..writeln()
@@ -637,7 +673,8 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
     ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        '@override bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
+      '@override bool operator ==(Object other) => other is $namespaceName && other._value == _value;',
+    )
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -651,7 +688,8 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     // We want an exact type match, but also need `is` to have the analyzer
     // promote the type to allow access to the fields on `other`.
     ..writeIndentedln(
-        'return other is ${interface.name} && other.runtimeType == ${interface.name}')
+      'return other is ${interface.name} && other.runtimeType == ${interface.name}',
+    )
     ..indent()
     ..writeIndented('');
   for (var field in _getAllFields(interface)) {
@@ -661,7 +699,8 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     var otherName = 'other.${field.name}';
     if (type is ArrayType || type is MapType) {
       buffer.write(
-          'const DeepCollectionEquality().equals($thisName, $otherName)');
+        'const DeepCollectionEquality().equals($thisName, $otherName)',
+      );
     } else {
       buffer.write('$thisName == $otherName');
     }
@@ -674,9 +713,13 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeField(
-    IndentableStringBuffer buffer, Interface interface, Field field) {
+  IndentableStringBuffer buffer,
+  Interface interface,
+  Field field,
+) {
   _writeDocCommentsAndAnnotations(buffer, field);
-  var needsNullable = (field.allowsNull || field.allowsUndefined) &&
+  var needsNullable =
+      (field.allowsNull || field.allowsUndefined) &&
       !isNullableAnyType(field.type);
   if (_isOverride(interface, field)) {
     buffer.writeIndentedln('@override');
@@ -697,13 +740,14 @@ void _writeFromJsonCode(
 }) {
   type = resolveTypeAlias(type);
   var nullOperator = allowsNull ? '?' : '';
-  var cast = requiresCast &&
-          // LSPAny
-          !isNullableAnyType(type) &&
-          // LSPObject marked as optional
-          !(isObjectType(type) && allowsNull)
-      ? ' as ${type.dartTypeWithTypeArgs}$nullOperator'
-      : '';
+  var cast =
+      requiresCast &&
+              // LSPAny
+              !isNullableAnyType(type) &&
+              // LSPObject marked as optional
+              !(isObjectType(type) && allowsNull)
+          ? ' as ${type.dartTypeWithTypeArgs}$nullOperator'
+          : '';
 
   if (_isSimpleType(type)) {
     buffer.write('$valueCode$cast');
@@ -736,7 +780,8 @@ void _writeFromJsonCode(
     var leftParen = requiresCast ? '(' : '';
     var rightParen = requiresCast ? ')' : '';
     buffer.write(
-        '$leftParen$valueCode$listCast$rightParen$nullOperator.map((item) => ');
+      '$leftParen$valueCode$listCast$rightParen$nullOperator.map((item) => ',
+    );
     _writeFromJsonCode(buffer, type.elementType, 'item', allowsNull: false);
     buffer.write(').toList()');
   } else if (type is MapType) {
@@ -751,8 +796,12 @@ void _writeFromJsonCode(
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: false);
     buffer.write('))');
   } else if (type is LiteralUnionType) {
-    _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
-        allowsNull: allowsNull);
+    _writeFromJsonCodeForLiteralUnion(
+      buffer,
+      type,
+      valueCode,
+      allowsNull: allowsNull,
+    );
   } else if (type is UnionType) {
     var functionName = type.types.map(_memberNameForType).join();
 
@@ -773,21 +822,28 @@ void _writeFromJsonCode(
 }
 
 void _writeFromJsonCodeForLiteralUnion(
-    IndentableStringBuffer buffer, LiteralUnionType union, String valueCode,
-    {required bool allowsNull}) {
+  IndentableStringBuffer buffer,
+  LiteralUnionType union,
+  String valueCode, {
+  required bool allowsNull,
+}) {
   var allowedValues = [
     if (allowsNull) null,
-    ...union.literalTypes.map((t) => t.valueAsLiteral)
+    ...union.literalTypes.map((t) => t.valueAsLiteral),
   ];
   var valueType = union.literalTypes.first.dartTypeWithTypeArgs;
   var cast = ' as $valueType${allowsNull ? '?' : ''}';
   buffer.write(
-      "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode$cast : "
-      "throw \"\$$valueCode was not one of (${allowedValues.join(', ')})\"");
+    "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode$cast : "
+    "throw \"\$$valueCode was not one of (${allowedValues.join(', ')})\"",
+  );
 }
 
 void _writeFromJsonCodeForUnion(
-    IndentableStringBuffer buffer, UnionType union, String functionName) {
+  IndentableStringBuffer buffer,
+  UnionType union,
+  String functionName,
+) {
   buffer
     ..writeln('${union.dartTypeWithTypeArgs} $functionName(Object? value) {')
     ..indent()
@@ -804,7 +860,12 @@ void _writeFromJsonCodeForUnion(
     // "any" matches all type checks, so only emit it if required.
     if (!isAny) {
       _writeTypeCheckCondition(
-          buffer, null, 'value', type, 'nullLspJsonReporter');
+        buffer,
+        null,
+        'value',
+        type,
+        'nullLspJsonReporter',
+      );
       buffer.write(' ? ');
     }
 
@@ -812,7 +873,9 @@ void _writeFromJsonCodeForUnion(
     buffer.write('${union.dartType}.t${i + 1}(');
     // Call recursively as unions may be nested.
     _writeFromJsonCode(
-      buffer, type, 'value',
+      buffer,
+      type,
+      'value',
       // null + type checks are already handled above this loop
       allowsNull: false,
       requiresCast: false,
@@ -831,7 +894,8 @@ void _writeFromJsonCodeForUnion(
   // cases then the value we had didn't match any of the types in the union.
   if (hasIncompleteCondition) {
     buffer.write(
-        "throw '\$value was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'");
+      "throw '\$value was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'",
+    );
   }
   buffer
     ..writeln(';')
@@ -840,18 +904,23 @@ void _writeFromJsonCodeForUnion(
 }
 
 void _writeFromJsonConstructor(
-    IndentableStringBuffer buffer, Interface interface) {
+  IndentableStringBuffer buffer,
+  Interface interface,
+) {
   var allFields = _getAllFields(interface);
   buffer
-    ..writeIndentedln('static ${interface.name} '
-        'fromJson(Map<String, Object?> json) {')
+    ..writeIndentedln(
+      'static ${interface.name} '
+      'fromJson(Map<String, Object?> json) {',
+    )
     ..indent();
   // First check whether any of our subclasses can deserialize this.
   for (var subclassName in _subtypes[interface.name] ?? const <String>[]) {
     var subclass = _interfaces[subclassName]!;
     buffer
       ..writeIndentedln(
-          'if (${subclass.name}.canParse(json, nullLspJsonReporter)) {')
+        'if (${subclass.name}.canParse(json, nullLspJsonReporter)) {',
+      )
       ..indent()
       ..writeIndentedln('return ${subclass.name}.fromJson(json);')
       ..outdent()
@@ -870,8 +939,12 @@ void _writeFromJsonConstructor(
       var localNameJson = '${localName}Json';
       buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
       buffer.writeIndented('final $localName = ');
-      _writeFromJsonCode(buffer, field.type, localNameJson,
-          allowsNull: field.allowsNull || field.allowsUndefined);
+      _writeFromJsonCode(
+        buffer,
+        field.type,
+        localNameJson,
+        allowsNull: field.allowsNull || field.allowsUndefined,
+      );
       buffer.writeln(';');
     }
     buffer
@@ -991,7 +1064,10 @@ void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeJsonMapAssignment(
-    IndentableStringBuffer buffer, Field field, String mapName) {
+  IndentableStringBuffer buffer,
+  Field field,
+  String mapName,
+) {
   // If we are allowed to be undefined, we'll only add the value if set.
   var shouldBeOmittedIfNoValue = field.allowsUndefined;
   if (shouldBeOmittedIfNoValue) {
@@ -1012,7 +1088,10 @@ void _writeJsonMapAssignment(
 }
 
 void _writeMember(
-    IndentableStringBuffer buffer, Interface interface, Member member) {
+  IndentableStringBuffer buffer,
+  Interface interface,
+  Member member,
+) {
   if (member is Field) {
     _writeField(buffer, interface, member);
   } else if (member is Constant) {
@@ -1025,12 +1104,19 @@ void _writeMember(
 }
 
 void _writeMembers(
-    IndentableStringBuffer buffer, Interface interface, List<Member> members) {
+  IndentableStringBuffer buffer,
+  Interface interface,
+  List<Member> members,
+) {
   _getSortedUnique(members).forEach((m) => _writeMember(buffer, interface, m));
 }
 
-void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
-    String valueCode, String nullOp) {
+void _writeToJsonCode(
+  IndentableStringBuffer buffer,
+  TypeBase type,
+  String valueCode,
+  String nullOp,
+) {
   if (_isSpecType(type)) {
     buffer.write('$valueCode$nullOp.toJson()');
   } else if (type is ArrayType && _isSpecType(type.elementType)) {
@@ -1052,10 +1138,14 @@ void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
 }
 
 void _writeToJsonFieldsForResponseMessage(
-    IndentableStringBuffer buffer, Interface interface, String mapName) {
+  IndentableStringBuffer buffer,
+  Interface interface,
+  String mapName,
+) {
   var allFields = _getAllFields(interface);
-  var standardFields =
-      allFields.where((f) => f.name != 'error' && f.name != 'result');
+  var standardFields = allFields.where(
+    (f) => f.name != 'error' && f.name != 'result',
+  );
 
   for (var field in standardFields) {
     _writeJsonMapAssignment(buffer, field, mapName);
@@ -1091,8 +1181,15 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
     return;
   }
 
-  var mapName = _determineVariableName(interface,
-      ['result', 'map', 'json', 'toReturn', 'results', 'value', 'values']);
+  var mapName = _determineVariableName(interface, [
+    'result',
+    'map',
+    'json',
+    'toReturn',
+    'results',
+    'value',
+    'values',
+  ]);
   buffer
     ..writeln('{')
     ..indent()
@@ -1139,9 +1236,15 @@ void _writeTypeAlias(IndentableStringBuffer buffer, TypeAlias alias) {
   buffer.writeIndentedln('typedef ${alias.name} = $typeName;');
 }
 
-void _writeTypeCheckCondition(IndentableStringBuffer buffer,
-    Interface? interface, String valueCode, TypeBase type, String reporter,
-    {bool negation = false, bool parenForCollection = false}) {
+void _writeTypeCheckCondition(
+  IndentableStringBuffer buffer,
+  Interface? interface,
+  String valueCode,
+  TypeBase type,
+  String reporter, {
+  bool negation = false,
+  bool parenForCollection = false,
+}) {
   type = resolveTypeAlias(type);
 
   var dartType = type.dartType;
@@ -1162,8 +1265,10 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is$operator $fullDartType');
   } else if (_isUriType(type)) {
-    buffer.write('($valueCode is$operator String $and '
-        'Uri.tryParse($valueCode) $notEqual null)');
+    buffer.write(
+      '($valueCode is$operator String $and '
+      'Uri.tryParse($valueCode) $notEqual null)',
+    );
   } else if (type is LiteralType) {
     buffer.write('$valueCode $equals literal');
   } else if (type is LiteralUnionType) {
@@ -1178,8 +1283,13 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     if (fullDartType != 'Object?') {
       buffer.write(' $and $valueCode.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.elementType, reporter,
-          negation: negation);
+        buffer,
+        interface,
+        'item',
+        type.elementType,
+        reporter,
+        negation: negation,
+      );
       buffer.write(')');
     }
     if (parenForCollection) {
@@ -1195,12 +1305,22 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
         ..write(' $and (')
         ..write('$valueCode.keys.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.indexType, reporter,
-          negation: negation);
+        buffer,
+        interface,
+        'item',
+        type.indexType,
+        reporter,
+        negation: negation,
+      );
       buffer.write('$and $valueCode.values.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.valueType, reporter,
-          negation: negation);
+        buffer,
+        interface,
+        'item',
+        type.valueType,
+        reporter,
+        negation: negation,
+      );
       buffer.write(')))');
     }
     if (parenForCollection) {
@@ -1217,8 +1337,13 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
         buffer.write(' $or ');
       }
       _writeTypeCheckCondition(
-          buffer, interface, valueCode, type.types[i], reporter,
-          negation: negation);
+        buffer,
+        interface,
+        valueCode,
+        type.types[i],
+        reporter,
+        negation: negation,
+      );
     }
     if (parenForCollection) {
       buffer.write(')');

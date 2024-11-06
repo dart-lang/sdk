@@ -42,10 +42,9 @@ class B<K, V> {}''');
       }
       expect(element.parameters, isNull);
       expect(
-          element.flags,
-          Element.FLAG_ABSTRACT |
-              Element.FLAG_DEPRECATED |
-              Element.FLAG_PRIVATE);
+        element.flags,
+        Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE,
+      );
     }
     {
       var engineElement = findElement.class_('B');
@@ -108,8 +107,10 @@ class A {
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
-    expect(element.parameters,
-        '(int a, {required int d, required int c, int? b})');
+    expect(
+      element.parameters,
+      '(int a, {required int d, required int c, int? b})',
+    );
   }
 
   /// Verify parameter re-ordering for required params
@@ -125,8 +126,10 @@ class A {
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
-    expect(element.parameters,
-        '(int a, {required int d, required int c, int b, int a})');
+    expect(
+      element.parameters,
+      '(int a, {required int d, required int c, int b, int a})',
+    );
   }
 
   void test_dynamic() {
@@ -164,9 +167,10 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(
-          element.flags,
-          (engineElement.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
-              Element.FLAG_PRIVATE);
+        element.flags,
+        (engineElement.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
+            Element.FLAG_PRIVATE,
+      );
     }
     {
       var engineElement = findElement.enum_('E2');
@@ -204,9 +208,10 @@ enum E2 { three, four }''');
       //engine.ClassElement classElement = engineElement.enclosingElement3;
       //expect(classElement.isDeprecated, isTrue);
       expect(
-          element.flags,
-          // Element.FLAG_DEPRECATED |
-          Element.FLAG_CONST | Element.FLAG_STATIC);
+        element.flags,
+        // Element.FLAG_DEPRECATED |
+        Element.FLAG_CONST | Element.FLAG_STATIC,
+      );
     }
     {
       var engineElement = findElement.field('three');
@@ -466,69 +471,111 @@ class A {
 class ElementKindTest {
   void test_fromEngine() {
     expect(convertElementKind(engine.ElementKind.CLASS), ElementKind.CLASS);
-    expect(convertElementKind(engine.ElementKind.COMPILATION_UNIT),
-        ElementKind.COMPILATION_UNIT);
-    expect(convertElementKind(engine.ElementKind.CONSTRUCTOR),
-        ElementKind.CONSTRUCTOR);
-    expect(convertElementKind(engine.ElementKind.EXTENSION),
-        ElementKind.EXTENSION);
-    expect(convertElementKind(engine.ElementKind.EXTENSION_TYPE),
-        ElementKind.EXTENSION_TYPE);
+    expect(
+      convertElementKind(engine.ElementKind.COMPILATION_UNIT),
+      ElementKind.COMPILATION_UNIT,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.CONSTRUCTOR),
+      ElementKind.CONSTRUCTOR,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.EXTENSION),
+      ElementKind.EXTENSION,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.EXTENSION_TYPE),
+      ElementKind.EXTENSION_TYPE,
+    );
     expect(convertElementKind(engine.ElementKind.FIELD), ElementKind.FIELD);
     expect(
-        convertElementKind(engine.ElementKind.FUNCTION), ElementKind.FUNCTION);
-    expect(convertElementKind(engine.ElementKind.FUNCTION_TYPE_ALIAS),
-        ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(convertElementKind(engine.ElementKind.GENERIC_FUNCTION_TYPE),
-        ElementKind.FUNCTION_TYPE_ALIAS);
+      convertElementKind(engine.ElementKind.FUNCTION),
+      ElementKind.FUNCTION,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+      ElementKind.FUNCTION_TYPE_ALIAS,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.GENERIC_FUNCTION_TYPE),
+      ElementKind.FUNCTION_TYPE_ALIAS,
+    );
     expect(convertElementKind(engine.ElementKind.GETTER), ElementKind.GETTER);
     expect(convertElementKind(engine.ElementKind.LABEL), ElementKind.LABEL);
     expect(convertElementKind(engine.ElementKind.LIBRARY), ElementKind.LIBRARY);
-    expect(convertElementKind(engine.ElementKind.LOCAL_VARIABLE),
-        ElementKind.LOCAL_VARIABLE);
+    expect(
+      convertElementKind(engine.ElementKind.LOCAL_VARIABLE),
+      ElementKind.LOCAL_VARIABLE,
+    );
     expect(convertElementKind(engine.ElementKind.METHOD), ElementKind.METHOD);
-    expect(convertElementKind(engine.ElementKind.PARAMETER),
-        ElementKind.PARAMETER);
+    expect(
+      convertElementKind(engine.ElementKind.PARAMETER),
+      ElementKind.PARAMETER,
+    );
     expect(convertElementKind(engine.ElementKind.SETTER), ElementKind.SETTER);
-    expect(convertElementKind(engine.ElementKind.TOP_LEVEL_VARIABLE),
-        ElementKind.TOP_LEVEL_VARIABLE);
-    expect(convertElementKind(engine.ElementKind.TYPE_ALIAS),
-        ElementKind.TYPE_ALIAS);
-    expect(convertElementKind(engine.ElementKind.TYPE_PARAMETER),
-        ElementKind.TYPE_PARAMETER);
+    expect(
+      convertElementKind(engine.ElementKind.TOP_LEVEL_VARIABLE),
+      ElementKind.TOP_LEVEL_VARIABLE,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.TYPE_ALIAS),
+      ElementKind.TYPE_ALIAS,
+    );
+    expect(
+      convertElementKind(engine.ElementKind.TYPE_PARAMETER),
+      ElementKind.TYPE_PARAMETER,
+    );
   }
 
   void test_string_constructor() {
     expect(ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
-    expect(ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
-        ElementKind.CLASS_TYPE_ALIAS);
-    expect(ElementKind(ElementKind.COMPILATION_UNIT.name),
-        ElementKind.COMPILATION_UNIT);
+    expect(
+      ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
+      ElementKind.CLASS_TYPE_ALIAS,
+    );
+    expect(
+      ElementKind(ElementKind.COMPILATION_UNIT.name),
+      ElementKind.COMPILATION_UNIT,
+    );
     expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
     expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
     expect(ElementKind(ElementKind.EXTENSION.name), ElementKind.EXTENSION);
-    expect(ElementKind(ElementKind.EXTENSION_TYPE.name),
-        ElementKind.EXTENSION_TYPE);
+    expect(
+      ElementKind(ElementKind.EXTENSION_TYPE.name),
+      ElementKind.EXTENSION_TYPE,
+    );
     expect(ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
     expect(ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
-    expect(ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
-        ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(
+      ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
+      ElementKind.FUNCTION_TYPE_ALIAS,
+    );
     expect(ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
     expect(ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
-    expect(ElementKind(ElementKind.LOCAL_VARIABLE.name),
-        ElementKind.LOCAL_VARIABLE);
+    expect(
+      ElementKind(ElementKind.LOCAL_VARIABLE.name),
+      ElementKind.LOCAL_VARIABLE,
+    );
     expect(ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
     expect(ElementKind(ElementKind.PARAMETER.name), ElementKind.PARAMETER);
     expect(ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
-    expect(ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
-        ElementKind.TOP_LEVEL_VARIABLE);
+    expect(
+      ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
+      ElementKind.TOP_LEVEL_VARIABLE,
+    );
     expect(ElementKind(ElementKind.TYPE_ALIAS.name), ElementKind.TYPE_ALIAS);
-    expect(ElementKind(ElementKind.TYPE_PARAMETER.name),
-        ElementKind.TYPE_PARAMETER);
-    expect(ElementKind(ElementKind.UNIT_TEST_TEST.name),
-        ElementKind.UNIT_TEST_TEST);
-    expect(ElementKind(ElementKind.UNIT_TEST_GROUP.name),
-        ElementKind.UNIT_TEST_GROUP);
+    expect(
+      ElementKind(ElementKind.TYPE_PARAMETER.name),
+      ElementKind.TYPE_PARAMETER,
+    );
+    expect(
+      ElementKind(ElementKind.UNIT_TEST_TEST.name),
+      ElementKind.UNIT_TEST_TEST,
+    );
+    expect(
+      ElementKind(ElementKind.UNIT_TEST_GROUP.name),
+      ElementKind.UNIT_TEST_GROUP,
+    );
     expect(ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
       ElementKind('no-such-kind');
@@ -537,7 +584,9 @@ class ElementKindTest {
 
   void test_toString() {
     expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
-    expect(ElementKind.COMPILATION_UNIT.toString(),
-        'ElementKind.COMPILATION_UNIT');
+    expect(
+      ElementKind.COMPILATION_UNIT.toString(),
+      'ElementKind.COMPILATION_UNIT',
+    );
   }
 }

@@ -259,11 +259,12 @@ class A {}
 ''';
 
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: declarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_extensionOperator() async {
@@ -302,11 +303,12 @@ class A {}
 ''';
 
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: declarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   /// Test that if the destination file gets both relative and package imports,
@@ -513,11 +515,12 @@ void moving() {
 }
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: movingDeclarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: movingDeclarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_prefix_extension_operator() async {
@@ -555,11 +558,12 @@ void moving() {
 }
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: movingDeclarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: movingDeclarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_prefix_extensionOverride() async {
@@ -974,8 +978,11 @@ class A {}
     var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
     var destinationFileName = 'moving.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(libFilePath, 'export "src/a.dart";');
     newFile(srcFilePath, 'class A {}');
     newFile(destinationFilePath, '''
@@ -1012,8 +1019,11 @@ A? moving;
     var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
     var destinationFileName = 'moving.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(libFilePath, 'export "src/a.dart";');
     newFile(srcFilePath, 'class A {}');
     newFile(destinationFilePath, '''
@@ -1352,14 +1362,14 @@ class A {}<<<<<<<<<<
   }
 
   Future<void>
-      test_protocol_available_withClientCommandParameterSupport() async {
+  test_protocol_available_withClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
     await initializeServer();
     await expectCodeAction(simpleClassRefactorTitle);
   }
 
   Future<void>
-      test_protocol_available_withoutClientCommandParameterSupport() async {
+  test_protocol_available_withoutClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
     await initializeServer();
     // This refactor is available without command parameter support because
@@ -1443,7 +1453,7 @@ class Right extends Either {}
   }
 
   Future<void>
-      test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
+  test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
     addTestSource('''
 part 'part2.dart';
 
@@ -1463,7 +1473,7 @@ class Left extends Either {}
   }
 
   Future<void>
-      test_sealedClass_extends_superclass_withIndirectSubclass() async {
+  test_sealedClass_extends_superclass_withIndirectSubclass() async {
     var originalSource = '''
 sealed class [!Either!] {}
 
@@ -1742,8 +1752,11 @@ class Clas^sToMove {}
 ''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(destinationFilePath, '''
 part of 'main.dart';
 ''');
@@ -1772,8 +1785,11 @@ class Clas^sToMove {}
 ''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(destinationFilePath, '''
 part 'main.dart';
 ''');
@@ -1802,13 +1818,19 @@ class Clas^sToMove {}
 ''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(destinationFilePath, '''
 part of 'containing_library.dart';
 ''');
-    var containingLibraryFilePath =
-        join(projectFolderPath, 'lib', 'containing_library.dart');
+    var containingLibraryFilePath = join(
+      projectFolderPath,
+      'lib',
+      'containing_library.dart',
+    );
     var containingLibraryFileContent = '''
 part 'main.dart';
 part 'class_to_move.dart';
@@ -1823,11 +1845,12 @@ class ClassToMove {}
 part of 'containing_library.dart';
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: declarationName,
-        otherFilePath: containingLibraryFilePath,
-        otherFileContent: containingLibraryFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: containingLibraryFilePath,
+      otherFileContent: containingLibraryFileContent,
+    );
   }
 
   Future<void> test_single_typedef() async {

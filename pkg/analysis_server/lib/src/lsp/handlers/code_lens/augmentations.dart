@@ -48,7 +48,9 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
 
   @override
   bool isAvailable(
-      LspClientCapabilities clientCapabilities, CodeLensParams params) {
+    LspClientCapabilities clientCapabilities,
+    CodeLensParams params,
+  ) {
     return isDartDocument(params.textDocument) &&
         // We need to run if either of these are enabled.
         (codeLens.augmentation || codeLens.augmented) &&
@@ -70,16 +72,15 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
       Fragment thisFragment,
       Fragment targetFragment,
     ) {
-      var command =
-          getNavigationCommand(clientCapabilities, title, targetFragment);
+      var command = getNavigationCommand(
+        clientCapabilities,
+        title,
+        targetFragment,
+      );
       var nameOffset = thisFragment.nameOffset2;
       var nameLength = thisFragment.element.displayName.length;
       if (command != null && nameOffset != null) {
-        var range = toRange(
-          result.lineInfo,
-          nameOffset,
-          nameLength,
-        );
+        var range = toRange(result.lineInfo, nameOffset, nameLength);
         codeLenses.add(CodeLens(range: range, command: command));
       }
     }

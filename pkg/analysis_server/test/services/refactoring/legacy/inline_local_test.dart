@@ -66,8 +66,11 @@ void f() {
 ''');
     _createRefactoring('test = 0');
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedContextSearch: 'test = 1');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedContextSearch: 'test = 1',
+    );
   }
 
   Future<void> test_bad_selectionVariable_hasAssignments_2() async {
@@ -79,8 +82,11 @@ void f() {
 ''');
     _createRefactoring('test = 0');
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedContextSearch: 'test += 1');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedContextSearch: 'test += 1',
+    );
   }
 
   Future<void> test_bad_selectionVariable_notInBlock() async {
@@ -311,7 +317,7 @@ void f() {
   }
 
   Future<void>
-      test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() async {
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() async {
     await indexTestUnit(r"""
 void f() {
   String a = '''\ \
@@ -335,7 +341,7 @@ bbb''';
   }
 
   Future<void>
-      test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() async {
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() async {
     await indexTestUnit(r"""
 void f() {
   String a = '''
@@ -361,8 +367,9 @@ bbb''';
   }
 
   Future<void>
-      test_OK_intoStringInterpolation_string_multiLineIntoMulti_windowsEOL() async {
-    await indexTestUnit(r"""
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_windowsEOL() async {
+    await indexTestUnit(
+      r"""
 void f() {
   String a = '''
 a
@@ -372,11 +379,12 @@ a''';
 $a
 bbb''';
 }
-"""
-        .replaceAll('\n', '\r\n'));
+""".replaceAll('\n', '\r\n'),
+    );
     _createRefactoring('a =');
     // validate change
-    return assertSuccessfulRefactoring(r"""
+    return assertSuccessfulRefactoring(
+      r"""
 void f() {
   String b = '''
 a
@@ -384,12 +392,12 @@ a
 a
 bbb''';
 }
-"""
-        .replaceAll('\n', '\r\n'));
+""".replaceAll('\n', '\r\n'),
+    );
   }
 
   Future<void>
-      test_OK_intoStringInterpolation_string_multiLineIntoSingle() async {
+  test_OK_intoStringInterpolation_string_multiLineIntoSingle() async {
     await indexTestUnit(r'''
 void f() {
   String a = """aaa""";
@@ -422,7 +430,7 @@ void f() {
   }
 
   Future<void>
-      test_OK_intoStringInterpolation_string_singleLineIntoMulti_doubleQuotes() async {
+  test_OK_intoStringInterpolation_string_singleLineIntoMulti_doubleQuotes() async {
     await indexTestUnit(r'''
 void f() {
   String a = "aaa";
@@ -439,7 +447,7 @@ void f() {
   }
 
   Future<void>
-      test_OK_intoStringInterpolation_string_singleLineIntoMulti_singleQuotes() async {
+  test_OK_intoStringInterpolation_string_singleLineIntoMulti_singleQuotes() async {
     await indexTestUnit(r"""
 void f() {
   String a = 'aaa';
@@ -683,9 +691,13 @@ void f() {
   void _assert_fatalError_selection(RefactoringStatus status) {
     expect(refactoring.variableName, isNull);
     expect(refactoring.referenceCount, 0);
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Local variable declaration or reference must be '
-            'selected to activate this refactoring.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          'Local variable declaration or reference must be '
+          'selected to activate this refactoring.',
+    );
   }
 
   void _createRefactoring(String search) {

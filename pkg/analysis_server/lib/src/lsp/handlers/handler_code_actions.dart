@@ -35,8 +35,11 @@ class CodeActionHandler
       CodeActionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<TextDocumentCodeActionResult>> handle(CodeActionParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<TextDocumentCodeActionResult>> handle(
+    CodeActionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var performance = message.performance;
 
     var textDocument = params.textDocument;
@@ -131,17 +134,22 @@ class CodeActionHandler
         return success([]);
       }
 
-      return (startOffset, endOffset)
-          .mapResults((startOffset, endOffset) async {
+      return (startOffset, endOffset).mapResults((
+        startOffset,
+        endOffset,
+      ) async {
         var offset = startOffset;
         var length = endOffset - startOffset;
 
         var isDart = file_paths.isDart(pathContext, unitPath);
         var isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
-        var isAnalysisOptions =
-            file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
-        var includeSourceActions =
-            shouldIncludeAnyOfKind(CodeActionKind.Source);
+        var isAnalysisOptions = file_paths.isAnalysisOptionsYaml(
+          pathContext,
+          unitPath,
+        );
+        var includeSourceActions = shouldIncludeAnyOfKind(
+          CodeActionKind.Source,
+        );
         var includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
         var includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
 
@@ -218,15 +226,19 @@ class CodeActionHandler
           // Source.
           if (includeSourceActions)
             for (var computer in actionComputers)
-              ...await performance.runAsync('${computer.name}.getSourceActions',
-                  (_) => computer.getSourceActions()),
+              ...await performance.runAsync(
+                '${computer.name}.getSourceActions',
+                (_) => computer.getSourceActions(),
+              ),
 
           // Fixes.
           if (includeQuickFixes)
             ...sorter.sort([
               for (var computer in actionComputers)
-                ...await performance.runAsync('${computer.name}.getFixActions',
-                    (_) => computer.getFixActions()),
+                ...await performance.runAsync(
+                  '${computer.name}.getFixActions',
+                  (_) => computer.getFixActions(),
+                ),
             ]),
 
           // Refactors  (Assists + Refactors).
@@ -234,14 +246,16 @@ class CodeActionHandler
             ...sorter.sort([
               for (var computer in actionComputers)
                 ...await performance.runAsync(
-                    '${computer.name}.getAssistActions',
-                    (_) => computer.getAssistActions()),
+                  '${computer.name}.getAssistActions',
+                  (_) => computer.getAssistActions(),
+                ),
             ]),
           if (includeRefactors)
             for (var computer in actionComputers)
               ...await performance.runAsync(
-                  '${computer.name}.getRefactorActions',
-                  (_) => computer.getRefactorActions()),
+                '${computer.name}.getRefactorActions',
+                (_) => computer.getRefactorActions(),
+              ),
         ];
 
         return success(allActions);
@@ -258,9 +272,9 @@ class CodeActionRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => CodeActionRegistrationOptions(
-        documentSelector: fullySupportedTypes,
-        codeActionKinds: DartCodeActionKind.serverSupportedKinds,
-      );
+    documentSelector: fullySupportedTypes,
+    codeActionKinds: DartCodeActionKind.serverSupportedKinds,
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_codeAction;
@@ -271,9 +285,11 @@ class CodeActionRegistrations extends FeatureRegistration
       // signals code action literal support via the property
       // `textDocument.codeAction.codeActionLiteralSupport`."
       codeActionLiteralSupport
-          ? Either2.t2(CodeActionOptions(
+          ? Either2.t2(
+            CodeActionOptions(
               codeActionKinds: DartCodeActionKind.serverSupportedKinds,
-            ))
+            ),
+          )
           : Either2.t1(true);
 
   @override
@@ -289,14 +305,20 @@ class _CodeActionSorter {
   _CodeActionSorter(this.range, this.shouldIncludeKind);
 
   List<Either2<CodeAction, Command>> sort(
-      List<CodeActionWithPriority> actions) {
+    List<CodeActionWithPriority> actions,
+  ) {
     var dedupedActions = _dedupeActions(actions, range.start);
 
     // Add each index so we can do a stable sort on priority.
-    var dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
-      var (index, action) = item;
-      return (action: action.action, priority: action.priority, index: index);
-    }).toList();
+    var dedupedActionsWithIndex =
+        dedupedActions.indexed.map((item) {
+          var (index, action) = item;
+          return (
+            action: action.action,
+            priority: action.priority,
+            index: index,
+          );
+        }).toList();
     dedupedActionsWithIndex.sort(_compareCodeActions);
 
     return dedupedActionsWithIndex
@@ -307,7 +329,8 @@ class _CodeActionSorter {
 
   /// Creates a comparer for [CodeActions] that compares the column distance from [pos].
   int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
-      Position pos) {
+    Position pos,
+  ) {
     Position posOf(CodeAction action) {
       var diagnostics = action.diagnostics;
       return diagnostics != null && diagnostics.isNotEmpty
@@ -315,8 +338,10 @@ class _CodeActionSorter {
           : pos;
     }
 
-    return (a, b) => _columnDistance(posOf(a), pos)
-        .compareTo(_columnDistance(posOf(b), pos));
+    return (a, b) => _columnDistance(
+      posOf(a),
+      pos,
+    ).compareTo(_columnDistance(posOf(b), pos));
   }
 
   /// Returns the distance (in columns, ignoring lines) between two positions.
@@ -358,9 +383,13 @@ class _CodeActionSorter {
   /// If multiple actions have the same position, one will arbitrarily be
   /// chosen.
   List<CodeActionWithPriority> _dedupeActions(
-      Iterable<CodeActionWithPriority> actions, Position position) {
+    Iterable<CodeActionWithPriority> actions,
+    Position position,
+  ) {
     var groups = groupBy(
-        actions, (CodeActionWithPriority action) => action.action.title);
+      actions,
+      (CodeActionWithPriority action) => action.action.title,
+    );
     return groups.entries.map((entry) {
       var actions = entry.value;
 
@@ -376,14 +405,16 @@ class _CodeActionSorter {
       var priority = actions.first.priority;
 
       // Get any actions with the same fix (edit/command) for merging diagnostics.
-      var others = actions.skip(1).where(
+      var others = actions
+          .skip(1)
+          .where(
             (other) =>
                 // Compare either edits or commands based on which the selected action has.
                 first.edit != null
                     ? first.edit == other.action.edit
                     : first.command != null
-                        ? first.command == other.action.command
-                        : false,
+                    ? first.command == other.action.command
+                    : false,
           );
 
       // Build a new CodeAction that merges the diagnostics from each same

@@ -17,11 +17,12 @@ void main(List<String> args) async {
     var analysisRoot = result.rest[0];
 
     var runner = CompletionRunner(
-        output: stdout,
-        printMissing: result['missing'] as bool?,
-        printQuality: result['quality'] as bool?,
-        timing: result['timing'] as bool?,
-        verbose: result['verbose'] as bool?);
+      output: stdout,
+      printMissing: result['missing'] as bool?,
+      printQuality: result['quality'] as bool?,
+      timing: result['timing'] as bool?,
+      verbose: result['verbose'] as bool?,
+    );
     await runner.runAll(analysisRoot);
     await stdout.flush();
   }
@@ -46,11 +47,7 @@ ArgParser createArgParser() {
     help: 'Report on the quality of the sort order',
     negatable: false,
   );
-  parser.addFlag(
-    'timing',
-    help: 'Report timing information',
-    negatable: false,
-  );
+  parser.addFlag('timing', help: 'Report timing information', negatable: false);
   parser.addFlag(
     'verbose',
     abbr: 'v',

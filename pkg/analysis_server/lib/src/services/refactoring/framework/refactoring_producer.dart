@@ -21,9 +21,7 @@ sealed class ComputeStatus {}
 class ComputeStatusFailure extends ComputeStatus {
   final String? reason;
 
-  ComputeStatusFailure({
-    this.reason,
-  });
+  ComputeStatusFailure({this.reason});
 }
 
 /// The result that signals the success.

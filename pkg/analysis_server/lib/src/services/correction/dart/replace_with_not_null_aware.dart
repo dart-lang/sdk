@@ -64,7 +64,9 @@ class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
       _newOperator = '...';
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-            range.token(node.spreadOperator), _newOperator);
+          range.token(node.spreadOperator),
+          _newOperator,
+        );
       });
     }
   }

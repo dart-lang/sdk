@@ -75,41 +75,49 @@ MyWidget
     {
       var offset = testCode.indexOf('new Column');
       var length = testCode.indexOf('; // Column') - offset;
-      _expect(columnOutline,
-          name: 'Column',
-          elementOffset: offset,
-          offset: offset,
-          length: length);
+      _expect(
+        columnOutline,
+        name: 'Column',
+        elementOffset: offset,
+        offset: offset,
+        length: length,
+      );
     }
 
     {
       var textOutline = columnOutline.children![0];
       var text = "const Text('aaa')";
       var offset = testCode.indexOf(text);
-      _expect(textOutline,
-          name: "Text('aaa')",
-          elementOffset: offset,
-          offset: offset,
-          length: text.length);
+      _expect(
+        textOutline,
+        name: "Text('aaa')",
+        elementOffset: offset,
+        offset: offset,
+        length: text.length,
+      );
     }
 
     {
       var textOutline = columnOutline.children![1];
       var text = "const Text('bbb')";
       var offset = testCode.indexOf(text);
-      _expect(textOutline,
-          name: "Text('bbb')",
-          elementOffset: offset,
-          offset: offset,
-          length: text.length);
+      _expect(
+        textOutline,
+        name: "Text('bbb')",
+        elementOffset: offset,
+        offset: offset,
+        length: text.length,
+      );
     }
   }
 
-  void _expect(Outline outline,
-      {required String name,
-      required int elementOffset,
-      required int offset,
-      required int length}) {
+  void _expect(
+    Outline outline, {
+    required String name,
+    required int elementOffset,
+    required int offset,
+    required int length,
+  }) {
     var element = outline.element;
     expect(element.name, name);
     expect(element.location!.offset, elementOffset);
@@ -457,8 +465,10 @@ augment class C {
     var element_ma = outline_ma.element;
     expect(element_ma.kind, ElementKind.METHOD);
     expect(element_ma.name, 'm');
-    expect(element_ma.location?.offset,
-        testCode.indexOf('m()', testCode.indexOf('m()') + 1));
+    expect(
+      element_ma.location?.offset,
+      testCode.indexOf('m()', testCode.indexOf('m()') + 1),
+    );
   }
 
   Future<void> test_enum_constants() async {
@@ -904,90 +914,110 @@ void f() {
     expect(unit_children, hasLength(3));
     // f
     var f_outline = unit_children[2];
-    _expect(f_outline,
-        kind: ElementKind.FUNCTION,
-        name: 'f',
-        offset: testCode.indexOf('f() {'),
-        parameters: '()',
-        returnType: 'void');
+    _expect(
+      f_outline,
+      kind: ElementKind.FUNCTION,
+      name: 'f',
+      offset: testCode.indexOf('f() {'),
+      parameters: '()',
+      returnType: 'void',
+    );
     var f_children = f_outline.children!;
     expect(f_children, hasLength(2));
     // group1
     var group1_outline = f_children[0];
-    _expect(group1_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 5,
-        name: 'group("group1")',
-        offset: testCode.indexOf("group('group1'"));
+    _expect(
+      group1_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 5,
+      name: 'group("group1")',
+      offset: testCode.indexOf("group('group1'"),
+    );
     var group1_children = group1_outline.children!;
     expect(group1_children, hasLength(2));
     // group1_1
     var group1_1_outline = group1_children[0];
-    _expect(group1_1_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 5,
-        name: 'group("group1_1")',
-        offset: testCode.indexOf("group('group1_1'"));
+    _expect(
+      group1_1_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 5,
+      name: 'group("group1_1")',
+      offset: testCode.indexOf("group('group1_1'"),
+    );
     var group1_1_children = group1_1_outline.children!;
     expect(group1_1_children, hasLength(2));
     // test1_1_1
     var test1_1_1_outline = group1_1_children[0];
-    _expect(test1_1_1_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 4,
-        name: 'test("test1_1_1")',
-        offset: testCode.indexOf("test('test1_1_1'"));
+    _expect(
+      test1_1_1_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 4,
+      name: 'test("test1_1_1")',
+      offset: testCode.indexOf("test('test1_1_1'"),
+    );
     // test1_1_1
     var test1_1_2_outline = group1_1_children[1];
-    _expect(test1_1_2_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 4,
-        name: 'test("test1_1_2")',
-        offset: testCode.indexOf("test('test1_1_2'"));
+    _expect(
+      test1_1_2_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 4,
+      name: 'test("test1_1_2")',
+      offset: testCode.indexOf("test('test1_1_2'"),
+    );
     // group1_2
     var group1_2_outline = group1_children[1];
-    _expect(group1_2_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 5,
-        name: 'group("group1_2")',
-        offset: testCode.indexOf("group('group1_2'"));
+    _expect(
+      group1_2_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 5,
+      name: 'group("group1_2")',
+      offset: testCode.indexOf("group('group1_2'"),
+    );
     var group1_2_children = group1_2_outline.children!;
     expect(group1_2_children, hasLength(1));
     // test2_1
     var test1_2_1_outline = group1_2_children[0];
-    _expect(test1_2_1_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 4,
-        name: 'test("test1_2_1")',
-        offset: testCode.indexOf("test('test1_2_1'"));
+    _expect(
+      test1_2_1_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 4,
+      name: 'test("test1_2_1")',
+      offset: testCode.indexOf("test('test1_2_1'"),
+    );
     // group2
     var group2_outline = f_children[1];
-    _expect(group2_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 5,
-        name: 'group("group2")',
-        offset: testCode.indexOf("group('group2'"));
+    _expect(
+      group2_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 5,
+      name: 'group("group2")',
+      offset: testCode.indexOf("group('group2'"),
+    );
     var group2_children = group2_outline.children!;
     expect(group2_children, hasLength(2));
     // test2_1
     var test2_1_outline = group2_children[0];
-    _expect(test2_1_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 4,
-        name: 'test("test2_1")',
-        offset: testCode.indexOf("test('test2_1'"));
+    _expect(
+      test2_1_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 4,
+      name: 'test("test2_1")',
+      offset: testCode.indexOf("test('test2_1'"),
+    );
     // test2_2
     var test2_2_outline = group2_children[1];
-    _expect(test2_2_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 4,
-        name: 'test("test2_2")',
-        offset: testCode.indexOf("test('test2_2'"));
+    _expect(
+      test2_2_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 4,
+      name: 'test("test2_2")',
+      offset: testCode.indexOf("test('test2_2'"),
+    );
   }
 
   /// Code like this caused NPE in the past.
@@ -1050,90 +1080,110 @@ void f() {
     expect(unit_children, hasLength(3));
     // f
     var f_outline = unit_children[2];
-    _expect(f_outline,
-        kind: ElementKind.FUNCTION,
-        name: 'f',
-        offset: testCode.indexOf('f() {'),
-        parameters: '()',
-        returnType: 'void');
+    _expect(
+      f_outline,
+      kind: ElementKind.FUNCTION,
+      name: 'f',
+      offset: testCode.indexOf('f() {'),
+      parameters: '()',
+      returnType: 'void',
+    );
     var f_children = f_outline.children!;
     expect(f_children, hasLength(2));
     // group1
     var group1_outline = f_children[0];
-    _expect(group1_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 7,
-        name: 'myGroup("group1")',
-        offset: testCode.indexOf("myGroup('group1'"));
+    _expect(
+      group1_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 7,
+      name: 'myGroup("group1")',
+      offset: testCode.indexOf("myGroup('group1'"),
+    );
     var group1_children = group1_outline.children!;
     expect(group1_children, hasLength(2));
     // group1_1
     var group1_1_outline = group1_children[0];
-    _expect(group1_1_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 7,
-        name: 'myGroup("group1_1")',
-        offset: testCode.indexOf("myGroup('group1_1'"));
+    _expect(
+      group1_1_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 7,
+      name: 'myGroup("group1_1")',
+      offset: testCode.indexOf("myGroup('group1_1'"),
+    );
     var group1_1_children = group1_1_outline.children!;
     expect(group1_1_children, hasLength(2));
     // test1_1_1
     var test1_1_1_outline = group1_1_children[0];
-    _expect(test1_1_1_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 6,
-        name: 'myTest("test1_1_1")',
-        offset: testCode.indexOf("myTest('test1_1_1'"));
+    _expect(
+      test1_1_1_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 6,
+      name: 'myTest("test1_1_1")',
+      offset: testCode.indexOf("myTest('test1_1_1'"),
+    );
     // test1_1_1
     var test1_1_2_outline = group1_1_children[1];
-    _expect(test1_1_2_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 6,
-        name: 'myTest("test1_1_2")',
-        offset: testCode.indexOf("myTest('test1_1_2'"));
+    _expect(
+      test1_1_2_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 6,
+      name: 'myTest("test1_1_2")',
+      offset: testCode.indexOf("myTest('test1_1_2'"),
+    );
     // group1_2
     var group1_2_outline = group1_children[1];
-    _expect(group1_2_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 7,
-        name: 'myGroup("group1_2")',
-        offset: testCode.indexOf("myGroup('group1_2'"));
+    _expect(
+      group1_2_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 7,
+      name: 'myGroup("group1_2")',
+      offset: testCode.indexOf("myGroup('group1_2'"),
+    );
     var group1_2_children = group1_2_outline.children!;
     expect(group1_2_children, hasLength(1));
     // test2_1
     var test1_2_1_outline = group1_2_children[0];
-    _expect(test1_2_1_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 6,
-        name: 'myTest("test1_2_1")',
-        offset: testCode.indexOf("myTest('test1_2_1'"));
+    _expect(
+      test1_2_1_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 6,
+      name: 'myTest("test1_2_1")',
+      offset: testCode.indexOf("myTest('test1_2_1'"),
+    );
     // group2
     var group2_outline = f_children[1];
-    _expect(group2_outline,
-        kind: ElementKind.UNIT_TEST_GROUP,
-        length: 7,
-        name: 'myGroup("group2")',
-        offset: testCode.indexOf("myGroup('group2'"));
+    _expect(
+      group2_outline,
+      kind: ElementKind.UNIT_TEST_GROUP,
+      length: 7,
+      name: 'myGroup("group2")',
+      offset: testCode.indexOf("myGroup('group2'"),
+    );
     var group2_children = group2_outline.children!;
     expect(group2_children, hasLength(2));
     // test2_1
     var test2_1_outline = group2_children[0];
-    _expect(test2_1_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 6,
-        name: 'myTest("test2_1")',
-        offset: testCode.indexOf("myTest('test2_1'"));
+    _expect(
+      test2_1_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 6,
+      name: 'myTest("test2_1")',
+      offset: testCode.indexOf("myTest('test2_1'"),
+    );
     // test2_2
     var test2_2_outline = group2_children[1];
-    _expect(test2_2_outline,
-        kind: ElementKind.UNIT_TEST_TEST,
-        leaf: true,
-        length: 6,
-        name: 'myTest("test2_2")',
-        offset: testCode.indexOf("myTest('test2_2'"));
+    _expect(
+      test2_2_outline,
+      kind: ElementKind.UNIT_TEST_TEST,
+      leaf: true,
+      length: 6,
+      name: 'myTest("test2_2")',
+      offset: testCode.indexOf("myTest('test2_2'"),
+    );
   }
 
   Future<void> test_localFunctions() async {
@@ -1899,14 +1949,16 @@ f() {
 ''');
   }
 
-  void _expect(Outline outline,
-      {ElementKind? kind,
-      bool leaf = false,
-      int? length,
-      String? name,
-      int? offset,
-      String? parameters,
-      String? returnType}) {
+  void _expect(
+    Outline outline, {
+    ElementKind? kind,
+    bool leaf = false,
+    int? length,
+    String? name,
+    int? offset,
+    String? parameters,
+    String? returnType,
+  }) {
     var element = outline.element;
     var location = element.location!;
 

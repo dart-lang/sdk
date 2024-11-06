@@ -54,10 +54,13 @@ class PubspecFixGenerator {
   String? _endOfLine;
 
   PubspecFixGenerator(
-      this.resourceProvider, this.error, this.content, this.node)
-      : errorOffset = error.offset,
-        errorLength = error.length,
-        lineInfo = LineInfo.fromContent(content);
+    this.resourceProvider,
+    this.error,
+    this.content,
+    this.node,
+  ) : errorOffset = error.offset,
+      errorLength = error.length,
+      lineInfo = LineInfo.fromContent(content);
 
   /// Returns the end-of-line marker to use for the `pubspec.yaml` file.
   String get endOfLine {
@@ -83,8 +86,10 @@ class PubspecFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    var locator =
-        YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
+    var locator = YamlNodeLocator(
+      start: errorOffset,
+      end: errorOffset + errorLength - 1,
+    );
     var coveringNodePath = locator.searchWithin(node);
     if (coveringNodePath.isEmpty) {
       // One of the errors doesn't have a covering path but can still be fixed.
@@ -156,7 +161,9 @@ class PubspecFixGenerator {
       return;
     }
     var builder = ChangeBuilder(
-        workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+      eol: endOfLine,
+    );
 
     var data = error.data as MissingDependencyData;
     var addDeps = data.addDeps;
@@ -170,8 +177,11 @@ class PubspecFixGenerator {
       });
     }
     if (addDevDeps.isNotEmpty) {
-      var (text, offset) =
-          _getTextAndOffset(node, 'dev_dependencies', addDevDeps);
+      var (text, offset) = _getTextAndOffset(
+        node,
+        'dev_dependencies',
+        addDevDeps,
+      );
       await builder.addYamlFileEdit(file, (builder) {
         builder.addSimpleInsertion(offset, text);
       });
@@ -192,8 +202,9 @@ class PubspecFixGenerator {
           var startOffset = prevEntry.value.span.end.offset;
           var endOffset = currentEntry.value.span.end.offset;
           await builder.addYamlFileEdit(file, (builder) {
-            builder
-                .addDeletion(SourceRange(startOffset, endOffset - startOffset));
+            builder.addDeletion(
+              SourceRange(startOffset, endOffset - startOffset),
+            );
           });
         }
       } else {
@@ -231,16 +242,18 @@ class PubspecFixGenerator {
               }
             }
 
-            var startOffset = prevEntry != null
-                ? prevEntry.value.span.end.offset
-                : (currentEntry.key as YamlNode).span.start.offset;
+            var startOffset =
+                prevEntry != null
+                    ? prevEntry.value.span.end.offset
+                    : (currentEntry.key as YamlNode).span.start.offset;
             // If nextEntry is null, this is the last entry in the
             // dev_dependencies section, and also dev_dependencies is the the
             // last section in the pubspec file. So delete till the end of the
             // section.
-            var endOffset = nextEntry == null
-                ? currentEntry.value.span.end.offset
-                : (nextEntry.key as YamlNode).span.start.offset;
+            var endOffset =
+                nextEntry == null
+                    ? currentEntry.value.span.end.offset
+                    : (nextEntry.key as YamlNode).span.start.offset;
             // If entry in the middle of two other entries that are not to be
             // removed, delete the line.
             if (prevEntry != null &&
@@ -260,8 +273,12 @@ class PubspecFixGenerator {
             } else {
               // Edits don't conflict, add previously computed edit to builder.
               await builder.addYamlFileEdit(file, (builder) {
-                builder.addDeletion(SourceRange(
-                    edit!.startOffset, edit.endOffset - edit.startOffset));
+                builder.addDeletion(
+                  SourceRange(
+                    edit!.startOffset,
+                    edit.endOffset - edit.startOffset,
+                  ),
+                );
               });
               edit = _Range(startOffset, endOffset);
             }
@@ -271,8 +288,9 @@ class PubspecFixGenerator {
         // edit to builder.
         if (edit != null) {
           await builder.addYamlFileEdit(file, (builder) {
-            builder.addDeletion(SourceRange(
-                edit!.startOffset, edit.endOffset - edit.startOffset));
+            builder.addDeletion(
+              SourceRange(edit!.startOffset, edit.endOffset - edit.startOffset),
+            );
           });
         }
       }
@@ -284,7 +302,9 @@ class PubspecFixGenerator {
     var context = resourceProvider.pathContext;
     var packageName = _identifierFrom(context.basename(context.dirname(file)));
     var builder = ChangeBuilder(
-        workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+      eol: endOfLine,
+    );
     var firstOffset = _initialOffset(node);
     if (firstOffset < 0) {
       // The document contains a list, and we don't support converting it to a
@@ -301,7 +321,10 @@ class PubspecFixGenerator {
   }
 
   (String, int) _getTextAndOffset(
-      YamlMap node, String sectionName, List<String> packageNames) {
+    YamlMap node,
+    String sectionName,
+    List<String> packageNames,
+  ) {
     var section = node[sectionName];
     var buffer = StringBuffer();
     if (section == null) {
@@ -311,9 +334,10 @@ class PubspecFixGenerator {
       buffer.writeln('  $name: any');
     }
 
-    var offset = section == null
-        ? node.span.end.offset
-        : (section as YamlNode).span.end.offset;
+    var offset =
+        section == null
+            ? node.span.end.offset
+            : (section as YamlNode).span.end.offset;
 
     return (buffer.toString(), offset);
   }

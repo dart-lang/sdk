@@ -19,16 +19,23 @@ class EntryGroup {
   /// A list of all of the instances of this class.
   static final List<EntryGroup> groups = <EntryGroup>[
     EntryGroup._(
-        'nonTask', 'Non-task', (LogEntry entry) => entry is! TaskEntry),
+      'nonTask',
+      'Non-task',
+      (LogEntry entry) => entry is! TaskEntry,
+    ),
     EntryGroup._(
-        'errors',
-        'Errors',
-        (LogEntry entry) =>
-            entry is ErrorEntry ||
-            entry is ExceptionEntry ||
-            (entry is NotificationEntry && entry.isServerError)),
-    EntryGroup._('malformed', 'Malformed',
-        (LogEntry entry) => entry is MalformedLogEntry),
+      'errors',
+      'Errors',
+      (LogEntry entry) =>
+          entry is ErrorEntry ||
+          entry is ExceptionEntry ||
+          (entry is NotificationEntry && entry.isServerError),
+    ),
+    EntryGroup._(
+      'malformed',
+      'Malformed',
+      (LogEntry entry) => entry is MalformedLogEntry,
+    ),
     EntryGroup._('all', 'All', (LogEntry entry) => true),
   ];
 
@@ -87,7 +94,11 @@ class ErrorEntry extends GenericEntry {
 class ExceptionEntry extends GenericEntry {
   /// Initialize a newly created log entry.
   ExceptionEntry(
-      super.index, super.timeStamp, super.entryKind, super.components);
+    super.index,
+    super.timeStamp,
+    super.entryKind,
+    super.components,
+  );
 }
 
 /// A representation of a generic log entry.
@@ -122,8 +133,13 @@ class GenericPluginEntry extends GenericEntry with PluginEntryMixin {
   final List<String> pluginData;
 
   /// Initialize a newly created log entry.
-  GenericPluginEntry(super.index, super.timeStamp, super.entryKind,
-      super.components, this.pluginData);
+  GenericPluginEntry(
+    super.index,
+    super.timeStamp,
+    super.entryKind,
+    super.components,
+    this.pluginData,
+  );
 }
 
 /// A representation of an instrumentation log.
@@ -309,18 +325,21 @@ class InstrumentationLog {
               if (analysisStatus['isAnalyzing'] as bool) {
                 if (analysisStartEntry != null) {
                   analysisStartEntry.recordProblem(
-                      'Analysis started without being terminated.');
+                    'Analysis started without being terminated.',
+                  );
                 }
                 analysisStartEntry = entry;
                 analysisStartIndex = logEntries.length - 1;
               } else {
                 if (analysisStartEntry == null) {
                   entry.recordProblem(
-                      'Analysis terminated without being started.');
+                    'Analysis terminated without being started.',
+                  );
                 } else {
                   var analysisEnd = logEntries.length - 1;
-                  analysisRanges
-                      .add(EntryRange(analysisStartIndex, analysisEnd));
+                  analysisRanges.add(
+                    EntryRange(analysisStartIndex, analysisEnd),
+                  );
                   _pairedEntries[entry] = analysisStartEntry;
                   _pairedEntries[analysisStartEntry] = entry;
                   analysisStartEntry = null;
@@ -333,7 +352,8 @@ class InstrumentationLog {
               if (pubStatus['isListingPackageDirs'] as bool) {
                 if (pubStartEntry != null) {
                   pubStartEntry.recordProblem(
-                      'Pub started without previous being terminated.');
+                    'Pub started without previous being terminated.',
+                  );
                 }
                 pubStartEntry = entry;
               } else {
@@ -365,12 +385,14 @@ class InstrumentationLog {
       }
     }
     if (analysisStartEntry != null) {
-      analysisStartEntry
-          .recordProblem('Analysis started without being terminated.');
+      analysisStartEntry.recordProblem(
+        'Analysis started without being terminated.',
+      );
     }
     if (pubStartEntry != null) {
-      pubStartEntry
-          .recordProblem('Pub started without previous being terminated.');
+      pubStartEntry.recordProblem(
+        'Pub started without previous being terminated.',
+      );
     }
   }
 }
@@ -472,7 +494,11 @@ abstract class JsonBasedPluginEntry extends JsonBasedEntry
   /// [notificationData] and to be associated with the plugin with the given
   /// [pluginData].
   JsonBasedPluginEntry(
-      super.index, super.timeStamp, super.notificationData, this.pluginData);
+    super.index,
+    super.timeStamp,
+    super.notificationData,
+    this.pluginData,
+  );
 }
 
 /// A single entry in an instrumentation log.
@@ -572,34 +598,65 @@ abstract class LogEntry {
         return ErrorEntry(index, timeStamp, entryKind, components.sublist(2));
       } else if (entryKind == InstrumentationLogAdapter.TAG_EXCEPTION) {
         return ExceptionEntry(
-            index, timeStamp, entryKind, components.sublist(2));
+          index,
+          timeStamp,
+          entryKind,
+          components.sublist(2),
+        );
       } else if (entryKind == InstrumentationLogAdapter.TAG_LOG_ENTRY) {
         // Fall through
       } else if (entryKind == InstrumentationLogAdapter.TAG_NOTIFICATION) {
         var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return NotificationEntry(index, timeStamp, requestData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_ERROR) {
-        return PluginErrorEntry(index, timeStamp, entryKind,
-            components.sublist(2, 4), components.sublist(4));
+        return PluginErrorEntry(
+          index,
+          timeStamp,
+          entryKind,
+          components.sublist(2, 4),
+          components.sublist(4),
+        );
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION) {
-        return PluginExceptionEntry(index, timeStamp, entryKind,
-            components.sublist(2, 5), components.sublist(5));
+        return PluginExceptionEntry(
+          index,
+          timeStamp,
+          entryKind,
+          components.sublist(2, 5),
+          components.sublist(5),
+        );
       } else if (entryKind ==
           InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION) {
         var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return PluginNotificationEntry(
-            index, timeStamp, requestData, components.sublist(3));
+          index,
+          timeStamp,
+          requestData,
+          components.sublist(3),
+        );
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_REQUEST) {
         var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return PluginRequestEntry(
-            index, timeStamp, requestData, components.sublist(3));
+          index,
+          timeStamp,
+          requestData,
+          components.sublist(3),
+        );
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE) {
         var responseData = json.decode(components[2]) as Map<Object?, Object?>;
         return PluginResponseEntry(
-            index, timeStamp, responseData, components.sublist(3));
+          index,
+          timeStamp,
+          responseData,
+          components.sublist(3),
+        );
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT) {
-        return PluginErrorEntry(index, timeStamp, entryKind,
-            components.sublist(2, 3), components.sublist(3));
+        return PluginErrorEntry(
+          index,
+          timeStamp,
+          entryKind,
+          components.sublist(2, 3),
+          components.sublist(3),
+        );
       } else if (entryKind == InstrumentationLogAdapter.TAG_REQUEST) {
         var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return RequestEntry(index, timeStamp, requestData);
@@ -721,15 +778,25 @@ mixin PluginEntryMixin {
 /// A log entry representing an PluginErr entry.
 class PluginErrorEntry extends GenericPluginEntry {
   /// Initialize a newly created log entry.
-  PluginErrorEntry(super.index, super.timeStamp, super.entryKind,
-      super.components, super.pluginData);
+  PluginErrorEntry(
+    super.index,
+    super.timeStamp,
+    super.entryKind,
+    super.components,
+    super.pluginData,
+  );
 }
 
 /// A log entry representing an PluginEx entry.
 class PluginExceptionEntry extends GenericPluginEntry {
   /// Initialize a newly created log entry.
-  PluginExceptionEntry(super.index, super.timeStamp, super.entryKind,
-      super.components, super.pluginData);
+  PluginExceptionEntry(
+    super.index,
+    super.timeStamp,
+    super.entryKind,
+    super.components,
+    super.pluginData,
+  );
 }
 
 /// A log entry representing a notification that was sent from a plugin to the
@@ -738,7 +805,11 @@ class PluginNotificationEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created notification to have the given [timeStamp] and
   /// [notificationData].
   PluginNotificationEntry(
-      super.index, super.timeStamp, super.notificationData, super.pluginData);
+    super.index,
+    super.timeStamp,
+    super.notificationData,
+    super.pluginData,
+  );
 
   /// Return the event field of the notification.
   String get event => data['event'] as String;
@@ -763,7 +834,11 @@ class PluginRequestEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [requestData].
   PluginRequestEntry(
-      super.index, super.timeStamp, super.requestData, super.pluginData);
+    super.index,
+    super.timeStamp,
+    super.requestData,
+    super.pluginData,
+  );
 
   /// Return the id field of the request.
   String get id => data['id'] as String;
@@ -791,7 +866,11 @@ class PluginResponseEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [responseData].
   PluginResponseEntry(
-      super.index, super.timeStamp, super.responseData, super.pluginData);
+    super.index,
+    super.timeStamp,
+    super.responseData,
+    super.pluginData,
+  );
 
   /// Return the id field of the response.
   String get id => data['id'] as String;

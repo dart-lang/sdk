@@ -48,7 +48,8 @@ f(bool b) {
 
   Future<void> test_conditional_list_noAssistWithLint() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.prefer_if_elements_to_conditional_expressions]);
+      lints: [LintNames.prefer_if_elements_to_conditional_expressions],
+    );
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 f(bool b) {

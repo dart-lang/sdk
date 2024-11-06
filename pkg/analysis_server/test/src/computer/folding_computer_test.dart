@@ -21,7 +21,7 @@ class FoldingComputerTest extends AbstractContextTest {
   static const commentKinds = {
     FoldingKind.FILE_HEADER,
     FoldingKind.COMMENT,
-    FoldingKind.DOCUMENTATION_COMMENT
+    FoldingKind.DOCUMENTATION_COMMENT,
   };
 
   late String sourcePath;
@@ -40,16 +40,22 @@ class FoldingComputerTest extends AbstractContextTest {
   ///
   /// If [onlyVerify] is provided, only folding regions with matching kinds will
   /// be verified.
-  void expectRegions(Map<int, FoldingKind> expected,
-      {Set<FoldingKind>? onlyVerify}) {
-    var expectedRegions = expected.entries.map((entry) {
-      var range = code.ranges[entry.key].sourceRange;
-      return FoldingRegion(entry.value, range.offset, range.length);
-    }).toSet();
+  void expectRegions(
+    Map<int, FoldingKind> expected, {
+    Set<FoldingKind>? onlyVerify,
+  }) {
+    var expectedRegions =
+        expected.entries.map((entry) {
+          var range = code.ranges[entry.key].sourceRange;
+          return FoldingRegion(entry.value, range.offset, range.length);
+        }).toSet();
 
-    var actualRegions = onlyVerify == null
-        ? regions.toSet()
-        : regions.where((region) => onlyVerify.contains(region.kind)).toSet();
+    var actualRegions =
+        onlyVerify == null
+            ? regions.toSet()
+            : regions
+                .where((region) => onlyVerify.contains(region.kind))
+                .toSet();
 
     expect(actualRegions, expectedRegions);
   }
@@ -68,9 +74,7 @@ class MyClass {}
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-    });
+    expectRegions({0: FoldingKind.ANNOTATIONS});
   }
 
   Future<void> test_annotations_class_constructor() async {
@@ -87,12 +91,10 @@ class MyClass {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-      1: FoldingKind.ANNOTATIONS,
-    }, onlyVerify: {
-      FoldingKind.ANNOTATIONS
-    });
+    expectRegions(
+      {0: FoldingKind.ANNOTATIONS, 1: FoldingKind.ANNOTATIONS},
+      onlyVerify: {FoldingKind.ANNOTATIONS},
+    );
   }
 
   Future<void> test_annotations_class_field() async {
@@ -105,11 +107,10 @@ class MyClass {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-    }, onlyVerify: {
-      FoldingKind.ANNOTATIONS
-    });
+    expectRegions(
+      {0: FoldingKind.ANNOTATIONS},
+      onlyVerify: {FoldingKind.ANNOTATIONS},
+    );
   }
 
   Future<void> test_annotations_class_getterSetter() async {
@@ -126,12 +127,10 @@ class MyClass {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-      1: FoldingKind.ANNOTATIONS,
-    }, onlyVerify: {
-      FoldingKind.ANNOTATIONS
-    });
+    expectRegions(
+      {0: FoldingKind.ANNOTATIONS, 1: FoldingKind.ANNOTATIONS},
+      onlyVerify: {FoldingKind.ANNOTATIONS},
+    );
   }
 
   Future<void> test_annotations_class_method() async {
@@ -144,11 +143,10 @@ class MyClass {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.ANNOTATIONS,
-    }, onlyVerify: {
-      FoldingKind.ANNOTATIONS
-    });
+    expectRegions(
+      {0: FoldingKind.ANNOTATIONS},
+      onlyVerify: {FoldingKind.ANNOTATIONS},
+    );
   }
 
   Future<void> test_annotations_multiline() async {
@@ -162,12 +160,8 @@ void f() {}
 
     await _computeRegions(content);
     expectRegions(
-      {
-        0: FoldingKind.ANNOTATIONS,
-      },
-      onlyVerify: {
-        FoldingKind.ANNOTATIONS,
-      },
+      {0: FoldingKind.ANNOTATIONS},
+      onlyVerify: {FoldingKind.ANNOTATIONS},
     );
   }
 
@@ -184,12 +178,8 @@ main3() {}
 
     await _computeRegions(content);
     expectRegions(
-      {
-        0: FoldingKind.ANNOTATIONS,
-      },
-      onlyVerify: {
-        FoldingKind.ANNOTATIONS,
-      },
+      {0: FoldingKind.ANNOTATIONS},
+      onlyVerify: {FoldingKind.ANNOTATIONS},
     );
   }
 
@@ -216,13 +206,11 @@ class C/*[0*/ {
 }/*0]*/
 ''';
     await _computeRegions(content);
-    expectRegions(
-      {
-        0: FoldingKind.CLASS_BODY,
-        1: FoldingKind.FUNCTION_BODY,
-        2: FoldingKind.INVOCATION,
-      },
-    );
+    expectRegions({
+      0: FoldingKind.CLASS_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+      2: FoldingKind.INVOCATION,
+    });
   }
 
   Future<void> test_assertStatement() async {
@@ -235,10 +223,7 @@ void f/*[0*/() {
 }/*0]*/
 ''';
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.INVOCATION,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.INVOCATION});
   }
 
   Future<void> test_class() async {
@@ -274,9 +259,7 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.COMMENT,
-    });
+    expectRegions({0: FoldingKind.COMMENT});
   }
 
   Future<void> test_comment_multiline() async {
@@ -292,10 +275,7 @@ void f() {}
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.COMMENT,
-      1: FoldingKind.COMMENT,
-    });
+    expectRegions({0: FoldingKind.COMMENT, 1: FoldingKind.COMMENT});
   }
 
   Future<void> test_comment_singleFollowedByBlankLine() async {
@@ -308,9 +288,7 @@ void f() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.COMMENT,
-    }, onlyVerify: commentKinds);
+    expectRegions({0: FoldingKind.COMMENT}, onlyVerify: commentKinds);
   }
 
   Future<void> test_comment_singleFollowedByMulti() async {
@@ -324,9 +302,7 @@ void f() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.COMMENT,
-    }, onlyVerify: commentKinds);
+    expectRegions({0: FoldingKind.COMMENT}, onlyVerify: commentKinds);
   }
 
   Future<void> test_comment_singleFollowedByTripleSlash() async {
@@ -339,9 +315,7 @@ void f() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.COMMENT,
-    }, onlyVerify: commentKinds);
+    expectRegions({0: FoldingKind.COMMENT}, onlyVerify: commentKinds);
   }
 
   Future<void> test_constructor_invocations() async {
@@ -356,9 +330,7 @@ final a = new Text(/*[0*/
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.INVOCATION,
-    });
+    expectRegions({0: FoldingKind.INVOCATION});
   }
 
   Future<void> test_extensionType() async {
@@ -374,10 +346,7 @@ extension type E(int it) {/*[0*/
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.CLASS_BODY,
-      1: FoldingKind.FUNCTION_BODY,
-    });
+    expectRegions({0: FoldingKind.CLASS_BODY, 1: FoldingKind.FUNCTION_BODY});
   }
 
   Future<void> test_file_header() async {
@@ -391,11 +360,10 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FILE_HEADER,
-    }, onlyVerify: {
-      FoldingKind.FILE_HEADER
-    });
+    expectRegions(
+      {0: FoldingKind.FILE_HEADER},
+      onlyVerify: {FoldingKind.FILE_HEADER},
+    );
   }
 
   Future<void> test_file_header_does_not_include_block_comments() async {
@@ -422,9 +390,7 @@ void f() {}
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FILE_HEADER,
-    });
+    expectRegions({0: FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_with_non_end_of_line_comment() async {
@@ -437,9 +403,7 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FILE_HEADER,
-    });
+    expectRegions({0: FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_with_script_prefix() async {
@@ -454,11 +418,10 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FILE_HEADER,
-    }, onlyVerify: {
-      FoldingKind.FILE_HEADER
-    });
+    expectRegions(
+      {0: FoldingKind.FILE_HEADER},
+      onlyVerify: {FoldingKind.FILE_HEADER},
+    );
   }
 
   Future<void> test_fileHeader_singleFollowedByBlank() async {
@@ -471,9 +434,7 @@ void f() {}
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FILE_HEADER,
-    });
+    expectRegions({0: FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_function() async {
@@ -488,9 +449,7 @@ void f/*[0*/() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY});
   }
 
   Future<void> test_function_expression_invocation() async {
@@ -556,10 +515,7 @@ void f/*[0*/() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.FUNCTION_BODY,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.FUNCTION_BODY});
   }
 
   Future<void> test_function_with_dart_doc() async {
@@ -596,10 +552,7 @@ void f/*[0*/() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.INVOCATION,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.INVOCATION});
   }
 
   Future<void> test_literal_list() async {
@@ -617,10 +570,7 @@ void f/*[0*/() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.LITERAL,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
   }
 
   Future<void> test_literal_map() async {
@@ -638,10 +588,7 @@ void f/*[0*/() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.LITERAL,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
   }
 
   Future<void> test_literal_record() async {
@@ -685,10 +632,7 @@ mixin M/*[0*/ {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.CLASS_BODY,
-      1: FoldingKind.FUNCTION_BODY,
-    });
+    expectRegions({0: FoldingKind.CLASS_BODY, 1: FoldingKind.FUNCTION_BODY});
   }
 
   Future<void> test_multiple_directive_types() async {
@@ -705,9 +649,7 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.DIRECTIVES,
-    });
+    expectRegions({0: FoldingKind.DIRECTIVES});
   }
 
   Future<void> test_multiple_import_directives() async {
@@ -724,9 +666,7 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.DIRECTIVES,
-    });
+    expectRegions({0: FoldingKind.DIRECTIVES});
   }
 
   Future<void> test_multiple_import_directives_partFile() async {
@@ -745,9 +685,7 @@ void f() {}
 """;
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.DIRECTIVES,
-    });
+    expectRegions({0: FoldingKind.DIRECTIVES});
   }
 
   Future<void> test_nested_function() async {
@@ -765,10 +703,7 @@ void f/*[0*/() {
 ''';
 
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.FUNCTION_BODY,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.FUNCTION_BODY});
   }
 
   Future<void> test_nested_invocations() async {
@@ -806,10 +741,7 @@ foo/*[0*/(
   }/*1]*/) {}/*0]*/
 ''';
     await _computeRegions(content);
-    expectRegions({
-      0: FoldingKind.FUNCTION_BODY,
-      1: FoldingKind.PARAMETERS,
-    });
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.PARAMETERS});
   }
 
   Future<void> test_parameters_method() async {

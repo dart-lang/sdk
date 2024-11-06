@@ -25,23 +25,26 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   Stream<Notification> notificationStream;
 
   factory ByteStreamClientChannel(Stream<List<int>> input, IOSink output) {
-    var jsonStream = input
-        .transform(const Utf8Decoder())
-        .transform(LineSplitter())
-        .transform(JsonStreamDecoder())
-        .where((json) => json is Map<String, Object?>)
-        .cast<Map<String, Object?>>()
-        .asBroadcastStream();
-    var responseStream = jsonStream
-        .where((json) => json[Notification.EVENT] == null)
-        .transform(ResponseConverter())
-        .where((response) => response != null)
-        .cast<Response>()
-        .asBroadcastStream();
-    var notificationStream = jsonStream
-        .where((json) => json[Notification.EVENT] != null)
-        .transform(NotificationConverter())
-        .asBroadcastStream();
+    var jsonStream =
+        input
+            .transform(const Utf8Decoder())
+            .transform(LineSplitter())
+            .transform(JsonStreamDecoder())
+            .where((json) => json is Map<String, Object?>)
+            .cast<Map<String, Object?>>()
+            .asBroadcastStream();
+    var responseStream =
+        jsonStream
+            .where((json) => json[Notification.EVENT] == null)
+            .transform(ResponseConverter())
+            .where((response) => response != null)
+            .cast<Response>()
+            .asBroadcastStream();
+    var notificationStream =
+        jsonStream
+            .where((json) => json[Notification.EVENT] != null)
+            .transform(NotificationConverter())
+            .asBroadcastStream();
     return ByteStreamClientChannel._(
       output,
       responseStream,
@@ -64,8 +67,9 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   Future<Response> sendRequest(Request request) async {
     var id = request.id;
     output.write('${json.encode(request.toJson())}\n');
-    return await responseStream
-        .firstWhere((Response response) => response.id == id);
+    return await responseStream.firstWhere(
+      (Response response) => response.id == id,
+    );
   }
 }
 
@@ -96,9 +100,10 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     ),
   );
 
-  ByteStreamServerChannel(this._instrumentationService,
-      {RequestStatisticsHelper? requestStatistics})
-      : _requestStatistics = requestStatistics {
+  ByteStreamServerChannel(
+    this._instrumentationService, {
+    RequestStatisticsHelper? requestStatistics,
+  }) : _requestStatistics = requestStatistics {
     _requestStatistics?.serverChannel = this;
   }
 
@@ -162,11 +167,14 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   /// Send the string [s] to [_output] followed by a newline.
   void _outputLine(String s) {
-    runZonedGuarded(() {
-      _output.writeln(s);
-    }, (e, s) {
-      close();
-    });
+    runZonedGuarded(
+      () {
+        _output.writeln(s);
+      },
+      (e, s) {
+        close();
+      },
+    );
   }
 
   /// Read a request from the given [data] and use the given function to handle
@@ -204,12 +212,16 @@ class InputOutputByteStreamServerChannel extends ByteStreamServerChannel {
   final IOSink _output;
 
   @override
-  late final Stream<String> _lines =
-      _input.transform(const Utf8Decoder()).transform(const LineSplitter());
+  late final Stream<String> _lines = _input
+      .transform(const Utf8Decoder())
+      .transform(const LineSplitter());
 
   InputOutputByteStreamServerChannel(
-      this._input, this._output, super._instrumentationService,
-      {super.requestStatistics});
+    this._input,
+    this._output,
+    super._instrumentationService, {
+    super.requestStatistics,
+  });
 }
 
 /// Communication channel that operates via stdin/stdout.
@@ -226,8 +238,10 @@ class StdinStdoutLineStreamServerChannel extends ByteStreamServerChannel {
   @override
   late final Stream<String> _lines = _linesFromIsolate.cast();
 
-  StdinStdoutLineStreamServerChannel(super._instrumentationService,
-      {super.requestStatistics}) {
+  StdinStdoutLineStreamServerChannel(
+    super._instrumentationService, {
+    super.requestStatistics,
+  }) {
     Isolate.spawn(_stdinInAnIsolate, _linesFromIsolate.sendPort);
   }
 

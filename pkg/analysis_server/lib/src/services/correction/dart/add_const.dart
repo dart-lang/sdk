@@ -96,16 +96,20 @@ class AddConst extends ResolvedCorrectionProducer {
     }
 
     bool isParentConstant(
-        DartFileEditBuilderImpl builder, Expression targetNode) {
+      DartFileEditBuilderImpl builder,
+      Expression targetNode,
+    ) {
       var edits = builder.fileEdit.edits;
       var child = targetNode.parent;
       while (child is Expression ||
           child is ArgumentList ||
           child is VariableDeclaration ||
           child is VariableDeclarationList) {
-        if (edits.any((element) =>
-            element.replacement.startsWith('const') &&
-            element.offset == child!.offset)) {
+        if (edits.any(
+          (element) =>
+              element.replacement.startsWith('const') &&
+              element.offset == child!.offset,
+        )) {
           return true;
         }
         child = child!.parent;
@@ -147,9 +151,10 @@ class AddConst extends ResolvedCorrectionProducer {
           getCodeStyleOptions(unitResult.file).preferConstDeclarations;
 
       if (parent is VariableDeclaration && constDeclarations) {
-        if (parent.parent
-            case VariableDeclarationList(:var finalKeyword?, :var variables)
-            when _declarationListIsFullyConst(variables)) {
+        if (parent.parent case VariableDeclarationList(
+          :var finalKeyword?,
+          :var variables,
+        ) when _declarationListIsFullyConst(variables)) {
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(range.token(finalKeyword), 'const');
           });

@@ -159,7 +159,8 @@ class A {
     _createRefactoring('test async');
     // error
     return _assertConditionsFatal(
-        'Cannot inline async into a function that does not return a Future.');
+      'Cannot inline async into a function that does not return a Future.',
+    );
   }
 
   Future<void> test_bad_asyncStar() async {
@@ -196,9 +197,12 @@ void f() {
     // error
     var status = await refactoring.checkAllConditions();
     var location = SourceRange(findOffset('..test()'), '..test()'.length);
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: 'Cannot inline cascade invocation.',
-        expectedContextRange: location);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'Cannot inline cascade invocation.',
+      expectedContextRange: location,
+    );
   }
 
   Future<void> test_bad_constructor() async {
@@ -230,9 +234,11 @@ void f() {
     refactoring.inlineAll = false;
     // final conditions
     status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            'All references must be inlined to remove the source.');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'All references must be inlined to remove the source.',
+    );
   }
 
   Future<void> test_bad_notExecutableElement() async {
@@ -626,7 +632,7 @@ second line
   }
 
   Future<void>
-      test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
+  test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
     await indexTestUnit(r'''
 class A {
   var c;
@@ -657,7 +663,7 @@ class B extends A {
   }
 
   Future<void>
-      test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
+  test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
     await indexTestUnit(r'''
 class A {
   var c;
@@ -832,7 +838,7 @@ void f() {
   }
 
   Future<void>
-      test_function_notStatement_oneStatement_variableDeclaration() async {
+  test_function_notStatement_oneStatement_variableDeclaration() async {
     await indexTestUnit(r'''
 test(int p) {
   print(p * 2);
@@ -1603,9 +1609,12 @@ void f() {
     // error
     var status = await refactoring.checkAllConditions();
     var location = SourceRange(findOffset('test();'), 'test()'.length);
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: 'No argument for the parameter "a".',
-        expectedContextRange: location);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'No argument for the parameter "a".',
+      expectedContextRange: location,
+    );
   }
 
   Future<void> test_reference_expressionBody() async {
@@ -1848,7 +1857,7 @@ void f() {
   }
 
   Future<void>
-      test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
+  test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
     await indexTestUnit(r'''
 test(a, b) {
   return a * (b);
@@ -1926,19 +1935,26 @@ class _InlineMethodTest extends RefactoringTest {
 
   Future<void> _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: message);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: message,
+    );
   }
 
   Future<void> _assertConditionsFatal(String message) async {
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: message);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: message,
+    );
   }
 
   Future<void> _assertInvalidSelection() {
     return _assertConditionsFatal(
-        'Method declaration or reference must be selected to activate this refactoring.');
+      'Method declaration or reference must be selected to activate this refactoring.',
+    );
   }
 
   Future<void> _assertSuccessfulRefactoring(String expectedCode) async {

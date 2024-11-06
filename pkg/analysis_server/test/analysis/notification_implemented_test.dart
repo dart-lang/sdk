@@ -39,8 +39,10 @@ class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
         return;
       }
     }
-    fail('Expect to find an implemented class at $offset'
-        ' in $implementedClasses');
+    fail(
+      'Expect to find an implemented class at $offset'
+      ' in $implementedClasses',
+    );
   }
 
   /// Validates that there is an [ImplementedClass] at the offset of [search].
@@ -60,8 +62,10 @@ class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
         return;
       }
     }
-    fail('Expect to find an implemented member at $offset'
-        ' in $implementedMembers');
+    fail(
+      'Expect to find an implemented member at $offset'
+      ' in $implementedMembers',
+    );
   }
 
   /// Validates that there is no [ImplementedMember] at the offset of [search].
@@ -78,8 +82,10 @@ class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
     }
     for (var member in implementedMembers!) {
       if (member.offset == offset) {
-        fail('Unexpected implemented member at $offset'
-            ' in $implementedMembers');
+        fail(
+          'Unexpected implemented member at $offset'
+          ' in $implementedMembers',
+        );
       }
     }
   }
@@ -93,8 +99,10 @@ class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
-      var params = AnalysisImplementedParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisImplementedParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         implementedClasses = params.classes;
         implementedMembers = params.members;
@@ -511,7 +519,7 @@ class C extends A {
   }
 
   Future<void>
-      test_ofClass_byClass_method_withMethod_private_differentLib() async {
+  test_ofClass_byClass_method_withMethod_private_differentLib() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 import 'test.dart';
 class B extends A {
@@ -528,7 +536,7 @@ class A {
   }
 
   Future<void>
-      test_ofClass_byClass_method_withMethod_private_sameLibrary() async {
+  test_ofClass_byClass_method_withMethod_private_sameLibrary() async {
     addTestFile('''
 class A {
   _m() {} // A
@@ -693,7 +701,9 @@ extension type B(int) implements A {
         return Future.value();
       }
       return Future.delayed(
-          Duration(milliseconds: 1), () => waitForNotification(times - 1));
+        Duration(milliseconds: 1),
+        () => waitForNotification(times - 1),
+      );
     }
 
     return waitForNotification(30000);

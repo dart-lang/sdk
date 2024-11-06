@@ -22,11 +22,18 @@ class CiderAssistsComputer {
   final Map<ProducerGenerator, Set<LintCode>> _producerGeneratorsForLintRules;
 
   CiderAssistsComputer(
-      this._logger, this._fileResolver, this._producerGeneratorsForLintRules);
+    this._logger,
+    this._fileResolver,
+    this._producerGeneratorsForLintRules,
+  );
 
   /// Compute quick assists on the line and character position.
   Future<List<Assist>> compute(
-      String path, int lineNumber, int colNumber, int length) async {
+    String path,
+    int lineNumber,
+    int colNumber,
+    int length,
+  ) async {
     var result = <Assist>[];
     var resolvedUnit = await _fileResolver.resolve(path: path);
     var lineInfo = resolvedUnit.lineInfo;

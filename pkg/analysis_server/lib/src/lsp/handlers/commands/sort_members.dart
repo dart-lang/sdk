@@ -25,10 +25,12 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     CancellationToken cancellationToken,
   ) async {
     if (parameters['path'] is! String) {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message: '$commandName requires a Map argument containing a "path"',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message: '$commandName requires a Map argument containing a "path"',
+        ),
+      );
     }
 
     // Get the version of the doc before we calculate edits so we can send it back
@@ -49,10 +51,12 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       if (autoTriggered) {
         return success(null);
       }
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.FileNotAnalyzed,
-        message: '$commandName is only available for analyzed files',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.FileNotAnalyzed,
+          message: '$commandName is only available for analyzed files',
+        ),
+      );
     }
 
     var code = result.content;
@@ -62,16 +66,22 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       if (autoTriggered) {
         return success(null);
       }
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.FileHasErrors,
-        message:
-            'Unable to $commandName because the file contains parse errors',
-        data: path,
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.FileHasErrors,
+          message:
+              'Unable to $commandName because the file contains parse errors',
+          data: path,
+        ),
+      );
     }
 
     var sorter = MemberSorter(
-        code, unit, result.analysisOptions.codeStyleOptions, result.lineInfo);
+      code,
+      unit,
+      result.analysisOptions.codeStyleOptions,
+      result.lineInfo,
+    );
     var edits = sorter.sort();
 
     if (edits.isEmpty) {

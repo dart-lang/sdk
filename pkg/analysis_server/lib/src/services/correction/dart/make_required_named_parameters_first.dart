@@ -69,7 +69,10 @@ class MakeRequiredNamedParametersFirst extends ResolvedCorrectionProducer {
       SourceRange? lastRange;
       for (var index in requiredParameterIndices) {
         var sourceRange = range.nodeInListWithComments(
-            lineInfo, parameters, parameters[index]);
+          lineInfo,
+          parameters,
+          parameters[index],
+        );
         if (sourceRange.offset >= (lastRange?.end ?? 0)) {
           builder.addDeletion(sourceRange);
         }

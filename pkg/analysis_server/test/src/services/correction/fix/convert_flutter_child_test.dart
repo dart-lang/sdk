@@ -22,9 +22,7 @@ class ConvertFlutterChildTest extends FixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_hasList() async {

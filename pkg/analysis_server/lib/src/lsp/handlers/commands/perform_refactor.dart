@@ -50,7 +50,12 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
 
     return result.mapResult((result) async {
       var refactoring = await getRefactoring(
-          RefactoringKind(kind), result, offset, length, options);
+        RefactoringKind(kind),
+        result,
+        offset,
+        length,
+        options,
+      );
       return refactoring.mapResult((refactoring) async {
         // Don't include potential edits in refactorings until there is some UI
         // for the user to control this.

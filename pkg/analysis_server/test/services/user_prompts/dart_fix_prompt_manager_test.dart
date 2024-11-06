@@ -42,12 +42,14 @@ class DartFixPromptTest
   }) {
     setApplyEditSupport(applyEditSupport);
     setChangeAnnotationSupport(changeAnnotationSupport);
-    server.editorClientCapabilities = LspClientCapabilities(ClientCapabilities(
-      workspace: workspaceCapabilities,
-      textDocument: textDocumentCapabilities,
-      window: windowCapabilities,
-      experimental: experimentalCapabilities,
-    ));
+    server.editorClientCapabilities = LspClientCapabilities(
+      ClientCapabilities(
+        workspace: workspaceCapabilities,
+        textDocument: textDocumentCapabilities,
+        window: windowCapabilities,
+        experimental: experimentalCapabilities,
+      ),
+    );
 
     // Temporary flag to let editor control this for now.
     server.initializationOptions = LspInitializationOptions({
@@ -60,7 +62,7 @@ class DartFixPromptTest
     expect(server.lastPromptText, DartFixPromptManager.externalFixPromptText);
     expect(server.lastPromptActions, [
       DartFixPromptManager.learnMoreActionText,
-      DartFixPromptManager.doNotShowAgainActionText
+      DartFixPromptManager.doNotShowAgainActionText,
     ]);
   }
 
@@ -70,7 +72,7 @@ class DartFixPromptTest
     expect(server.lastPromptActions, [
       DartFixPromptManager.previewFixesActionText,
       DartFixPromptManager.applyFixesActionText,
-      DartFixPromptManager.doNotShowAgainActionText
+      DartFixPromptManager.doNotShowAgainActionText,
     ]);
   }
 
@@ -244,9 +246,7 @@ class DartFixPromptTest
   }
 
   Future<void> test_promptKind_external_noApplyEdit() async {
-    configureInEditorPromptSupport(
-      applyEditSupport: false,
-    );
+    configureInEditorPromptSupport(applyEditSupport: false);
 
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -254,9 +254,7 @@ class DartFixPromptTest
   }
 
   Future<void> test_promptKind_external_noChangeAnnotations() async {
-    configureInEditorPromptSupport(
-      changeAnnotationSupport: false,
-    );
+    configureInEditorPromptSupport(changeAnnotationSupport: false);
 
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -264,9 +262,7 @@ class DartFixPromptTest
   }
 
   Future<void> test_promptKind_external_noClientFlag() async {
-    configureInEditorPromptSupport(
-      editorInitializationOption: false,
-    );
+    configureInEditorPromptSupport(editorInitializationOption: false);
 
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -348,8 +344,11 @@ class TestExecuteCommandHandler implements ExecuteCommandHandler {
   ExecuteCommandParams? lastParams;
 
   @override
-  Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<Object?>> handle(
+    ExecuteCommandParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     lastParams = params;
     return success(null);
   }
@@ -380,8 +379,9 @@ class TestServer implements LspAnalysisServer {
   List<String>? lastPromptActions;
 
   @override
-  LspClientCapabilities editorClientCapabilities =
-      LspClientCapabilities(ClientCapabilities());
+  LspClientCapabilities editorClientCapabilities = LspClientCapabilities(
+    ClientCapabilities(),
+  );
 
   @override
   LspInitializationOptions? initializationOptions;
@@ -394,14 +394,15 @@ class TestServer implements LspAnalysisServer {
       (executeCommandHandler as TestExecuteCommandHandler).lastParams!;
 
   @override
-  UserPromptSender? get userPromptSender => supportsShowMessageRequest
-      ? (_, promptText, promptActions) async {
-          lastPromptText = promptText;
-          lastPromptActions = promptActions;
-          assert(promptActions.contains(respondToPromptWithAction));
-          return respondToPromptWithAction;
-        }
-      : null;
+  UserPromptSender? get userPromptSender =>
+      supportsShowMessageRequest
+          ? (_, promptText, promptActions) async {
+            lastPromptText = promptText;
+            lastPromptActions = promptActions;
+            assert(promptActions.contains(respondToPromptWithAction));
+            return respondToPromptWithAction;
+          }
+          : null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

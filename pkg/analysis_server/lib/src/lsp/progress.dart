@@ -16,16 +16,18 @@ abstract class ProgressReporter {
   /// Creates a reporter for a token that was supplied by the client and does
   /// not need creating prior to use.
   factory ProgressReporter.clientProvided(
-          LspAnalysisServer server, ProgressToken token) =>
-      _TokenProgressReporter(server, token);
+    LspAnalysisServer server,
+    ProgressToken token,
+  ) => _TokenProgressReporter(server, token);
 
   /// Creates a reporter for a new token that must be created prior to being
   /// used.
   ///
   /// If [token] is not supplied, a random identifier will be used.
-  factory ProgressReporter.serverCreated(LspAnalysisServer server,
-          [ProgressToken? token]) =>
-      _ServerCreatedProgressReporter(server, token);
+  factory ProgressReporter.serverCreated(
+    LspAnalysisServer server, [
+    ProgressToken? token,
+  ]) => _ServerCreatedProgressReporter(server, token);
 
   ProgressReporter._();
 
@@ -47,32 +49,31 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
   static final _random = Random();
   Future<bool>? _tokenBeginRequest;
 
-  _ServerCreatedProgressReporter(
-    LspAnalysisServer server,
-    ProgressToken? token,
-  ) : super(
-          server,
-          token ?? ProgressToken.t2(_randomTokenIdentifier()),
-        );
+  _ServerCreatedProgressReporter(LspAnalysisServer server, ProgressToken? token)
+    : super(server, token ?? ProgressToken.t2(_randomTokenIdentifier()));
 
   @override
   Future<void> begin(String? title, {String? message}) async {
-    assert(_tokenBeginRequest == null,
-        'Begin should not be called more than once');
+    assert(
+      _tokenBeginRequest == null,
+      'Begin should not be called more than once',
+    );
 
     // Put the create/begin into a future so if end() is called before the
     // begin is sent (which could happen because create is async), end will
     // not be sent/return too early.
     _tokenBeginRequest = _server
-        .sendRequest(Method.window_workDoneProgress_create,
-            WorkDoneProgressCreateParams(token: _token))
+        .sendRequest(
+          Method.window_workDoneProgress_create,
+          WorkDoneProgressCreateParams(token: _token),
+        )
         .then((response) {
-      // If the client did not create a token, do not send begin (and signal
-      // that we should also not send end).
-      if (response.error != null) return false;
-      super.begin(title, message: message);
-      return true;
-    });
+          // If the client did not create a token, do not send begin (and signal
+          // that we should also not send end).
+          if (response.error != null) return false;
+          super.begin(title, message: message);
+          return true;
+        });
 
     await _tokenBeginRequest;
   }
@@ -110,7 +111,8 @@ class _TokenProgressReporter extends ProgressReporter {
   void begin(String? title, {String? message}) {
     _needsEnd = true;
     _sendNotification(
-        WorkDoneProgressBegin(title: title ?? 'Working…', message: message));
+      WorkDoneProgressBegin(title: title ?? 'Working…', message: message),
+    );
   }
 
   @override
@@ -121,12 +123,12 @@ class _TokenProgressReporter extends ProgressReporter {
   }
 
   void _sendNotification(ToJsonable value) async {
-    _server.sendLspNotification(NotificationMessage(
+    _server.sendLspNotification(
+      NotificationMessage(
         method: Method.progress,
-        params: ProgressParams(
-          token: _token,
-          value: value,
-        ),
-        jsonrpc: jsonRpcVersion));
+        params: ProgressParams(token: _token, value: value),
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
   }
 }

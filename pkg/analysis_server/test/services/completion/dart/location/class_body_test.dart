@@ -391,10 +391,7 @@ ${keywords.asKeywordSuggestions}
       validator: (context) {
         _printKeywordsOrClass();
 
-        var keywords = {
-          Keyword.DYNAMIC,
-          Keyword.VOID,
-        };
+        var keywords = {Keyword.DYNAMIC, Keyword.VOID};
 
         assertResponse('''
 suggestions
@@ -428,10 +425,7 @@ suggestions
       validator: (context) {
         _printKeywordsOrClass();
 
-        var keywords = {
-          Keyword.DYNAMIC,
-          Keyword.VOID,
-        };
+        var keywords = {Keyword.DYNAMIC, Keyword.VOID};
 
         assertResponse('''
 suggestions
@@ -444,16 +438,12 @@ ${keywords.asKeywordSuggestions}
   }
 
   Future<void> test_static_fx() async {
-    _printKeywordsOrClass(
-      sampleClassName: 'FutureOr',
-    );
+    _printKeywordsOrClass(sampleClassName: 'FutureOr');
 
     await _checkContainers(
       line: 'static f^',
       validator: (context) {
-        var keywords = {
-          Keyword.FINAL,
-        };
+        var keywords = {Keyword.FINAL};
 
         assertResponse('''
 replacement
@@ -544,17 +534,12 @@ ${keywords.asKeywordSuggestions}
   }
 
   Future<void> test_sx() async {
-    _printKeywordsOrClass(
-      sampleClassName: 'String',
-    );
+    _printKeywordsOrClass(sampleClassName: 'String');
 
     await _checkContainers(
       line: 's^',
       validator: (context) {
-        var keywords = {
-          Keyword.SET,
-          Keyword.STATIC,
-        };
+        var keywords = {Keyword.SET, Keyword.STATIC};
 
         assertResponse('''
 replacement
@@ -620,9 +605,7 @@ mixin M {
     }
   }
 
-  void _printKeywordsOrClass({
-    String sampleClassName = 'Object',
-  }) {
+  void _printKeywordsOrClass({String sampleClassName = 'Object'}) {
     printerConfiguration.sorting = printer.Sorting.completionThenKind;
     printerConfiguration.filter = (suggestion) {
       var completion = suggestion.completion;
@@ -692,7 +675,7 @@ suggestions
   }
 
   Future<void>
-      test_class_atOverride_afterLeftBrace_beforeField_prevLine() async {
+  test_class_atOverride_afterLeftBrace_beforeField_prevLine() async {
     await computeSuggestions('''
 class A {
   void foo01() {}
@@ -715,7 +698,7 @@ suggestions
   }
 
   Future<void>
-      test_class_atOverride_afterLeftBrace_beforeField_skipLine() async {
+  test_class_atOverride_afterLeftBrace_beforeField_skipLine() async {
     await computeSuggestions('''
 class A {
   void foo01() {}
@@ -1200,7 +1183,7 @@ suggestions
   }
 
   Future<void>
-      test_class_method_fromExtends_signatureHasUnimportedTypes() async {
+  test_class_method_fromExtends_signatureHasUnimportedTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 
@@ -1670,15 +1653,16 @@ class _Context {
     this.isMixin = false,
   });
 
-  String get where => isClass
-      ? ' in class'
-      : isEnum
+  String get where =>
+      isClass
+          ? ' in class'
+          : isEnum
           ? ' in enum'
           : isExtension
-              ? ' in extension'
-              : isExtensionType
-                  ? ' in extension type'
-                  : ' in mixin';
+          ? ' in extension'
+          : isExtensionType
+          ? ' in extension type'
+          : ' in mixin';
 }
 
 extension on Iterable<Keyword> {

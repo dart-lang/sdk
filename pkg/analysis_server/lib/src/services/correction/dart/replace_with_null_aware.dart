@@ -17,17 +17,18 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   String _operator = '.';
 
   ReplaceWithNullAware.inChain({required super.context})
-      : _correctionKind = _CorrectionKind.inChain;
+    : _correctionKind = _CorrectionKind.inChain;
 
   ReplaceWithNullAware.single({required super.context})
-      : _correctionKind = _CorrectionKind.single;
+    : _correctionKind = _CorrectionKind.single;
 
   @override
   CorrectionApplicability get applicability =>
-      // NNBD makes this obsolete in the "chain" application; for the "single"
-      // application, there are other options and a null-aware replacement is
-      // not predictably correct.
-      CorrectionApplicability.singleLocation;
+          // NNBD makes this obsolete in the "chain" application; for the "single"
+          // application, there are other options and a null-aware replacement is
+          // not predictably correct.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_operator, '?$_operator'];
@@ -105,7 +106,4 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
 }
 
 /// The kinds of corrections supported by [ReplaceWithNullAware].
-enum _CorrectionKind {
-  inChain,
-  single,
-}
+enum _CorrectionKind { inChain, single }

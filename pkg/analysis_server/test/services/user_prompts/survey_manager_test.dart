@@ -51,14 +51,11 @@ class SurveyManagerTest with ResourceProviderMixin {
 
   Future<void> test_survey_response() async {
     analytics.surveys = [
-      _survey(
-        'Which letter?',
-        [
-          _button('A', url: 'a'),
-          _button('B', url: 'b'),
-          _button('C'),
-        ],
-      )
+      _survey('Which letter?', [
+        _button('A', url: 'a'),
+        _button('B', url: 'b'),
+        _button('C'),
+      ]),
     ];
     server.respondWithButton = 'C';
     _createManager();
@@ -72,14 +69,11 @@ class SurveyManagerTest with ResourceProviderMixin {
 
   Future<void> test_survey_responseWithUrl() async {
     analytics.surveys = [
-      _survey(
-        'Which letter?',
-        [
-          _button('A', url: 'a'),
-          _button('B', url: 'b'),
-          _button('C'),
-        ],
-      )
+      _survey('Which letter?', [
+        _button('A', url: 'a'),
+        _button('B', url: 'b'),
+        _button('C'),
+      ]),
     ];
     server.respondWithButton = 'B';
     _createManager();
@@ -94,7 +88,7 @@ class SurveyManagerTest with ResourceProviderMixin {
   Future<void> test_unavailable_noOpenUriSupport() async {
     server.supportsOpenUri = false;
     analytics.surveys = [
-      _survey('Which letter?', [_button('A')])
+      _survey('Which letter?', [_button('A')]),
     ];
     server.respondWithButton = 'A';
     _createManager();
@@ -109,7 +103,7 @@ class SurveyManagerTest with ResourceProviderMixin {
   Future<void> test_unavailable_noShowMessageRequestSupport() async {
     server.supportsShowMessageRequest = false;
     analytics.surveys = [
-      _survey('Which letter?', [_button('A')])
+      _survey('Which letter?', [_button('A')]),
     ];
     server.respondWithButton = 'A';
     _createManager();
@@ -220,7 +214,10 @@ class TestServer implements AnalysisServer {
   /// Handle a prompt by returning the text from the button matching
   /// [respondWithButton].
   Future<String?> _handlePrompt(
-      MessageType type, String message, List<String> actionLabels) async {
+    MessageType type,
+    String message,
+    List<String> actionLabels,
+  ) async {
     return actionLabels.where((s) => s == respondWithButton).firstOrNull;
   }
 }

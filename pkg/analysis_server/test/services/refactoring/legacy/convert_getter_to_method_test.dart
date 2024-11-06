@@ -54,9 +54,7 @@ void f() {
 }
 ''');
     var element = findElement.topGet('test');
-    _createRefactoringForElement(
-      element,
-    );
+    _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int test() => 42;
@@ -131,8 +129,10 @@ class A {
     var refactoringChange = await refactoring.createChange();
 
     // Verify that `test.macro.dart` is unmodified.
-    expect(refactoringChange.edits.map((e) => e.file),
-        unorderedEquals([testFile.path]));
+    expect(
+      refactoringChange.edits.map((e) => e.file),
+      unorderedEquals([testFile.path]),
+    );
   }
 
   Future<void> test_change_multipleFiles() async {
@@ -180,7 +180,8 @@ String get foo => '';
 
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only getters in your workspace can be converted.');
+      'Only getters in your workspace can be converted.',
+    );
   }
 
   Future<void> test_checkInitialConditions_syntheticGetter() async {
@@ -193,13 +194,17 @@ void f() {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only explicit getters can be converted to methods.');
+      'Only explicit getters can be converted to methods.',
+    );
   }
 
   Future<void> _assertInitialConditions_fatal(String message) async {
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: message);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: message,
+    );
   }
 
   /// Checks that all conditions are OK and the result of applying [refactoring]
@@ -213,6 +218,9 @@ void f() {
 
   void _createRefactoringForElement(PropertyAccessorElement element) {
     refactoring = ConvertGetterToMethodRefactoring(
-        refactoringWorkspace, testAnalysisResult.session, element);
+      refactoringWorkspace,
+      testAnalysisResult.session,
+      element,
+    );
   }
 }

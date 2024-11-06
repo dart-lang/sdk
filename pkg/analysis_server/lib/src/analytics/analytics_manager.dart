@@ -137,10 +137,13 @@ class AnalyticsManager {
   }
 
   /// Record the number of [added] folders and [removed] folders.
-  void changedWorkspaceFolders(
-      {required List<String> added, required List<String> removed}) {
-    var requestData =
-        getRequestData(Method.workspace_didChangeWorkspaceFolders.toString());
+  void changedWorkspaceFolders({
+    required List<String> added,
+    required List<String> removed,
+  }) {
+    var requestData = getRequestData(
+      Method.workspace_didChangeWorkspaceFolders.toString(),
+    );
     requestData.addValue(addedKey, added.length);
     requestData.addValue(removedKey, removed.length);
   }
@@ -158,8 +161,10 @@ class AnalyticsManager {
 
         for (var processor in analysisOptions.errorProcessors) {
           var severity = processor.severity?.name ?? 'ignore';
-          var severityCounts =
-              _severityAdjustments.putIfAbsent(processor.code, () => {});
+          var severityCounts = _severityAdjustments.putIfAbsent(
+            processor.code,
+            () => {},
+          );
           severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
         }
       }
@@ -168,8 +173,9 @@ class AnalyticsManager {
 
   /// Record that the given [command] was executed.
   void executedCommand(String command) {
-    var requestData =
-        getRequestData(Method.workspace_executeCommand.toString());
+    var requestData = getRequestData(
+      Method.workspace_executeCommand.toString(),
+    );
     requestData.addEnumValue(commandEnumKey, command);
   }
 
@@ -180,16 +186,19 @@ class AnalyticsManager {
   }
 
   /// Record that the given [notification] was received and has been handled.
-  void handledNotificationMessage(
-      {required NotificationMessage notification,
-      required DateTime startTime,
-      required DateTime endTime}) {
+  void handledNotificationMessage({
+    required NotificationMessage notification,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) {
     var method = notification.method.toString();
     var requestTime = notification.clientRequestTime;
     var start = startTime.millisecondsSinceEpoch;
     var end = endTime.millisecondsSinceEpoch;
     var data = _completedNotifications.putIfAbsent(
-        method, () => NotificationData(method));
+      method,
+      () => NotificationData(method),
+    );
     if (requestTime != null) {
       data.latencyTimes.addValue(start - requestTime);
     }
@@ -226,19 +235,19 @@ class AnalyticsManager {
     assert((event.delta == null) == (event.period == null));
 
     if (delta == null || seconds == null) {
-      analytics.send(Event.memoryInfo(
-        rss: event.rss,
-      ));
+      analytics.send(Event.memoryInfo(rss: event.rss));
       return;
     }
 
     if (seconds == 0) seconds = 1;
 
-    analytics.send(Event.memoryInfo(
-      rss: event.rss,
-      periodSec: seconds,
-      mbPerSec: delta / seconds,
-    ));
+    analytics.send(
+      Event.memoryInfo(
+        rss: event.rss,
+        periodSec: seconds,
+        mbPerSec: delta / seconds,
+      ),
+    );
   }
 
   /// Record that the given [response] was sent to the client.
@@ -282,16 +291,24 @@ class AnalyticsManager {
   /// [startTime].
   void startedRequest({required Request request, required DateTime startTime}) {
     var method = request.method;
-    _activeRequests[request.id] =
-        ActiveRequestData(method, request.clientRequestTime, startTime);
+    _activeRequests[request.id] = ActiveRequestData(
+      method,
+      request.clientRequestTime,
+      startTime,
+    );
   }
 
   /// Record that the server started working on the give [request] at the given
   /// [startTime].
-  void startedRequestMessage(
-      {required RequestMessage request, required DateTime startTime}) {
+  void startedRequestMessage({
+    required RequestMessage request,
+    required DateTime startTime,
+  }) {
     _activeRequests[request.id.asLspIdString] = ActiveRequestData(
-        request.method.toString(), request.clientRequestTime, startTime);
+      request.method.toString(),
+      request.clientRequestTime,
+      startTime,
+    );
   }
 
   /// Record data from the given [params].
@@ -305,22 +322,26 @@ class AnalyticsManager {
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
     var requestData = getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
     requestData.addValue(
-        ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES, params.files.length);
+      ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES,
+      params.files.length,
+    );
   }
 
   /// Record that the server was started at the given [time], that it was passed
   /// the given command-line [arguments], that it was started by the client with
   /// the given [clientId] and [clientVersion].
-  void startUp(
-      {required DateTime time,
-      required List<String> arguments,
-      required String clientId,
-      required String? clientVersion}) {
+  void startUp({
+    required DateTime time,
+    required List<String> arguments,
+    required String clientId,
+    required String? clientVersion,
+  }) {
     _sessionData = SessionData(
-        startTime: time,
-        commandLineArguments: arguments.join(','),
-        clientId: clientId,
-        clientVersion: clientVersion ?? '');
+      startTime: time,
+      commandLineArguments: arguments.join(','),
+      clientId: clientId,
+      clientVersion: clientVersion ?? '',
+    );
   }
 
   /// Return an HTML representation of the data that has been recorded.
@@ -347,8 +368,8 @@ class AnalyticsManager {
     }
 
     List<MapEntry<String, V>> sorted<V>(
-            Iterable<MapEntry<String, V>> entries) =>
-        entries.sortedBy((entry) => entry.key);
+      Iterable<MapEntry<String, V>> entries,
+    ) => entries.sortedBy((entry) => entry.key);
 
     buffer.writeln('<hr>');
 
@@ -430,16 +451,34 @@ class AnalyticsManager {
       h3('Analysis data');
       buffer.writeln('<ul>');
       li('numberOfContexts: ${json.encode(analysisData.numberOfContexts)}');
-      li('contextsWithoutFiles: ${json.encode(analysisData.contextsWithoutFiles)}');
-      li('contextsFromPackagesFiles: ${json.encode(analysisData.contextsFromPackagesFiles)}');
-      li('contextsFromOptionsFiles: ${json.encode(analysisData.contextsFromOptionsFiles)}');
-      li('contextsFromBothFiles: ${json.encode(analysisData.contextsFromBothFiles)}');
+      li(
+        'contextsWithoutFiles: ${json.encode(analysisData.contextsWithoutFiles)}',
+      );
+      li(
+        'contextsFromPackagesFiles: ${json.encode(analysisData.contextsFromPackagesFiles)}',
+      );
+      li(
+        'contextsFromOptionsFiles: ${json.encode(analysisData.contextsFromOptionsFiles)}',
+      );
+      li(
+        'contextsFromBothFiles: ${json.encode(analysisData.contextsFromBothFiles)}',
+      );
       li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
-      li('immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}');
-      li('transitiveFileCount: ${json.encode(analysisData.transitiveFileCount)}');
-      li('transitiveFileLineCount: ${json.encode(analysisData.transitiveFileLineCount)}');
-      li('transitiveFileUniqueCount: ${json.encode(analysisData.transitiveFileUniqueCount)}');
-      li('transitiveFileUniqueLineCount: ${json.encode(analysisData.transitiveFileUniqueLineCount)}');
+      li(
+        'immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}',
+      );
+      li(
+        'transitiveFileCount: ${json.encode(analysisData.transitiveFileCount)}',
+      );
+      li(
+        'transitiveFileLineCount: ${json.encode(analysisData.transitiveFileLineCount)}',
+      );
+      li(
+        'transitiveFileUniqueCount: ${json.encode(analysisData.transitiveFileUniqueCount)}',
+      );
+      li(
+        'transitiveFileUniqueLineCount: ${json.encode(analysisData.transitiveFileUniqueLineCount)}',
+      );
       buffer.writeln('</ul>');
     }
 
@@ -474,20 +513,22 @@ class AnalyticsManager {
   Future<void> _sendAnalysisData() async {
     var contextStructure = _contextStructure;
     if (contextStructure != null) {
-      analytics.send(Event.contextStructure(
-        numberOfContexts: contextStructure.numberOfContexts,
-        contextsWithoutFiles: contextStructure.contextsWithoutFiles,
-        contextsFromPackagesFiles: contextStructure.contextsFromPackagesFiles,
-        contextsFromOptionsFiles: contextStructure.contextsFromOptionsFiles,
-        contextsFromBothFiles: contextStructure.contextsFromBothFiles,
-        immediateFileCount: contextStructure.immediateFileCount,
-        immediateFileLineCount: contextStructure.immediateFileLineCount,
-        transitiveFileCount: contextStructure.transitiveFileCount,
-        transitiveFileLineCount: contextStructure.transitiveFileLineCount,
-        transitiveFileUniqueCount: contextStructure.transitiveFileUniqueCount,
-        transitiveFileUniqueLineCount:
-            contextStructure.transitiveFileUniqueLineCount,
-      ));
+      analytics.send(
+        Event.contextStructure(
+          numberOfContexts: contextStructure.numberOfContexts,
+          contextsWithoutFiles: contextStructure.contextsWithoutFiles,
+          contextsFromPackagesFiles: contextStructure.contextsFromPackagesFiles,
+          contextsFromOptionsFiles: contextStructure.contextsFromOptionsFiles,
+          contextsFromBothFiles: contextStructure.contextsFromBothFiles,
+          immediateFileCount: contextStructure.immediateFileCount,
+          immediateFileLineCount: contextStructure.immediateFileLineCount,
+          transitiveFileCount: contextStructure.transitiveFileCount,
+          transitiveFileLineCount: contextStructure.transitiveFileLineCount,
+          transitiveFileUniqueCount: contextStructure.transitiveFileUniqueCount,
+          transitiveFileUniqueLineCount:
+              contextStructure.transitiveFileUniqueLineCount,
+        ),
+      );
     }
   }
 
@@ -498,10 +539,9 @@ class AnalyticsManager {
       var entries = _lintUsageCounts.entries.toList();
       _lintUsageCounts.clear();
       for (var entry in entries) {
-        analytics.send(Event.lintUsageCount(
-          count: entry.value,
-          name: entry.key,
-        ));
+        analytics.send(
+          Event.lintUsageCount(count: entry.value, name: entry.key),
+        );
       }
     }
   }
@@ -512,11 +552,13 @@ class AnalyticsManager {
       var completedNotifications = _completedNotifications.values.toList();
       _completedNotifications.clear();
       for (var data in completedNotifications) {
-        analytics.send(Event.clientNotification(
-          latency: data.latencyTimes.toAnalyticsString(),
-          method: data.method,
-          duration: data.handlingTimes.toAnalyticsString(),
-        ));
+        analytics.send(
+          Event.clientNotification(
+            latency: data.latencyTimes.toAnalyticsString(),
+            method: data.method,
+            duration: data.handlingTimes.toAnalyticsString(),
+          ),
+        );
       }
     }
   }
@@ -539,11 +581,13 @@ class AnalyticsManager {
       responseTimes.clear();
       for (var pluginEntry in entries) {
         for (var responseEntry in pluginEntry.value.entries) {
-          analytics.send(Event.pluginRequest(
-            pluginId: pluginEntry.key.safePluginId,
-            method: responseEntry.key,
-            duration: responseEntry.value.toAnalyticsString(),
-          ));
+          analytics.send(
+            Event.pluginRequest(
+              pluginId: pluginEntry.key.safePluginId,
+              method: responseEntry.key,
+              duration: responseEntry.value.toAnalyticsString(),
+            ),
+          );
         }
       }
     }
@@ -555,27 +599,30 @@ class AnalyticsManager {
       var completedRequests = _completedRequests.values.toList();
       _completedRequests.clear();
       for (var data in completedRequests) {
-        analytics.send(Event.clientRequest(
-          latency: data.latencyTimes.toAnalyticsString(),
-          method: data.method,
-          duration: data.responseTimes.toAnalyticsString(),
-          added: data.additionalPercentiles[addedKey]?.toAnalyticsString(),
-          excluded:
-              data.additionalPercentiles[excludedKey]?.toAnalyticsString(),
-          files: data.additionalPercentiles[filesKey]?.toAnalyticsString(),
-          included:
-              data.additionalPercentiles[includedKey]?.toAnalyticsString(),
-          openWorkspacePaths: data.additionalPercentiles[openWorkspacePathsKey]
-              ?.toAnalyticsString(),
-          removed: data.additionalPercentiles[removedKey]?.toAnalyticsString(),
-        ));
+        analytics.send(
+          Event.clientRequest(
+            latency: data.latencyTimes.toAnalyticsString(),
+            method: data.method,
+            duration: data.responseTimes.toAnalyticsString(),
+            added: data.additionalPercentiles[addedKey]?.toAnalyticsString(),
+            excluded:
+                data.additionalPercentiles[excludedKey]?.toAnalyticsString(),
+            files: data.additionalPercentiles[filesKey]?.toAnalyticsString(),
+            included:
+                data.additionalPercentiles[includedKey]?.toAnalyticsString(),
+            openWorkspacePaths:
+                data.additionalPercentiles[openWorkspacePathsKey]
+                    ?.toAnalyticsString(),
+            removed:
+                data.additionalPercentiles[removedKey]?.toAnalyticsString(),
+          ),
+        );
         var commandMap = data.additionalEnumCounts[commandEnumKey];
         if (commandMap != null) {
           for (var entry in commandMap.entries) {
-            analytics.send(Event.commandExecuted(
-              count: entry.value,
-              name: entry.key,
-            ));
+            analytics.send(
+              Event.commandExecuted(count: entry.value, name: entry.key),
+            );
           }
         }
         // TODO(brianwilkerson): We don't appear to have an event defined that we
@@ -590,18 +637,23 @@ class AnalyticsManager {
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-    analytics.send(Event.serverSession(
-      flags: sessionData.commandLineArguments,
-      parameters: sessionData.initializeParams,
-      clientId: sessionData.clientId,
-      clientVersion: sessionData.clientVersion,
-      duration: duration,
-    ));
+    analytics.send(
+      Event.serverSession(
+        flags: sessionData.commandLineArguments,
+        parameters: sessionData.initializeParams,
+        clientId: sessionData.clientId,
+        clientVersion: sessionData.clientVersion,
+        duration: duration,
+      ),
+    );
     for (var entry in _pluginData.usageCounts.entries) {
-      analytics.send(Event.pluginUse(
+      analytics.send(
+        Event.pluginUse(
           count: _pluginData.recordCount,
           enabled: entry.value.toAnalyticsString(),
-          pluginId: entry.key));
+          pluginId: entry.key,
+        ),
+      );
     }
   }
 
@@ -612,10 +664,12 @@ class AnalyticsManager {
       var entries = _severityAdjustments.entries.toList();
       _severityAdjustments.clear();
       for (var entry in entries) {
-        analytics.send(Event.severityAdjustment(
-          adjustments: json.encode(entry.value),
-          diagnostic: entry.key,
-        ));
+        analytics.send(
+          Event.severityAdjustment(
+            adjustments: json.encode(entry.value),
+            diagnostic: entry.key,
+          ),
+        );
       }
     }
   }

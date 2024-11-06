@@ -28,8 +28,11 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   bool lineFoldingOnly = false;
 
-  Future<void> computeRanges(String sourceContent,
-      {Uri? uri, void Function()? initializePlugin}) async {
+  Future<void> computeRanges(
+    String sourceContent, {
+    Uri? uri,
+    void Function()? initializePlugin,
+  }) async {
     uri ??= mainFileUri;
 
     code = TestCode.parse(sourceContent);
@@ -48,18 +51,21 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(ranges, isEmpty);
   }
 
-  void expectRanges(Map<int, FoldingRangeKind?> expected,
-      {bool requireAll = true}) {
-    var expectedRanges = expected.entries.map((entry) {
-      var range = code.ranges[entry.key].range;
-      return FoldingRange(
-        startLine: range.start.line,
-        startCharacter: lineFoldingOnly ? null : range.start.character,
-        endLine: range.end.line,
-        endCharacter: lineFoldingOnly ? null : range.end.character,
-        kind: entry.value,
-      );
-    }).toSet();
+  void expectRanges(
+    Map<int, FoldingRangeKind?> expected, {
+    bool requireAll = true,
+  }) {
+    var expectedRanges =
+        expected.entries.map((entry) {
+          var range = code.ranges[entry.key].range;
+          return FoldingRange(
+            startLine: range.start.line,
+            startCharacter: lineFoldingOnly ? null : range.start.character,
+            endLine: range.end.line,
+            endCharacter: lineFoldingOnly ? null : range.end.character,
+            kind: entry.value,
+          );
+        }).toSet();
 
     if (requireAll) {
       expect(ranges, expectedRanges);
@@ -79,9 +85,7 @@ class MyClass2/*[0*/ {
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind});
   }
 
   Future<void> test_comments() async {
@@ -92,9 +96,7 @@ class MyClass2 {}
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: FoldingRangeKind.Comment,
-    });
+    expectRanges({0: FoldingRangeKind.Comment});
   }
 
   Future<void> test_doLoop() async {
@@ -118,11 +120,7 @@ f/*[0*/(int i) {
 ''';
 
     await computeRanges(content);
-    expectRangesContain({
-      0: noFoldingKind,
-      1: noFoldingKind,
-      2: noFoldingKind,
-    });
+    expectRangesContain({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
   }
 
   Future<void> test_enum() async {
@@ -135,9 +133,7 @@ enum MyEnum {/*[0*/
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind});
   }
 
   Future<void> test_forLoop() async {
@@ -154,9 +150,7 @@ void f() {
 ''';
 
     await computeRanges(content);
-    expectRangesContain({
-      0: noFoldingKind,
-    });
+    expectRangesContain({0: noFoldingKind});
   }
 
   Future<void> test_fromPlugins_dartFile() async {
@@ -171,16 +165,16 @@ class AnnotatedDartClass/*[1*/ {
 }/*1]*/
 ''';
 
-    var pluginResult = plugin.AnalysisFoldingParams(
-      pluginAnalyzedFilePath,
-      [plugin.FoldingRegion(plugin.FoldingKind.DIRECTIVES, 3, 26)],
-    );
+    var pluginResult = plugin.AnalysisFoldingParams(pluginAnalyzedFilePath, [
+      plugin.FoldingRegion(plugin.FoldingKind.DIRECTIVES, 3, 26),
+    ]);
 
     await computeRanges(
       content,
       uri: pluginAnalyzedUri,
-      initializePlugin: () =>
-          configureTestPlugin(notification: pluginResult.toNotification()),
+      initializePlugin:
+          () =>
+              configureTestPlugin(notification: pluginResult.toNotification()),
     );
     expectRanges({
       0: FoldingRangeKind.Imports, // From plugin
@@ -198,16 +192,16 @@ CREATE TABLE foo(
 );
 ''';
 
-    var pluginResult = plugin.AnalysisFoldingParams(
-      pluginAnalyzedFilePath,
-      [plugin.FoldingRegion(plugin.FoldingKind.CLASS_BODY, 22, 15)],
-    );
+    var pluginResult = plugin.AnalysisFoldingParams(pluginAnalyzedFilePath, [
+      plugin.FoldingRegion(plugin.FoldingKind.CLASS_BODY, 22, 15),
+    ]);
 
     await computeRanges(
       content,
       uri: pluginAnalyzedUri,
-      initializePlugin: () =>
-          configureTestPlugin(notification: pluginResult.toNotification()),
+      initializePlugin:
+          () =>
+              configureTestPlugin(notification: pluginResult.toNotification()),
     );
     expectRanges({
       0: noFoldingKind, // From plugin
@@ -224,9 +218,7 @@ var x = () /*[0*/{
 ''';
 
     await computeRanges(content);
-    expectRangesContain({
-      0: noFoldingKind,
-    });
+    expectRangesContain({0: noFoldingKind});
   }
 
   Future<void> test_headersImportsComments() async {
@@ -267,11 +259,7 @@ f(int i) {
 ''';
 
     await computeRanges(content);
-    expectRangesContain({
-      0: noFoldingKind,
-      1: noFoldingKind,
-      2: noFoldingKind,
-    });
+    expectRangesContain({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
   }
 
   Future<void> test_multilineStrings() async {
@@ -296,11 +284,7 @@ var ix = /*[2*/"""
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-      1: noFoldingKind,
-      2: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
   }
 
   Future<void> test_multilineStrings_lineFoldingOnly() async {
@@ -326,11 +310,7 @@ var ix = """/*[2*/
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-      1: noFoldingKind,
-      2: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
   }
 
   Future<void> test_nested() async {
@@ -345,11 +325,7 @@ class MyClass2/*[0*/ {
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-      1: noFoldingKind,
-      2: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
   }
 
   Future<void> test_nested_lineFoldingOnly() async {
@@ -365,11 +341,7 @@ class MyClass2 {/*[0*/
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-      1: noFoldingKind,
-      2: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
   }
 
   Future<void> test_nonDartFile() async {
@@ -389,10 +361,7 @@ void f/*[0*/() {
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-      1: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind, 1: noFoldingKind});
   }
 
   /// When the client supports lineFoldingOnly, we cannot end a range on the
@@ -409,10 +378,7 @@ void f/*[0*/() {
 ''';
 
     await computeRanges(content);
-    expectRanges({
-      0: noFoldingKind,
-      1: noFoldingKind,
-    });
+    expectRanges({0: noFoldingKind, 1: noFoldingKind});
   }
 
   Future<void> test_recordLiteral() async {
@@ -426,9 +392,7 @@ void f() {
 ''';
 
     await computeRanges(content);
-    expectRangesContain({
-      0: noFoldingKind,
-    });
+    expectRangesContain({0: noFoldingKind});
   }
 
   Future<void> test_switchExpression() async {
@@ -447,14 +411,11 @@ void f(int a) {
 ''';
 
     await computeRanges(content);
-    expectRanges(
-      {
-        0: noFoldingKind,
-        1: noFoldingKind,
-        2: noFoldingKind,
-      },
-      requireAll: false,
-    );
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+    }, requireAll: false);
   }
 
   Future<void> test_switchPattern() async {
@@ -473,15 +434,12 @@ void f(int a) {
 ''';
 
     await computeRanges(content);
-    expectRanges(
-      {
-        0: noFoldingKind,
-        1: noFoldingKind,
-        2: noFoldingKind,
-        3: noFoldingKind,
-      },
-      requireAll: false,
-    );
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+      3: noFoldingKind,
+    }, requireAll: false);
   }
 
   Future<void> test_switchStatement() async {
@@ -504,15 +462,12 @@ void f(int a) {
 ''';
 
     await computeRanges(content);
-    expectRanges(
-      {
-        0: noFoldingKind,
-        1: noFoldingKind,
-        2: noFoldingKind,
-        3: noFoldingKind,
-      },
-      requireAll: false,
-    );
+    expectRanges({
+      0: noFoldingKind,
+      1: noFoldingKind,
+      2: noFoldingKind,
+      3: noFoldingKind,
+    }, requireAll: false);
   }
 
   Future<void> test_whileLoop() async {
@@ -536,9 +491,6 @@ f(int i) {
 ''';
 
     await computeRanges(content);
-    expectRangesContain({
-      0: noFoldingKind,
-      1: noFoldingKind,
-    });
+    expectRangesContain({0: noFoldingKind, 1: noFoldingKind});
   }
 }

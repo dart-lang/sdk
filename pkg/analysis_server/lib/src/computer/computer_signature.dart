@@ -25,8 +25,8 @@ class DartUnitSignatureComputer {
     CompilationUnit unit,
     int offset, {
     this.documentationPreference = DocumentationPreference.full,
-  })  : _documentationComputer = DartDocumentationComputer(dartdocInfo),
-        _node = NodeLocator(offset).searchWithin(unit);
+  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+       _node = NodeLocator(offset).searchWithin(unit);
 
   /// The [ArgumentList] node located by [compute].
   ArgumentList get argumentList => _argumentList;
@@ -57,8 +57,9 @@ class DartUnitSignatureComputer {
       element = ElementLocator.locate2(parent);
       parameters =
           element is FunctionTypedElement2 ? element.formalParameters : null;
-    } else if (parent
-        case FunctionExpressionInvocation(function: Identifier function)) {
+    } else if (parent case FunctionExpressionInvocation(
+      function: Identifier function,
+    )) {
       name = function.name;
 
       if (function.staticType case FunctionType functionType) {
@@ -92,16 +93,17 @@ class DartUnitSignatureComputer {
 
   ParameterInfo _convertParam(FormalParameterElement param) {
     return ParameterInfo(
-        param.isOptionalNamed
-            ? ParameterKind.OPTIONAL_NAMED
-            : param.isOptionalPositional
-                ? ParameterKind.OPTIONAL_POSITIONAL
-                : param.isRequiredNamed
-                    ? ParameterKind.REQUIRED_NAMED
-                    : ParameterKind.REQUIRED_POSITIONAL,
-        param.displayName,
-        param.type.getDisplayString(),
-        defaultValue: param.defaultValueCode);
+      param.isOptionalNamed
+          ? ParameterKind.OPTIONAL_NAMED
+          : param.isOptionalPositional
+          ? ParameterKind.OPTIONAL_POSITIONAL
+          : param.isRequiredNamed
+          ? ParameterKind.REQUIRED_NAMED
+          : ParameterKind.REQUIRED_POSITIONAL,
+      param.displayName,
+      param.type.getDisplayString(),
+      defaultValue: param.defaultValueCode,
+    );
   }
 
   /// Return the closest argument list surrounding the [_node].

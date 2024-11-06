@@ -28,24 +28,19 @@ class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   }
 
   Future<void> test_addFixToExistingErrorMap() async {
-    createAnalysisOptionsFile(
-      errors: {'unused_label': 'ignore'},
-    );
+    createAnalysisOptionsFile(errors: {'unused_label': 'ignore'});
 
     await resolveTestCode('''
 void f() {
   var a = 1;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 analyzer:
   errors:
     unused_label: ignore
     unused_local_variable: ignore
-''',
-      target: analysisOptionsPath,
-    );
+''', target: analysisOptionsPath);
   }
 
   Future<void> test_emptyAnalysisOptionsFile() async {
@@ -57,14 +52,11 @@ void f() {
   var a = 1;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 analyzer:
   errors:
     unused_local_variable: ignore
-''',
-      target: analysisOptionsPath,
-    );
+''', target: analysisOptionsPath);
   }
 
   Future<void> test_invalidAnalysisOptionsFormat() async {
@@ -108,14 +100,11 @@ void f() {
   var a = 1;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 analyzer:
   errors:
     unused_local_variable: ignore
-''',
-      target: analysisOptionsPath,
-    );
+''', target: analysisOptionsPath);
   }
 
   Future<void> test_noErrorLabel() async {
@@ -130,22 +119,17 @@ void f() {
   var a = 1;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 analyzer:
   errors:
     unused_local_variable: ignore
   cannot-ignore:
     - unused_label
-''',
-      target: analysisOptionsPath,
-    );
+''', target: analysisOptionsPath);
   }
 
   Future<void> test_noFixWhenErrorIsIgnored() async {
-    createAnalysisOptionsFile(
-      errors: {'unused_local_variable': 'ignore'},
-    );
+    createAnalysisOptionsFile(errors: {'unused_local_variable': 'ignore'});
 
     await resolveTestCode('''
 void f() {
@@ -169,15 +153,12 @@ include: package:lints/recommended.yaml
     var a = 1;
   }
   ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 include: package:lints/recommended.yaml
 analyzer:
   errors:
     unused_local_variable: ignore
-''',
-      target: analysisOptionsPath,
-    );
+''', target: analysisOptionsPath);
   }
 
   Future<void> test_unignorable() async {

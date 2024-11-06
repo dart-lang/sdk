@@ -19,8 +19,9 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_fieldName];
@@ -56,8 +57,9 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var declaration =
-        await sessionHelper.getElementDeclaration2(variable.firstFragment);
+    var declaration = await sessionHelper.getElementDeclaration2(
+      variable.firstFragment,
+    );
     var variableNode = declaration?.node;
     if (variableNode is! VariableDeclaration) {
       return;
@@ -86,16 +88,13 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       var typeAnnotation = declarationList.type;
       if (typeAnnotation != null) {
-        builder.addDeletion(
-          range.startStart(finalKeyword, typeAnnotation),
-        );
+        builder.addDeletion(range.startStart(finalKeyword, typeAnnotation));
       } else {
-        builder.addReplacement(
-          range.startStart(finalKeyword, variableNode),
-          (builder) {
-            builder.write('var ');
-          },
-        );
+        builder.addReplacement(range.startStart(finalKeyword, variableNode), (
+          builder,
+        ) {
+          builder.write('var ');
+        });
       }
     });
   }

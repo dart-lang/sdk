@@ -22,8 +22,11 @@ abstract class LspServerCommunicationChannel {
   /// the socket, invoke the [onError] function. If the socket is closed by the
   /// client, invoke the [onDone] function.
   /// Only one listener is allowed per channel.
-  StreamSubscription<void> listen(void Function(Message message) onMessage,
-      {Function onError, void Function() onDone});
+  StreamSubscription<void> listen(
+    void Function(Message message) onMessage, {
+    Function onError,
+    void Function() onDone,
+  });
 
   /// Send the given [notification] to the client.
   void sendNotification(NotificationMessage notification);

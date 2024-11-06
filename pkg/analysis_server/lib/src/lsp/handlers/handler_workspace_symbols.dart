@@ -11,8 +11,9 @@ import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 typedef StaticOptions = Either2<bool, WorkspaceSymbolOptions>;
 
-class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
-    List<SymbolInformation>> {
+class WorkspaceSymbolHandler
+    extends
+        SharedMessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
   WorkspaceSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_symbol;
@@ -25,8 +26,11 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
   bool get requiresTrustedCaller => false;
 
   @override
-  Future<ErrorOr<List<SymbolInformation>>> handle(WorkspaceSymbolParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<SymbolInformation>>> handle(
+    WorkspaceSymbolParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
@@ -45,29 +49,29 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
     }
 
     var supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
-    var searchOnlyAnalyzed = !server
-        .lspClientConfiguration.global.includeDependenciesInWorkspaceSymbols;
+    var searchOnlyAnalyzed =
+        !server
+            .lspClientConfiguration
+            .global
+            .includeDependenciesInWorkspaceSymbols;
 
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.
     var remainingResults = 500;
 
     var workspaceSymbols = search.WorkspaceSymbols();
-    await message.performance.runAsync(
-      'findDeclarations',
-      (performance) async {
-        var analysisDrivers = server.driverMap.values.toList();
-        await search.FindDeclarations(
-          analysisDrivers,
-          workspaceSymbols,
-          query,
-          remainingResults,
-          onlyAnalyzed: searchOnlyAnalyzed,
-          ownedFiles: server.ownedFiles,
-          performance: performance,
-        ).compute(token);
-      },
-    );
+    await message.performance.runAsync('findDeclarations', (performance) async {
+      var analysisDrivers = server.driverMap.values.toList();
+      await search.FindDeclarations(
+        analysisDrivers,
+        workspaceSymbols,
+        query,
+        remainingResults,
+        onlyAnalyzed: searchOnlyAnalyzed,
+        ownedFiles: server.ownedFiles,
+        performance: performance,
+      ).compute(token);
+    });
 
     if (workspaceSymbols.cancelled) {
       return cancelled();
@@ -96,10 +100,7 @@ class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
   ) {
     var filePath = filePaths[declaration.fileIndex];
 
-    var kind = declarationKindToSymbolKind(
-      supportedKinds,
-      declaration.kind,
-    );
+    var kind = declarationKindToSymbolKind(supportedKinds, declaration.kind);
     var range = toRange(
       declaration.lineInfo,
       declaration.codeOffset,

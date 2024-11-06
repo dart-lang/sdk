@@ -125,13 +125,15 @@ class LspMetaModelReader {
 
     var type = _extractType(name, '', model);
     if (type is UnionType) {
-      _addType(TypeAlias(
-        name: name,
-        comment: documentation,
-        isProposed: _isProposed(documentation),
-        baseType: type,
-        renameReferences: false,
-      ));
+      _addType(
+        TypeAlias(
+          name: name,
+          comment: documentation,
+          isProposed: _isProposed(documentation),
+          baseType: type,
+          renameReferences: false,
+        ),
+      );
     }
   }
 
@@ -181,9 +183,7 @@ class LspMetaModelReader {
       // other named types defined elsewhere.
       return TypeReference(model['name'] as String);
     } else if (model['kind'] == 'array') {
-      return ArrayType(
-        _extractType(parentName, fieldName, model['element']!),
-      );
+      return ArrayType(_extractType(parentName, fieldName, model['element']!));
     } else if (model['kind'] == 'map') {
       var name = fieldName ?? '';
       return MapType(
@@ -192,46 +192,46 @@ class LspMetaModelReader {
       );
     } else if (model['kind'] == 'literal') {
       // "Literal" here means an inline/anonymous type.
-      var inlineTypeName = _generateTypeName(
-        parentName,
-        fieldName ?? '',
-      );
+      var inlineTypeName = _generateTypeName(parentName, fieldName ?? '');
 
       // First record the definition of the anonymous type itself.
-      var members = (model['value']['properties'] as List)
-          .map((p) => _extractMember(inlineTypeName, p))
-          .toList();
+      var members =
+          (model['value']['properties'] as List)
+              .map((p) => _extractMember(inlineTypeName, p))
+              .toList();
       _addType(Interface.inline(inlineTypeName, members));
 
       // Then return its name.
       return TypeReference(inlineTypeName);
     } else if (model['kind'] == 'stringLiteral') {
-      return LiteralType(
-        TypeReference.string,
-        model['value'] as String,
-      );
+      return LiteralType(TypeReference.string, model['value'] as String);
     } else if (model['kind'] == 'or') {
       // Ensure the parent name is reserved so we don't try to reuse its name
       // if we're parsing something without a field name.
       _typeNames.add(parentName);
 
       var itemTypes = model['items'] as List;
-      var types = itemTypes.map((item) {
-        var generatedName = _generateAvailableTypeName(parentName, fieldName);
-        return _extractType(generatedName, null, item);
-      }).toList();
+      var types =
+          itemTypes.map((item) {
+            var generatedName = _generateAvailableTypeName(
+              parentName,
+              fieldName,
+            );
+            return _extractType(generatedName, null, item);
+          }).toList();
 
       return UnionType(types);
     } else if (model['kind'] == 'tuple') {
       // We currently just map tuples to an array of any of the types. The
       // LSP 3.17 spec only has one tuple which is `[number, number]`.
       var itemTypes = model['items'] as List;
-      var types = itemTypes.mapIndexed((index, item) {
-        var suffix = index + 1;
-        var name = fieldName ?? '';
-        var thisName = '$name$suffix';
-        return _extractType(parentName, thisName, item);
-      }).toList();
+      var types =
+          itemTypes.mapIndexed((index, item) {
+            var suffix = index + 1;
+            var name = fieldName ?? '';
+            var thisName = '$name$suffix';
+            return _extractType(parentName, thisName, item);
+          }).toList();
       return ArrayType(UnionType(types));
     } else {
       throw 'Unable to extract type from $model';
@@ -313,9 +313,10 @@ class LspMetaModelReader {
     var namePrefix = method.split('/').map(capitalize).join();
     var documentation = model['documentation'] as String?;
 
-    var paramsDoc = documentation != null
-        ? 'Parameters for ${_camelCase(documentation)}'
-        : null;
+    var paramsDoc =
+        documentation != null
+            ? 'Parameters for ${_camelCase(documentation)}'
+            : null;
 
     _createUnionAlias('${namePrefix}Params', model['params'], paramsDoc);
   }
@@ -325,13 +326,15 @@ class LspMetaModelReader {
     var namePrefix = method.split('/').map(capitalize).join();
     var documentation = model['documentation'] as String?;
 
-    var paramsDoc = documentation != null
-        ? 'Parameters for ${_camelCase(documentation)}'
-        : null;
+    var paramsDoc =
+        documentation != null
+            ? 'Parameters for ${_camelCase(documentation)}'
+            : null;
 
-    var resultDoc = documentation != null
-        ? 'Result for ${_camelCase(documentation)}'
-        : null;
+    var resultDoc =
+        documentation != null
+            ? 'Result for ${_camelCase(documentation)}'
+            : null;
 
     _createUnionAlias('${namePrefix}Params', model['params'], paramsDoc);
     _createUnionAlias('${namePrefix}Result', model['result'], resultDoc);
@@ -345,10 +348,12 @@ class LspMetaModelReader {
       comment: documentation,
       isProposed: _isProposed(documentation),
       baseTypes: [
-        ...?(model['extends'] as List?)
-            ?.map((e) => TypeReference(e['name'] as String)),
-        ...?(model['mixins'] as List?)
-            ?.map((e) => TypeReference(e['name'] as String)),
+        ...?(model['extends'] as List?)?.map(
+          (e) => TypeReference(e['name'] as String),
+        ),
+        ...?(model['mixins'] as List?)?.map(
+          (e) => TypeReference(e['name'] as String),
+        ),
       ],
       members: [
         ...?(model['properties'] as List?)?.map((p) => _extractMember(name, p)),

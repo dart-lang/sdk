@@ -20,7 +20,8 @@ void main() {
     defineReflectiveTests(AddConst_PreferConstConstructorsBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsTest);
     defineReflectiveTests(
-        AddConst_PreferConstLiteralsToCreateImmutablesBulkTest);
+      AddConst_PreferConstLiteralsToCreateImmutablesBulkTest,
+    );
     defineReflectiveTests(AddConst_PreferConstLiteralsToCreateImmutablesTest);
   });
 }
@@ -427,10 +428,12 @@ class AddConst_PreferConstConstructorsBulkTest extends BulkFixProcessorTest {
 
   Future<void> test_final() async {
     writeTestPackageConfig(meta: true);
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_const_constructors,
-      LintNames.prefer_const_declarations,
-    ]);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
     await resolveTestCode(r'''
 class C {
   const C([C? c]);
@@ -447,10 +450,12 @@ const c = C(C());
 
   Future<void> test_final_variableDeclarationList_const() async {
     writeTestPackageConfig(meta: true);
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_const_constructors,
-      LintNames.prefer_const_declarations,
-    ]);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
     await resolveTestCode(r'''
 class C {
   const C([C? c]);
@@ -467,10 +472,12 @@ const c1 = C(C()), c2 = C();
 
   Future<void> test_final_variableDeclarationList_nonConst_first() async {
     writeTestPackageConfig(meta: true);
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_const_constructors,
-      LintNames.prefer_const_declarations,
-    ]);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
     await resolveTestCode(r'''
 class C {
   const C([C? c]);
@@ -487,10 +494,12 @@ final f = Future.value(7), c = const C(C());
 
   Future<void> test_final_variableDeclarationList_nonConst_last() async {
     writeTestPackageConfig(meta: true);
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_const_constructors,
-      LintNames.prefer_const_declarations,
-    ]);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
     await resolveTestCode(r'''
 class C {
   const C([C? c]);
@@ -565,9 +574,7 @@ class AddConst_PreferConstConstructorsInImmutablesTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      meta: true,
-    );
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_default() async {
@@ -620,10 +627,12 @@ class AddConst_PreferConstConstructorsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_const_constructors;
 
   Future<void> test_final_variable() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_const_constructors,
-      LintNames.prefer_const_declarations,
-    ]);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
     await resolveTestCode('''
 class C {
   const C();
@@ -710,9 +719,7 @@ class AddConst_PreferConstLiteralsToCreateImmutablesBulkTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      meta: true,
-    );
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_map() async {
@@ -760,9 +767,7 @@ class AddConst_PreferConstLiteralsToCreateImmutablesTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      meta: true,
-    );
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_list() async {

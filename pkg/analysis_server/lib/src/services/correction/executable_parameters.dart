@@ -60,7 +60,8 @@ class ExecutableParameters {
   /// Return the [FormalParameter] of the [fragment] in [FormalParameterList],
   /// or `null` if it can't be found.
   Future<FormalParameter?> getParameterNode2(
-      FormalParameterFragment fragment) async {
+    FormalParameterFragment fragment,
+  ) async {
     var result = await sessionHelper.getElementDeclaration2(fragment);
     var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
@@ -72,7 +73,9 @@ class ExecutableParameters {
   }
 
   static ExecutableParameters? forInvocation(
-      AnalysisSessionHelper sessionHelper, AstNode? invocation) {
+    AnalysisSessionHelper sessionHelper,
+    AstNode? invocation,
+  ) {
     Element2? element;
     // This doesn't handle FunctionExpressionInvocation.
     if (invocation is Annotation) {

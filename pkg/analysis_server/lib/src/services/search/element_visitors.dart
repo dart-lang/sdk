@@ -36,7 +36,9 @@ void visitChildren2(Element2 element, BoolElementProcessor2 processor) {
 
 /// Uses [processor] to visit all of the top-level elements of [library].
 void visitLibraryTopLevelElements(
-    LibraryElement library, VoidElementProcessor processor) {
+  LibraryElement library,
+  VoidElementProcessor processor,
+) {
   library.visitChildren(_TopLevelElementsVisitor(processor));
 }
 

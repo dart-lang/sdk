@@ -92,8 +92,11 @@ List<Element2> getClassMembers2(InterfaceElement2 clazz, [String? name]) {
 ///
 /// The given [searchEngineCache] will be used or filled out as needed
 /// so subsequent calls can utilize it to speed up the computation.
-Future<Set<InterfaceElement>> getDirectSubClasses(SearchEngine searchEngine,
-    InterfaceElement seed, SearchEngineCache searchEngineCache) async {
+Future<Set<InterfaceElement>> getDirectSubClasses(
+  SearchEngine searchEngine,
+  InterfaceElement seed,
+  SearchEngineCache searchEngineCache,
+) async {
   var matches = await searchEngine.searchSubtypes(seed, searchEngineCache);
   return matches.map((match) => match.element).cast<InterfaceElement>().toSet();
 }
@@ -122,8 +125,10 @@ List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
 
 /// Return the non-synthetic children of the given [extension]. This includes
 /// fields, accessors and methods, but excludes synthetic elements.
-List<Element2> getExtensionMembers2(ExtensionElement2 extension,
-    [String? name]) {
+List<Element2> getExtensionMembers2(
+  ExtensionElement2 extension, [
+  String? name,
+]) {
   var members = <Element2>[];
   visitChildren2(extension, (element) {
     if (element.isSynthetic) {
@@ -155,8 +160,10 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   OperationPerformanceImpl? performance,
 }) async {
   var (members, _) = await getHierarchyMembersAndParameters(
-      searchEngine, member,
-      performance: performance);
+    searchEngine,
+    member,
+    performance: performance,
+  );
   return members;
 }
 
@@ -167,7 +174,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
 /// any [FieldFormalParameterElement]s for the member will also be provided
 /// (otherwise, the parameter set will be empty in the result).
 Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
-    getHierarchyMembersAndParameters(
+getHierarchyMembersAndParameters(
   SearchEngine searchEngine,
   ClassMemberElement member, {
   OperationPerformanceImpl? performance,
@@ -191,15 +198,14 @@ Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
   if (enclosingElement is InterfaceElement) {
     var name = member.displayName;
 
-    var superElementsToSearch = enclosingElement.allSupertypes
-        .map((superType) => superType.element)
-        .where((interface) {
-      return member.isPublic || interface.library == member.library;
-    }).toList();
-    var searchClasses = [
-      ...superElementsToSearch,
-      enclosingElement,
-    ];
+    var superElementsToSearch =
+        enclosingElement.allSupertypes
+            .map((superType) => superType.element)
+            .where((interface) {
+              return member.isPublic || interface.library == member.library;
+            })
+            .toList();
+    var searchClasses = [...superElementsToSearch, enclosingElement];
     var subClasses = <InterfaceElement>{};
     for (var superClass in searchClasses) {
       // ignore if super- class does not declare member
@@ -208,15 +214,14 @@ Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
       }
       // check all sub- classes
       await performance.runAsync(
-          'appendAllSubtypes',
-          (performance) => searchEngine.appendAllSubtypes(
-              superClass, subClasses, performance));
+        'appendAllSubtypes',
+        (performance) =>
+            searchEngine.appendAllSubtypes(superClass, subClasses, performance),
+      );
       subClasses.add(superClass);
     }
     if (member.isPrivate) {
-      subClasses.removeWhere(
-        (subClass) => subClass.library != member.library,
-      );
+      subClasses.removeWhere((subClass) => subClass.library != member.library);
     }
     for (var subClass in subClasses) {
       var subClassMembers = getChildren(subClass, name);
@@ -246,7 +251,9 @@ Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
 /// If the [element] is a named parameter in a [MethodElement], return all
 /// corresponding named parameters in the method hierarchy.
 Future<List<ParameterElement>> getHierarchyNamedParameters(
-    SearchEngine searchEngine, ParameterElement element) async {
+  SearchEngine searchEngine,
+  ParameterElement element,
+) async {
   if (element.isNamed) {
     var method = element.enclosingElement3;
     if (method is MethodElement) {
@@ -276,10 +283,7 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
 ///
 /// Excludes: constructors and synthetic elements.
 List<Element> getMembers(InterfaceElement clazz) {
-  var classElements = [
-    ...clazz.allSupertypes.map((e) => e.element),
-    clazz,
-  ];
+  var classElements = [...clazz.allSupertypes.map((e) => e.element), clazz];
   var members = <Element>[];
   for (var superClass in classElements) {
     members.addAll(getClassMembers(superClass));
@@ -294,10 +298,7 @@ List<Element> getMembers(InterfaceElement clazz) {
 ///
 /// Excludes: constructors and synthetic elements.
 List<Element2> getMembers2(InterfaceElement2 clazz) {
-  var classElements = [
-    ...clazz.allSupertypes.map((e) => e.element3),
-    clazz,
-  ];
+  var classElements = [...clazz.allSupertypes.map((e) => e.element3), clazz];
   var members = <Element2>[];
   for (var superClass in classElements) {
     members.addAll(getClassMembers2(superClass));

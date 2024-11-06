@@ -17,8 +17,9 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
@@ -85,9 +86,7 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
           );
         } else {
           var prev = initializers[initializerIndex - 1];
-          builder.addDeletion(
-            range.endEnd(prev, parameterInitializer_final),
-          );
+          builder.addDeletion(range.endEnd(prev, parameterInitializer_final));
         }
       }
     });

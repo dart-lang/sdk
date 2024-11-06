@@ -44,20 +44,18 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(snippet.change.selection!.offset, expectedCode.position.offset);
 
     // And linked edits.
-    var expectedLinkedGroups = expectedCode.ranges
-        .map(
-          (range) => {
-            'positions': [
-              {
-                'file': testFile.path,
-                'offset': range.sourceRange.offset,
+    var expectedLinkedGroups =
+        expectedCode.ranges
+            .map(
+              (range) => {
+                'positions': [
+                  {'file': testFile.path, 'offset': range.sourceRange.offset},
+                ],
+                'length': range.sourceRange.length,
+                'suggestions': [],
               },
-            ],
-            'length': range.sourceRange.length,
-            'suggestions': [],
-          },
-        )
-        .toSet();
+            )
+            .toSet();
     var actualLinkedGroups =
         snippet.change.linkedEditGroups.map((group) => group.toJson()).toSet();
     expect(actualLinkedGroups, equals(expectedLinkedGroups));
@@ -111,8 +109,8 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
             {'file': testFile.path, 'offset': position.offset},
         ],
         'length': linkedGroupText.length,
-        'suggestions': []
-      }
+        'suggestions': [],
+      },
     ]);
   }
 
@@ -143,11 +141,13 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   Future<void> test_valid_suffixReplacement() async {
     writeTestPackageConfig(flutter: true);
 
-    var snippet = await expectValidSnippet(TestCode.parse('''
+    var snippet = await expectValidSnippet(
+      TestCode.parse('''
 class A {}
 
 $prefix^
-'''));
+'''),
+    );
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
 

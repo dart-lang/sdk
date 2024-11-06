@@ -23,8 +23,9 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_variableName];
@@ -58,7 +59,9 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   /// given [variable] that is located in the given [block] or in a surrounding
   /// block. Return `null` if the declaration can't be found.
   VariableDeclarationList? _findDeclaration(
-      LocalVariableElement2 variable, Block? block) {
+    LocalVariableElement2 variable,
+    Block? block,
+  ) {
     var currentBlock = block;
     while (currentBlock != null) {
       for (var statement in currentBlock.statements) {
@@ -76,8 +79,11 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     return null;
   }
 
-  Future<void> _forAssignment(ChangeBuilder builder, Expression rightHandSide,
-      AssignmentExpression parent) async {
+  Future<void> _forAssignment(
+    ChangeBuilder builder,
+    Expression rightHandSide,
+    AssignmentExpression parent,
+  ) async {
     var leftHandSide = parent.leftHandSide;
     if (leftHandSide is! SimpleIdentifier) {
       return;
@@ -103,8 +109,10 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         return;
       }
     } else if (!typeSystem.isAssignableTo(
-        oldType, typeSystem.promoteToNonNull(newType),
-        strictCasts: analysisOptions.strictCasts)) {
+      oldType,
+      typeSystem.promoteToNonNull(newType),
+      strictCasts: analysisOptions.strictCasts,
+    )) {
       return;
     }
 
@@ -121,7 +129,9 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
   /// Makes [parameter] nullable if possible.
   Future<void> _forFieldFormalParameter(
-      ChangeBuilder builder, FieldFormalParameter parameter) async {
+    ChangeBuilder builder,
+    FieldFormalParameter parameter,
+  ) async {
     if (parameter.parameters != null) {
       // A function-typed field formal parameter.
       if (parameter.question != null) {
@@ -146,7 +156,9 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
   /// Makes [parameter] nullable if possible.
   Future<void> _forFunctionTypedFormalParameter(
-      ChangeBuilder builder, FunctionTypedFormalParameter parameter) async {
+    ChangeBuilder builder,
+    FunctionTypedFormalParameter parameter,
+  ) async {
     if (parameter.question != null) {
       return;
     }
@@ -158,7 +170,9 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   }
 
   Future<void> _forSimpleFormalParameter(
-      ChangeBuilder builder, SimpleFormalParameter parameter) async {
+    ChangeBuilder builder,
+    SimpleFormalParameter parameter,
+  ) async {
     var type = parameter.type;
     if (type == null || !_typeCanBeMadeNullable(type)) {
       return;
@@ -177,7 +191,9 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
   /// Makes [parameter] nullable if possible.
   Future<void> _forSuperFormalParameter(
-      ChangeBuilder builder, SuperFormalParameter parameter) async {
+    ChangeBuilder builder,
+    SuperFormalParameter parameter,
+  ) async {
     if (parameter.parameters != null) {
       // A function-typed field formal parameter.
       if (parameter.question != null) {
@@ -200,8 +216,11 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     }
   }
 
-  Future<void> _forVariableDeclaration(ChangeBuilder builder, Expression node,
-      VariableDeclarationImpl parent) async {
+  Future<void> _forVariableDeclaration(
+    ChangeBuilder builder,
+    Expression node,
+    VariableDeclarationImpl parent,
+  ) async {
     var declarationList = parent.parent;
     if (declarationList is! VariableDeclarationList) {
       return;
@@ -225,8 +244,10 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         return;
       }
     } else if (!typeSystem.isAssignableTo(
-        oldType, typeSystem.promoteToNonNull(newType),
-        strictCasts: analysisOptions.strictCasts)) {
+      oldType,
+      typeSystem.promoteToNonNull(newType),
+      strictCasts: analysisOptions.strictCasts,
+    )) {
       return;
     }
 
@@ -239,8 +260,11 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
   /// Add edits to the [builder] to update the type in the [declarationList] to
   /// match the [newType].
-  Future<void> _updateVariableType(ChangeBuilder builder,
-      VariableDeclarationList declarationList, DartType newType) async {
+  Future<void> _updateVariableType(
+    ChangeBuilder builder,
+    VariableDeclarationList declarationList,
+    DartType newType,
+  ) async {
     var variable = declarationList.variables[0];
     _variableName = variable.name.lexeme;
     await builder.addDartFileEdit(file, (builder) {

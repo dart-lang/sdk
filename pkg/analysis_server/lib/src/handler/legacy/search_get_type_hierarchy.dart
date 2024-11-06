@@ -14,13 +14,19 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchGetTypeHierarchyHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     var searchEngine = server.searchEngine;
-    var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = protocol.SearchGetTypeHierarchyParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
@@ -32,23 +38,26 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
     if (params.superOnly == true) {
       var computer = TypeHierarchyComputer(searchEngine, element);
       var items = computer.computeSuper();
-      var response =
-          protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-              .toResponse(request.id, clientUriConverter: server.uriConverter);
+      var response = protocol.SearchGetTypeHierarchyResult(
+        hierarchyItems: items,
+      ).toResponse(request.id, clientUriConverter: server.uriConverter);
       server.sendResponse(response);
       return;
     }
     // prepare type hierarchy
     var computer = TypeHierarchyComputer(searchEngine, element);
     var items = await computer.compute();
-    var response = protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-        .toResponse(request.id, clientUriConverter: server.uriConverter);
+    var response = protocol.SearchGetTypeHierarchyResult(
+      hierarchyItems: items,
+    ).toResponse(request.id, clientUriConverter: server.uriConverter);
     server.sendResponse(response);
   }
 
   void _sendTypeHierarchyNull(protocol.Request request) {
-    var response = protocol.SearchGetTypeHierarchyResult()
-        .toResponse(request.id, clientUriConverter: server.uriConverter);
+    var response = protocol.SearchGetTypeHierarchyResult().toResponse(
+      request.id,
+      clientUriConverter: server.uriConverter,
+    );
     server.sendResponse(response);
   }
 }

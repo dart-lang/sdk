@@ -12,20 +12,30 @@ class SearchFindTopLevelDeclarationsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchFindTopLevelDeclarationsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     var searchEngine = server.searchEngine;
     var params = protocol.SearchFindTopLevelDeclarationsParams.fromRequest(
-        request,
-        clientUriConverter: server.uriConverter);
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     try {
       // validate the regex
       RegExp(params.pattern);
     } on FormatException catch (exception) {
-      server.sendResponse(protocol.Response.invalidParameter(
-          request, 'pattern', exception.message));
+      server.sendResponse(
+        protocol.Response.invalidParameter(
+          request,
+          'pattern',
+          exception.message,
+        ),
+      );
       return;
     }
 
@@ -35,7 +45,12 @@ class SearchFindTopLevelDeclarationsHandler extends LegacyHandler {
     sendResult(protocol.SearchFindTopLevelDeclarationsResult(searchId));
     // search
     var matches = await searchEngine.searchTopLevelDeclarations(params.pattern);
-    sendSearchResults(protocol.SearchResultsParams(searchId,
-        matches.map(protocol.newSearchResult_fromMatch).toList(), true));
+    sendSearchResults(
+      protocol.SearchResultsParams(
+        searchId,
+        matches.map(protocol.newSearchResult_fromMatch).toList(),
+        true,
+      ),
+    );
   }
 }

@@ -56,21 +56,21 @@ class A {
           {'file': testFile.path, 'offset': 12},
         ],
         'length': 4,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 17},
         ],
         'length': 4,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 22},
         ],
         'length': 6,
-        'suggestions': []
+        'suggestions': [],
       },
     ]);
   }
@@ -104,21 +104,21 @@ void a() {
           {'file': testFile.path, 'offset': 13},
         ],
         'length': 4,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 18},
         ],
         'length': 4,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 23},
         ],
         'length': 6,
-        'suggestions': []
+        'suggestions': [],
       },
     ]);
   }
@@ -156,21 +156,21 @@ class B {}
           {'file': testFile.path, 'offset': 14},
         ],
         'length': 4,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 19},
         ],
         'length': 4,
-        'suggestions': []
+        'suggestions': [],
       },
       {
         'positions': [
           {'file': testFile.path, 'offset': 24},
         ],
         'length': 6,
-        'suggestions': []
+        'suggestions': [],
       },
     ]);
   }

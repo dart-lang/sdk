@@ -34,11 +34,6 @@ class ForStatement extends DartSnippetProducer {
       });
     });
 
-    return Snippet(
-      prefix,
-      label,
-      'Insert a for loop.',
-      builder.sourceChange,
-    );
+    return Snippet(prefix, label, 'Insert a for loop.', builder.sourceChange);
   }
 }

@@ -213,7 +213,10 @@ class C implements B {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl('<root>'));
+      element,
+      subtypes,
+      OperationPerformanceImpl('<root>'),
+    );
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -239,7 +242,10 @@ class C extends B {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl('<root>'));
+      element,
+      subtypes,
+      OperationPerformanceImpl('<root>'),
+    );
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -257,7 +263,10 @@ extension type C(int it) implements A {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl('<root>'));
+      element,
+      subtypes,
+      OperationPerformanceImpl('<root>'),
+    );
     expect(subtypes, hasLength(2));
     _assertContainsClass(subtypes, 'B');
     _assertContainsClass(subtypes, 'C');
@@ -276,7 +285,10 @@ class A {}
     var element = findElement.class_('A');
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl('<root>'));
+      element,
+      subtypes,
+      OperationPerformanceImpl('<root>'),
+    );
     expect(subtypes, hasLength(1));
     _assertContainsClass(subtypes, 'B');
   }
@@ -298,7 +310,10 @@ mixin E implements C {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl('<root>'));
+      element,
+      subtypes,
+      OperationPerformanceImpl('<root>'),
+    );
     expect(subtypes, hasLength(5));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -330,11 +345,16 @@ int test;
 
     void assertHasElement(String name, int nameOffset) {
       expect(
-          matches,
-          contains(predicate((SearchMatch m) =>
-              m.kind == MatchKind.DECLARATION &&
-              m.element.name == name &&
-              m.element.nameOffset == nameOffset)));
+        matches,
+        contains(
+          predicate(
+            (SearchMatch m) =>
+                m.kind == MatchKind.DECLARATION &&
+                m.element.name == name &&
+                m.element.nameOffset == nameOffset,
+          ),
+        ),
+      );
     }
 
     assertHasElement('test', codeA.indexOf('test; // 1'));
@@ -354,11 +374,16 @@ class A {}
     var matches = await searchEngine.searchMemberDeclarations('m');
     expect(matches, hasLength(1));
     expect(
-        matches,
-        contains(predicate((SearchMatch m) =>
-            m.element.name == 'm' &&
-            m.kind == MatchKind.DECLARATION &&
-            isMacroGenerated(m.file))));
+      matches,
+      contains(
+        predicate(
+          (SearchMatch m) =>
+              m.element.name == 'm' &&
+              m.kind == MatchKind.DECLARATION &&
+              isMacroGenerated(m.file),
+        ),
+      ),
+    );
   }
 
   Future<void> test_searchMemberReferences() async {
@@ -381,13 +406,23 @@ bar(p) {
     var matches = await searchEngine.searchMemberReferences('test');
     expect(matches, hasLength(2));
     expect(
-        matches,
-        contains(predicate((SearchMatch m) =>
-            m.element.name == 'foo' || m.kind == MatchKind.READ)));
+      matches,
+      contains(
+        predicate(
+          (SearchMatch m) =>
+              m.element.name == 'foo' || m.kind == MatchKind.READ,
+        ),
+      ),
+    );
     expect(
-        matches,
-        contains(predicate((SearchMatch m) =>
-            m.element.name == 'bar' || m.kind == MatchKind.WRITE)));
+      matches,
+      contains(
+        predicate(
+          (SearchMatch m) =>
+              m.element.name == 'bar' || m.kind == MatchKind.WRITE,
+        ),
+      ),
+    );
   }
 
   Future<void> test_searchReferences() async {
@@ -407,34 +442,44 @@ T b;
     var matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(2));
     expect(
-        matches, contains(predicate((SearchMatch m) => m.element.name == 'a')));
+      matches,
+      contains(predicate((SearchMatch m) => m.element.name == 'a')),
+    );
     expect(
-        matches, contains(predicate((SearchMatch m) => m.element.name == 'b')));
+      matches,
+      contains(predicate((SearchMatch m) => m.element.name == 'b')),
+    );
   }
 
   Future<void> test_searchReferences_discover_owned() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    var a = newFile('$aaaRootPath/lib/a.dart', '''
+    var a =
+        newFile('$aaaRootPath/lib/a.dart', '''
 int a;
 ''').path;
 
-    var t = newFile('$testPackageLibPath/lib/t.dart', '''
+    var t =
+        newFile('$testPackageLibPath/lib/t.dart', '''
 import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult = await driverFor(testFile).getLibraryByUri('dart:core')
-        as LibraryElementResult;
+    var coreLibResult =
+        await driverFor(testFile).getLibraryByUri('dart:core')
+            as LibraryElementResult;
     var intElement = coreLibResult.element.getClass('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 
     void assertHasOne(String path, String name) {
-      expect(matches.where((m) {
-        var element = m.element;
-        return element.name == name && element.source!.fullName == path;
-      }), hasLength(1));
+      expect(
+        matches.where((m) {
+          var element = m.element;
+          return element.name == name && element.source!.fullName == path;
+        }),
+        hasLength(1),
+      );
     }
 
     assertHasOne(t, 't');
@@ -543,15 +588,20 @@ class A {
     var matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(1));
     expect(
-        matches,
-        contains(predicate((SearchMatch m) =>
-            m.element.name == 'm' &&
-            m.kind == MatchKind.REFERENCE &&
-            isMacroGenerated(m.file))));
+      matches,
+      contains(
+        predicate(
+          (SearchMatch m) =>
+              m.element.name == 'm' &&
+              m.kind == MatchKind.REFERENCE &&
+              isMacroGenerated(m.file),
+        ),
+      ),
+    );
   }
 
   Future<void>
-      test_searchReferences_parameter_ofConstructor_super_named() async {
+  test_searchReferences_parameter_ofConstructor_super_named() async {
     var code = '''
 class A {
   A({required int a});
@@ -592,8 +642,9 @@ int f(int _) => _;
     expect(parameterMatches, isEmpty);
 
     var topLevelVariable = findElement.topVar('_');
-    var topLevelVariableMatches =
-        await searchEngine.searchReferences(topLevelVariable);
+    var topLevelVariableMatches = await searchEngine.searchReferences(
+      topLevelVariable,
+    );
     expect(
       topLevelVariableMatches,
       unorderedEquals([
@@ -621,7 +672,7 @@ f(int _) {}
   }
 
   Future<void>
-      test_searchReferences_topFunction_parameter_optionalNamed_anywhere() async {
+  test_searchReferences_topFunction_parameter_optionalNamed_anywhere() async {
     var code = '''
 void foo(int a, int b, {int? test}) {}
 
@@ -712,8 +763,10 @@ get b => 42;
     expect(matches, hasLength(4));
 
     void assertHasOneElement(String name) {
-      var nameMatches = matches.where((SearchMatch m) =>
-          m.kind == MatchKind.DECLARATION && m.element.name == name);
+      var nameMatches = matches.where(
+        (SearchMatch m) =>
+            m.kind == MatchKind.DECLARATION && m.element.name == name,
+      );
       expect(nameMatches, hasLength(1));
     }
 
@@ -747,8 +800,10 @@ class B extends A {}
     expect(matches, hasLength(2));
 
     void assertHasOneElement(String name) {
-      var nameMatches = matches.where((SearchMatch m) =>
-          m.kind == MatchKind.DECLARATION && m.element.name == name);
+      var nameMatches = matches.where(
+        (SearchMatch m) =>
+            m.kind == MatchKind.DECLARATION && m.element.name == name,
+      );
       expect(nameMatches, hasLength(1));
     }
 
@@ -768,11 +823,16 @@ class A {}
 
     var matches = await searchEngine.searchTopLevelDeclarations('.*');
     expect(
-        matches,
-        contains(predicate((SearchMatch m) =>
-            m.element.name == 'x' &&
-            m.kind == MatchKind.DECLARATION &&
-            isMacroGenerated(m.file))));
+      matches,
+      contains(
+        predicate(
+          (SearchMatch m) =>
+              m.element.name == 'x' &&
+              m.kind == MatchKind.DECLARATION &&
+              isMacroGenerated(m.file),
+        ),
+      ),
+    );
   }
 
   String _configureForPackage_aaa() {
@@ -781,8 +841,8 @@ class A {}
     writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     return aaaRootPath;
@@ -800,12 +860,12 @@ class A {}
   }
 
   static void _assertContainsClass(
-      Set<InterfaceElement> subtypes, String name) {
+    Set<InterfaceElement> subtypes,
+    String name,
+  ) {
     expect(
       subtypes,
-      contains(
-        predicate((InterfaceElement e) => e.name == name),
-      ),
+      contains(predicate((InterfaceElement e) => e.name == name)),
     );
   }
 }

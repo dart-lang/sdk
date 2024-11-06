@@ -15,8 +15,9 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
@@ -26,8 +27,10 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
     if (node is! ListLiteral) {
       return;
     }
-    if ((node as ListLiteral).elements.any((CollectionElement element) =>
-        !(element is InstanceCreationExpression && element.isWidgetCreation))) {
+    if ((node as ListLiteral).elements.any(
+      (CollectionElement element) =>
+          !(element is InstanceCreationExpression && element.isWidgetCreation),
+    )) {
       return;
     }
     var literalSrc = utils.getNodeText(node);
@@ -50,11 +53,9 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
         builder.write(indentList);
         // Linked editing not needed since arg is always a list.
         builder.write('children: ');
-        builder.write(utils.replaceSourceIndent(
-          literalSrc,
-          indentOld,
-          indentList,
-        ));
+        builder.write(
+          utils.replaceSourceIndent(literalSrc, indentOld, indentList),
+        );
         builder.write(',');
         builder.write(eol);
         builder.write(indentArg);

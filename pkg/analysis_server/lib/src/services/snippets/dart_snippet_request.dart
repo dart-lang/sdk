@@ -30,10 +30,8 @@ class DartSnippetRequest {
   /// replaced if the snippet is selected.
   late final SourceRange replacementRange;
 
-  DartSnippetRequest({
-    required this.unit,
-    required this.offset,
-  }) : filePath = unit.path {
+  DartSnippetRequest({required this.unit, required this.offset})
+    : filePath = unit.path {
     var target = CompletionTarget.forOffset(unit.unit, offset);
     context = _getContext(target);
     replacementRange = target.computeReplacementRange(offset);

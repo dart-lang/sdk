@@ -42,8 +42,11 @@ class AstInterfaceData {
     return lists;
   }
 
-  void _addListsFor(List<ExecutableElement> lists, ClassElement class_,
-      Set<ClassElement> visited) {
+  void _addListsFor(
+    List<ExecutableElement> lists,
+    ClassElement class_,
+    Set<ClassElement> visited,
+  ) {
     if (!visited.add(class_)) {
       return;
     }
@@ -133,8 +136,14 @@ class SelectionCoverageTest {
         for (var member in declaration.members) {
           if (member is MethodDeclaration &&
               member.name.lexeme.startsWith('visit')) {
-            var visitedClass = member
-                .parameters?.parameters.first.declaredElement?.type.element;
+            var visitedClass =
+                member
+                    .parameters
+                    ?.parameters
+                    .first
+                    .declaredElement
+                    ?.type
+                    .element;
             if (visitedClass is ClassElement) {
               var visitor = VisitMethodVisitor();
               member.body.accept(visitor);
@@ -154,24 +163,48 @@ class SelectionCoverageTest {
     var pathContext = provider.pathContext;
     var packageRoot = pathContext.normalize(package_root.packageRoot);
     var pathToAsInterface = pathContext.join(
-        packageRoot, 'analyzer', 'lib', 'dart', 'ast', 'ast.dart');
+      packageRoot,
+      'analyzer',
+      'lib',
+      'dart',
+      'ast',
+      'ast.dart',
+    );
     var pathToAsImpl = pathContext.join(
-        packageRoot, 'analyzer', 'lib', 'src', 'dart', 'ast', 'ast.dart');
-    var pathToSelection = pathContext.join(packageRoot, 'analysis_server',
-        'lib', 'src', 'utilities', 'selection.dart');
+      packageRoot,
+      'analyzer',
+      'lib',
+      'src',
+      'dart',
+      'ast',
+      'ast.dart',
+    );
+    var pathToSelection = pathContext.join(
+      packageRoot,
+      'analysis_server',
+      'lib',
+      'src',
+      'utilities',
+      'selection.dart',
+    );
 
-    var collection =
-        AnalysisContextCollection(includedPaths: [pathToSelection]);
+    var collection = AnalysisContextCollection(
+      includedPaths: [pathToSelection],
+    );
     var context = collection.contexts.first;
-    var astInterfaceResult =
-        await context.currentSession.getResolvedUnit(pathToAsInterface);
-    var astImplResult =
-        await context.currentSession.getResolvedUnit(pathToAsImpl);
-    var selectionResult =
-        await context.currentSession.getResolvedUnit(pathToSelection);
+    var astInterfaceResult = await context.currentSession.getResolvedUnit(
+      pathToAsInterface,
+    );
+    var astImplResult = await context.currentSession.getResolvedUnit(
+      pathToAsImpl,
+    );
+    var selectionResult = await context.currentSession.getResolvedUnit(
+      pathToSelection,
+    );
 
-    var astInterfaceData =
-        processAstInterface(astInterfaceResult as ResolvedUnitResult);
+    var astInterfaceData = processAstInterface(
+      astInterfaceResult as ResolvedUnitResult,
+    );
     var astImplData = processAstImpl(astImplResult as ResolvedUnitResult);
     var selectionData = processSelection(selectionResult as ResolvedUnitResult);
     var visitedLists = selectionData.visitedLists;
@@ -211,8 +244,9 @@ class SelectionCoverageTest {
         for (var visitedNodeList in visitedNodeLists) {
           unvisitedNodeLists.remove(visitedNodeList);
           var overridden = inheritanceManager.getOverridden2(
-              visitedNodeList.enclosingElement3 as InterfaceElement,
-              Name(visitedNodeList.library.source.uri, visitedNodeList.name));
+            visitedNodeList.enclosingElement3 as InterfaceElement,
+            Name(visitedNodeList.library.source.uri, visitedNodeList.name),
+          );
           if (overridden != null) {
             unvisitedNodeLists.removeAll(overridden);
           }
@@ -249,11 +283,13 @@ class VisitMethodVisitor extends RecursiveAstVisitor<void> {
     if (node.methodName.name == '_fromList') {
       var argument = node.argumentList.arguments.first;
       if (argument is PrefixedIdentifier) {
-        visitedLists
-            .add(argument.identifier.staticElement as ExecutableElement);
+        visitedLists.add(
+          argument.identifier.staticElement as ExecutableElement,
+        );
       } else if (argument is PropertyAccess) {
-        visitedLists
-            .add(argument.propertyName.staticElement as ExecutableElement);
+        visitedLists.add(
+          argument.propertyName.staticElement as ExecutableElement,
+        );
       }
     }
   }

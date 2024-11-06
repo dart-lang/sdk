@@ -129,13 +129,15 @@ class C {
   C(int a, int b = 1,);
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   C(int b = 1,);
 }
 ''',
-        errorFilter: (e) => e.offset == testCode.indexOf('int a'),
-        allowFixAllFixes: true);
+      errorFilter: (e) => e.offset == testCode.indexOf('int a'),
+      allowFixAllFixes: true,
+    );
   }
 
   Future<void> test_first_requiredPositional_second_optionalNamed() async {
@@ -240,7 +242,7 @@ class C {
   }
 
   Future<void>
-      test_last_optionalPositional_previous_optionalPositional() async {
+  test_last_optionalPositional_previous_optionalPositional() async {
     await resolveTestCode('''
 class C {
   int x;
@@ -256,7 +258,7 @@ class C {
   }
 
   Future<void>
-      test_last_optionalPositional_previous_requiredPositional() async {
+  test_last_optionalPositional_previous_requiredPositional() async {
     await resolveTestCode('''
 class C {
   int x;
@@ -272,7 +274,7 @@ class C {
   }
 
   Future<void>
-      test_last_requiredPositional_previous_requiredPositional() async {
+  test_last_requiredPositional_previous_requiredPositional() async {
     await resolveTestCode('''
 class C {
   int x;

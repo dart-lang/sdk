@@ -34,19 +34,13 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     if (node is DeclaredVariablePatternImpl) {
       var fieldName = node.fieldNameWithImplicitName;
       if (fieldName != null) {
-        await _patternFieldName(
-          builder: builder,
-          fieldName: fieldName,
-        );
+        await _patternFieldName(builder: builder, fieldName: fieldName);
         return true;
       }
     }
 
     if (node is PatternFieldName) {
-      await _patternFieldName(
-        builder: builder,
-        fieldName: node,
-      );
+      await _patternFieldName(builder: builder, fieldName: node);
       return true;
     }
 
@@ -96,8 +90,9 @@ class CreateGetter extends CreateFieldOrGetter {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_getterName];
@@ -167,7 +162,8 @@ class CreateGetter extends CreateFieldOrGetter {
         staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
-      targetElement = nameNode.enclosingInterfaceElement2 ??
+      targetElement =
+          nameNode.enclosingInterfaceElement2 ??
           nameNode.enclosingExtensionElement2;
       if (targetElement == null) {
         return;
@@ -202,8 +198,9 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult =
-        await sessionHelper.getElementDeclaration2(targetFragment);
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+      targetFragment,
+    );
     if (targetDeclarationResult == null) {
       return;
     }
@@ -221,16 +218,15 @@ class CreateGetter extends CreateFieldOrGetter {
     // Build method source.
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.insertGetter(
-        targetNode,
-        (builder) {
-          builder.writeGetterDeclaration(_getterName,
-              isStatic: staticModifier,
-              nameGroupName: 'NAME',
-              returnType: fieldType ?? typeProvider.dynamicType,
-              returnTypeGroupName: 'TYPE');
-        },
-      );
+      builder.insertGetter(targetNode, (builder) {
+        builder.writeGetterDeclaration(
+          _getterName,
+          isStatic: staticModifier,
+          nameGroupName: 'NAME',
+          returnType: fieldType ?? typeProvider.dynamicType,
+          returnTypeGroupName: 'TYPE',
+        );
+      });
     });
   }
 }

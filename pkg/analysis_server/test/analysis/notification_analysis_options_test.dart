@@ -41,8 +41,10 @@ void f() {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       filesErrors[getFile(decoded.file)] = decoded.errors;
     }
   }
@@ -71,8 +73,8 @@ void f() {
 
     // Verify options file.
     // TODO(brianwilkerson): Implement options file analysis in the new driver.
-//    expect(optionsFileErrors, isNotNull);
-//    expect(optionsFileErrors, isEmpty);
+    //    expect(optionsFileErrors, isNotNull);
+    //    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
     expect(testFileErrors, isNotNull);
@@ -96,8 +98,8 @@ void f() {
 
     // Verify options file.
     // TODO(brianwilkerson): Implement options file analysis in the new driver.
-//    expect(optionsFileErrors, isNotNull);
-//    expect(optionsFileErrors, isEmpty);
+    //    expect(optionsFileErrors, isNotNull);
+    //    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
     expect(testFileErrors, isNotNull);
@@ -114,7 +116,7 @@ analyzer:
 
     // Verify options file.
     // TODO(brianwilkerson): Implement options file analysis in the new driver.
-//    expect(optionsFileErrors, isEmpty);
+    //    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
     expect(testFileErrors, hasLength(1));
@@ -158,9 +160,9 @@ linter:
     await waitForTasksFinished();
 
     // TODO(brianwilkerson): Implement options file analysis in the new driver.
-//    expect(optionsFileErrors, hasLength(1));
-//    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.WARNING);
-//    expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
+    //    expect(optionsFileErrors, hasLength(1));
+    //    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.WARNING);
+    //    expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
   }
 
   Future<void> test_options_file_added() async {
@@ -192,9 +194,9 @@ linter:
     await waitForTasksFinished();
 
     // TODO(brianwilkerson): Implement options file analysis in the new driver.
-//    expect(optionsFileErrors, hasLength(1));
-//    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.ERROR);
-//    expect(optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+    //    expect(optionsFileErrors, hasLength(1));
+    //    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.ERROR);
+    //    expect(optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);
   }
 
   Future<void> test_options_file_removed() async {

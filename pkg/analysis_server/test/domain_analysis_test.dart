@@ -143,9 +143,7 @@ AnalysisErrors
 
   Future<void> test_fileSystem_addFile_analysisOptions_analysis() async {
     deleteTestPackageAnalysisOptionsFile();
-    _createFilesWithErrors([
-      '$testPackageLibPath/a.dart',
-    ]);
+    _createFilesWithErrors(['$testPackageLibPath/a.dart']);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -241,9 +239,7 @@ AnalysisErrors
   errors: empty
 ''');
 
-    _createFilesWithErrors([
-      '$testPackageLibPath/a.dart',
-    ]);
+    _createFilesWithErrors(['$testPackageLibPath/a.dart']);
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
@@ -450,8 +446,8 @@ AnalysisErrors
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue(times: 5000);
@@ -1000,8 +996,8 @@ AnalysisErrors
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue(times: 5000);
@@ -1333,8 +1329,8 @@ class A {}
 
     // Write the empty file, without `package:aaa`.
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, '''
@@ -1359,9 +1355,7 @@ AnalysisErrors
 ''');
 
     // Delete `package_config.json`, recreate analysis contexts.
-    deleteFile(
-      '$testPackageRootPath/.dart_tool/package_config.json',
-    );
+    deleteFile('$testPackageRootPath/.dart_tool/package_config.json');
 
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1459,9 +1453,10 @@ AnalysisErrors
     d.writeAsStringSync('');
 
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(
-        [a.path, c.path],
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([
+        a.path,
+        c.path,
+      ]).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -1493,25 +1488,22 @@ AnalysisErrors
 
   Future<void> test_setPriorityFiles_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisSetPriorityFilesParams(
-        ['a.dart'],
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([
+        'a.dart',
+      ]).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
       response,
-      isResponseFailure(
-        '0',
-        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-      ),
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
     );
   }
 
   Future<void> test_setPriorityFiles_withoutRoots() async {
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(
-        [convertPath('$testPackageLibPath/a.dart')],
-      ).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([
+        convertPath('$testPackageLibPath/a.dart'),
+      ]).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -1526,10 +1518,7 @@ AnalysisErrors
 
     expect(
       response,
-      isResponseFailure(
-        '0',
-        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-      ),
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
     );
   }
 
@@ -1544,10 +1533,7 @@ AnalysisErrors
 
     expect(
       response,
-      isResponseFailure(
-        '0',
-        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-      ),
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
     );
   }
 
@@ -1562,10 +1548,7 @@ AnalysisErrors
 
     expect(
       response,
-      isResponseFailure(
-        '0',
-        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-      ),
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
     );
   }
 
@@ -1580,10 +1563,7 @@ AnalysisErrors
 
     expect(
       response,
-      isResponseFailure(
-        '0',
-        RequestErrorCode.INVALID_FILE_PATH_FORMAT,
-      ),
+      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
     );
   }
 
@@ -1712,10 +1692,7 @@ AnalysisErrors
 
     _createFilesWithErrors([aPath, excluded_path]);
 
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [excluded_path],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: [excluded_path]);
     await server.onAnalysisComplete;
 
     fail('Not implemented');
@@ -1752,14 +1729,12 @@ AnalysisErrors
     var notExistingFolder_path = '$testPackageLibPath/notExisting';
     var existingFile_path = '$existingFolder_path/1.dart';
 
-    _createFilesWithErrors([
-      existingFile_path,
-    ]);
+    _createFilesWithErrors([existingFile_path]);
 
-    await setRoots(included: [
-      existingFolder_path,
-      notExistingFolder_path,
-    ], excluded: []);
+    await setRoots(
+      included: [existingFolder_path, notExistingFolder_path],
+      excluded: [],
+    );
     await server.onAnalysisComplete;
 
     // The not existing root does not prevent analysis of the existing one.
@@ -1931,8 +1906,8 @@ class A {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, '''
@@ -2023,9 +1998,7 @@ AnalysisErrors
     // Add the missing `;`.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFile.path: ChangeContentOverlay([
-          SourceEdit(9, 0, ';'),
-        ]),
+        testFile.path: ChangeContentOverlay([SourceEdit(9, 0, ';')]),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
@@ -2082,10 +2055,7 @@ AnalysisErrors
 
     expect(
       response,
-      isResponseFailure(
-        '0',
-        RequestErrorCode.INVALID_OVERLAY_CHANGE,
-      ),
+      isResponseFailure('0', RequestErrorCode.INVALID_OVERLAY_CHANGE),
     );
   }
 
@@ -2108,8 +2078,11 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     var pluginMapping = pluginManager.contextRootPlugins.map(
       (root, plugins) => MapEntry(
         pathContext.basename(root.root.path),
-        plugins.map((pluginPath) => pathContext
-            .basename(pathContext.dirname(pathContext.dirname(pluginPath)))),
+        plugins.map(
+          (pluginPath) => pathContext.basename(
+            pathContext.dirname(pathContext.dirname(pluginPath)),
+          ),
+        ),
       ),
     );
 
@@ -2139,7 +2112,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// context should be created for the non-plugin folder and it should be
   /// excluded from the parents plugin root.
   Future<void>
-      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_disabledPlugin() async {
+  test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_disabledPlugin() async {
     if (!AnalysisServer.supportsPlugins) return;
 
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
@@ -2160,16 +2133,13 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // Write the single package config at the root that can resolve both
     // plugins.
     newPackageConfigJsonFileFromBuilder(
-        workspaceRootPath,
-        PackageConfigFileBuilder()
-          ..add(name: 'plugin1', rootPath: plugin1.path));
+      workspaceRootPath,
+      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+    );
 
     // Set the analysis roots to the folder ('/home') that contains both
     // packages but not the plugins (which are in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2183,7 +2153,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// `analysis_options.yaml` that enables a different plugin. An additional
   /// root should be created.
   Future<void>
-      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledDifferentPlugin() async {
+  test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledDifferentPlugin() async {
     if (!AnalysisServer.supportsPlugins) return;
 
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
@@ -2213,10 +2183,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     // Set the analysis roots to the folder ('/home') that contains both
     // packages but not the plugins (which are in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2230,7 +2197,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// `analysis_options.yaml` that enables the same plugin explicitly. No
   /// additional context needs to be created.
   Future<void>
-      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginExplicit() async {
+  test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginExplicit() async {
     if (!AnalysisServer.supportsPlugins) return;
 
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
@@ -2251,16 +2218,13 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // Write the single package config at the root that can resolve both
     // plugins.
     newPackageConfigJsonFileFromBuilder(
-        workspaceRootPath,
-        PackageConfigFileBuilder()
-          ..add(name: 'plugin1', rootPath: plugin1.path));
+      workspaceRootPath,
+      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+    );
 
     // Set the analysis roots to the folder ('/home') that contains both
     // packages but not the plugins (which are in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2275,7 +2239,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// parents `analysis_options.yaml`. No additional context needs to be
   /// created.
   Future<void>
-      test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginInclude() async {
+  test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginInclude() async {
     if (!AnalysisServer.supportsPlugins) return;
 
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
@@ -2297,16 +2261,13 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // Write the single package config at the root that can resolve both
     // plugins.
     newPackageConfigJsonFileFromBuilder(
-        workspaceRootPath,
-        PackageConfigFileBuilder()
-          ..add(name: 'plugin1', rootPath: plugin1.path));
+      workspaceRootPath,
+      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+    );
 
     // Set the analysis roots to the folder ('/home') that contains both
     // packages but not the plugins (which are in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2327,7 +2288,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   ///   - package2/ (plugin2, (plugin1 - disabled due to limit))
   ///   - package3/ (plugin1)
   Future<void>
-      test_sentToPlugins_inNestedPackages_withoutPackageConfigs() async {
+  test_sentToPlugins_inNestedPackages_withoutPackageConfigs() async {
     if (!AnalysisServer.supportsPlugins) return;
 
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
@@ -2361,10 +2322,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     // Set the analysis roots to the folder ('/home') that contains both
     // packages but not the plugins (which are in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2408,10 +2366,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     // Set the analysis roots to the folder ('/home') that contains both
     // packages but not the plugins (which are in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2447,16 +2402,13 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     // Write the single package config at the root that can resolve the plugin.
     newPackageConfigJsonFileFromBuilder(
-        workspaceRootPath,
-        PackageConfigFileBuilder()
-          ..add(name: 'plugin1', rootPath: plugin1.path));
+      workspaceRootPath,
+      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+    );
 
     // Set the analysis roots to the folder ('/home') that contains the
     // package but not the plugin (which is in '/plugins').
-    await setRoots(
-      included: [workspaceRootPath],
-      excluded: [],
-    );
+    await setRoots(included: [workspaceRootPath], excluded: []);
     await waitForTasksFinished();
 
     expectPluginMapping({
@@ -2471,8 +2423,14 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     var pluginDirectory = convertPath(join('/plugins', name));
     newPubspecYamlFile(pluginDirectory, 'name: $name');
     newFile(convertPath(join(pluginDirectory, 'lib', '$name.dart')), '');
-    newFolder(join(pluginDirectory, PluginLocator.toolsFolderName,
-        PluginLocator.defaultPluginFolderName, '$name.dart'));
+    newFolder(
+      join(
+        pluginDirectory,
+        PluginLocator.toolsFolderName,
+        PluginLocator.defaultPluginFolderName,
+        '$name.dart',
+      ),
+    );
     return pluginDirectory;
   }
 
@@ -2495,8 +2453,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     );
 
     if (withPackageConfig) {
-      var packageConfig = PackageConfigFileBuilder()
-        ..add(name: name, rootPath: packagePath);
+      var packageConfig =
+          PackageConfigFileBuilder()..add(name: name, rootPath: packagePath);
       for (var plugin in plugins) {
         packageConfig.add(name: plugin.name, rootPath: plugin.path);
       }
@@ -2517,8 +2475,10 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = AnalysisHighlightsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisHighlightsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       filesHighlights[getFile(params.file)] = params.regions;
       _resultsAvailable.complete();
     }
@@ -2562,8 +2522,9 @@ class A {}
 ''');
     writePackageConfig(
       convertPath('/project'),
-      config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+      config:
+          (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2614,8 +2575,9 @@ class A {}
 ''');
     writePackageConfig(
       convertPath('/project'),
-      config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+      config:
+          (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');
@@ -2694,13 +2656,17 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded = AnalysisFlushResultsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var decoded = AnalysisFlushResultsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       notifications.add((notification.event, decoded));
     }
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       notifications.add((notification.event, decoded));
     }
   }

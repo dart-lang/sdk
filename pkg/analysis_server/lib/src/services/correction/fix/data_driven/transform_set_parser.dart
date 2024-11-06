@@ -116,7 +116,7 @@ class TransformSetParser {
     'optional_named',
     'optional_positional',
     'required_named',
-    'required_positional'
+    'required_positional',
   ];
 
   /// The valid values for the [_nullabilityKey] in a [_changeParameterTypeKind] change.
@@ -177,15 +177,19 @@ class TransformSetParser {
   /// Convert the given [template] into a list of components. Variable
   /// references in the template are looked up in the map of [generators].
   List<TemplateComponent> _extractTemplateComponents(
-      String template, VariableScope variableScope, int templateOffset) {
+    String template,
+    VariableScope variableScope,
+    int templateOffset,
+  ) {
     var components = <TemplateComponent>[];
     var textStart = 0;
     var variableStart = template.indexOf(_openComponent);
     while (variableStart >= 0) {
       if (textStart < variableStart) {
         // TODO(brianwilkerson): Check for an end brace without a start brace.
-        components
-            .add(TemplateText(template.substring(textStart, variableStart)));
+        components.add(
+          TemplateText(template.substring(textStart, variableStart)),
+        );
       }
       var endIndex = template.indexOf(_closeComponent, variableStart + 2);
       if (endIndex < 0) {
@@ -268,8 +272,11 @@ class TransformSetParser {
   /// Report a diagnostic with the given [code] associated with the given
   /// [node]. A list of [arguments] should be provided if the diagnostic message
   /// has parameters.
-  void _reportError(TransformSetErrorCode code, YamlNode node,
-      [List<String> arguments = const []]) {
+  void _reportError(
+    TransformSetErrorCode code,
+    YamlNode node, [
+    List<String> arguments = const [],
+  ]) {
     var span = node.span;
     errorReporter.atOffset(
       offset: span.start.offset,
@@ -282,16 +289,25 @@ class TransformSetParser {
   /// Report that the value represented by the [node] does not have the
   /// [expectedType], using the [context] to get the key to use in the message.
   Null _reportInvalidValue(
-      YamlNode node, ErrorContext context, String expectedType) {
-    _reportError(TransformSetErrorCode.invalidValue, node,
-        [context.key, expectedType, _nodeType(node)]);
+    YamlNode node,
+    ErrorContext context,
+    String expectedType,
+  ) {
+    _reportError(TransformSetErrorCode.invalidValue, node, [
+      context.key,
+      expectedType,
+      _nodeType(node),
+    ]);
     return null;
   }
 
   /// Report that the value represented by the [node] does not have the
   /// [expectedType], using the [context] to get the key to use in the message.
   Null _reportInvalidValueOneOf(
-      YamlNode node, ErrorContext context, List<String> allowedValues) {
+    YamlNode node,
+    ErrorContext context,
+    List<String> allowedValues,
+  ) {
     _reportError(TransformSetErrorCode.invalidValueOneOf, node, [
       context.key,
       allowedValues.quotedAndCommaSeparatedWithOr,
@@ -302,8 +318,9 @@ class TransformSetParser {
   /// Report that a required key is missing, using the [context] to locate the
   /// node associated with the diagnostic and the key to use in the message.
   Null _reportMissingKey(ErrorContext context) {
-    _reportError(
-        TransformSetErrorCode.missingKey, context.parentNode, [context.key]);
+    _reportError(TransformSetErrorCode.missingKey, context.parentNode, [
+      context.key,
+    ]);
     return null;
   }
 
@@ -330,7 +347,7 @@ class TransformSetParser {
   T? _singleKey<T>({
     required YamlMap map,
     required Map<Set<String>, T Function(String key, YamlNode node)>
-        translators,
+    translators,
     required YamlNode errorNode,
     bool required = true,
   }) {
@@ -340,9 +357,10 @@ class TransformSetParser {
       Object? valueNode = entry.value;
       if (keyNode is YamlScalar && valueNode is YamlNode) {
         if (keyNode.value case String key) {
-          var translator = translators.entries
-              .firstWhereOrNull((entry) => entry.key.contains(key))
-              ?.value;
+          var translator =
+              translators.entries
+                  .firstWhereOrNull((entry) => entry.key.contains(key))
+                  ?.value;
           if (translator != null) {
             entries.add(
               _SingleKeyEntry(
@@ -362,19 +380,21 @@ class TransformSetParser {
       if (required) {
         var validKeysList =
             translators.keys.flattenedToList.quotedAndCommaSeparatedWithOr;
-        _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, errorNode,
-            [validKeysList]);
+        _reportError(
+          TransformSetErrorCode.missingOneOfMultipleKeys,
+          errorNode,
+          [validKeysList],
+        );
       }
       return null;
     }
 
     var firstKey = firstEntry.key;
     for (var entry in entries.skip(1)) {
-      _reportError(
-        TransformSetErrorCode.conflictingKey,
-        entry.keyNode,
-        [entry.key, firstKey],
-      );
+      _reportError(TransformSetErrorCode.conflictingKey, entry.keyNode, [
+        entry.key,
+        firstKey,
+      ]);
     }
 
     return firstEntry.translator(firstKey, firstEntry.valueNode);
@@ -382,39 +402,53 @@ class TransformSetParser {
 
   /// Translate the [node] into a add-parameter modification.
   void _translateAddParameterChange(YamlMap node) {
-    _reportUnsupportedKeys(node,
-        const {_argumentValueKey, _indexKey, _kindKey, _nameKey, _styleKey});
-    var index = _translateInteger(node.valueAt(_indexKey),
-        ErrorContext(key: _indexKey, parentNode: node));
+    _reportUnsupportedKeys(node, const {
+      _argumentValueKey,
+      _indexKey,
+      _kindKey,
+      _nameKey,
+      _styleKey,
+    });
+    var index = _translateInteger(
+      node.valueAt(_indexKey),
+      ErrorContext(key: _indexKey, parentNode: node),
+    );
     if (index == null) {
       // The error has already been reported.
       return;
     }
     var name = _translateString(
-        node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
+      node.valueAt(_nameKey),
+      ErrorContext(key: _nameKey, parentNode: node),
+    );
     if (name == null) {
       // The error has already been reported.
       return;
     }
     var styleNode = node.valueAt(_styleKey);
     var style = _translateString(
-        styleNode, ErrorContext(key: _styleKey, parentNode: node));
+      styleNode,
+      ErrorContext(key: _styleKey, parentNode: node),
+    );
     if (styleNode == null || style == null) {
       // The error has already been reported.
       return;
     }
     if (!validStyles.contains(style)) {
       var validStylesList = validStyles.quotedAndCommaSeparatedWithOr;
-      _reportError(TransformSetErrorCode.invalidParameterStyle, styleNode,
-          [validStylesList]);
+      _reportError(TransformSetErrorCode.invalidParameterStyle, styleNode, [
+        validStylesList,
+      ]);
       return;
     }
     var isRequired = style.startsWith('required_');
     var isPositional = style.endsWith('_positional');
     var argumentValueNode = node.valueAt(_argumentValueKey);
-    var argumentValue = _translateCodeTemplate(argumentValueNode,
-        ErrorContext(key: _argumentValueKey, parentNode: node),
-        canBeConditionallyRequired: true);
+    var argumentValue = _translateCodeTemplate(
+      argumentValueNode,
+      ErrorContext(key: _argumentValueKey, parentNode: node),
+      canBeConditionallyRequired: true,
+    );
     // TODO(brianwilkerson): We really ought to require an argument value for
     //  optional positional parameters too for the case where the added
     //  parameter is being added before the end of the list and call sites might
@@ -429,31 +463,47 @@ class TransformSetParser {
         argumentValue.requiredIfCondition != null) {
       if (style != 'optional_named') {
         var valueNode = argumentValueNode as YamlMap;
-        _reportError(TransformSetErrorCode.invalidRequiredIf,
-            valueNode.keyAtValue(valueNode.valueAt(_requiredIfKey)!)!);
+        _reportError(
+          TransformSetErrorCode.invalidRequiredIf,
+          valueNode.keyAtValue(valueNode.valueAt(_requiredIfKey)!)!,
+        );
         return;
       }
     }
     _parameterModifications ??= [];
     _parameterModifications!.add(
-        AddParameter(index, name, isRequired, isPositional, argumentValue));
+      AddParameter(index, name, isRequired, isPositional, argumentValue),
+    );
   }
 
   /// Translate the [node] into an add-type-parameter change. Return the
   /// resulting change, or `null` if the [node] does not represent a valid
   /// add-type-parameter change.
   AddTypeParameter? _translateAddTypeParameterChange(YamlMap node) {
-    _reportUnsupportedKeys(node,
-        const {_extendsKey, _indexKey, _kindKey, _nameKey, _argumentValueKey});
-    var index = _translateInteger(node.valueAt(_indexKey),
-        ErrorContext(key: _indexKey, parentNode: node));
+    _reportUnsupportedKeys(node, const {
+      _extendsKey,
+      _indexKey,
+      _kindKey,
+      _nameKey,
+      _argumentValueKey,
+    });
+    var index = _translateInteger(
+      node.valueAt(_indexKey),
+      ErrorContext(key: _indexKey, parentNode: node),
+    );
     var name = _translateString(
-        node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
-    var extendedType = _translateCodeTemplate(node.valueAt(_extendsKey),
-        ErrorContext(key: _extendsKey, parentNode: node),
-        required: false);
-    var argumentValue = _translateCodeTemplate(node.valueAt(_argumentValueKey),
-        ErrorContext(key: _argumentValueKey, parentNode: node));
+      node.valueAt(_nameKey),
+      ErrorContext(key: _nameKey, parentNode: node),
+    );
+    var extendedType = _translateCodeTemplate(
+      node.valueAt(_extendsKey),
+      ErrorContext(key: _extendsKey, parentNode: node),
+      required: false,
+    );
+    var argumentValue = _translateCodeTemplate(
+      node.valueAt(_argumentValueKey),
+      ErrorContext(key: _argumentValueKey, parentNode: node),
+    );
     if (index == null || name == null || argumentValue == null) {
       // The error has already been reported.
       return null;
@@ -463,18 +513,22 @@ class TransformSetParser {
     // `ParameterModification`. That becomes more likely if we add support for
     // removing type parameters.
     return AddTypeParameter(
-        index: index,
-        name: name,
-        extendedType: extendedType,
-        argumentValue: argumentValue);
+      index: index,
+      name: name,
+      extendedType: extendedType,
+      argumentValue: argumentValue,
+    );
   }
 
   /// Translate the [node] into a bool. Return the resulting bool, or `null`
   /// if the [node] doesn't represent a valid bool. If the [node] isn't valid,
   /// use the [context] to report the error. If the [node] doesn't exist and
   /// [required] is `true`, then report an error.
-  bool? _translateBool(YamlNode? node, ErrorContext context,
-      {bool required = true}) {
+  bool? _translateBool(
+    YamlNode? node,
+    ErrorContext context, {
+    bool required = true,
+  }) {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is bool) {
@@ -538,7 +592,7 @@ class TransformSetParser {
       _indexKey,
       _kindKey,
       _nameKey,
-      _nullabilityKey
+      _nullabilityKey,
     });
 
     var reference = _singleKey(
@@ -572,7 +626,9 @@ class TransformSetParser {
 
     var nullabilityNode = node.valueAt(_nullabilityKey);
     var nullability = _translateString(
-        nullabilityNode, ErrorContext(key: _nullabilityKey, parentNode: node));
+      nullabilityNode,
+      ErrorContext(key: _nullabilityKey, parentNode: node),
+    );
     if (nullability == null) {
       // The error has already been reported.
       return;
@@ -580,13 +636,17 @@ class TransformSetParser {
     if (!validNullabilityChanges.contains(nullability)) {
       var nullabilityChangeList =
           validNullabilityChanges.quotedAndCommaSeparatedWithOr;
-      _reportError(TransformSetErrorCode.invalidValueOneOf, nullabilityNode!,
-          [_nullabilityKey, nullabilityChangeList]);
+      _reportError(TransformSetErrorCode.invalidValueOneOf, nullabilityNode!, [
+        _nullabilityKey,
+        nullabilityChangeList,
+      ]);
       return;
     }
     var argumentValueNode = node.valueAt(_argumentValueKey);
-    var argumentValue = _translateCodeTemplate(argumentValueNode,
-        ErrorContext(key: _argumentValueKey, parentNode: node));
+    var argumentValue = _translateCodeTemplate(
+      argumentValueNode,
+      ErrorContext(key: _argumentValueKey, parentNode: node),
+    );
     (_parameterModifications ??= []).add(
       ChangeParameterType(
         reference: reference,
@@ -603,13 +663,16 @@ class TransformSetParser {
     _reportUnsupportedKeys(node, const {_kindKey, _valueKey});
     var valueNode = node.valueAt(_valueKey);
     var value = _translateString(
-        valueNode, ErrorContext(key: _valueKey, parentNode: node));
+      valueNode,
+      ErrorContext(key: _valueKey, parentNode: node),
+    );
     if (valueNode is! YamlScalar || value == null) {
       // The error has already been reported.
       return null;
     }
-    var accessors = CodeFragmentParser(errorReporter)
-        .parseAccessors(value, _offsetOfString(valueNode));
+    var accessors = CodeFragmentParser(
+      errorReporter,
+    ).parseAccessors(value, _offsetOfString(valueNode));
     if (accessors == null) {
       // The error has already been reported.
       return null;
@@ -621,31 +684,44 @@ class TransformSetParser {
   /// or `null` if the [node] doesn't represent a valid code template. If the
   /// [node] isn't valid, use the [context] to report the error. If the [node]
   /// doesn't exist and [required] is `true`, then report an error.
-  CodeTemplate? _translateCodeTemplate(YamlNode? node, ErrorContext context,
-      {bool canBeConditionallyRequired = false, bool required = true}) {
+  CodeTemplate? _translateCodeTemplate(
+    YamlNode? node,
+    ErrorContext context, {
+    bool canBeConditionallyRequired = false,
+    bool required = true,
+  }) {
     if (node is YamlMap) {
       if (canBeConditionallyRequired) {
-        _reportUnsupportedKeys(
-            node, const {_expressionKey, _requiredIfKey, _variablesKey});
+        _reportUnsupportedKeys(node, const {
+          _expressionKey,
+          _requiredIfKey,
+          _variablesKey,
+        });
       } else {
         _reportUnsupportedKeys(node, const {_expressionKey, _variablesKey});
       }
       var expressionNode = node.valueAt(_expressionKey);
       var template = _translateString(
-          expressionNode, ErrorContext(key: _expressionKey, parentNode: node));
+        expressionNode,
+        ErrorContext(key: _expressionKey, parentNode: node),
+      );
       var variableScope = _translateTemplateVariables(
-          node.valueAt(_variablesKey),
-          ErrorContext(key: _variablesKey, parentNode: node));
+        node.valueAt(_variablesKey),
+        ErrorContext(key: _variablesKey, parentNode: node),
+      );
       Expression? requiredIfCondition;
       if (canBeConditionallyRequired) {
         var requiredIfNode = node.valueAt(_requiredIfKey);
         var requiredIfText = _translateString(
-            requiredIfNode, ErrorContext(key: _requiredIfKey, parentNode: node),
-            required: false);
+          requiredIfNode,
+          ErrorContext(key: _requiredIfKey, parentNode: node),
+          required: false,
+        );
         if (requiredIfNode is YamlScalar && requiredIfText != null) {
-          requiredIfCondition = CodeFragmentParser(errorReporter,
-                  scope: variableScope)
-              .parseCondition(requiredIfText, _offsetOfString(requiredIfNode));
+          requiredIfCondition = CodeFragmentParser(
+            errorReporter,
+            scope: variableScope,
+          ).parseCondition(requiredIfText, _offsetOfString(requiredIfNode));
           if (requiredIfCondition == null) {
             // The error has already been reported.
             return null;
@@ -657,10 +733,16 @@ class TransformSetParser {
         return null;
       }
       var templateOffset = _offsetOfString(expressionNode);
-      var components =
-          _extractTemplateComponents(template, variableScope, templateOffset);
+      var components = _extractTemplateComponents(
+        template,
+        variableScope,
+        templateOffset,
+      );
       return CodeTemplate(
-          CodeTemplateKind.expression, components, requiredIfCondition);
+        CodeTemplateKind.expression,
+        components,
+        requiredIfCondition,
+      );
     } else if (node == null) {
       if (required) {
         _reportMissingKey(context);
@@ -671,15 +753,23 @@ class TransformSetParser {
     }
   }
 
-  void _translateConditionalChange(YamlNode node, ErrorContext context,
-      Map<Expression, List<Change<Object>>> changeMap) {
+  void _translateConditionalChange(
+    YamlNode node,
+    ErrorContext context,
+    Map<Expression, List<Change<Object>>> changeMap,
+  ) {
     if (node is YamlMap) {
       _reportUnsupportedKeys(node, const {_ifKey, _changesKey});
       var expressionNode = node.valueAt(_ifKey);
       var expressionText = _translateString(
-          expressionNode, ErrorContext(key: _ifKey, parentNode: node));
-      var changes = _translateList(node.valueAt(_changesKey),
-          ErrorContext(key: _changesKey, parentNode: node), _translateChange);
+        expressionNode,
+        ErrorContext(key: _ifKey, parentNode: node),
+      );
+      var changes = _translateList(
+        node.valueAt(_changesKey),
+        ErrorContext(key: _changesKey, parentNode: node),
+        _translateChange,
+      );
       var parameterModifications = _parameterModifications;
       if (parameterModifications != null) {
         if (changes != null) {
@@ -690,9 +780,10 @@ class TransformSetParser {
       if (expressionNode is YamlScalar &&
           expressionText != null &&
           changes != null) {
-        var expression = CodeFragmentParser(errorReporter,
-                scope: transformVariableScope)
-            .parseCondition(expressionText, _offsetOfString(expressionNode));
+        var expression = CodeFragmentParser(
+          errorReporter,
+          scope: transformVariableScope,
+        ).parseCondition(expressionText, _offsetOfString(expressionNode));
         if (expression != null) {
           changeMap[expression] = changes;
         }
@@ -703,7 +794,9 @@ class TransformSetParser {
   }
 
   ChangesSelector? _translateConditionalChanges(
-      YamlNode node, ErrorContext context) {
+    YamlNode node,
+    ErrorContext context,
+  ) {
     if (node is YamlList) {
       var changeMap = <Expression, List<Change<Object>>>{};
       for (var element in node.nodes) {
@@ -743,8 +836,11 @@ class TransformSetParser {
   ElementDescriptor? _translateElement(YamlNode? node, ErrorContext context) {
     if (node is YamlMap) {
       var urisNode = node.valueAt(_urisKey);
-      var uris = _translateList(urisNode,
-          ErrorContext(key: _urisKey, parentNode: node), _translateUri);
+      var uris = _translateList(
+        urisNode,
+        ErrorContext(key: _urisKey, parentNode: node),
+        _translateUri,
+      );
 
       var elementPair = _singleKey(
         map: node,
@@ -775,7 +871,9 @@ class TransformSetParser {
       }
       var elementKey = elementPair.key;
       var elementName = _translateString(
-          elementPair.value, ErrorContext(key: elementKey, parentNode: node));
+        elementPair.value,
+        ErrorContext(key: elementKey, parentNode: node),
+      );
       if (elementName == null) {
         // The error has already been reported.
         return null;
@@ -800,12 +898,17 @@ class TransformSetParser {
           required: false,
         );
         if (containerName == null) {
-          if ([_constructorKey, _constantKey, _methodKey, _fieldKey]
-              .contains(elementKey)) {
+          if ([
+            _constructorKey,
+            _constantKey,
+            _methodKey,
+            _fieldKey,
+          ].contains(elementKey)) {
             var validKeysList =
                 validContainerKeys.quotedAndCommaSeparatedWithOr;
-            _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, node,
-                [validKeysList]);
+            _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, node, [
+              validKeysList,
+            ]);
             return null;
           }
         } else {
@@ -813,18 +916,24 @@ class TransformSetParser {
         }
         if (staticNode != null) {
           var staticValue = _translateBool(
-              staticNode, ErrorContext(key: _staticKey, parentNode: node));
+            staticNode,
+            ErrorContext(key: _staticKey, parentNode: node),
+          );
           if (staticValue != null) {
             if (components.length == 1) {
-              _reportError(TransformSetErrorCode.unsupportedStatic,
-                  node.getKey(_staticKey)!);
+              _reportError(
+                TransformSetErrorCode.unsupportedStatic,
+                node.getKey(_staticKey)!,
+              );
             }
             isStatic = staticValue;
           }
         }
       } else if (staticNode != null) {
         _reportError(
-            TransformSetErrorCode.unsupportedStatic, node.getKey(_staticKey)!);
+          TransformSetErrorCode.unsupportedStatic,
+          node.getKey(_staticKey)!,
+        );
       }
       if (uris == null) {
         // The error has already been reported.
@@ -837,10 +946,11 @@ class TransformSetParser {
         return null;
       }
       return ElementDescriptor(
-          libraryUris: uris,
-          kind: ElementKindUtilities.fromName(elementKey)!,
-          isStatic: isStatic,
-          components: components);
+        libraryUris: uris,
+        kind: ElementKindUtilities.fromName(elementKey)!,
+        isStatic: isStatic,
+        components: components,
+      );
     } else if (node == null) {
       return _reportMissingKey(context);
     } else {
@@ -855,9 +965,14 @@ class TransformSetParser {
     _reportUnsupportedKeys(node, const {_kindKey, _nameKey, _urisKey});
     var urisNode = node.valueAt(_urisKey);
     var uris = _translateList(
-        urisNode, ErrorContext(key: _urisKey, parentNode: node), _translateUri);
+      urisNode,
+      ErrorContext(key: _urisKey, parentNode: node),
+      _translateUri,
+    );
     var name = _translateString(
-        node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
+      node.valueAt(_nameKey),
+      ErrorContext(key: _nameKey, parentNode: node),
+    );
     if (uris == null || name == null) {
       // The error has already been reported.
       return null;
@@ -912,8 +1027,11 @@ class TransformSetParser {
   /// valid list. If any of the elements of the list can't be translated, they
   /// will be omitted from the list, the [context] will be used to report the
   /// error, and the valid elements will be returned.
-  List<R>? _translateList<R>(YamlNode? node, ErrorContext context,
-      R? Function(YamlNode, ErrorContext) elementTranslator) {
+  List<R>? _translateList<R>(
+    YamlNode? node,
+    ErrorContext context,
+    R? Function(YamlNode, ErrorContext) elementTranslator,
+  ) {
     if (node is YamlList) {
       var translatedList = <R>[];
       for (var element in node.nodes) {
@@ -973,8 +1091,10 @@ class TransformSetParser {
   /// `null` if the [node] does not represent a valid rename change.
   Rename? _translateRenameChange(YamlMap node) {
     _reportUnsupportedKeys(node, const {_kindKey, _newNameKey});
-    var newName = _translateString(node.valueAt(_newNameKey),
-        ErrorContext(key: _newNameKey, parentNode: node));
+    var newName = _translateString(
+      node.valueAt(_newNameKey),
+      ErrorContext(key: _newNameKey, parentNode: node),
+    );
     if (newName == null) {
       // The error has already been reported.
       return null;
@@ -986,10 +1106,14 @@ class TransformSetParser {
   /// change, or `null` if the [node] does not represent a valid rename change.
   RenameParameter? _translateRenameParameterChange(YamlMap node) {
     _reportUnsupportedKeys(node, const {_kindKey, _newNameKey, _oldNameKey});
-    var oldName = _translateString(node.valueAt(_oldNameKey),
-        ErrorContext(key: _oldNameKey, parentNode: node));
-    var newName = _translateString(node.valueAt(_newNameKey),
-        ErrorContext(key: _newNameKey, parentNode: node));
+    var oldName = _translateString(
+      node.valueAt(_oldNameKey),
+      ErrorContext(key: _oldNameKey, parentNode: node),
+    );
+    var newName = _translateString(
+      node.valueAt(_newNameKey),
+      ErrorContext(key: _newNameKey, parentNode: node),
+    );
     if (oldName == null || newName == null) {
       // The error has already been reported.
       return null;
@@ -1001,10 +1125,16 @@ class TransformSetParser {
   /// change, or `null` if the [node] does not represent a valid replaced_by
   /// change.
   ReplacedBy? _translateReplacedByChange(YamlMap node) {
-    _reportUnsupportedKeys(
-        node, const {_arguments, _kindKey, _newElementKey, _replaceTarget});
-    var newElement = _translateElement(node.valueAt(_newElementKey),
-        ErrorContext(key: _newElementKey, parentNode: node));
+    _reportUnsupportedKeys(node, const {
+      _arguments,
+      _kindKey,
+      _newElementKey,
+      _replaceTarget,
+    });
+    var newElement = _translateElement(
+      node.valueAt(_newElementKey),
+      ErrorContext(key: _newElementKey, parentNode: node),
+    );
     if (newElement == null) {
       // The error has already been reported.
       return null;
@@ -1014,44 +1144,55 @@ class TransformSetParser {
       var compatibleTypes = compatibleReplacementTypes[oldElement.kind];
       if (compatibleTypes == null) {
         _reportError(
-            TransformSetErrorCode.invalidChangeForKind,
-            node.valueAt(_newElementKey)!,
-            [_replacedByKind, oldElement.kind.displayName]);
+          TransformSetErrorCode.invalidChangeForKind,
+          node.valueAt(_newElementKey)!,
+          [_replacedByKind, oldElement.kind.displayName],
+        );
         return null;
       } else if (!compatibleTypes.contains(newElement.kind)) {
         _reportError(
-            TransformSetErrorCode.incompatibleElementKind,
-            node.valueAt(_newElementKey)!,
-            [oldElement.kind.displayName, newElement.kind.displayName]);
+          TransformSetErrorCode.incompatibleElementKind,
+          node.valueAt(_newElementKey)!,
+          [oldElement.kind.displayName, newElement.kind.displayName],
+        );
         return null;
       }
     }
     bool? replaceTarget;
     var replaceTargetNode = node.valueAt(_replaceTarget);
-    replaceTarget = replaceTargetNode == null
-        ? false
-        : _translateBool(replaceTargetNode,
-                ErrorContext(key: _replaceTarget, parentNode: node)) ??
-            false;
+    replaceTarget =
+        replaceTargetNode == null
+            ? false
+            : _translateBool(
+                  replaceTargetNode,
+                  ErrorContext(key: _replaceTarget, parentNode: node),
+                ) ??
+                false;
     var argumentsNode = node.valueAt(_arguments);
-    var argumentList = argumentsNode == null
-        ? null
-        : _translateList(
-            argumentsNode,
-            ErrorContext(key: _arguments, parentNode: node),
-            _translateCodeTemplate);
+    var argumentList =
+        argumentsNode == null
+            ? null
+            : _translateList(
+              argumentsNode,
+              ErrorContext(key: _arguments, parentNode: node),
+              _translateCodeTemplate,
+            );
     return ReplacedBy(
-        newElement: newElement,
-        replaceTarget: replaceTarget,
-        argumentList: argumentList);
+      newElement: newElement,
+      replaceTarget: replaceTarget,
+      argumentList: argumentList,
+    );
   }
 
   /// Translate the [node] into a string. Return the resulting string, or `null`
   /// if the [node] doesn't represent a valid string. If the [node] isn't valid,
   /// use the [context] to report the error. If the [node] doesn't exist and
   /// [required] is `true`, then report an error.
-  String? _translateString(YamlNode? node, ErrorContext context,
-      {bool required = true}) {
+  String? _translateString(
+    YamlNode? node,
+    ErrorContext context, {
+    bool required = true,
+  }) {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is String) {
@@ -1072,14 +1213,18 @@ class TransformSetParser {
   /// the enclosing scope if the [node] does not represent a valid variables
   /// map. If the [node] is not valid, use the [context] to report the error.
   VariableScope _translateTemplateVariables(
-      YamlNode? node, ErrorContext context) {
+    YamlNode? node,
+    ErrorContext context,
+  ) {
     if (node is YamlMap) {
       var generators = <String, ValueGenerator>{};
       for (var entry in node.nodes.entries) {
         var name = _translateKey(entry.key as YamlNode);
         if (name != null) {
           var value = _translateValueGenerator(
-              entry.value, ErrorContext(key: name, parentNode: node));
+            entry.value,
+            ErrorContext(key: name, parentNode: node),
+          );
           if (value != null) {
             generators[name] = value;
           }
@@ -1106,22 +1251,32 @@ class TransformSetParser {
         _elementKey,
         _oneOfKey,
         _titleKey,
-        _variablesKey
+        _variablesKey,
       });
-      var title = _translateString(node.valueAt(_titleKey),
-          ErrorContext(key: _titleKey, parentNode: node));
-      var date = _translateDate(node.valueAt(_dateKey),
-          ErrorContext(key: _dateKey, parentNode: node));
-      var bulkApply = _translateBool(node.valueAt(_bulkApplyKey),
-              ErrorContext(key: _bulkApplyKey, parentNode: node),
-              required: false) ??
+      var title = _translateString(
+        node.valueAt(_titleKey),
+        ErrorContext(key: _titleKey, parentNode: node),
+      );
+      var date = _translateDate(
+        node.valueAt(_dateKey),
+        ErrorContext(key: _dateKey, parentNode: node),
+      );
+      var bulkApply =
+          _translateBool(
+            node.valueAt(_bulkApplyKey),
+            ErrorContext(key: _bulkApplyKey, parentNode: node),
+            required: false,
+          ) ??
           true;
-      var element = _translateElement(node.valueAt(_elementKey),
-          ErrorContext(key: _elementKey, parentNode: node));
+      var element = _translateElement(
+        node.valueAt(_elementKey),
+        ErrorContext(key: _elementKey, parentNode: node),
+      );
       elementBeingTransformed = element;
       transformVariableScope = _translateTemplateVariables(
-          node.valueAt(_variablesKey),
-          ErrorContext(key: _variablesKey, parentNode: node));
+        node.valueAt(_variablesKey),
+        ErrorContext(key: _variablesKey, parentNode: node),
+      );
       var selector = _singleKey(
         map: node,
         errorNode: context.parentNode,
@@ -1140,9 +1295,7 @@ class TransformSetParser {
             var parameterModifications = _parameterModifications;
             if (parameterModifications != null) {
               changes.add(
-                ModifyParameters(
-                  modifications: parameterModifications,
-                ),
+                ModifyParameters(modifications: parameterModifications),
               );
               _parameterModifications = null;
             }
@@ -1165,11 +1318,12 @@ class TransformSetParser {
         return null;
       }
       return Transform(
-          title: title,
-          date: date,
-          bulkApply: bulkApply,
-          element: element,
-          changesSelector: selector);
+        title: title,
+        date: date,
+        bulkApply: bulkApply,
+        element: element,
+        changesSelector: selector,
+      );
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
@@ -1182,7 +1336,9 @@ class TransformSetParser {
       _reportUnsupportedKeys(node, const {_transformsKey, _versionKey});
       var versionNode = node.valueAt(_versionKey);
       var version = _translateInteger(
-          versionNode, ErrorContext(key: _versionKey, parentNode: node));
+        versionNode,
+        ErrorContext(key: _versionKey, parentNode: node),
+      );
       if (versionNode == null || version == null) {
         // The error has already been reported.
         return null;
@@ -1193,9 +1349,10 @@ class TransformSetParser {
       // TODO(brianwilkerson): Version information is currently being ignored,
       //  but needs to be used to select a translator.
       var transforms = _translateList(
-          node.valueAt(_transformsKey),
-          ErrorContext(key: _transformsKey, parentNode: node),
-          _translateTransform);
+        node.valueAt(_transformsKey),
+        ErrorContext(key: _transformsKey, parentNode: node),
+        _translateTransform,
+      );
       if (transforms == null) {
         // The error has already been reported.
         return null;
@@ -1213,8 +1370,11 @@ class TransformSetParser {
     } else {
       // TODO(brianwilkerson): Consider having a different error code for the
       //  top-level node (instead of using 'file' as the "key").
-      _reportError(TransformSetErrorCode.invalidValue, node,
-          ['file', 'Map', _nodeType(node)]);
+      _reportError(TransformSetErrorCode.invalidValue, node, [
+        'file',
+        'Map',
+        _nodeType(node),
+      ]);
       return null;
     }
   }
@@ -1223,8 +1383,11 @@ class TransformSetParser {
   /// the [node] doesn't represent a valid URI. If the [node] isn't valid, use
   /// the [context] to report the error. If the [node] doesn't exist and
   /// [required] is `true`, then report an error.
-  Uri? _translateUri(YamlNode? node, ErrorContext context,
-      {bool required = true}) {
+  Uri? _translateUri(
+    YamlNode? node,
+    ErrorContext context, {
+    bool required = true,
+  }) {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is String) {
@@ -1251,7 +1414,9 @@ class TransformSetParser {
   /// extractor. If the [node] is not valid, use the [context] to report the
   /// error.
   ValueGenerator? _translateValueGenerator(
-      YamlNode? node, ErrorContext context) {
+    YamlNode? node,
+    ErrorContext context,
+  ) {
     if (node is YamlMap) {
       var kindNode = node.valueAt(_kindKey);
       var kindContext = ErrorContext(key: _kindKey, parentNode: node);
@@ -1275,7 +1440,7 @@ class TransformSetParser {
   }
 
   static Map<ElementKind, Set<ElementKind>>
-      _createCompatibleReplacementTypes() {
+  _createCompatibleReplacementTypes() {
     var types = <ElementKind, Set<ElementKind>>{};
 
     void addSet(Set<ElementKind> set) {
@@ -1285,22 +1450,14 @@ class TransformSetParser {
     }
 
     // Constructors can replace constructors.
-    addSet({
-      ElementKind.constructorKind,
-    });
+    addSet({ElementKind.constructorKind});
     // Static methods and top-level functions can replace each other.
-    addSet({
-      ElementKind.functionKind,
-      ElementKind.methodKind,
-    });
+    addSet({ElementKind.functionKind, ElementKind.methodKind});
     // Instance getters and methods can replace each other.
     // Only a zero-parameter method can be replaced with a getter.
     // Replacing a getter with a method can result in a compilation error if the
     // required arguments are not added.
-    addSet({
-      ElementKind.getterKind,
-      ElementKind.methodKind,
-    });
+    addSet({ElementKind.getterKind, ElementKind.methodKind});
     // Static getters and getter-inducing elements can replace each other.
     addSet({
       ElementKind.constantKind,

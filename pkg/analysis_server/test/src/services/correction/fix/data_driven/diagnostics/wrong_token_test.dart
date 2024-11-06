@@ -28,9 +28,7 @@ class WrongTokenTest extends AbstractCodeFragmentParserTest {
   }
 
   void test_identifier_initial() {
-    assertErrors('1', [
-      error(TransformSetErrorCode.wrongToken, 0, 1),
-    ]);
+    assertErrors('1', [error(TransformSetErrorCode.wrongToken, 0, 1)]);
   }
 
   void test_index() {
@@ -40,9 +38,7 @@ class WrongTokenTest extends AbstractCodeFragmentParserTest {
   }
 
   void test_openBracket() {
-    assertErrors('arguments.', [
-      error(TransformSetErrorCode.wrongToken, 9, 1),
-    ]);
+    assertErrors('arguments.', [error(TransformSetErrorCode.wrongToken, 9, 1)]);
   }
 
   void test_period() {

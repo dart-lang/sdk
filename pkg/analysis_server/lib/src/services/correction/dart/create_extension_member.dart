@@ -16,9 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateExtensionGetter extends _CreateExtensionMember {
   String _getterName = '';
 
-  CreateExtensionGetter({
-    required super.context,
-  });
+  CreateExtensionGetter({required super.context});
 
   @override
   List<String> get fixArguments => [_getterName];
@@ -78,15 +76,14 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       builder.write(';');
     }
 
-    var updatedExisting = await _updateExistingExtension(
+    var updatedExisting = await _updateExistingExtension(builder, targetType, (
+      extension,
       builder,
-      targetType,
-      (extension, builder) {
-        builder.insertGetter(extension, (builder) {
-          writeGetter(builder);
-        });
-      },
-    );
+    ) {
+      builder.insertGetter(extension, (builder) {
+        writeGetter(builder);
+      });
+    });
     if (updatedExisting) {
       return;
     }
@@ -98,9 +95,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
 class CreateExtensionMethod extends _CreateExtensionMember {
   String _methodName = '';
 
-  CreateExtensionMethod({
-    required super.context,
-  });
+  CreateExtensionMethod({required super.context});
 
   @override
   List<String> get fixArguments => [_methodName];
@@ -154,15 +149,14 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       builder.write(') {}');
     }
 
-    var updatedExisting = await _updateExistingExtension(
+    var updatedExisting = await _updateExistingExtension(builder, targetType, (
+      extension,
       builder,
-      targetType,
-      (extension, builder) {
-        builder.insertMethod(extension, (builder) {
-          writeMethod(builder);
-        });
-      },
-    );
+    ) {
+      builder.insertMethod(extension, (builder) {
+        writeMethod(builder);
+      });
+    });
     if (updatedExisting) {
       return;
     }
@@ -174,9 +168,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 class CreateExtensionSetter extends _CreateExtensionMember {
   String _setterName = '';
 
-  CreateExtensionSetter({
-    required super.context,
-  });
+  CreateExtensionSetter({required super.context});
 
   @override
   List<String> get fixArguments => [_setterName];
@@ -233,15 +225,14 @@ class CreateExtensionSetter extends _CreateExtensionMember {
       );
     }
 
-    var updatedExisting = await _updateExistingExtension(
+    var updatedExisting = await _updateExistingExtension(builder, targetType, (
+      extension,
       builder,
-      targetType,
-      (extension, builder) {
-        builder.insertGetter(extension, (builder) {
-          writeSetter(builder);
-        });
-      },
-    );
+    ) {
+      builder.insertGetter(extension, (builder) {
+        writeSetter(builder);
+      });
+    });
     if (updatedExisting) {
       return;
     }
@@ -251,9 +242,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
 }
 
 abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
-  _CreateExtensionMember({
-    required super.context,
-  });
+  _CreateExtensionMember({required super.context});
 
   @override
   CorrectionApplicability get applicability {
@@ -308,10 +297,8 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
   Future<bool> _updateExistingExtension(
     ChangeBuilder builder,
     DartType targetType,
-    void Function(
-      ExtensionDeclaration existing,
-      DartFileEditBuilder builder,
-    ) write,
+    void Function(ExtensionDeclaration existing, DartFileEditBuilder builder)
+    write,
   ) async {
     var extension = _existingExtension(targetType);
     if (extension == null) {

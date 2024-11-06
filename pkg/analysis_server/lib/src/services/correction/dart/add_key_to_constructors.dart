@@ -43,8 +43,10 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   }
 
   /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
-  bool _canBeConst(ClassDeclaration classDeclaration,
-      List<ConstructorElement2> constructors) {
+  bool _canBeConst(
+    ClassDeclaration classDeclaration,
+    List<ConstructorElement2> constructors,
+  ) {
     for (var constructor in constructors) {
       if (constructor.isDefaultConstructor && !constructor.isConst) {
         return false;
@@ -70,7 +72,9 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   /// The lint is on the name of the class when there are no constructors.
   Future<void> _computeClassDeclaration(
-      ChangeBuilder builder, ClassDeclaration node) async {
+    ChangeBuilder builder,
+    ClassDeclaration node,
+  ) async {
     var keyType = await _getKeyType();
     if (keyType == null) {
       return;
@@ -104,13 +108,16 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// The lint is reported on a constructor when that constructor doesn't have a
   /// `key` parameter.
   Future<void> _computeConstructorDeclaration(
-      ChangeBuilder builder, ConstructorDeclaration node) async {
+    ChangeBuilder builder,
+    ConstructorDeclaration node,
+  ) async {
     var keyType = await _getKeyType();
     if (keyType == null) {
       return;
     }
-    var superParameters =
-        libraryElement2.featureSet.isEnabled(Feature.super_parameters);
+    var superParameters = libraryElement2.featureSet.isEnabled(
+      Feature.super_parameters,
+    );
 
     void writeKey(DartEditBuilder builder) {
       if (superParameters) {
@@ -170,8 +177,11 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     );
   }
 
-  void _updateSuper(DartFileEditBuilder builder,
-      ConstructorDeclaration constructor, bool superParameters) {
+  void _updateSuper(
+    DartFileEditBuilder builder,
+    ConstructorDeclaration constructor,
+    bool superParameters,
+  ) {
     if (constructor.factoryKeyword != null ||
         constructor.redirectedConstructor != null) {
       // Can't have a super constructor invocation.
@@ -194,24 +204,15 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
         var invocationIndex = initializers.indexOf(invocation);
         if (initializers.length == 1) {
           builder.addDeletion(
-            range.endStart(
-              constructor.parameters,
-              constructor.body,
-            ),
+            range.endStart(constructor.parameters, constructor.body),
           );
         } else if (invocationIndex == 0) {
           builder.addDeletion(
-            range.startStart(
-              invocation,
-              initializers[invocationIndex + 1],
-            ),
+            range.startStart(invocation, initializers[invocationIndex + 1]),
           );
         } else {
           builder.addDeletion(
-            range.endEnd(
-              initializers[invocationIndex - 1],
-              invocation,
-            ),
+            range.endEnd(initializers[invocationIndex - 1], invocation),
           );
         }
       }
@@ -222,7 +223,9 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       // There is no super constructor invocation, so add one.
       if (initializers.isEmpty) {
         builder.addSimpleInsertion(
-            constructor.parameters.rightParenthesis.end, ' : super(key: key)');
+          constructor.parameters.rightParenthesis.end,
+          ' : super(key: key)',
+        );
       } else {
         builder.addSimpleInsertion(initializers.last.end, ', super(key: key)');
       }
@@ -230,8 +233,10 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       // There is a super constructor invocation, so update it.
       var argumentList = invocation.argumentList;
       var arguments = argumentList.arguments;
-      var existing = arguments.firstWhereOrNull((argument) =>
-          argument is NamedExpression && argument.name.label.name == 'key');
+      var existing = arguments.firstWhereOrNull(
+        (argument) =>
+            argument is NamedExpression && argument.name.label.name == 'key',
+      );
       if (existing == null) {
         // There is no 'key' argument, so add it.
         var namedArguments = arguments.whereType<NamedExpression>();

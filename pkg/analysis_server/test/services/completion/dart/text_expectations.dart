@@ -73,9 +73,7 @@ class TextExpectationsCollector {
         var line = int.parse(locationMatch.group(2)!);
         var file = _getFile(path);
 
-        var invocation = file.findInvocation(
-          invocationLine: line,
-        );
+        var invocation = file.findInvocation(invocationLine: line);
         if (invocation == null) {
           fail('Cannot find MethodInvocation.');
         }
@@ -98,11 +96,7 @@ class TextExpectationsCollector {
         }
 
         file.addReplacement(
-          _Replacement(
-            argument.contentsOffset,
-            argument.contentsEnd,
-            actual,
-          ),
+          _Replacement(argument.contentsOffset, argument.contentsEnd, actual),
         );
 
         // Stop after the first (most specific) assert method.
@@ -141,9 +135,9 @@ final class _ArgumentIndex extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList) {
-    return argumentList.arguments
-        .whereNotType<NamedExpression>()
-        .elementAt(index);
+    return argumentList.arguments.whereNotType<NamedExpression>().elementAt(
+      index,
+    );
   }
 }
 
@@ -225,16 +219,15 @@ class _File {
     replacements.sort((a, b) => b.offset - a.offset);
     var newCode = content;
     for (var replacement in replacements) {
-      newCode = newCode.substring(0, replacement.offset) +
+      newCode =
+          newCode.substring(0, replacement.offset) +
           replacement.text +
           newCode.substring(replacement.end);
     }
     io.File(path).writeAsStringSync(newCode);
   }
 
-  MethodInvocation? findInvocation({
-    required int invocationLine,
-  }) {
+  MethodInvocation? findInvocation({required int invocationLine}) {
     var visitor = _InvocationVisitor(
       lineInfo: lineInfo,
       requestedLine: invocationLine,
@@ -249,10 +242,7 @@ class _InvocationVisitor extends RecursiveAstVisitor<void> {
   final int requestedLine;
   MethodInvocation? result;
 
-  _InvocationVisitor({
-    required this.lineInfo,
-    required this.requestedLine,
-  });
+  _InvocationVisitor({required this.lineInfo, required this.requestedLine});
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

@@ -61,36 +61,47 @@ class LspSocketServer implements AbstractSocketServer {
         code: ServerErrorCodes.ServerAlreadyStarted,
         message: 'Server already started',
       );
-      serverChannel.sendNotification(NotificationMessage(
-        method: Method.window_showMessage,
-        params:
-            ShowMessageParams(type: MessageType.Error, message: error.message),
-        jsonrpc: jsonRpcVersion,
-      ));
+      serverChannel.sendNotification(
+        NotificationMessage(
+          method: Method.window_showMessage,
+          params: ShowMessageParams(
+            type: MessageType.Error,
+            message: error.message,
+          ),
+          jsonrpc: jsonRpcVersion,
+        ),
+      );
       serverChannel.listen((Message message) {
         if (message is RequestMessage) {
-          serverChannel.sendResponse(ResponseMessage(
-              id: message.id, error: error, jsonrpc: jsonRpcVersion));
+          serverChannel.sendResponse(
+            ResponseMessage(
+              id: message.id,
+              error: error,
+              jsonrpc: jsonRpcVersion,
+            ),
+          );
         }
       });
       return;
     }
 
     var resourceProvider = PhysicalResourceProvider(
-        stateLocation: analysisServerOptions.cacheFolder);
-
-    var server = analysisServer = LspAnalysisServer(
-      serverChannel,
-      resourceProvider,
-      analysisServerOptions,
-      sdkManager,
-      analyticsManager,
-      CrashReportingAttachmentsBuilder.empty,
-      instrumentationService,
-      diagnosticServer: diagnosticServer,
-      detachableFileSystemManager: detachableFileSystemManager,
-      enableBlazeWatcher: true,
+      stateLocation: analysisServerOptions.cacheFolder,
     );
+
+    var server =
+        analysisServer = LspAnalysisServer(
+          serverChannel,
+          resourceProvider,
+          analysisServerOptions,
+          sdkManager,
+          analyticsManager,
+          CrashReportingAttachmentsBuilder.empty,
+          instrumentationService,
+          diagnosticServer: diagnosticServer,
+          detachableFileSystemManager: detachableFileSystemManager,
+          enableBlazeWatcher: true,
+        );
     detachableFileSystemManager?.setAnalysisServer(server);
   }
 }

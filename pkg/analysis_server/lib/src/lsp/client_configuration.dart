@@ -25,9 +25,9 @@ class LspClientCodeLensConfiguration {
   final Map<String, Object?>? _codeLensSettings;
 
   LspClientCodeLensConfiguration(Object? userPreference)
-      : _userOverride = userPreference is bool ? userPreference : null,
-        _codeLensSettings =
-            userPreference is Map<String, Object?> ? userPreference : null;
+    : _userOverride = userPreference is bool ? userPreference : null,
+      _codeLensSettings =
+          userPreference is Map<String, Object?> ? userPreference : null;
 
   /// Whether the "Go to Augmentation" CodeLens is enabled.
   bool get augmentation => _getUserPreference('augmentation', true);
@@ -66,8 +66,9 @@ class LspClientConfiguration {
   ///
   /// Used as a fallback for resource settings if no specific config is found
   /// for the resource.
-  LspGlobalClientConfiguration _globalSettings =
-      LspGlobalClientConfiguration({});
+  LspGlobalClientConfiguration _globalSettings = LspGlobalClientConfiguration(
+    {},
+  );
 
   /// Settings for each resource.
   ///
@@ -132,21 +133,26 @@ class LspClientConfiguration {
 
     _resourceSettings
       ..clear()
-      ..addAll(workspaceFolderConfig.map(
-        (key, value) => MapEntry(
-          _normaliseFolderPath(key),
-          LspResourceClientConfiguration(value, _globalSettings),
+      ..addAll(
+        workspaceFolderConfig.map(
+          (key, value) => MapEntry(
+            _normaliseFolderPath(key),
+            LspResourceClientConfiguration(value, _globalSettings),
+          ),
         ),
-      ));
+      );
   }
 
   /// Gets the path for the WorkspaceFolder closest to [resourcePath].
   String? _getWorkspaceFolderPath(String resourcePath) {
-    var candidates = _resourceSettings.keys
-        .where((wfPath) =>
-            wfPath == _normaliseFolderPath(resourcePath) ||
-            pathContext.isWithin(wfPath, resourcePath))
-        .toList();
+    var candidates =
+        _resourceSettings.keys
+            .where(
+              (wfPath) =>
+                  wfPath == _normaliseFolderPath(resourcePath) ||
+                  pathContext.isWithin(wfPath, resourcePath),
+            )
+            .toList();
     candidates.sort((a, b) => -a.length.compareTo(b.length));
     return candidates.firstOrNull;
   }
@@ -165,7 +171,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   late final codeLens = LspClientCodeLensConfiguration(_settings['codeLens']);
 
   LspGlobalClientConfiguration(Map<String, Object?> settings)
-      : super(settings, null);
+    : super(settings, null);
 
   List<String> get analysisExcludedFolders {
     // This setting is documented as a string array, but because editors are
@@ -210,7 +216,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
     return switch (value) {
       'none' => DocumentationPreference.none,
       'summary' => DocumentationPreference.summary,
-      _ => DocumentationPreference.full
+      _ => DocumentationPreference.full,
     };
   }
 
@@ -231,12 +237,13 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   ///
   /// [showAllTodos] should be checked first, as this will return an empty
   /// set if `showTodos` is a boolean.
-  Set<String> get showTodoTypes => _settings['showTodos'] is List
-      ? (_settings['showTodos'] as List)
-          .cast<String>()
-          .map((kind) => kind.toUpperCase())
-          .toSet()
-      : const {};
+  Set<String> get showTodoTypes =>
+      _settings['showTodos'] is List
+          ? (_settings['showTodos'] as List)
+              .cast<String>()
+              .map((kind) => kind.toUpperCase())
+              .toSet()
+          : const {};
 }
 
 /// Wraps the client (editor) configuration for a specific resource.
@@ -277,7 +284,7 @@ class LspResourceClientConfiguration {
     // this version to the documented 'enableSnippets' setting in middleware.
     // Once the number of users on < 3.36 is insignificant, this check can be
     // removed. At 24 Mar 2022, approx 9% of users are on < 3.36.
-    if (_settings['enableServerSnippets'] == false /* explicit false */) {
+    if (_settings['enableServerSnippets'] == false /* explicit false */ ) {
       return false;
     }
 

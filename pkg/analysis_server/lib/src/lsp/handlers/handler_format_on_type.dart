@@ -12,8 +12,9 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 
 typedef StaticOptions = DocumentOnTypeFormattingOptions?;
 
-class FormatOnTypeHandler extends SharedMessageHandler<
-    DocumentOnTypeFormattingParams, List<TextEdit>?> {
+class FormatOnTypeHandler
+    extends
+        SharedMessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>?> {
   FormatOnTypeHandler(super.server);
 
   @override
@@ -30,7 +31,10 @@ class FormatOnTypeHandler extends SharedMessageHandler<
     var file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(
-          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
+        ServerErrorCodes.InvalidFilePath,
+        'File does not exist',
+        path,
+      );
     }
 
     var result = await server.getParsedUnit(path);
@@ -43,8 +47,11 @@ class FormatOnTypeHandler extends SharedMessageHandler<
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>?>> handle(DocumentOnTypeFormattingParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<TextEdit>?>> handle(
+    DocumentOnTypeFormattingParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -81,11 +88,13 @@ class FormatOnTypeRegistrations extends FeatureRegistration
   Method get registrationMethod => Method.textDocument_onTypeFormatting;
 
   @override
-  StaticOptions get staticOptions => enableFormatter
-      ? DocumentOnTypeFormattingOptions(
-          firstTriggerCharacter: dartTypeFormattingCharacters.first,
-          moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList())
-      : null;
+  StaticOptions get staticOptions =>
+      enableFormatter
+          ? DocumentOnTypeFormattingOptions(
+            firstTriggerCharacter: dartTypeFormattingCharacters.first,
+            moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
+          )
+          : null;
 
   @override
   bool get supportsDynamic => enableFormatter && clientDynamic.typeFormatting;

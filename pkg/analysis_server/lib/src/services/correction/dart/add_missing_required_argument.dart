@@ -21,8 +21,9 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not a stand-alone fix; requires follow-up actions.
-      CorrectionApplicability.singleLocation;
+          // Not a stand-alone fix; requires follow-up actions.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_missingParameterName];
@@ -59,8 +60,9 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
 
     if (targetElement is ExecutableElement2 && argumentList != null) {
       // Format: "Missing required argument 'foo'."
-      var messageParts =
-          diagnostic.problemMessage.messageText(includeUrl: false).split("'");
+      var messageParts = diagnostic.problemMessage
+          .messageText(includeUrl: false)
+          .split("'");
       if (messageParts.length < 2) {
         return;
       }
@@ -95,7 +97,9 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
 
       var codeStyleOptions = getCodeStyleOptions(unitResult.file);
       var defaultValue = getDefaultStringParameterValue2(
-          missingParameter, codeStyleOptions.preferredQuoteForStrings);
+        missingParameter,
+        codeStyleOptions.preferredQuoteForStrings,
+      );
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {

@@ -19,8 +19,11 @@ abstract class DetachableFileSystemManager {
   /// underlying analysis server, it can choose to modify the given
   /// [includedPaths] and other parameters, or it could choose to delays calls
   /// to [setAnalysisRoots].
-  void setAnalysisRoots(String? requestId, List<String> includedPaths,
-      List<String> excludedPaths);
+  void setAnalysisRoots(
+    String? requestId,
+    List<String> includedPaths,
+    List<String> excludedPaths,
+  );
 
   /// Called exactly once before any calls to [setAnalysisRoots].
   void setAnalysisServer(AnalysisServer server);

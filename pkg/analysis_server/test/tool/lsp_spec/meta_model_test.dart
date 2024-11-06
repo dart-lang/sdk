@@ -26,13 +26,13 @@ void main() {
                 'name': 'options',
                 'type': {
                   'kind': 'array',
-                  'element': {'kind': 'reference', 'name': 'string'}
+                  'element': {'kind': 'reference', 'name': 'string'},
                 },
                 'optional': true,
                 'documentation': 'Options used by something.',
-              }
+              },
             ],
-            'documentation': 'Some options.'
+            'documentation': 'Some options.',
           },
         ],
       };
@@ -69,14 +69,14 @@ void main() {
                         'name': 'deprecated',
                         'type': {'kind': 'base', 'name': 'bool'},
                         'optional': true,
-                      }
-                    ]
-                  }
+                      },
+                    ],
+                  },
                 },
                 'optional': true,
-              }
+              },
             ],
-            'documentation': 'Some options.'
+            'documentation': 'Some options.',
           },
         ],
       };
@@ -123,7 +123,7 @@ void main() {
                 'name': 'options1',
                 'type': {'kind': 'reference', 'name': 'LSPAny'},
                 'documentation': 'Options1 used by something.',
-              }
+              },
             ],
           },
         ],
@@ -154,10 +154,10 @@ void main() {
                   'key': {'kind': 'base', 'name': 'string'},
                   'value': {
                     'kind': 'array',
-                    'element': {'kind': 'reference', 'name': 'TextEdit'}
+                    'element': {'kind': 'reference', 'name': 'TextEdit'},
                   },
                 },
-              }
+              },
             ],
           },
         ],
@@ -170,8 +170,10 @@ void main() {
       var field = interface.members.first as Field;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('changes'));
-      expect(field.type,
-          isMapOf(isSimpleType('string'), isArrayOf(isSimpleType('TextEdit'))));
+      expect(
+        field.type,
+        isMapOf(isSimpleType('string'), isArrayOf(isSimpleType('TextEdit'))),
+      );
     });
 
     test('flags nullable undefined values', () {
@@ -186,8 +188,8 @@ void main() {
                   'kind': 'or',
                   'items': [
                     {'kind': 'base', 'name': 'string'},
-                    {'kind': 'base', 'name': 'null'}
-                  ]
+                    {'kind': 'base', 'name': 'null'},
+                  ],
                 },
                 'optional': true,
               },
@@ -201,8 +203,8 @@ void main() {
                   'kind': 'or',
                   'items': [
                     {'kind': 'base', 'name': 'string'},
-                    {'kind': 'base', 'name': 'null'}
-                  ]
+                    {'kind': 'base', 'name': 'null'},
+                  ],
                 },
               },
               {
@@ -258,7 +260,9 @@ Sometimes after a blank line we'll have a note.
       };
       var output = readModel(input);
       var interface = output[0] as Interface;
-      expect(interface.comment, equals('''
+      expect(
+        interface.comment,
+        equals('''
 Describes the what this class in lots of words that wrap onto multiple lines that will need re-wrapping to format nicely when converted into Dart.
 
 Blank lines should remain in-tact, as should:
@@ -270,7 +274,8 @@ Some docs have:
 
 Sometimes after a blank line we'll have a note.
 
-*Note* that something.'''));
+*Note* that something.'''),
+      );
     });
 
     test('reads a type alias', () {
@@ -280,7 +285,7 @@ Sometimes after a blank line we'll have a note.
             'name': 'DocumentSelector',
             'type': {
               'kind': 'array',
-              'element': {'kind': 'reference', 'name': 'DocumentFilter'}
+              'element': {'kind': 'reference', 'name': 'DocumentFilter'},
             },
           },
         ],
@@ -307,9 +312,9 @@ Sometimes after a blank line we'll have a note.
                     'properties': [
                       {
                         'name': 'name',
-                        'type': {'kind': 'base', 'name': 'string'}
+                        'type': {'kind': 'base', 'name': 'string'},
                       },
-                    ]
+                    ],
                   },
                 },
                 {
@@ -318,12 +323,12 @@ Sometimes after a blank line we'll have a note.
                     'properties': [
                       {
                         'name': 'length',
-                        'type': {'kind': 'base', 'name': 'number'}
+                        'type': {'kind': 'base', 'name': 'number'},
                       },
-                    ]
+                    ],
                   },
                 },
-              ]
+              ],
             },
           },
         ],
@@ -383,7 +388,7 @@ Sometimes after a blank line we'll have a note.
               },
             ],
           },
-        ]
+        ],
       };
       var output = readModel(input);
       expect(output, hasLength(1));
@@ -400,15 +405,21 @@ Sometimes after a blank line we'll have a note.
       expect(create.name, equals('Create'));
       expect(create.type, isSimpleType('ResourceOperationKind'));
       expect(
-          create.comment, equals('Supports creating new files and folders.'));
+        create.comment,
+        equals('Supports creating new files and folders.'),
+      );
       expect(rename.name, equals('Rename'));
       expect(rename.type, isSimpleType('ResourceOperationKind'));
-      expect(rename.comment,
-          equals('Supports renaming existing files and folders.'));
+      expect(
+        rename.comment,
+        equals('Supports renaming existing files and folders.'),
+      );
       expect(delete.name, equals('Delete'));
       expect(delete.type, isSimpleType('ResourceOperationKind'));
-      expect(delete.comment,
-          equals('Supports deleting existing files and folders.'));
+      expect(
+        delete.comment,
+        equals('Supports deleting existing files and folders.'),
+      );
     });
 
     test('reads a tuple in an array', () {
@@ -427,10 +438,10 @@ Sometimes after a blank line we'll have a note.
                       'kind': 'tuple',
                       'items': [
                         {'kind': 'base', 'name': 'number'},
-                        {'kind': 'base', 'name': 'number'}
-                      ]
-                    }
-                  ]
+                        {'kind': 'base', 'name': 'number'},
+                      ],
+                    },
+                  ],
                 },
               },
             ],
@@ -465,7 +476,7 @@ Sometimes after a blank line we'll have a note.
                   'items': [
                     {'kind': 'base', 'name': 'string'},
                     {'kind': 'base', 'name': 'LSPAny'},
-                  ]
+                  ],
                 },
               },
             ],
@@ -524,7 +535,7 @@ Sometimes after a blank line we'll have a note.
                   'items': [
                     {'kind': 'stringLiteral', 'value': 'one'},
                     {'kind': 'stringLiteral', 'value': 'two'},
-                  ]
+                  ],
                 },
               },
             ],

@@ -33,8 +33,10 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p1-1.0');
 
     writeTestPackageConfig(
-        config: PackageConfigFileBuilder()
-          ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'));
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'),
+    );
 
     newFile('/home/test/pubspec.yaml', '');
 
@@ -44,16 +46,14 @@ class TransformSetManagerTest extends AbstractContextTest {
     var sets = manager.forLibrary(result.element2);
     expect(sets, hasLength(1));
     var elementMatcher = ElementMatcher(
-        importedUris: [Uri.parse('package:p1/test.dart')],
-        components: ['A'],
-        kinds: [ElementKind.classKind]);
+      importedUris: [Uri.parse('package:p1/test.dart')],
+      components: ['A'],
+      kinds: [ElementKind.classKind],
+    );
 
     var set = sets.first.transformsFor(elementMatcher, applyingBulkFixes: true);
     expect(set, isNotEmpty);
-    expect(
-      set.first.element.libraryUris.first.path,
-      equals('p1/test.dart'),
-    );
+    expect(set.first.element.libraryUris.first.path, equals('p1/test.dart'));
   }
 
   Future<void> test_twoFiles_onePackage() async {
@@ -63,8 +63,9 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFileIn('$folder/deep/dive/two.yaml', 'p1');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -76,20 +77,25 @@ class TransformSetManagerTest extends AbstractContextTest {
     expect(sets, hasLength(2));
 
     var elementMatcher = ElementMatcher(
-        importedUris: [Uri.parse('package:p1/test.dart')],
-        components: ['A'],
-        kinds: [ElementKind.classKind]);
+      importedUris: [Uri.parse('package:p1/test.dart')],
+      components: ['A'],
+      kinds: [ElementKind.classKind],
+    );
 
-    var firstSet =
-        sets[0].transformsFor(elementMatcher, applyingBulkFixes: true);
+    var firstSet = sets[0].transformsFor(
+      elementMatcher,
+      applyingBulkFixes: true,
+    );
     expect(firstSet, isNotEmpty);
     expect(
       firstSet.first.element.libraryUris.first.path,
       equals('p1/test.dart'),
     );
 
-    var secondSet =
-        sets[1].transformsFor(elementMatcher, applyingBulkFixes: true);
+    var secondSet = sets[1].transformsFor(
+      elementMatcher,
+      applyingBulkFixes: true,
+    );
     expect(secondSet, isNotEmpty);
     expect(
       secondSet.first.element.libraryUris.first.path,
@@ -102,9 +108,10 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p2');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
-        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
+            ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -129,7 +136,9 @@ class TransformSetManagerTest extends AbstractContextTest {
 
   void _addDataFile(String packageName) {
     _addDataFileIn(
-        '$workspaceRootPath/$packageName/lib/fix_data.yaml', packageName);
+      '$workspaceRootPath/$packageName/lib/fix_data.yaml',
+      packageName,
+    );
   }
 
   void _addDataFileIn(String path, String packageName) {

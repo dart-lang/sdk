@@ -26,10 +26,13 @@ class MemberSorter {
   String code;
 
   MemberSorter(
-      this.initialCode, this.unit, CodeStyleOptions codeStyle, this.lineInfo)
-      : endOfLine = getEOL(initialCode),
-        code = initialCode,
-        _priorityItems = _getPriorityItems(codeStyle);
+    this.initialCode,
+    this.unit,
+    CodeStyleOptions codeStyle,
+    this.lineInfo,
+  ) : endOfLine = getEOL(initialCode),
+      code = initialCode,
+      _priorityItems = _getPriorityItems(codeStyle);
 
   /// Return the [SourceEdit]s that sort [unit].
   List<SourceEdit> sort() {
@@ -280,7 +283,7 @@ class MemberSorter {
       _PriorityItem(false, _MemberKind.CLASS_METHOD, false),
       _PriorityItem(false, _MemberKind.CLASS_METHOD, true),
       _PriorityItem(true, _MemberKind.CLASS_METHOD, false),
-      _PriorityItem(true, _MemberKind.CLASS_METHOD, true)
+      _PriorityItem(true, _MemberKind.CLASS_METHOD, true),
     ];
   }
 }
@@ -294,7 +297,7 @@ class _MemberInfo {
   final String text;
 
   _MemberInfo(this.item, this.name, this.offset, this.length, this.text)
-      : end = offset + length;
+    : end = offset + length;
 
   @override
   String toString() {
@@ -332,11 +335,7 @@ class _PriorityItem {
   }
 
   @override
-  int get hashCode => Object.hash(
-        kind,
-        isPrivate,
-        isStatic,
-      );
+  int get hashCode => Object.hash(kind, isPrivate, isStatic);
 
   @override
   bool operator ==(Object obj) {

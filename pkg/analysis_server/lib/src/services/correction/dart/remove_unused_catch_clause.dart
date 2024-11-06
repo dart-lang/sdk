@@ -14,8 +14,9 @@ class RemoveUnusedCatchClause extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // May not be appropriate while actively coding.
-      CorrectionApplicability.acrossFiles;
+          // May not be appropriate while actively coding.
+          CorrectionApplicability
+          .acrossFiles;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE;

@@ -371,7 +371,8 @@ void f() {
 
     expect(
       result.errorCode,
-      protocol.RequestErrorCode
+      protocol
+          .RequestErrorCode
           .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
     );
     expect(result.change, isNull);

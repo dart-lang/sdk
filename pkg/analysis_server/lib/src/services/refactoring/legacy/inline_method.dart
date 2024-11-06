@@ -45,16 +45,19 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
 /// Returns the source which should replace given invocation with given
 /// arguments.
 String _getMethodSourceForInvocation(
-    RefactoringStatus status,
-    _SourcePart part,
-    CorrectionUtils utils,
-    AstNode contextNode,
-    Expression? targetExpression,
-    List<Expression> arguments) {
+  RefactoringStatus status,
+  _SourcePart part,
+  CorrectionUtils utils,
+  AstNode contextNode,
+  Expression? targetExpression,
+  List<Expression> arguments,
+) {
   // prepare edits to replace parameters with arguments
   var edits = <SourceEdit>[];
-  part._parameters.forEach(
-      (ParameterElement parameter, List<_ParameterOccurrence> occurrences) {
+  part._parameters.forEach((
+    ParameterElement parameter,
+    List<_ParameterOccurrence> occurrences,
+  ) {
     // prepare argument
     Expression? argument;
     for (var arg in arguments) {
@@ -77,8 +80,10 @@ String _getMethodSourceForInvocation(
     } else {
       // report about a missing required parameter
       if (parameter.isRequiredPositional) {
-        status.addError('No argument for the parameter "${parameter.name}".',
-            newLocation_fromNode(contextNode));
+        status.addError(
+          'No argument for the parameter "${parameter.name}".',
+          newLocation_fromNode(contextNode),
+        );
         return;
       }
       // an optional parameter
@@ -105,7 +110,7 @@ String _getMethodSourceForInvocation(
   // replace static field "qualifier" with invocation target
   part._implicitClassNameOffsets.forEach((String className, List<int> offsets) {
     for (var offset in offsets) {
-//      edits.add(newSourceEdit_range(range, className + '.'));
+      //      edits.add(newSourceEdit_range(range, className + '.'));
       edits.add(SourceEdit(offset, 0, '$className.'));
     }
   });
@@ -213,8 +218,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final Set<Element> _alreadyMadeAsync = <Element>{};
 
   InlineMethodRefactoringImpl(
-      this.searchEngine, this.resolveResult, this.offset)
-      : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
+    this.searchEngine,
+    this.resolveResult,
+    this.offset,
+  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
     utils = CorrectionUtils(resolveResult);
   }
 
@@ -256,10 +263,15 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // delete method
     if (deleteSource && inlineAll) {
       var methodRange = range.node(_methodNode);
-      var linesRange =
-          _methodUtils.getLinesRange(methodRange, skipLeadingEmptyLines: true);
+      var linesRange = _methodUtils.getLinesRange(
+        methodRange,
+        skipLeadingEmptyLines: true,
+      );
       doSourceChange_addElementEdit(
-          change, _methodElement!, newSourceEdit_range(linesRange, ''));
+        change,
+        _methodElement!,
+        newSourceEdit_range(linesRange, ''),
+      );
     }
     // done
     return Future.value(result);
@@ -309,7 +321,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// Checks if [offset] is a method that can be inlined.
   RefactoringStatus _checkOffset() {
     var fatalStatus = RefactoringStatus.fatal(
-        'Method declaration or reference must be selected to activate this refactoring.');
+      'Method declaration or reference must be selected to activate this refactoring.',
+    );
 
     var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     Element? element;
@@ -363,7 +376,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     inlineAll = false;
     // prepare for failure
     var fatalStatus = RefactoringStatus.fatal(
-        'Method declaration or reference must be selected to activate this refactoring.');
+      'Method declaration or reference must be selected to activate this refactoring.',
+    );
 
     // prepare selected SimpleIdentifier
     var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
@@ -438,8 +452,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         }
         // if there are statements, process them
         if (statements.isNotEmpty) {
-          var statementsRange =
-              _methodUtils.getLinesRangeStatements(statements);
+          var statementsRange = _methodUtils.getLinesRangeStatements(
+            statements,
+          );
           _methodStatementsPart = _createSourcePart(statementsRange);
         }
       }
@@ -542,33 +557,58 @@ class _ReferenceProcessor {
     return false;
   }
 
-  void _inlineMethodInvocation(RefactoringStatus status, Expression usage,
-      bool cascaded, Expression? target, List<Expression> arguments) {
+  void _inlineMethodInvocation(
+    RefactoringStatus status,
+    Expression usage,
+    bool cascaded,
+    Expression? target,
+    List<Expression> arguments,
+  ) {
     // we don't support cascade
     if (cascaded) {
       status.addError(
-          'Cannot inline cascade invocation.', newLocation_fromNode(usage));
+        'Cannot inline cascade invocation.',
+        newLocation_fromNode(usage),
+      );
     }
     // can we inline method body into "methodUsage" block?
     if (_canInlineBody(usage)) {
       // insert non-return statements
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
-        var source = _getMethodSourceForInvocation(status,
-            ref._methodStatementsPart!, _refUtils, usage, target, arguments);
+        var source = _getMethodSourceForInvocation(
+          status,
+          ref._methodStatementsPart!,
+          _refUtils,
+          usage,
+          target,
+          arguments,
+        );
         source = _refUtils.replaceSourceIndent(
-            source, ref._methodStatementsPart!._prefix, _refPrefix,
-            includeLeading: true, ensureTrailingNewline: true);
+          source,
+          ref._methodStatementsPart!._prefix,
+          _refPrefix,
+          includeLeading: true,
+          ensureTrailingNewline: true,
+        );
         // do insert
-        var edit =
-            newSourceEdit_range(SourceRange(_refLineRange!.offset, 0), source);
+        var edit = newSourceEdit_range(
+          SourceRange(_refLineRange!.offset, 0),
+          source,
+        );
         _addRefEdit(edit);
       }
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
         // prepare expression source for invocation
-        var source = _getMethodSourceForInvocation(status,
-            ref._methodExpressionPart!, _refUtils, usage, target, arguments);
+        var source = _getMethodSourceForInvocation(
+          status,
+          ref._methodExpressionPart!,
+          _refUtils,
+          usage,
+          target,
+          arguments,
+        );
         if (getExpressionPrecedence(ref._methodExpression!) <
             getExpressionParentPrecedence(usage)) {
           source = '($source)';
@@ -592,8 +632,9 @@ class _ReferenceProcessor {
     // inline as closure invocation
     String source;
     {
-      source = ref._methodUtils.getRangeText(range.startEnd(
-          ref._methodParameters!.leftParenthesis, ref._methodNode));
+      source = ref._methodUtils.getRangeText(
+        range.startEnd(ref._methodParameters!.leftParenthesis, ref._methodNode),
+      );
       var methodPrefix = ref._methodUtils.getLinePrefix(ref._methodNode.offset);
       source = _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
       source = source.trim();
@@ -617,15 +658,18 @@ class _ReferenceProcessor {
         if (body.isSynchronous) {
           if (body.isGenerator) {
             status.addFatalError(
-                'Cannot inline async into sync*.', newLocation_fromNode(_node));
+              'Cannot inline async into sync*.',
+              newLocation_fromNode(_node),
+            );
             return;
           }
           if (refElement is ExecutableElement) {
             var executable = refElement as ExecutableElement;
             if (!executable.returnType.isDartAsyncFuture) {
               status.addFatalError(
-                  'Cannot inline async into a function that does not return a Future.',
-                  newLocation_fromNode(_node));
+                'Cannot inline async into a function that does not return a Future.',
+                newLocation_fromNode(_node),
+              );
               return;
             }
           }
@@ -642,12 +686,19 @@ class _ReferenceProcessor {
       var target = invocation.target;
       List<Expression> arguments = invocation.argumentList.arguments;
       _inlineMethodInvocation(
-          status, invocation, invocation.isCascaded, target, arguments);
+        status,
+        invocation,
+        invocation.isCascaded,
+        target,
+        arguments,
+      );
     } else {
       // cannot inline reference to method: var v = new A().method;
       if (ref._methodElement is MethodElement) {
-        status.addFatalError('Cannot inline class method reference.',
-            newLocation_fromNode(_node));
+        status.addFatalError(
+          'Cannot inline class method reference.',
+          newLocation_fromNode(_node),
+        );
         return;
       }
       // PropertyAccessorElement
@@ -680,12 +731,20 @@ class _ReferenceProcessor {
       // not invocation, just reference to function
       String source;
       {
-        source = ref._methodUtils.getRangeText(range.startEnd(
-            ref._methodParameters!.leftParenthesis, ref._methodNode));
-        var methodPrefix =
-            ref._methodUtils.getLinePrefix(ref._methodNode.offset);
-        source =
-            _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
+        source = ref._methodUtils.getRangeText(
+          range.startEnd(
+            ref._methodParameters!.leftParenthesis,
+            ref._methodNode,
+          ),
+        );
+        var methodPrefix = ref._methodUtils.getLinePrefix(
+          ref._methodNode.offset,
+        );
+        source = _refUtils.replaceSourceIndent(
+          source,
+          methodPrefix,
+          _refPrefix,
+        );
         source = source.trim();
         source = removeEnd(source, ';')!;
       }

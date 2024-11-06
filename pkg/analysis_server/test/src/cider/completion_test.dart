@@ -326,9 +326,7 @@ void f() {
   }
 
   Future<void> test_limitedResolution_class_constructor_body() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A<T> {
@@ -354,9 +352,7 @@ class A<T> {
   }
 
   Future<void> test_limitedResolution_class_field_startWithType() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A {
@@ -372,9 +368,7 @@ class A {
   }
 
   Future<void> test_limitedResolution_class_method_body() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A<T> {
@@ -406,9 +400,7 @@ enum E { e }
   }
 
   Future<void> test_limitedResolution_class_method_body2() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A {
@@ -433,9 +425,7 @@ abstract class B {
   }
 
   Future<void> test_limitedResolution_class_method_parameterType() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A {
@@ -451,10 +441,8 @@ class A {
   }
 
   Future<void>
-      test_limitedResolution_class_method_returnType_hasPartial() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+  test_limitedResolution_class_method_returnType_hasPartial() async {
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A {
@@ -527,9 +515,7 @@ class A {}
   }
 
   Future<void> test_limitedResolution_mixin_method_body() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 class A {
@@ -565,9 +551,7 @@ class A {}
   }
 
   Future<void> test_limitedResolution_unit_function_body() async {
-    _configureToCheckNotResolved(
-      identifiers: {'print'},
-    );
+    _configureToCheckNotResolved(identifiers: {'print'});
 
     await _compute(r'''
 void foo() {
@@ -629,10 +613,7 @@ import 'a.dart';
       expected.add(corePath);
     }
 
-    expect(
-      _computer.computedImportedLibraries,
-      unorderedEquals(expected),
-    );
+    expect(_computer.computedImportedLibraries, unorderedEquals(expected));
   }
 
   CompletionSuggestion _assertHasClass({required String text}) {

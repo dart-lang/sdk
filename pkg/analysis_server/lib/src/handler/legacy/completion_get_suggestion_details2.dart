@@ -19,7 +19,11 @@ class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestionDetails2Handler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
@@ -27,8 +31,10 @@ class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
       return;
     }
 
-    var params = CompletionGetSuggestionDetails2Params.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = CompletionGetSuggestionDetails2Params.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
 
     var file = params.file;
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -43,9 +49,7 @@ class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
       return;
     }
 
-    var budget = CompletionBudget(
-      const Duration(milliseconds: 1000),
-    );
+    var budget = CompletionBudget(const Duration(milliseconds: 1000));
     var id = ++_latestGetSuggestionDetailsId;
     while (id == _latestGetSuggestionDetailsId && !budget.isEmpty) {
       try {
@@ -64,10 +68,12 @@ class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
           }
         });
 
-        sendResult(CompletionGetSuggestionDetails2Result(
-          completion,
-          builder.sourceChange,
-        ));
+        sendResult(
+          CompletionGetSuggestionDetails2Result(
+            completion,
+            builder.sourceChange,
+          ),
+        );
         return;
       } on InconsistentAnalysisException {
         // Loop around to try again.

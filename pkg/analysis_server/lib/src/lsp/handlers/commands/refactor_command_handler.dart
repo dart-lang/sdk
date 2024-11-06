@@ -41,13 +41,17 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
         offset is! int ||
         length is! int ||
         arguments == null) {
-      return ErrorOr.error(ResponseError(
+      return ErrorOr.error(
+        ResponseError(
           code: ServerErrorCodes.InvalidCommandArguments,
-          message: 'Refactoring operations require 4 parameters: '
+          message:
+              'Refactoring operations require 4 parameters: '
               'filePath: String, '
               'offset: int, '
               'length: int, '
-              'arguments: List'));
+              'arguments: List',
+        ),
+      );
     }
 
     // Use the editor capabilities, since we're building edits to send to the
@@ -62,13 +66,21 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
     return library.mapResult((library) async {
       var unit = library.unitWithPath(filePath);
       if (unit == null) {
-        return error(ErrorCodes.InternalError,
-            'The library containing a path did not contain the path.');
+        return error(
+          ErrorCodes.InternalError,
+          'The library containing a path did not contain the path.',
+        );
       }
       try {
         progress.begin('Refactoring…');
         return await _performRefactor(
-            library, unit, clientCapabilities, offset, length, arguments);
+          library,
+          unit,
+          clientCapabilities,
+          offset,
+          length,
+          arguments,
+        );
       } finally {
         progress.end();
       }
@@ -98,7 +110,9 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
     );
     var producer = generator(context);
     var builder = ChangeBuilder(
-        workspace: context.workspace, eol: context.utils.endOfLine);
+      workspace: context.workspace,
+      eol: context.utils.endOfLine,
+    );
     var status = await producer.compute(arguments, builder);
 
     if (status is ComputeStatusFailure) {
@@ -121,14 +135,22 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
       var path = edit.file;
       var fileResult = context.session.getFile(path);
       if (fileResult is! FileResult) {
-        return ErrorOr.error(ResponseError(
+        return ErrorOr.error(
+          ResponseError(
             code: ServerErrorCodes.FileAnalysisFailed,
-            message: 'Could not access "$path".'));
+            message: 'Could not access "$path".',
+          ),
+        );
       }
       var docIdentifier = server.getVersionedDocumentIdentifier(path);
-      fileEdits.add(FileEditInformation(
-          docIdentifier, fileResult.lineInfo, edit.edits,
-          newFile: edit.fileStamp == -1));
+      fileEdits.add(
+        FileEditInformation(
+          docIdentifier,
+          fileResult.lineInfo,
+          edit.edits,
+          newFile: edit.fileStamp == -1,
+        ),
+      );
     }
     var workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
     return sendWorkspaceEditToClient(workspaceEdit);

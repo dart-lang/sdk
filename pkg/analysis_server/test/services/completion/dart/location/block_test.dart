@@ -62,7 +62,9 @@ mixin BlockTestCases on AbstractCompletionDriverTest {
   static final spaces_8 = ' ' * 8;
 
   Future<void> test_flutter_setState_indent6_hasPrefix() async {
-    await _check_flutter_setState(line: '${spaces_6}setSt^', expected: '''
+    await _check_flutter_setState(
+      line: '${spaces_6}setSt^',
+      expected: '''
 replacement
   left: 5
 suggestions
@@ -71,11 +73,14 @@ $spaces_8
 $spaces_6});
     kind: invocation
     selection: 22
-''');
+''',
+    );
   }
 
   Future<void> test_flutter_setState_indent_hasPrefix() async {
-    await _check_flutter_setState(line: '${spaces_4}setSt^', expected: '''
+    await _check_flutter_setState(
+      line: '${spaces_4}setSt^',
+      expected: '''
 replacement
   left: 5
 suggestions
@@ -84,18 +89,22 @@ $spaces_6
 $spaces_4});
     kind: invocation
     selection: 20
-''');
+''',
+    );
   }
 
   Future<void> test_flutter_setState_indent_noPrefix() async {
-    await _check_flutter_setState(line: '$spaces_4^', expected: '''
+    await _check_flutter_setState(
+      line: '$spaces_4^',
+      expected: '''
 suggestions
   setState(() {
 $spaces_6
 $spaces_4});
     kind: invocation
     selection: 20
-''');
+''',
+    );
   }
 
   Future<void> _check_flutter_setState({
@@ -181,7 +190,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_inCatchClause_partial() async {
+  test_afterLeftBrace_beforeRightBrace_inCatchClause_partial() async {
     await computeSuggestions('''
 void f() {try {} catch (e) {r^}}}
 ''');
@@ -352,7 +361,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_for() async {
+  test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_for() async {
     await computeSuggestions('''
 void f() {
   int a0 = 5;
@@ -419,7 +428,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_forEach() async {
+  test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_forEach() async {
     await computeSuggestions('''
 void f() {
   int a0 = 5;
@@ -790,7 +799,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeIdentifier_withAsyncStar_partial() async {
+  test_afterLeftBrace_beforeIdentifier_withAsyncStar_partial() async {
     await computeSuggestions('''
 void f() async* {n^ foo}
 ''');
@@ -919,7 +928,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_withAsyncStar_partial() async {
+  test_afterLeftBrace_beforeRightBrace_withAsyncStar_partial() async {
     await computeSuggestions('''
 void f() async* {n^}
 ''');
@@ -933,7 +942,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctionInvocation() async {
+  test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctionInvocation() async {
     allowedIdentifiers = {'wrapper'};
     newFile('$testPackageLibPath/a.dart', '''
 String? wrapper(String? value) => value;
@@ -960,7 +969,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctions() async {
+  test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctions() async {
     allowedIdentifiers = {'aa0', 'aa1234'};
     newFile('$testPackageLibPath/a.dart', '''
 void aa0(){}
@@ -1006,7 +1015,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_withSyncStar_partial() async {
+  test_afterLeftBrace_beforeRightBrace_withSyncStar_partial() async {
     await computeSuggestions('''
 void f() sync* {n^}
 ''');
@@ -1552,7 +1561,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_classGetterShadowsTopLevelGetter() async {
+  test_afterLeftBrace_beforeRightBrace_classGetterShadowsTopLevelGetter() async {
     newFile('$testPackageLibPath/a.dart', '''
 int get m0 => 1;
 
@@ -1581,7 +1590,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_macroGenerated_generatedClass() async {
+  test_afterLeftBrace_beforeRightBrace_macroGenerated_generatedClass() async {
     addMacros([declareTypesPhaseMacro()]);
     await computeSuggestions('''
 import 'macros.dart';
@@ -1639,7 +1648,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_macroGenerated_sameClass() async {
+  test_afterLeftBrace_beforeRightBrace_macroGenerated_sameClass() async {
     addMacros([declareInTypeMacro()]);
     await computeSuggestions('''
 import 'macros.dart';
@@ -1699,7 +1708,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_macroGenerated_supperClass() async {
+  test_afterLeftBrace_beforeRightBrace_macroGenerated_supperClass() async {
     addMacros([declareInTypeMacro()]);
     await computeSuggestions('''
 import 'macros.dart';
@@ -1761,7 +1770,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftBrace_beforeRightBrace_macroGenerated_unrelatedClass() async {
+  test_afterLeftBrace_beforeRightBrace_macroGenerated_unrelatedClass() async {
     addMacros([declareInTypeMacro()]);
     await computeSuggestions('''
 import 'macros.dart';

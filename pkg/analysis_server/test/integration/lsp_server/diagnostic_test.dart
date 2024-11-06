@@ -42,9 +42,11 @@ void f() {
     expect(diagnostics, hasLength(1));
     var diagnostic = diagnostics.first;
     expect(
-        diagnostic.message,
-        startsWith(
-            "Local variable 'x' can't be referenced before it is declared"));
+      diagnostic.message,
+      startsWith(
+        "Local variable 'x' can't be referenced before it is declared",
+      ),
+    );
 
     var relatedInformation = diagnostic.relatedInformation!;
     expect(relatedInformation, hasLength(1));
@@ -94,10 +96,12 @@ linter:
   Future<void> test_workspaceFolders_existsAndDoesNotExist() async {
     var rootPath = projectFolderUri.toFilePath();
     var existingFolderUri = Uri.file(pathContext.join(rootPath, 'exists'));
-    var existingFileUri =
-        Uri.file(pathContext.join(rootPath, 'exists', 'main.dart'));
-    var nonExistingFolderUri =
-        Uri.file(pathContext.join(rootPath, 'does_not_exist'));
+    var existingFileUri = Uri.file(
+      pathContext.join(rootPath, 'exists', 'main.dart'),
+    );
+    var nonExistingFolderUri = Uri.file(
+      pathContext.join(rootPath, 'does_not_exist'),
+    );
 
     newFolder(existingFolderUri.toFilePath());
     newFile(existingFileUri.toFilePath(), 'NotAClass a;');
@@ -105,7 +109,8 @@ linter:
     var diagnosticsFuture = waitForDiagnostics(existingFileUri);
 
     await initialize(
-        workspaceFolders: [existingFolderUri, nonExistingFolderUri]);
+      workspaceFolders: [existingFolderUri, nonExistingFolderUri],
+    );
 
     var diagnostics = await diagnosticsFuture;
     expect(diagnostics, hasLength(1));

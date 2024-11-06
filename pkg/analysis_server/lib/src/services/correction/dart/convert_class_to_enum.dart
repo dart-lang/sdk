@@ -53,8 +53,10 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
     }
     var declaration = node;
     if (declaration is ClassDeclaration && declaration.name == token) {
-      var description = _EnumDescription.fromClass(declaration,
-          strictCasts: analysisOptions.strictCasts);
+      var description = _EnumDescription.fromClass(
+        declaration,
+        strictCasts: analysisOptions.strictCasts,
+      );
       if (description != null) {
         await builder.addDartFileEdit(file, (builder) {
           description.applyChanges(builder, utils);
@@ -102,13 +104,14 @@ class _ConstantField extends _Field {
   final int indexValue;
 
   _ConstantField(
-      super.element,
-      super.declaration,
-      super.declarationList,
-      super.fieldDeclaration,
-      this.instanceCreation,
-      this.constructorElement,
-      this.indexValue);
+    super.element,
+    super.declaration,
+    super.declarationList,
+    super.fieldDeclaration,
+    this.instanceCreation,
+    this.constructorElement,
+    this.indexValue,
+  );
 }
 
 /// Information about a single constructor in the class being converted.
@@ -175,7 +178,9 @@ class _EnumDescription {
   void applyChanges(DartFileEditBuilder builder, CorrectionUtils utils) {
     // Replace the keyword.
     builder.addSimpleReplacement(
-        range.token(classDeclaration.classKeyword), 'enum');
+      range.token(classDeclaration.classKeyword),
+      'enum',
+    );
 
     // Remove the extends clause if there is one.
     var extendsClause = classDeclaration.extendsClause;
@@ -191,8 +196,9 @@ class _EnumDescription {
     var eol = utils.endOfLine;
     var constantsBuffer = StringBuffer();
     var fieldsToConvert = fields.fieldsToConvert;
-    fieldsToConvert
-        .sort((first, second) => first.indexValue.compareTo(second.indexValue));
+    fieldsToConvert.sort(
+      (first, second) => first.indexValue.compareTo(second.indexValue),
+    );
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
       var documentationComment = field.fieldDeclaration.documentationComment;
@@ -214,7 +220,8 @@ class _EnumDescription {
       var constructorNameNode = invocation.constructorName;
       var invokedConstructorElement = field.constructorElement;
       var invokedConstructor = constructorMap?.keys.firstWhere(
-          (constructor) => constructor.element == invokedConstructorElement);
+        (constructor) => constructor.element == invokedConstructorElement,
+      );
       var parameterData = constructorMap?[invokedConstructor];
       var typeArguments = constructorNameNode.type.typeArguments;
       if (typeArguments != null) {
@@ -278,8 +285,10 @@ class _EnumDescription {
 
     // Special case replacing all of the members.
     if (membersToDelete.length == members.length) {
-      builder.addSimpleReplacement(range.startEnd(members.first, members.last),
-          constantsBuffer.toString());
+      builder.addSimpleReplacement(
+        range.startEnd(members.first, members.last),
+        constantsBuffer.toString(),
+      );
       return;
     }
 
@@ -297,14 +306,18 @@ class _EnumDescription {
   }
 
   /// Use the [builder] to delete the [field].
-  void _deleteField(DartFileEditBuilder builder, _Field field,
-      NodeList<ClassMember> members) {
+  void _deleteField(
+    DartFileEditBuilder builder,
+    _Field field,
+    NodeList<ClassMember> members,
+  ) {
     var variableList = field.declarationList;
     if (variableList.variables.length == 1) {
       membersToDelete.add(members.indexOf(field.fieldDeclaration));
     } else {
       builder.addDeletion(
-          range.nodeInList(variableList.variables, field.declaration));
+        range.nodeInList(variableList.variables, field.declaration),
+      );
     }
   }
 
@@ -338,7 +351,9 @@ class _EnumDescription {
   /// Transform the used constructors by removing the parameter corresponding to
   /// the index field.
   void _transformConstructors(
-      DartFileEditBuilder builder, ConstructorDeclaration? removedConstructor) {
+    DartFileEditBuilder builder,
+    ConstructorDeclaration? removedConstructor,
+  ) {
     var constructorMap = this.constructorMap;
     if (constructorMap == null) {
       return;
@@ -349,7 +364,8 @@ class _EnumDescription {
         if (parameterData != null) {
           var parameters = constructor.declaration.parameters.parameters;
           builder.addDeletion(
-              range.nodeInList(parameters, parameters[parameterData.index]));
+            range.nodeInList(parameters, parameters[parameterData.index]),
+          );
         }
       }
     }
@@ -357,8 +373,10 @@ class _EnumDescription {
 
   /// If the given [node] can be converted into an enum, then return a
   /// description of the conversion work to be done. Otherwise, return `null`.
-  static _EnumDescription? fromClass(ClassDeclaration node,
-      {required bool strictCasts}) {
+  static _EnumDescription? fromClass(
+    ClassDeclaration node, {
+    required bool strictCasts,
+  }) {
     // The class must be a concrete class.
     var classElement = node.declaredFragment?.element;
     if (classElement == null || classElement.isAbstract) {
@@ -426,7 +444,9 @@ class _EnumDescription {
   /// Return the subset of [constructors] that are invoked by the [fields] to be
   /// converted.
   static _Constructors _computeUsedConstructors(
-      _Constructors constructors, _Fields fields) {
+    _Constructors constructors,
+    _Fields fields,
+  ) {
     var usedElements = <ConstructorElement2>{};
     for (var field in fields.fieldsToConvert) {
       usedElements.add(field.constructorElement);
@@ -445,7 +465,9 @@ class _EnumDescription {
   /// that need to be made to both the constructors and the invocations of those
   /// constructors. Otherwise, return `null`.
   static Map<_Constructor, _Parameter>? _indexFieldData(
-      _Constructors usedConstructors, _Fields fields) {
+    _Constructors usedConstructors,
+    _Fields fields,
+  ) {
     var indexField = fields.indexField;
     if (indexField == null) {
       return null;
@@ -499,7 +521,9 @@ class _EnumDescription {
   }
 
   static _Parameter? _indexParameter(
-      _Constructor constructor, _Field? indexField) {
+    _Constructor constructor,
+    _Field? indexField,
+  ) {
     if (indexField == null) {
       return null;
     }
@@ -525,7 +549,9 @@ class _EnumDescription {
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Constructors? _validateConstructors(
-      ClassDeclaration classDeclaration, ClassElement2 classElement) {
+    ClassDeclaration classDeclaration,
+    ClassElement2 classElement,
+  ) {
     var constructors = _Constructors();
     for (var member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
@@ -553,8 +579,10 @@ class _EnumDescription {
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Fields? _validateFields(
-      ClassDeclaration classDeclaration, ClassElement2 classElement,
-      {required bool strictCasts}) {
+    ClassDeclaration classDeclaration,
+    ClassElement2 classElement, {
+    required bool strictCasts,
+  }) {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
     _Field? indexField;
 
@@ -589,15 +617,17 @@ class _EnumDescription {
                       }
                       potentialFieldsToConvert
                           .putIfAbsent(fieldValue, () => [])
-                          .add(_ConstantField(
+                          .add(
+                            _ConstantField(
                               fieldElement,
                               field,
                               fieldList,
                               member,
                               initializer,
                               constructorElement,
-                              fieldValue.getField('index')?.toIntValue() ??
-                                  -1));
+                              fieldValue.getField('index')?.toIntValue() ?? -1,
+                            ),
+                          );
                     }
                   }
                 }
@@ -667,15 +697,16 @@ class _EnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit the class declaration
   /// corresponding to the given [classElement].
   _EnumVisitor(super.classElement, List<_ConstantField> fieldsToConvert)
-      : fieldsToConvert =
-            fieldsToConvert.map((field) => field.declaration).toList();
+    : fieldsToConvert =
+          fieldsToConvert.map((field) => field.declaration).toList();
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!inConstantDeclaration) {
       if (invokesGenerativeConstructor(node)) {
         throw _CannotConvertException(
-            'Constructor used outside constant initializer');
+          'Constructor used outside constant initializer',
+        );
       }
     }
     inConstantDeclaration = false;
@@ -706,8 +737,12 @@ class _Field {
   /// The field declaration containing the [declarationList].
   final FieldDeclaration fieldDeclaration;
 
-  _Field(this.element, this.declaration, this.declarationList,
-      this.fieldDeclaration);
+  _Field(
+    this.element,
+    this.declaration,
+    this.declarationList,
+    this.fieldDeclaration,
+  );
 
   /// Return the name of the field.
   String get name => declaration.name.lexeme;
@@ -761,7 +796,8 @@ class _NonEnumVisitor extends _BaseVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (invokesGenerativeConstructor(node)) {
       throw _CannotConvertException(
-          'Constructor used outside class being converted');
+        'Constructor used outside class being converted',
+      );
     }
     super.visitInstanceCreationExpression(node);
   }
@@ -783,6 +819,7 @@ class _Parameter {
   /// parameter, or `null` if there is no such argument.
   Expression? getArgument(NodeList<Expression> arguments) {
     return arguments.firstWhereOrNull(
-        (argument) => argument.correspondingParameter == element);
+      (argument) => argument.correspondingParameter == element,
+    );
   }
 }

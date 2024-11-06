@@ -33,7 +33,7 @@ const dartCompletionTriggerCharacters = [
   "'",
   '{',
   '/',
-  ':'
+  ':',
 ];
 
 /// Characters that refresh signature help only if it's already open on the client.
@@ -47,7 +47,10 @@ const dartTypeFormattingCharacters = ['}', ';'];
 
 /// A [TextDocumentFilterScheme] for Analysis Options files.
 final analysisOptionsFile = TextDocumentFilterScheme(
-    language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
+  language: 'yaml',
+  scheme: 'file',
+  pattern: '**/analysis_options.yaml',
+);
 
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
 final analyzingProgressToken = ProgressToken.t2('ANALYZING');
@@ -69,19 +72,23 @@ final fileOperationRegistrationOptions = FileOperationRegistrationOptions(
         glob: '**/',
         matches: FileOperationPatternKind.folder,
       ),
-    )
+    ),
   ],
 );
 
 /// A [TextDocumentFilterScheme] for Fix Data files.
 final fixDataFile = TextDocumentFilterScheme(
-    language: 'yaml',
-    scheme: 'file',
-    pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}');
+  language: 'yaml',
+  scheme: 'file',
+  pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}',
+);
 
 /// A [TextDocumentFilterScheme] for Pubspec files.
 final pubspecFile = TextDocumentFilterScheme(
-    language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
+  language: 'yaml',
+  scheme: 'file',
+  pattern: '**/pubspec.yaml',
+);
 
 /// IDs of client-provided commands that the server knows about.
 ///
@@ -133,15 +140,18 @@ abstract final class CustomMethods {
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
   static const openUri = Method('dart/openUri');
-  static const publishClosingLabels =
-      Method('dart/textDocument/publishClosingLabels');
+  static const publishClosingLabels = Method(
+    'dart/textDocument/publishClosingLabels',
+  );
   static const publishOutline = Method('dart/textDocument/publishOutline');
-  static const publishFlutterOutline =
-      Method('dart/textDocument/publishFlutterOutline');
+  static const publishFlutterOutline = Method(
+    'dart/textDocument/publishFlutterOutline',
+  );
   static const super_ = Method('dart/textDocument/super');
   static const dartTextDocumentContent = Method('dart/textDocumentContent');
-  static const dartTextDocumentContentDidChange =
-      Method('dart/textDocumentContentDidChange');
+  static const dartTextDocumentContentDidChange = Method(
+    'dart/textDocumentContentDidChange',
+  );
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
   //  should be relying on it as we now support proper $/progress events.
@@ -151,8 +161,9 @@ abstract final class CustomMethods {
   /// "textDocument/semanticTokens" instead of for each individual method
   /// (full, range, full/delta) so the built-in Method class does not contain
   /// the required constant.
-  static const semanticTokenDynamicRegistration =
-      Method('textDocument/semanticTokens');
+  static const semanticTokenDynamicRegistration = Method(
+    'textDocument/semanticTokens',
+  );
 }
 
 abstract final class CustomSemanticTokenModifiers {

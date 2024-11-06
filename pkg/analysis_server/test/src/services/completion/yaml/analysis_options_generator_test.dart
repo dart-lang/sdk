@@ -157,10 +157,7 @@ linter:
     ^
 ''');
     var completion = assertSuggestion('annotate_overrides');
-    expect(
-      completion.docComplete,
-      contains('Annotate overridden members.'),
-    );
+    expect(completion.docComplete, contains('Annotate overridden members.'));
   }
 
   void test_linter_rules_internal() {
@@ -278,15 +275,14 @@ li^
 }
 
 class InternalRule extends LintRule {
-  static const LintCode code = LintCode('internal_rule', 'Internal rule.',
-      correctionMessage: 'Try internal rule.');
+  static const LintCode code = LintCode(
+    'internal_rule',
+    'Internal rule.',
+    correctionMessage: 'Try internal rule.',
+  );
 
   InternalRule()
-      : super(
-          name: 'internal_lint',
-          state: State.internal(),
-          description: '',
-        );
+    : super(name: 'internal_lint', state: State.internal(), description: '');
 
   @override
   LintCode get lintCode => code;
@@ -296,11 +292,7 @@ class _RemovedLint extends LintRule {
   static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
 
   _RemovedLint()
-      : super(
-          name: 'removed_lint',
-          state: State.removed(),
-          description: '',
-        );
+    : super(name: 'removed_lint', state: State.removed(), description: '');
 
   @override
   LintCode get lintCode => _code;

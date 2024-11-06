@@ -29,7 +29,9 @@ class ReplaceWithIdentifier extends ResolvedCorrectionProducer {
     if (functionTyped != null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-            range.node(functionTyped), functionTyped.name.lexeme);
+          range.node(functionTyped),
+          functionTyped.name.lexeme,
+        );
       });
     }
   }

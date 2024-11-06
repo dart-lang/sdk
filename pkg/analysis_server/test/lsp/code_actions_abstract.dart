@@ -91,20 +91,33 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// Finds the single action matching [title], [kind] and [command].
   ///
   /// Throws if zero or more than one actions match.
-  CodeAction? findAction(List<Either2<Command, CodeAction>> actions,
-      {String? title, CodeActionKind? kind, String? command}) {
-    return findActions(actions, title: title, kind: kind, command: command)
-        .singleOrNull;
+  CodeAction? findAction(
+    List<Either2<Command, CodeAction>> actions, {
+    String? title,
+    CodeActionKind? kind,
+    String? command,
+  }) {
+    return findActions(
+      actions,
+      title: title,
+      kind: kind,
+      command: command,
+    ).singleOrNull;
   }
 
-  List<CodeAction> findActions(List<Either2<Command, CodeAction>> actions,
-      {String? title, CodeActionKind? kind, String? command}) {
+  List<CodeAction> findActions(
+    List<Either2<Command, CodeAction>> actions, {
+    String? title,
+    CodeActionKind? kind,
+    String? command,
+  }) {
     return actions
         .map((action) => action.map((cmd) => null, (action) => action))
         .where((action) => title == null || action?.title == title)
         .where((action) => kind == null || action?.kind == kind)
         .where(
-            (action) => command == null || action?.command?.command == command)
+          (action) => command == null || action?.command?.command == command,
+        )
         .map((action) {
           // Always expect a command (either to execute, or for logging)
           assert(action!.command != null);
@@ -119,17 +132,16 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   Either2<Command, CodeAction>? findCommand(
-      List<Either2<Command, CodeAction>> actions, String commandID,
-      [String? wantedTitle]) {
+    List<Either2<Command, CodeAction>> actions,
+    String commandID, [
+    String? wantedTitle,
+  ]) {
     for (var codeAction in actions) {
       var id = codeAction.map(
         (cmd) => cmd.command,
         (action) => action.command?.command,
       );
-      var title = codeAction.map(
-        (cmd) => cmd.title,
-        (action) => action.title,
-      );
+      var title = codeAction.map((cmd) => cmd.title, (action) => action.title);
       if (id == commandID && (wantedTitle == null || wantedTitle == title)) {
         return codeAction;
       }

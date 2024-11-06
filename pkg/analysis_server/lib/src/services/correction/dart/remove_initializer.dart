@@ -19,19 +19,19 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
   RemoveInitializer({required super.context})
-      : applicability = CorrectionApplicability.singleLocation,
-        _removeLate = true;
+    : applicability = CorrectionApplicability.singleLocation,
+      _removeLate = true;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
   RemoveInitializer.bulkFixable({required super.context})
-      : applicability = CorrectionApplicability.automatically,
-        _removeLate = true;
+    : applicability = CorrectionApplicability.automatically,
+      _removeLate = true;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes and will not remove the `late` keyword if present.
   RemoveInitializer.notLate({required super.context})
-      : applicability = CorrectionApplicability.singleLocation,
-        _removeLate = false;
+    : applicability = CorrectionApplicability.singleLocation,
+      _removeLate = false;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;
@@ -48,9 +48,7 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
       var defaultValue = parameter.defaultValue;
       if (identifier != null && defaultValue != null) {
         await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(
-            range.endEnd(identifier, defaultValue),
-          );
+          builder.addDeletion(range.endEnd(identifier, defaultValue));
         });
       }
     } else {
@@ -59,9 +57,7 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
       var initializer = variable?.initializer;
       if (variable != null && initializer != null) {
         await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(
-            range.endEnd(variable.name, initializer),
-          );
+          builder.addDeletion(range.endEnd(variable.name, initializer));
         });
         // Delete the `late` keyword if present.
         if (_removeLate && variable.isLate) {
@@ -70,7 +66,9 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
             await builder.addDartFileEdit(file, (builder) {
               builder.addDeletion(
                 range.startLength(
-                    parent.beginToken, parent.beginToken.length + 1),
+                  parent.beginToken,
+                  parent.beginToken.length + 1,
+                ),
               );
             });
           }
@@ -82,7 +80,8 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
         if (parent is ConstructorDeclaration) {
           await builder.addDartFileEdit(file, (builder) {
             builder.addDeletion(
-                range.nodeInList(parent.initializers, initializer!));
+              range.nodeInList(parent.initializers, initializer!),
+            );
           });
         }
       }

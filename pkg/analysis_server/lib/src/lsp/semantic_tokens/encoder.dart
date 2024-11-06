@@ -21,23 +21,27 @@ class SemanticTokenEncoder {
 
   /// Converts [regions]s into LSP [SemanticTokenInfo].
   List<SemanticTokenInfo> convertHighlightToTokens(
-      List<HighlightRegion> regions) {
+    List<HighlightRegion> regions,
+  ) {
     var tokens = <SemanticTokenInfo>[];
 
     Iterable<HighlightRegion> translatedRegions = regions;
 
     // Remove any tokens that will not be mapped as there's no point further processing
     // them (eg. splitting multiline/overlaps) if they will be dropped.
-    translatedRegions = translatedRegions
-        .where((region) => highlightRegionTokenTypes.containsKey(region.type));
+    translatedRegions = translatedRegions.where(
+      (region) => highlightRegionTokenTypes.containsKey(region.type),
+    );
 
     for (var region in translatedRegions) {
-      tokens.add(SemanticTokenInfo(
-        region.offset,
-        region.length,
-        highlightRegionTokenTypes[region.type]!,
-        highlightRegionTokenModifiers[region.type],
-      ));
+      tokens.add(
+        SemanticTokenInfo(
+          region.offset,
+          region.length,
+          highlightRegionTokenTypes[region.type]!,
+          highlightRegionTokenModifiers[region.type],
+        ),
+      );
     }
 
     return tokens;
@@ -47,7 +51,9 @@ class SemanticTokenEncoder {
   ///
   /// Tokens must be pre-sorted by offset so that relative line/columns are accurate.
   SemanticTokens encodeTokens(
-      List<SemanticTokenInfo> sortedTokens, LineInfo lineInfo) {
+    List<SemanticTokenInfo> sortedTokens,
+    LineInfo lineInfo,
+  ) {
     var encodedTokens = <int>[];
     var lastLine = 0;
     var lastColumn = 0;
@@ -69,7 +75,7 @@ class SemanticTokenEncoder {
         relativeColumn,
         token.length,
         semanticTokenLegend.indexForType(token.type),
-        semanticTokenLegend.bitmaskForModifiers(token.modifiers)
+        semanticTokenLegend.bitmaskForModifiers(token.modifiers),
       ]);
 
       lastLine = tokenLine;
@@ -83,26 +89,35 @@ class SemanticTokenEncoder {
   /// multiline tokens. Multiline tokens will be split at the end of the line and
   /// line endings and indenting will be included in the tokens.
   Iterable<SemanticTokenInfo> splitMultilineTokens(
-      SemanticTokenInfo token, LineInfo lineInfo) sync* {
+    SemanticTokenInfo token,
+    LineInfo lineInfo,
+  ) sync* {
     var start = lineInfo.getLocation(token.offset);
     var end = lineInfo.getLocation(token.offset + token.length);
 
     // Create a region for each line in the original region.
-    for (var lineNumber = start.lineNumber;
-        lineNumber <= end.lineNumber;
-        lineNumber++) {
+    for (
+      var lineNumber = start.lineNumber;
+      lineNumber <= end.lineNumber;
+      lineNumber++
+    ) {
       var isFirstLine = lineNumber == start.lineNumber;
       var isLastLine = lineNumber == end.lineNumber;
       var lineOffset = lineInfo.getOffsetOfLine(lineNumber - 1);
 
       var startOffset = isFirstLine ? start.columnNumber - 1 : 0;
-      var endOffset = isLastLine
-          ? end.columnNumber - 1
-          : lineInfo.getOffsetOfLine(lineNumber) - lineOffset;
+      var endOffset =
+          isLastLine
+              ? end.columnNumber - 1
+              : lineInfo.getOffsetOfLine(lineNumber) - lineOffset;
       var length = endOffset - startOffset;
 
       yield SemanticTokenInfo(
-          lineOffset + startOffset, length, token.type, token.modifiers);
+        lineOffset + startOffset,
+        length,
+        token.type,
+        token.modifiers,
+      );
     }
   }
 
@@ -112,7 +127,8 @@ class SemanticTokenEncoder {
   /// Tokens must be pre-sorted by offset, with tokens having the same offset
   /// sorted with the longest first.
   Iterable<SemanticTokenInfo> splitOverlappingTokens(
-      Iterable<SemanticTokenInfo> sortedTokens) sync* {
+    Iterable<SemanticTokenInfo> sortedTokens,
+  ) sync* {
     if (sortedTokens.isEmpty) {
       return;
     }
@@ -122,7 +138,9 @@ class SemanticTokenEncoder {
     /// Yields tokens for anything on the stack from between [fromOffset]
     /// and [toOffset].
     Iterable<SemanticTokenInfo> processStack(
-        int fromOffset, int toOffset) sync* {
+      int fromOffset,
+      int toOffset,
+    ) sync* {
       // Process each item on the stack to figure out if we need to send
       // a token for it, and pop it off the stack if we've passed the end of it.
       while (stack.isNotEmpty) {
@@ -132,7 +150,11 @@ class SemanticTokenEncoder {
         var length = end - fromOffset;
         if (length > 0) {
           yield SemanticTokenInfo(
-              fromOffset, length, last.type, last.modifiers);
+            fromOffset,
+            length,
+            last.type,
+            last.modifiers,
+          );
           fromOffset = end;
         }
 
@@ -179,7 +201,9 @@ class SemanticTokenInfo {
   /// then longest first, then by priority, and finally by name. This ensures
   /// the order is always stable.
   static int offsetLengthPrioritySort(
-      SemanticTokenInfo t1, SemanticTokenInfo t2) {
+    SemanticTokenInfo t1,
+    SemanticTokenInfo t2,
+  ) {
     var priorities = {
       // Ensure boolean comes above keyword.
       CustomSemanticTokenTypes.boolean: 1,

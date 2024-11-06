@@ -86,7 +86,9 @@ class DartUnitHoverComputer {
         }
         // documentation
         hover.dartdoc = _documentationComputer.computePreferred(
-            element, documentationPreference);
+          element,
+          documentationPreference,
+        );
       }
       // parameter
       hover.parameter = _parameterDisplayString(node);
@@ -113,9 +115,7 @@ class DartUnitHoverComputer {
   /// information to disambiguate things like constructors from types (and
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
-    var displayString = element?.getDisplayString(
-      multiline: true,
-    );
+    var displayString = element?.getDisplayString(multiline: true);
 
     if (displayString != null &&
         node is InstanceCreationExpression &&
@@ -165,8 +165,10 @@ class DartUnitHoverComputer {
       var context = analysisSession.resourceProvider.pathContext;
       var projectRootDir =
           analysisSession.analysisContext.contextRoot.root.path;
-      var relativePath =
-          context.relative(context.fromUri(uri), from: projectRootDir);
+      var relativePath = context.relative(
+        context.fromUri(uri),
+        from: projectRootDir,
+      );
       if (context.style == path.Style.windows) {
         var pathList = context.split(relativePath);
         libraryName = pathList.join('/');
@@ -210,10 +212,7 @@ class DartUnitHoverComputer {
   /// Returns `null` if the parameter is not an expression.
   String? _parameterDisplayString(AstNode node) {
     if (node is Expression) {
-      return _elementDisplayString(
-        node,
-        node.staticParameterElement,
-      );
+      return _elementDisplayString(node, node.staticParameterElement);
     }
     return null;
   }

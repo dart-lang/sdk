@@ -15,12 +15,18 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisSetPriorityFilesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = AnalysisSetPriorityFilesParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisSetPriorityFilesParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
 
     server.analyticsManager.startedSetPriorityFiles(params);
 
@@ -38,7 +44,8 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
       //
       var converter = RequestConverter();
       server.pluginManager.setAnalysisSetPriorityFilesParams(
-          converter.convertAnalysisSetPriorityFilesParams(params));
+        converter.convertAnalysisSetPriorityFilesParams(params),
+      );
     }
     //
     // Send the response.

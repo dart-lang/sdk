@@ -77,10 +77,7 @@ class RemoveLate extends ResolvedCorrectionProducer {
     if (location != null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(
-          range.startStart(
-            location.lateKeyword,
-            location.nextToken,
-          ),
+          range.startStart(location.lateKeyword, location.nextToken),
         );
       });
     }
@@ -91,8 +88,5 @@ class _LateKeywordLocation {
   final Token lateKeyword;
   final Token nextToken;
 
-  _LateKeywordLocation({
-    required this.lateKeyword,
-    required this.nextToken,
-  });
+  _LateKeywordLocation({required this.lateKeyword, required this.nextToken});
 }

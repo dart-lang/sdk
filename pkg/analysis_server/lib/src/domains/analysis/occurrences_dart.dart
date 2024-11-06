@@ -153,9 +153,10 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     var element = node.element;
     var pattern = node.pattern;
     // If no explicit field name, use the variables name.
-    var name = node.name?.name == null && pattern is VariablePattern
-        ? pattern.name
-        : node.name?.name;
+    var name =
+        node.name?.name == null && pattern is VariablePattern
+            ? pattern.name
+            : node.name?.name;
     if (element != null && name != null) {
       _addOccurrence(element, name.offset);
     }

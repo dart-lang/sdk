@@ -24,7 +24,9 @@ class SurroundWith extends MultiCorrectionProducer {
 
     // prepare selected statements
     var selectionAnalyzer = StatementAnalyzer(
-        unitResult, SourceRange(selectionOffset, selectionLength));
+      unitResult,
+      SourceRange(selectionOffset, selectionLength),
+    );
     selectionAnalyzer.analyze();
     var selectedNodes = selectionAnalyzer.selectedNodes;
     // convert nodes to statements
@@ -52,30 +54,78 @@ class SurroundWith extends MultiCorrectionProducer {
     var indentOld = utils.getNodePrefix(firstStatement);
     var indentNew = '$indentOld${utils.oneIndent}';
     var indentedCode = utils.replaceSourceRangeIndent(
-        statementsRange, indentOld, indentNew,
-        includeLeading: true, ensureTrailingNewline: true);
+      statementsRange,
+      indentOld,
+      indentNew,
+      includeLeading: true,
+      ensureTrailingNewline: true,
+    );
 
     context;
     return [
-      _SurroundWithBlock(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithDoWhile(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithFor(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithForIn(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithIf(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithSetState(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithTryCatch(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
+      _SurroundWithBlock(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithDoWhile(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithFor(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithForIn(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithIf(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithSetState(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithTryCatch(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
       _SurroundWithTryFinally(
-          statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
-      _SurroundWithWhile(statementsRange, indentOld, indentNew, indentedCode,
-          context: context),
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
+      _SurroundWithWhile(
+        statementsRange,
+        indentOld,
+        indentNew,
+        indentedCode,
+        context: context,
+      ),
     ];
   }
 }
@@ -101,8 +151,9 @@ abstract class _SurroundWith extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 }
 
 /// A correction processor that can make one of the possible changes computed by
@@ -124,9 +175,15 @@ class _SurroundWithBlock extends _SurroundWith {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(statementsRange.offset, '$indentOld{$eol');
       builder.addSimpleReplacement(
+        statementsRange,
+        utils.replaceSourceRangeIndent(
           statementsRange,
-          utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew,
-              includeLeading: true, ensureTrailingNewline: true));
+          indentOld,
+          indentNew,
+          includeLeading: true,
+          ensureTrailingNewline: true,
+        ),
+      );
       builder.addSimpleInsertion(statementsRange.end, '$indentOld}$eol');
     });
   }
@@ -288,10 +345,11 @@ class _SurroundWithSetState extends _SurroundWith {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var classElement = node.parent
-        ?.thisOrAncestorOfType<ClassDeclaration>()
-        ?.declaredFragment
-        ?.element;
+    var classElement =
+        node.parent
+            ?.thisOrAncestorOfType<ClassDeclaration>()
+            ?.declaredFragment
+            ?.element;
     if (classElement != null && classElement.isState) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(statementsRange, (builder) {

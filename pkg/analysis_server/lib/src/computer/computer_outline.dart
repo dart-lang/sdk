@@ -24,11 +24,13 @@ class DartUnitOutlineComputer {
     var unitContents = <Outline>[];
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        unitContents.add(_newClassOutline(
-            unitMember, _outlinesForMembers(unitMember.members)));
+        unitContents.add(
+          _newClassOutline(unitMember, _outlinesForMembers(unitMember.members)),
+        );
       } else if (unitMember is MixinDeclaration) {
-        unitContents.add(_newMixinOutline(
-            unitMember, _outlinesForMembers(unitMember.members)));
+        unitContents.add(
+          _newMixinOutline(unitMember, _outlinesForMembers(unitMember.members)),
+        );
       } else if (unitMember is EnumDeclaration) {
         unitContents.add(
           _newEnumOutline(unitMember, [
@@ -38,19 +40,33 @@ class DartUnitOutlineComputer {
           ]),
         );
       } else if (unitMember is ExtensionDeclaration) {
-        unitContents.add(_newExtensionOutline(
-            unitMember, _outlinesForMembers(unitMember.members)));
+        unitContents.add(
+          _newExtensionOutline(
+            unitMember,
+            _outlinesForMembers(unitMember.members),
+          ),
+        );
       } else if (unitMember is ExtensionTypeDeclaration) {
-        unitContents.add(_newExtensionTypeOutline(
-            unitMember, _outlinesForMembers(unitMember.members)));
+        unitContents.add(
+          _newExtensionTypeOutline(
+            unitMember,
+            _outlinesForMembers(unitMember.members),
+          ),
+        );
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;
         var fieldType = fields.type;
         var fieldTypeName = _safeToSource(fieldType);
         for (var field in fields.variables) {
-          unitContents.add(_newVariableOutline(
-              fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
+          unitContents.add(
+            _newVariableOutline(
+              fieldTypeName,
+              ElementKind.TOP_LEVEL_VARIABLE,
+              field,
+              false,
+            ),
+          );
         }
       } else if (unitMember is FunctionDeclaration) {
         var functionDeclaration = unitMember;
@@ -90,8 +106,15 @@ class DartUnitOutlineComputer {
     var endLocation = resolvedUnit.lineInfo.getLocation(offset + length);
     var endLine = endLocation.lineNumber;
     var endColumn = endLocation.columnNumber;
-    return Location(path, offset, length, startLine, startColumn,
-        endLine: endLine, endColumn: endColumn);
+    return Location(
+      path,
+      offset,
+      length,
+      startLine,
+      startColumn,
+      endLine: endLine,
+      endColumn: endColumn,
+    );
   }
 
   Location _getLocationToken(Token token) {
@@ -102,14 +125,16 @@ class DartUnitOutlineComputer {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
-        ElementKind.CLASS,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata),
-            isAbstract: node.abstractKeyword != null),
-        location: _getLocationToken(nameToken),
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      ElementKind.CLASS,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+        isAbstract: node.abstractKeyword != null,
+      ),
+      location: _getLocationToken(nameToken),
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
     return _nodeOutline(node, element, classContents);
   }
 
@@ -117,14 +142,16 @@ class DartUnitOutlineComputer {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
-        ElementKind.CLASS_TYPE_ALIAS,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata),
-            isAbstract: node.abstractKeyword != null),
-        location: _getLocationToken(nameToken),
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      ElementKind.CLASS_TYPE_ALIAS,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+        isAbstract: node.abstractKeyword != null,
+      ),
+      location: _getLocationToken(nameToken),
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
     return _nodeOutline(node, element);
   }
 
@@ -145,13 +172,15 @@ class DartUnitOutlineComputer {
     var parameters = constructor.parameters;
     var parametersStr = _safeToSource(parameters);
     var element = Element(
-        ElementKind.CONSTRUCTOR,
-        name,
-        Element.makeFlags(
-            isPrivate: isPrivate,
-            isDeprecated: _hasDeprecated(constructor.metadata)),
-        location: _getLocationOffsetLength(offset, length),
-        parameters: parametersStr);
+      ElementKind.CONSTRUCTOR,
+      name,
+      Element.makeFlags(
+        isPrivate: isPrivate,
+        isDeprecated: _hasDeprecated(constructor.metadata),
+      ),
+      location: _getLocationOffsetLength(offset, length),
+      parameters: parametersStr,
+    );
     var contents = _addFunctionBodyOutlines(constructor.body);
     return _nodeOutline(constructor, element, contents);
   }
@@ -160,12 +189,14 @@ class DartUnitOutlineComputer {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
-        ElementKind.ENUM_CONSTANT,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata)),
-        location: _getLocationToken(nameToken));
+      ElementKind.ENUM_CONSTANT,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+      ),
+      location: _getLocationToken(nameToken),
+    );
     return _nodeOutline(node, element);
   }
 
@@ -173,17 +204,21 @@ class DartUnitOutlineComputer {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
-        ElementKind.ENUM,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata)),
-        location: _getLocationToken(nameToken));
+      ElementKind.ENUM,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+      ),
+      location: _getLocationToken(nameToken),
+    );
     return _nodeOutline(node, element, children);
   }
 
   Outline _newExtensionOutline(
-      ExtensionDeclaration node, List<Outline> extensionContents) {
+    ExtensionDeclaration node,
+    List<Outline> extensionContents,
+  ) {
     var nameToken = node.name;
     var name = nameToken?.lexeme ?? '';
 
@@ -195,28 +230,34 @@ class DartUnitOutlineComputer {
     }
 
     var element = Element(
-        ElementKind.EXTENSION,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata)),
-        location: location,
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      ElementKind.EXTENSION,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+      ),
+      location: location,
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
     return _nodeOutline(node, element, extensionContents);
   }
 
   Outline _newExtensionTypeOutline(
-      ExtensionTypeDeclaration node, List<Outline> extensionContents) {
+    ExtensionTypeDeclaration node,
+    List<Outline> extensionContents,
+  ) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
-        ElementKind.EXTENSION_TYPE,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata)),
-        location: _getLocationToken(nameToken),
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      ElementKind.EXTENSION_TYPE,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+      ),
+      location: _getLocationToken(nameToken),
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
     return _nodeOutline(node, element, extensionContents);
   }
 
@@ -237,17 +278,18 @@ class DartUnitOutlineComputer {
     var parametersStr = _safeToSource(parameters);
     var returnTypeStr = _safeToSource(returnType);
     var element = Element(
-        kind,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(function.metadata),
-            isStatic: isStatic),
-        location: _getLocationToken(nameToken),
-        parameters: parametersStr,
-        returnType: returnTypeStr,
-        typeParameters:
-            _getTypeParametersStr(functionExpression.typeParameters));
+      kind,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(function.metadata),
+        isStatic: isStatic,
+      ),
+      location: _getLocationToken(nameToken),
+      parameters: parametersStr,
+      returnType: returnTypeStr,
+      typeParameters: _getTypeParametersStr(functionExpression.typeParameters),
+    );
     var contents = _addFunctionBodyOutlines(functionExpression.body);
     return _nodeOutline(function, element, contents);
   }
@@ -260,15 +302,17 @@ class DartUnitOutlineComputer {
     var parametersStr = _safeToSource(parameters);
     var returnTypeStr = _safeToSource(returnType);
     var element = Element(
-        ElementKind.FUNCTION_TYPE_ALIAS,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata)),
-        location: _getLocationToken(nameToken),
-        parameters: parametersStr,
-        returnType: returnTypeStr,
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      ElementKind.FUNCTION_TYPE_ALIAS,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+      ),
+      location: _getLocationToken(nameToken),
+      parameters: parametersStr,
+      returnType: returnTypeStr,
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
     return _nodeOutline(node, element);
   }
 
@@ -291,12 +335,14 @@ class DartUnitOutlineComputer {
       ),
       aliasedType: _safeToSource(aliasedType),
       location: _getLocationToken(nameToken),
-      parameters: aliasedFunctionType != null
-          ? _safeToSource(aliasedFunctionType.parameters)
-          : null,
-      returnType: aliasedFunctionType != null
-          ? _safeToSource(aliasedFunctionType.returnType)
-          : null,
+      parameters:
+          aliasedFunctionType != null
+              ? _safeToSource(aliasedFunctionType.parameters)
+              : null,
+      returnType:
+          aliasedFunctionType != null
+              ? _safeToSource(aliasedFunctionType.returnType)
+              : null,
       typeParameters: _getTypeParametersStr(node.typeParameters),
     );
 
@@ -319,17 +365,19 @@ class DartUnitOutlineComputer {
     var parametersStr = parameters?.toSource();
     var returnTypeStr = _safeToSource(returnType);
     var element = Element(
-        kind,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(method.metadata),
-            isAbstract: method.isAbstract,
-            isStatic: method.isStatic),
-        location: _getLocationToken(nameToken),
-        parameters: parametersStr,
-        returnType: returnTypeStr,
-        typeParameters: _getTypeParametersStr(method.typeParameters));
+      kind,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(method.metadata),
+        isAbstract: method.isAbstract,
+        isStatic: method.isStatic,
+      ),
+      location: _getLocationToken(nameToken),
+      parameters: parametersStr,
+      returnType: returnTypeStr,
+      typeParameters: _getTypeParametersStr(method.typeParameters),
+    );
     var contents = _addFunctionBodyOutlines(method.body);
     return _nodeOutline(method, element, contents);
   }
@@ -339,44 +387,58 @@ class DartUnitOutlineComputer {
     var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
-        ElementKind.MIXIN,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(node.metadata)),
-        location: _getLocationToken(nameToken),
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      ElementKind.MIXIN,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(node.metadata),
+      ),
+      location: _getLocationToken(nameToken),
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
     return _nodeOutline(node, element, mixinContents);
   }
 
   Outline _newUnitOutline(List<Outline> unitContents) {
     var unit = resolvedUnit.unit;
     var element = Element(
-        ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
-        location: _getLocationNode(unit));
+      ElementKind.COMPILATION_UNIT,
+      '<unit>',
+      Element.makeFlags(),
+      location: _getLocationNode(unit),
+    );
     return _nodeOutline(unit, element, unitContents);
   }
 
-  Outline _newVariableOutline(String typeName, ElementKind kind,
-      VariableDeclaration variable, bool isStatic) {
+  Outline _newVariableOutline(
+    String typeName,
+    ElementKind kind,
+    VariableDeclaration variable,
+    bool isStatic,
+  ) {
     var nameToken = variable.name;
     var name = nameToken.lexeme;
     var element = Element(
-        kind,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _hasDeprecated(variable.metadata),
-            isStatic: isStatic,
-            isConst: variable.isConst,
-            isFinal: variable.isFinal),
-        location: _getLocationToken(nameToken),
-        returnType: typeName);
+      kind,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _hasDeprecated(variable.metadata),
+        isStatic: isStatic,
+        isConst: variable.isConst,
+        isFinal: variable.isFinal,
+      ),
+      location: _getLocationToken(nameToken),
+      returnType: typeName,
+    );
     return _nodeOutline(variable, element);
   }
 
-  Outline _nodeOutline(AstNode node, Element element,
-      [List<Outline>? children]) {
+  Outline _nodeOutline(
+    AstNode node,
+    Element element, [
+    List<Outline>? children,
+  ]) {
     var offset = node.offset;
     var end = node.end;
     if (node is VariableDeclaration) {
@@ -401,8 +463,14 @@ class DartUnitOutlineComputer {
 
     var length = end - offset;
     var codeLength = node.end - codeOffset;
-    return Outline(element, offset, length, codeOffset, codeLength,
-        children: nullIfEmpty(children));
+    return Outline(
+      element,
+      offset,
+      length,
+      codeOffset,
+      codeLength,
+      children: nullIfEmpty(children),
+    );
   }
 
   List<Outline> _outlinesForMembers(List<ClassMember> members) {
@@ -418,8 +486,14 @@ class DartUnitOutlineComputer {
         var fieldType = fields.type;
         var fieldTypeName = _safeToSource(fieldType);
         for (var field in fields.variables) {
-          memberOutlines.add(_newVariableOutline(fieldTypeName,
-              ElementKind.FIELD, field, fieldDeclaration.isStatic));
+          memberOutlines.add(
+            _newVariableOutline(
+              fieldTypeName,
+              ElementKind.FIELD,
+              field,
+              fieldDeclaration.isStatic,
+            ),
+          );
         }
       }
       if (classMember is MethodDeclaration) {
@@ -489,18 +563,30 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (outlineComputer.withBasicFlutter && node.isWidgetCreation) {
       var children = <Outline>[];
-      node.argumentList
-          .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
+      node.argumentList.accept(
+        _FunctionBodyOutlinesVisitor(outlineComputer, children),
+      );
 
       // The method `getWidgetPresentationText` should not return `null` when
       // `isWidgetCreation` returns `true`.
       var text = node.widgetPresentationText ?? '<unknown>';
-      var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
-          location: outlineComputer._getLocationOffsetLength(node.offset, 0));
+      var element = Element(
+        ElementKind.CONSTRUCTOR_INVOCATION,
+        text,
+        0,
+        location: outlineComputer._getLocationOffsetLength(node.offset, 0),
+      );
 
-      contents.add(Outline(
-          element, node.offset, node.length, node.offset, node.length,
-          children: nullIfEmpty(children)));
+      contents.add(
+        Outline(
+          element,
+          node.offset,
+          node.length,
+          node.offset,
+          node.length,
+          children: nullIfEmpty(children),
+        ),
+      );
     } else {
       super.visitInstanceCreationExpression(node);
     }
@@ -533,17 +619,29 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
       var executableName = nameNode.name;
       var description = extractString(node.argumentList.arguments);
       var name = '$executableName("$description")';
-      var element = Element(kind, name, 0,
-          location: outlineComputer._getLocationNode(nameNode));
-      contents.add(Outline(
-          element, node.offset, node.length, node.offset, node.length,
-          children: nullIfEmpty(children)));
+      var element = Element(
+        kind,
+        name,
+        0,
+        location: outlineComputer._getLocationNode(nameNode),
+      );
+      contents.add(
+        Outline(
+          element,
+          node.offset,
+          node.length,
+          node.offset,
+          node.length,
+          children: nullIfEmpty(children),
+        ),
+      );
     }
 
     if (isGroup(nameElement)) {
       var groupContents = <Outline>[];
-      node.argumentList
-          .accept(_FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
+      node.argumentList.accept(
+        _FunctionBodyOutlinesVisitor(outlineComputer, groupContents),
+      );
       addOutlineNode(ElementKind.UNIT_TEST_GROUP, groupContents);
     } else if (isTest(nameElement)) {
       addOutlineNode(ElementKind.UNIT_TEST_TEST);

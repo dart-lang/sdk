@@ -27,8 +27,10 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   late SourceChange change;
 
   ConvertGetterToMethodRefactoringImpl(
-      this.workspace, this.session, this.element)
-      : searchEngine = workspace.searchEngine;
+    this.workspace,
+    this.session,
+    this.element,
+  ) : searchEngine = workspace.searchEngine;
 
   @override
   String get refactoringName => 'Convert Getter To Method';
@@ -82,12 +84,14 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   RefactoringStatus _checkElement() {
     if (!workspace.containsElement(element)) {
       return RefactoringStatus.fatal(
-          'Only getters in your workspace can be converted.');
+        'Only getters in your workspace can be converted.',
+      );
     }
 
     if (!element.isGetter || element.isSynthetic) {
       return RefactoringStatus.fatal(
-          'Only explicit getters can be converted to methods.');
+        'Only explicit getters can be converted to methods.',
+      );
     }
     return RefactoringStatus();
   }
@@ -97,7 +101,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _updateElementDeclaration(
-      PropertyAccessorElement element) async {
+    PropertyAccessorElement element,
+  ) async {
     // prepare "get" keyword
     Token? getKeyword;
     {
@@ -114,8 +119,10 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
     // remove "get "
     if (getKeyword != null) {
-      var getRange =
-          range.startOffsetEndOffset(getKeyword.offset, element.nameOffset);
+      var getRange = range.startOffsetEndOffset(
+        getKeyword.offset,
+        element.nameOffset,
+      );
       var edit = newSourceEdit_range(getRange, '');
       doSourceChange_addElementEdit(change, element, edit);
     }

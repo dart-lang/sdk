@@ -11,129 +11,169 @@ class TransformSetErrorCode extends ErrorCode {
   /// 0: the conflicting key
   /// 1: the key that it conflicts with
   static const TransformSetErrorCode conflictingKey = TransformSetErrorCode(
-      'conflicting_key',
-      "The key '{0}' can't be used when '{1}' is also used.");
+    'conflicting_key',
+    "The key '{0}' can't be used when '{1}' is also used.",
+  );
 
   /// No parameters.
   static const TransformSetErrorCode expectedPrimary = TransformSetErrorCode(
-      'expected_primary', 'Expected either an identifier or a string literal.');
+    'expected_primary',
+    'Expected either an identifier or a string literal.',
+  );
 
   /// Parameters:
   /// 0: the old kind
   /// 1: the new kind
   static const TransformSetErrorCode incompatibleElementKind =
       TransformSetErrorCode(
-          'incompatible_element_kind',
-          "An element of kind '{0}' can't be replaced by "
-              "an element of kind '{1}'.");
+        'incompatible_element_kind',
+        "An element of kind '{0}' can't be replaced by "
+            "an element of kind '{1}'.",
+      );
 
   /// Parameters:
   /// 0: the change kind that is invalid
   /// 1: the element kind for the transform
   static const TransformSetErrorCode invalidChangeForKind =
-      TransformSetErrorCode('invalid_change_for_kind',
-          "A change of type '{0}' can't be used for an element of kind '{1}'.");
+      TransformSetErrorCode(
+        'invalid_change_for_kind',
+        "A change of type '{0}' can't be used for an element of kind '{1}'.",
+      );
 
   /// Parameters:
   /// 0: the character that is invalid
-  static const TransformSetErrorCode invalidCharacter =
-      TransformSetErrorCode('invalid_character', "Invalid character '{0}'.");
+  static const TransformSetErrorCode invalidCharacter = TransformSetErrorCode(
+    'invalid_character',
+    "Invalid character '{0}'.",
+  );
 
   /// Parameters:
   /// 0: the actual type of the key
   static const TransformSetErrorCode invalidKey = TransformSetErrorCode(
-      'invalid_key', "Keys must be of type 'String' but found the type '{0}'.");
+    'invalid_key',
+    "Keys must be of type 'String' but found the type '{0}'.",
+  );
 
   /// No parameters.
   static const TransformSetErrorCode invalidRequiredIf = TransformSetErrorCode(
-      'invalid_required_if',
-      "The key 'requiredIf' can only be used with optional named parameters.");
+    'invalid_required_if',
+    "The key 'requiredIf' can only be used with optional named parameters.",
+  );
 
   /// Parameters:
   /// 0: the key with which the value is associated
   /// 1: the expected type of the value
   /// 2: the actual type of the value
   static const TransformSetErrorCode invalidValue = TransformSetErrorCode(
-      'invalid_value',
-      "The value of '{0}' should be of type '{1}' but is of type '{2}'.");
+    'invalid_value',
+    "The value of '{0}' should be of type '{1}' but is of type '{2}'.",
+  );
 
   /// Parameters:
   /// 0: the list of valid parameter styles
   static const TransformSetErrorCode invalidParameterStyle =
-      TransformSetErrorCode('invalid_parameter_style',
-          'The parameter style must be one of the following: {0}.');
+      TransformSetErrorCode(
+        'invalid_parameter_style',
+        'The parameter style must be one of the following: {0}.',
+      );
 
   /// Parameters:
   /// 0: the key with which the value is associated
   /// 1: the allowed values as a comma-separated list
   static const TransformSetErrorCode invalidValueOneOf = TransformSetErrorCode(
-      'invalid_value_one_of',
-      "The value of '{0}' must be one of the following: '{1}'.");
+    'invalid_value_one_of',
+    "The value of '{0}' must be one of the following: '{1}'.",
+  );
 
   /// Parameters:
   /// 0: the missing key
-  static const TransformSetErrorCode missingKey =
-      TransformSetErrorCode('missing_key', "Missing the required key '{0}'.");
+  static const TransformSetErrorCode missingKey = TransformSetErrorCode(
+    'missing_key',
+    "Missing the required key '{0}'.",
+  );
 
   /// Parameters:
   /// 0: the list of valid keys
   static const TransformSetErrorCode missingOneOfMultipleKeys =
-      TransformSetErrorCode('missing_one_of_multiple_keys',
-          'Exactly one of the following keys must be provided: {0}.');
+      TransformSetErrorCode(
+        'missing_one_of_multiple_keys',
+        'Exactly one of the following keys must be provided: {0}.',
+      );
 
   /// No parameters.
   static const TransformSetErrorCode missingTemplateEnd = TransformSetErrorCode(
-      'missing_template_end', 'Missing the end brace for the template.');
+    'missing_template_end',
+    'Missing the end brace for the template.',
+  );
 
   /// Parameters:
   /// 0: a description of the expected kinds of tokens
-  static const TransformSetErrorCode missingToken =
-      TransformSetErrorCode('missing_token', 'Expected to find {0}.');
+  static const TransformSetErrorCode missingToken = TransformSetErrorCode(
+    'missing_token',
+    'Expected to find {0}.',
+  );
 
   /// No parameters.
   static const TransformSetErrorCode missingUri = TransformSetErrorCode(
-      'missing_uri', 'At least one URI must be provided.');
+    'missing_uri',
+    'At least one URI must be provided.',
+  );
 
   /// Parameters:
   /// 0: the missing key
   static const TransformSetErrorCode undefinedVariable = TransformSetErrorCode(
-      'undefined_variable', "The variable '{0}' isn't defined.");
+    'undefined_variable',
+    "The variable '{0}' isn't defined.",
+  );
 
   /// Parameters:
   /// 0: the token that was unexpectedly found
-  static const TransformSetErrorCode unexpectedToken =
-      TransformSetErrorCode('unexpected_token', "Didn't expect to find {0}.");
+  static const TransformSetErrorCode unexpectedToken = TransformSetErrorCode(
+    'unexpected_token',
+    "Didn't expect to find {0}.",
+  );
 
   /// Parameters:
   /// 0: a description of the expected kind of token
   static const TransformSetErrorCode unknownAccessor = TransformSetErrorCode(
-      'unknown_accessor', "The accessor '{0}' is invalid.");
+    'unknown_accessor',
+    "The accessor '{0}' is invalid.",
+  );
 
   /// Parameters:
   /// 0: the unsupported key
   static const TransformSetErrorCode unsupportedKey = TransformSetErrorCode(
-      'unsupported_key', "The key '{0}' isn't supported.");
+    'unsupported_key',
+    "The key '{0}' isn't supported.",
+  );
 
   /// No parameters.
   static const TransformSetErrorCode unsupportedStatic = TransformSetErrorCode(
-      'unsupported_static',
-      "The key 'static' is only supported for elements in a class, enum, "
-          'extension, or mixin.');
+    'unsupported_static',
+    "The key 'static' is only supported for elements in a class, enum, "
+        'extension, or mixin.',
+  );
 
   /// No parameters.
   static const TransformSetErrorCode unsupportedVersion = TransformSetErrorCode(
-      'unsupported_version', "Only version '1' is supported at this time.");
+    'unsupported_version',
+    "Only version '1' is supported at this time.",
+  );
 
   /// Parameters:
   /// 0: a description of the expected kind of token
   /// 1: a description of the actual kind of token
   static const TransformSetErrorCode wrongToken = TransformSetErrorCode(
-      'wrong_token', 'Expected to find {0}, but found {1}.');
+    'wrong_token',
+    'Expected to find {0}, but found {1}.',
+  );
 
   /// Parameters:
   /// 0: the message produced by the YAML parser
-  static const TransformSetErrorCode yamlSyntaxError =
-      TransformSetErrorCode('yaml_syntax_error', 'Parse error: {0}');
+  static const TransformSetErrorCode yamlSyntaxError = TransformSetErrorCode(
+    'yaml_syntax_error',
+    'Parse error: {0}',
+  );
 
   /// Initialize a newly created error code.
   const TransformSetErrorCode(
@@ -142,10 +182,10 @@ class TransformSetErrorCode extends ErrorCode {
     super.correctionMessage,
     super.hasPublishedDocs,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'TransformSetErrorCode.$name',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'TransformSetErrorCode.$name',
+       );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

@@ -49,11 +49,12 @@ class NotificationTest {
     expect(notification.event, equals('foo'));
     expect(notification.toJson()['params'], equals({'x': 'y'}));
     expect(
-        notification.toJson(),
-        equals({
-          'event': 'foo',
-          'params': {'x': 'y'}
-        }));
+      notification.toJson(),
+      equals({
+        'event': 'foo',
+        'params': {'x': 'y'},
+      }),
+    );
   }
 }
 
@@ -63,8 +64,10 @@ class RequestErrorTest {
     var error = RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
     expect(error.message, 'msg');
-    expect(error.toJson(clientUriConverter: null),
-        equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}));
+    expect(
+      error.toJson(clientUriConverter: null),
+      equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}),
+    );
   }
 
   void test_fromJson() {
@@ -72,10 +75,14 @@ class RequestErrorTest {
     var json = {
       CODE: RequestErrorCode.INVALID_PARAMETER.name,
       MESSAGE: 'foo',
-      STACK_TRACE: trace
+      STACK_TRACE: trace,
     };
-    var error = RequestError.fromJson(ResponseDecoder(null), '', json,
-        clientUriConverter: null);
+    var error = RequestError.fromJson(
+      ResponseDecoder(null),
+      '',
+      json,
+      clientUriConverter: null,
+    );
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, 'foo');
     expect(error.stackTrace, trace);
@@ -83,10 +90,16 @@ class RequestErrorTest {
 
   void test_toJson() {
     var trace = 'a stack trace\r\nbar';
-    var error = RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg',
-        stackTrace: trace);
-    expect(error.toJson(clientUriConverter: null),
-        {CODE: 'UNKNOWN_REQUEST', MESSAGE: 'msg', STACK_TRACE: trace});
+    var error = RequestError(
+      RequestErrorCode.UNKNOWN_REQUEST,
+      'msg',
+      stackTrace: trace,
+    );
+    expect(error.toJson(clientUriConverter: null), {
+      CODE: 'UNKNOWN_REQUEST',
+      MESSAGE: 'msg',
+      STACK_TRACE: trace,
+    });
   }
 }
 
@@ -149,19 +162,22 @@ class RequestTest {
 
   void test_toJson() {
     var request = Request('one', 'aMethod');
-    expect(request.toJson(),
-        equals({Request.ID: 'one', Request.METHOD: 'aMethod'}));
+    expect(
+      request.toJson(),
+      equals({Request.ID: 'one', Request.METHOD: 'aMethod'}),
+    );
   }
 
   void test_toJson_withParams() {
     var request = Request('one', 'aMethod', {'foo': 'bar'});
     expect(
-        request.toJson(),
-        equals({
-          Request.ID: 'one',
-          Request.METHOD: 'aMethod',
-          Request.PARAMS: {'foo': 'bar'}
-        }));
+      request.toJson(),
+      equals({
+        Request.ID: 'one',
+        Request.METHOD: 'aMethod',
+        Request.PARAMS: {'foo': 'bar'},
+      }),
+    );
   }
 }
 
@@ -172,14 +188,15 @@ class ResponseTest {
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
     expect(
-        response.toJson(),
-        equals({
-          Response.ID: '',
-          Response.ERROR: {
-            'code': 'INVALID_REQUEST',
-            'message': 'Invalid request'
-          }
-        }));
+      response.toJson(),
+      equals({
+        Response.ID: '',
+        Response.ERROR: {
+          'code': 'INVALID_REQUEST',
+          'message': 'Invalid request',
+        },
+      }),
+    );
   }
 
   void test_create_unknownRequest() {
@@ -187,14 +204,15 @@ class ResponseTest {
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
     expect(
-        response.toJson(),
-        equals({
-          Response.ID: '0',
-          Response.ERROR: {
-            'code': 'UNKNOWN_REQUEST',
-            'message': 'Unknown request'
-          }
-        }));
+      response.toJson(),
+      equals({
+        Response.ID: '0',
+        Response.ERROR: {
+          'code': 'UNKNOWN_REQUEST',
+          'message': 'Unknown request',
+        },
+      }),
+    );
   }
 
   void test_fromJson() {

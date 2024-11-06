@@ -410,27 +410,45 @@ class A {
 ''');
     // linked positions
     var index = 0;
+    assertLinkedGroup(change.linkedEditGroups[index++], [
+      'void myUndefinedMethod(',
+    ]);
+    assertLinkedGroup(change.linkedEditGroups[index++], [
+      'myUndefinedMethod(0',
+      'myUndefinedMethod(int',
+    ]);
     assertLinkedGroup(
-        change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
-    assertLinkedGroup(change.linkedEditGroups[index++],
-        ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
-    assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['int i'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['int', 'num', 'Object', 'Comparable<num>']));
+      change.linkedEditGroups[index++],
+      ['int i'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'int',
+        'num',
+        'Object',
+        'Comparable<num>',
+      ]),
+    );
     assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
     assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['double d'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['double', 'num', 'Object', 'Comparable<num>']));
+      change.linkedEditGroups[index++],
+      ['double d'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'double',
+        'num',
+        'Object',
+        'Comparable<num>',
+      ]),
+    );
     assertLinkedGroup(change.linkedEditGroups[index++], ['d,']);
     assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['String s'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable<String>', 'Pattern']));
+      change.linkedEditGroups[index++],
+      ['String s'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'String',
+        'Object',
+        'Comparable<String>',
+        'Pattern',
+      ]),
+    );
     assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
@@ -457,26 +475,44 @@ class A {
 ''');
     // linked positions
     var index = 0;
+    assertLinkedGroup(change.linkedEditGroups[index++], [
+      'void myUndefinedMethod(',
+    ]);
+    assertLinkedGroup(change.linkedEditGroups[index++], [
+      'myUndefinedMethod(0',
+      'myUndefinedMethod(int',
+    ]);
     assertLinkedGroup(
-        change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
-    assertLinkedGroup(change.linkedEditGroups[index++],
-        ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
-    assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['int i'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['int', 'num', 'Object', 'Comparable<num>']));
+      change.linkedEditGroups[index++],
+      ['int i'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'int',
+        'num',
+        'Object',
+        'Comparable<num>',
+      ]),
+    );
     assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
     assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['double bbb'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['double', 'num', 'Object', 'Comparable<num>']));
+      change.linkedEditGroups[index++],
+      ['double bbb'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'double',
+        'num',
+        'Object',
+        'Comparable<num>',
+      ]),
+    );
     assertLinkedGroup(
-        change.linkedEditGroups[index++],
-        ['String ccc'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['String', 'Object', 'Comparable<String>', 'Pattern']));
+      change.linkedEditGroups[index++],
+      ['String ccc'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'String',
+        'Object',
+        'Comparable<String>',
+        'Pattern',
+      ]),
+    );
   }
 
   Future<void> test_createUnqualified_returnType() async {
@@ -500,8 +536,10 @@ class A {
 ''');
     // linked positions
     assertLinkedGroup(change.linkedEditGroups[0], ['int myUndefinedMethod(']);
-    assertLinkedGroup(change.linkedEditGroups[1],
-        ['myUndefinedMethod();', 'myUndefinedMethod() {']);
+    assertLinkedGroup(change.linkedEditGroups[1], [
+      'myUndefinedMethod();',
+      'myUndefinedMethod() {',
+    ]);
   }
 
   Future<void> test_createUnqualified_staticField() async {
@@ -664,7 +702,7 @@ class C {
   }
 
   Future<void>
-      test_functionType_method_inside_conditional_operator_condition() async {
+  test_functionType_method_inside_conditional_operator_condition() async {
     await resolveTestCode('''
 class C {
   void m1(int i) {
@@ -678,7 +716,7 @@ class C {
   }
 
   Future<void>
-      test_functionType_method_inside_conditional_operator_condition_FunctionCall() async {
+  test_functionType_method_inside_conditional_operator_condition_FunctionCall() async {
     await resolveTestCode('''
 class C {
   void m1(int i) {
@@ -702,7 +740,7 @@ class C {
   }
 
   Future<void>
-      test_functionType_method_inside_conditional_operator_else() async {
+  test_functionType_method_inside_conditional_operator_else() async {
     await resolveTestCode('''
 class C {
   void m1(int i) {
@@ -727,7 +765,7 @@ class C {
   }
 
   Future<void>
-      test_functionType_method_inside_conditional_operator_else_FunctionCall() async {
+  test_functionType_method_inside_conditional_operator_else_FunctionCall() async {
     await resolveTestCode('''
 class C {
   void m1(int i) {
@@ -751,7 +789,7 @@ class C {
   }
 
   Future<void>
-      test_functionType_method_inside_conditional_operator_then() async {
+  test_functionType_method_inside_conditional_operator_then() async {
     await resolveTestCode('''
 class C {
   void m1(int i) {
@@ -776,7 +814,7 @@ class C {
   }
 
   Future<void>
-      test_functionType_method_inside_conditional_operator_then_FunctionCall() async {
+  test_functionType_method_inside_conditional_operator_then_FunctionCall() async {
     await resolveTestCode('''
 class C {
   void m1(int i) {

@@ -16,7 +16,9 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 
 Future<void> scheduleImplementedNotification(
-    LegacyAnalysisServer server, Iterable<String> files) async {
+  LegacyAnalysisServer server,
+  Iterable<String> files,
+) async {
   var searchEngine = server.searchEngine;
   for (var file in files) {
     var unit = server.getCachedResolvedUnit(file)?.unit;
@@ -26,14 +28,21 @@ Future<void> scheduleImplementedNotification(
         var computer = ImplementedComputer(searchEngine, unitElement);
         await computer.compute();
         var params = protocol.AnalysisImplementedParams(
-            file, computer.classes, computer.members);
+          file,
+          computer.classes,
+          computer.members,
+        );
         server.sendNotification(
-            params.toNotification(clientUriConverter: server.uriConverter));
+          params.toNotification(clientUriConverter: server.uriConverter),
+        );
       } catch (exception, stackTrace) {
-        server.instrumentationService.logException(CaughtException.withMessage(
+        server.instrumentationService.logException(
+          CaughtException.withMessage(
             'Failed to send analysis.implemented notification.',
             exception,
-            stackTrace));
+            stackTrace,
+          ),
+        );
       }
     }
   }
@@ -41,11 +50,12 @@ Future<void> scheduleImplementedNotification(
 
 void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
   _sendNotification(server, () {
-    var analyzedFiles = server.driverMap.values
-        .map((driver) => driver.knownFiles)
-        .flattenedToList
-        .map((file) => file.path)
-        .toSet();
+    var analyzedFiles =
+        server.driverMap.values
+            .map((driver) => driver.knownFiles)
+            .flattenedToList
+            .map((file) => file.path)
+            .toSet();
 
     // Exclude *.yaml files because IDEA Dart plugin attempts to index
     // all the files in folders which contain analyzed files.
@@ -62,43 +72,59 @@ void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
     server.prevAnalyzedFiles = analyzedFiles;
     var params = protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   });
 }
 
-void sendAnalysisNotificationClosingLabels(LegacyAnalysisServer server,
-    String file, LineInfo lineInfo, CompilationUnit dartUnit) {
+void sendAnalysisNotificationClosingLabels(
+  LegacyAnalysisServer server,
+  String file,
+  LineInfo lineInfo,
+  CompilationUnit dartUnit,
+) {
   _sendNotification(server, () {
     var labels = DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
     var params = protocol.AnalysisClosingLabelsParams(file, labels);
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   });
 }
 
 void sendAnalysisNotificationFlushResults(
-    LegacyAnalysisServer server, List<String> files) {
+  LegacyAnalysisServer server,
+  List<String> files,
+) {
   _sendNotification(server, () {
     if (files.isNotEmpty) {
       var params = protocol.AnalysisFlushResultsParams(files);
       server.sendNotification(
-          params.toNotification(clientUriConverter: server.uriConverter));
+        params.toNotification(clientUriConverter: server.uriConverter),
+      );
     }
   });
 }
 
-void sendAnalysisNotificationFolding(LegacyAnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
+void sendAnalysisNotificationFolding(
+  LegacyAnalysisServer server,
+  String file,
+  LineInfo lineInfo,
+  CompilationUnit dartUnit,
+) {
   _sendNotification(server, () {
     var regions = DartUnitFoldingComputer(lineInfo, dartUnit).compute();
     var params = protocol.AnalysisFoldingParams(file, regions);
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   });
 }
 
 void sendAnalysisNotificationOutline(
-    LegacyAnalysisServer server, ResolvedUnitResult resolvedUnit) {
+  LegacyAnalysisServer server,
+  ResolvedUnitResult resolvedUnit,
+) {
   _sendNotification(server, () {
     protocol.FileKind fileKind;
     var unit = resolvedUnit.unit;
@@ -112,27 +138,33 @@ void sendAnalysisNotificationOutline(
     var libraryName = _computeLibraryName(unit);
 
     // compute Outline
-    var outline = DartUnitOutlineComputer(
-      resolvedUnit,
-      withBasicFlutter: true,
-    ).compute();
+    var outline =
+        DartUnitOutlineComputer(resolvedUnit, withBasicFlutter: true).compute();
 
     // send notification
     var params = protocol.AnalysisOutlineParams(
-        resolvedUnit.path, fileKind, outline,
-        libraryName: libraryName);
+      resolvedUnit.path,
+      fileKind,
+      outline,
+      libraryName: libraryName,
+    );
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   });
 }
 
 void sendAnalysisNotificationOverrides(
-    LegacyAnalysisServer server, String file, CompilationUnit dartUnit) {
+  LegacyAnalysisServer server,
+  String file,
+  CompilationUnit dartUnit,
+) {
   _sendNotification(server, () {
     var overrides = DartUnitOverridesComputer(dartUnit).compute();
     var params = protocol.AnalysisOverridesParams(file, overrides);
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   });
 }
 
@@ -158,7 +190,12 @@ void _sendNotification(LegacyAnalysisServer server, Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {
-    server.instrumentationService.logException(CaughtException.withMessage(
-        'Failed to send notification', exception, stackTrace));
+    server.instrumentationService.logException(
+      CaughtException.withMessage(
+        'Failed to send notification',
+        exception,
+        stackTrace,
+      ),
+    );
   }
 }

@@ -57,8 +57,12 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
         if (parameters.length == 1) {
           // There is only one parameter. By removing everything inside the
           // parentheses we also remove any square brackets or curly braces.
-          builder.addDeletion(range.endStart(
-              parameterList.leftParenthesis, parameterList.rightParenthesis));
+          builder.addDeletion(
+            range.endStart(
+              parameterList.leftParenthesis,
+              parameterList.rightParenthesis,
+            ),
+          );
         } else {
           var following = parameters[1];
           if (parameter_final.isRequiredPositional &&

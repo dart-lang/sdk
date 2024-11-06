@@ -26,10 +26,7 @@ void f(String a) {
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    var results = await getSignatureHelp(
-      testFileUri,
-      code.position.position,
-    );
+    var results = await getSignatureHelp(testFileUri, code.position.position);
     var result = results!.signatures.single;
 
     expect(result.label, 'f(String a)');

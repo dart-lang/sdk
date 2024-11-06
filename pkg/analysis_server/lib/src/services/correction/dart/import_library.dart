@@ -28,44 +28,46 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// Initialize a newly created instance that will add an import of
   /// `dart:async`.
   ImportLibrary.dartAsync({required super.context})
-      : _importKind = _ImportKind.dartAsync;
+    : _importKind = _ImportKind.dartAsync;
 
   /// Initialize a newly created instance that will add an import for an
   /// extension.
   ImportLibrary.forExtension({required super.context})
-      : _importKind = _ImportKind.forExtension;
+    : _importKind = _ImportKind.forExtension;
 
   /// Initialize a newly created instance that will add an import for a member
   /// of an extension.
   ImportLibrary.forExtensionMember({required super.context})
-      : _importKind = _ImportKind.forExtensionMember;
+    : _importKind = _ImportKind.forExtensionMember;
 
   /// Initialize a newly created instance that will add an import for an
   /// extension type.
   ImportLibrary.forExtensionType({required super.context})
-      : _importKind = _ImportKind.forExtensionType;
+    : _importKind = _ImportKind.forExtensionType;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level function.
   ImportLibrary.forFunction({required super.context})
-      : _importKind = _ImportKind.forFunction;
+    : _importKind = _ImportKind.forFunction;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level variable.
   ImportLibrary.forTopLevelVariable({required super.context})
-      : _importKind = _ImportKind.forTopLevelVariable;
+    : _importKind = _ImportKind.forTopLevelVariable;
 
   /// Initialize a newly created instance that will add an import for a
   /// type-like declaration (class, enum, mixin, typedef), a constructor, a
   /// static member of a declaration, or an enum value.
   ImportLibrary.forType({required super.context})
-      : _importKind = _ImportKind.forType;
+    : _importKind = _ImportKind.forType;
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     return switch (_importKind) {
-      _ImportKind.dartAsync =>
-        _importLibrary(DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async')),
+      _ImportKind.dartAsync => _importLibrary(
+        DartFixKind.IMPORT_ASYNC,
+        Uri.parse('dart:async'),
+      ),
       _ImportKind.forExtension => await _producersForExtension(),
       _ImportKind.forExtensionMember => await _producersForExtensionMember(),
       _ImportKind.forExtensionType => await _producersForExtensionType(),
@@ -102,19 +104,23 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (combinators.length == 1) {
           var combinator = combinators[0];
           if (combinator is HideElementCombinator) {
-            producers.add(_ImportLibraryCombinator(
-              libraryToImport.source.uri.toString(),
-              combinator,
-              instantiatedExtension.extension.name!,
-              context: context,
-            ));
+            producers.add(
+              _ImportLibraryCombinator(
+                libraryToImport.source.uri.toString(),
+                combinator,
+                instantiatedExtension.extension.name!,
+                context: context,
+              ),
+            );
           } else if (combinator is ShowElementCombinator) {
-            producers.add(_ImportLibraryCombinator(
-              libraryToImport.source.uri.toString(),
-              combinator,
-              instantiatedExtension.extension.name!,
-              context: context,
-            ));
+            producers.add(
+              _ImportLibraryCombinator(
+                libraryToImport.source.uri.toString(),
+                combinator,
+                instantiatedExtension.extension.name!,
+                context: context,
+              ),
+            );
           }
         }
       }
@@ -124,12 +130,14 @@ class ImportLibrary extends MultiCorrectionProducer {
     // producer that will either add an import or not based on the result of
     // analyzing the library.
     if (!foundImport) {
-      producers.add(_ImportLibraryContainingExtension(
-        libraryToImport,
-        targetType,
-        memberName,
-        context: context,
-      ));
+      producers.add(
+        _ImportLibraryContainingExtension(
+          libraryToImport,
+          targetType,
+          memberName,
+          context: context,
+        ),
+      );
     }
     return producers;
   }
@@ -151,18 +159,18 @@ class ImportLibrary extends MultiCorrectionProducer {
   }) {
     if (!includeRelativeFix) {
       return [
-        _ImportAbsoluteLibrary(fixKind, library, prefix, context: context)
+        _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
       ];
     }
     var codeStyleOptions = getCodeStyleOptions(unitResult.file);
     if (codeStyleOptions.usePackageUris) {
       return [
-        _ImportAbsoluteLibrary(fixKind, library, prefix, context: context)
+        _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
       ];
     }
     if (codeStyleOptions.useRelativeUris) {
       return [
-        _ImportRelativeLibrary(fixKind, library, prefix, context: context)
+        _ImportRelativeLibrary(fixKind, library, prefix, context: context),
       ];
     }
     return [
@@ -218,22 +226,33 @@ class ImportLibrary extends MultiCorrectionProducer {
           // Don't add this library again.
           alreadyImportedWithPrefix.add(libraryElement);
           combinatorProducer = _ImportLibraryCombinator(
-              libraryName, combinator, name,
-              context: context);
+            libraryName,
+            combinator,
+            name,
+            context: context,
+          );
         } else if (combinator is ShowElementCombinator) {
           // Don't add this library again.
           alreadyImportedWithPrefix.add(libraryElement);
           combinatorProducer = _ImportLibraryCombinator(
-              libraryName, combinator, name,
-              context: context);
+            libraryName,
+            combinator,
+            name,
+            context: context,
+          );
         }
       }
       // Maybe apply a prefix.
       var prefix = import.prefix?.element;
       if (prefix != null) {
-        producers.add(_ImportLibraryPrefix(
-            libraryElement, prefix, combinatorProducer,
-            context: context));
+        producers.add(
+          _ImportLibraryPrefix(
+            libraryElement,
+            prefix,
+            combinatorProducer,
+            context: context,
+          ),
+        );
         continue;
       } else if (combinatorProducer != null) {
         producers.add(combinatorProducer);
@@ -260,36 +279,44 @@ class ImportLibrary extends MultiCorrectionProducer {
       // Compute the fix kind.
       FixKind fixKind;
       if (libraryElement.isInSdk) {
-        fixKind = prefix.isEmptyOrNull
-            ? DartFixKind.IMPORT_LIBRARY_SDK
-            : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
+        fixKind =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_SDK
+                : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
       } else if (_isLibSrcPath(librarySource.fullName)) {
         // Bad: non-API.
-        fixKind = prefix.isEmptyOrNull
-            ? DartFixKind.IMPORT_LIBRARY_PROJECT3
-            : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
+        fixKind =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_PROJECT3
+                : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
       } else if (declaration.library != libraryElement) {
         // Ugly: exports.
-        fixKind = prefix.isEmptyOrNull
-            ? DartFixKind.IMPORT_LIBRARY_PROJECT2
-            : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
+        fixKind =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_PROJECT2
+                : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
       } else {
         // Good: direct declaration.
-        fixKind = prefix.isEmptyOrNull
-            ? DartFixKind.IMPORT_LIBRARY_PROJECT1
-            : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
+        fixKind =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_PROJECT1
+                : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
       }
       // If both files are in the same package's 'lib' folder, also include a
       // relative import.
       var includeRelativeUri = canBeRelativeImport(
-          librarySource.uri, this.libraryElement.librarySource.uri);
-      // Add the fix(es).
-      producers.addAll(_importLibrary(
-        fixKind,
         librarySource.uri,
-        prefix: prefix,
-        includeRelativeFix: includeRelativeUri,
-      ));
+        this.libraryElement.librarySource.uri,
+      );
+      // Add the fix(es).
+      producers.addAll(
+        _importLibrary(
+          fixKind,
+          librarySource.uri,
+          prefix: prefix,
+          includeRelativeFix: includeRelativeUri,
+        ),
+      );
     }
     return producers;
   }
@@ -306,15 +333,16 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   Future<List<ResolvedCorrectionProducer>> _producersForExtension() async {
     if (node case SimpleIdentifier(:var name, :var parent)) {
-      return await _producersForMethodInvocation(
-          name, parent, const [ElementKind.EXTENSION]);
+      return await _producersForMethodInvocation(name, parent, const [
+        ElementKind.EXTENSION,
+      ]);
     }
 
     return const [];
   }
 
   Future<List<ResolvedCorrectionProducer>>
-      _producersForExtensionMember() async {
+  _producersForExtensionMember() async {
     String memberName;
     DartType? targetType;
     var node = this.node;
@@ -347,21 +375,23 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
 
     var name = Name(
-        dartFixContext.resolvedResult.libraryElement.source.uri, memberName);
+      dartFixContext.resolvedResult.libraryElement.source.uri,
+      memberName,
+    );
     var producers = <ResolvedCorrectionProducer>[];
     await for (var libraryToImport in librariesWithExtensions(memberName)) {
-      producers
-          .addAll(_importExtensionInLibrary(libraryToImport, targetType, name));
+      producers.addAll(
+        _importExtensionInLibrary(libraryToImport, targetType, name),
+      );
     }
     return producers;
   }
 
   Future<List<ResolvedCorrectionProducer>> _producersForExtensionType() async {
     if (node case SimpleIdentifier(:var name)) {
-      return await _importLibraryForElement(
-        name,
-        const [ElementKind.EXTENSION_TYPE],
-      );
+      return await _importLibraryForElement(name, const [
+        ElementKind.EXTENSION_TYPE,
+      ]);
     }
 
     return const [];
@@ -369,8 +399,10 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   Future<List<ResolvedCorrectionProducer>> _producersForFunction() async {
     if (node case SimpleIdentifier(:var name, :var parent)) {
-      return await _producersForMethodInvocation(name, parent,
-          const [ElementKind.FUNCTION, ElementKind.TOP_LEVEL_VARIABLE]);
+      return await _producersForMethodInvocation(name, parent, const [
+        ElementKind.FUNCTION,
+        ElementKind.TOP_LEVEL_VARIABLE,
+      ]);
     }
 
     return const [];
@@ -388,7 +420,10 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// called `foo` that has a method called `bar` (has to be static for a
   /// _class_ with that name).
   Future<List<ResolvedCorrectionProducer>> _producersForMethodInvocation(
-      String name, AstNode? parent, List<ElementKind> kinds) async {
+    String name,
+    AstNode? parent,
+    List<ElementKind> kinds,
+  ) async {
     String? prefix;
     var producers = <ResolvedCorrectionProducer>[];
     if (parent case MethodInvocation(:var target?, :var function)) {
@@ -405,8 +440,10 @@ class ImportLibrary extends MultiCorrectionProducer {
       } else if (target case SimpleIdentifier(:var name)) {
         prefix = name;
       }
-    } else if (parent
-        case PrefixedIdentifier(prefix: var parentPrefix, :var identifier)) {
+    } else if (parent case PrefixedIdentifier(
+      prefix: var parentPrefix,
+      :var identifier,
+    )) {
       producers.addAll(await _importLibraryForElement(name, kinds));
 
       // Set the prefix and (maybe swap) name and get the other import library
@@ -419,13 +456,14 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
     }
 
-    producers
-        .addAll(await _importLibraryForElement(name, kinds, prefix: prefix));
+    producers.addAll(
+      await _importLibraryForElement(name, kinds, prefix: prefix),
+    );
     return producers;
   }
 
   Future<List<ResolvedCorrectionProducer>>
-      _producersForTopLevelVariable() async {
+  _producersForTopLevelVariable() async {
     String? prefix;
     var targetNode = node;
     if (targetNode.parent case PrefixedIdentifier prefixed
@@ -442,11 +480,9 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
     }
     if (targetNode case SimpleIdentifier(:var name)) {
-      return await _importLibraryForElement(
-        name,
-        const [ElementKind.TOP_LEVEL_VARIABLE],
-        prefix: prefix,
-      );
+      return await _importLibraryForElement(name, const [
+        ElementKind.TOP_LEVEL_VARIABLE,
+      ], prefix: prefix);
     }
 
     return const [];
@@ -489,11 +525,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
     if (targetNode.mightBeImplicitConstructor) {
       var typeName = (targetNode as SimpleIdentifier).name;
-      return await _importLibraryForElement(
-        typeName,
-        const [ElementKind.CLASS],
-        prefix: prefix,
-      );
+      return await _importLibraryForElement(typeName, const [
+        ElementKind.CLASS,
+      ], prefix: prefix);
     }
 
     return const [];
@@ -508,17 +542,24 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
 
   String _uriText = '';
 
-  _ImportAbsoluteLibrary(this._fixKind, this._library, this._prefix,
-      {required super.context});
+  _ImportAbsoluteLibrary(
+    this._fixKind,
+    this._library,
+    this._prefix, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
-  List<String> get fixArguments =>
-      [_uriText, if (_prefix != null && _prefix.isNotEmpty) _prefix];
+  List<String> get fixArguments => [
+    _uriText,
+    if (_prefix != null && _prefix.isNotEmpty) _prefix,
+  ];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -540,7 +581,7 @@ enum _ImportKind {
   forExtensionType,
   forFunction,
   forTopLevelVariable,
-  forType
+  forType,
 }
 
 /// A correction processor that can add/remove a name to/from the show/hide
@@ -561,8 +602,9 @@ class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_libraryName];
@@ -598,7 +640,9 @@ class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
     var libraryFile = unitResult.libraryElement.source.fullName;
     await builder.addDartFileEdit(libraryFile, (builder) {
       builder.addSimpleReplacement(
-          SourceRange(offset - 1, length + 1), newCombinatorCode);
+        SourceRange(offset - 1, length + 1),
+        newCombinatorCode,
+      );
     });
   }
 }
@@ -627,8 +671,9 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_uriText];
@@ -665,8 +710,9 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -712,12 +758,15 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
-  List<String> get fixArguments =>
-      [_uriText, if (_prefix != null && _prefix.isNotEmpty) _prefix];
+  List<String> get fixArguments => [
+    _uriText,
+    if (_prefix != null && _prefix.isNotEmpty) _prefix,
+  ];
 
   @override
   FixKind get fixKind => _fixKind;

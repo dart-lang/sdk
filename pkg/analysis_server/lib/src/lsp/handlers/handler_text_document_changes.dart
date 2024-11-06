@@ -24,8 +24,11 @@ class TextDocumentChangeHandler
       DidChangeTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<void>> handle(DidChangeTextDocumentParams params,
-      MessageInfo message, CancellationToken token) {
+  FutureOr<ErrorOr<void>> handle(
+    DidChangeTextDocumentParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) {
     var doc = params.textDocument;
     // Editors should never try to change our macro files, but just in case
     // we get these requests, ignore them.
@@ -51,8 +54,10 @@ class TextDocumentChangeHandler
       );
     }
     var newContents = applyAndConvertEditsToServer(
-        oldContents, params.contentChanges,
-        failureIsCritical: true);
+      oldContents,
+      params.contentChanges,
+      failureIsCritical: true,
+    );
     return newContents.mapResultSync((result) {
       server.documentVersions[path] = params.textDocument;
       server.onOverlayUpdated(path, result.edits, newContent: result.content);
@@ -73,8 +78,11 @@ class TextDocumentCloseHandler
       DidCloseTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<void>> handle(DidCloseTextDocumentParams params,
-      MessageInfo message, CancellationToken token) {
+  FutureOr<ErrorOr<void>> handle(
+    DidCloseTextDocumentParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) {
     var doc = params.textDocument;
     var path = pathOfDoc(doc);
     return path.mapResult((path) async {
@@ -107,8 +115,11 @@ class TextDocumentOpenHandler
       DidOpenTextDocumentParams.jsonHandler;
 
   @override
-  FutureOr<ErrorOr<void>> handle(DidOpenTextDocumentParams params,
-      MessageInfo message, CancellationToken token) {
+  FutureOr<ErrorOr<void>> handle(
+    DidOpenTextDocumentParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) {
     var doc = params.textDocument;
     var path = pathOfDocItem(doc);
     return path.mapResult((path) async {
@@ -152,19 +163,22 @@ class TextDocumentRegistrations extends FeatureRegistration
       (
         Method.textDocument_didChange,
         TextDocumentChangeRegistrationOptions(
-            syncKind: TextDocumentSyncKind.Incremental,
-            documentSelector: synchronisedTypes),
-      )
+          syncKind: TextDocumentSyncKind.Incremental,
+          documentSelector: synchronisedTypes,
+        ),
+      ),
     ];
   }
 
   @override
-  StaticOptions get staticOptions => Either2.t2(TextDocumentSyncOptions(
-        openClose: true,
-        change: TextDocumentSyncKind.Incremental,
-        willSave: false,
-        willSaveWaitUntil: false,
-      ));
+  StaticOptions get staticOptions => Either2.t2(
+    TextDocumentSyncOptions(
+      openClose: true,
+      change: TextDocumentSyncKind.Incremental,
+      willSave: false,
+      willSaveWaitUntil: false,
+    ),
+  );
 
   @override
   bool get supportsDynamic => clientDynamic.textSync;

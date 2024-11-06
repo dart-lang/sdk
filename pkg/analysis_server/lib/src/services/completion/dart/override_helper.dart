@@ -26,7 +26,7 @@ class OverrideHelper {
 
   /// Initialize a newly created helper to add suggestions to the [collector].
   OverrideHelper({required this.state, required this.collector})
-      : inheritanceManager = state.request.inheritanceManager;
+    : inheritanceManager = state.request.inheritanceManager;
 
   void computeOverridesFor({
     required InterfaceElement interfaceElement,
@@ -35,8 +35,10 @@ class OverrideHelper {
   }) {
     var interface = inheritanceManager.getInterface(interfaceElement);
     var interfaceMap = interface.map;
-    var namesToOverride =
-        _namesToOverride(interfaceElement.librarySource.uri, interface);
+    var namesToOverride = _namesToOverride(
+      interfaceElement.librarySource.uri,
+      interface,
+    );
 
     // Build suggestions
     for (var name in namesToOverride) {
@@ -49,9 +51,12 @@ class OverrideHelper {
 
         var invokeSuper = interface.isSuperImplemented(name);
         var matcherScore = math.max(
-            math.max(state.matcher.score('override'),
-                state.matcher.score('operator')),
-            state.matcher.score(element.displayName));
+          math.max(
+            state.matcher.score('override'),
+            state.matcher.score('operator'),
+          ),
+          state.matcher.score(element.displayName),
+        );
         if (matcherScore != -1) {
           collector.addSuggestion(
             OverrideSuggestion(

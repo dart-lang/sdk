@@ -20,9 +20,7 @@ class FlutterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_enclosingWidgetExpression_node_instanceCreation() async {
@@ -117,7 +115,7 @@ Text createEmptyText() => Text('');
   }
 
   Future<void>
-      test_enclosingWidgetExpression_node_prefixedIdentifier_identifier() async {
+  test_enclosingWidgetExpression_node_prefixedIdentifier_identifier() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -136,7 +134,7 @@ void f(Foo foo) {
   }
 
   Future<void>
-      test_enclosingWidgetExpression_node_prefixedIdentifier_prefix() async {
+  test_enclosingWidgetExpression_node_prefixedIdentifier_prefix() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -217,7 +215,7 @@ void useWidget(Widget w) {}
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_assignmentExpression() async {
+  test_enclosingWidgetExpression_parent_assignmentExpression() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -248,7 +246,7 @@ void useWidget(Widget w) {}
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_conditionalExpression() async {
+  test_enclosingWidgetExpression_parent_conditionalExpression() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -264,7 +262,7 @@ void f(bool condition, Widget w1, Widget w2) {
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_expressionFunctionBody() async {
+  test_enclosingWidgetExpression_parent_expressionFunctionBody() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -275,7 +273,7 @@ void f(Widget widget) => widget; // ref
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_expressionStatement() async {
+  test_enclosingWidgetExpression_parent_expressionStatement() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -551,8 +549,10 @@ Text createEmptyText() => new Text('');
     fail('Not found $name in $unit');
   }
 
-  InstanceCreationExpression _getTopVariableCreation(String name,
-      [CompilationUnit? unit]) {
+  InstanceCreationExpression _getTopVariableCreation(
+    String name, [
+    CompilationUnit? unit,
+  ]) {
     return _getTopVariable(name, unit).initializer
         as InstanceCreationExpression;
   }

@@ -21,8 +21,9 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind =>
@@ -55,9 +56,10 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
     }
 
     var widgetName = widgetClassElement.displayName;
-    var stateName = widgetClassElement.isPrivate
-        ? '${widgetName}State'
-        : '_${widgetName}State';
+    var stateName =
+        widgetClassElement.isPrivate
+            ? '${widgetName}State'
+            : '_${widgetName}State';
 
     // Find fields assigned in constructors.
     var visitor = _FieldFinder();
@@ -107,13 +109,17 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
       // Insert `widget.` before references to the widget instance members.
       var visitor = _ReplacementEditBuilder(
-          widgetClassElement, elementsToMove, linesRange);
+        widgetClassElement,
+        elementsToMove,
+        linesRange,
+      );
       movedNode.accept(visitor);
       return SourceEdit.applySequence(text, visitor.edits.reversed);
     }
 
-    var statefulWidgetClass =
-        await sessionHelper.getFlutterClass2('StatefulWidget');
+    var statefulWidgetClass = await sessionHelper.getFlutterClass2(
+      'StatefulWidget',
+    );
     var stateClass = await sessionHelper.getFlutterClass2('State');
     if (statefulWidgetClass == null || stateClass == null) {
       return;
@@ -135,32 +141,33 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
       /// Replace code between [replaceOffset] and [replaceEnd] with
       /// `createState()`, empty line, or nothing.
-      void replaceInterval(int replaceEnd,
-          {bool replaceWithEmptyLine = false,
-          bool hasEmptyLineBeforeCreateState = false,
-          bool hasEmptyLineAfterCreateState = true}) {
+      void replaceInterval(
+        int replaceEnd, {
+        bool replaceWithEmptyLine = false,
+        bool hasEmptyLineBeforeCreateState = false,
+        bool hasEmptyLineAfterCreateState = true,
+      }) {
         var replaceLength = replaceEnd - replaceOffset;
-        builder.addReplacement(
-          SourceRange(replaceOffset, replaceLength),
-          (builder) {
-            if (hasBuildMethod) {
-              if (hasEmptyLineBeforeCreateState) {
-                builder.writeln();
-              }
-              builder.writeln('  @override');
-              builder.write('  ');
-              builder.writeReference2(stateClass);
-              builder.write('<${widgetClass.name.lexeme}$typeParams>');
-              builder.writeln(' createState() => $stateName$typeParams();');
-              if (hasEmptyLineAfterCreateState) {
-                builder.writeln();
-              }
-              hasBuildMethod = false;
-            } else if (replaceWithEmptyLine) {
+        builder.addReplacement(SourceRange(replaceOffset, replaceLength), (
+          builder,
+        ) {
+          if (hasBuildMethod) {
+            if (hasEmptyLineBeforeCreateState) {
               builder.writeln();
             }
-          },
-        );
+            builder.writeln('  @override');
+            builder.write('  ');
+            builder.writeReference2(stateClass);
+            builder.write('<${widgetClass.name.lexeme}$typeParams>');
+            builder.writeln(' createState() => $stateName$typeParams();');
+            if (hasEmptyLineAfterCreateState) {
+              builder.writeln();
+            }
+            hasBuildMethod = false;
+          } else if (replaceWithEmptyLine) {
+            builder.writeln();
+          }
+        });
         replaceOffset = 0;
       }
 
@@ -182,9 +189,11 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
           var linesRange = utils.getLinesRange(range.node(node));
           endOfLastNodeToKeep = linesRange.end;
           if (replaceOffset != 0) {
-            replaceInterval(linesRange.offset,
-                replaceWithEmptyLine:
-                    lastToRemoveIsField && node is! FieldDeclaration);
+            replaceInterval(
+              linesRange.offset,
+              replaceWithEmptyLine:
+                  lastToRemoveIsField && node is! FieldDeclaration,
+            );
           }
         }
       }
@@ -195,9 +204,11 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         if (endOfLastNodeToKeep != 0) {
           replaceOffset = endOfLastNodeToKeep;
         }
-        replaceInterval(widgetClass.rightBracket.offset,
-            hasEmptyLineBeforeCreateState: endOfLastNodeToKeep != 0,
-            hasEmptyLineAfterCreateState: false);
+        replaceInterval(
+          widgetClass.rightBracket.offset,
+          hasEmptyLineBeforeCreateState: endOfLastNodeToKeep != 0,
+          hasEmptyLineAfterCreateState: false,
+        );
       }
 
       // Create the State subclass.
@@ -308,7 +319,10 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
   List<SourceEdit> edits = [];
 
   _ReplacementEditBuilder(
-      this.widgetClassElement, this.elementsToMove, this.linesRange);
+    this.widgetClassElement,
+    this.elementsToMove,
+    this.linesRange,
+  );
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

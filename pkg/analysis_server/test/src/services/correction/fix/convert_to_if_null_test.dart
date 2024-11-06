@@ -82,11 +82,13 @@ void f(String s, bool b) {
   print(b ? s != null ? s : : null);
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      var code = error.errorCode;
-      return code is LintCode &&
-          code.name == LintNames.prefer_if_null_operators;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        var code = error.errorCode;
+        return code is LintCode &&
+            code.name == LintNames.prefer_if_null_operators;
+      },
+    );
   }
 
   Future<void> test_malformed_parentheses() async {
@@ -96,11 +98,13 @@ void f(String s, bool b) {
   print(b ? (s != null ? s : ) : null);
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      var code = error.errorCode;
-      return code is LintCode &&
-          code.name == LintNames.prefer_if_null_operators;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        var code = error.errorCode;
+        return code is LintCode &&
+            code.name == LintNames.prefer_if_null_operators;
+      },
+    );
   }
 
   Future<void> test_notEqual() async {

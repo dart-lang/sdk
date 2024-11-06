@@ -22,9 +22,7 @@ class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   /// Full coverage in fix/add_diagnostic_property_reference_test.dart

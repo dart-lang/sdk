@@ -26,12 +26,15 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // to alert the user to something failing.
     var error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
-        TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-          range: Range(
+        TextDocumentContentChangeEvent.t1(
+          TextDocumentContentChangePartial(
+            range: Range(
               start: Position(line: 999, character: 999),
-              end: Position(line: 999, character: 999)),
-          text: '   ',
-        ))
+              end: Position(line: 999, character: 999),
+            ),
+            text: '   ',
+          ),
+        ),
       ]);
     });
 
@@ -59,12 +62,15 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, initialContent);
     await changeFile(222, mainFileUri, [
       // Replace line1:5-1:8 with spaces.
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-        range: Range(
+      TextDocumentContentChangeEvent.t1(
+        TextDocumentContentChangePartial(
+          range: Range(
             start: Position(line: 1, character: 8),
-            end: Position(line: 1, character: 11)),
-        text: '   ',
-      ))
+            end: Position(line: 1, character: 11),
+          ),
+          text: '   ',
+        ),
+      ),
     ]);
     expect(_getOverlay(mainFilePath), equals(expectedUpdatedContent));
 
@@ -76,13 +82,15 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // It's not valid for a client to send a request to modify a file that it
     // has not opened, but Visual Studio has done it in the past so we should
     // ensure it generates an obvious error that the user can understand.
-    var simpleEdit =
-        TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-      range: Range(
+    var simpleEdit = TextDocumentContentChangeEvent.t1(
+      TextDocumentContentChangePartial(
+        range: Range(
           start: Position(line: 1, character: 1),
-          end: Position(line: 1, character: 1)),
-      text: 'test',
-    ));
+          end: Position(line: 1, character: 1),
+        ),
+        text: 'test',
+      ),
+    );
     await initialize();
     var notificationParams = await expectErrorNotification(
       () => changeFile(222, mainFileUri, [simpleEdit]),
@@ -137,7 +145,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(
       notificationParams.message,
       contains(
-          "URI scheme 'http' is not supported. Allowed schemes are 'file'."),
+        "URI scheme 'http' is not supported. Allowed schemes are 'file'.",
+      ),
     );
   }
 

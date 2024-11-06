@@ -57,8 +57,10 @@ void f(Color color) {
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
-        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
-            withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -96,8 +98,10 @@ var white = [!x!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
-        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
-            withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -124,8 +128,10 @@ void f(Color color) {
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
-        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
-            withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -161,8 +167,10 @@ var white = [!Colors.white!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
-        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
-            withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -220,8 +228,10 @@ var white = [!const Color(0xFFFFFFFF)!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 0, 0)', withConst: true),
         _color('Color.fromRGBO(255, 0, 0, 1)', withConst: true),
-        _color('Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
-            withConst: true),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 0, blue: 0)',
+          withConst: true,
+        ),
         _color('Color(0xFFFF0000)', withConst: true),
       ],
     );
@@ -309,7 +319,7 @@ const white = [!Colors.white!];
           end: code.position.position,
         ),
         newText: "\nimport '$uiImportUri';",
-      )
+      ),
     ];
 
     await _checkPresentations(
@@ -317,8 +327,10 @@ const white = [!Colors.white!];
       expectPresentations: [
         _color('Color.fromARGB(255, 255, 255, 255)', additionalEdits: edits),
         _color('Color.fromRGBO(255, 255, 255, 1)', additionalEdits: edits),
-        _color('Color.from(alpha: 1, red: 1, green: 1, blue: 1)',
-            additionalEdits: edits),
+        _color(
+          'Color.from(alpha: 1, red: 1, green: 1, blue: 1)',
+          additionalEdits: edits,
+        ),
         _color('Color(0xFFFFFFFF)', additionalEdits: edits),
       ],
     );
@@ -369,7 +381,8 @@ const white = [!Color(0xFFFFFFFF)!];
     expect(
       colors.map((color) => color.range),
       contains(colorRange),
-      reason: 'Tests should only fetch colour presentations for ranges that '
+      reason:
+          'Tests should only fetch colour presentations for ranges that '
           'would be computed by server',
     );
 

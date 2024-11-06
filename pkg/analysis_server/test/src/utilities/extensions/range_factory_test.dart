@@ -30,21 +30,27 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
 
   void _assertArgumentRange(int index, SourceRange expectedRange) {
     var list = _argumentList;
-    expect(range.nodeInListWithComments(testUnit.lineInfo, list, list[index]),
-        expectedRange);
+    expect(
+      range.nodeInListWithComments(testUnit.lineInfo, list, list[index]),
+      expectedRange,
+    );
   }
 
   void _assertClassMemberRanges(Map<int, SourceRange> expectedRanges) {
     var class_ = findNode.classDeclaration('class');
     var list = class_.members;
     for (var entry in expectedRanges.entries) {
-      expect(range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
-          entry.value);
+      expect(
+        range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
+        entry.value,
+      );
     }
   }
 
   void _assertNodeWithComments(
-      bool Function(AstNode) filter, List<SourceRange> expectedRanges) {
+    bool Function(AstNode) filter,
+    List<SourceRange> expectedRanges,
+  ) {
     var collector = _NodesCollector(filter);
     for (var declaration in testUnit.declarations) {
       declaration.visitChildren(collector);
@@ -54,16 +60,20 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
     expect(nodes, hasLength(expectedRanges.length));
     var length = nodes.length;
     for (var i = 0; i < length; i++) {
-      expect(range.nodeWithComments(testUnit.lineInfo, nodes[i]),
-          expectedRanges[i]);
+      expect(
+        range.nodeWithComments(testUnit.lineInfo, nodes[i]),
+        expectedRanges[i],
+      );
     }
   }
 
   void _assertUnitRanges(Map<int, SourceRange> expectedRanges) {
     var list = testUnit.declarations;
     for (var entry in expectedRanges.entries) {
-      expect(range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
-          entry.value);
+      expect(
+        range.nodeWithComments(testUnit.lineInfo, list[entry.key]),
+        entry.value,
+      );
     }
   }
 
@@ -75,17 +85,25 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
     String? endsBefore,
     String? endsAfter,
   }) {
-    expect(startsBefore == null, isNot(startsAfter == null),
-        reason: 'Specify exactly one of startsBefore/startsAfter');
-    expect(endsBefore == null, isNot(endsAfter == null),
-        reason: 'Specify exactly one of endsBefore/endsAfter');
+    expect(
+      startsBefore == null,
+      isNot(startsAfter == null),
+      reason: 'Specify exactly one of startsBefore/startsAfter',
+    );
+    expect(
+      endsBefore == null,
+      isNot(endsAfter == null),
+      reason: 'Specify exactly one of endsBefore/endsAfter',
+    );
 
-    var offset = startsBefore != null
-        ? testCode.indexOf(startsBefore)
-        : testCode.indexOf(startsAfter!) + startsAfter.length;
-    var end = endsBefore != null
-        ? testCode.indexOf(endsBefore)
-        : testCode.indexOf(endsAfter!) + endsAfter.length;
+    var offset =
+        startsBefore != null
+            ? testCode.indexOf(startsBefore)
+            : testCode.indexOf(startsAfter!) + startsAfter.length;
+    var end =
+        endsBefore != null
+            ? testCode.indexOf(endsBefore)
+            : testCode.indexOf(endsAfter!) + endsAfter.length;
 
     expect(offset, greaterThanOrEqualTo(0));
     expect(end, greaterThanOrEqualTo(0));
@@ -289,7 +307,7 @@ void g({int? a, int? b}) {}
   }
 
   Future<void>
-      test_argumentList_last_named_trailingComment_commentAfterTrailing() async {
+  test_argumentList_last_named_trailingComment_commentAfterTrailing() async {
     await resolveTestCode('''
 void f() {
   g(
@@ -304,7 +322,7 @@ void g({int? a, int? b}) {}
   }
 
   Future<void>
-      test_argumentList_middle_named_leadingAndTrailingComment() async {
+  test_argumentList_middle_named_leadingAndTrailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
@@ -352,7 +370,7 @@ void g({int? a, int? b, int? c}) {}
   }
 
   Future<void>
-      test_argumentList_middle_named_trailingComment_noTrailingOnPrevious() async {
+  test_argumentList_middle_named_trailingComment_noTrailingOnPrevious() async {
     await resolveTestCode('''
 void f() {
   g(
@@ -438,7 +456,7 @@ class A {
   }
 
   Future<void>
-      test_class_multiple_leadingAndTrailing_withClassBraceTrailing() async {
+  test_class_multiple_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 class A { // 1
   // 2
@@ -491,7 +509,7 @@ class A {
   }
 
   Future<void>
-      test_class_single_field_leadingAndTrailing_withClassBraceTrailing() async {
+  test_class_single_field_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 class A { // 1
   // 2
@@ -539,7 +557,7 @@ class A {
   }
 
   Future<void>
-      test_class_single_method_leadingAndTrailing_withClassBraceTrailing() async {
+  test_class_single_method_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 class A { // 1
   // 2
@@ -803,7 +821,7 @@ int bar = 1; // 5''');
   }
 
   Future<void>
-      test_topLevel_noTrailingNewline_leadingAndTrailing_withClassBraceTrailing() async {
+  test_topLevel_noTrailingNewline_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 import '';
 
@@ -837,9 +855,7 @@ import '';
 // 1
 int foo = 1;
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: '// 1', endsAfter: '= 1;'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: '// 1', endsAfter: '= 1;')});
   }
 
   Future<void> test_topLevel_single_field_leadingAndTrailing() async {
@@ -849,22 +865,18 @@ import '';
 // 1
 int foo = 1; // 2
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: '// 1', endsAfter: '// 2'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: '// 1', endsAfter: '// 2')});
   }
 
   Future<void>
-      test_topLevel_single_field_leadingAndTrailing_withClassBraceTrailing() async {
+  test_topLevel_single_field_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 import '';
 
 // 2
 int foo = 1; // 3
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: '// 2', endsAfter: '// 3'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: '// 2', endsAfter: '// 3')});
   }
 
   Future<void> test_topLevel_single_field_trailing() async {
@@ -873,9 +885,7 @@ import '';
 
 int foo = 1; // 1
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: 'int foo', endsAfter: '// 1'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: 'int foo', endsAfter: '// 1')});
   }
 
   Future<void> test_topLevel_single_method_leading() async {
@@ -885,9 +895,7 @@ import '';
 // 1
 foo() {}
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: '// 1', endsAfter: '{}'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: '// 1', endsAfter: '{}')});
   }
 
   Future<void> test_topLevel_single_method_leadingAndTrailing() async {
@@ -897,31 +905,25 @@ import '';
 // 1
 foo() {} // 2
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: '// 1', endsAfter: '// 2'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: '// 1', endsAfter: '// 2')});
   }
 
   Future<void>
-      test_topLevel_single_method_leadingAndTrailing_withClassBraceTrailing() async {
+  test_topLevel_single_method_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 import '';
 
 // 1
 foo() {} // 2
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: '// 1', endsAfter: '// 2'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: '// 1', endsAfter: '// 2')});
   }
 
   Future<void> test_topLevel_single_method_trailing() async {
     await resolveTestCode('''
 foo() {} // 1
 ''');
-    _assertUnitRanges({
-      0: _range(startsBefore: 'foo()', endsAfter: '// 1'),
-    });
+    _assertUnitRanges({0: _range(startsBefore: 'foo()', endsAfter: '// 1')});
   }
 
   Future<void> test_topLevel_withDirectives_leading() async {
@@ -957,7 +959,7 @@ int bar = 1; // 5
   }
 
   Future<void>
-      test_topLevel_withDirectives_leadingAndTrailing_withClassBraceTrailing() async {
+  test_topLevel_withDirectives_leadingAndTrailing_withClassBraceTrailing() async {
     await resolveTestCode('''
 import 'dart:async';
 

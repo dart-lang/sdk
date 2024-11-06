@@ -80,8 +80,10 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
         if (arguments[0] is ListLiteral) {
           var elements = arguments[0] as ListLiteral;
           elementTypeArguments = elements.typeArguments;
-          elementsRange =
-              range.endStart(elements.leftBracket, elements.rightBracket);
+          elementsRange = range.endStart(
+            elements.leftBracket,
+            elements.rightBracket,
+          );
         } else {
           // TODO(brianwilkerson): Consider handling other iterables. Literal
           //  sets could be treated like lists, and arbitrary iterables by using

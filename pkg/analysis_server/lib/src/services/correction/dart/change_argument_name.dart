@@ -39,8 +39,9 @@ class ChangeArgumentName extends MultiCorrectionProducer {
       if (distance <= _maxDistance) {
         // TODO(brianwilkerson): Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
-        producers
-            .add(_ChangeName(currentNameNode, proposedName, context: context));
+        producers.add(
+          _ChangeName(currentNameNode, proposedName, context: context),
+        );
       }
     }
     return producers;
@@ -66,7 +67,9 @@ class ChangeArgumentName extends MultiCorrectionProducer {
       var argumentList = namedExpression.parent;
       if (argumentList is ArgumentList) {
         var parameters = ExecutableParameters.forInvocation(
-            sessionHelper, argumentList.parent);
+          sessionHelper,
+          argumentList.parent,
+        );
         if (parameters != null) {
           return _NamedExpressionContext(node, parameters.namedNames);
         }
@@ -89,8 +92,9 @@ class _ChangeName extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_proposedName];

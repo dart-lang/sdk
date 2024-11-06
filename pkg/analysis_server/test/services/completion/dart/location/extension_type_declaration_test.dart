@@ -176,7 +176,7 @@ suggestions
   }
 
   Future<void>
-      test_representationField_identifier_empty_withSuggestions() async {
+  test_representationField_identifier_empty_withSuggestions() async {
     allowedIdentifiers = {'buffer', 'stringBuffer'};
     await computeSuggestions('''
 extension type E(StringBuffer ^) {}

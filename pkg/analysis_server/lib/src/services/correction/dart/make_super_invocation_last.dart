@@ -15,8 +15,9 @@ class MakeSuperInvocationLast extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_SUPER_INVOCATION_LAST;
@@ -31,16 +32,23 @@ class MakeSuperInvocationLast extends ResolvedCorrectionProducer {
     var initializers = parent.initializers;
     var lineInfo = unitResult.lineInfo;
 
-    var deletionRange =
-        range.nodeInListWithComments(lineInfo, initializers, node);
+    var deletionRange = range.nodeInListWithComments(
+      lineInfo,
+      initializers,
+      node,
+    );
 
     var nodeRange = range.nodeWithComments(lineInfo, node);
     var text = utils.getRangeText(nodeRange);
-    var insertionOffset = range
-        .trailingComment(lineInfo, initializers.last.endToken,
-            returnComma: false)
-        .token
-        .end;
+    var insertionOffset =
+        range
+            .trailingComment(
+              lineInfo,
+              initializers.last.endToken,
+              returnComma: false,
+            )
+            .token
+            .end;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(deletionRange);
       builder.addSimpleInsertion(insertionOffset, ', $text');

@@ -21,9 +21,10 @@ class SessionData {
   final String clientVersion;
 
   /// Initialize a newly created data holder.
-  SessionData(
-      {required this.startTime,
-      required this.commandLineArguments,
-      required this.clientId,
-      required this.clientVersion});
+  SessionData({
+    required this.startTime,
+    required this.commandLineArguments,
+    required this.clientId,
+    required this.clientVersion,
+  });
 }

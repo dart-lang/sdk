@@ -27,10 +27,15 @@ class CiderDocumentSymbolsComputer {
       return result;
     }
 
-    result.addAll(children.map((child) => _asDocumentSymbol(
-        LspClientCapabilities.defaultSupportedSymbolKinds,
-        resolvedUnit.lineInfo,
-        child)));
+    result.addAll(
+      children.map(
+        (child) => _asDocumentSymbol(
+          LspClientCapabilities.defaultSupportedSymbolKinds,
+          resolvedUnit.lineInfo,
+          child,
+        ),
+      ),
+    );
 
     return result;
   }
@@ -42,9 +47,10 @@ class CiderDocumentSymbolsComputer {
   ) {
     var codeRange = toRange(lineInfo, outline.codeOffset, outline.codeLength);
     var nameLocation = outline.element.location;
-    var nameRange = nameLocation != null
-        ? toRange(lineInfo, nameLocation.offset, nameLocation.length)
-        : null;
+    var nameRange =
+        nameLocation != null
+            ? toRange(lineInfo, nameLocation.offset, nameLocation.length)
+            : null;
     return DocumentSymbol(
       name: toElementName(outline.element),
       detail: outline.element.parameters,
@@ -52,9 +58,12 @@ class CiderDocumentSymbolsComputer {
       deprecated: outline.element.isDeprecated,
       range: codeRange,
       selectionRange: nameRange ?? codeRange,
-      children: outline.children
-          ?.map((child) => _asDocumentSymbol(supportedKinds, lineInfo, child))
-          .toList(),
+      children:
+          outline.children
+              ?.map(
+                (child) => _asDocumentSymbol(supportedKinds, lineInfo, child),
+              )
+              .toList(),
     );
   }
 }

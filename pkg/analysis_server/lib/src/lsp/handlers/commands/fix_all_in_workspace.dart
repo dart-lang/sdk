@@ -51,13 +51,12 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       );
     }
 
-    var workspace = DartChangeWorkspace(
-      await server.currentSessions,
-    );
+    var workspace = DartChangeWorkspace(await server.currentSessions);
     var processor = BulkFixProcessor(server.instrumentationService, workspace);
 
-    var result =
-        await processor.fixErrors(server.contextManager.analysisContexts);
+    var result = await processor.fixErrors(
+      server.contextManager.analysisContexts,
+    );
     var errorMessage = result.errorMessage;
     if (errorMessage != null) {
       return error(ErrorCodes.RequestFailed, errorMessage);
@@ -73,9 +72,10 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       server,
       clientCapabilities,
       change,
-      annotateChanges: requireConfirmation
-          ? ChangeAnnotations.requireConfirmation
-          : ChangeAnnotations.include,
+      annotateChanges:
+          requireConfirmation
+              ? ChangeAnnotations.requireConfirmation
+              : ChangeAnnotations.include,
     );
     return sendWorkspaceEditToClient(edit);
   }

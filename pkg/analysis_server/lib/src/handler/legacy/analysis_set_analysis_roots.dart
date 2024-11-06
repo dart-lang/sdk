@@ -13,12 +13,18 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisSetAnalysisRootsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = AnalysisSetAnalysisRootsParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisSetAnalysisRootsParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var includedPathList = params.included;
     var excludedPathList = params.excluded;
 
@@ -41,10 +47,16 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
     var detachableFileSystemManager = server.detachableFileSystemManager;
     if (detachableFileSystemManager != null) {
       detachableFileSystemManager.setAnalysisRoots(
-          request.id, includedPathList, excludedPathList);
+        request.id,
+        includedPathList,
+        excludedPathList,
+      );
     } else {
       await server.setAnalysisRoots(
-          request.id, includedPathList, excludedPathList);
+        request.id,
+        includedPathList,
+        excludedPathList,
+      );
     }
     sendResult(AnalysisSetAnalysisRootsResult());
   }

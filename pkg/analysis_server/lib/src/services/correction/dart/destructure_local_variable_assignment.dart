@@ -22,8 +22,9 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind =>
@@ -44,8 +45,11 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     }
   }
 
-  Future<void> computeObjectPattern(InterfaceType type,
-      VariableDeclaration node, ChangeBuilder builder) async {
+  Future<void> computeObjectPattern(
+    InterfaceType type,
+    VariableDeclaration node,
+    ChangeBuilder builder,
+  ) async {
     // TODO(pq): share reference checking w/ record computation
 
     var variableElement = node.declaredElement2;
@@ -54,8 +58,8 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function == null) return;
 
-    var (:objectReferences, :propertyReferences) =
-        variableElement.findReferencesIn(function);
+    var (:objectReferences, :propertyReferences) = variableElement
+        .findReferencesIn(function);
     if (objectReferences.isNotEmpty) return;
 
     var scopedNameFinder = ScopedNameFinder(node.offset);
@@ -72,8 +76,9 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
       var references = propertyReference.value;
       for (var reference in references) {
         if (reference.inSetterContext) return;
-        excludes
-            .addAll(unit.findPossibleLocalVariableConflicts(reference.offset));
+        excludes.addAll(
+          unit.findPossibleLocalVariableConflicts(reference.offset),
+        );
       }
 
       var fieldName = ObjectFieldName.forName(propertyReference.key, excludes);
@@ -114,7 +119,10 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   }
 
   Future<void> computeRecordPattern(
-      RecordType type, VariableDeclaration node, ChangeBuilder builder) async {
+    RecordType type,
+    VariableDeclaration node,
+    ChangeBuilder builder,
+  ) async {
     var excluded = <String>{};
     var offset = node.offset;
 
@@ -185,8 +193,12 @@ class NamedField extends RecordField {
     }
     // Make sure the variable proposal is first.
     suggestions.insert(0, variable);
-    builder.addSimpleLinkedEdit(groupName, variable,
-        kind: LinkedEditSuggestionKind.VARIABLE, suggestions: suggestions);
+    builder.addSimpleLinkedEdit(
+      groupName,
+      variable,
+      kind: LinkedEditSuggestionKind.VARIABLE,
+      suggestions: suggestions,
+    );
   }
 }
 
@@ -205,8 +217,12 @@ class ObjectFieldName {
       builder.write('$fieldName: ');
     }
     suggestions.add(varName);
-    builder.addSimpleLinkedEdit(varName, varName,
-        kind: LinkedEditSuggestionKind.VARIABLE, suggestions: suggestions);
+    builder.addSimpleLinkedEdit(
+      varName,
+      varName,
+      kind: LinkedEditSuggestionKind.VARIABLE,
+      suggestions: suggestions,
+    );
   }
 
   static ObjectFieldName? forName(String name, Set<String> excludes) {
@@ -223,9 +239,12 @@ class PositionalField extends RecordField {
 
   @override
   void write(EditBuilder builder, String groupName) {
-    builder.addSimpleLinkedEdit(groupName, variable,
-        kind: LinkedEditSuggestionKind.VARIABLE,
-        suggestions: [variable, wildCard]);
+    builder.addSimpleLinkedEdit(
+      groupName,
+      variable,
+      kind: LinkedEditSuggestionKind.VARIABLE,
+      suggestions: [variable, wildCard],
+    );
   }
 }
 
@@ -243,12 +262,13 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   ({
     List<AstNode> objectReferences,
-    Map<String, List<AstNode>> propertyReferences
-  }) findReferences(FunctionBody target) {
+    Map<String, List<AstNode>> propertyReferences,
+  })
+  findReferences(FunctionBody target) {
     target.accept(this);
     return (
       objectReferences: objectReferences,
-      propertyReferences: propertyReferences
+      propertyReferences: propertyReferences,
     );
   }
 
@@ -272,8 +292,9 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 extension on LocalVariableElement2 {
   ({
     List<AstNode> objectReferences,
-    Map<String, List<AstNode>> propertyReferences
-  }) findReferencesIn(FunctionBody target) =>
+    Map<String, List<AstNode>> propertyReferences,
+  })
+  findReferencesIn(FunctionBody target) =>
       _ReferenceFinder(this).findReferences(target);
 }
 

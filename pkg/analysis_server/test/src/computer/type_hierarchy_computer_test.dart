@@ -32,8 +32,11 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
       .having((e) => e.nameRange.offset, 'nameRange.offset', isPositive)
       .having((e) => e.nameRange.length, 'nameRange.length', 'Enum'.length)
       .having((e) => e.codeRange.offset, 'codeRange.offset', isPositive)
-      .having((e) => e.codeRange.length, 'codeRange.length',
-          greaterThan('class Enum {}'.length));
+      .having(
+        (e) => e.codeRange.length,
+        'codeRange.length',
+        greaterThan('class Enum {}'.length),
+      );
 
   /// Matches a [TypeHierarchyItem] for [Object].
   Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
@@ -44,8 +47,11 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
       .having((e) => e.nameRange.offset, 'nameRange.offset', isPositive)
       .having((e) => e.nameRange.length, 'nameRange.length', 'Object'.length)
       .having((e) => e.codeRange.offset, 'codeRange.offset', isPositive)
-      .having((e) => e.codeRange.length, 'codeRange.length',
-          greaterThan('class Object {}'.length));
+      .having(
+        (e) => e.codeRange.length,
+        'codeRange.length',
+        greaterThan('class Object {}'.length),
+      );
 
   @override
   void addTestSource(String content) {
@@ -56,8 +62,9 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
   Future<TypeHierarchyItem?> findTarget() async {
     expect(code, isNotNull, reason: 'addTestSource should be called first');
     var result = await getResolvedUnit(testFile);
-    return DartLazyTypeHierarchyComputer(result)
-        .findTarget(code.position.offset);
+    return DartLazyTypeHierarchyComputer(
+      result,
+    ).findTarget(code.position.offset);
   }
 
   /// Matches a [TypeHierarchyItem] with the given values.
@@ -66,12 +73,11 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
     String file, {
     required SourceRange nameRange,
     required SourceRange codeRange,
-  }) =>
-      TypeMatcher<TypeHierarchyItem>()
-          .having((e) => e.displayName, 'displayName', displayName)
-          .having((e) => e.file, 'file', file)
-          .having((e) => e.nameRange, 'nameRange', nameRange)
-          .having((e) => e.codeRange, 'codeRange', codeRange);
+  }) => TypeMatcher<TypeHierarchyItem>()
+      .having((e) => e.displayName, 'displayName', displayName)
+      .having((e) => e.file, 'file', file)
+      .having((e) => e.nameRange, 'nameRange', nameRange)
+      .having((e) => e.codeRange, 'codeRange', codeRange);
 
   /// Matches a [TypeHierarchyRelatedItem] with the given values.
   Matcher _isRelatedItem(
@@ -80,12 +86,14 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
     required TypeHierarchyItemRelationship relationship,
     required SourceRange nameRange,
     required SourceRange codeRange,
-  }) =>
-      allOf([
-        _isItem(displayName, file, nameRange: nameRange, codeRange: codeRange),
-        TypeMatcher<TypeHierarchyRelatedItem>()
-            .having((e) => e.relationship, 'relationship', relationship)
-      ]);
+  }) => allOf([
+    _isItem(displayName, file, nameRange: nameRange, codeRange: codeRange),
+    TypeMatcher<TypeHierarchyRelatedItem>().having(
+      (e) => e.relationship,
+      'relationship',
+      relationship,
+    ),
+  ]);
 }
 
 @reflectiveTest
@@ -93,19 +101,19 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
   late SearchEngine searchEngine;
 
   Future<List<TypeHierarchyItem>?> findSubtypes(
-      TypeHierarchyItem target) async {
+    TypeHierarchyItem target,
+  ) async {
     var file = getFile(target.file);
     var result = await getResolvedUnit(file);
-    return DartLazyTypeHierarchyComputer(result)
-        .findSubtypes(target.location, searchEngine);
+    return DartLazyTypeHierarchyComputer(
+      result,
+    ).findSubtypes(target.location, searchEngine);
   }
 
   @override
   void setUp() {
     super.setUp();
-    searchEngine = SearchEngineImpl([
-      driverFor(testFile),
-    ]);
+    searchEngine = SearchEngineImpl([driverFor(testFile)]);
   }
 
   Future<void> test_class_generic() async {
@@ -285,12 +293,14 @@ class MyCl^ass1 {}
 class TypeHierarchyComputerFindSupertypesTest
     extends AbstractTypeHierarchyTest {
   Future<List<TypeHierarchyItem>?> findSupertypes(
-      TypeHierarchyItem target) async {
+    TypeHierarchyItem target,
+  ) async {
     var file = getFile(target.file);
     var result = await getResolvedUnit(file);
     var anchor = target is TypeHierarchyRelatedItem ? target.anchor : null;
-    return DartLazyTypeHierarchyComputer(result)
-        .findSupertypes(target.location, anchor: anchor);
+    return DartLazyTypeHierarchyComputer(
+      result,
+    ).findSupertypes(target.location, anchor: anchor);
   }
 
   /// Test that if the file is modified between fetching a target and it's
@@ -358,9 +368,10 @@ class ^E extends D {}
     while (target != null) {
       names.add(target.displayName);
       var supertypes = await findSupertypes(target);
-      target = (supertypes != null && supertypes.isNotEmpty)
-          ? supertypes.single
-          : null;
+      target =
+          (supertypes != null && supertypes.isNotEmpty)
+              ? supertypes.single
+              : null;
     }
 
     // Check for substituted type args.

@@ -33,10 +33,7 @@ class LinterRuleOptionsValidatorTest {
   void setUp() {
     registerLintRules();
     recorder = RecordingErrorListener();
-    reporter = ErrorReporter(
-      recorder,
-      _TestSource(),
-    );
+    reporter = ErrorReporter(recorder, _TestSource());
   }
 
   void test_linter_defined_rules() {
@@ -64,18 +61,23 @@ linter:
   }
 
   void test_linter_undefined_rule() {
-    validate('''
+    validate(
+      '''
 linter:
   rules:
     - undefined
-    ''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
+    ''',
+      [AnalysisOptionsWarningCode.UNDEFINED_LINT],
+    );
   }
 
   void validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     validator.validate(reporter, options);
-    expect(errors.map((AnalysisError e) => e.errorCode),
-        unorderedEquals(expected));
+    expect(
+      errors.map((AnalysisError e) => e.errorCode),
+      unorderedEquals(expected),
+    );
   }
 }
 

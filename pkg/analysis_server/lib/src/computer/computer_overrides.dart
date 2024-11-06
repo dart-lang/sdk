@@ -48,17 +48,28 @@ class DartUnitOverridesComputer {
       var superElements = overridesResult.superElements;
       var interfaceElements = overridesResult.interfaceElements;
       if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
-        var superMember = superElements.isNotEmpty
-            ? proto.newOverriddenMember_fromEngine(
-                superElements.first.nonSynthetic2)
-            : null;
-        var interfaceMembers = interfaceElements
-            .map((member) =>
-                proto.newOverriddenMember_fromEngine(member.nonSynthetic2))
-            .toList();
-        _overrides.add(proto.Override(token.offset, token.length,
+        var superMember =
+            superElements.isNotEmpty
+                ? proto.newOverriddenMember_fromEngine(
+                  superElements.first.nonSynthetic2,
+                )
+                : null;
+        var interfaceMembers =
+            interfaceElements
+                .map(
+                  (member) => proto.newOverriddenMember_fromEngine(
+                    member.nonSynthetic2,
+                  ),
+                )
+                .toList();
+        _overrides.add(
+          proto.Override(
+            token.offset,
+            token.length,
             superclassMember: superMember,
-            interfaceMembers: nullIfEmpty(interfaceMembers)));
+            interfaceMembers: nullIfEmpty(interfaceMembers),
+          ),
+        );
       }
     }
   }
@@ -117,10 +128,7 @@ class _OverriddenElementsFinder {
     var name = seed.displayName;
     List<ElementKind> kinds;
     if (seed is FieldElement2) {
-      kinds = [
-        ElementKind.GETTER,
-        if (!seed.isFinal) ElementKind.SETTER,
-      ];
+      kinds = [ElementKind.GETTER, if (!seed.isFinal) ElementKind.SETTER];
     } else if (seed is MethodElement2) {
       kinds = const [ElementKind.METHOD];
     } else if (seed is GetterElement) {
@@ -173,8 +181,10 @@ class _OverriddenElementsFinder {
     _addInterfaceOverrides(class_.supertype?.element3, checkType);
   }
 
-  void _addSuperOverrides(InterfaceElement2? class_,
-      {bool withThisType = true}) {
+  void _addSuperOverrides(
+    InterfaceElement2? class_, {
+    bool withThisType = true,
+  }) {
     if (class_ == null) {
       return;
     }
@@ -205,7 +215,9 @@ class _OverriddenElementsFinder {
 
     /// Helper to find an element in [elements] that matches [targetName].
     Element2? findMatchingElement(
-        Iterable<Element2> elements, Name targetName) {
+      Iterable<Element2> elements,
+      Name targetName,
+    ) {
       return elements.firstWhereOrNull((Element2 element) {
         var elementName = element.name3;
         return elementName != null &&

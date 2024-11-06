@@ -25,8 +25,9 @@ class FlutterSwapWithParent extends FlutterParentAndChild {
 
     NamedExpression? namedExpression;
     if (child.parent case ListLiteral listLiteral) {
-      if (listLiteral.elements case NodeList(length: var length)
-          when length != 1) {
+      if (listLiteral.elements case NodeList(
+        length: var length,
+      ) when length != 1) {
         return;
       }
       if (listLiteral.parent case NamedExpression parent) {

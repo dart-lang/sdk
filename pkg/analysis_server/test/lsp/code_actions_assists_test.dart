@@ -26,9 +26,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
   }
 
@@ -116,11 +114,12 @@ Future? f;
     var error = resp.error!;
     expect(error.code, equals(ErrorCodes.InvalidParams));
     expect(
-        error.message,
-        allOf([
-          contains('Invalid params for textDocument/codeAction'),
-          contains('params.range.end.character must be of type int'),
-        ]));
+      error.message,
+      allOf([
+        contains('Invalid params for textDocument/codeAction'),
+        contains('params.range.end.character must be of type int'),
+      ]),
+    );
   }
 
   Future<void> test_flutterWrap_selection() async {
@@ -179,8 +178,9 @@ int f() {
     await initialize();
 
     var codeActions = await getCodeActions(
-        uriConverter.toClientUri(macroFilePath),
-        position: code.position.position);
+      uriConverter.toClientUri(macroFilePath),
+      position: code.position.position,
+    );
     expect(codeActions, isEmpty);
   }
 
@@ -190,8 +190,10 @@ int f() {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(pubspecFileUri, range: startOfDocRange);
+    var codeActions = await getCodeActions(
+      pubspecFileUri,
+      range: startOfDocRange,
+    );
     expect(codeActions, isEmpty);
   }
 
@@ -211,16 +213,20 @@ bar
         plugin.SourceChange(
           "Change 'foo' to 'bar'",
           edits: [
-            plugin.SourceFileEdit(mainFilePath, 0,
-                edits: [plugin.SourceEdit(0, 3, 'bar')])
+            plugin.SourceFileEdit(
+              mainFilePath,
+              0,
+              edits: [plugin.SourceEdit(0, 3, 'bar')],
+            ),
           ],
           id: 'fooToBar',
         ),
-      )
+      ),
     ]);
     configureTestPlugin(
-      handler: (request) =>
-          request is plugin.EditGetAssistsParams ? pluginResult : null,
+      handler:
+          (request) =>
+              request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
     await verifyActionEdits(
@@ -245,25 +251,26 @@ bar
       plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
     ]);
     configureTestPlugin(
-      handler: (request) =>
-          request is plugin.EditGetAssistsParams ? pluginResult : null,
+      handler:
+          (request) =>
+              request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, range: code.range.range);
-    var codeActionTitles = codeActions.map((action) =>
-        action.map((command) => command.title, (action) => action.title));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      range: code.range.range,
+    );
+    var codeActionTitles = codeActions.map(
+      (action) =>
+          action.map((command) => command.title, (action) => action.title),
+    );
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        'High',
-        'Convert to single quoted string',
-        'Low',
-      ]),
+      containsAllInOrder(['High', 'Convert to single quoted string', 'Low']),
     );
   }
 
@@ -367,14 +374,17 @@ build() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
-        .expand((tde) => tde.edits)
-        .map((edit) => edit.map(
-              (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
-              (e) => e,
-              (e) => throw 'Expected SnippetTextEdit, got TextEdit',
-            ))
-        .toList();
+    var textEdits =
+        extractTextDocumentEdits(verifier.edit.documentChanges!)
+            .expand((tde) => tde.edits)
+            .map(
+              (edit) => edit.map(
+                (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+                (e) => e,
+                (e) => throw 'Expected SnippetTextEdit, got TextEdit',
+              ),
+            )
+            .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
@@ -408,10 +418,11 @@ build() {
     // Extract just TextDocumentEdits, create/rename/delete are not relevant.
     var edit = assist.edit!;
     var textDocumentEdits = extractTextDocumentEdits(edit.documentChanges!);
-    var textEdits = textDocumentEdits
-        .expand((tde) => tde.edits)
-        .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
-        .toList();
+    var textEdits =
+        textDocumentEdits
+            .expand((tde) => tde.edits)
+            .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
+            .toList();
 
     // Ensure the edit does _not_ have a format of Snippet, nor does it include
     // any $ characters that would indicate snippet text.
@@ -434,8 +445,10 @@ build() => Contai^ner(child: Container());
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, position: code.position.position);
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      position: code.position.position,
+    );
     var names = codeActions.map(
       (e) => e.map((command) => command.title, (action) => action.title),
     );
@@ -477,14 +490,17 @@ void f() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
-        .expand((tde) => tde.edits)
-        .map((edit) => edit.map(
-              (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
-              (e) => e,
-              (e) => throw 'Expected SnippetTextEdit, got TextEdit',
-            ))
-        .toList();
+    var textEdits =
+        extractTextDocumentEdits(verifier.edit.documentChanges!)
+            .expand((tde) => tde.edits)
+            .map(
+              (edit) => edit.map(
+                (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+                (e) => e,
+                (e) => throw 'Expected SnippetTextEdit, got TextEdit',
+              ),
+            )
+            .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }

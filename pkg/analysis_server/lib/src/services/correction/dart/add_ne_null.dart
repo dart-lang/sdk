@@ -32,7 +32,9 @@ class AddNeNull extends CorrectionProducerWithDiagnostic {
     var problemMessage = diagnostic.problemMessage;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-          problemMessage.offset + problemMessage.length, ' != null');
+        problemMessage.offset + problemMessage.length,
+        ' != null',
+      );
     });
   }
 }

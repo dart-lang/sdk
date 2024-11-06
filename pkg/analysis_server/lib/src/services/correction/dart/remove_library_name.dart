@@ -24,8 +24,12 @@ class RemoveLibraryName extends ResolvedCorrectionProducer {
     var libraryName = node;
     if (libraryName is SimpleIdentifier || libraryName is LibraryIdentifier) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.endStart(
-            libraryName.beginToken.previous!, libraryName.endToken.next!));
+        builder.addDeletion(
+          range.endStart(
+            libraryName.beginToken.previous!,
+            libraryName.endToken.next!,
+          ),
+        );
       });
     }
   }

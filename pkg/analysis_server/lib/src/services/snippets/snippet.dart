@@ -17,10 +17,5 @@ class Snippet {
   /// The source changes to be made to insert this snippet.
   final SourceChange change;
 
-  Snippet(
-    this.prefix,
-    this.label,
-    this.documentation,
-    this.change,
-  );
+  Snippet(this.prefix, this.label, this.documentation, this.change);
 }

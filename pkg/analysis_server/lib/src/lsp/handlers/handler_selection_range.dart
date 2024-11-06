@@ -12,8 +12,8 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
-typedef StaticOptions
-    = Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>;
 
 class SelectionRangeHandler
     extends LspMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
@@ -26,8 +26,11 @@ class SelectionRangeHandler
       SelectionRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<SelectionRange>?>> handle(SelectionRangeParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<SelectionRange>?>> handle(
+    SelectionRangeParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -40,7 +43,8 @@ class SelectionRangeHandler
         var offsets =
             positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults;
         var allRanges = offsets.mapResultSync(
-            (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
+          (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)),
+        );
 
         return allRanges;
       });
@@ -48,7 +52,9 @@ class SelectionRangeHandler
   }
 
   SelectionRange _getSelectionRangesForOffset(
-      CompilationUnit unit, int offset) {
+    CompilationUnit unit,
+    int offset,
+  ) {
     var lineInfo = unit.lineInfo;
     var computer = DartSelectionRangeComputer(unit, offset);
     var ranges = computer.compute();
@@ -73,7 +79,9 @@ class SelectionRangeHandler
   }
 
   List<SelectionRange> _getSelectionRangesForOffsets(
-      List<int> offsets, ParsedUnitResult result) {
+    List<int> offsets,
+    ParsedUnitResult result,
+  ) {
     return offsets
         .map((offset) => _getSelectionRangesForOffset(result.unit, offset))
         .toList();

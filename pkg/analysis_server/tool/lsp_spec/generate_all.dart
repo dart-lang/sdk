@@ -38,31 +38,43 @@ Future<void> main(List<String> arguments) async {
   var customTypesOutput = generateDartForTypes(customTypes);
 
   File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
-      generatedFileHeader(2018, importCustom: true) + specTypesOutput);
-  File(path.join(outFolder, 'protocol_custom_generated.dart'))
-      .writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
+    generatedFileHeader(2018, importCustom: true) + specTypesOutput,
+  );
+  File(
+    path.join(outFolder, 'protocol_custom_generated.dart'),
+  ).writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
 }
 
 const argDownload = 'download';
 
 const argHelp = 'help';
 
-final argParser = ArgParser()
-  ..addFlag(argHelp, hide: true)
-  ..addFlag(argDownload,
-      negatable: false,
-      abbr: 'd',
-      help:
-          'Download the latest version of the LSP spec before generating types');
+final argParser =
+    ArgParser()
+      ..addFlag(argHelp, hide: true)
+      ..addFlag(
+        argDownload,
+        negatable: false,
+        abbr: 'd',
+        help:
+            'Download the latest version of the LSP spec before generating types',
+      );
 
-final String languageServerProtocolPackagePath =
-    path.join(sdkRootPath, 'third_party', 'pkg', 'language_server_protocol');
+final String languageServerProtocolPackagePath = path.join(
+  sdkRootPath,
+  'third_party',
+  'pkg',
+  'language_server_protocol',
+);
 
 final String licenseComment = LineSplitter.split(
-        File(localLicensePath).readAsStringSync())
-    .skipWhile((line) =>
-        line !=
-        'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart')
+      File(localLicensePath).readAsStringSync(),
+    )
+    .skipWhile(
+      (line) =>
+          line !=
+          'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
+    )
     .skip(2)
     .map((line) => line.isEmpty ? '//' : '// $line')
     .join('\n');
@@ -75,12 +87,14 @@ final String sdkRootPath =
     File(Platform.script.toFilePath()).parent.parent.parent.parent.parent.path;
 
 final Uri specLicenseUri = Uri.parse(
-    'https://microsoft.github.io/language-server-protocol/License-code.txt');
+  'https://microsoft.github.io/language-server-protocol/License-code.txt',
+);
 
 /// The URI of the version of the LSP meta model to generate from. This should
 /// be periodically updated to the latest version.
 final Uri specUri = Uri.parse(
-    'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/metaModel/metaModel.json');
+  'https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/metaModel/metaModel.json',
+);
 
 Future<void> downloadSpec() async {
   var specResp = await http.get(specUri);
@@ -125,8 +139,13 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 
 List<LspEntity> getCustomClasses() {
   /// Helper to create an interface type.
-  Interface interface(String name, List<Member> fields,
-      {String? baseType, String? comment, bool abstract = false}) {
+  Interface interface(
+    String name,
+    List<Member> fields, {
+    String? baseType,
+    String? comment,
+    bool abstract = false,
+  }) {
     return Interface(
       name: name,
       abstract: abstract,
@@ -146,9 +165,10 @@ List<LspEntity> getCustomClasses() {
     bool canBeNull = false,
     bool canBeUndefined = false,
   }) {
-    var fieldType = array
-        ? ArrayType(TypeReference(type))
-        : literal
+    var fieldType =
+        array
+            ? ArrayType(TypeReference(type))
+            : literal
             ? LiteralType(TypeReference.string, type)
             : TypeReference(type);
 
@@ -196,64 +216,45 @@ List<LspEntity> getCustomClasses() {
       field('jsonrpc', type: 'string'),
       field('clientRequestTime', type: 'int', canBeUndefined: true),
     ]),
-    interface(
-      'IncomingMessage',
-      [
-        field('method', type: 'Method'),
-        field('params', type: 'LSPAny', canBeUndefined: true),
-      ],
-      baseType: 'Message',
-    ),
-    interface(
-      'RequestMessage',
-      [
-        Field(
-          name: 'id',
-          type: UnionType([TypeReference.int, TypeReference.string]),
-          allowsNull: false,
-          allowsUndefined: false,
-        )
-      ],
-      baseType: 'IncomingMessage',
-    ),
-    interface(
-      'NotificationMessage',
-      [],
-      baseType: 'IncomingMessage',
-    ),
-    interface(
-      'ResponseMessage',
-      [
-        Field(
-          name: 'id',
-          type: UnionType([TypeReference.int, TypeReference.string]),
-          allowsNull: true,
-          allowsUndefined: false,
-        ),
-        field('result', type: 'LSPAny', canBeUndefined: true),
-        field('error', type: 'ResponseError', canBeUndefined: true),
-      ],
-      baseType: 'Message',
-    ),
-    interface(
-      'ResponseError',
-      [
-        field('code', type: 'ErrorCodes'),
-        field('message', type: 'string'),
-        // This is Object? normally, but since this class can be serialized
-        // we will crash if it data is set to something that can't be converted to
-        // JSON (for ex. Uri) so this forces anyone setting this to convert to a
-        // String.
-        field(
-          'data',
-          type: 'string',
-          canBeUndefined: true,
-          comment:
-              'A string that contains additional information about the error. '
-              'Can be omitted.',
-        ),
-      ],
-    ),
+    interface('IncomingMessage', [
+      field('method', type: 'Method'),
+      field('params', type: 'LSPAny', canBeUndefined: true),
+    ], baseType: 'Message'),
+    interface('RequestMessage', [
+      Field(
+        name: 'id',
+        type: UnionType([TypeReference.int, TypeReference.string]),
+        allowsNull: false,
+        allowsUndefined: false,
+      ),
+    ], baseType: 'IncomingMessage'),
+    interface('NotificationMessage', [], baseType: 'IncomingMessage'),
+    interface('ResponseMessage', [
+      Field(
+        name: 'id',
+        type: UnionType([TypeReference.int, TypeReference.string]),
+        allowsNull: true,
+        allowsUndefined: false,
+      ),
+      field('result', type: 'LSPAny', canBeUndefined: true),
+      field('error', type: 'ResponseError', canBeUndefined: true),
+    ], baseType: 'Message'),
+    interface('ResponseError', [
+      field('code', type: 'ErrorCodes'),
+      field('message', type: 'string'),
+      // This is Object? normally, but since this class can be serialized
+      // we will crash if it data is set to something that can't be converted to
+      // JSON (for ex. Uri) so this forces anyone setting this to convert to a
+      // String.
+      field(
+        'data',
+        type: 'string',
+        canBeUndefined: true,
+        comment:
+            'A string that contains additional information about the error. '
+            'Can be omitted.',
+      ),
+    ]),
     TypeAlias(
       name: 'DocumentUri',
       baseType: TypeReference('Uri'),
@@ -280,11 +281,11 @@ List<LspEntity> getCustomClasses() {
       field('uri', type: 'Uri'),
       field('labels', type: 'ClosingLabel', array: true),
     ]),
-    interface('OpenUriParams', [
-      field('uri', type: 'Uri'),
+    interface('OpenUriParams', [field('uri', type: 'Uri')]),
+    interface('ClosingLabel', [
+      field('range', type: 'Range'),
+      field('label', type: 'string'),
     ]),
-    interface('ClosingLabel',
-        [field('range', type: 'Range'), field('label', type: 'string')]),
     interface('Element', [
       field('range', type: 'Range', canBeUndefined: true),
       field('name', type: 'string'),
@@ -293,8 +294,10 @@ List<LspEntity> getCustomClasses() {
       field('typeParameters', type: 'string', canBeUndefined: true),
       field('returnType', type: 'string', canBeUndefined: true),
     ]),
-    interface('PublishOutlineParams',
-        [field('uri', type: 'Uri'), field('outline', type: 'Outline')]),
+    interface('PublishOutlineParams', [
+      field('uri', type: 'Uri'),
+      field('outline', type: 'Outline'),
+    ]),
     interface('Outline', [
       field('element', type: 'Element'),
       field('range', type: 'Range'),
@@ -310,113 +313,101 @@ List<LspEntity> getCustomClasses() {
       field('label', type: 'string', canBeUndefined: true),
       field('className', type: 'string', canBeUndefined: true),
       field('variableName', type: 'string', canBeUndefined: true),
-      field('attributes',
-          type: 'FlutterOutlineAttribute', array: true, canBeUndefined: true),
+      field(
+        'attributes',
+        type: 'FlutterOutlineAttribute',
+        array: true,
+        canBeUndefined: true,
+      ),
       field('dartElement', type: 'Element', canBeUndefined: true),
       field('range', type: 'Range'),
       field('codeRange', type: 'Range'),
-      field('children',
-          type: 'FlutterOutline', array: true, canBeUndefined: true),
+      field(
+        'children',
+        type: 'FlutterOutline',
+        array: true,
+        canBeUndefined: true,
+      ),
     ]),
-    interface(
-      'FlutterOutlineAttribute',
-      [
-        field('name', type: 'string'),
-        field('label', type: 'string'),
-        field('valueRange', type: 'Range', canBeUndefined: true),
-      ],
-    ),
+    interface('FlutterOutlineAttribute', [
+      field('name', type: 'string'),
+      field('label', type: 'string'),
+      field('valueRange', type: 'Range', canBeUndefined: true),
+    ]),
     interface(
       // Used as a base class for all resolution data classes.
       'CompletionItemResolutionInfo',
       [],
     ),
-    interface(
-      'DartCompletionResolutionInfo',
-      [
-        field(
-          'file',
-          type: 'string',
-          comment: 'The file where the completion is being inserted.\n\n'
-              'This is used to compute where to add the import.',
-        ),
-        field(
-          'importUris',
-          type: 'string',
-          array: true,
-          comment: 'The URIs to be imported if this completion is selected.',
-        ),
-        field(
-          'ref',
-          type: 'string',
-          canBeUndefined: true,
-          comment: 'The ElementLocation of the item being completed.\n\n'
-              'This is used to provide documentation in the resolved response.',
-        ),
-      ],
-      baseType: 'CompletionItemResolutionInfo',
-    ),
+    interface('DartCompletionResolutionInfo', [
+      field(
+        'file',
+        type: 'string',
+        comment:
+            'The file where the completion is being inserted.\n\n'
+            'This is used to compute where to add the import.',
+      ),
+      field(
+        'importUris',
+        type: 'string',
+        array: true,
+        comment: 'The URIs to be imported if this completion is selected.',
+      ),
+      field(
+        'ref',
+        type: 'string',
+        canBeUndefined: true,
+        comment:
+            'The ElementLocation of the item being completed.\n\n'
+            'This is used to provide documentation in the resolved response.',
+      ),
+    ], baseType: 'CompletionItemResolutionInfo'),
     interface(
       'PubPackageCompletionItemResolutionInfo',
-      [
-        field('packageName', type: 'string'),
-      ],
+      [field('packageName', type: 'string')],
       baseType: 'CompletionItemResolutionInfo',
     ),
     // Custom types for experimental SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
-    interface(
-      'SnippetTextEdit',
-      [
-        field('insertTextFormat', type: 'InsertTextFormat'),
-      ],
-      baseType: 'TextEdit',
-    ),
+    interface('SnippetTextEdit', [
+      field('insertTextFormat', type: 'InsertTextFormat'),
+    ], baseType: 'TextEdit'),
     // Return type for refactor.validate command.
-    interface(
-      'ValidateRefactorResult',
-      [
-        field('valid', type: 'boolean'),
-        field('message', type: 'string', canBeUndefined: true),
-      ],
-    ),
-    interface(
-      'TypeHierarchyAnchor',
-      [
-        field(
-          'ref',
-          type: 'string',
-          comment: 'The ElementLocation for this anchor element.',
-        ),
-        field(
-          'path',
-          type: 'int',
-          array: true,
-          comment: 'Indices used to navigate from this anchor to the element.',
-        ),
-      ],
-    ),
-    interface(
-      'TypeHierarchyItemInfo',
-      [
-        field(
-          'ref',
-          type: 'string',
-          comment:
-              'The ElementLocation for this element, used to re-locate the '
-              'element when subtypes/supertypes are '
-              'fetched later.',
-        ),
-        field(
-          'anchor',
-          type: 'TypeHierarchyAnchor',
-          comment:
-              'An anchor element that can be used to navigate to this element '
-              'preserving type arguments.',
-          canBeUndefined: true,
-        ),
-      ],
-    ),
+    interface('ValidateRefactorResult', [
+      field('valid', type: 'boolean'),
+      field('message', type: 'string', canBeUndefined: true),
+    ]),
+    interface('TypeHierarchyAnchor', [
+      field(
+        'ref',
+        type: 'string',
+        comment: 'The ElementLocation for this anchor element.',
+      ),
+      field(
+        'path',
+        type: 'int',
+        array: true,
+        comment: 'Indices used to navigate from this anchor to the element.',
+      ),
+    ]),
+    interface('TypeHierarchyItemInfo', [
+      field(
+        'ref',
+        type: 'string',
+        comment:
+            'The ElementLocation for this element, used to re-locate the '
+            'element when subtypes/supertypes are '
+            'fetched later.',
+      ),
+      field(
+        'anchor',
+        type: 'TypeHierarchyAnchor',
+        comment:
+            'An anchor element that can be used to navigate to this element '
+            'preserving type arguments.',
+        canBeUndefined: true,
+      ),
+    ]),
     TypeAlias(
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
@@ -444,19 +435,22 @@ List<LspEntity> getCustomClasses() {
         AbstractGetter(
           name: 'kind',
           type: TypeReference.string,
-          comment: 'The kind of this parameter. The client may use different '
+          comment:
+              'The kind of this parameter. The client may use different '
               'UIs based on this value.',
         ),
         AbstractGetter(
           name: 'defaultValue',
           type: TypeReference.LspAny,
-          comment: 'An optional default value for the parameter. The type of '
+          comment:
+              'An optional default value for the parameter. The type of '
               'this value may vary between parameter kinds but must always be '
               'something that can be converted directly to/from JSON.',
         ),
       ],
       abstract: true,
-      comment: 'Information about one of the arguments needed by the command.'
+      comment:
+          'Information about one of the arguments needed by the command.'
           '\n\n'
           'A list of parameters is sent in the `data` field of the '
           '`CodeAction` returned by the server. The values of the parameters '
@@ -466,11 +460,7 @@ List<LspEntity> getCustomClasses() {
     interface(
       'SaveUriCommandParameter',
       [
-        field(
-          'kind',
-          type: 'saveUri',
-          literal: true,
-        ),
+        field('kind', type: 'saveUri', literal: true),
         field(
           'defaultValue',
           type: 'String',
@@ -493,7 +483,8 @@ List<LspEntity> getCustomClasses() {
           type: MapType(TypeReference.string, ArrayType(TypeReference.string)),
           allowsNull: true,
           allowsUndefined: true,
-          comment: 'A set of file filters for a file dialog. '
+          comment:
+              'A set of file filters for a file dialog. '
               'Keys of the map are textual names ("Dart") and the value '
               'is a list of file extensions (["dart"]).',
         ),
@@ -501,47 +492,26 @@ List<LspEntity> getCustomClasses() {
       baseType: 'CommandParameter',
       comment: 'Information about a Save URI argument needed by the command.',
     ),
-    interface(
-      'DartTextDocumentContentProviderRegistrationOptions',
-      [
-        field(
-          'schemes',
-          type: 'string',
-          array: true,
-          comment: 'A set of URI schemes the server can provide content for. '
-              'The server may also return URIs with these schemes in responses '
-              'to other requests.',
-        ),
-      ],
-    ),
-    interface(
-      'DartTextDocumentContentParams',
-      [
-        field(
-          'uri',
-          type: 'DocumentUri',
-        ),
-      ],
-    ),
-    interface(
-      'DartTextDocumentContent',
-      [
-        field(
-          'content',
-          type: 'String',
-          canBeNull: true,
-        ),
-      ],
-    ),
-    interface(
-      'DartTextDocumentContentDidChangeParams',
-      [
-        field(
-          'uri',
-          type: 'DocumentUri',
-        ),
-      ],
-    ),
+    interface('DartTextDocumentContentProviderRegistrationOptions', [
+      field(
+        'schemes',
+        type: 'string',
+        array: true,
+        comment:
+            'A set of URI schemes the server can provide content for. '
+            'The server may also return URIs with these schemes in responses '
+            'to other requests.',
+      ),
+    ]),
+    interface('DartTextDocumentContentParams', [
+      field('uri', type: 'DocumentUri'),
+    ]),
+    interface('DartTextDocumentContent', [
+      field('content', type: 'String', canBeNull: true),
+    ]),
+    interface('DartTextDocumentContentDidChangeParams', [
+      field('uri', type: 'DocumentUri'),
+    ]),
   ];
   return customTypes;
 }

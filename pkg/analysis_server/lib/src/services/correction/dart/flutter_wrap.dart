@@ -51,7 +51,8 @@ class FlutterWrap extends MultiCorrectionProducer {
   }
 
   Future<void> _wrapMultipleWidgets(
-      List<ResolvedCorrectionProducer> producers) async {
+    List<ResolvedCorrectionProducer> producers,
+  ) async {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
     unitResult.unit.accept(analyzer);
@@ -98,8 +99,9 @@ class FlutterWrap extends MultiCorrectionProducer {
 
     var firstWidget = widgetExpressions.first;
     var lastWidget = widgetExpressions.last;
-    producers
-        .add(_FlutterWrapColumn(firstWidget, lastWidget, context: context));
+    producers.add(
+      _FlutterWrapColumn(firstWidget, lastWidget, context: context),
+    );
     producers.add(_FlutterWrapRow(firstWidget, lastWidget, context: context));
   }
 }
@@ -122,8 +124,11 @@ class _FlutterWrapCenter extends _WrapSingleWidget {
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
 class _FlutterWrapColumn extends _WrapMultipleWidgets {
-  _FlutterWrapColumn(super.firstWidget, super.lastWidget,
-      {required super.context});
+  _FlutterWrapColumn(
+    super.firstWidget,
+    super.lastWidget, {
+    required super.context,
+  });
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_COLUMN;
@@ -255,8 +260,9 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   String get _parentClassName;
 
@@ -266,8 +272,10 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var selectedRange = range.startEnd(firstWidget, lastWidget);
     var src = utils.getRangeText(selectedRange);
-    var parentClassElement =
-        await sessionHelper.getClass2(_parentLibraryUri, _parentClassName);
+    var parentClassElement = await sessionHelper.getClass2(
+      _parentLibraryUri,
+      _parentClassName,
+    );
     var widgetClassElement = await sessionHelper.getFlutterClass2('Widget');
     if (parentClassElement == null || widgetClassElement == null) {
       return;
@@ -287,11 +295,7 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
         builder.write('children: [');
         builder.write(eol);
 
-        var newSrc = utils.replaceSourceIndent(
-          src,
-          indentOld,
-          indentNew2,
-        );
+        var newSrc = utils.replaceSourceIndent(src, indentOld, indentNew2);
         builder.write(indentNew2);
         builder.write(newSrc);
 
@@ -318,8 +322,9 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   List<String> get _leadingLines => const [];
 
@@ -336,8 +341,10 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     var parentClassName = _parentClassName;
     ClassElement2? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
-      parentClassElement =
-          await sessionHelper.getClass2(parentLibraryUri, parentClassName);
+      parentClassElement = await sessionHelper.getClass2(
+        parentLibraryUri,
+        parentClassName,
+      );
       if (parentClassElement == null) {
         return;
       }

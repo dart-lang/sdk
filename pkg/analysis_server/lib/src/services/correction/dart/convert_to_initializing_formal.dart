@@ -16,9 +16,10 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // The fix isn't able to remove the initializer list / block function body
-      // in the case where multiple initializers / statements are being removed.
-      CorrectionApplicability.singleLocation;
+          // The fix isn't able to remove the initializer list / block function body
+          // in the case where multiple initializers / statements are being removed.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_INITIALIZING_FORMAL;
@@ -55,14 +56,18 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
           builder.addSimpleInsertion(identifier.offset, 'this.');
         } else {
           builder.addSimpleReplacement(
-              range.node(parameter), 'this.${identifier.lexeme}');
+            range.node(parameter),
+            'this.${identifier.lexeme}',
+          );
         }
 
         var statements = block.statements;
         var functionBody = block.parent;
         if (statements.length == 1 && functionBody is BlockFunctionBody) {
           builder.addSimpleReplacement(
-              range.endEnd(constructor.parameters, functionBody), ';');
+            range.endEnd(constructor.parameters, functionBody),
+            ';',
+          );
         } else {
           builder.addDeletion(range.nodeInList(statements, statement));
         }
@@ -89,7 +94,9 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
           builder.addSimpleInsertion(identifier.offset, 'this.');
         } else {
           builder.addSimpleReplacement(
-              range.node(parameter), 'this.${identifier.lexeme}');
+            range.node(parameter),
+            'this.${identifier.lexeme}',
+          );
         }
 
         var initializers = constructor.initializers;
@@ -103,7 +110,9 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   }
 
   SimpleFormalParameter? _parameter(
-      ConstructorDeclaration constructor, Expression expression) {
+    ConstructorDeclaration constructor,
+    Expression expression,
+  ) {
     if (expression is! SimpleIdentifier) {
       return null;
     }

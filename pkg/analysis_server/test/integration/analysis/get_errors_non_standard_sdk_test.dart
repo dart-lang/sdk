@@ -48,15 +48,11 @@ class AnalysisDomainGetErrorsTest
 
     File(
       executableFilePathIn(standardSdkPath),
-    ).copySync(
-      executableFilePathIn(sdkPath),
-    );
+    ).copySync(executableFilePathIn(sdkPath));
 
     File(
       serverSnapshotPathIn(standardSdkPath),
-    ).copySync(
-      serverSnapshotPathIn(sdkPath),
-    );
+    ).copySync(serverSnapshotPathIn(sdkPath));
 
     Directory(path.join(sdkPath, 'lib', 'core')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);
@@ -80,11 +76,12 @@ class String {}
 class Type {}
 ''');
 
-    File(path.join(sdkPath, 'lib', 'async', 'async.dart'))
-        .writeAsStringSync(r'''
+    File(path.join(sdkPath, 'lib', 'async', 'async.dart')).writeAsStringSync(
+      r'''
 library dart.async;
 class Future<T> {}
-''');
+''',
+    );
 
     File(path.join(sdkPath, 'lib', 'fake', 'fake.dart')).writeAsStringSync(r'''
 class Fake {}
@@ -93,8 +90,9 @@ class Fake {}
     var libsInternalDir = path.join(sdkPath, 'lib', '_internal');
     Directory(libsInternalDir).createSync(recursive: true);
 
-    File(path.join(sdkPath, 'lib', '_internal', 'allowed_experiments.json'))
-        .writeAsStringSync('{}');
+    File(
+      path.join(sdkPath, 'lib', '_internal', 'allowed_experiments.json'),
+    ).writeAsStringSync('{}');
 
     var libsDir = path.join(libsInternalDir, 'sdk_library_metadata', 'lib');
     Directory(libsDir).createSync(recursive: true);
@@ -114,9 +112,10 @@ final LIBRARIES = const <String, LibraryInfo> {
   Future<void> startServer({int? diagnosticPort, int? servicePort}) {
     var sdkPath = createNonStandardSdk();
     return server.start(
-        diagnosticPort: diagnosticPort,
-        dartSdkPath: sdkPath,
-        servicePort: servicePort);
+      diagnosticPort: diagnosticPort,
+      dartSdkPath: sdkPath,
+      servicePort: servicePort,
+    );
   }
 
   Future<void> test_getErrors() async {

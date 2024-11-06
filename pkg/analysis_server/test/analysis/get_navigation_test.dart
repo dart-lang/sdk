@@ -266,8 +266,11 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        _createGetNavigationRequest(convertPath('/foo/../bar/test.dart'), 0, 0);
+    var request = _createGetNavigationRequest(
+      convertPath('/foo/../bar/test.dart'),
+      0,
+      0,
+    );
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -364,12 +367,9 @@ f(int _) { }
   }
 
   Future<void> test_partDirective() async {
-    var partFile = newFile(
-      '$testPackageLibPath/a.dart',
-      '''
+    var partFile = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
-''',
-    );
+''');
     addTestFile('''
 part 'a.dart';
 ''');
@@ -383,13 +383,10 @@ part 'a.dart';
   }
 
   Future<void> test_partOfDirective_named() async {
-    var partOfFile = newFile(
-      '$testPackageLibPath/a.dart',
-      '''
+    var partOfFile = newFile('$testPackageLibPath/a.dart', '''
 library foo;
 part 'test.dart';
-''',
-    );
+''');
     addTestFile('''
 part of foo;
 ''');
@@ -403,12 +400,9 @@ part of foo;
   }
 
   Future<void> test_partOfDirective_uri() async {
-    var partOfFile = newFile(
-      '$testPackageLibPath/a.dart',
-      '''
+    var partOfFile = newFile('$testPackageLibPath/a.dart', '''
 part 'test.dart';
-''',
-    );
+''');
     addTestFile('''
 part of 'a.dart';
 ''');
@@ -482,8 +476,11 @@ void f() {
   }
 
   Request _createGetNavigationRequest(String file, int offset, int length) {
-    return AnalysisGetNavigationParams(file, offset, length)
-        .toRequest(requestId, clientUriConverter: server.uriConverter);
+    return AnalysisGetNavigationParams(
+      file,
+      offset,
+      length,
+    ).toRequest(requestId, clientUriConverter: server.uriConverter);
   }
 
   Future<void> _getNavigation({
@@ -504,8 +501,10 @@ void f() {
 
     var request = _createGetNavigationRequest(file.path, offset, length);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = AnalysisGetNavigationResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = AnalysisGetNavigationResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;

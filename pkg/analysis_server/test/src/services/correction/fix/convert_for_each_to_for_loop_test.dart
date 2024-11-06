@@ -190,16 +190,19 @@ void f(List<String> list) {
   });
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void f(List<String> list) {
   for (final String e in list) {
     e.substring(3, 7);
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_blockBody_specifyTypes() async {
@@ -216,16 +219,19 @@ void f(List<String> list) {
   });
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void f(List<String> list) {
   for (String e in list) {
     e.substring(3, 7);
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_blockBody_specifyTypes_prefixed() async {
@@ -244,7 +250,8 @@ void f(core.List<core.Set<core.String>> list) {
   });
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dart:core' as core;
 
 void f(core.List<core.Set<core.String>> list) {
@@ -253,9 +260,11 @@ void f(core.List<core.Set<core.String>> list) {
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_blockBody_syncStar() async {
@@ -300,9 +309,11 @@ void f(List<String> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_expressionBody_preferFinal() async {
@@ -339,16 +350,19 @@ void f(List<String> list) {
   list.forEach((e) => e.substring(3, 7));
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void f(List<String> list) {
   for (final String e in list) {
     e.substring(3, 7);
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_expressionBody_specifyTypes() async {
@@ -363,16 +377,19 @@ void f(List<String> list) {
   list.forEach((e) => e.substring(3, 7));
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void f(List<String> list) {
   for (String e in list) {
     e.substring(3, 7);
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_expressionBody_syncStar() async {
@@ -382,9 +399,11 @@ void f(List<String> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode.name ==
-            LintNames.avoid_function_literals_in_foreach_calls);
+      errorFilter:
+          (error) =>
+              error.errorCode.name ==
+              LintNames.avoid_function_literals_in_foreach_calls,
+    );
   }
 
   Future<void> test_functionExpression() async {
@@ -462,7 +481,8 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+    );
   }
 
   Future<void> test_setLiteral_multiple() async {
@@ -472,7 +492,8 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+    );
   }
 
   Future<void> test_setLiteral_statement() async {
@@ -482,7 +503,8 @@ void f(List<int> list, bool b) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
+      errorFilter: (error) => error.errorCode.type == ErrorType.LINT,
+    );
   }
 
   Future<void> test_setLiteral_typeArguments() async {

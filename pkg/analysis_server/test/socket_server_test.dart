@@ -18,10 +18,14 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
   group('SocketServer', () {
-    test('createAnalysisServer_successful',
-        SocketServerTest.createAnalysisServer_successful);
-    test('createAnalysisServer_alreadyStarted',
-        SocketServerTest.createAnalysisServer_alreadyStarted);
+    test(
+      'createAnalysisServer_successful',
+      SocketServerTest.createAnalysisServer_successful,
+    );
+    test(
+      'createAnalysisServer_alreadyStarted',
+      SocketServerTest.createAnalysisServer_alreadyStarted,
+    );
   });
 }
 
@@ -31,23 +35,28 @@ class SocketServerTest {
     var channel2 = MockServerChannel();
     var server = _createSocketServer(channel1);
     expect(
-        channel1.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
+      channel1.notificationsReceived[0].event,
+      SERVER_NOTIFICATION_CONNECTED,
+    );
     server.createAnalysisServer(channel2);
     channel1.expectMsgCount(notificationCount: 1);
     channel2.expectMsgCount(responseCount: 1);
     expect(channel2.responsesReceived[0].id, equals(''));
     expect(channel2.responsesReceived[0].error, isNotNull);
-    expect(channel2.responsesReceived[0].error!.code,
-        equals(RequestErrorCode.SERVER_ALREADY_STARTED));
+    expect(
+      channel2.responsesReceived[0].error!.code,
+      equals(RequestErrorCode.SERVER_ALREADY_STARTED),
+    );
     channel2
         .simulateRequestFromClient(
-            ServerShutdownParams().toRequest('0', clientUriConverter: null))
+          ServerShutdownParams().toRequest('0', clientUriConverter: null),
+        )
         .then((Response response) {
-      expect(response.id, equals('0'));
-      var error = response.error!;
-      expect(error.code, equals(RequestErrorCode.SERVER_ALREADY_STARTED));
-      channel2.expectMsgCount(responseCount: 2);
-    });
+          expect(response.id, equals('0'));
+          var error = response.error!;
+          expect(error.code, equals(RequestErrorCode.SERVER_ALREADY_STARTED));
+          channel2.expectMsgCount(responseCount: 2);
+        });
   }
 
   static Future<void> createAnalysisServer_successful() {
@@ -55,28 +64,32 @@ class SocketServerTest {
     _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
-        channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
+      channel.notificationsReceived[0].event,
+      SERVER_NOTIFICATION_CONNECTED,
+    );
     return channel
         .simulateRequestFromClient(
-            ServerShutdownParams().toRequest('0', clientUriConverter: null))
+          ServerShutdownParams().toRequest('0', clientUriConverter: null),
+        )
         .then((Response response) {
-      expect(response.id, equals('0'));
-      expect(response.error, isNull);
-      channel.expectMsgCount(responseCount: 1, notificationCount: 1);
-    });
+          expect(response.id, equals('0'));
+          expect(response.error, isNull);
+          channel.expectMsgCount(responseCount: 1, notificationCount: 1);
+        });
   }
 
   static SocketServer _createSocketServer(MockServerChannel channel) {
     var errorNotifier = ErrorNotifier();
     var server = SocketServer(
-        AnalysisServerOptions(),
-        DartSdkManager(''),
-        CrashReportingAttachmentsBuilder.empty,
-        errorNotifier,
-        null,
-        null,
-        AnalyticsManager(NoOpAnalytics()),
-        null);
+      AnalysisServerOptions(),
+      DartSdkManager(''),
+      CrashReportingAttachmentsBuilder.empty,
+      errorNotifier,
+      null,
+      null,
+      AnalyticsManager(NoOpAnalytics()),
+      null,
+    );
 
     server.createAnalysisServer(channel);
     errorNotifier.server = server.analysisServer;

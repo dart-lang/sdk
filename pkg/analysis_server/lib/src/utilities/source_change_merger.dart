@@ -56,8 +56,9 @@ class SourceChangeMerger {
       _merge(edits);
       _debugEdits('Merged', edits);
 
-      results
-          .add(SourceFileEdit(file, editLists.first.fileStamp, edits: edits));
+      results.add(
+        SourceFileEdit(file, editLists.first.fileStamp, edits: edits),
+      );
     }
 
     return results;
@@ -120,13 +121,15 @@ class SourceChangeMerger {
     // 1. The start of first that is not replaced by second (prefix)
     // 2. The text from second (middle)
     // 3. The end of first that is not replaced by second (suffix)
-    var prefix = second.offset > first.offset
-        ? first.replacement.substring(0, second.offset - first.offset)
-        : '';
+    var prefix =
+        second.offset > first.offset
+            ? first.replacement.substring(0, second.offset - first.offset)
+            : '';
     var middle = second.replacement;
-    var suffix = second.end < first.offset + first.replacement.length
-        ? first.replacement.substring(second.end - first.offset)
-        : '';
+    var suffix =
+        second.end < first.offset + first.replacement.length
+            ? first.replacement.substring(second.end - first.offset)
+            : '';
 
     return SourceEdit(actualStart, length, '$prefix$middle$suffix');
   }

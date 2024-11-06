@@ -45,7 +45,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLeftParen_beforeFunction_inConstructor_partial() async {
+  test_afterLeftParen_beforeFunction_inConstructor_partial() async {
     await computeSuggestions('''
 class A { A(v^ Function(){}) {}}
 ''');

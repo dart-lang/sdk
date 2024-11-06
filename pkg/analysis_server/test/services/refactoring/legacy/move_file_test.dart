@@ -65,8 +65,10 @@ import 'package:test/old_name.dart';
     // referenced File object to run on Windows:
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -87,8 +89,10 @@ import 'package:test0.test1.test2/111/name.dart';
     // referenced File object to run on Windows:
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('/home/test0/test1/test3/lib/111/name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '/home/test0/test1/test3/lib/111/name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -109,8 +113,10 @@ import 'package:test0.test1.test2/111/name.dart';
     // referenced File object to run on Windows:
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('/home/test0/test1/test2/test3/lib/111/name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '/home/test0/test1/test2/test3/lib/111/name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -131,8 +137,10 @@ import 'package:test0.test1.test2/111/name.dart';
     // referenced File object to run on Windows:
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('/home/test0/test1/lib/111/name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '/home/test0/test1/lib/111/name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -152,8 +160,10 @@ import 'package:test/111/old_name.dart';
     // referenced File object to run on Windows:
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -264,14 +274,18 @@ import 'macros.dart';
 class A { }
 ''');
 
-    _createRefactoring('$testPackageLibPath/new_name.dart',
-        oldFile: oldFile.path);
+    _createRefactoring(
+      '$testPackageLibPath/new_name.dart',
+      oldFile: oldFile.path,
+    );
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
 
     // Verify that `test.macro.dart` is unmodified.
-    expect(refactoringChange.edits.map((e) => e.file),
-        unorderedEquals([testFile.path]));
+    expect(
+      refactoringChange.edits.map((e) => e.file),
+      unorderedEquals([testFile.path]),
+    );
   }
 
   Future<void> test_file_moveOutOfLib() async {
@@ -307,8 +321,10 @@ import "package:test/old_name.dart";
     await analyzeTestPackageFiles();
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -324,8 +340,10 @@ import r"package:test/old_name.dart";
     await analyzeTestPackageFiles();
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -341,8 +359,10 @@ import r'package:test/old_name.dart';
     await analyzeTestPackageFiles();
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, '''
@@ -358,8 +378,10 @@ import '''package:test/old_name.dart''';
     await analyzeTestPackageFiles();
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, """
@@ -375,8 +397,10 @@ import r'''package:test/old_name.dart''';
     await analyzeTestPackageFiles();
     testAnalysisResult = await getResolvedUnit(file);
 
-    _createRefactoring('$testPackageLibPath/222/new_name.dart',
-        oldFile: file.path);
+    _createRefactoring(
+      '$testPackageLibPath/222/new_name.dart',
+      oldFile: file.path,
+    );
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile.path, """
@@ -471,9 +495,11 @@ import 'package:test/new/nested/d.dart';
     _createRefactoring('/tmp-new', oldFile: '/tmp');
     // TODO(dantup): These paths should all use convertPath so they're as expected
     // on Windows.
-    await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            '${convertPath('/tmp')} does not belong to an analysis root.');
+    await _assertFailedRefactoring(
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          '${convertPath('/tmp')} does not belong to an analysis root.',
+    );
   }
 
   Future<void> test_folder_siblingFiles() async {
@@ -494,11 +520,15 @@ import 'b.dart';
 
   Future<void> test_nonexistent_file_returns_failure() async {
     await resolveTestFile();
-    _createRefactoring(convertPath('/home/test/test_missing_new.dart'),
-        oldFile: convertPath('/home/test/test_missing.dart'));
-    await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            '${convertPath('/home/test/test_missing.dart')} does not exist.');
+    _createRefactoring(
+      convertPath('/home/test/test_missing_new.dart'),
+      oldFile: convertPath('/home/test/test_missing.dart'),
+    );
+    await _assertFailedRefactoring(
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          '${convertPath('/home/test/test_missing.dart')} does not exist.',
+    );
   }
 
   @failingTest
@@ -511,9 +541,12 @@ import 'b.dart';
   Future<void> test_projectFolder() async {
     await resolveTestFile();
     _createRefactoring('/home/test2', oldFile: '/home/test');
-    await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Renaming an analysis root is not supported '
-            '(${convertPath('/home/test')})');
+    await _assertFailedRefactoring(
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          'Renaming an analysis root is not supported '
+          '(${convertPath('/home/test')})',
+    );
   }
 
   Future<void> test_renaming_part_that_uses_uri_in_part_of() async {
@@ -636,11 +669,15 @@ part 'test2.dart';
   }
 
   Future<void> _assertFailedRefactoring(
-      RefactoringProblemSeverity expectedSeverity,
-      {String? expectedMessage}) async {
+    RefactoringProblemSeverity expectedSeverity, {
+    String? expectedMessage,
+  }) async {
     var status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, expectedSeverity,
-        expectedMessage: expectedMessage);
+    assertRefactoringStatus(
+      status,
+      expectedSeverity,
+      expectedMessage: expectedMessage,
+    );
   }
 
   /// Checks that all conditions are OK.
@@ -650,13 +687,17 @@ part 'test2.dart';
   }
 
   void _createRefactoring(String newFile, {String? oldFile}) {
-    var refactoringWorkspace =
-        RefactoringWorkspace([driverFor(testFile)], searchEngine);
+    var refactoringWorkspace = RefactoringWorkspace([
+      driverFor(testFile),
+    ], searchEngine);
     // Allow passing an oldName for when we don't want to rename testSource,
     // but otherwise fall back to testSource.fullname
     oldFile = convertPath(oldFile ?? testFile.path);
-    refactoring =
-        MoveFileRefactoring(resourceProvider, refactoringWorkspace, oldFile);
+    refactoring = MoveFileRefactoring(
+      resourceProvider,
+      refactoringWorkspace,
+      oldFile,
+    );
     refactoring.newFile = convertPath(newFile);
   }
 }

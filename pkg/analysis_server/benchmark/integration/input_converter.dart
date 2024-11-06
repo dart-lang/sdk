@@ -94,8 +94,10 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
       // Track overlays in parallel with the analysis server
       // so that when an overlay is removed, the file can be updated on disk
       var request = Request.fromJson(json)!;
-      var params = AnalysisUpdateContentParams.fromRequest(request,
-          clientUriConverter: null);
+      var params = AnalysisUpdateContentParams.fromRequest(
+        request,
+        clientUriConverter: null,
+      );
       params.files.forEach((String filePath, change) {
         if (change is AddContentOverlay) {
           var content = change.content;
@@ -148,8 +150,11 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
 
   /// Return an operation for the recorded/expected response.
   Operation convertResponse(Map<String, dynamic> json) {
-    return ResponseOperation(this, asMap(requestMap.remove(json['id'])),
-        asMap(translateSrcPaths(json)));
+    return ResponseOperation(
+      this,
+      asMap(requestMap.remove(json['id'])),
+      asMap(translateSrcPaths(json)),
+    );
   }
 
   void logOverlayContent() {
@@ -182,7 +187,9 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
   /// or `null` if the response has already been received
   /// and the completer completed.
   Future<void>? processExpectedResponse(
-      String id, Completer<Object?> completer) {
+    String id,
+    Completer<Object?> completer,
+  ) {
     if (responseMap.containsKey(id)) {
       logger.log(Level.INFO, 'processing cached response $id');
       completer.complete(responseMap.remove(id));

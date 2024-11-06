@@ -34,8 +34,11 @@ class Test {
   const Test(String s);
 }
 ''');
-    assertLinkedGroup(
-        change.linkedEditGroups[0], ["Test('", 'Test {', 'Test(S']);
+    assertLinkedGroup(change.linkedEditGroups[0], [
+      "Test('",
+      'Test {',
+      'Test(S',
+    ]);
   }
 
   Future<void> test_extends() async {
@@ -159,15 +162,18 @@ class Test {
     await resolveTestCode('''
 const v = Test();
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 const v = Test();
 
 class Test {
   const Test();
 }
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION;
+      },
+    );
   }
 
   Future<void> test_instanceCreation_withoutNew_fromFunction() async {
@@ -235,7 +241,8 @@ class MyAnnotation {
 @MyAnnotation(int, const [Test])
 void f() {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -244,9 +251,11 @@ void f() {}
 
 class Test {
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+      },
+    );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 

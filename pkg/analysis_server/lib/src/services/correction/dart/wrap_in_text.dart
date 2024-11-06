@@ -17,8 +17,9 @@ class WrapInText extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.WRAP_IN_TEXT;
@@ -76,8 +77,5 @@ class _Context {
   final Expression stringExpression;
   final FormalParameterElement parameterElement;
 
-  _Context({
-    required this.stringExpression,
-    required this.parameterElement,
-  });
+  _Context({required this.stringExpression, required this.parameterElement});
 }

@@ -91,8 +91,9 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
       }
       var prefix = utils.getPrefix(statement.offset);
       await builder.addDartFileEdit(file, (builder) {
-        builder.addReplacement(range.startStart(invocation, expression),
-            (builder) {
+        builder.addReplacement(range.startStart(invocation, expression), (
+          builder,
+        ) {
           builder.write('for (');
           if (preferFinal) {
             builder.write(Keyword.FINAL.lexeme);

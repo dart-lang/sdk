@@ -43,7 +43,7 @@ class Class2 {
     writeFile(pathname, text);
     await standardAnalysisSetup();
     await sendAnalysisSetSubscriptions({
-      AnalysisService.OUTLINE: [pathname]
+      AnalysisService.OUTLINE: [pathname],
     });
 
     var params = await onAnalysisOutline.first;

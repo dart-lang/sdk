@@ -32,7 +32,9 @@ void f() {}
       WorkspaceSymbolParams(query: 'f'),
     );
     var symbolsCancellation1 = makeNotification(
-        Method.cancelRequest, CancelParams(id: symbolsRequest1.id));
+      Method.cancelRequest,
+      CancelParams(id: symbolsRequest1.id),
+    );
     var symbolsRequest2 = makeRequest(
       Method.workspace_symbol,
       WorkspaceSymbolParams(query: 'f'),
@@ -61,12 +63,9 @@ void f() {}
 
   Future<void> test_dependencies_excluded() async {
     newFile(mainFilePath, 'class LocalClass12345 {}');
-    await provideConfig(
-      initialize,
-      {
-        'includeDependenciesInWorkspaceSymbols': false,
-      },
-    );
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
 
     expect(await getWorkspaceSymbols('Duration'), isEmpty);
     expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
@@ -74,12 +73,9 @@ void f() {}
 
   Future<void> test_dependencies_included() async {
     newFile(mainFilePath, 'class LocalClass12345 {}');
-    await provideConfig(
-      initialize,
-      {
-        'includeDependenciesInWorkspaceSymbols': true,
-      },
-    );
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': true,
+    });
 
     expect(await getWorkspaceSymbols('Duration'), isNotEmpty);
     expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
@@ -104,8 +100,9 @@ extension on String {}
 
     var symbols = await getWorkspaceSymbols('S');
 
-    var namedExtensions =
-        symbols.firstWhere((s) => s.name == 'StringExtensions');
+    var namedExtensions = symbols.firstWhere(
+      (s) => s.name == 'StringExtensions',
+    );
     expect(namedExtensions.kind, equals(SymbolKind.Class));
     expect(namedExtensions.containerName, isNull);
 
@@ -122,8 +119,9 @@ extension type MyExtensionType(int it) {}
 
     var symbols = await getWorkspaceSymbols('MyExt');
 
-    var namedExtensions =
-        symbols.firstWhere((s) => s.name == 'MyExtensionType');
+    var namedExtensions = symbols.firstWhere(
+      (s) => s.name == 'MyExtensionType',
+    );
     expect(namedExtensions.kind, equals(SymbolKind.Class));
     expect(namedExtensions.containerName, isNull);
   }
@@ -140,8 +138,9 @@ extension type E(int it) {
 
     var symbols = await getWorkspaceSymbols('foo');
 
-    var namedExtensions =
-        symbols.firstWhere((s) => s.name == 'foo()' && s.containerName == 'E');
+    var namedExtensions = symbols.firstWhere(
+      (s) => s.name == 'foo()' && s.containerName == 'E',
+    );
     expect(namedExtensions.kind, equals(SymbolKind.Method));
     expect(namedExtensions.containerName, 'E');
   }
@@ -167,7 +166,7 @@ class MyClass {
     expect(topLevel.location.uri, equals(mainFileUri));
     expect(topLevel.location.range, equals(code.range.range));
 
-// Ensure we didn't get some things that definitely do not match.
+    // Ensure we didn't get some things that definitely do not match.
     expect(symbols.any((s) => s.name.contains('MyClass')), isFalse);
     expect(symbols.any((s) => s.name.contains('myMethod')), isFalse);
   }
@@ -216,8 +215,10 @@ class MyClass {
     // Ensure the error is useful to the client.
     expect(
       error.message,
-      equals('Invalid params for workspace/symbol:\n'
-          'params.query must not be undefined'),
+      equals(
+        'Invalid params for workspace/symbol:\n'
+        'params.query must not be undefined',
+      ),
     );
   }
 
@@ -233,10 +234,12 @@ class MyClass {
     newFile(otherFilePath, content);
 
     // Initialize with both projects as roots.
-    await initialize(workspaceFolders: [
-      projectFolderUri,
-      pathContext.toUri(convertPath('/home/otherProject')),
-    ]);
+    await initialize(
+      workspaceFolders: [
+        projectFolderUri,
+        pathContext.toUri(convertPath('/home/otherProject')),
+      ],
+    );
 
     // Search for something in the SDK that's referenced by both projects and
     // expect it only shows up once.
@@ -281,8 +284,9 @@ class MyClass {
     expect(method.location.uri, equals(mainFileUri));
     expect(method.location.range, equals(methodRange));
 
-    var methodWithArgs =
-        symbols.firstWhere((s) => s.name == 'myMethodWithArgs(…)');
+    var methodWithArgs = symbols.firstWhere(
+      (s) => s.name == 'myMethodWithArgs(…)',
+    );
     expect(methodWithArgs.kind, equals(SymbolKind.Method));
     expect(methodWithArgs.containerName, equals('MyClass'));
     expect(methodWithArgs.location.uri, equals(mainFileUri));

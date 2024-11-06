@@ -35,18 +35,21 @@ class CreateParameter extends ResolvedCorrectionProducer {
     // prepare target Statement
     var parameters =
         node.thisOrAncestorOfType<FunctionExpression>()?.parameters ??
-            node.thisOrAncestorOfType<MethodDeclaration>()?.parameters ??
-            node.thisOrAncestorOfType<ConstructorDeclaration>()?.parameters;
+        node.thisOrAncestorOfType<MethodDeclaration>()?.parameters ??
+        node.thisOrAncestorOfType<ConstructorDeclaration>()?.parameters;
     if (parameters == null) {
       return;
     }
 
-    var requiredPositionals =
-        parameters.parameters.where((p) => p.isRequiredPositional);
+    var requiredPositionals = parameters.parameters.where(
+      (p) => p.isRequiredPositional,
+    );
     var namedParameters = parameters.parameters.where((p) => p.isNamed);
-    var somethingAfterPositionals = requiredPositionals.isNotEmpty &&
+    var somethingAfterPositionals =
+        requiredPositionals.isNotEmpty &&
         parameters.parameters.any((p) => !p.isRequiredPositional);
-    var somethingBeforeNamed = requiredPositionals.isEmpty &&
+    var somethingBeforeNamed =
+        requiredPositionals.isEmpty &&
         parameters.parameters.any((p) => !p.isNamed);
     var hasFollowingParameters =
         somethingAfterPositionals || somethingBeforeNamed;
@@ -97,7 +100,8 @@ class CreateParameter extends ResolvedCorrectionProducer {
           nameGroupName: 'NAME',
           typeGroupName: 'TYPE',
           isRequiredType: true,
-          isRequiredNamed: last != null &&
+          isRequiredNamed:
+              last != null &&
               last == lastNamed &&
               type.nullabilitySuffix != NullabilitySuffix.question,
         );

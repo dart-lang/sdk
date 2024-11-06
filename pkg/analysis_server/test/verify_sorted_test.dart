@@ -54,9 +54,10 @@ void buildTests({
   var pkgRootPath = provider.pathContext.normalize(packageRoot);
 
   packagePath = _toPlatformPath(pkgRootPath, packagePath);
-  excludedPaths = excludedPaths.map((e) {
-    return _toPlatformPath(packagePath, e);
-  }).toList();
+  excludedPaths =
+      excludedPaths.map((e) {
+        return _toPlatformPath(packagePath, e);
+      }).toList();
 
   var collection = AnalysisContextCollection(
     includedPaths: <String>[packagePath],
@@ -64,8 +65,12 @@ void buildTests({
     resourceProvider: provider,
   );
   for (var context in collection.contexts) {
-    buildTestsIn(context.currentSession, packagePath, excludedPaths,
-        provider.getFolder(packagePath));
+    buildTestsIn(
+      context.currentSession,
+      packagePath,
+      excludedPaths,
+      provider.getFolder(packagePath),
+    );
   }
 }
 
@@ -83,10 +88,7 @@ void buildTestsForAnalysisServer() {
     'lib/src/services/kythe/schema.dart',
   ];
 
-  buildTests(
-    packagePath: 'analysis_server',
-    excludedPaths: excludedPaths,
-  );
+  buildTests(packagePath: 'analysis_server', excludedPaths: excludedPaths);
 }
 
 void buildTestsForAnalyzer() {
@@ -102,12 +104,7 @@ void buildTestsForAnalyzer() {
 }
 
 void buildTestsForAnalyzerCli() {
-  buildTests(
-    packagePath: 'analyzer_cli',
-    excludedPaths: [
-      'test/data',
-    ],
-  );
+  buildTests(packagePath: 'analyzer_cli', excludedPaths: ['test/data']);
 }
 
 void buildTestsForAnalyzerPlugin() {
@@ -120,20 +117,19 @@ void buildTestsForAnalyzerPlugin() {
     'test/integration/support/protocol_matchers.dart',
   ];
 
-  buildTests(
-    packagePath: 'analyzer_plugin',
-    excludedPaths: excludedPaths,
-  );
+  buildTests(packagePath: 'analyzer_plugin', excludedPaths: excludedPaths);
 }
 
 void buildTestsForLinter() {
-  buildTests(packagePath: 'linter', excludedPaths: [
-    'test_data',
-  ]);
+  buildTests(packagePath: 'linter', excludedPaths: ['test_data']);
 }
 
-void buildTestsIn(AnalysisSession session, String testDirPath,
-    List<String> excludedPath, Folder directory) {
+void buildTestsIn(
+  AnalysisSession session,
+  String testDirPath,
+  List<String> excludedPath,
+  Folder directory,
+) {
   var pathContext = session.resourceProvider.pathContext;
   var children = directory.getChildren();
   children.sort((first, second) => first.shortName.compareTo(second.shortName));
@@ -159,8 +155,12 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
         if (errors.isNotEmpty) {
           fail('Errors found when parsing $path');
         }
-        var sorter = MemberSorter(code, unit,
-            result.analysisOptions.codeStyleOptions, result.lineInfo);
+        var sorter = MemberSorter(
+          code,
+          unit,
+          result.analysisOptions.codeStyleOptions,
+          result.lineInfo,
+        );
         var edits = sorter.sort();
         if (edits.isNotEmpty) {
           if (updateUnsorted) {
@@ -180,8 +180,5 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
 
 String _toPlatformPath(String pathPath, String relativePosixPath) {
   var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
-  return pathContext.joinAll([
-    pathPath,
-    ...relativePosixPath.split('/'),
-  ]);
+  return pathContext.joinAll([pathPath, ...relativePosixPath.split('/')]);
 }

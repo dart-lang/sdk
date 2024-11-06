@@ -18,8 +18,9 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_variableName];
@@ -74,8 +75,12 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
     // build variable declaration source
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(target.offset, (builder) {
-        builder.writeLocalVariableDeclaration(_variableName,
-            nameGroupName: 'NAME', type: type, typeGroupName: 'TYPE');
+        builder.writeLocalVariableDeclaration(
+          _variableName,
+          nameGroupName: 'NAME',
+          type: type,
+          typeGroupName: 'TYPE',
+        );
         builder.write(eol);
         builder.write(prefix);
       });

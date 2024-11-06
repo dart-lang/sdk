@@ -141,7 +141,8 @@ abstract class Page {
 mixin PerformanceChartMixin on Page {
   void drawChart(List<RequestPerformance> items) {
     buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px; padding-bottom: 30px;"></div>');
+      '<div id="chart-div" style="width: 700px; height: 300px; padding-bottom: 30px;"></div>',
+    );
     var rowData = StringBuffer();
     for (var i = items.length - 1; i >= 0; i--) {
       if (rowData.isNotEmpty) {
@@ -213,8 +214,9 @@ abstract class Site {
       }
 
       response.headers.contentType = page.contentType(queryParameters);
-      var contentDispositionString =
-          page.contentDispositionString(queryParameters);
+      var contentDispositionString = page.contentDispositionString(
+        queryParameters,
+      );
       if (contentDispositionString != null) {
         response.headers.add('Content-Disposition', contentDispositionString);
       }
@@ -234,8 +236,9 @@ abstract class Site {
         // For simplicitly we only support POSTs that redirect back to a GET at
         // the end and we use query parameters on the URL and don't process
         // encoded request bodies.
-        var destinationPath =
-            await (page as PostablePage).handlePost(queryParameters);
+        var destinationPath = await (page as PostablePage).handlePost(
+          queryParameters,
+        );
         await respondRedirect(request, destinationPath);
       } else {
         throw 'Method not supported';
@@ -306,8 +309,11 @@ abstract class Site {
       return;
     } catch (e, st) {
       try {
-        await respond(request, createExceptionPage('$e', st),
-            HttpStatus.internalServerError);
+        await respond(
+          request,
+          createExceptionPage('$e', st),
+          HttpStatus.internalServerError,
+        );
       } catch (e, st) {
         var response = request.response;
         response.statusCode = HttpStatus.internalServerError;

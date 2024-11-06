@@ -8,7 +8,8 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol
+import 'package:analysis_server/src/protocol_server.dart'
+    as protocol
     show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
@@ -42,7 +43,7 @@ const List<String> stringNames = [
   'uri',
   'name',
   'str',
-  'string'
+  'string',
 ];
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
@@ -54,17 +55,18 @@ int toRelevance(double score) {
 
 /// Return the weighted average of the given values, applying some constant and
 /// predetermined weights.
-double weightedAverage(
-    {double contextType = 0.0,
-    double elementKind = 0.0,
-    double hasDeprecated = 0.0,
-    double isConstant = 0.0,
-    double isNoSuchMethod = 0.0,
-    double isNotImported = 0.0,
-    double keyword = 0.0,
-    double startsWithDollar = 0.0,
-    double superMatches = 0.0,
-    double localVariableDistance = 0.0}) {
+double weightedAverage({
+  double contextType = 0.0,
+  double elementKind = 0.0,
+  double hasDeprecated = 0.0,
+  double isConstant = 0.0,
+  double isNoSuchMethod = 0.0,
+  double isNotImported = 0.0,
+  double keyword = 0.0,
+  double startsWithDollar = 0.0,
+  double superMatches = 0.0,
+  double localVariableDistance = 0.0,
+}) {
   assert(contextType.between(0.0, 1.0));
   assert(elementKind.between(0.0, 1.0));
   assert(hasDeprecated.between(-1.0, 0.0));
@@ -106,7 +108,9 @@ DartType? _impliedDartTypeWithName(TypeProvider typeProvider, String name) {
     return typeProvider.iterableDynamicType;
   } else if (name == 'map') {
     return typeProvider.mapType(
-        typeProvider.dynamicType, typeProvider.dynamicType);
+      typeProvider.dynamicType,
+      typeProvider.dynamicType,
+    );
   }
   return null;
 }
@@ -174,9 +178,7 @@ class FeatureComputer {
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
   DartType? computeContextType(AstNode node, int offset) {
-    var contextType = node.accept(
-      _ContextTypeVisitor(typeProvider, offset),
-    );
+    var contextType = node.accept(_ContextTypeVisitor(typeProvider, offset));
     if (contextType == null || contextType is DynamicType) {
       return null;
     }
@@ -336,8 +338,11 @@ class FeatureComputer {
   /// Return the value of the _element kind_ feature for the [element] when
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
-  double elementKindFeature(Element element, String? completionLocation,
-      {double? distance}) {
+  double elementKindFeature(
+    Element element,
+    String? completionLocation, {
+    double? distance,
+  }) {
     if (completionLocation == null) {
       return 0.0;
     }
@@ -358,8 +363,11 @@ class FeatureComputer {
   /// Return the value of the _element kind_ feature for the [element] when
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
-  double elementKindFeature2(Element2 element, String? completionLocation,
-      {double? distance}) {
+  double elementKindFeature2(
+    Element2 element,
+    String? completionLocation, {
+    double? distance,
+  }) {
     if (completionLocation == null) {
       return 0.0;
     }
@@ -394,11 +402,16 @@ class FeatureComputer {
   /// supertype if the two types are not the same. Return `-1` if the [subclass]
   /// is not a subclass of the [superclass].
   int inheritanceDistance(
-      InterfaceElement subclass, InterfaceElement superclass) {
+    InterfaceElement subclass,
+    InterfaceElement superclass,
+  ) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
-    return _inheritanceDistance(subclass.asElement2 as InterfaceElement2?,
-        superclass.asElement2 as InterfaceElement2, {});
+    return _inheritanceDistance(
+      subclass.asElement2 as InterfaceElement2?,
+      superclass.asElement2 as InterfaceElement2,
+      {},
+    );
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -408,7 +421,9 @@ class FeatureComputer {
   /// supertype if the two types are not the same. Return `-1` if the [subclass]
   /// is not a subclass of the [superclass].
   int inheritanceDistance2(
-      InterfaceElement2 subclass, InterfaceElement2 superclass) {
+    InterfaceElement2 subclass,
+    InterfaceElement2 superclass,
+  ) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
     return _inheritanceDistance(subclass, superclass, {});
@@ -418,10 +433,14 @@ class FeatureComputer {
   /// defined in the [superclass] that is being accessed through an expression
   /// whose static type is the [subclass].
   double inheritanceDistanceFeature(
-      InterfaceElement subclass, InterfaceElement superclass) {
+    InterfaceElement subclass,
+    InterfaceElement superclass,
+  ) {
     var distance = _inheritanceDistance(
-        subclass.asElement2 as InterfaceElement2,
-        superclass.asElement2 as InterfaceElement2, {});
+      subclass.asElement2 as InterfaceElement2,
+      superclass.asElement2 as InterfaceElement2,
+      {},
+    );
     return distanceToPercent(distance);
   }
 
@@ -468,7 +487,9 @@ class FeatureComputer {
 
   /// Return the value of the _is noSuchMethod_ feature.
   double isNoSuchMethodFeature(
-      String? containingMethodName, String proposedMemberName) {
+    String? containingMethodName,
+    String proposedMemberName,
+  ) {
     if (proposedMemberName == containingMethodName) {
       // Don't penalize `noSuchMethod` when completing after `super` in an
       // override of `noSuchMethod`.
@@ -518,7 +539,9 @@ class FeatureComputer {
 
   /// Return the value of the _super matches_ feature.
   double superMatchesFeature(
-          String? containingMethodName, String proposedMemberName) =>
+    String? containingMethodName,
+    String proposedMemberName,
+  ) =>
       containingMethodName == null
           ? 0.0
           : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
@@ -528,8 +551,11 @@ class FeatureComputer {
   /// cycles in the type graph.
   ///
   /// This is the implementation of [inheritanceDistance].
-  int _inheritanceDistance(InterfaceElement2? subclass,
-      InterfaceElement2 superclass, Set<InterfaceElement2> visited) {
+  int _inheritanceDistance(
+    InterfaceElement2? subclass,
+    InterfaceElement2 superclass,
+    Set<InterfaceElement2> visited,
+  ) {
     if (subclass == null) {
       return -1;
     } else if (subclass == superclass) {
@@ -537,8 +563,11 @@ class FeatureComputer {
     } else if (!visited.add(subclass)) {
       return -1;
     }
-    var minDepth =
-        _inheritanceDistance(subclass.supertype?.element3, superclass, visited);
+    var minDepth = _inheritanceDistance(
+      subclass.supertype?.element3,
+      superclass,
+      visited,
+    );
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
@@ -643,8 +672,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitAssertInitializer(AssertInitializer node) {
     if (range
-        .endStart(node.leftParenthesis,
-            node.message?.beginToken.previous ?? node.rightParenthesis)
+        .endStart(
+          node.leftParenthesis,
+          node.message?.beginToken.previous ?? node.rightParenthesis,
+        )
         .contains(offset)) {
       return typeProvider.boolType;
     }
@@ -654,8 +685,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitAssertStatement(AssertStatement node) {
     if (range
-        .endStart(node.leftParenthesis,
-            node.message?.beginToken.previous ?? node.rightParenthesis)
+        .endStart(
+          node.leftParenthesis,
+          node.message?.beginToken.previous ?? node.rightParenthesis,
+        )
         .contains(offset)) {
       return typeProvider.boolType;
     }
@@ -849,7 +882,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType? visitFunctionExpressionInvocation(
-      FunctionExpressionInvocation node) {
+    FunctionExpressionInvocation node,
+  ) {
     if (node.function.contains(offset)) {
       return _visitParent(node);
     }
@@ -1165,7 +1199,9 @@ parent3: ${node.parent?.parent?.parent}
             return typeProvider.iterableDynamicType;
           }
           return typeProvider.mapType(
-              typeProvider.dynamicType, typeProvider.dynamicType);
+            typeProvider.dynamicType,
+            typeProvider.dynamicType,
+          );
         }
         currentNode = currentNode.parent;
       }
@@ -1290,7 +1326,9 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   DartType? _visitFieldInObjectPattern(
-      ObjectPattern parent, PatternField field) {
+    ObjectPattern parent,
+    PatternField field,
+  ) {
     var fieldName = field.name;
     if (fieldName == null || offset < fieldName.end) {
       return null;
@@ -1321,7 +1359,9 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   DartType? _visitFieldInRecordPattern(
-      RecordPattern parent, PatternField field) {
+    RecordPattern parent,
+    PatternField field,
+  ) {
     var recordType = parent.matchedValueType;
     if (recordType is! RecordType) {
       return null;

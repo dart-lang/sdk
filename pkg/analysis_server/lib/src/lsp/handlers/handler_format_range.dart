@@ -12,8 +12,9 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 
 typedef StaticOptions = Either2<bool, DocumentRangeFormattingOptions>;
 
-class FormatRangeHandler extends SharedMessageHandler<
-    DocumentRangeFormattingParams, List<TextEdit>?> {
+class FormatRangeHandler
+    extends
+        SharedMessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(super.server);
 
   @override
@@ -30,7 +31,10 @@ class FormatRangeHandler extends SharedMessageHandler<
     var file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(
-          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
+        ServerErrorCodes.InvalidFilePath,
+        'File does not exist',
+        path,
+      );
     }
 
     var result = await server.getParsedUnit(path);
@@ -39,13 +43,19 @@ class FormatRangeHandler extends SharedMessageHandler<
     }
 
     var lineLength = server.lspClientConfiguration.forResource(path).lineLength;
-    return generateEditsForFormatting(result,
-        defaultPageWidth: lineLength, range: range);
+    return generateEditsForFormatting(
+      result,
+      defaultPageWidth: lineLength,
+      range: range,
+    );
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>?>> handle(DocumentRangeFormattingParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<TextEdit>?>> handle(
+    DocumentRangeFormattingParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -70,8 +80,8 @@ class FormatRangeRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => DocumentRangeFormattingRegistrationOptions(
-        documentSelector: dartFiles, // This is currently Dart-specific
-      );
+    documentSelector: dartFiles, // This is currently Dart-specific
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_rangeFormatting;

@@ -90,7 +90,10 @@ class TransformSetManager {
   /// Recursively search all the children of the specified [folder],
   /// and add the transform sets found to the [transforms].
   void _loadTransforms(
-      List<TransformSet> transforms, Folder folder, String packageName) {
+    List<TransformSet> transforms,
+    Folder folder,
+    String packageName,
+  ) {
     for (var resource in folder.getChildren()) {
       if (resource is File) {
         if (resource.shortName.endsWith('.yaml')) {
@@ -112,11 +115,9 @@ class TransformSetManager {
     try {
       var content = file.readAsStringSync();
       var parser = TransformSetParser(
-          ErrorReporter(
-            AnalysisErrorListener.NULL_LISTENER,
-            FileSource(file),
-          ),
-          packageName);
+        ErrorReporter(AnalysisErrorListener.NULL_LISTENER, FileSource(file)),
+        packageName,
+      );
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

@@ -34,8 +34,11 @@ class WillRenameFilesHandler
   bool get requiresTrustedCaller => false;
 
   @override
-  Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<WorkspaceEdit?>> handle(
+    RenameFilesParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       return serverNotInitializedError;
@@ -62,9 +65,10 @@ class WillRenameFilesHandler
   }
 
   Future<ErrorOr<WorkspaceEdit?>> _renameFiles(
-      LspClientCapabilities clientCapabilities,
-      Map<String, String> renames,
-      CancellationToken token) async {
+    LspClientCapabilities clientCapabilities,
+    Map<String, String> renames,
+    CancellationToken token,
+  ) async {
     // This handler has a lot of async steps and may modify files that we don't
     // know about at the start (or in the case of LSP-over-Legacy that we even
     // have version numbers for). To ensure we never produce inconsistent edits,
@@ -72,8 +76,10 @@ class WillRenameFilesHandler
     var sessions = await server.currentSessions;
 
     var refactoring = MoveFileRefactoringImpl.multi(
-        server.resourceProvider, server.refactoringWorkspace, renames)
-      ..cancellationToken = token;
+      server.resourceProvider,
+      server.refactoringWorkspace,
+      renames,
+    )..cancellationToken = token;
 
     // If we're unable to update imports for a rename, we should silently do
     // nothing rather than interrupt the users file rename with an error.

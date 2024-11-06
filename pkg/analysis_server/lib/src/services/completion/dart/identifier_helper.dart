@@ -22,10 +22,11 @@ class IdentifierHelper {
   final bool includePrivateIdentifiers;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  IdentifierHelper(
-      {required this.state,
-      required this.collector,
-      required this.includePrivateIdentifiers});
+  IdentifierHelper({
+    required this.state,
+    required this.collector,
+    required this.includePrivateIdentifiers,
+  });
 
   /// Adds any suggestions for the name of the [parameter].
   void addParameterName(FormalParameter parameter) {
@@ -68,11 +69,13 @@ class IdentifierHelper {
     }
     var matcherScore = state.matcher.score(candidateName);
     if (matcherScore != -1) {
-      collector.addSuggestion(IdentifierSuggestion(
-        identifier: candidateName,
-        includeBody: includeBody,
-        matcherScore: matcherScore,
-      ));
+      collector.addSuggestion(
+        IdentifierSuggestion(
+          identifier: candidateName,
+          includeBody: includeBody,
+          matcherScore: matcherScore,
+        ),
+      );
     }
   }
 
@@ -88,11 +91,13 @@ class IdentifierHelper {
     if (name.isNotEmpty) {
       var matcherScore = state.matcher.score(name);
       if (matcherScore != -1) {
-        collector.addSuggestion(IdentifierSuggestion(
-          identifier: name,
-          includeBody: false,
-          matcherScore: matcherScore,
-        ));
+        collector.addSuggestion(
+          IdentifierSuggestion(
+            identifier: name,
+            includeBody: false,
+            matcherScore: matcherScore,
+          ),
+        );
       }
     }
   }

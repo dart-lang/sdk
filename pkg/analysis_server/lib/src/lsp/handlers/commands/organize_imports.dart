@@ -24,10 +24,12 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     CancellationToken cancellationToken,
   ) async {
     if (parameters['path'] is! String) {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message: '$commandName requires a Map argument containing a "path"',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message: '$commandName requires a Map argument containing a "path"',
+        ),
+      );
     }
 
     // Get the version of the doc before we calculate edits so we can send it back
@@ -51,12 +53,14 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         if (autoTriggered) {
           return success(null);
         }
-        return ErrorOr.error(ResponseError(
-          code: ServerErrorCodes.FileHasErrors,
-          message:
-              'Unable to $commandName because the file contains parse errors',
-          data: path,
-        ));
+        return ErrorOr.error(
+          ResponseError(
+            code: ServerErrorCodes.FileHasErrors,
+            message:
+                'Unable to $commandName because the file contains parse errors',
+            data: path,
+          ),
+        );
       }
 
       var organizer = ImportOrganizer(code, unit, result.errors);

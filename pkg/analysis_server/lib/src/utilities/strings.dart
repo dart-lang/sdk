@@ -40,8 +40,11 @@ SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
     var oldReplaceLength = oldStr.length - prefixLength - suffixLength;
     var newReplaceLength = newStr.length - prefixLength - suffixLength;
     if (oldReplaceLength >= 0 && newReplaceLength >= 0) {
-      return SimpleDiff(prefixLength, oldReplaceLength,
-          newStr.substring(prefixLength, newStr.length - suffixLength));
+      return SimpleDiff(
+        prefixLength,
+        oldReplaceLength,
+        newStr.substring(prefixLength, newStr.length - suffixLength),
+      );
     }
     prefixLength--;
   }

@@ -16,8 +16,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
@@ -44,7 +45,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     var fields = ErrorVerifier.computeNotInitializedFields2(constructor);
     fields.retainWhere((FieldElement2 field) => field.isFinal);
     fields.sort(
-        (a, b) => a.firstFragment.nameOffset2! - b.firstFragment.nameOffset2!);
+      (a, b) => a.firstFragment.nameOffset2! - b.firstFragment.nameOffset2!,
+    );
 
     // Specialize for Flutter widgets.
     if (superType.isExactlyStatelessWidgetType ||
@@ -77,8 +79,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
       }
     }
 
-    var fieldParametersCode =
-        fields.map((field) => 'this.${field.name3}').join(', ');
+    var fieldParametersCode = fields
+        .map((field) => 'this.${field.name3}')
+        .join(', ');
     await builder.addDartFileEdit(file, (builder) {
       if (lastRequiredParameter != null) {
         builder.addSimpleInsertion(

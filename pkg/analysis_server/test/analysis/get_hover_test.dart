@@ -31,8 +31,10 @@ class AnalysisHoverBlazeTest extends BlazeWorkspaceAnalysisServerTest {
 class A {}
 ''');
 
-    var request = AnalysisGetHoverParams(testFile.path, 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      testFile.path,
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -51,11 +53,15 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   Future<HoverInformation?> prepareHoverAt(int offset, {File? inFile}) async {
     inFile ??= testFile;
     await waitForTasksFinished();
-    var request = AnalysisGetHoverParams(inFile.path, offset)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      inFile.path,
+      offset,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = AnalysisGetHoverResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = AnalysisGetHoverResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     return result.hovers.firstOrNull;
   }
 
@@ -360,9 +366,10 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
     var hover = await prepareHover('B<T>');
     expect(hover.containingClassDescription, null);
     expect(
-        hover.elementDescription,
-        'class B<T> extends A<T> with M1, M2<int> '
-        'implements I1<int, String>, I2<dynamic>');
+      hover.elementDescription,
+      'class B<T> extends A<T> with M1, M2<int> '
+      'implements I1<int, String>, I2<dynamic>',
+    );
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
   }
@@ -637,13 +644,17 @@ f(Stream<int> s) {
     // element
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
-    expect(hover.elementDescription,
-        'Stream<S> transform<S>(StreamTransformer<int, S> streamTransformer)');
+    expect(
+      hover.elementDescription,
+      'Stream<S> transform<S>(StreamTransformer<int, S> streamTransformer)',
+    );
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
     // types
-    expect(hover.staticType,
-        'Stream<dynamic> Function(StreamTransformer<int, dynamic>)');
+    expect(
+      hover.staticType,
+      'Stream<dynamic> Function(StreamTransformer<int, dynamic>)',
+    );
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -845,7 +856,7 @@ C f() => C.named(); //
   }
 
   Future<void>
-      test_constructorInvocation_referenceFromAugmentation_default() async {
+  test_constructorInvocation_referenceFromAugmentation_default() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 
@@ -874,7 +885,7 @@ class C {
   }
 
   Future<void>
-      test_constructorInvocation_referenceFromAugmentation_named() async {
+  test_constructorInvocation_referenceFromAugmentation_named() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 
@@ -1167,7 +1178,9 @@ List<String> fff(int a, [String b = 'b']) {
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(
-        hover.elementDescription, "List<String> fff(int a, [String b = 'b'])");
+      hover.elementDescription,
+      "List<String> fff(int a, [String b = 'b'])",
+    );
     expect(hover.elementKind, 'function');
     // types
     expect(hover.staticType, isNull);
@@ -1306,8 +1319,10 @@ foo(double myParameter) {}
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = AnalysisGetHoverParams('test.dart', 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      'test.dart',
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1317,9 +1332,10 @@ foo(double myParameter) {}
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
-            .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = AnalysisGetHoverParams(
+      convertPath('/foo/../bar/test.dart'),
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1372,7 +1388,7 @@ void f() {
   }
 
   Future<void>
-      test_methodInvocation_macroGenerated_referenceToGenerated() async {
+  test_methodInvocation_macroGenerated_referenceToGenerated() async {
     addMacros([declareInTypeMacro()]);
     newFile(testFilePath, '''
 import 'macros.dart';
@@ -1557,7 +1573,7 @@ class A {
   }
 
   Future<void>
-      test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
+  test_parameter_ofConstructor_optionalPositional_super_defaultValue_explicit() async {
     newFile(testFilePath, '''
 class A {
   A([int a = 1]);
@@ -1573,7 +1589,7 @@ class B extends A {
   }
 
   Future<void>
-      test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
+  test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited() async {
     newFile(testFilePath, '''
 class A {
   A([int a = 1]);
@@ -1589,7 +1605,7 @@ class B extends A {
   }
 
   Future<void>
-      test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
+  test_parameter_ofConstructor_optionalPositional_super_defaultValue_inherited2() async {
     newFile(testFilePath, '''
 class A {
   A([num a = 1.2]);

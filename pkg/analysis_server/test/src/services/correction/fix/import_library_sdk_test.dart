@@ -130,7 +130,7 @@ class C {
   }
 
   Future<void>
-      test_withClass_instanceCreation_explicitNew_namedConstructor() async {
+  test_withClass_instanceCreation_explicitNew_namedConstructor() async {
     await resolveTestCode('''
 class C {
   foo() {
@@ -169,7 +169,7 @@ class C {
   }
 
   Future<void>
-      test_withClass_instanceCreation_implicitNew_namedConstructor() async {
+  test_withClass_instanceCreation_implicitNew_namedConstructor() async {
     await resolveTestCode('''
 class C {
   foo() {
@@ -243,7 +243,8 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dart:async';
 
 class MyAnnotation {
@@ -251,9 +252,11 @@ class MyAnnotation {
 }
 @MyAnnotation(int, const [Completer])
 void f() {}
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+      },
+    );
   }
 
   Future<void> test_withClass_typeAnnotation() async {

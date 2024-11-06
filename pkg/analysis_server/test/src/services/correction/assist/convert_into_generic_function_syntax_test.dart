@@ -84,7 +84,7 @@ g(String f(x)) {}
   }
 
   Future<void>
-      test_functionTypedParameter_noReturnType_noTypeParameters() async {
+  test_functionTypedParameter_noReturnType_noTypeParameters() async {
     await resolveTestCode('''
 g(f(int x)) {}
 ''');

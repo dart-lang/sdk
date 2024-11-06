@@ -76,7 +76,11 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {
       var generator = AnalysisOptionsFixGenerator(
-          resourceProvider, error, content, options);
+        resourceProvider,
+        error,
+        content,
+        options,
+      );
       var fixes = await generator.computeFixes();
       if (fixes.isEmpty) {
         continue;

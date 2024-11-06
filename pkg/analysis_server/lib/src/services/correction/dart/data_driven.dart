@@ -44,8 +44,10 @@ class DataDriven extends MultiCorrectionProducer {
     var transformSet = <Transform>{};
     for (var set in _availableTransformSetsForLibrary(library)) {
       for (var matcher in matchers) {
-        for (var transform in set.transformsFor(matcher,
-            applyingBulkFixes: applyingBulkFixes)) {
+        for (var transform in set.transformsFor(
+          matcher,
+          applyingBulkFixes: applyingBulkFixes,
+        )) {
           transformSet.add(transform);
         }
       }
@@ -58,7 +60,8 @@ class DataDriven extends MultiCorrectionProducer {
   /// Return the transform sets that are available for fixing issues in the
   /// given [library].
   List<TransformSet> _availableTransformSetsForLibrary(
-      LibraryElement2 library) {
+    LibraryElement2 library,
+  ) {
     var setsForTests = transformSetsForTests;
     if (setsForTests != null) {
       return setsForTests;
@@ -77,8 +80,9 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   /// Return a description of the element that was changed.
   ElementDescriptor get element => _transform.element;
@@ -91,8 +95,9 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var changes = _transform.changesSelector
-        .getChanges(TemplateContext.forInvocation(node, utils));
+    var changes = _transform.changesSelector.getChanges(
+      TemplateContext.forInvocation(node, utils),
+    );
     if (changes == null) {
       return;
     }

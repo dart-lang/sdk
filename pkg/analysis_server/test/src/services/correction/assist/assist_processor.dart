@@ -56,7 +56,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       var endOffset = code.indexOf('// end$eol');
       if (startOffset >= 0 && endOffset >= 0) {
         var startLength = '// start$eol'.length;
-        code = code.substring(0, startOffset) +
+        code =
+            code.substring(0, startOffset) +
             code.substring(startOffset + startLength, endOffset) +
             code.substring(endOffset + '// end$eol'.length);
         _offset = startOffset;
@@ -90,12 +91,16 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// have been applied.
   ///
   /// Returns the [SourceChange] for the matching assist.
-  Future<SourceChange> assertHasAssist(String expected,
-      {Map<String, List<String>>? additionallyChangedFiles}) async {
+  Future<SourceChange> assertHasAssist(
+    String expected, {
+    Map<String, List<String>>? additionallyChangedFiles,
+  }) async {
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);
-      additionallyChangedFiles = additionallyChangedFiles?.map((key, value) =>
-          MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()));
+      additionallyChangedFiles = additionallyChangedFiles?.map(
+        (key, value) =>
+            MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
+      );
     }
     var assist = await _assertHasAssist();
     _change = assist.change;
@@ -124,8 +129,11 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   /// Asserts that there is an [Assist] of the given [kind] at the offset of the
   /// given [snippet] which produces the [expected] code when applied to [testCode].
-  Future<void> assertHasAssistAt(String snippet, String expected,
-      {int length = 0}) async {
+  Future<void> assertHasAssistAt(
+    String snippet,
+    String expected, {
+    int length = 0,
+  }) async {
     expected = normalizeSource(expected);
     _offset = findOffset(snippet);
     _length = length;
@@ -139,8 +147,11 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     expect(_resultCode, expected);
   }
 
-  void assertLinkedGroup(int groupIndex, List<String> expectedStrings,
-      [List<LinkedEditSuggestion>? expectedSuggestions]) {
+  void assertLinkedGroup(
+    int groupIndex,
+    List<String> expectedStrings, [
+    List<LinkedEditSuggestion>? expectedSuggestions,
+  ]) {
     var group = _change.linkedEditGroups[groupIndex];
     var expectedPositions = _findResultPositions(expectedStrings);
     expect(group.positions, unorderedEquals(expectedPositions));
@@ -173,7 +184,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(
-      LinkedEditSuggestionKind kind, List<String> values) {
+    LinkedEditSuggestionKind kind,
+    List<String> values,
+  ) {
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();

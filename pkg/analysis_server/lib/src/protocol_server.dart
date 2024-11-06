@@ -29,21 +29,28 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// Returns a list of AnalysisErrors corresponding to the given list of Engine
 /// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
-    engine.AnalysisResultWithErrors result) {
+  engine.AnalysisResultWithErrors result,
+) {
   return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
 }
 
 /// Adds [edit] to the file containing the given [element].
 void doSourceChange_addElementEdit(
-    SourceChange change, engine.Element element, SourceEdit edit) {
+  SourceChange change,
+  engine.Element element,
+  SourceEdit edit,
+) {
   var source = element.source!;
   doSourceChange_addSourceEdit(change, source, edit);
 }
 
 /// Adds [edit] for the given [source] to the [change].
 void doSourceChange_addSourceEdit(
-    SourceChange change, engine.Source source, SourceEdit edit,
-    {bool isNewFile = false}) {
+  SourceChange change,
+  engine.Source source,
+  SourceEdit edit, {
+  bool isNewFile = false,
+}) {
   var file = source.fullName;
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
@@ -144,14 +151,17 @@ String? getReturnTypeString2(engine.Element2 element) {
 
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
+  engine.AnalysisResultWithErrors result,
+  List<engine.AnalysisError> errors,
+  T Function(
     engine.AnalysisResultWithErrors result,
-    List<engine.AnalysisError> errors,
-    T Function(
-            engine.AnalysisResultWithErrors result, engine.AnalysisError error,
-            [engine.ErrorSeverity errorSeverity])
-        constructor) {
-  var analysisOptions =
-      result.session.analysisContext.getAnalysisOptionsForFile(result.file);
+    engine.AnalysisError error, [
+    engine.ErrorSeverity errorSeverity,
+  ])
+  constructor,
+) {
+  var analysisOptions = result.session.analysisContext
+      .getAnalysisOptionsForFile(result.file);
   var serverErrors = <T>[];
   for (var error in errors) {
     var processor = ErrorProcessor.getProcessor(analysisOptions, error);
@@ -173,8 +183,10 @@ List<T> mapEngineErrors<T>(
 ///
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
-    engine.AnalysisResultWithErrors result, engine.AnalysisError error,
-    [engine.ErrorSeverity? errorSeverity]) {
+  engine.AnalysisResultWithErrors result,
+  engine.AnalysisError error, [
+  engine.ErrorSeverity? errorSeverity,
+]) {
   var errorCode = error.errorCode;
   // prepare location
   Location location;
@@ -192,8 +204,15 @@ AnalysisError newAnalysisError_fromEngine(
     var endLine = endLocation.lineNumber;
     var endColumn = endLocation.columnNumber;
 
-    location = Location(file, offset, length, startLine, startColumn,
-        endLine: endLine, endColumn: endColumn);
+    location = Location(
+      file,
+      offset,
+      length,
+      startLine,
+      startColumn,
+      endLine: endLine,
+      endColumn: endColumn,
+    );
   }
 
   // Default to the error's severity if none is specified.
@@ -206,26 +225,35 @@ AnalysisError newAnalysisError_fromEngine(
   var code = errorCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
   if (error.contextMessages.isNotEmpty) {
-    contextMessages = error.contextMessages
-        .map((message) => newDiagnosticMessage(result, message))
-        .toList();
+    contextMessages =
+        error.contextMessages
+            .map((message) => newDiagnosticMessage(result, message))
+            .toList();
   }
   var correction = error.correction;
   var url = errorCode.url;
-  return AnalysisError(severity, type, location, message, code,
-      contextMessages: contextMessages,
-      correction: correction,
-      // This parameter is only necessary for deprecated IDE support.
-      // Whether the error actually has a fix or not is not important to report
-      // here.
-      // TODO(srawlins): Remove it.
-      hasFix: false,
-      url: url);
+  return AnalysisError(
+    severity,
+    type,
+    location,
+    message,
+    code,
+    contextMessages: contextMessages,
+    correction: correction,
+    // This parameter is only necessary for deprecated IDE support.
+    // Whether the error actually has a fix or not is not important to report
+    // here.
+    // TODO(srawlins): Remove it.
+    hasFix: false,
+    url: url,
+  );
 }
 
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
-    engine.AnalysisResultWithErrors result, engine.DiagnosticMessage message) {
+  engine.AnalysisResultWithErrors result,
+  engine.DiagnosticMessage message,
+) {
   var file = message.filePath;
   var offset = message.offset;
   var length = message.length;
@@ -239,9 +267,17 @@ DiagnosticMessage newDiagnosticMessage(
   var endColumn = endLocation.columnNumber;
 
   return DiagnosticMessage(
-      message.messageText(includeUrl: true),
-      Location(file, offset, length, startLine, startColumn,
-          endLine: endLine, endColumn: endColumn));
+    message.messageText(includeUrl: true),
+    Location(
+      file,
+      offset,
+      length,
+      startLine,
+      startColumn,
+      endLine: endLine,
+      endColumn: endColumn,
+    ),
+  );
 }
 
 /// Create a Location based on an [engine.Element].
@@ -303,7 +339,9 @@ Location newLocation_fromToken({
 
 /// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
-    engine.CompilationUnit unit, engine.SourceRange range) {
+  engine.CompilationUnit unit,
+  engine.SourceRange range,
+) {
   return _locationForArgs(unit.declaredElement!, range);
 }
 
@@ -347,8 +385,11 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
 }
 
 /// Construct based on a SourceRange.
-SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
-    {String? id}) {
+SourceEdit newSourceEdit_range(
+  engine.SourceRange range,
+  String replacement, {
+  String? id,
+}) {
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
@@ -389,7 +430,9 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
 
 /// Creates a new [Location].
 Location _locationForArgs(
-    engine.CompilationUnitElement unitElement, engine.SourceRange range) {
+  engine.CompilationUnitElement unitElement,
+  engine.SourceRange range,
+) {
   var lineInfo = unitElement.lineInfo;
 
   var startLocation = lineInfo.getLocation(range.offset);
@@ -400,9 +443,15 @@ Location _locationForArgs(
   var endLine = endLocation.lineNumber;
   var endColumn = endLocation.columnNumber;
 
-  return Location(unitElement.source.fullName, range.offset, range.length,
-      startLine, startColumn,
-      endLine: endLine, endColumn: endColumn);
+  return Location(
+    unitElement.source.fullName,
+    range.offset,
+    range.length,
+    startLine,
+    startColumn,
+    endLine: endLine,
+    endColumn: endColumn,
+  );
 }
 
 /// Creates a new [Location].
@@ -417,7 +466,13 @@ Location _locationForArgs2(engine.Fragment fragment, engine.SourceRange range) {
   var endLine = endLocation.lineNumber;
   var endColumn = endLocation.columnNumber;
 
-  return Location(fragment.libraryFragment.source.fullName, range.offset,
-      range.length, startLine, startColumn,
-      endLine: endLine, endColumn: endColumn);
+  return Location(
+    fragment.libraryFragment.source.fullName,
+    range.offset,
+    range.length,
+    startLine,
+    startColumn,
+    endLine: endLine,
+    endColumn: endColumn,
+  );
 }

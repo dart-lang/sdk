@@ -49,7 +49,12 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     var result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
       var refactoring = await getRefactoring(
-          RefactoringKind(kind), result, offset, length, options);
+        RefactoringKind(kind),
+        result,
+        offset,
+        length,
+        options,
+      );
       return refactoring.mapResult((refactoring) async {
         // If the token we were given is not cancelable, wrap it with one that
         // is for the rest of this request as a future refactor may need to
@@ -63,7 +68,8 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
 
           if (status.hasError) {
             return success(
-                ValidateRefactorResult(valid: false, message: status.message!));
+              ValidateRefactorResult(valid: false, message: status.message!),
+            );
           }
 
           return success(ValidateRefactorResult(valid: true));

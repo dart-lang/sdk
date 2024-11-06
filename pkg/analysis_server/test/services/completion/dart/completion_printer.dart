@@ -177,9 +177,11 @@ class CompletionResponsePrinter {
   void _writeDefaultArgumentList(CompletionSuggestion suggestion) {
     if (configuration.withDefaultArgumentList) {
       _writelnWithIndent(
-          'defaultArgumentList: ${suggestion.defaultArgumentListString}');
+        'defaultArgumentList: ${suggestion.defaultArgumentListString}',
+      );
       _writelnWithIndent(
-          'defaultArgumentListRanges: ${suggestion.defaultArgumentListTextRanges}');
+        'defaultArgumentListRanges: ${suggestion.defaultArgumentListTextRanges}',
+      );
     }
   }
 
@@ -410,8 +412,4 @@ class Configuration {
   });
 }
 
-enum Sorting {
-  asIs,
-  completionThenKind,
-  relevanceThenCompletionThenKind,
-}
+enum Sorting { asIs, completionThenKind, relevanceThenCompletionThenKind }

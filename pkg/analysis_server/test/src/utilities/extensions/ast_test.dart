@@ -176,8 +176,10 @@ class C {}
   /// Assert that the returned tokens have lexemes that match the [expected]
   /// comments.
   void _assertTokens(List<String> expected) {
-    expect(result.unit.fileHeader.map((token) => token.lexeme),
-        orderedEquals(expected));
+    expect(
+      result.unit.fileHeader.map((token) => token.lexeme),
+      orderedEquals(expected),
+    );
   }
 }
 

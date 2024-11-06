@@ -94,15 +94,13 @@ void f() {
   }
 
   Future<void> test_duplicateShownName_last() async {
-    await resolveTestCode(
-      '''
+    await resolveTestCode('''
 import 'dart:math' show cos, sin, sin;
 
 f(x) {
   print(cos(x) + sin(x));
 }
-''',
-    );
+''');
     await assertHasFix('''
 import 'dart:math' show cos, sin;
 

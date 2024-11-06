@@ -53,7 +53,7 @@ class DartDocumentationComputer {
       ...overridden.superElements,
       ...overridden.interfaceElements,
       if (element case GetterElement(variable3: var variable?)) variable,
-      if (element case SetterElement(variable3: var variable?)) variable
+      if (element case SetterElement(variable3: var variable?)) variable,
     ];
     for (var candidate in candidates) {
       if (candidate.documentationCommentOrNull != null) {
@@ -78,8 +78,10 @@ class DartDocumentationComputer {
     if (rawDoc == null) {
       return null;
     }
-    var result =
-        dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
+    var result = dartdocInfo.processDartdoc(
+      rawDoc,
+      includeSummary: includeSummary,
+    );
 
     var documentedElementClass = documentedElement.enclosingElement2;
     if (documentedElementClass != null &&
@@ -94,7 +96,9 @@ class DartDocumentationComputer {
   /// Compute documentation for [element] and return either the summary or full
   /// docs (or `null`) depending on `preference`.
   String? computePreferred(
-      Element element, DocumentationPreference preference) {
+    Element element,
+    DocumentationPreference preference,
+  ) {
     // TODO(dantup): Remove this temporary implementation used to split
     //  migration of this class and callers into separate changes.
     var element2 = element.asElement2;
@@ -104,7 +108,9 @@ class DartDocumentationComputer {
   /// Compute documentation for [element] and return either the summary or full
   /// docs (or `null`) depending on `preference`.
   String? computePreferred2(
-      Element2 element, DocumentationPreference preference) {
+    Element2 element,
+    DocumentationPreference preference,
+  ) {
     if (preference == DocumentationPreference.none) {
       return null;
     }
@@ -120,8 +126,4 @@ class DartDocumentationComputer {
 
 /// The type of documentation the user prefers to see in hovers and other
 /// related displays in their editor.
-enum DocumentationPreference {
-  none,
-  summary,
-  full,
-}
+enum DocumentationPreference { none, summary, full }

@@ -14,13 +14,19 @@ class AnalysisUpdateOptionsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisUpdateOptionsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     // options
-    var params = AnalysisUpdateOptionsParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisUpdateOptionsParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var newOptions = params.options;
     var updaters = <OptionUpdater>[];
     var generateHints = newOptions.generateHints;

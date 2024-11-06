@@ -24,11 +24,12 @@ void main() {
 @reflectiveTest
 class DefinitionTest extends AbstractLspAnalysisServerTest {
   @override
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
-    ..enabledExperiments = [
-      ...super.serverOptions.enabledExperiments,
-      ...experimentsForTests,
-    ];
+  AnalysisServerOptions get serverOptions =>
+      AnalysisServerOptions()
+        ..enabledExperiments = [
+          ...super.serverOptions.enabledExperiments,
+          ...experimentsForTests,
+        ];
 
   Future<void> test_acrossFiles() async {
     var mainContents = '''
@@ -61,8 +62,10 @@ void f() {
     newFile(mainFilePath, mainCode.code);
     newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    var res =
-        await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
+    var res = await getDefinitionAsLocation(
+      mainFileUri,
+      mainCode.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -141,8 +144,10 @@ void f() {}
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    var res =
-        await getDefinitionAsLocation(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocation(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(0));
   }
@@ -295,15 +300,11 @@ class [!A!] {
   }
 
   Future<void> test_directive_export() async {
-    await verifyDirective(
-      source: "export 'destin^ation.dart';",
-    );
+    await verifyDirective(source: "export 'destin^ation.dart';");
   }
 
   Future<void> test_directive_import() async {
-    await verifyDirective(
-      source: "import 'desti^nation.dart';",
-    );
+    await verifyDirective(source: "import 'desti^nation.dart';");
   }
 
   Future<void> test_directive_part() async {
@@ -350,7 +351,7 @@ class A {
       [pluginAnalyzedFilePath],
       [NavigationTarget(ElementKind.CLASS, 0, 0, 5, 0, 0)],
       [
-        NavigationRegion(0, 5, [0])
+        NavigationRegion(0, 5, [0]),
       ],
     );
     configureTestPlugin(respondWith: pluginResult);
@@ -358,15 +359,21 @@ class A {
     newFile(pluginAnalyzedFilePath, '');
     await initialize();
     var res = await getDefinitionAsLocation(
-        pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
+      pluginAnalyzedFileUri,
+      lsp.Position(line: 0, character: 0),
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
     expect(
-        loc.range,
-        equals(lsp.Range(
-            start: lsp.Position(line: 0, character: 0),
-            end: lsp.Position(line: 0, character: 5))));
+      loc.range,
+      equals(
+        lsp.Range(
+          start: lsp.Position(line: 0, character: 0),
+          end: lsp.Position(line: 0, character: 5),
+        ),
+      ),
+    );
     expect(loc.uri, equals(pluginAnalyzedFileUri));
   }
 
@@ -406,8 +413,10 @@ final a = /*[0*/MyCl^ass/*0]*/();
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    var res =
-        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -427,8 +436,10 @@ final a = /*[0*/MyExtens^ionType/*0]*/(1);
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    var res =
-        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -438,7 +449,7 @@ final a = /*[0*/MyExtens^ionType/*0]*/(1);
   }
 
   Future<void>
-      test_locationLink_extensionType_primaryConstructor_named() async {
+  test_locationLink_extensionType_primaryConstructor_named() async {
     setLocationLinkSupport();
 
     var code = TestCode.parse('''
@@ -449,8 +460,10 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    var res =
-        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -492,7 +505,9 @@ void otherUnrelatedFunction() {}
     newFile(referencedFilePath, referencedCode.code);
     await initialize();
     var res = await getDefinitionAsLocationLinks(
-        mainFileUri, mainCode.position.position);
+      mainFileUri,
+      mainCode.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -538,7 +553,9 @@ void otherUnrelatedFunction() {}
     newFile(referencedFilePath, referencedCode.code);
     await initialize();
     var res = await getDefinitionAsLocationLinks(
-        mainFileUri, mainCode.position.position);
+      mainFileUri,
+      mainCode.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -567,8 +584,10 @@ void f() {
 
     newFile(mainFilePath, code.code);
     await initialize();
-    var res =
-        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -594,8 +613,10 @@ void f() {
 
     newFile(mainFilePath, code.code);
     await initialize();
-    var res =
-        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -635,13 +656,17 @@ class A {
     // Invoke Definition in the macro file at the location of the call back to
     // the main file.
     var locations = await getDefinitionAsLocationLinks(
-        mainFileMacroUri, barInvocationRange.start);
+      mainFileMacroUri,
+      barInvocationRange.start,
+    );
     var location = locations.single;
 
     // Check the origin selection range covers the text we'd expected in the
     // generated file.
     expect(
-        getTextForRange(macroContent, location.originSelectionRange!), 'bar');
+      getTextForRange(macroContent, location.originSelectionRange!),
+      'bar',
+    );
 
     // And the target matches our original file.
     expect(location.targetUri, mainFileUri);
@@ -671,8 +696,10 @@ class A {}
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    var locations =
-        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+    var locations = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
     var location = locations.single;
 
     expect(location.originSelectionRange, code.range.range);
@@ -683,7 +710,9 @@ class A {}
     var macroResponse = await getDartTextDocumentContent(location.targetUri);
     var macroContent = macroResponse!.content!;
     expect(
-        getTextForRange(macroContent, location.targetRange), 'void foo() {}');
+      getTextForRange(macroContent, location.targetRange),
+      'void foo() {}',
+    );
     expect(getTextForRange(macroContent, location.targetSelectionRange), 'foo');
   }
 
@@ -748,17 +777,16 @@ void otherUnrelatedFunction() {}
     newFile(partFilePath, partCode.code);
     await initialize();
     var res = await getDefinitionAsLocationLinks(
-        mainFileUri, mainCode.position.position);
+      mainFileUri,
+      mainCode.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(mainCode.range.range));
     expect(loc.targetUri, equals(partFileUri));
     expect(loc.targetRange, equals(partCode.range.range));
-    expect(
-      loc.targetSelectionRange,
-      equals(rangeOfString(partCode, 'add')),
-    );
+    expect(loc.targetSelectionRange, equals(rangeOfString(partCode, 'add')));
   }
 
   Future<void> test_sameLine() async {
@@ -857,8 +885,10 @@ class [!MyClass!] {}
     if (inOpenFile) {
       await openFile(mainFileUri, code.code);
     }
-    var res =
-        await getDefinitionAsLocation(mainFileUri, code.position.position);
+    var res = await getDefinitionAsLocation(
+      mainFileUri,
+      code.position.position,
+    );
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -878,15 +908,20 @@ class [!MyClass!] {}
 
     var sourceFilePath = join(projectFolderPath, 'lib', 'source.dart');
     var sourceFileUri = toUri(sourceFilePath);
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', 'destination.dart');
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      'destination.dart',
+    );
     var destinationFileUri = toUri(destinationFilePath);
 
     newFile(sourceFilePath, sourceCode.code);
     newFile(destinationFilePath, destinationCode.code);
     await initialize();
     var res = await getDefinitionAsLocation(
-        sourceFileUri, sourceCode.position.position);
+      sourceFileUri,
+      sourceCode.position.position,
+    );
 
     expect(res.single.uri, equals(destinationFileUri));
   }

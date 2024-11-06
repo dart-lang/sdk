@@ -35,7 +35,12 @@ void bar() {
 
     // expect no edits if no rename options specified
     var result = await sendEditGetRefactoring(
-        RefactoringKind.RENAME, pathname, text.indexOf('foo('), 0, false);
+      RefactoringKind.RENAME,
+      pathname,
+      text.indexOf('foo('),
+      0,
+      false,
+    );
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);
@@ -44,8 +49,13 @@ void bar() {
 
     // expect a valid rename refactoring
     result = await sendEditGetRefactoring(
-        RefactoringKind.RENAME, pathname, text.indexOf('foo('), 0, false,
-        options: RenameOptions('baz'));
+      RefactoringKind.RENAME,
+      pathname,
+      text.indexOf('foo('),
+      0,
+      false,
+      options: RenameOptions('baz'),
+    );
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);
@@ -82,8 +92,13 @@ class C {}
 
     // expect a valid rename refactoring
     var result = await sendEditGetRefactoring(
-        RefactoringKind.RENAME, pathname, text.indexOf('C {'), 0, false,
-        options: RenameOptions('Coo'));
+      RefactoringKind.RENAME,
+      pathname,
+      text.indexOf('C {'),
+      0,
+      false,
+      options: RenameOptions('Coo'),
+    );
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);

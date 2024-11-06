@@ -48,11 +48,15 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '0-12-34-56789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'),
-          SourceEdit(3, 1, '-3'),
-          SourceEdit(1, 1, '-1'),
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'),
+            SourceEdit(3, 1, '-3'),
+            SourceEdit(1, 1, '-1'),
+          ],
+        ),
       ],
     );
   }
@@ -62,12 +66,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01236789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(4, 3, ''), // Delete 4-5
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(4, 3, ''), // Delete 4-5
+          ],
+        ),
       ],
     );
   }
@@ -77,12 +89,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '0123789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(4, 4, ''), // Delete 4-56
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(4, 4, ''), // Delete 4-56
+          ],
+        ),
       ],
     );
   }
@@ -92,12 +112,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 3, ''), // Delete -56
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 3, ''), // Delete -56
+          ],
+        ),
       ],
     );
   }
@@ -107,12 +135,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234-6789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(6, 1, ''), // Delete 5
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(6, 1, ''), // Delete 5
+          ],
+        ),
       ],
     );
   }
@@ -122,12 +158,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '012346789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 2, ''), // Delete -5
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 2, ''), // Delete -5
+          ],
+        ),
       ],
     );
   }
@@ -137,12 +181,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234556789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '5-5'), // Replace 5 with 5-5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(6, 1, ''), // Delete -
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '5-5'), // Replace 5 with 5-5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(6, 1, ''), // Delete -
+          ],
+        ),
       ],
     );
   }
@@ -152,12 +204,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '0123456789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, ''), // Delete -
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, ''), // Delete -
+          ],
+        ),
       ],
     );
   }
@@ -167,12 +227,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234-056789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(6, 0, '0'), // Insert 0 between - and 5
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(6, 0, '0'), // Insert 0 between - and 5
+          ],
+        ),
       ],
     );
   }
@@ -183,18 +251,30 @@ class SourceChangeMergerTest {
       expected:
           'AAAAAAAAAACCCCCCCCCCEEEEEEEEEEGGGGGGGGGGHHHHHHHHHHFFFFFFFFFFDDDDDDDDDDBBBBBBBBBB',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          // Insert CD between AB
-          SourceEdit(10, 0, 'CCCCCCCCCCDDDDDDDDDD'),
-        ]),
-        SourceFileEdit('', -1, edits: [
-          // Insert EF between CD
-          SourceEdit(20, 0, 'EEEEEEEEEEFFFFFFFFFF'),
-        ]),
-        SourceFileEdit('', -1, edits: [
-          // Insert GH between EF
-          SourceEdit(30, 0, 'GGGGGGGGGGHHHHHHHHHH'),
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Insert CD between AB
+            SourceEdit(10, 0, 'CCCCCCCCCCDDDDDDDDDD'),
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Insert EF between CD
+            SourceEdit(20, 0, 'EEEEEEEEEEFFFFFFFFFF'),
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Insert GH between EF
+            SourceEdit(30, 0, 'GGGGGGGGGGHHHHHHHHHH'),
+          ],
+        ),
       ],
     );
   }
@@ -204,12 +284,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '012306789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(4, 3, '0'), // Replace 4-5 with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(4, 3, '0'), // Replace 4-5 with 0
+          ],
+        ),
       ],
     );
   }
@@ -219,12 +307,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01230789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(4, 4, '0'), // Replace 4-56 with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(4, 4, '0'), // Replace 4-56 with 0
+          ],
+        ),
       ],
     );
   }
@@ -234,12 +330,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '012340789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 3, '0'), // Replace -56 with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 3, '0'), // Replace -56 with 0
+          ],
+        ),
       ],
     );
   }
@@ -249,12 +353,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234-06789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(6, 1, '0'), // Replace 5 with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(6, 1, '0'), // Replace 5 with 0
+          ],
+        ),
       ],
     );
   }
@@ -264,12 +376,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '0123406789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 2, '0'), // Replace -5 with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 2, '0'), // Replace -5 with 0
+          ],
+        ),
       ],
     );
   }
@@ -279,12 +399,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '012345056789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '5-5'), // Replace 5 with 5-5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(6, 1, '0'), // Replace - with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '5-5'), // Replace 5 with 5-5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(6, 1, '0'), // Replace - with 0
+          ],
+        ),
       ],
     );
   }
@@ -294,12 +422,20 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234056789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '0'), // Replace - with 0
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '0'), // Replace - with 0
+          ],
+        ),
       ],
     );
   }
@@ -309,17 +445,25 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '06789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          // Delete 5, 3, 1
-          SourceEdit(5, 1, ''),
-          SourceEdit(3, 1, ''),
-          SourceEdit(1, 1, ''),
-        ]),
-        SourceFileEdit('', -1, edits: [
-          // Delete 4, 2
-          SourceEdit(2, 1, ''),
-          SourceEdit(1, 1, ''),
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Delete 5, 3, 1
+            SourceEdit(5, 1, ''),
+            SourceEdit(3, 1, ''),
+            SourceEdit(1, 1, ''),
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Delete 4, 2
+            SourceEdit(2, 1, ''),
+            SourceEdit(1, 1, ''),
+          ],
+        ),
       ],
     );
   }
@@ -329,17 +473,25 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '0-1-2-3-4-56789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          // Insert - before 5, 3, 1
-          SourceEdit(5, 0, '-'),
-          SourceEdit(3, 0, '-'),
-          SourceEdit(1, 0, '-'),
-        ]),
-        SourceFileEdit('', -1, edits: [
-          // Insert - before 4, 2
-          SourceEdit(6, 0, '-'),
-          SourceEdit(3, 0, '-'),
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Insert - before 5, 3, 1
+            SourceEdit(5, 0, '-'),
+            SourceEdit(3, 0, '-'),
+            SourceEdit(1, 0, '-'),
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            // Insert - before 4, 2
+            SourceEdit(6, 0, '-'),
+            SourceEdit(3, 0, '-'),
+          ],
+        ),
       ],
     );
   }
@@ -349,15 +501,27 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '01234-60789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, ''), // Delete 5
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-6'), // Change 6 to -6
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(7, 0, '0'), // Insert 0 between -6 and 7
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, ''), // Delete 5
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-6'), // Change 6 to -6
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(7, 0, '0'), // Insert 0 between -6 and 7
+          ],
+        ),
       ],
     );
   }
@@ -367,15 +531,27 @@ class SourceChangeMergerTest {
       start: '0123456789',
       expected: '0-1-2-3-4-56789',
       edits: [
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(5, 1, '-5'), // Replace 5 with -5
-          SourceEdit(3, 1, '-3'),
-          SourceEdit(1, 1, '-1'),
-        ]),
-        SourceFileEdit('', -1, edits: [
-          SourceEdit(6, 1, '-4'), // 4 is at 6 because of two minuses before it
-          SourceEdit(3, 1, '-2'), // 2 is at 3...
-        ]),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(5, 1, '-5'), // Replace 5 with -5
+            SourceEdit(3, 1, '-3'),
+            SourceEdit(1, 1, '-1'),
+          ],
+        ),
+        SourceFileEdit(
+          '',
+          -1,
+          edits: [
+            SourceEdit(
+              6,
+              1,
+              '-4',
+            ), // 4 is at 6 because of two minuses before it
+            SourceEdit(3, 1, '-2'), // 2 is at 3...
+          ],
+        ),
       ],
     );
   }
@@ -439,7 +615,8 @@ class SourceChangeMergerTest {
         expect(
           edit.end,
           lessThanOrEqualTo(lastOffset),
-          reason: 'Edits within a SourceFileEdit should be ordered from '
+          reason:
+              'Edits within a SourceFileEdit should be ordered from '
               'last (highest offset) to first (lowest offset) and not overlap',
         );
         lastOffset = edit.offset;
@@ -466,7 +643,8 @@ class SourceChangeMergerTest {
         expect(
           edit.end,
           lessThan(lastOffset),
-          reason: 'Edits within a SourceFileEdit should be ordered from '
+          reason:
+              'Edits within a SourceFileEdit should be ordered from '
               'last (highest offset) to first (lowest offset) and not touch or '
               'overlap',
         );

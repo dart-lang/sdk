@@ -62,15 +62,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testCode = result.content;
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
-      expect(result.errors.where((AnalysisError error) {
-        return error.errorCode != WarningCode.DEAD_CODE &&
-            error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-            error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
-            error.errorCode != WarningCode.UNUSED_ELEMENT &&
-            error.errorCode != WarningCode.UNUSED_FIELD &&
-            error.errorCode != WarningCode.UNUSED_IMPORT &&
-            error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
-      }), isEmpty);
+      expect(
+        result.errors.where((AnalysisError error) {
+          return error.errorCode != WarningCode.DEAD_CODE &&
+              error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+              error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
+              error.errorCode != WarningCode.UNUSED_ELEMENT &&
+              error.errorCode != WarningCode.UNUSED_FIELD &&
+              error.errorCode != WarningCode.UNUSED_IMPORT &&
+              error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+        }),
+        isEmpty,
+      );
     }
     testUnitElement = testUnit.declaredElement!;
     testLibraryElement = testUnitElement.library;

@@ -49,7 +49,8 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
   }
 
   Future<protocol.FlutterGetWidgetDescriptionResult?> getDescription(
-      String search) async {
+    String search,
+  ) async {
     var content = testAnalysisResult.content;
 
     var offset = content.indexOf(search);
@@ -65,29 +66,27 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
   }
 
   protocol.FlutterWidgetProperty getNestedProperty(
-      protocol.FlutterWidgetProperty parentProperty, String name) {
+    protocol.FlutterWidgetProperty parentProperty,
+    String name,
+  ) {
     var nestedProperties = parentProperty.children!;
-    return nestedProperties.singleWhere(
-      (property) => property.name == name,
-    );
+    return nestedProperties.singleWhere((property) => property.name == name);
   }
 
   Future<protocol.FlutterWidgetProperty> getWidgetProperty(
-      String widgetSearch, String name) async {
+    String widgetSearch,
+    String name,
+  ) async {
     var widgetDescription = (await getDescription(widgetSearch))!;
 
     var properties = widgetDescription.properties;
-    return properties.singleWhere(
-      (property) => property.name == name,
-    );
+    return properties.singleWhere((property) => property.name == name);
   }
 
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   void _removeNotInterestingElements(Map<String, dynamic> json) {

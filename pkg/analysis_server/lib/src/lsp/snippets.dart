@@ -4,7 +4,8 @@
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/src/protocol_server.dart' as server
+import 'package:analysis_server/src/protocol_server.dart'
+    as server
     hide AnalysisError;
 import 'package:collection/collection.dart';
 
@@ -22,16 +23,15 @@ String buildSnippetStringForEditGroups(
   required int editOffset,
   int? selectionOffset,
   int? selectionLength,
-}) =>
-    _buildSnippetString(
-      text,
-      filePath: filePath,
-      editGroups: editGroups,
-      editGroupsOffset: editOffset,
-      selectionOffset:
-          selectionOffset != null ? selectionOffset - editOffset : null,
-      selectionLength: selectionLength,
-    );
+}) => _buildSnippetString(
+  text,
+  filePath: filePath,
+  editGroups: editGroups,
+  editGroupsOffset: editOffset,
+  selectionOffset:
+      selectionOffset != null ? selectionOffset - editOffset : null,
+  selectionLength: selectionLength,
+);
 
 /// Builds an LSP snippet string with supplied ranges as tab stops.
 ///
@@ -39,12 +39,11 @@ String buildSnippetStringForEditGroups(
 String buildSnippetStringWithTabStops(
   String text,
   List<int>? tabStopOffsetLengthPairs,
-) =>
-    _buildSnippetString(
-      text,
-      filePath: null,
-      tabStopOffsetLengthPairs: tabStopOffsetLengthPairs,
-    );
+) => _buildSnippetString(
+  text,
+  filePath: null,
+  tabStopOffsetLengthPairs: tabStopOffsetLengthPairs,
+);
 
 /// Builds an LSP snippet string with supplied ranges as tab stops.
 ///
@@ -81,16 +80,18 @@ String _buildSnippetString(
         // Make the position relative to the supplied text.
         position.offset - editGroupsOffset,
         editGroup.length,
-        suggestions: editGroup.suggestions
-            .map((suggestion) => suggestion.value)
-            .toList(),
+        suggestions:
+            editGroup.suggestions
+                .map((suggestion) => suggestion.value)
+                .toList(),
         // Use the index as an ID to keep all related positions together (so
         // the remain "linked").
         linkedGroupId: index,
         // If there is no selection, no tabstops, only a single edit group and
         // not multiple suggestions (which map to a choice), allow this to be
         // the final tabstop.
-        isFinal: selectionOffset == null &&
+        isFinal:
+            selectionOffset == null &&
             (tabStopOffsetLengthPairs?.isEmpty ?? false) &&
             editGroups?.length == 1 &&
             editGroup.suggestions.length <= 1,
@@ -113,7 +114,8 @@ String _buildSnippetString(
         tabStopOffsetLengthPairs[i + 1],
         // If there's only a single tab stop (and no selection/editGroups), mark
         // it as the final stop so it exit "snippet mode" when tabbed to.
-        isFinal: selectionOffset == null &&
+        isFinal:
+            selectionOffset == null &&
             editGroups.isEmpty &&
             tabStopOffsetLengthPairs.length == 2,
       ),
@@ -124,15 +126,18 @@ String _buildSnippetString(
 
   // Remove any groups outside of the range (it's possible the edit groups apply
   // to a different edit in the collection).
-  placeholders.removeWhere((placeholder) =>
-      placeholder.offset < 0 ||
-      placeholder.offset + placeholder.length > text.length);
+  placeholders.removeWhere(
+    (placeholder) =>
+        placeholder.offset < 0 ||
+        placeholder.offset + placeholder.length > text.length,
+  );
 
   /// If there are no edit groups, then placeholders are all simple and
   /// guaranteed to be in the correct order.
   var isPreSorted = editGroups.isEmpty;
-  var builder = SnippetBuilder()
-    ..appendPlaceholders(text, placeholders, isPreSorted: isPreSorted);
+  var builder =
+      SnippetBuilder()
+        ..appendPlaceholders(text, placeholders, isPreSorted: isPreSorted);
   return builder.value;
 }
 
@@ -149,16 +154,19 @@ class SnippetBuilder {
   static const finalTabStop = r'$0';
 
   /// Regex used by [escapeSnippetChoiceText].
-  static final _escapeSnippetChoiceTextRegex =
-      RegExp(r'[\\\|,]'); // Replace any of \ | ,
+  static final _escapeSnippetChoiceTextRegex = RegExp(
+    r'[\\\|,]',
+  ); // Replace any of \ | ,
 
   /// Regex used by [escapeSnippetPlainText].
-  static final _escapeSnippetPlainTextRegex =
-      RegExp(r'[$\\]'); // Replace any of $ \
+  static final _escapeSnippetPlainTextRegex = RegExp(
+    r'[$\\]',
+  ); // Replace any of $ \
 
   /// Regex used by [escapeSnippetVariableText].
-  static final _escapeSnippetVariableTextRegex =
-      RegExp(r'[$}\\]'); // Replace any of $ } \
+  static final _escapeSnippetVariableTextRegex = RegExp(
+    r'[$}\\]',
+  ); // Replace any of $ } \
 
   final _buffer = StringBuffer();
 
@@ -255,10 +263,8 @@ class SnippetBuilder {
   ///
   /// Similar to [escapeSnippetPlainText], but choices are delimited/separated
   /// by pipes and commas (`${1:|a,b,c|}`).
-  static String escapeSnippetChoiceText(String input) => _escapeCharacters(
-        input,
-        _escapeSnippetChoiceTextRegex,
-      );
+  static String escapeSnippetChoiceText(String input) =>
+      _escapeCharacters(input, _escapeSnippetChoiceTextRegex);
 
   /// Escapes a string to be used in an LSP edit that uses Snippet mode where the
   /// text is outside of a snippet token.
@@ -272,10 +278,8 @@ class SnippetBuilder {
   ///
   /// Similar to [escapeSnippetPlainText] but additionally escapes `}` so that the
   /// token is not ended early if the included text contains braces.
-  static String escapeSnippetVariableText(String input) => _escapeCharacters(
-        input,
-        _escapeSnippetVariableTextRegex,
-      );
+  static String escapeSnippetVariableText(String input) =>
+      _escapeCharacters(input, _escapeSnippetVariableTextRegex);
 
   /// Escapes [pattern] in [input] with backslashes.
   static String _escapeCharacters(String input, Pattern pattern) =>

@@ -35,7 +35,9 @@ Expression climbPropertyAccess(Expression node) {
 /// Return references to the [element] inside the [root] node.
 // TODO(pq): update to `findLocalElementReferences2`.
 List<SimpleIdentifier> findLocalElementReferences(
-    AstNode root, LocalElement element) {
+  AstNode root,
+  LocalElement element,
+) {
   var collector = _ElementReferenceCollector(element);
   root.accept(collector);
   return collector.references;
@@ -60,7 +62,9 @@ List<AstNode> findLocalElementReferences3(AstNode root, Element2 element) {
 
 /// Return references to the [element] inside the [root] node.
 List<SimpleIdentifier> findPrefixElementReferences(
-    AstNode root, PrefixElement element) {
+  AstNode root,
+  PrefixElement element,
+) {
   var collector = _ElementReferenceCollector(element);
   root.accept(collector);
   return collector.references;
@@ -68,7 +72,9 @@ List<SimpleIdentifier> findPrefixElementReferences(
 
 /// Return references to the [element] inside the [root] node.
 List<AstNode> findPrefixElementReferences2(
-    AstNode root, PrefixElement2 element) {
+  AstNode root,
+  PrefixElement2 element,
+) {
   var collector = _ElementReferenceCollector3(element);
   root.accept(collector);
   return collector.references;
@@ -199,7 +205,10 @@ Map<String, Element2> getImportNamespace2(LibraryImport imp) {
 
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
-    path.Context pathContext, LibraryElement from, Uri what) {
+  path.Context pathContext,
+  LibraryElement from,
+  Uri what,
+) {
   if (what.isScheme('file')) {
     var fromFolder = pathContext.dirname(from.source.fullName);
     var relativeFile = pathContext.relative(what.path, from: fromFolder);

@@ -23,18 +23,24 @@ abstract class CompletionHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   /// Return `true` if completion is disabled and the handler should return. If
   /// `true` is returned then a response will already have been returned, so
   /// subclasses should not return a second response.
   bool get completionIsDisabled {
     if (!server.options.featureSet.completion) {
-      sendResponse(Response.invalidParameter(
-        request,
-        'request',
-        'The completion feature is not enabled',
-      ));
+      sendResponse(
+        Response.invalidParameter(
+          request,
+          'request',
+          'The completion feature is not enabled',
+        ),
+      );
       return true;
     }
     return false;
@@ -58,7 +64,11 @@ abstract class LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   LegacyHandler(
-      this.server, this.request, this.cancellationToken, this.performance);
+    this.server,
+    this.request,
+    this.cancellationToken,
+    this.performance,
+  );
 
   /// Whether this command records its own analytics and should be excluded from
   /// logging by the server.
@@ -91,13 +101,15 @@ abstract class LegacyHandler {
   /// and whose body if the given [result].
   void sendResult(ResponseResult result) {
     sendResponse(
-        result.toResponse(request.id, clientUriConverter: server.uriConverter));
+      result.toResponse(request.id, clientUriConverter: server.uriConverter),
+    );
   }
 
   /// Send a notification built from the given [params].
   void sendSearchResults(SearchResultsParams params) {
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   }
 }
 

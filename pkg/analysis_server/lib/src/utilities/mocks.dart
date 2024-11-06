@@ -66,12 +66,14 @@ class MockServerChannel implements ServerCommunicationChannel {
     if (errorCompleter != null && notification.event == 'server.error') {
       var params = notification.params!;
       print('[server.error] test: $name message: ${params['message']}');
-      errorCompleter.completeError(ServerError(params['message'] as String),
-          StackTrace.fromString(params['stackTrace'] as String));
+      errorCompleter.completeError(
+        ServerError(params['message'] as String),
+        StackTrace.fromString(params['stackTrace'] as String),
+      );
     }
     // Wrap send notification in future to simulate websocket
     // TODO(scheglov): ask Dan why and decide what to do
-//    new Future(() => notificationController.add(notification));
+    //    new Future(() => notificationController.add(notification));
     notificationController.add(notification);
   }
 
@@ -124,8 +126,9 @@ class MockServerChannel implements ServerCommunicationChannel {
   /// has already been sent to the server.
   Future<Response> waitForResponse(Request request) {
     var id = request.id;
-    return responseController.stream
-        .firstWhere((response) => response.id == id);
+    return responseController.stream.firstWhere(
+      (response) => response.id == id,
+    );
   }
 }
 
@@ -149,7 +152,7 @@ class TestPluginManager implements PluginManager {
   plugin.RequestParams? broadcastedRequest;
   Map<PluginInfo, Future<plugin.Response>>? broadcastResults;
   Map<PluginInfo, Future<plugin.Response>>? Function(plugin.RequestParams)?
-      handleRequest;
+  handleRequest;
   Map<analyzer.ContextRoot, List<String>> contextRootPlugins = {};
 
   @override
@@ -188,14 +191,17 @@ class TestPluginManager implements PluginManager {
 
   @override
   Future<void> addPluginToContextRoot(
-      analyzer.ContextRoot contextRoot, String path) async {
+    analyzer.ContextRoot contextRoot,
+    String path,
+  ) async {
     contextRootPlugins.putIfAbsent(contextRoot, () => []).add(path);
   }
 
   @override
   Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
-      plugin.RequestParams params,
-      {analyzer.ContextRoot? contextRoot}) {
+    plugin.RequestParams params, {
+    analyzer.ContextRoot? contextRoot,
+  }) {
     broadcastedRequest = params;
     return handleRequest?.call(params) ??
         broadcastResults ??
@@ -204,7 +210,8 @@ class TestPluginManager implements PluginManager {
 
   @override
   Future<List<Future<plugin.Response>>> broadcastWatchEvent(
-      WatchEvent watchEvent) async {
+    WatchEvent watchEvent,
+  ) async {
     return <Future<plugin.Response>>[];
   }
 
@@ -231,19 +238,22 @@ class TestPluginManager implements PluginManager {
 
   @override
   void setAnalysisSetPriorityFilesParams(
-      plugin.AnalysisSetPriorityFilesParams params) {
+    plugin.AnalysisSetPriorityFilesParams params,
+  ) {
     analysisSetPriorityFilesParams = params;
   }
 
   @override
   void setAnalysisSetSubscriptionsParams(
-      plugin.AnalysisSetSubscriptionsParams params) {
+    plugin.AnalysisSetSubscriptionsParams params,
+  ) {
     analysisSetSubscriptionsParams = params;
   }
 
   @override
   void setAnalysisUpdateContentParams(
-      plugin.AnalysisUpdateContentParams params) {
+    plugin.AnalysisUpdateContentParams params,
+  ) {
     analysisUpdateContentParams = params;
   }
 

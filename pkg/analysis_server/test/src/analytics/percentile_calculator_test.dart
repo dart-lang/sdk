@@ -21,20 +21,26 @@ class PercentileCalculatorTest {
       calculator.addValue(i);
     }
     calculator.clear();
-    expect(calculator.toAnalyticsString(),
-        '{"count":0,"percentiles":[0,0,0,0,0]}');
+    expect(
+      calculator.toAnalyticsString(),
+      '{"count":0,"percentiles":[0,0,0,0,0]}',
+    );
   }
 
   void test_toAnalyticsString_empty() {
-    expect(calculator.toAnalyticsString(),
-        '{"count":0,"percentiles":[0,0,0,0,0]}');
+    expect(
+      calculator.toAnalyticsString(),
+      '{"count":0,"percentiles":[0,0,0,0,0]}',
+    );
   }
 
   void test_toAnalyticsString_evenDistribution() {
     for (int i = 1; i <= 100; i++) {
       calculator.addValue(i);
     }
-    expect(calculator.toAnalyticsString(),
-        '{"count":100,"percentiles":[50,75,90,95,100]}');
+    expect(
+      calculator.toAnalyticsString(),
+      '{"count":100,"percentiles":[50,75,90,95,100]}',
+    );
   }
 }

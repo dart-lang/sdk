@@ -12,8 +12,8 @@ import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A function that can be executed to create a refactoring producer.
-typedef RefactoringProducerGenerator = RefactoringProducer Function(
-    RefactoringContext);
+typedef RefactoringProducerGenerator =
+    RefactoringProducer Function(RefactoringContext);
 
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
@@ -54,9 +54,11 @@ class RefactoringProcessor {
       // without default values that are not supported by the client.
       assert(
         () {
-          return parameters.every((parameter) =>
-              parameter.defaultValue != null ||
-              producer.supportsCommandParameter(parameter.kind));
+          return parameters.every(
+            (parameter) =>
+                parameter.defaultValue != null ||
+                producer.supportsCommandParameter(parameter.kind),
+          );
         }(),
         '${producer.title} refactor returned parameters without defaults '
         'that are not supported by the client',
@@ -70,24 +72,23 @@ class RefactoringProcessor {
 
       refactorings.add(
         CodeAction(
+          title: producer.title,
+          kind: producer.kind,
+          command: Command(
+            command: command,
             title: producer.title,
-            kind: producer.kind,
-            command: Command(
-              command: command,
-              title: producer.title,
-              arguments: [
-                {
-                  'filePath': context.resolvedUnitResult.path,
-                  'selectionOffset': context.selectionOffset,
-                  'selectionLength': context.selectionLength,
-                  'arguments':
-                      parameters.map((param) => param.defaultValue).toList(),
-                }
-              ],
-            ),
-            data: {
-              'parameters': parameters,
-            }),
+            arguments: [
+              {
+                'filePath': context.resolvedUnitResult.path,
+                'selectionOffset': context.selectionOffset,
+                'selectionLength': context.selectionLength,
+                'arguments':
+                    parameters.map((param) => param.defaultValue).toList(),
+              },
+            ],
+          ),
+          data: {'parameters': parameters},
+        ),
       );
     }
     return refactorings;

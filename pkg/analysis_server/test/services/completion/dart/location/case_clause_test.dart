@@ -296,7 +296,7 @@ suggestions
   }
 
   Future<void>
-      test_afterColon_beforeRightBrace_inFunction_partial_language219() async {
+  test_afterColon_beforeRightBrace_inFunction_partial_language219() async {
     await computeSuggestions('''
 // @dart=2.19
 foo() {switch(1) {case 1: b^}}
@@ -379,7 +379,7 @@ suggestions
   }
 
   Future<void>
-      test_afterColon_beforeRightBrace_inMethod_partial_language219() async {
+  test_afterColon_beforeRightBrace_inMethod_partial_language219() async {
     await computeSuggestions('''
 // @dart=2.19
 class A{foo() {switch(1) {case 1: b^}}}

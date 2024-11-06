@@ -461,7 +461,8 @@ transforms:
   }
 
   void test_changeParameterType_nullabilityKey_absent() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Change parameter type'
@@ -474,13 +475,14 @@ transforms:
       name: 'p'
       argumentValue:
         expression: "'newValue'"
-''', [
-      error(TransformSetErrorCode.missingKey, 145, 98),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingKey, 145, 98)],
+    );
   }
 
   void test_changeParameterType_oneOf_named_index_keys() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Change parameter type'
@@ -495,9 +497,9 @@ transforms:
       nullability: 'non_null'
       argumentValue:
         expression: "'newValue'"
-''', [
-      error(TransformSetErrorCode.conflictingKey, 195, 5),
-    ]);
+''',
+      [error(TransformSetErrorCode.conflictingKey, 195, 5)],
+    );
   }
 
   void test_changeParameterType_positional_nullability() {
@@ -536,7 +538,8 @@ transforms:
   }
 
   void test_correctOffsetForPlainStrings() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: 'Add'
@@ -557,9 +560,9 @@ transforms:
           t:
             kind: 'fragment'
             value: args
-''', [
-      error(TransformSetErrorCode.unknownAccessor, 361, 4),
-    ]);
+''',
+      [error(TransformSetErrorCode.unknownAccessor, 361, 4)],
+    );
   }
 
   void test_date() {
@@ -681,21 +684,23 @@ transforms:
   }
 
   void test_incomplete() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
-''', [
-      error(TransformSetErrorCode.invalidValue, 21, 0),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 21, 0)],
+    );
     expect(result, null);
   }
 
   void test_invalidYaml() {
-    assertErrors('''
+    assertErrors(
+      '''
 [
-''', [
-      error(TransformSetErrorCode.yamlSyntaxError, 2, 0),
-    ]);
+''',
+      [error(TransformSetErrorCode.yamlSyntaxError, 2, 0)],
+    );
     expect(result, null);
   }
 

@@ -13,14 +13,21 @@ class EditListPostfixCompletionTemplatesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditListPostfixCompletionTemplatesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var templates = DartPostfixCompletion.ALL_TEMPLATES
-        .map((PostfixCompletionKind kind) =>
-            PostfixTemplateDescriptor(kind.name, kind.key, kind.example))
-        .toList();
+    var templates =
+        DartPostfixCompletion.ALL_TEMPLATES
+            .map(
+              (PostfixCompletionKind kind) =>
+                  PostfixTemplateDescriptor(kind.name, kind.key, kind.example),
+            )
+            .toList();
     sendResult(EditListPostfixCompletionTemplatesResult(templates));
   }
 }

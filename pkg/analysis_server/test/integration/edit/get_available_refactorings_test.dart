@@ -29,7 +29,10 @@ void foo() { }
 
     // expect at least one refactoring
     var result = await sendEditGetAvailableRefactorings(
-        pathname, text.indexOf('foo('), 0);
+      pathname,
+      text.indexOf('foo('),
+      0,
+    );
     expect(result.kinds, isNotEmpty);
   }
 }

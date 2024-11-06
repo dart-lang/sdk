@@ -16,10 +16,11 @@ void main() {
 @reflectiveTest
 class YamlSyntaxErrorTest extends AbstractTransformSetParserTest {
   void test_syntaxError() {
-    assertErrors('''
+    assertErrors(
+      '''
 {
-''', [
-      error(TransformSetErrorCode.yamlSyntaxError, 2, 0),
-    ]);
+''',
+      [error(TransformSetErrorCode.yamlSyntaxError, 2, 0)],
+    );
   }
 }

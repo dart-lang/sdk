@@ -32,7 +32,8 @@ f() {
   0.a;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   int get a => 1;
 }
@@ -42,10 +43,13 @@ extension on int {
 f() {
   E(0).a;
 }
-''', expectedNumberOfFixesForKind: 1, errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO;
-    });
+''',
+      expectedNumberOfFixesForKind: 1,
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO;
+      },
+    );
   }
 
   Future<void> test_no_parentheses() async {
@@ -73,11 +77,12 @@ f() {
 ''');
 
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Add an extension override for 'E'",
-          "Add an extension override for 'E2'",
-        ]);
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Add an extension override for 'E'",
+        "Add an extension override for 'E2'",
+      ],
+    );
   }
 
   Future<void> test_parentheses() async {
@@ -105,10 +110,11 @@ f() {
 ''');
 
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Add an extension override for 'E'",
-          "Add an extension override for 'E2'",
-        ]);
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Add an extension override for 'E'",
+        "Add an extension override for 'E2'",
+      ],
+    );
   }
 }

@@ -18,8 +18,8 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 
-typedef StaticOptions
-    = Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>;
+typedef StaticOptions =
+    Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>;
 
 abstract class AbstractSemanticTokensHandler<T>
     extends LspMessageHandler<T, SemanticTokens?>
@@ -32,25 +32,33 @@ abstract class AbstractSemanticTokensHandler<T>
   }
 
   Future<List<SemanticTokenInfo>> getServerResult(
-      CompilationUnit unit, SourceRange? range) async {
+    CompilationUnit unit,
+    SourceRange? range,
+  ) async {
     var computer = DartUnitHighlightsComputer(unit, range: range);
     return computer.computeSemanticTokens();
   }
 
   Iterable<SemanticTokenInfo> _filter(
-      Iterable<SemanticTokenInfo> tokens, SourceRange? range) {
+    Iterable<SemanticTokenInfo> tokens,
+    SourceRange? range,
+  ) {
     if (range == null) {
       return tokens;
     }
 
-    return tokens.where((token) =>
-        !(token.offset + token.length < range.offset ||
-            token.offset > range.end));
+    return tokens.where(
+      (token) =>
+          !(token.offset + token.length < range.offset ||
+              token.offset > range.end),
+    );
   }
 
   Future<ErrorOr<SemanticTokens?>> _handleImpl(
-      TextDocumentIdentifier textDocument, CancellationToken token,
-      {Range? range}) async {
+    TextDocumentIdentifier textDocument,
+    CancellationToken token, {
+    Range? range,
+  }) async {
     var path = pathOfDoc(textDocument);
 
     return path.mapResult((path) async {
@@ -65,9 +73,10 @@ abstract class AbstractSemanticTokensHandler<T>
       }
 
       return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
-        var serverTokens = resolvedUnit != null
-            ? await getServerResult(resolvedUnit.unit, range)
-            : <SemanticTokenInfo>[];
+        var serverTokens =
+            resolvedUnit != null
+                ? await getServerResult(resolvedUnit.unit, range)
+                : <SemanticTokenInfo>[];
         var pluginHighlightRegions = getPluginResults(path).flattenedToList;
 
         if (token.isCancellationRequested) {
@@ -75,8 +84,8 @@ abstract class AbstractSemanticTokensHandler<T>
         }
 
         var encoder = SemanticTokenEncoder();
-        Iterable<SemanticTokenInfo> pluginTokens =
-            encoder.convertHighlightToTokens(pluginHighlightRegions);
+        Iterable<SemanticTokenInfo> pluginTokens = encoder
+            .convertHighlightToTokens(pluginHighlightRegions);
 
         // Plugin tokens are not filtered at source, so need to be filtered here.
         pluginTokens = _filter(pluginTokens, range);
@@ -93,16 +102,17 @@ abstract class AbstractSemanticTokensHandler<T>
         // Some of the translation operations and the final encoding require
         // the tokens to be sorted. Do it once here to avoid each method needing
         // to do it itself (resulting in multiple sorts).
-        tokens = tokens.toList()
-          ..sort(SemanticTokenInfo.offsetLengthPrioritySort);
+        tokens =
+            tokens.toList()..sort(SemanticTokenInfo.offsetLengthPrioritySort);
 
         if (!allowOverlappingTokens) {
           tokens = encoder.splitOverlappingTokens(tokens);
         }
 
         if (!allowMultilineTokens) {
-          tokens = tokens
-              .expand((token) => encoder.splitMultilineTokens(token, lineInfo));
+          tokens = tokens.expand(
+            (token) => encoder.splitMultilineTokens(token, lineInfo),
+          );
 
           // Tokens may need re-filtering after being split up as there may
           // now be tokens outside of the range.
@@ -129,9 +139,11 @@ class SemanticTokensFullHandler
       SemanticTokensParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensParams params,
-          MessageInfo message, CancellationToken token) =>
-      _handleImpl(params.textDocument, token);
+  Future<ErrorOr<SemanticTokens?>> handle(
+    SemanticTokensParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) => _handleImpl(params.textDocument, token);
 }
 
 class SemanticTokensRangeHandler
@@ -146,9 +158,11 @@ class SemanticTokensRangeHandler
       SemanticTokensRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SemanticTokens?>> handle(SemanticTokensRangeParams params,
-          MessageInfo message, CancellationToken token) =>
-      _handleImpl(params.textDocument, token, range: params.range);
+  Future<ErrorOr<SemanticTokens?>> handle(
+    SemanticTokensRangeParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) => _handleImpl(params.textDocument, token, range: params.range);
 }
 
 class SemanticTokensRegistrations extends FeatureRegistration
@@ -157,13 +171,13 @@ class SemanticTokensRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => SemanticTokensRegistrationOptions(
-        documentSelector: fullySupportedTypes,
-        legend: semanticTokenLegend.lspLegend,
-        full: Either2<bool, SemanticTokensFullDelta>.t2(
-          SemanticTokensFullDelta(delta: false),
-        ),
-        range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
-      );
+    documentSelector: fullySupportedTypes,
+    legend: semanticTokenLegend.lspLegend,
+    full: Either2<bool, SemanticTokensFullDelta>.t2(
+      SemanticTokensFullDelta(delta: false),
+    ),
+    range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+  );
 
   @override
   Method get registrationMethod =>
@@ -171,12 +185,12 @@ class SemanticTokensRegistrations extends FeatureRegistration
 
   @override
   StaticOptions get staticOptions => Either2.t1(
-        SemanticTokensOptions(
-          legend: semanticTokenLegend.lspLegend,
-          full: Either2.t2(SemanticTokensFullDelta(delta: false)),
-          range: Either2.t1(true),
-        ),
-      );
+    SemanticTokensOptions(
+      legend: semanticTokenLegend.lspLegend,
+      full: Either2.t2(SemanticTokensFullDelta(delta: false)),
+      range: Either2.t1(true),
+    ),
+  );
 
   @override
   bool get supportsDynamic => clientDynamic.semanticTokens;

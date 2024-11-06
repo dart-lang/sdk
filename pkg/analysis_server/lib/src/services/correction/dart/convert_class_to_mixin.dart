@@ -17,8 +17,9 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_MIXIN;
@@ -33,8 +34,9 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
         selectionEnd < classDeclaration.classKeyword.offset) {
       return;
     }
-    if (classDeclaration.members
-        .any((member) => member is ConstructorDeclaration)) {
+    if (classDeclaration.members.any(
+      (member) => member is ConstructorDeclaration,
+    )) {
       return;
     }
     if (classDeclaration.finalKeyword != null ||
@@ -70,16 +72,19 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(
-          range.startStart(
-              classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
-              classDeclaration.leftBracket), (builder) {
-        builder.write('mixin ');
-        builder.write(classDeclaration.name.lexeme);
-        builder.writeTypeParameters2(classElement.typeParameters2);
-        builder.writeTypes(superclassConstraints, prefix: ' on ');
-        builder.writeTypes(interfaces, prefix: ' implements ');
-        builder.write(' ');
-      });
+        range.startStart(
+          classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
+          classDeclaration.leftBracket,
+        ),
+        (builder) {
+          builder.write('mixin ');
+          builder.write(classDeclaration.name.lexeme);
+          builder.writeTypeParameters2(classElement.typeParameters2);
+          builder.writeTypes(superclassConstraints, prefix: ' on ');
+          builder.writeTypes(interfaces, prefix: ' implements ');
+          builder.write(' ');
+        },
+      );
     });
   }
 }

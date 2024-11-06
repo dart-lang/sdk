@@ -98,7 +98,7 @@ class Interface extends LspEntity {
   }
 
   Interface.inline(String name, List<Member> members)
-      : this(name: name, members: members);
+    : this(name: name, members: members);
 }
 
 /// A type parsed from the LSP JSON model that has a singe literal value.
@@ -204,11 +204,7 @@ class MapType extends TypeBase {
 /// Base class for members ([Constant] and [Fields]s) parsed from the LSP JSON
 /// model.
 abstract class Member extends LspEntity {
-  Member({
-    required super.name,
-    super.comment,
-    super.isProposed,
-  });
+  Member({required super.name, super.comment, super.isProposed});
 }
 
 class NullableType extends TypeBase {
@@ -302,7 +298,7 @@ class TypeReference extends TypeBase {
       // Simplify MarkedString from
       //     string | { language: string; value: string }
       // to just String
-      'MarkedString': 'String'
+      'MarkedString': 'String',
     };
 
     var typeName = mapping[name] ?? name;

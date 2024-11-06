@@ -45,9 +45,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    var selection = await analyzeSelection(
-      available: availability,
-    );
+    var selection = await analyzeSelection(available: availability);
 
     // This should not happen, `isAvailable()` returns `false`.
     if (selection is! ValidSelectionState) {
@@ -65,21 +63,20 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       reordered = formalParameters.stablePartition((e) => !e.isSelected);
     }
 
-    var formalParameterUpdates = reordered.map(
-      (formalParameter) {
-        if (formalParameter.isSelected) {
-          return FormalParameterUpdate(
-            id: formalParameter.id,
-            kind: FormalParameterKind.requiredNamed,
-          );
-        } else {
-          return FormalParameterUpdate(
-            id: formalParameter.id,
-            kind: formalParameter.kind,
-          );
-        }
-      },
-    ).toList();
+    var formalParameterUpdates =
+        reordered.map((formalParameter) {
+          if (formalParameter.isSelected) {
+            return FormalParameterUpdate(
+              id: formalParameter.id,
+              kind: FormalParameterKind.requiredNamed,
+            );
+          } else {
+            return FormalParameterUpdate(
+              id: formalParameter.id,
+              kind: formalParameter.kind,
+            );
+          }
+        }).toList();
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,
@@ -95,9 +92,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
 
     switch (status) {
       case ChangeStatusFailure():
-        return ComputeStatusFailure(
-          reason: 'Failed to compute the change.',
-        );
+        return ComputeStatusFailure(reason: 'Failed to compute the change.');
       case ChangeStatusSuccess():
         return ComputeStatusSuccess();
     }

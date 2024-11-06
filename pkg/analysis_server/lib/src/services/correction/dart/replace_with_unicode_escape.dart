@@ -13,8 +13,9 @@ class ReplaceWithUnicodeEscape extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_UNICODE_ESCAPE;
@@ -30,7 +31,9 @@ class ReplaceWithUnicodeEscape extends ResolvedCorrectionProducer {
     var code = codeUnit.toRadixString(16).toUpperCase();
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.startOffsetEndOffset(offset, offset + 1), '\\u$code');
+        range.startOffsetEndOffset(offset, offset + 1),
+        '\\u$code',
+      );
     });
   }
 }

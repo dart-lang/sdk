@@ -90,7 +90,7 @@ void f() {
   }
 
   Future<void>
-      test_convertUnusedLocalVariable_recordAssignment_parenthesized() async {
+  test_convertUnusedLocalVariable_recordAssignment_parenthesized() async {
     await resolveTestCode('''
 void f() {
   var x = 0;

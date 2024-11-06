@@ -65,8 +65,10 @@ abstract class AbstractCompletionDriverTest
   bool get includeOverrides => true;
 
   @override
-  Future<List<CompletionSuggestion>> addTestFile(String content,
-      {int? offset}) async {
+  Future<List<CompletionSuggestion>> addTestFile(
+    String content, {
+    int? offset,
+  }) async {
     driver.addTestFile(content, offset: offset);
 
     // Wait after adding the test file, this might affect diagnostics.
@@ -87,13 +89,14 @@ abstract class AbstractCompletionDriverTest
     String? file,
   }) {
     expect(
-        suggestionsWith(
-          completion: completion,
-          element: element,
-          kind: kind,
-          file: file,
-        ),
-        isEmpty);
+      suggestionsWith(
+        completion: completion,
+        element: element,
+        kind: kind,
+        file: file,
+      ),
+      isEmpty,
+    );
   }
 
   /// Asserts that the [response] has the [expected] textual dump produced
@@ -137,21 +140,20 @@ To accept the current state change the expectation to
     String? libraryUri,
   }) {
     expect(
-        suggestionWith(
-          completion: completion,
-          element: element,
-          kind: kind,
-          file: file,
-          libraryUri: libraryUri,
-        ),
-        isNotNull);
+      suggestionWith(
+        completion: completion,
+        element: element,
+        kind: kind,
+        file: file,
+        libraryUri: libraryUri,
+      ),
+      isNotNull,
+    );
   }
 
   // TODO(scheglov): Use it everywhere instead of [addTestFile].
   // ignore:unreachable_from_main
-  Future<void> computeSuggestions(
-    String content,
-  ) async {
+  Future<void> computeSuggestions(String content) async {
     // Give the server time to create analysis contexts.
     await pumpEventQueue(times: 1000);
 
@@ -222,26 +224,25 @@ name: test
     CompletionSuggestionKind? kind,
     String? file,
     String? libraryUri,
-  }) =>
-      (CompletionSuggestion s) {
-        if (s.completion != completion) {
-          return false;
-        }
-        if (element != null && s.element?.kind != element) {
-          return false;
-        }
-        if (kind != null && s.kind != kind) {
-          return false;
-        }
+  }) => (CompletionSuggestion s) {
+    if (s.completion != completion) {
+      return false;
+    }
+    if (element != null && s.element?.kind != element) {
+      return false;
+    }
+    if (kind != null && s.kind != kind) {
+      return false;
+    }
 
-        if (file != null && s.element?.location?.file != convertPath(file)) {
-          return false;
-        }
-        if (libraryUri != null && s.libraryUri != libraryUri) {
-          return false;
-        }
-        return true;
-      };
+    if (file != null && s.element?.location?.file != convertPath(file)) {
+      return false;
+    }
+    if (libraryUri != null && s.libraryUri != libraryUri) {
+      return false;
+    }
+    return true;
+  };
 
   Iterable<CompletionSuggestion> suggestionsWith({
     required String completion,
@@ -249,13 +250,15 @@ name: test
     CompletionSuggestionKind? kind,
     String? file,
     String? libraryUri,
-  }) =>
-      suggestions.where(suggestionHas(
-          completion: completion,
-          element: element,
-          kind: kind,
-          file: file,
-          libraryUri: libraryUri));
+  }) => suggestions.where(
+    suggestionHas(
+      completion: completion,
+      element: element,
+      kind: kind,
+      file: file,
+      libraryUri: libraryUri,
+    ),
+  );
 
   CompletionSuggestion suggestionWith({
     required String completion,
@@ -265,11 +268,12 @@ name: test
     String? libraryUri,
   }) {
     var matches = suggestionsWith(
-        completion: completion,
-        element: element,
-        kind: kind,
-        file: file,
-        libraryUri: libraryUri);
+      completion: completion,
+      element: element,
+      kind: kind,
+      file: file,
+      libraryUri: libraryUri,
+    );
     expect(matches, hasLength(1));
     return matches.first;
   }
@@ -308,16 +312,19 @@ void f() {
 ''');
 
     expect(
+      suggestionWith(
+        completion: 'a2',
+        element: ElementKind.METHOD,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ).relevance,
+      lessThan(
         suggestionWith(
-                completion: 'a2',
-                element: ElementKind.METHOD,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance,
-        lessThan(suggestionWith(
-                completion: 'a1',
-                element: ElementKind.METHOD,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance));
+          completion: 'a1',
+          element: ElementKind.METHOD,
+          kind: CompletionSuggestionKind.INVOCATION,
+        ).relevance,
+      ),
+    );
   }
 }
 
@@ -343,9 +350,10 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
@@ -366,10 +374,7 @@ void f() {
   E v = ^
 }
 ''');
-    assertSuggestion(
-      completion: 'E.e',
-      element: ElementKind.ENUM_CONSTANT,
-    );
+    assertSuggestion(completion: 'E.e', element: ElementKind.ENUM_CONSTANT);
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
@@ -392,9 +397,10 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A.a',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A.a',
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
   }
 
   Future<void> test_project_filterMultipleImports() async {
@@ -414,10 +420,7 @@ void f() {
 }
 ''');
 
-    assertSuggestion(
-      completion: 'A',
-      element: ElementKind.CLASS,
-    );
+    assertSuggestion(completion: 'A', element: ElementKind.CLASS);
   }
 
   Future<void> test_project_lib() async {
@@ -440,37 +443,17 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
-    assertSuggestion(
       completion: 'A',
-      element: ElementKind.CLASS,
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
     );
-    assertSuggestion(
-      completion: 'E',
-      element: ElementKind.ENUM,
-    );
-    assertSuggestion(
-      completion: 'Ex',
-      element: ElementKind.EXTENSION,
-    );
-    assertSuggestion(
-      completion: 'M',
-      element: ElementKind.MIXIN,
-    );
-    assertSuggestion(
-      completion: 'T',
-      element: ElementKind.TYPE_ALIAS,
-    );
-    assertSuggestion(
-      completion: 'T2',
-      element: ElementKind.TYPE_ALIAS,
-    );
-    assertSuggestion(
-      completion: 'v',
-      element: ElementKind.TOP_LEVEL_VARIABLE,
-    );
+    assertSuggestion(completion: 'A', element: ElementKind.CLASS);
+    assertSuggestion(completion: 'E', element: ElementKind.ENUM);
+    assertSuggestion(completion: 'Ex', element: ElementKind.EXTENSION);
+    assertSuggestion(completion: 'M', element: ElementKind.MIXIN);
+    assertSuggestion(completion: 'T', element: ElementKind.TYPE_ALIAS);
+    assertSuggestion(completion: 'T2', element: ElementKind.TYPE_ALIAS);
+    assertSuggestion(completion: 'v', element: ElementKind.TOP_LEVEL_VARIABLE);
   }
 
   Future<void> test_project_lib_fields_class() async {
@@ -517,10 +500,7 @@ void f() {
 }
 ''');
 
-    assertSuggestion(
-      completion: 'g',
-      element: ElementKind.GETTER,
-    );
+    assertSuggestion(completion: 'g', element: ElementKind.GETTER);
   }
 
   Future<void> test_project_lib_methods_class() async {
@@ -572,15 +552,17 @@ void f() {
 
     // Should be suggested from both libraries.
     assertSuggestion(
-        completion: 'A',
-        libraryUri: 'package:test/a.dart',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      libraryUri: 'package:test/a.dart',
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
     assertSuggestion(
-        completion: 'A',
-        libraryUri: 'package:test/b.dart',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      libraryUri: 'package:test/b.dart',
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
   }
 
   Future<void> test_project_lib_multipleExports_filteredByImport() async {
@@ -672,15 +654,12 @@ void f() {
 }
 ''');
 
-    assertSuggestion(
-      completion: 's',
-      element: ElementKind.SETTER,
-    );
+    assertSuggestion(completion: 's', element: ElementKind.SETTER);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38739')
   Future<void>
-      test_project_suggestionRelevance_constructorParameterType() async {
+  test_project_suggestionRelevance_constructorParameterType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'b.dart';
 
@@ -702,16 +681,19 @@ void f(List<String> args) {
 ''');
 
     expect(
+      suggestionWith(
+        completion: 'O',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ).relevance,
+      greaterThan(
         suggestionWith(
-                completion: 'O',
-                element: ElementKind.CONSTRUCTOR,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance,
-        greaterThan(suggestionWith(
-                completion: 'args',
-                element: ElementKind.PARAMETER,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance));
+          completion: 'args',
+          element: ElementKind.PARAMETER,
+          kind: CompletionSuggestionKind.INVOCATION,
+        ).relevance,
+      ),
+    );
   }
 
   Future<void> test_project_suggestionRelevance_constructorsAndTypes() async {
@@ -733,10 +715,7 @@ void f(List<String> args) {
         element: ElementKind.CONSTRUCTOR,
       ).relevance,
       greaterThan(
-        suggestionWith(
-          completion: 'A',
-          element: ElementKind.CLASS,
-        ).relevance,
+        suggestionWith(completion: 'A', element: ElementKind.CLASS).relevance,
       ),
     );
   }
@@ -752,14 +731,8 @@ mixin class A { }
 class C extends Object with ^
 ''');
 
-    assertSuggestion(
-      completion: 'M',
-      element: ElementKind.MIXIN,
-    );
-    assertSuggestion(
-      completion: 'A',
-      element: ElementKind.CLASS,
-    );
+    assertSuggestion(completion: 'M', element: ElementKind.MIXIN);
+    assertSuggestion(completion: 'A', element: ElementKind.CLASS);
   }
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
@@ -770,12 +743,14 @@ void f() {
 ''');
 
     expect(
-        suggestionsWith(
-            completion: 'Future.value',
-            file: '/sdk/lib/async/async.dart',
-            element: ElementKind.CONSTRUCTOR,
-            kind: CompletionSuggestionKind.INVOCATION),
-        hasLength(1));
+      suggestionsWith(
+        completion: 'Future.value',
+        file: '/sdk/lib/async/async.dart',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ),
+      hasLength(1),
+    );
   }
 
   Future<void> test_sdk_lib_suggestions() async {
@@ -789,29 +764,33 @@ void f() {
 
     // Constructors should be visible.
     assertSuggestion(
-        completion: 'Timer',
-        file: '/sdk/lib/async/async.dart',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'Timer',
+      file: '/sdk/lib/async/async.dart',
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     // But not methods.
     assertNoSuggestion(
-        // dart:async (StreamSubscription)
-        completion: 'asFuture',
-        element: ElementKind.METHOD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      // dart:async (StreamSubscription)
+      completion: 'asFuture',
+      element: ElementKind.METHOD,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     // +  Functions.
     assertSuggestion(
-        completion: 'print',
-        file: '/sdk/lib/core/core.dart',
-        element: ElementKind.FUNCTION,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'print',
+      file: '/sdk/lib/core/core.dart',
+      element: ElementKind.FUNCTION,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
     assertSuggestion(
-        completion: 'tan',
-        file: '/sdk/lib/math/math.dart',
-        element: ElementKind.FUNCTION,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'tan',
+      file: '/sdk/lib/math/math.dart',
+      element: ElementKind.FUNCTION,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     // + Classes.
     assertSuggestion(

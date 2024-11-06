@@ -35,7 +35,10 @@ class CancelRequestHandler extends SharedMessageHandler<CancelParams, void> {
 
   @override
   ErrorOr<void> handle(
-      CancelParams params, MessageInfo message, CancellationToken token) {
+    CancelParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) {
     // Don't assume this is in the map as it's possible the client sent a
     // cancellation that we processed after already starting to send the
     // response and cleared the token.

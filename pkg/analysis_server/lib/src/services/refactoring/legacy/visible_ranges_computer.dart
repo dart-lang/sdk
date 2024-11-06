@@ -17,10 +17,16 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addLocalVariable(node, node.exceptionParameter?.declaredElement,
-        node.exceptionParameter?.declaredElement2);
-    _addLocalVariable(node, node.stackTraceParameter?.declaredElement,
-        node.stackTraceParameter?.declaredElement2);
+    _addLocalVariable(
+      node,
+      node.exceptionParameter?.declaredElement,
+      node.exceptionParameter?.declaredElement2,
+    );
+    _addLocalVariable(
+      node,
+      node.stackTraceParameter?.declaredElement,
+      node.stackTraceParameter?.declaredElement2,
+    );
     node.body.accept(this);
   }
 
@@ -53,7 +59,10 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     if (loop != null) {
       for (var variable in node.variables.variables) {
         _addLocalVariable(
-            loop, variable.declaredElement, variable.declaredElement2);
+          loop,
+          variable.declaredElement,
+          variable.declaredElement2,
+        );
         variable.initializer?.accept(this);
       }
     }
@@ -78,7 +87,8 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     // TODO(brianwilkerson): Figure out why this isn't handled.
     super.visitPatternVariableDeclarationStatement(node);
   }
@@ -89,14 +99,20 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     if (block != null) {
       for (var variable in node.variables.variables) {
         _addLocalVariable(
-            block, variable.declaredElement, variable.declaredElement2);
+          block,
+          variable.declaredElement,
+          variable.declaredElement2,
+        );
         variable.initializer?.accept(this);
       }
     }
   }
 
   void _addLocalVariable(
-      AstNode scopeNode, Element? element, Element2? element2) {
+    AstNode scopeNode,
+    Element? element,
+    Element2? element2,
+  ) {
     if (element is LocalVariableElement) {
       // TODO(brianwilkerson): Figure out why this isn't `PromotableElement`. It
       //  appears to be missing parameter elements.

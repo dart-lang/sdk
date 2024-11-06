@@ -28,9 +28,7 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_builder_blockFunctionBody() async {
@@ -726,9 +724,7 @@ class RemoveContainerBulkTest extends BulkFixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   @FailingTest(reason: 'nested row container not being removed')
@@ -783,9 +779,7 @@ class RemoveContainerTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_simple() async {

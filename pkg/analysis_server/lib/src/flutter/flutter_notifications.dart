@@ -9,17 +9,17 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/exception/exception.dart';
 
 void sendFlutterNotificationOutline(
-    LegacyAnalysisServer server, ResolvedUnitResult resolvedUnit) {
+  LegacyAnalysisServer server,
+  ResolvedUnitResult resolvedUnit,
+) {
   _sendNotification(server, () {
     var computer = FlutterOutlineComputer(resolvedUnit);
     var outline = computer.compute();
     // send notification
-    var params = protocol.FlutterOutlineParams(
-      resolvedUnit.path,
-      outline,
-    );
+    var params = protocol.FlutterOutlineParams(resolvedUnit.path, outline);
     server.sendNotification(
-        params.toNotification(clientUriConverter: server.uriConverter));
+      params.toNotification(clientUriConverter: server.uriConverter),
+    );
   });
 }
 
@@ -28,7 +28,12 @@ void _sendNotification(LegacyAnalysisServer server, Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {
-    server.instrumentationService.logException(CaughtException.withMessage(
-        'Failed to send notification', exception, stackTrace));
+    server.instrumentationService.logException(
+      CaughtException.withMessage(
+        'Failed to send notification',
+        exception,
+        stackTrace,
+      ),
+    );
   }
 }

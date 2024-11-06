@@ -16,8 +16,9 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_FLUTTER_CHILD;
@@ -45,12 +46,15 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
           if (newlineLoc == childArgSrc.length) {
             newlineLoc -= 1;
           }
-          var indentOld =
-              utils.getLinePrefix(expression.offset + eol.length + newlineLoc);
+          var indentOld = utils.getLinePrefix(
+            expression.offset + eol.length + newlineLoc,
+          );
           var indentNew = '$indentOld${utils.oneIndent}';
           // The separator includes 'child:' but that has no newlines.
-          var separator =
-              utils.getText(named.offset, expression.offset - named.offset);
+          var separator = utils.getText(
+            named.offset,
+            expression.offset - named.offset,
+          );
           var prefix = separator.contains(eol) ? '' : '$eol$indentNew';
           if (prefix.isEmpty) {
             builder.addSimpleInsertion(named.offset + 'child:'.length, ' [');

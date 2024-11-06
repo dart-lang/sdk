@@ -30,8 +30,10 @@ class ImportedElementsComputerTest extends AbstractContextTest {
       for (var actualElements in importedElements) {
         if (expectedPath == actualElements.path &&
             actualElements.prefix == expectedElements.prefix) {
-          expect(actualElements.elements,
-              unorderedEquals(expectedElements.elements));
+          expect(
+            actualElements.elements,
+            unorderedEquals(expectedElements.elements),
+          );
           found = true;
           break;
         }
@@ -232,8 +234,9 @@ class B {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'A.a + B.b';
@@ -258,8 +261,9 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'Foo.first';
@@ -284,8 +288,9 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'f.Foo.first';
@@ -308,8 +313,9 @@ String foo() => '';
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'f.foo()';
@@ -332,8 +338,9 @@ String foo = '';
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'f.foo';
@@ -356,8 +363,9 @@ String foo = '';
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'prefix.foo';
@@ -382,8 +390,9 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'Foo.first';
@@ -409,8 +418,9 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var selection = 'f.Foo.first + Foo.second';
@@ -471,7 +481,10 @@ bool randomBool() {
     var file = newFile(sourcePath, content);
     var result = await getResolvedUnit(file);
     var computer = ImportedElementsComputer(
-        result.unit, content.indexOf(selection), selection.length);
+      result.unit,
+      content.indexOf(selection),
+      selection.length,
+    );
     importedElements = computer.compute();
   }
 }

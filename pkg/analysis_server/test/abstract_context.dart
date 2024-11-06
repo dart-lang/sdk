@@ -104,10 +104,7 @@ class AbstractContextTest
 
   void assertSourceChange(SourceChange sourceChange, String expected) {
     var buffer = StringBuffer();
-    _writeSourceChangeToBuffer(
-      buffer: buffer,
-      sourceChange: sourceChange,
-    );
+    _writeSourceChangeToBuffer(buffer: buffer, sourceChange: sourceChange);
     _assertTextExpectation(buffer.toString(), expected);
   }
 
@@ -223,16 +220,11 @@ class AbstractContextTest
 
     setupResourceProvider();
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     writeTestPackageConfig();
 
-    createAnalysisOptionsFile(
-      experiments: experiments,
-    );
+    createAnalysisOptionsFile(experiments: experiments);
   }
 
   void setupResourceProvider() {}

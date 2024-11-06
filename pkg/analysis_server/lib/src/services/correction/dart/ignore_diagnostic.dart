@@ -21,8 +21,9 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
@@ -61,15 +62,15 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
         path = [];
         value = {
           'analyzer': {
-            'errors': {_code: 'ignore'}
-          }
+            'errors': {_code: 'ignore'},
+          },
         };
       } else {
         var analyzerMap = options['analyzer'];
         if (analyzerMap is! YamlMap || !analyzerMap.containsKey('errors')) {
           path = ['analyzer'];
           value = {
-            'errors': {_code: 'ignore'}
+            'errors': {_code: 'ignore'},
           };
         } else {
           path = ['analyzer', 'errors', _code];
@@ -194,8 +195,9 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
         return;
       }
 
-      var previousLineStart =
-          unitResult.lineInfo.getOffsetOfLine(lineNumber - 1);
+      var previousLineStart = unitResult.lineInfo.getOffsetOfLine(
+        lineNumber - 1,
+      );
       var lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
       var line =
           unitResult.content.substring(previousLineStart, lineStart).trim();
@@ -214,8 +216,9 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   AnalysisError get error => diagnostic as AnalysisError;
 
@@ -228,8 +231,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   /// - `error.code` is present in the `cannot-ignore` list.
   /// - `error.code` is already ignored in the `errors` list.
   bool get _isCodeUnignorable {
-    var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
-        .unignorableNames
+    var cannotIgnore = (analysisOptions as AnalysisOptionsImpl).unignorableNames
         .contains(error.errorCode.name);
 
     if (cannotIgnore) {
@@ -241,8 +243,10 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     //
     // Note: both `ignore` and `false` severity are set to `null` when parsed.
     //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
-    return analysisOptions.errorProcessors.any((element) =>
-        element.severity == null && element.code == error.errorCode.name);
+    return analysisOptions.errorProcessors.any(
+      (element) =>
+          element.severity == null && element.code == error.errorCode.name,
+    );
   }
 }
 

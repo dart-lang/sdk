@@ -26,11 +26,11 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   late _ExtensionMemberValidator _validator;
 
   RenameExtensionMemberRefactoringImpl(
-      RefactoringWorkspace workspace,
-      AnalysisSessionHelper sessionHelper,
-      this.extensionElement,
-      Element element)
-      : super(workspace, sessionHelper, element);
+    RefactoringWorkspace workspace,
+    AnalysisSessionHelper sessionHelper,
+    this.extensionElement,
+    Element element,
+  ) : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
@@ -46,7 +46,12 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = _ExtensionMemberValidator.forRename(
-        searchEngine, sessionHelper, extensionElement, element, newName);
+      searchEngine,
+      sessionHelper,
+      extensionElement,
+      element,
+      newName,
+    );
     return _validator.validate();
   }
 
@@ -104,11 +109,15 @@ class _ExtensionMemberValidator {
   final RefactoringStatus result = RefactoringStatus();
   final List<SearchMatch> references = <SearchMatch>[];
 
-  _ExtensionMemberValidator.forRename(this.searchEngine, this.sessionHelper,
-      this.elementExtension, this.element, this.name)
-      : isRename = true,
-        library = elementExtension.library,
-        elementKind = element.kind;
+  _ExtensionMemberValidator.forRename(
+    this.searchEngine,
+    this.sessionHelper,
+    this.elementExtension,
+    this.element,
+    this.name,
+  ) : isRename = true,
+      library = elementExtension.library,
+      elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
     // Check if there is a member with "newName" in the extension.
@@ -199,9 +208,7 @@ class _ExtensionMemberValidator {
   Future<void> _prepareReferences() async {
     if (!isRename) return;
 
-    references.addAll(
-      await searchEngine.searchReferences(element),
-    );
+    references.addAll(await searchEngine.searchReferences(element));
   }
 }
 

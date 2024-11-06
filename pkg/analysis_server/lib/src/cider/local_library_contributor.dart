@@ -31,18 +31,31 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
   factory LibraryElementSuggestionBuilder(
-      DartCompletionRequest request, SuggestionBuilder builder,
-      [String? prefix]) {
+    DartCompletionRequest request,
+    SuggestionBuilder builder, [
+    String? prefix,
+  ]) {
     var opType = request.opType;
-    var kind = request.target.isFunctionalArgument()
-        ? CompletionSuggestionKind.IDENTIFIER
-        : opType.suggestKind;
+    var kind =
+        request.target.isFunctionalArgument()
+            ? CompletionSuggestionKind.IDENTIFIER
+            : opType.suggestKind;
     return LibraryElementSuggestionBuilder._(
-        request, builder, opType, kind, prefix);
+      request,
+      builder,
+      opType,
+      kind,
+      prefix,
+    );
   }
 
   LibraryElementSuggestionBuilder._(
-      this.request, this.builder, this.opType, this.kind, this.prefix);
+    this.request,
+    this.builder,
+    this.opType,
+    this.kind,
+    this.prefix,
+  );
 
   @override
   void visitClassElement(ClassElement element) {
@@ -213,8 +226,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
             if (field.isSynthetic) {
               var getter = field.getter;
               if (getter != null) {
-                builder.suggestAccessor(getter,
-                    inheritanceDistance: 0.0, withEnclosingName: true);
+                builder.suggestAccessor(
+                  getter,
+                  inheritanceDistance: 0.0,
+                  withEnclosingName: true,
+                );
               }
             } else {
               builder.suggestStaticField(field, prefix: prefix);

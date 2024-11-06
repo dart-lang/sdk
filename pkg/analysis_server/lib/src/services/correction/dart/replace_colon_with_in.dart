@@ -28,7 +28,9 @@ class ReplaceColonWithIn extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          SourceRange(diagnostic.problemMessage.offset, 1), 'in');
+        SourceRange(diagnostic.problemMessage.offset, 1),
+        'in',
+      );
     });
   }
 }

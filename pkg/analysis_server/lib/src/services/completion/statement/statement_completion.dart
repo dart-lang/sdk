@@ -25,34 +25,62 @@ import 'package:collection/collection.dart';
 
 /// An enumeration of possible statement completion kinds.
 abstract final class DartStatementCompletion {
-  static const NO_COMPLETION =
-      StatementCompletionKind('No_COMPLETION', 'No completion available');
+  static const NO_COMPLETION = StatementCompletionKind(
+    'No_COMPLETION',
+    'No completion available',
+  );
   static const SIMPLE_ENTER = StatementCompletionKind(
-      'SIMPLE_ENTER', 'Insert a newline at the end of the current line');
+    'SIMPLE_ENTER',
+    'Insert a newline at the end of the current line',
+  );
   static const SIMPLE_SEMICOLON = StatementCompletionKind(
-      'SIMPLE_SEMICOLON', 'Add a semicolon and newline');
+    'SIMPLE_SEMICOLON',
+    'Add a semicolon and newline',
+  );
   static const COMPLETE_CLASS_DECLARATION = StatementCompletionKind(
-      'COMPLETE_CLASS_DECLARATION', 'Complete class declaration');
+    'COMPLETE_CLASS_DECLARATION',
+    'Complete class declaration',
+  );
   static const COMPLETE_CONTROL_FLOW_BLOCK = StatementCompletionKind(
-      'COMPLETE_CONTROL_FLOW_BLOCK', 'Complete control flow block');
-  static const COMPLETE_DO_STMT =
-      StatementCompletionKind('COMPLETE_DO_STMT', 'Complete do-statement');
-  static const COMPLETE_IF_STMT =
-      StatementCompletionKind('COMPLETE_IF_STMT', 'Complete if-statement');
-  static const COMPLETE_FOR_STMT =
-      StatementCompletionKind('COMPLETE_FOR_STMT', 'Complete for-statement');
+    'COMPLETE_CONTROL_FLOW_BLOCK',
+    'Complete control flow block',
+  );
+  static const COMPLETE_DO_STMT = StatementCompletionKind(
+    'COMPLETE_DO_STMT',
+    'Complete do-statement',
+  );
+  static const COMPLETE_IF_STMT = StatementCompletionKind(
+    'COMPLETE_IF_STMT',
+    'Complete if-statement',
+  );
+  static const COMPLETE_FOR_STMT = StatementCompletionKind(
+    'COMPLETE_FOR_STMT',
+    'Complete for-statement',
+  );
   static const COMPLETE_FOR_EACH_STMT = StatementCompletionKind(
-      'COMPLETE_FOR_EACH_STMT', 'Complete for-each-statement');
+    'COMPLETE_FOR_EACH_STMT',
+    'Complete for-each-statement',
+  );
   static const COMPLETE_FUNCTION_DECLARATION = StatementCompletionKind(
-      'COMPLETE_FUNCTION_DECLARATION', 'Complete function declaration');
+    'COMPLETE_FUNCTION_DECLARATION',
+    'Complete function declaration',
+  );
   static const COMPLETE_SWITCH_STMT = StatementCompletionKind(
-      'COMPLETE_SWITCH_STMT', 'Complete switch-statement');
-  static const COMPLETE_TRY_STMT =
-      StatementCompletionKind('COMPLETE_TRY_STMT', 'Complete try-statement');
+    'COMPLETE_SWITCH_STMT',
+    'Complete switch-statement',
+  );
+  static const COMPLETE_TRY_STMT = StatementCompletionKind(
+    'COMPLETE_TRY_STMT',
+    'Complete try-statement',
+  );
   static const COMPLETE_VARIABLE_DECLARATION = StatementCompletionKind(
-      'COMPLETE_VARIABLE_DECLARATION', 'Complete variable declaration');
+    'COMPLETE_VARIABLE_DECLARATION',
+    'Complete variable declaration',
+  );
   static const COMPLETE_WHILE_STMT = StatementCompletionKind(
-      'COMPLETE_WHILE_STMT', 'Complete while-statement');
+    'COMPLETE_WHILE_STMT',
+    'Complete while-statement',
+  );
 }
 
 /// A description of a statement completion.
@@ -102,7 +130,9 @@ class StatementCompletionKind {
 /// The computer for Dart statement completions.
 class StatementCompletionProcessor {
   static final NO_COMPLETION = StatementCompletion(
-      DartStatementCompletion.NO_COMPLETION, SourceChange('', edits: []));
+    DartStatementCompletion.NO_COMPLETION,
+    SourceChange('', edits: []),
+  );
 
   final StatementCompletionContext statementContext;
   final CorrectionUtils utils;
@@ -118,7 +148,7 @@ class StatementCompletionProcessor {
   Position? exitPosition;
 
   StatementCompletionProcessor(this.statementContext)
-      : utils = CorrectionUtils(statementContext.resolveResult);
+    : utils = CorrectionUtils(statementContext.resolveResult);
 
   String get eol => utils.endOfLine;
 
@@ -140,7 +170,8 @@ class StatementCompletionProcessor {
       return NO_COMPLETION;
     }
     node = node.thisOrAncestorMatching(
-        (n) => n is Statement || _isNonStatementDeclaration(n));
+      (n) => n is Statement || _isNonStatementDeclaration(n),
+    );
     if (node == null) {
       return _complete_simpleEnter() ? completion! : NO_COMPLETION;
     }
@@ -304,7 +335,8 @@ class StatementCompletionProcessor {
       _removeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
       _addInsertEdit(loc, delimiter);
     }
-    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
+    expr =
+        errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
         errorMatching(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
@@ -369,9 +401,10 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_controlFlowBlock(AstNode node) {
-    var expr = (node is ExpressionStatement)
-        ? node.expression
-        : (node is ReturnStatement ? node.expression : null);
+    var expr =
+        (node is ExpressionStatement)
+            ? node.expression
+            : (node is ReturnStatement ? node.expression : null);
     if (!(node is ReturnStatement || expr is ThrowExpression)) {
       return false;
     }
@@ -389,8 +422,10 @@ class StatementCompletionProcessor {
     var previousInsertions = _lengthOfInsertions();
     var delta = 0;
     if (errors.isNotEmpty) {
-      var error =
-          _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+      var error = _findError(
+        ParserErrorCode.EXPECTED_TOKEN,
+        partialMatch: "';'",
+      );
       if (error != null) {
         int insertOffset;
         // Fasta scanner reports unterminated string literal errors
@@ -446,7 +481,9 @@ class StatementCompletionProcessor {
         sb.append(' ');
       }
       _appendEmptyBraces(
-          sb, !(hasWhileKeyword && _isSyntheticExpression(node.condition)));
+        sb,
+        !(hasWhileKeyword && _isSyntheticExpression(node.condition)),
+      );
       if (delta != 0) {
         exitDelta = sb.length - delta;
       }
@@ -455,8 +492,13 @@ class StatementCompletionProcessor {
     }
     SourceBuilder? sb2;
     if (hasWhileKeyword) {
-      var stmt = _KeywordConditionBlockStructure(node.whileKeyword,
-          node.leftParenthesis, node.condition, node.rightParenthesis, null);
+      var stmt = _KeywordConditionBlockStructure(
+        node.whileKeyword,
+        node.leftParenthesis,
+        node.condition,
+        node.rightParenthesis,
+        null,
+      );
       sb2 = _complete_keywordCondition(node, stmt);
       if (sb2 == null) {
         return false;
@@ -487,15 +529,19 @@ class StatementCompletionProcessor {
     }
     _insertBuilder(sb);
     if (exitDelta != 0) {
-      exitPosition =
-          Position(exitPosition!.file, exitPosition!.offset + exitDelta);
+      exitPosition = Position(
+        exitPosition!.file,
+        exitPosition!.offset + exitDelta,
+      );
     }
     _setCompletion(DartStatementCompletion.COMPLETE_DO_STMT);
     return true;
   }
 
   bool _complete_forEachStatement(
-      ForStatement forNode, ForEachParts forEachParts) {
+    ForStatement forNode,
+    ForEachParts forEachParts,
+  ) {
     AstNode name;
     if (forEachParts is ForEachPartsWithIdentifier) {
       name = forEachParts.identifier;
@@ -505,25 +551,27 @@ class StatementCompletionProcessor {
       throw StateError('Unrecognized for loop parts');
     }
     return _complete_forEachStatementRest(
-        forNode,
-        forNode.forKeyword,
-        forNode.leftParenthesis,
-        name,
-        forEachParts.inKeyword,
-        forEachParts.iterable,
-        forNode.rightParenthesis,
-        forNode.body);
+      forNode,
+      forNode.forKeyword,
+      forNode.leftParenthesis,
+      name,
+      forEachParts.inKeyword,
+      forEachParts.iterable,
+      forNode.rightParenthesis,
+      forNode.body,
+    );
   }
 
   bool _complete_forEachStatementRest(
-      AstNode node,
-      Token forKeyword,
-      Token leftParenthesis,
-      AstNode? name,
-      Token inKeyword,
-      Expression? iterable,
-      Token rightParenthesis,
-      Statement body) {
+    AstNode node,
+    Token forKeyword,
+    Token leftParenthesis,
+    AstNode? name,
+    Token inKeyword,
+    Expression? iterable,
+    Token rightParenthesis,
+    Statement body,
+  ) {
     if (inKeyword.isSynthetic) {
       return false; // Can't happen -- would be parsed as a for-statement.
     }
@@ -534,23 +582,32 @@ class StatementCompletionProcessor {
       src = src.substring(leftParenthesis.offset - node.offset);
       if (src.startsWith(RegExp(r'\(\s*in\s*\)'))) {
         _addReplaceEdit(
-            range.startOffsetEndOffset(
-                leftParenthesis.offset + 1, rightParenthesis.offset),
-            ' in ');
+          range.startOffsetEndOffset(
+            leftParenthesis.offset + 1,
+            rightParenthesis.offset,
+          ),
+          ' in ',
+        );
       } else if (src.startsWith(RegExp(r'\(\s*in'))) {
         _addReplaceEdit(
-            range.startOffsetEndOffset(
-                leftParenthesis.offset + 1, inKeyword.offset),
-            ' ');
+          range.startOffsetEndOffset(
+            leftParenthesis.offset + 1,
+            inKeyword.offset,
+          ),
+          ' ',
+        );
       }
     } else if (iterable != null && _isSyntheticExpression(iterable)) {
       exitPosition = Position(file, rightParenthesis.offset + 1);
       src = src.substring(inKeyword.offset - node.offset);
       if (src.startsWith(RegExp(r'in\s*\)'))) {
         _addReplaceEdit(
-            range.startOffsetEndOffset(
-                inKeyword.offset + inKeyword.length, rightParenthesis.offset),
-            ' ');
+          range.startOffsetEndOffset(
+            inKeyword.offset + inKeyword.length,
+            rightParenthesis.offset,
+          ),
+          ' ',
+        );
       }
     }
     if (!_statementHasValidBody(forKeyword, body)) {
@@ -621,14 +678,15 @@ class StatementCompletionProcessor {
           forParts.initialization!.beginToken.lexeme == 'in') {
         // looks like a for/each statement missing the loop variable
         return _complete_forEachStatementRest(
-            forNode,
-            forNode.forKeyword,
-            forNode.leftParenthesis,
-            null,
-            forParts.initialization!.beginToken,
-            null,
-            forNode.rightParenthesis,
-            forNode.body);
+          forNode,
+          forNode.forKeyword,
+          forNode.leftParenthesis,
+          null,
+          forParts.initialization!.beginToken,
+          null,
+          forNode.rightParenthesis,
+          forNode.body,
+        );
       } else {
         var start = forParts.condition!.offset + forParts.condition!.length;
         var text = utils.getNodeText(forNode).substring(start - forNode.offset);
@@ -745,15 +803,20 @@ class StatementCompletionProcessor {
           insertOffset = _appendNewlinePlusIndent();
         }
         _setCompletionAt(
-            DartStatementCompletion.SIMPLE_SEMICOLON, insertOffset + delta);
+          DartStatementCompletion.SIMPLE_SEMICOLON,
+          insertOffset + delta,
+        );
         return true;
       }
     }
     return false;
   }
 
-  bool _complete_ifOrWhileStatement(AstNode node,
-      _KeywordConditionBlockStructure statement, StatementCompletionKind kind) {
+  bool _complete_ifOrWhileStatement(
+    AstNode node,
+    _KeywordConditionBlockStructure statement,
+    StatementCompletionKind kind,
+  ) {
     if (_statementHasValidBody(statement.keyword, statement.block!)) {
       return false;
     }
@@ -795,17 +858,23 @@ class StatementCompletionProcessor {
       return false;
     }
     var stmt = _KeywordConditionBlockStructure(
-        node.ifKeyword,
-        node.leftParenthesis,
-        node.expression,
-        node.rightParenthesis,
-        node.thenStatement);
+      node.ifKeyword,
+      node.leftParenthesis,
+      node.expression,
+      node.rightParenthesis,
+      node.thenStatement,
+    );
     return _complete_ifOrWhileStatement(
-        node, stmt, DartStatementCompletion.COMPLETE_IF_STMT);
+      node,
+      stmt,
+      DartStatementCompletion.COMPLETE_IF_STMT,
+    );
   }
 
   SourceBuilder? _complete_keywordCondition(
-      AstNode node, _KeywordConditionBlockStructure statement) {
+    AstNode node,
+    _KeywordConditionBlockStructure statement,
+  ) {
     SourceBuilder sb;
     if (statement.leftParenthesis.isSynthetic) {
       if (!statement.rightParenthesis.isSynthetic) {
@@ -842,14 +911,18 @@ class StatementCompletionProcessor {
   bool _complete_methodCall(AstNode node) {
     var parenError =
         _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
-            _findError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+        _findError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }
-    var argList = _selectedNode(at: selectionOffset)
-        ?.thisOrAncestorOfType<ArgumentList>();
-    argList ??= _selectedNode(at: parenError.offset)
-        ?.thisOrAncestorOfType<ArgumentList>();
+    var argList =
+        _selectedNode(
+          at: selectionOffset,
+        )?.thisOrAncestorOfType<ArgumentList>();
+    argList ??=
+        _selectedNode(
+          at: parenError.offset,
+        )?.thisOrAncestorOfType<ArgumentList>();
     if (argList == null ||
         argList.thisOrAncestorMatching((n) => n == node) == null) {
       return false;
@@ -857,8 +930,10 @@ class StatementCompletionProcessor {
     var previousInsertions = _lengthOfInsertions();
     var loc = min(selectionOffset, argList.end - 1);
     var delta = 1;
-    var semicolonError =
-        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+    var semicolonError = _findError(
+      ParserErrorCode.EXPECTED_TOKEN,
+      partialMatch: "';'",
+    );
     if (semicolonError == null) {
       loc += 1;
       delta = 0;
@@ -934,7 +1009,8 @@ class StatementCompletionProcessor {
       }
     }
     if (node
-        .leftBracket.isSynthetic /*&& switchNode.rightBracket.isSynthetic*/) {
+        .leftBracket
+        .isSynthetic /*&& switchNode.rightBracket.isSynthetic*/ ) {
       // See https://github.com/dart-lang/sdk/issues/29391
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
@@ -983,8 +1059,10 @@ class StatementCompletionProcessor {
         var exceptionType = catchNode.exceptionType;
         if (onKeyword != null && exceptionType != null) {
           if (exceptionType.length == 0 ||
-              _findError(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
-                      partialMatch: "name 'catch") !=
+              _findError(
+                    CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+                    partialMatch: "name 'catch",
+                  ) !=
                   null) {
             var src = utils.getNodeText(catchNode);
             if (src.startsWith(RegExp(r'on[ \t]+'))) {
@@ -1013,11 +1091,12 @@ class StatementCompletionProcessor {
         if (catchKeyword != null) {
           // catchOnly
           var struct = _KeywordConditionBlockStructure(
-              catchKeyword,
-              catchNode.leftParenthesis!,
-              catchNode.exceptionParameter!,
-              catchNode.rightParenthesis!,
-              catchNode.body);
+            catchKeyword,
+            catchNode.leftParenthesis!,
+            catchNode.exceptionParameter!,
+            catchNode.rightParenthesis!,
+            catchNode.body,
+          );
           if (sb != null) {
             // onCatch
             _insertBuilder(sb);
@@ -1065,21 +1144,32 @@ class StatementCompletionProcessor {
     if (node is! WhileStatement) {
       return false;
     }
-    var stmt = _KeywordConditionBlockStructure(node.whileKeyword,
-        node.leftParenthesis, node.condition, node.rightParenthesis, node.body);
+    var stmt = _KeywordConditionBlockStructure(
+      node.whileKeyword,
+      node.leftParenthesis,
+      node.condition,
+      node.rightParenthesis,
+      node.body,
+    );
     return _complete_ifOrWhileStatement(
-        node, stmt, DartStatementCompletion.COMPLETE_WHILE_STMT);
+      node,
+      stmt,
+      DartStatementCompletion.COMPLETE_WHILE_STMT,
+    );
   }
 
   engine.AnalysisError? _findError(ErrorCode code, {Pattern? partialMatch}) {
-    return errors.firstWhereOrNull((err) =>
-        err.errorCode == code &&
-        (partialMatch == null ? true : err.message.contains(partialMatch)));
+    return errors.firstWhereOrNull(
+      (err) =>
+          err.errorCode == code &&
+          (partialMatch == null ? true : err.message.contains(partialMatch)),
+    );
   }
 
   T? _findInvalidElement<T extends AstNode>(NodeList<T> list) {
-    return list.firstWhereOrNull((item) =>
-        selectionOffset >= item.offset && selectionOffset <= item.end);
+    return list.firstWhereOrNull(
+      (item) => selectionOffset >= item.offset && selectionOffset <= item.end,
+    );
   }
 
   void _insertBuilder(SourceBuilder builder, [int length = 0]) {
@@ -1233,8 +1323,13 @@ class _KeywordConditionBlockStructure {
   final AstNode condition;
   final Statement? block;
 
-  _KeywordConditionBlockStructure(this.keyword, this.leftParenthesis,
-      this.condition, this.rightParenthesis, this.block);
+  _KeywordConditionBlockStructure(
+    this.keyword,
+    this.leftParenthesis,
+    this.condition,
+    this.rightParenthesis,
+    this.block,
+  );
 
   int get offset => keyword.offset;
 }

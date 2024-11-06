@@ -58,7 +58,7 @@ class RefactoringManager {
   EditGetRefactoringResult? result;
 
   RefactoringManager(this.server, this.refactoringWorkspace)
-      : searchEngine = refactoringWorkspace.searchEngine {
+    : searchEngine = refactoringWorkspace.searchEngine {
     _reset();
   }
 
@@ -92,12 +92,19 @@ class RefactoringManager {
     _reset();
   }
 
-  void getRefactoring(Request request, EditGetRefactoringParams params,
-      CancellationToken cancellationToken) {
+  void getRefactoring(
+    Request request,
+    EditGetRefactoringParams params,
+    CancellationToken cancellationToken,
+  ) {
     // prepare for processing the request
     this.request = request;
-    var result = this.result = EditGetRefactoringResult(
-        EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
+    var result =
+        this.result = EditGetRefactoringResult(
+          EMPTY_PROBLEM_LIST,
+          EMPTY_PROBLEM_LIST,
+          EMPTY_PROBLEM_LIST,
+        );
 
     // process the request
     var file = params.file;
@@ -105,65 +112,74 @@ class RefactoringManager {
       return;
     }
 
-    runZonedGuarded(() async {
-      await _init(
-          params.kind, file, params.offset, params.length, cancellationToken);
-      if (initStatus.hasFatalError) {
-        feedback = null;
-        _sendResultResponse();
-        return;
-      }
-      // set options
-      if (_requiresOptions) {
-        if (params.options == null) {
-          optionsStatus = RefactoringStatus();
+    runZonedGuarded(
+      () async {
+        await _init(
+          params.kind,
+          file,
+          params.offset,
+          params.length,
+          cancellationToken,
+        );
+        if (initStatus.hasFatalError) {
+          feedback = null;
           _sendResultResponse();
           return;
         }
-        optionsStatus = _setOptions(params);
+        // set options
+        if (_requiresOptions) {
+          if (params.options == null) {
+            optionsStatus = RefactoringStatus();
+            _sendResultResponse();
+            return;
+          }
+          optionsStatus = _setOptions(params);
+          if (_hasFatalError) {
+            _sendResultResponse();
+            return;
+          }
+        }
+        // done if just validation
+        if (params.validateOnly) {
+          finalStatus = RefactoringStatus();
+          _sendResultResponse();
+          return;
+        }
+        // simulate an exception
+        if (test_simulateRefactoringException_final) {
+          throw 'A simulated refactoring exception - final.';
+        }
+        // validation and create change
+        var refactoring = this.refactoring!;
+        finalStatus = await refactoring.checkFinalConditions();
+        _checkForReset_afterFinalConditions();
         if (_hasFatalError) {
           _sendResultResponse();
           return;
         }
-      }
-      // done if just validation
-      if (params.validateOnly) {
-        finalStatus = RefactoringStatus();
+        // simulate an exception
+        if (test_simulateRefactoringException_change) {
+          throw 'A simulated refactoring exception - change.';
+        }
+        // create change
+        result.change = await refactoring.createChange();
+        _checkForReset_afterCreateChange();
+        result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
         _sendResultResponse();
-        return;
-      }
-      // simulate an exception
-      if (test_simulateRefactoringException_final) {
-        throw 'A simulated refactoring exception - final.';
-      }
-      // validation and create change
-      var refactoring = this.refactoring!;
-      finalStatus = await refactoring.checkFinalConditions();
-      _checkForReset_afterFinalConditions();
-      if (_hasFatalError) {
-        _sendResultResponse();
-        return;
-      }
-      // simulate an exception
-      if (test_simulateRefactoringException_change) {
-        throw 'A simulated refactoring exception - change.';
-      }
-      // create change
-      result.change = await refactoring.createChange();
-      _checkForReset_afterCreateChange();
-      result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
-      _sendResultResponse();
-    }, (exception, stackTrace) {
-      if (exception is _ResetError ||
-          exception is InconsistentAnalysisException) {
-        cancel();
-      } else {
-        server.instrumentationService.logException(exception, stackTrace);
-        server
-            .sendResponse(Response.serverError(request, exception, stackTrace));
-      }
-      _reset();
-    });
+      },
+      (exception, stackTrace) {
+        if (exception is _ResetError ||
+            exception is InconsistentAnalysisException) {
+          cancel();
+        } else {
+          server.instrumentationService.logException(exception, stackTrace);
+          server.sendResponse(
+            Response.serverError(request, exception, stackTrace),
+          );
+        }
+        _reset();
+      },
+    );
   }
 
   void _checkForReset_afterCreateChange() {
@@ -193,8 +209,12 @@ class RefactoringManager {
     }
   }
 
-  Future<void> _createRefactoringFromKind(String file, int offset, int length,
-      CancellationToken cancellationToken) async {
+  Future<void> _createRefactoringFromKind(
+    String file,
+    int offset,
+    int length,
+    CancellationToken cancellationToken,
+  ) async {
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -203,7 +223,10 @@ class RefactoringManager {
         if (element != null) {
           if (element is PropertyAccessorElement) {
             refactoring = ConvertGetterToMethodRefactoring(
-                refactoringWorkspace, resolvedUnit.session, element);
+              refactoringWorkspace,
+              resolvedUnit.session,
+              element,
+            );
           }
         }
       }
@@ -215,7 +238,10 @@ class RefactoringManager {
         if (element != null) {
           if (element is ExecutableElement) {
             refactoring = ConvertMethodToGetterRefactoring(
-                refactoringWorkspace, resolvedUnit.session, element);
+              refactoringWorkspace,
+              resolvedUnit.session,
+              element,
+            );
           }
         }
       }
@@ -223,23 +249,43 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         refactoring = ExtractLocalRefactoring(resolvedUnit, offset, length);
-        feedback = ExtractLocalVariableFeedback(<String>[], <int>[], <int>[],
-            coveringExpressionOffsets: <int>[],
-            coveringExpressionLengths: <int>[]);
+        feedback = ExtractLocalVariableFeedback(
+          <String>[],
+          <int>[],
+          <int>[],
+          coveringExpressionOffsets: <int>[],
+          coveringExpressionLengths: <int>[],
+        );
       }
     } else if (kind == RefactoringKind.EXTRACT_METHOD) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         refactoring = ExtractMethodRefactoring(
-            searchEngine, resolvedUnit, offset, length);
-        feedback = ExtractMethodFeedback(offset, length, '', <String>[], false,
-            <RefactoringMethodParameter>[], <int>[], <int>[]);
+          searchEngine,
+          resolvedUnit,
+          offset,
+          length,
+        );
+        feedback = ExtractMethodFeedback(
+          offset,
+          length,
+          '',
+          <String>[],
+          false,
+          <RefactoringMethodParameter>[],
+          <int>[],
+          <int>[],
+        );
       }
     } else if (kind == RefactoringKind.EXTRACT_WIDGET) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         refactoring = ExtractWidgetRefactoring(
-            searchEngine, resolvedUnit, offset, length);
+          searchEngine,
+          resolvedUnit,
+          offset,
+          length,
+        );
         feedback = ExtractWidgetFeedback();
       }
     } else if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
@@ -262,8 +308,10 @@ class RefactoringManager {
       }
     } else if (kind == RefactoringKind.MOVE_FILE) {
       refactoring = MoveFileRefactoring(
-          server.resourceProvider, refactoringWorkspace, file)
-        ..cancellationToken = cancellationToken;
+        server.resourceProvider,
+        refactoringWorkspace,
+        file,
+      )..cancellationToken = cancellationToken;
     } else if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -277,14 +325,23 @@ class RefactoringManager {
           }
         }
         if (node != null && element != null) {
-          var renameElement =
-              RenameRefactoring.getElementToRename(node, element);
+          var renameElement = RenameRefactoring.getElementToRename(
+            node,
+            element,
+          );
           if (renameElement != null) {
             // do create the refactoring
             refactoring = RenameRefactoring.create(
-                refactoringWorkspace, resolvedUnit, renameElement.element);
+              refactoringWorkspace,
+              resolvedUnit,
+              renameElement.element,
+            );
             feedback = RenameFeedback(
-                renameElement.offset, renameElement.length, 'kind', 'oldName');
+              renameElement.offset,
+              renameElement.length,
+              'kind',
+              'oldName',
+            );
           }
         }
       }
@@ -293,8 +350,13 @@ class RefactoringManager {
 
   /// Initializes this context to perform a refactoring with the specified
   /// parameters. The existing [Refactoring] is reused or created as needed.
-  Future<void> _init(RefactoringKind kind, String file, int offset, int length,
-      CancellationToken cancellationToken) async {
+  Future<void> _init(
+    RefactoringKind kind,
+    String file,
+    int offset,
+    int length,
+    CancellationToken cancellationToken,
+  ) async {
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
@@ -342,13 +404,17 @@ class RefactoringManager {
     } else if (refactoring is InlineLocalRefactoring) {
       if (!initStatus.hasFatalError) {
         feedback = InlineLocalVariableFeedback(
-            refactoring.variableName ?? '', refactoring.referenceCount);
+          refactoring.variableName ?? '',
+          refactoring.referenceCount,
+        );
       }
     } else if (refactoring is InlineMethodRefactoring) {
       if (!initStatus.hasFatalError) {
         feedback = InlineMethodFeedback(
-            refactoring.methodName ?? '', refactoring.isDeclaration,
-            className: refactoring.className);
+          refactoring.methodName ?? '',
+          refactoring.isDeclaration,
+          className: refactoring.className,
+        );
       }
     } else if (refactoring is RenameRefactoring) {
       var feedback = this.feedback as RenameFeedback;
@@ -396,7 +462,8 @@ class RefactoringManager {
     result.finalProblems = finalStatus.problems;
     // send the response
     server.sendResponse(
-        result.toResponse(request.id, clientUriConverter: server.uriConverter));
+      result.toResponse(request.id, clientUriConverter: server.uriConverter),
+    );
     // done with this request
     this.request = null;
     this.result = null;

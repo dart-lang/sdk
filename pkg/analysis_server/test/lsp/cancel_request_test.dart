@@ -40,7 +40,9 @@ void f() {
     );
     // And a request to cancel it.
     var cancelNotification = makeNotification(
-        Method.cancelRequest, CancelParams(id: completionRequest.id));
+      Method.cancelRequest,
+      CancelParams(id: completionRequest.id),
+    );
 
     // Send both (without waiting for the results of the first).
     var completionRequestFuture = sendRequestToServer(completionRequest);

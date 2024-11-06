@@ -76,9 +76,10 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooRootPath)
+            ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 library foo;
@@ -670,9 +671,10 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooRootPath)
+            ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -705,9 +707,10 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooRootPath)
+            ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -736,9 +739,10 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooRootPath)
+            ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -767,9 +771,10 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooRootPath)
+            ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -798,8 +803,8 @@ suggestions
   Future<void> test_import_package_missing_lib() async {
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'bar', rootPath: barRootPath),
     );
     await computeSuggestions('''
 import "p^" class
@@ -821,9 +826,10 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooRootPath)
-        ..add(name: 'bar', rootPath: barRootPath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooRootPath)
+            ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 

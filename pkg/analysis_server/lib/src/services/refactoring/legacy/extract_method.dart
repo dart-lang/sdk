@@ -44,8 +44,12 @@ const String _tokenSeparator = '\uFFFF';
 /// Adds edits to the given [change] that ensure that all the [libraries] are
 /// imported into the given [targetLibrary].
 @visibleForTesting
-Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
-    LibraryElement targetLibrary, Set<Source> libraries) async {
+Future<void> addLibraryImports(
+  AnalysisSession session,
+  SourceChange change,
+  LibraryElement targetLibrary,
+  Set<Source> libraries,
+) async {
   var libraryPath = targetLibrary.source.fullName;
 
   var resolveResult = await session.getResolvedUnit(libraryPath);
@@ -65,16 +69,24 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   ];
 
   // Prepare all URIs to import.
-  var uriList = libraries
-      .map((library) => getLibrarySourceUri(
-          session.resourceProvider.pathContext, targetLibrary, library.uri))
-      .toList()
-    ..sort((a, b) => a.compareTo(b));
+  var uriList =
+      libraries
+          .map(
+            (library) => getLibrarySourceUri(
+              session.resourceProvider.pathContext,
+              targetLibrary,
+              library.uri,
+            ),
+          )
+          .toList()
+        ..sort((a, b) => a.compareTo(b));
 
-  var analysisOptions =
-      session.analysisContext.getAnalysisOptionsForFile(resolveResult.file);
-  var quote = analysisOptions.codeStyleOptions
-      .preferredQuoteForUris(directives.whereType<NamespaceDirective>());
+  var analysisOptions = session.analysisContext.getAnalysisOptionsForFile(
+    resolveResult.file,
+  );
+  var quote = analysisOptions.codeStyleOptions.preferredQuoteForUris(
+    directives.whereType<NamespaceDirective>(),
+  );
 
   // Insert imports: between existing imports.
   if (importDirectives.isNotEmpty) {
@@ -92,8 +104,11 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         }
         if (importUri.compareTo(existingImport.uri) < 0) {
           var importCode = 'import $quote$importUri$quote;$eol';
-          doSourceChange_addElementEdit(change, targetLibrary,
-              SourceEdit(existingImport.offset, 0, importCode));
+          doSourceChange_addElementEdit(
+            change,
+            targetLibrary,
+            SourceEdit(existingImport.offset, 0, importCode),
+          );
           inserted = true;
           break;
         }
@@ -103,8 +118,11 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         if (isPackage && isFirstPackage && isAfterDart) {
           importCode = eol + importCode;
         }
-        doSourceChange_addElementEdit(change, targetLibrary,
-            SourceEdit(importDirectives.last.end, 0, importCode));
+        doSourceChange_addElementEdit(
+          change,
+          targetLibrary,
+          SourceEdit(importDirectives.last.end, 0, importCode),
+        );
       }
       if (isPackage) {
         isFirstPackage = false;
@@ -119,8 +137,11 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     for (var importUri in uriList) {
       var importCode = '${prefix}import $quote$importUri$quote;';
       prefix = eol;
-      doSourceChange_addElementEdit(change, targetLibrary,
-          SourceEdit(libraryDirective.end, 0, importCode));
+      doSourceChange_addElementEdit(
+        change,
+        targetLibrary,
+        SourceEdit(libraryDirective.end, 0, importCode),
+      );
     }
     return;
   }
@@ -182,7 +203,10 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         importCode = '$importCode$eol';
       }
       doSourceChange_addElementEdit(
-          change, targetLibrary, SourceEdit(offset, 0, importCode));
+        change,
+        targetLibrary,
+        SourceEdit(offset, 0, importCode),
+      );
     }
   }
 }
@@ -274,10 +298,13 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(this._searchEngine, this._resolveResult,
-      this._selectionOffset, this._selectionLength)
-      : _selectionRange = SourceRange(_selectionOffset, _selectionLength),
-        _utils = CorrectionUtils(_resolveResult);
+  ExtractMethodRefactoringImpl(
+    this._searchEngine,
+    this._resolveResult,
+    this._selectionOffset,
+    this._selectionLength,
+  ) : _selectionRange = SourceRange(_selectionOffset, _selectionLength),
+      _utils = CorrectionUtils(_resolveResult);
 
   @override
   List<RefactoringMethodParameter> get parameters => _parameters;
@@ -374,7 +401,8 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       var variables = _parameters.map((parameter) => parameter.name).toList();
       var count = variables.length;
       var result = variables.quotedAndCommaSeparatedWithAnd;
-      var message = 'Cannot extract the closure as a method,'
+      var message =
+          'Cannot extract the closure as a method,'
           'it references the external ${'variable'.pluralized(count)} $result.';
       return RefactoringStatus.fatal(message);
     }
@@ -458,7 +486,10 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       // add replace edit
       var edit = newSourceEdit_range(range, invocationSource);
       doSourceChange_addElementEdit(
-          change, _resolveResult.unit.declaredElement!, edit);
+        change,
+        _resolveResult.unit.declaredElement!,
+        edit,
+      );
     }
     // add method declaration
     {
@@ -506,9 +537,10 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
           } else {
             // Left indent once; returnExpressionSource was indented for method
             // shorthands.
-            returnExpressionSource = _utils
-                .indentSourceLeftRight('${returnExpressionSource.trim()};')
-                .trim();
+            returnExpressionSource =
+                _utils
+                    .indentSourceLeftRight('${returnExpressionSource.trim()};')
+                    .trim();
 
             // add return type
             if (returnType.isNotEmpty) {
@@ -540,12 +572,19 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         var offset = _parentMember!.end;
         var edit = SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
         doSourceChange_addElementEdit(
-            change, _resolveResult.unit.declaredElement!, edit);
+          change,
+          _resolveResult.unit.declaredElement!,
+          edit,
+        );
       }
     }
     // done
-    await addLibraryImports(_resolveResult.session, change,
-        _resolveResult.libraryElement, _librariesToImport);
+    await addLibraryImports(
+      _resolveResult.session,
+      change,
+      _resolveResult.libraryElement,
+      _librariesToImport,
+    );
     return change;
   }
 
@@ -571,14 +610,18 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       for (var other in _parameters) {
         if (!identical(parameter, other) && other.name == parameter.name) {
           result.addError(
-              format("Parameter '{0}' already exists", parameter.name));
+            format("Parameter '{0}' already exists", parameter.name),
+          );
           return result;
         }
       }
       if (_isParameterNameConflictWithBody(parameter)) {
-        result.addError(format(
+        result.addError(
+          format(
             "'{0}' is already used as a name in the selected code",
-            parameter.name));
+            parameter.name,
+          ),
+        );
         return result;
       }
     }
@@ -623,11 +666,13 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   RefactoringStatus _checkSelection() {
     if (_selectionOffset <= 0) {
       return RefactoringStatus.fatal(
-          'The selection offset must be greater than zero.');
+        'The selection offset must be greater than zero.',
+      );
     }
     if (_selectionOffset + _selectionLength >= _resolveResult.content.length) {
       return RefactoringStatus.fatal(
-          'The selection end offset must be less than the length of the file.');
+        'The selection end offset must be less than the length of the file.',
+      );
     }
 
     // Check for implicitly selected closure.
@@ -673,7 +718,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       // single expression selected
       if (selectedNodes.length == 1) {
         if (!_selectionIncludesNonWhitespaceOutsideNode(
-            _selectionRange, selectedNode)) {
+          _selectionRange,
+          selectedNode,
+        )) {
           if (selectedNode is Expression) {
             _selectionExpression = selectedNode;
             // additional check for closure
@@ -703,7 +750,8 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // invalid selection
     return RefactoringStatus.fatal(
-        'Can only extract a single expression or a set of statements.');
+      'Can only extract a single expression or a set of statements.',
+    );
   }
 
   /// Initializes [canCreateGetter] flag.
@@ -802,8 +850,13 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       var ranges = _parameterReferencesMap[parameter.id];
       if (ranges != null) {
         for (var range in ranges) {
-          replaceEdits.add(SourceEdit(range.offset - _selectionRange.offset,
-              range.length, parameter.name));
+          replaceEdits.add(
+            SourceEdit(
+              range.offset - _selectionRange.offset,
+              range.length,
+              parameter.name,
+            ),
+          );
         }
       }
     }
@@ -826,8 +879,13 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (selectionStatements != null) {
       var selectionIndent = _utils.getNodePrefix(selectionStatements[0]);
       var targetIndent = '${_utils.getNodePrefix(_parentMember!)}  ';
-      source = _utils.replaceSourceIndent(source, selectionIndent, targetIndent,
-          includeLeading: true, ensureTrailingNewline: true);
+      source = _utils.replaceSourceIndent(
+        source,
+        selectionIndent,
+        targetIndent,
+        includeLeading: true,
+        ensureTrailingNewline: true,
+      );
     }
     // done
     return source;
@@ -837,12 +895,15 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     var originalSource = _utils.getText(range.offset, range.length);
     var pattern = _SourcePattern();
     var replaceEdits = <SourceEdit>[];
-    _resolveResult.unit
-        .accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
+    _resolveResult.unit.accept(
+      _GetSourcePatternVisitor(range, pattern, replaceEdits),
+    );
     replaceEdits = replaceEdits.reversed.toList();
     var source = SourceEdit.applySequence(originalSource, replaceEdits);
-    pattern.normalizedSource =
-        _getNormalizedSource(source, _resolveResult.unit.featureSet);
+    pattern.normalizedSource = _getNormalizedSource(
+      source,
+      _resolveResult.unit.featureSet,
+    );
     return pattern;
   }
 
@@ -866,13 +927,19 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     _occurrences.clear();
     // prepare selection
     var selectionPattern = _getSourcePattern(_selectionRange);
-    var patternToSelectionName =
-        _inverseMap(selectionPattern.originalToPatternNames);
+    var patternToSelectionName = _inverseMap(
+      selectionPattern.originalToPatternNames,
+    );
     // prepare an enclosing parent - class or unit
     var enclosingMemberParent = _parentMember!.parent!;
     // visit nodes which will able to access extracted method
-    enclosingMemberParent.accept(_InitializeOccurrencesVisitor(
-        this, selectionPattern, patternToSelectionName));
+    enclosingMemberParent.accept(
+      _InitializeOccurrencesVisitor(
+        this,
+        selectionPattern,
+        patternToSelectionName,
+      ),
+    );
   }
 
   /// Prepares information about used variables, which should be turned into
@@ -886,9 +953,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
     var unit = _resolveResult.unit;
     _visibleRangeMap = VisibleRangesComputer.forNode(unit);
-    unit.accept(
-      _InitializeParametersVisitor(this, assignedUsedVariables),
-    );
+    unit.accept(_InitializeParametersVisitor(this, assignedUsedVariables));
 
     // single expression
     var selectionExpression = _selectionExpression;
@@ -917,8 +982,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       // we cannot both return variable and have explicit return statement
       if (_returnType != null) {
         result.addFatalError(
-            'Ambiguous return value: Selected block contains assignment(s) to '
-            'local variables and return statement.');
+          'Ambiguous return value: Selected block contains assignment(s) to '
+          'local variables and return statement.',
+        );
         return result;
       }
       // prepare to return an assigned variable
@@ -933,10 +999,13 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         sb.write(variable.displayName);
         sb.write('\n');
       }
-      result.addFatalError(format(
+      result.addFatalError(
+        format(
           'Ambiguous return value: Selected block contains more than one '
           'assignment to local variables. Affected variables are:\n\n{0}',
-          sb.toString().trim()));
+          sb.toString().trim(),
+        ),
+      );
     }
     // done
     return result;
@@ -996,8 +1065,10 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       return true;
     }
     // May be comment.
-    return TokenUtils.getTokens(trimmedText, _resolveResult.unit.featureSet)
-        .isEmpty;
+    return TokenUtils.getTokens(
+      trimmedText,
+      _resolveResult.unit.featureSet,
+    ).isEmpty;
   }
 
   bool _isParameterNameConflictWithBody(RefactoringMethodParameter parameter) {
@@ -1039,9 +1110,14 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     names.clear();
     var selectionExpression = _selectionExpression;
     if (selectionExpression != null) {
-      names.addAll(getVariableNameSuggestionsForExpression(
-          selectionExpression.typeOrThrow, selectionExpression, _excludedNames,
-          isMethod: true));
+      names.addAll(
+        getVariableNameSuggestionsForExpression(
+          selectionExpression.typeOrThrow,
+          selectionExpression,
+          _excludedNames,
+          isMethod: true,
+        ),
+      );
     }
   }
 
@@ -1058,7 +1134,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// non-whitespace tokens between [selection] and [node]'s `offset` and `end`
   /// respectively.
   bool _selectionIncludesNonWhitespaceOutsideNode(
-      SourceRange selection, AstNode node) {
+    SourceRange selection,
+    AstNode node,
+  ) {
     var sourceRange = range.node(node);
 
     // Selection should cover range.
@@ -1067,12 +1145,14 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // Non-whitespace between selection start and range start.
     if (!_isJustWhitespaceOrComment(
-        range.startOffsetEndOffset(selection.offset, sourceRange.offset))) {
+      range.startOffsetEndOffset(selection.offset, sourceRange.offset),
+    )) {
       return true;
     }
     // Non-whitespace after range.
     if (!_isJustWhitespaceOrComment(
-        range.startOffsetEndOffset(sourceRange.end, selection.end))) {
+      range.startOffsetEndOffset(sourceRange.end, selection.end),
+    )) {
       return true;
     }
     // Only whitespace in selection around range.
@@ -1125,8 +1205,9 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   void handleSelectionEndsIn(AstNode node) {
     super.handleSelectionEndsIn(node);
     invalidSelection(
-        'The selection does not cover a set of statements or an expression. '
-        'Extend selection to a valid range.');
+      'The selection does not cover a set of statements or an expression. '
+      'Extend selection to a valid range.',
+    );
   }
 
   @override
@@ -1134,8 +1215,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitAssignmentExpression(node);
     var lhs = node.leftHandSide;
     if (_isFirstSelectedNode(lhs)) {
-      invalidSelection('Cannot extract the left-hand side of an assignment.',
-          newLocation_fromNode(lhs));
+      invalidSelection(
+        'Cannot extract the left-hand side of an assignment.',
+        newLocation_fromNode(lhs),
+      );
     }
   }
 
@@ -1152,9 +1235,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitConstructorInitializer(node);
     if (_isFirstSelectedNode(node)) {
       invalidSelection(
-          'Cannot extract a constructor initializer. '
-          'Select expression part of initializer.',
-          newLocation_fromNode(node));
+        'Cannot extract a constructor initializer. '
+        'Select expression part of initializer.',
+        newLocation_fromNode(node),
+      );
     }
   }
 
@@ -1162,7 +1246,9 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   void visitDirective(Directive node) {
     if (selection.intersects(SourceRange(node.offset, node.length))) {
       invalidSelection(
-          'Cannot extract a directive.', newLocation_fromNode(node));
+        'Cannot extract a directive.',
+        newLocation_fromNode(node),
+      );
       return;
     }
 
@@ -1174,7 +1260,9 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitFormalParameterList(node);
     if (_isFirstSelectedNode(node)) {
       invalidSelection(
-          'Cannot extract a parameter list.', newLocation_fromNode(node));
+        'Cannot extract a parameter list.',
+        newLocation_fromNode(node),
+      );
     }
   }
 
@@ -1191,7 +1279,8 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       if (forLoopParts is ForPartsWithDeclarations &&
           identical(forLoopParts.variables, firstSelectedNode)) {
         invalidSelection(
-            "Cannot extract initialization part of a 'for' statement.");
+          "Cannot extract initialization part of a 'for' statement.",
+        );
       } else if (forLoopParts.updaters.contains(lastSelectedNode)) {
         invalidSelection("Cannot extract increment part of a 'for' statement.");
       }
@@ -1203,7 +1292,9 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitFunctionDeclaration(node);
     if (_isFirstSelectedNode(node)) {
       invalidSelection(
-          'Cannot extract a function declaration.', newLocation_fromNode(node));
+        'Cannot extract a function declaration.',
+        newLocation_fromNode(node),
+      );
     }
   }
 
@@ -1213,7 +1304,9 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     // Disallow function expressions that are part of function declarations.
     if (_isFirstSelectedNode(node) && node.parent is FunctionDeclaration) {
       invalidSelection(
-          'Cannot extract a function declaration.', newLocation_fromNode(node));
+        'Cannot extract a function declaration.',
+        newLocation_fromNode(node),
+      );
     }
   }
 
@@ -1274,9 +1367,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitVariableDeclaration(node);
     if (_isFirstSelectedNode(node)) {
       invalidSelection(
-          'Cannot extract a variable declaration fragment. '
-          'Select whole declaration statement.',
-          newLocation_fromNode(node));
+        'Cannot extract a variable declaration fragment. '
+        'Select whole declaration statement.',
+        newLocation_fromNode(node),
+      );
     }
   }
 
@@ -1288,7 +1382,8 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       }
     }
     invalidSelection(
-        'Not all selected statements are enclosed by the same parent statement.');
+      'Not all selected statements are enclosed by the same parent statement.',
+    );
   }
 
   bool _isFirstSelectedNode(AstNode node) => identical(firstSelectedNode, node);
@@ -1308,26 +1403,17 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addPatterns(
-      nameToken: node.token,
-      element: node.staticElement,
-    );
+    _addPatterns(nameToken: node.token, element: node.staticElement);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _addPatterns(
-      nameToken: node.name,
-      element: node.declaredElement,
-    );
+    _addPatterns(nameToken: node.name, element: node.declaredElement);
 
     super.visitVariableDeclaration(node);
   }
 
-  void _addPatterns({
-    required Token nameToken,
-    required Element? element,
-  }) {
+  void _addPatterns({required Token nameToken, required Element? element}) {
     var nameRange = range.token(nameToken);
     if (partRange.covers(nameRange)) {
       if (element != null && isLocalElement(element)) {
@@ -1339,8 +1425,13 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
           patternName = '__refVar${pattern.originalToPatternNames.length}';
           pattern.originalToPatternNames[originalName] = patternName;
         }
-        replaceEdits.add(SourceEdit(nameRange.offset - partRange.offset,
-            nameRange.length, patternName));
+        replaceEdits.add(
+          SourceEdit(
+            nameRange.offset - partRange.offset,
+            nameRange.length,
+            patternName,
+          ),
+        );
       }
     }
   }
@@ -1407,7 +1498,10 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
   bool forceStatic = false;
 
   _InitializeOccurrencesVisitor(
-      this.ref, this.selectionPattern, this.patternToSelectionName);
+    this.ref,
+    this.selectionPattern,
+    this.patternToSelectionName,
+  );
 
   @override
   void visitBlock(Block node) {
@@ -1477,12 +1571,16 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
     var nodePattern = ref._getSourcePattern(nodeRange);
     // if matches normalized node source, then add as occurrence
     if (selectionPattern.isCompatible(nodePattern)) {
-      var occurrence =
-          _Occurrence(nodeRange, ref._selectionRange.intersects(nodeRange));
+      var occurrence = _Occurrence(
+        nodeRange,
+        ref._selectionRange.intersects(nodeRange),
+      );
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
-      nodePattern.originalToPatternNames
-          .forEach((String originalName, String patternName) {
+      nodePattern.originalToPatternNames.forEach((
+        String originalName,
+        String patternName,
+      ) {
         var selectionName = patternToSelectionName[patternName]!;
         occurrence._parameterOldToOccurrenceName[selectionName] = originalName;
       });
@@ -1501,8 +1599,10 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
     var beginStatementIndex = 0;
     var selectionCount = ref._selectionStatements!.length;
     while (beginStatementIndex + selectionCount <= statements.length) {
-      var nodeRange = range.startEnd(statements[beginStatementIndex],
-          statements[beginStatementIndex + selectionCount - 1]);
+      var nodeRange = range.startEnd(
+        statements[beginStatementIndex],
+        statements[beginStatementIndex + selectionCount - 1],
+      );
       var found = _tryToFindOccurrence(nodeRange);
       // next statement
       if (found) {
@@ -1542,16 +1642,23 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
           var parameterType = node.writeOrReadType!;
           var parametersBuffer = StringBuffer();
           var parameterTypeCode = ref._resolveResult.libraryElement
-              .getTypeSource(parameterType, ref._librariesToImport,
-                  parametersBuffer: parametersBuffer);
+              .getTypeSource(
+                parameterType,
+                ref._librariesToImport,
+                parametersBuffer: parametersBuffer,
+              );
           if (parameterTypeCode == null) {
             return;
           }
           var parametersCode =
               parametersBuffer.isNotEmpty ? parametersBuffer.toString() : null;
           parameter = RefactoringMethodParameter(
-              RefactoringMethodParameterKind.REQUIRED, parameterTypeCode, name,
-              parameters: parametersCode, id: name);
+            RefactoringMethodParameterKind.REQUIRED,
+            parameterTypeCode,
+            name,
+            parameters: parametersCode,
+            id: name,
+          );
           ref._parameters.add(parameter);
           ref._parametersMap[name] = parameter;
         }
@@ -1707,8 +1814,11 @@ extension on LibraryElement {
   ///
   /// Fills [librariesToImport] with [LibraryElement]s whose elements are
   /// used by the generated source, but not imported.
-  String? getTypeSource(DartType type, Set<Source> librariesToImport,
-      {StringBuffer? parametersBuffer}) {
+  String? getTypeSource(
+    DartType type,
+    Set<Source> librariesToImport, {
+    StringBuffer? parametersBuffer,
+  }) {
     var alias = type.alias;
     if (alias != null) {
       return _getTypeCodeElementArguments(
@@ -1863,9 +1973,7 @@ extension on LibraryElement {
 
     var index = 0;
     for (var field in positionalFields) {
-      buffer.write(
-        getTypeSource(field.type, librariesToImport),
-      );
+      buffer.write(getTypeSource(field.type, librariesToImport));
       if (index++ < fieldCount - 1) {
         buffer.write(', ');
       }
@@ -1874,9 +1982,7 @@ extension on LibraryElement {
     if (namedFields.isNotEmpty) {
       buffer.write('{');
       for (var field in namedFields) {
-        buffer.write(
-          getTypeSource(field.type, librariesToImport),
-        );
+        buffer.write(getTypeSource(field.type, librariesToImport));
         buffer.write(' ');
         buffer.write(field.name);
         if (index++ < fieldCount - 1) {

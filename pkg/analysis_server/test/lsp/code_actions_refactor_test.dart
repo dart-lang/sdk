@@ -173,7 +173,8 @@ void newMethod() {
     requestsFromServer.listen((request) async {
       if (request.method == Method.workspace_applyEdit) {
         var params = ApplyWorkspaceEditParams.fromJson(
-            request.params as Map<String, Object?>);
+          request.params as Map<String, Object?>,
+        );
         edit = params.edit;
         respondTo(request, ApplyWorkspaceEditResult(applied: true));
       }
@@ -185,7 +186,9 @@ void newMethod() {
 
     // Expect the first will have cancelled the second.
     await expectLater(
-        req1, throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+      req1,
+      throwsA(isResponseError(ErrorCodes.RequestCancelled)),
+    );
     await req2;
 
     // Ensure applying the changes will give us the expected content.
@@ -218,7 +221,9 @@ void f() {
 
       // Expect the first to fail because of the modified content.
       await expectLater(
-          req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+        req1,
+        throwsA(isResponseError(ErrorCodes.ContentModified)),
+      );
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
       PerformRefactorCommandHandler.delayAfterResolveForTests = null;
@@ -239,11 +244,8 @@ void f() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri,
-          range: code.range.range,
-          kinds: [kind],
-        );
+    ofKind(CodeActionKind kind) =>
+        getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
 
     // Helper that requests CodeActions for [kind] and ensures all results
     // returned have either an equal kind, or a kind that is prefixed with the
@@ -255,13 +257,7 @@ void f() {
           (cmd) => throw 'Expected CodeAction, got Command: ${cmd.title}',
           (action) => action.kind,
         );
-        expect(
-          '$resultKind',
-          anyOf([
-            equals('$kind'),
-            startsWith('$kind.'),
-          ]),
-        );
+        expect('$resultKind', anyOf([equals('$kind'), startsWith('$kind.')]));
       }
     }
 
@@ -463,15 +459,18 @@ void doFoo(void Function() a) => a();
     // themselves (via middleware).
     var response = await executeCommand(
       Command(
-          title: command.title,
-          command: Commands.validateRefactor,
-          arguments: command.arguments),
+        title: command.title,
+        command: Commands.validateRefactor,
+        arguments: command.arguments,
+      ),
       decoder: ValidateRefactorResult.fromJson,
     );
 
     expect(response.valid, isFalse);
     expect(
-        response.message, contains('Cannot extract the closure as a method'));
+      response.message,
+      contains('Cannot extract the closure as a method'),
+    );
   }
 
   /// Test if the client does not call refactor.validate it still gets a
@@ -499,9 +498,10 @@ void doFoo(void Function() a) => a();
     var errorNotification = await expectErrorNotification(() async {
       var response = await executeCommand(
         Command(
-            title: command.title,
-            command: command.command,
-            arguments: command.arguments),
+          title: command.title,
+          command: command.command,
+          arguments: command.arguments,
+        ),
       );
       expect(response, isNull);
     });
@@ -533,9 +533,10 @@ void doFoo(void Function() a) => a();
     // themselves (via middleware).
     var response = await executeCommand(
       Command(
-          title: command.title,
-          command: Commands.validateRefactor,
-          arguments: command.arguments),
+        title: command.title,
+        command: Commands.validateRefactor,
+        arguments: command.arguments,
+      ),
       decoder: ValidateRefactorResult.fromJson,
     );
 
@@ -812,9 +813,7 @@ const NewWidget({
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
 
     setDocumentChangesSupport();
   }

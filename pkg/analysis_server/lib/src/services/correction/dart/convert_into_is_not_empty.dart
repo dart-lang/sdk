@@ -16,8 +16,9 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
@@ -68,9 +69,12 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
     var isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
-          range.startStart(prefixExpression, prefixExpression.operand));
+        range.startStart(prefixExpression, prefixExpression.operand),
+      );
       builder.addSimpleReplacement(
-          range.node(isEmptyIdentifier_final), 'isNotEmpty');
+        range.node(isEmptyIdentifier_final),
+        'isNotEmpty',
+      );
     });
   }
 }

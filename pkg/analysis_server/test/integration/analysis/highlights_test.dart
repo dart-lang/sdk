@@ -29,7 +29,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     await standardAnalysisSetup();
     await analysisFinished;
     await sendAnalysisSetSubscriptions({
-      AnalysisService.HIGHLIGHTS: [pathname]
+      AnalysisService.HIGHLIGHTS: [pathname],
     });
     // Map from highlight type to highlighted text
     onAnalysisHighlights.listen((AnalysisHighlightsParams params) {
@@ -47,15 +47,13 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   @override
-  Future<void> startServer({
-    int? diagnosticPort,
-    int? servicePort,
-  }) {
+  Future<void> startServer({int? diagnosticPort, int? servicePort}) {
     return server.start(
-        dartSdkPath: dartSdkPath,
-        diagnosticPort: diagnosticPort,
-        servicePort: servicePort,
-        useAnalysisHighlight2: true);
+      dartSdkPath: dartSdkPath,
+      diagnosticPort: diagnosticPort,
+      servicePort: servicePort,
+      useAnalysisHighlight2: true,
+    );
   }
 
   Future<void> test_highlights() async {
@@ -118,13 +116,26 @@ int topLevelVariable = 0;
     expect(currentAnalysisErrors[pathname], hasLength(1));
 
     check(HighlightRegionType.ANNOTATION, ['@override']);
-    check(HighlightRegionType.BUILT_IN,
-        ['as', 'get', 'import', 'set', 'static', 'typedef']);
-    check(HighlightRegionType.CLASS,
-        ['Class', 'Class2', 'double', 'Future', 'Map', 'int']);
+    check(HighlightRegionType.BUILT_IN, [
+      'as',
+      'get',
+      'import',
+      'set',
+      'static',
+      'typedef',
+    ]);
+    check(HighlightRegionType.CLASS, [
+      'Class',
+      'Class2',
+      'double',
+      'Future',
+      'Map',
+      'int',
+    ]);
     check(HighlightRegionType.COMMENT_BLOCK, ['/* Block comment */']);
-    check(HighlightRegionType.COMMENT_DOCUMENTATION,
-        ['/**\n * Doc comment\n */']);
+    check(HighlightRegionType.COMMENT_DOCUMENTATION, [
+      '/**\n * Doc comment\n */',
+    ]);
     check(HighlightRegionType.COMMENT_END_OF_LINE, ['// End of line comment']);
     check(HighlightRegionType.CONSTRUCTOR, ['constructor']);
     check(HighlightRegionType.DIRECTIVE, ["import 'dart:async' as async;"]);
@@ -144,8 +155,11 @@ int topLevelVariable = 0;
     check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
     check(HighlightRegionType.LITERAL_INTEGER, ['2', '3', '4', '0', '42']);
     check(HighlightRegionType.LITERAL_LIST, ['[]']);
-    check(HighlightRegionType.LITERAL_MAP,
-        ['{1.0: [].toList()}', '{2: local}', '{3: 4}']);
+    check(HighlightRegionType.LITERAL_MAP, [
+      '{1.0: [].toList()}',
+      '{2: local}',
+      '{3: 4}',
+    ]);
     check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
     check(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, ['local']);
     check(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, ['local']);
@@ -157,8 +171,9 @@ int topLevelVariable = 0;
     check(HighlightRegionType.PARAMETER_REFERENCE, ['parameter']);
     check(HighlightRegionType.INSTANCE_SETTER_DECLARATION, ['setter']);
     check(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, ['override']);
-    check(HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
-        ['topLevelVariable']);
+    check(HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION, [
+      'topLevelVariable',
+    ]);
     check(HighlightRegionType.TYPE_NAME_DYNAMIC, ['dynamic']);
     check(HighlightRegionType.TYPE_PARAMETER, ['TypeParameter']);
     expect(highlights, isEmpty);
@@ -194,15 +209,18 @@ void f() {
 
     check(HighlightRegionType.BUILT_IN, ['on']);
     check(HighlightRegionType.KEYWORD, ['void', 'try', 'catch']);
-    check(HighlightRegionType.CLASS,
-        ['ArgumentError', 'UnimplementedError', 'IndexError']);
+    check(HighlightRegionType.CLASS, [
+      'ArgumentError',
+      'UnimplementedError',
+      'IndexError',
+    ]);
     check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, [
       'error1',
       'stackTrace1',
       'error2',
       'stackTrace2',
       'error3',
-      'stackTrace3'
+      'stackTrace3',
     ]);
   }
 }

@@ -49,10 +49,12 @@ class RenameParameter extends Change<_Data> {
           var parameterElement = parameter.declaredElement;
           if (parameterElement != null) {
             builder.addInsertion(parameter.offset, (builder) {
-              builder.writeParameter(newName,
-                  isCovariant: parameterElement.isCovariant,
-                  isRequiredNamed: parameterElement.isRequiredNamed,
-                  type: parameterElement.type);
+              builder.writeParameter(
+                newName,
+                isCovariant: parameterElement.isCovariant,
+                isRequiredNamed: parameterElement.isRequiredNamed,
+                type: parameterElement.type,
+              );
               builder.write(', ');
               if (overriddenParameter.hasDeprecated &&
                   !parameterElement.hasDeprecated) {

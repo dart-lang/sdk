@@ -39,15 +39,18 @@ void f() {
   var b = 2 + test;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendConvertRequest('test =>');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendConvertRequest('test =>');
+      },
+      '''
 int test() => 42;
 void f() {
   var a = 1 + test();
   var b = 2 + test();
 }
-''');
+''',
+    );
   }
 
   Future<void> test_init_fatalError_notExplicit() {
@@ -60,8 +63,10 @@ void f() {
     return getRefactoringResult(() {
       return _sendConvertRequest('test;');
     }).then((result) {
-      assertResultProblemsFatal(result.initialProblems,
-          'Only explicit getters can be converted to methods.');
+      assertResultProblemsFatal(
+        result.initialProblems,
+        'Only explicit getters can be converted to methods.',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -88,9 +93,11 @@ void f(A a, B b, C c, D d) {
   var vd = d.test;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendConvertRequest('test => 2');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendConvertRequest('test => 2');
+      },
+      '''
 class A {
   int test() => 1;
 }
@@ -109,17 +116,18 @@ void f(A a, B b, C c, D d) {
   var vc = c.test();
   var vd = d.test();
 }
-''');
+''',
+    );
   }
 
   Future<Response> _sendConvertRequest(String search) {
     var request = EditGetRefactoringParams(
-            RefactoringKind.CONVERT_GETTER_TO_METHOD,
-            testFile.path,
-            findOffset(search),
-            0,
-            false)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      RefactoringKind.CONVERT_GETTER_TO_METHOD,
+      testFile.path,
+      findOffset(search),
+      0,
+      false,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -134,15 +142,18 @@ void f() {
   var b = 2 + test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendConvertRequest('test() =>');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendConvertRequest('test() =>');
+      },
+      '''
 int get test => 42;
 void f() {
   var a = 1 + test;
   var b = 2 + test;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_init_fatalError_hasParameters() {
@@ -155,8 +166,10 @@ void f() {
     return getRefactoringResult(() {
       return _sendConvertRequest('test(p)');
     }).then((result) {
-      assertResultProblemsFatal(result.initialProblems,
-          'Only methods without parameters can be converted to getters.');
+      assertResultProblemsFatal(
+        result.initialProblems,
+        'Only methods without parameters can be converted to getters.',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -173,7 +186,9 @@ void f() {
       return _sendConvertRequest('abc');
     }).then((result) {
       assertResultProblemsFatal(
-          result.initialProblems, 'Unable to create a refactoring');
+        result.initialProblems,
+        'Unable to create a refactoring',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -200,9 +215,11 @@ void f(A a, B b, C c, D d) {
   var vd = d.test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendConvertRequest('test() => 2');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendConvertRequest('test() => 2');
+      },
+      '''
 class A {
   int get test => 1;
 }
@@ -221,17 +238,18 @@ void f(A a, B b, C c, D d) {
   var vc = c.test;
   var vd = d.test;
 }
-''');
+''',
+    );
   }
 
   Future<Response> _sendConvertRequest(String search) {
     var request = EditGetRefactoringParams(
-            RefactoringKind.CONVERT_METHOD_TO_GETTER,
-            testFile.path,
-            findOffset(search),
-            0,
-            false)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      RefactoringKind.CONVERT_METHOD_TO_GETTER,
+      testFile.path,
+      findOffset(search),
+      0,
+      false,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -239,7 +257,11 @@ void f(A a, B b, C c, D d) {
 @reflectiveTest
 class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendExtractRequest(
-      int offset, int length, String? name, bool extractAll) {
+    int offset,
+    int length,
+    String? name,
+    bool extractAll,
+  ) {
     var kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
     var options =
         name != null ? ExtractLocalVariableOptions(name, extractAll) : null;
@@ -247,14 +269,21 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   }
 
   Future<Response> sendStringRequest(
-      String search, String name, bool extractAll) {
+    String search,
+    String name,
+    bool extractAll,
+  ) {
     var offset = findOffset(search);
     var length = search.length;
     return sendExtractRequest(offset, length, name, extractAll);
   }
 
   Future<Response> sendStringSuffixRequest(
-      String search, String suffix, String? name, bool extractAll) {
+    String search,
+    String suffix,
+    String? name,
+    bool extractAll,
+  ) {
     var offset = findOffset(search + suffix);
     var length = search.length;
     return sendExtractRequest(offset, length, name, extractAll);
@@ -296,16 +325,23 @@ void f() {
 ''');
     return getRefactoringResult(() {
       return sendExtractRequest(
-          testFileContent.indexOf('222 +'), 0, 'res', true);
+        testFileContent.indexOf('222 +'),
+        0,
+        'res',
+        true,
+      );
     }).then((result) {
       var feedback = result.feedback as ExtractLocalVariableFeedback;
       expect(feedback.coveringExpressionOffsets, [
         testFileContent.indexOf('222 +'),
         testFileContent.indexOf('111 +'),
-        testFileContent.indexOf('111 +')
+        testFileContent.indexOf('111 +'),
       ]);
-      expect(feedback.coveringExpressionLengths,
-          ['222'.length, '111 + 222'.length, '111 + 222 + 333'.length]);
+      expect(feedback.coveringExpressionLengths, [
+        '222'.length,
+        '111 + 222'.length,
+        '111 + 222 + 333'.length,
+      ]);
     });
   }
 
@@ -316,15 +352,18 @@ void f() {
   print(1 + 2);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendStringRequest('1 + 2', 'res', true);
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendStringRequest('1 + 2', 'res', true);
+      },
+      '''
 void f() {
   var res = 1 + 2;
   print(res);
   print(res);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_extractOne() {
@@ -334,21 +373,28 @@ void f() {
   print(1 + 2); // marker
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendStringSuffixRequest('1 + 2', '); // marker', 'res', false);
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendStringSuffixRequest('1 + 2', '); // marker', 'res', false);
+      },
+      '''
 void f() {
   print(1 + 2);
   var res = 1 + 2;
   print(res); // marker
 }
-''');
+''',
+    );
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetRefactoringParams(
-            RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+      'test.dart',
+      0,
+      0,
+      true,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -359,12 +405,12 @@ void f() {
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetRefactoringParams(
-            RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-            convertPath('/foo/../bar/test.dart'),
-            0,
-            0,
-            true)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+      convertPath('/foo/../bar/test.dart'),
+      0,
+      0,
+      true,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -386,7 +432,9 @@ void f() {
     });
     var feedback = result.feedback as ExtractLocalVariableFeedback;
     expect(
-        feedback.names, unorderedEquals(['treeItem', 'item', 'selectedItem']));
+      feedback.names,
+      unorderedEquals(['treeItem', 'item', 'selectedItem']),
+    );
     expect(result.change, isNull);
   }
 
@@ -399,8 +447,10 @@ void f() {
     var result = await getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'Name', true);
     });
-    assertResultProblemsWarning(result.optionsProblems,
-        'Variable name should start with a lowercase letter.');
+    assertResultProblemsWarning(
+      result.optionsProblems,
+      'Variable name should start with a lowercase letter.',
+    );
     // ...but there is still a change
     assertTestRefactoringResult(result, '''
 void f() {
@@ -449,7 +499,7 @@ void f() {
 void f() {
   print(1 + 2); // 1
 }
-''')
+'''),
       });
     });
 
@@ -460,8 +510,8 @@ void f() {
 void f() {
   print(1 + 2); // 2
 }
-''')
-        ])
+'''),
+        ]),
       });
     });
 
@@ -669,15 +719,19 @@ void f(bool b) {
 }
 ''');
     _setOffsetLengthForStartEnd();
-    return waitForTasksFinished().then((_) {
-      return _sendExtractRequest();
-    }).then((Response response) {
-      var result = EditGetRefactoringResult.fromResponse(response,
-          clientUriConverter: server.uriConverter);
-      assertResultProblemsFatal(result.initialProblems);
-      // ...there is no any feedback
-      expect(result.feedback, isNull);
-    });
+    return waitForTasksFinished()
+        .then((_) {
+          return _sendExtractRequest();
+        })
+        .then((Response response) {
+          var result = EditGetRefactoringResult.fromResponse(
+            response,
+            clientUriConverter: server.uriConverter,
+          );
+          assertResultProblemsFatal(result.initialProblems);
+          // ...there is no any feedback
+          expect(result.feedback, isNull);
+        });
   }
 
   Future<void> test_long_expression() {
@@ -710,8 +764,10 @@ void f() {
 ''');
     _setOffsetLengthForString('getSelectedItem( )');
     return _computeInitialFeedback().then((feedback) {
-      expect(feedback.names,
-          unorderedEquals(['treeItem', 'item', 'selectedItem']));
+      expect(
+        feedback.names,
+        unorderedEquals(['treeItem', 'item', 'selectedItem']),
+      );
       expect(feedback.returnType, 'TreeItem');
     });
   }
@@ -806,8 +862,10 @@ int? res(int b) {
   Future<ExtractMethodFeedback> _computeInitialFeedback() async {
     await waitForTasksFinished();
     var response = await _sendExtractRequest();
-    var result = EditGetRefactoringResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetRefactoringResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     return result.feedback as ExtractMethodFeedback;
   }
 
@@ -820,7 +878,12 @@ int? res(int b) {
       // fill options from result
       var feedback = result.feedback as ExtractMethodFeedback;
       options = ExtractMethodOptions(
-          feedback.returnType, false, name, feedback.parameters, true);
+        feedback.returnType,
+        false,
+        name,
+        feedback.parameters,
+        true,
+      );
       // done
       return Future.value();
     });
@@ -853,7 +916,11 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   /// Tests that there is refactoring of the given [kind] is available at the
   /// [search] offset.
   Future<void> assertHasKind(
-      String code, String search, RefactoringKind kind, bool expected) async {
+    String code,
+    String search,
+    RefactoringKind kind,
+    bool expected,
+  ) async {
     addTestFile(code);
     await waitForTasksFinished();
     await getRefactoringsAtString(search);
@@ -873,12 +940,16 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   /// Returns the list of available refactorings for the given [offset] and
   /// [length].
   Future<void> getRefactorings(int offset, int length) async {
-    var request =
-        EditGetAvailableRefactoringsParams(testFile.path, offset, length)
-            .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetAvailableRefactoringsParams(
+      testFile.path,
+      offset,
+      length,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = EditGetAvailableRefactoringsResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetAvailableRefactoringsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     kinds = result.kinds;
   }
 
@@ -896,11 +967,16 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   /// Returns the list of available refactorings for the given [offset] and
   /// [length].
   Future<void> getRefactoringsInFile(File file, int offset, int length) async {
-    var request = EditGetAvailableRefactoringsParams(file.path, offset, length)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetAvailableRefactoringsParams(
+      file.path,
+      offset,
+      length,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = EditGetAvailableRefactoringsResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetAvailableRefactoringsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     kinds = result.kinds;
   }
 
@@ -916,9 +992,14 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_convertMethodToGetter_hasElement() {
-    return assertHasKind('''
+    return assertHasKind(
+      '''
 int getValue() => 42;
-''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
+''',
+      'getValue',
+      RefactoringKind.CONVERT_METHOD_TO_GETTER,
+      true,
+    );
   }
 
   Future<void> test_extractLocal() async {
@@ -975,8 +1056,11 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetAvailableRefactoringsParams('test.dart', 0, 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetAvailableRefactoringsParams(
+      'test.dart',
+      0,
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -987,8 +1071,10 @@ class MyWidget extends StatelessWidget {
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetAvailableRefactoringsParams(
-            convertPath('/foo/../bar/test.dart'), 0, 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      convertPath('/foo/../bar/test.dart'),
+      0,
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1176,8 +1262,10 @@ void f() {
     return getRefactoringResult(() {
       return _sendInlineRequest('void f() {}');
     }).then((result) {
-      assertResultProblemsFatal(result.initialProblems,
-          'Local variable declaration or reference must be selected to activate this refactoring.');
+      assertResultProblemsFatal(
+        result.initialProblems,
+        'Local variable declaration or reference must be selected to activate this refactoring.',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -1191,14 +1279,17 @@ void f() {
   print(test);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendInlineRequest('test + 2');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendInlineRequest('test + 2');
+      },
+      '''
 void f() {
   int a = 42 + 2;
   print(42);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_resetOnAnalysisSetChanged() async {
@@ -1227,12 +1318,12 @@ void f() {
 
   Future<Response> _sendInlineRequest(String search) {
     var request = EditGetRefactoringParams(
-            RefactoringKind.INLINE_LOCAL_VARIABLE,
-            testFile.path,
-            findOffset(search),
-            0,
-            false)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      RefactoringKind.INLINE_LOCAL_VARIABLE,
+      testFile.path,
+      findOffset(search),
+      0,
+      false,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -1268,8 +1359,10 @@ class A {
     return getRefactoringResult(() {
       return _sendInlineRequest('// nothing');
     }).then((result) {
-      assertResultProblemsFatal(result.initialProblems,
-          'Method declaration or reference must be selected to activate this refactoring.');
+      assertResultProblemsFatal(
+        result.initialProblems,
+        'Method declaration or reference must be selected to activate this refactoring.',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -1290,9 +1383,11 @@ void f(A a) {
   a.test(2);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendInlineRequest('test(int p)');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendInlineRequest('test(int p)');
+      },
+      '''
 class A {
   int f;
   void f() {
@@ -1302,7 +1397,8 @@ class A {
 void f(A a) {
   print(a.f + 2);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_topLevelFunction() {
@@ -1315,14 +1411,17 @@ void f() {
   test(10, 20);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendInlineRequest('test(a');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendInlineRequest('test(a');
+      },
+      '''
 void f() {
   print(1 + 2);
   print(10 + 20);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_topLevelFunction_async() {
@@ -1332,13 +1431,16 @@ Future<int> b() async => await a();
 Future<int> c() async => await b();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return _sendInlineRequest('b(');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendInlineRequest('b(');
+      },
+      '''
 Future<int> a() async => 3;
 Future<int> c() async => await a();
 }
-''');
+''',
+    );
   }
 
   Future<void> test_topLevelFunction_oneInvocation() {
@@ -1353,9 +1455,11 @@ void f() {
 ''');
     options.deleteSource = false;
     options.inlineAll = false;
-    return assertSuccessfulRefactoring(() {
-      return _sendInlineRequest('test(10,');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendInlineRequest('test(10,');
+      },
+      '''
 test(a, b) {
   print(a + b);
 }
@@ -1363,14 +1467,19 @@ void f() {
   test(1, 2);
   print(10 + 20);
 }
-''');
+''',
+    );
   }
 
   Future<Response> _sendInlineRequest(String search) {
-    var request = EditGetRefactoringParams(RefactoringKind.INLINE_METHOD,
-            testFile.path, findOffset(search), 0, false,
-            options: options)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetRefactoringParams(
+      RefactoringKind.INLINE_METHOD,
+      testFile.path,
+      findOffset(search),
+      0,
+      false,
+      options: options,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -1386,12 +1495,15 @@ import 'dart:math';
 import 'a.dart';
 ''');
     _setOptions('$testPackageRootPath/test.dart');
-    return assertSuccessfulRefactoring(() {
-      return _sendMoveRequest(testFile.path);
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return _sendMoveRequest(testFile.path);
+      },
+      '''
 import 'dart:math';
 import 'lib/a.dart';
-''');
+''',
+    );
   }
 
   Future<void> test_folder_cancel() {
@@ -1403,7 +1515,8 @@ import 'original_folder/file.dart';
     _setOptions('$testPackageLibPath/new_folder');
     return assertEmptySuccessfulRefactoring(() async {
       return _sendAndCancelMoveRequest(
-          getFolder('$testPackageLibPath/original_folder').path);
+        getFolder('$testPackageLibPath/original_folder').path,
+      );
     });
   }
 
@@ -1414,20 +1527,25 @@ import 'dart:math';
 import 'original_folder/file.dart';
 ''');
     _setOptions('$testPackageLibPath/new_folder');
-    return assertSuccessfulRefactoring(() async {
-      return _sendMoveRequest(
-          getFolder('$testPackageLibPath/original_folder').path);
-    }, '''
+    return assertSuccessfulRefactoring(
+      () async {
+        return _sendMoveRequest(
+          getFolder('$testPackageLibPath/original_folder').path,
+        );
+      },
+      '''
 import 'dart:math';
 import 'new_folder/file.dart';
-''');
+''',
+    );
   }
 
   Future<Response> _cancelMoveRequest() {
     // 0 is the id from _sendMoveRequest
     // 1 is another arbitrary id for the cancel request
-    var request = ServerCancelRequestParams('0')
-        .toRequest('1', clientUriConverter: server.uriConverter);
+    var request = ServerCancelRequestParams(
+      '0',
+    ).toRequest('1', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -1441,9 +1559,13 @@ import 'new_folder/file.dart';
 
   Future<Response> _sendMoveRequest(String item) {
     var request = EditGetRefactoringParams(
-            RefactoringKind.MOVE_FILE, item, 0, 0, false,
-            options: options)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      RefactoringKind.MOVE_FILE,
+      item,
+      0,
+      0,
+      false,
+      options: options,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -1454,13 +1576,21 @@ import 'new_folder/file.dart';
 
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
-  Future<Response> sendRenameRequest(String search, String? newName,
-      {String id = '0', bool validateOnly = false}) {
+  Future<Response> sendRenameRequest(
+    String search,
+    String? newName, {
+    String id = '0',
+    bool validateOnly = false,
+  }) {
     var options = newName != null ? RenameOptions(newName) : null;
-    var request = EditGetRefactoringParams(RefactoringKind.RENAME,
-            testFile.path, findOffset(search), 0, validateOnly,
-            options: options)
-        .toRequest(id, clientUriConverter: server.uriConverter);
+    var request = EditGetRefactoringParams(
+      RefactoringKind.RENAME,
+      testFile.path,
+      findOffset(search),
+      0,
+      validateOnly,
+      options: options,
+    ).toRequest(id, clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -1487,8 +1617,10 @@ void f() {
     var responseA = await futureA;
     // "1" was cancelled
     // "2" is successful
-    expect(responseA,
-        isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
+    expect(
+      responseA,
+      isResponseFailure('1', RequestErrorCode.REFACTORING_REQUEST_CANCELLED),
+    );
     expect(responseB, isResponseSuccess('2'));
   }
 
@@ -1504,9 +1636,11 @@ void f() {
   Test.named();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test {', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test {', 'NewName');
+      },
+      '''
 class NewName {
   NewName() {}
   NewName.named() {}
@@ -1516,7 +1650,8 @@ void f() {
   NewName();
   NewName.named();
 }
-''');
+''',
+    );
   }
 
   Future<void> test_class_fromFactoryRedirectingConstructor() {
@@ -1675,9 +1810,11 @@ class A {
   int get test => 0;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test =>', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test =>', 'newName');
+      },
+      '''
 void f(Object? x) {
   if (x case A(newName: 0)) {}
   if (x case A(newName: var test)) {}
@@ -1686,7 +1823,8 @@ void f(Object? x) {
 class A {
   int get newName => 0;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_class_macros() {
@@ -1696,14 +1834,18 @@ import 'macros.dart';
 @DeclareInType('  C.named();')
 class C {}
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('C {', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('C {', 'NewName');
+      },
+      '''
 import 'macros.dart';
 
 @DeclareInType('  C.named();')
 class NewName {}
-''', changeEdits: 1);
+''',
+      changeEdits: 1,
+    );
   }
 
   Future<void> test_class_method_in_objectPattern() {
@@ -1717,9 +1859,11 @@ class A {
   void test() {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test() {}', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test() {}', 'newName');
+      },
+      '''
 void f(Object? x) {
   if (x case A(newName: _)) {}
   if (x case A(newName: var test)) {}
@@ -1728,7 +1872,8 @@ void f(Object? x) {
 class A {
   void newName() {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_class_options_fatalError() {
@@ -1742,7 +1887,9 @@ void f() {
       return sendRenameRequest('Test {}', '');
     }).then((result) {
       assertResultProblemsFatal(
-          result.optionsProblems, 'Class name must not be empty.');
+        result.optionsProblems,
+        'Class name must not be empty.',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -1754,13 +1901,16 @@ class A<Test> {
   void foo(Test a) {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test> {', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test> {', 'NewName');
+      },
+      '''
 class A<NewName> {
   void foo(NewName a) {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_class_typeParameter_atReference() {
@@ -1769,13 +1919,16 @@ class A<Test> {
   final List<Test> values = [];
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test> values', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test> values', 'NewName');
+      },
+      '''
 class A<NewName> {
   final List<NewName> values = [];
 }
-''');
+''',
+    );
   }
 
   Future<void> test_class_validateOnly() {
@@ -1804,32 +1957,36 @@ void f() {
 }
 ''');
     return getRefactoringResult(() {
-      return sendRenameRequest('Test {}', 'newName');
-    }).then((result) {
-      assertResultProblemsWarning(result.optionsProblems,
-          'Class name should start with an uppercase letter.');
-      // ...but there is still a change
-      assertTestRefactoringResult(result, '''
+          return sendRenameRequest('Test {}', 'newName');
+        })
+        .then((result) {
+          assertResultProblemsWarning(
+            result.optionsProblems,
+            'Class name should start with an uppercase letter.',
+          );
+          // ...but there is still a change
+          assertTestRefactoringResult(result, '''
 class newName {}
 void f() {
   newName v;
 }
 ''');
-    }).then((_) {
-      // "NewName" is a perfectly valid name
-      return getRefactoringResult(() {
-        return sendRenameRequest('Test {}', 'NewName');
-      }).then((result) {
-        assertResultProblemsOK(result);
-        // ...and there is a new change
-        assertTestRefactoringResult(result, '''
+        })
+        .then((_) {
+          // "NewName" is a perfectly valid name
+          return getRefactoringResult(() {
+            return sendRenameRequest('Test {}', 'NewName');
+          }).then((result) {
+            assertResultProblemsOK(result);
+            // ...and there is a new change
+            assertTestRefactoringResult(result, '''
 class NewName {}
 void f() {
   NewName v;
 }
 ''');
-      });
-    });
+          });
+        });
   }
 
   Future<void> test_classMember_field() {
@@ -1842,9 +1999,11 @@ class A {
   }
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test = 0', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test = 0', 'newName');
+      },
+      '''
 class A {
   var newName = 0;
   A(this.newName);
@@ -1852,7 +2011,8 @@ class A {
     print(newName);
   }
 }
-''');
+''',
+    );
   }
 
   Future<void> test_classMember_field_onFieldFormalParameter() {
@@ -1865,9 +2025,11 @@ class A {
   }
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test);', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test);', 'newName');
+      },
+      '''
 class A {
   var newName = 0;
   A(this.newName);
@@ -1875,7 +2037,8 @@ class A {
     print(newName);
   }
 }
-''');
+''',
+    );
   }
 
   Future<void> test_classMember_field_onFieldFormalParameter_named() {
@@ -1888,9 +2051,11 @@ void f() {
   A(test: 42);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test: 42', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test: 42', 'newName');
+      },
+      '''
 class A {
   final int newName;
   A({this.newName: 0});
@@ -1898,7 +2063,8 @@ class A {
 void f() {
   A(newName: 42);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_classMember_field_onFieldFormalParameter_named_private() {
@@ -1918,7 +2084,9 @@ void f() {
       var problems = result.finalProblems;
       expect(problems, hasLength(1));
       assertResultProblemsError(
-          problems, "The parameter 'test' is named and can not be private.");
+        problems,
+        "The parameter 'test' is named and can not be private.",
+      );
     });
   }
 
@@ -1931,16 +2099,19 @@ class A {
   }
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test =>', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test =>', 'newName');
+      },
+      '''
 class A {
   get newName => 0;
   void f() {
     print(newName);
   }
 }
-''');
+''',
+    );
   }
 
   Future<void> test_classMember_method() {
@@ -1955,9 +2126,11 @@ void f(A a) {
   a.test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test() {}', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test() {}', 'newName');
+      },
+      '''
 class A {
   newName() {}
   void f() {
@@ -1967,7 +2140,8 @@ class A {
 void f(A a) {
   a.newName();
 }
-''');
+''',
+    );
   }
 
   Future<void> test_classMember_method_potential() {
@@ -2005,16 +2179,19 @@ class A {
   }
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test = 0', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test = 0', 'newName');
+      },
+      '''
 class A {
   set newName(x) {}
   void f() {
     newName = 0;
   }
 }
-''');
+''',
+    );
   }
 
   Future<void> test_constructor_fromFactoryRedirectingConstructor() {
@@ -2134,14 +2311,17 @@ enum E2<Test> {
   void foo(Test a) {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test> {', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test> {', 'NewName');
+      },
+      '''
 enum E2<NewName> {
   v<int>();
   void foo(NewName a) {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_extension_atDeclaration() {
@@ -2208,13 +2388,16 @@ extension E<Test> on int {
   void foo(Test a) {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test> on', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test> on', 'NewName');
+      },
+      '''
 extension E<NewName> on int {
   void foo(NewName a) {}
 }
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_field_representation() {
@@ -2225,15 +2408,18 @@ void f(E e) {
   e.test;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test) {}', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test) {}', 'newName');
+      },
+      '''
 extension type E(int newName) {}
 
 void f(E e) {
   e.newName;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_method() {
@@ -2246,9 +2432,11 @@ void f(E e) {
   e.test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test() {}', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test() {}', 'newName');
+      },
+      '''
 extension type E(int it) {
   void newName() {}
 }
@@ -2256,7 +2444,8 @@ extension type E(int it) {
 void f(E e) {
   e.newName();
 }
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_name_end() {
@@ -2265,13 +2454,16 @@ extension type Test(int it) {}
 
 void f(Test x) {}
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('(int', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('(int', 'NewName');
+      },
+      '''
 extension type NewName(int it) {}
 
 void f(NewName x) {}
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_name_inside() {
@@ -2280,13 +2472,16 @@ extension type Test(int it) {}
 
 void f(Test x) {}
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('est(int', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('est(int', 'NewName');
+      },
+      '''
 extension type NewName(int it) {}
 
 void f(NewName x) {}
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_name_start() {
@@ -2295,13 +2490,16 @@ extension type Test(int it) {}
 
 void f(Test x) {}
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test(int', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test(int', 'NewName');
+      },
+      '''
 extension type NewName(int it) {}
 
 void f(NewName x) {}
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_primaryConstructor_atDeclaration() {
@@ -2312,15 +2510,18 @@ void f() {
   E.test(0);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test(int', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test(int', 'newName');
+      },
+      '''
 extension type E.newName(int it) {}
 
 void f() {
   E.newName(0);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_extensionType_primaryConstructor_atInvocation() {
@@ -2331,15 +2532,18 @@ void f() {
   E.test(0);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test(0', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test(0', 'newName');
+      },
+      '''
 extension type E.newName(int it) {}
 
 void f() {
   E.newName(0);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_feedback() {
@@ -2369,9 +2573,11 @@ void f() {
   A(test: 0);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test: 0', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test: 0', 'newName');
+      },
+      '''
 class A<T> {
   A({T newName});
 }
@@ -2379,7 +2585,8 @@ class A<T> {
 void f() {
   A(newName: 0);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_formalParameter_named_ofMethod_genericClass() {
@@ -2392,9 +2599,11 @@ void f(A<int> a) {
   a.foo(test: 0);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test: 0', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test: 0', 'newName');
+      },
+      '''
 class A<T> {
   void foo({T newName}) {}
 }
@@ -2402,7 +2611,8 @@ class A<T> {
 void f(A<int> a) {
   a.foo(newName: 0);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_function() {
@@ -2413,15 +2623,18 @@ void f() {
   print(test);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test() {}', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test() {}', 'newName');
+      },
+      '''
 newName() {}
 void f() {
   newName();
   print(newName);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_importPrefix_add() {
@@ -2434,10 +2647,10 @@ void f() {
 }
 ''');
     return assertSuccessfulRefactoring(
-        () {
-          return sendRenameRequest("import 'dart:async';", 'new_name');
-        },
-        '''
+      () {
+        return sendRenameRequest("import 'dart:async';", 'new_name');
+      },
+      '''
 import 'dart:math';
 import 'dart:async' as new_name;
 void f() {
@@ -2445,11 +2658,12 @@ void f() {
   new_name.Future f;
 }
 ''',
-        feedbackValidator: (feedback) {
-          var renameFeedback = feedback as RenameFeedback;
-          expect(renameFeedback.offset, -1);
-          expect(renameFeedback.length, 0);
-        });
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   Future<void> test_importPrefix_remove() {
@@ -2462,10 +2676,10 @@ void f() {
 }
 ''');
     return assertSuccessfulRefactoring(
-        () {
-          return sendRenameRequest("import 'dart:async' as test;", '');
-        },
-        '''
+      () {
+        return sendRenameRequest("import 'dart:async' as test;", '');
+      },
+      '''
 import 'dart:math' as test;
 import 'dart:async';
 void f() {
@@ -2473,11 +2687,12 @@ void f() {
   Future f;
 }
 ''',
-        feedbackValidator: (feedback) {
-          var renameFeedback = feedback as RenameFeedback;
-          expect(renameFeedback.offset, 51);
-          expect(renameFeedback.length, 4);
-        });
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 51);
+        expect(renameFeedback.length, 4);
+      },
+    );
   }
 
   Future<void> test_init_fatalError_noElement() {
@@ -2486,7 +2701,9 @@ void f() {
       return sendRenameRequest('// nothing', null);
     }).then((result) {
       assertResultProblemsFatal(
-          result.initialProblems, 'Unable to create a refactoring');
+        result.initialProblems,
+        'Unable to create a refactoring',
+      );
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -2496,33 +2713,42 @@ void f() {
     addTestFile('''
 library aaa.bbb.ccc;
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('library aaa', 'my.new_name');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('library aaa', 'my.new_name');
+      },
+      '''
 library my.new_name;
-''');
+''',
+    );
   }
 
   Future<void> test_library_libraryDirective_name() {
     addTestFile('''
 library aaa.bbb.ccc;
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('aaa', 'my.new_name');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('aaa', 'my.new_name');
+      },
+      '''
 library my.new_name;
-''');
+''',
+    );
   }
 
   Future<void> test_library_libraryDirective_nameDot() {
     addTestFile('''
 library aaa.bbb.ccc;
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('.bbb', 'my.new_name');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('.bbb', 'my.new_name');
+      },
+      '''
 library my.new_name;
-''');
+''',
+    );
   }
 
   Future<void> test_library_partOfDirective() {
@@ -2533,11 +2759,14 @@ part 'test.dart';
     addTestFile('''
 part of aaa.bbb.ccc;
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('aaa.bb', 'my.new_name');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('aaa.bb', 'my.new_name');
+      },
+      '''
 part of my.new_name;
-''');
+''',
+    );
   }
 
   Future<void> test_localVariable() {
@@ -2549,16 +2778,19 @@ void f() {
   print(test);
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test = 1', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test = 1', 'newName');
+      },
+      '''
 void f() {
   int newName = 0;
   newName = 1;
   newName += 2;
   print(newName);
 }
-''');
+''',
+    );
   }
 
   Future<void> test_localVariable_finalCheck_shadowError() {
@@ -2575,7 +2807,9 @@ void f() {
       var problems = result.finalProblems;
       expect(problems, hasLength(1));
       assertResultProblemsError(
-          problems, "Duplicate local variable 'newName'.");
+        problems,
+        "Duplicate local variable 'newName'.",
+      );
     });
   }
 
@@ -2585,13 +2819,16 @@ mixin M<Test> {
   final List<Test> values = [];
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('Test> {', 'NewName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test> {', 'NewName');
+      },
+      '''
 mixin M<NewName> {
   final List<NewName> values = [];
 }
-''');
+''',
+    );
   }
 
   Future<void> test_parameter_onDefaultParameter() {
@@ -2611,7 +2848,9 @@ void f() {
       var problems = result.finalProblems;
       expect(problems, hasLength(1));
       assertResultProblemsError(
-          problems, "The parameter 't' is named and can not be private.");
+        problems,
+        "The parameter 't' is named and can not be private.",
+      );
     });
   }
 
@@ -2625,9 +2864,11 @@ void f(Object? x) {
   }
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test) {', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test) {', 'newName');
+      },
+      '''
 void f(Object? x) {
   if (x case int newName) {
     newName;
@@ -2635,7 +2876,8 @@ void f(Object? x) {
     newName += 2;
   }
 }
-''');
+''',
+    );
   }
 
   Future<void> test_patternVariable_patternAssignment() {
@@ -2646,15 +2888,18 @@ void f(Object? x) {
   test;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test,', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test,', 'newName');
+      },
+      '''
 void f(Object? x) {
   int newName;
   (newName, _) = (0, 1);
   newName;
 }
-''');
+''',
+    );
   }
 
   Future<void> test_reset_afterCreateChange() {
@@ -2721,9 +2966,9 @@ void f() {
   print(otherName);
 }
 ''');
-    unawaited(server
-        .getAnalysisDriver(testFile.path)!
-        .getResolvedUnit(testFile.path));
+    unawaited(
+      server.getAnalysisDriver(testFile.path)!.getResolvedUnit(testFile.path),
+    );
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {
@@ -2735,8 +2980,10 @@ void f() {
 
   void _expectRefactoringRequestCancelled(Response response) {
     expect(response.error, isNotNull);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
+    expect(
+      response,
+      isResponseFailure('0', RequestErrorCode.REFACTORING_REQUEST_CANCELLED),
+    );
   }
 
   SourceEdit? _findEditWithId(SourceChange change, String id) {
@@ -2764,8 +3011,9 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   bool shouldWaitForFullAnalysis = true;
 
   Future<void> assertEmptySuccessfulRefactoring(
-      Future<Response> Function() requestSender,
-      {void Function(RefactoringFeedback?)? feedbackValidator}) async {
+    Future<Response> Function() requestSender, {
+    void Function(RefactoringFeedback?)? feedbackValidator,
+  }) async {
     var result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
     if (feedbackValidator != null) {
@@ -2784,23 +3032,33 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   }
 
   /// Asserts that [problems] has a single ERROR problem.
-  void assertResultProblemsError(List<RefactoringProblem> problems,
-      [String? message]) {
+  void assertResultProblemsError(
+    List<RefactoringProblem> problems, [
+    String? message,
+  ]) {
     var problem = problems[0];
-    expect(problem.severity, RefactoringProblemSeverity.ERROR,
-        reason: problem.toString());
+    expect(
+      problem.severity,
+      RefactoringProblemSeverity.ERROR,
+      reason: problem.toString(),
+    );
     if (message != null) {
       expect(problem.message, message);
     }
   }
 
   /// Asserts that [result] has a single FATAL problem.
-  void assertResultProblemsFatal(List<RefactoringProblem> problems,
-      [String? message]) {
+  void assertResultProblemsFatal(
+    List<RefactoringProblem> problems, [
+    String? message,
+  ]) {
     var problem = problems[0];
     expect(problems, hasLength(1));
-    expect(problem.severity, RefactoringProblemSeverity.FATAL,
-        reason: problem.toString());
+    expect(
+      problem.severity,
+      RefactoringProblemSeverity.FATAL,
+      reason: problem.toString(),
+    );
     if (message != null) {
       expect(problem.message, message);
     }
@@ -2814,21 +3072,28 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   }
 
   /// Asserts that [result] has a single WARNING problem.
-  void assertResultProblemsWarning(List<RefactoringProblem> problems,
-      [String? message]) {
+  void assertResultProblemsWarning(
+    List<RefactoringProblem> problems, [
+    String? message,
+  ]) {
     var problem = problems[0];
     expect(problems, hasLength(1));
-    expect(problem.severity, RefactoringProblemSeverity.WARNING,
-        reason: problem.toString());
+    expect(
+      problem.severity,
+      RefactoringProblemSeverity.WARNING,
+      reason: problem.toString(),
+    );
     if (message != null) {
       expect(problem.message, message);
     }
   }
 
   Future<void> assertSuccessfulRefactoring(
-      Future<Response> Function() requestSender, String expectedCode,
-      {void Function(RefactoringFeedback?)? feedbackValidator,
-      int changeEdits = 0}) async {
+    Future<Response> Function() requestSender,
+    String expectedCode, {
+    void Function(RefactoringFeedback?)? feedbackValidator,
+    int changeEdits = 0,
+  }) async {
     var result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
     if (feedbackValidator != null) {
@@ -2840,16 +3105,20 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   /// Asserts that the given [EditGetRefactoringResult] has a [testFile] change
   /// which results in the [expectedCode].
   void assertTestRefactoringResult(
-      EditGetRefactoringResult result, String expectedCode,
-      {int changeEdits = 0}) {
+    EditGetRefactoringResult result,
+    String expectedCode, {
+    int changeEdits = 0,
+  }) {
     var change = result.change!;
     if (changeEdits != 0) {
       expect(change.edits.length, changeEdits);
     }
     for (var fileEdit in change.edits) {
       if (fileEdit.file == testFile.path) {
-        var actualCode =
-            SourceEdit.applySequence(testFileContent, fileEdit.edits);
+        var actualCode = SourceEdit.applySequence(
+          testFileContent,
+          fileEdit.edits,
+        );
         expect(actualCode, expectedCode);
         return;
       }
@@ -2858,22 +3127,33 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   }
 
   Future<EditGetRefactoringResult> getRefactoringResult(
-      Future<Response> Function() requestSender) async {
+    Future<Response> Function() requestSender,
+  ) async {
     if (shouldWaitForFullAnalysis) {
       await waitForTasksFinished();
     }
     var response = await requestSender();
-    return EditGetRefactoringResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    return EditGetRefactoringResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 
   Future<Response> sendRequest(
-      RefactoringKind kind, int offset, int length, RefactoringOptions? options,
-      [bool validateOnly = false]) {
+    RefactoringKind kind,
+    int offset,
+    int length,
+    RefactoringOptions? options, [
+    bool validateOnly = false,
+  ]) {
     var request = EditGetRefactoringParams(
-            kind, testFile.path, offset, length, validateOnly,
-            options: options)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      kind,
+      testFile.path,
+      offset,
+      length,
+      validateOnly,
+      options: options,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 

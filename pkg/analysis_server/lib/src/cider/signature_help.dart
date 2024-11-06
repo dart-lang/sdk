@@ -16,7 +16,10 @@ class CiderSignatureHelpComputer {
   CiderSignatureHelpComputer(this._fileResolver);
 
   Future<SignatureHelpResponse?> compute2(
-      String filePath, int line, int column) async {
+    String filePath,
+    int line,
+    int column,
+  ) async {
     var resolvedUnit = await _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -24,23 +27,34 @@ class CiderSignatureHelpComputer {
 
     var dartDocInfo = DartdocDirectiveInfo();
     var typeArgsComputer = DartTypeArgumentsSignatureComputer(
-        dartDocInfo, resolvedUnit.unit, offset, formats);
+      dartDocInfo,
+      resolvedUnit.unit,
+      offset,
+      formats,
+    );
     if (typeArgsComputer.offsetIsValid) {
       var typeSignature = typeArgsComputer.compute();
 
       if (typeSignature != null) {
-        return SignatureHelpResponse(typeSignature,
-            lineInfo.getLocation(typeArgsComputer.argumentList.offset + 1));
+        return SignatureHelpResponse(
+          typeSignature,
+          lineInfo.getLocation(typeArgsComputer.argumentList.offset + 1),
+        );
       }
     }
 
-    var computer =
-        DartUnitSignatureComputer(dartDocInfo, resolvedUnit.unit, offset);
+    var computer = DartUnitSignatureComputer(
+      dartDocInfo,
+      resolvedUnit.unit,
+      offset,
+    );
     if (computer.offsetIsValid) {
       var signature = computer.compute();
       if (signature != null) {
-        return SignatureHelpResponse(toSignatureHelp(formats, signature),
-            lineInfo.getLocation(computer.argumentList.offset + 1));
+        return SignatureHelpResponse(
+          toSignatureHelp(formats, signature),
+          lineInfo.getLocation(computer.argumentList.offset + 1),
+        );
       }
     }
     return null;

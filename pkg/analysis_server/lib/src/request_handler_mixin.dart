@@ -38,23 +38,29 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
         if (error != null) {
           // TODO(brianwilkerson): Report the error to the plugin manager.
           server.instrumentationService.logPluginError(
-              pluginInfo.data,
-              error.code.name,
-              error.message,
-              error.stackTrace ?? StackTrace.current.toString());
+            pluginInfo.data,
+            error.code.name,
+            error.message,
+            error.stackTrace ?? StackTrace.current.toString(),
+          );
         } else {
           responses.add(response);
         }
       } on TimeoutException {
         // TODO(brianwilkerson): Report the timeout to the plugin manager.
         server.instrumentationService.logPluginTimeout(
-            pluginInfo.data,
-            JsonEncoder()
-                .convert(requestParameters?.toRequest('-').toJson() ?? {}));
+          pluginInfo.data,
+          JsonEncoder().convert(
+            requestParameters?.toRequest('-').toJson() ?? {},
+          ),
+        );
       } catch (exception, stackTrace) {
         // TODO(brianwilkerson): Report the exception to the plugin manager.
-        server.instrumentationService
-            .logPluginException(pluginInfo.data, exception, stackTrace);
+        server.instrumentationService.logPluginException(
+          pluginInfo.data,
+          exception,
+          stackTrace,
+        );
       }
     }
     return responses;

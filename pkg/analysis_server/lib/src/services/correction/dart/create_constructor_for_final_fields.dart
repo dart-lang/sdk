@@ -20,15 +20,16 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
   CreateConstructorForFinalFields.requiredNamed({required super.context})
-      : _style = _Style.requiredNamed;
+    : _style = _Style.requiredNamed;
 
   CreateConstructorForFinalFields.requiredPositional({required super.context})
-      : _style = _Style.requiredPositional;
+    : _style = _Style.requiredPositional;
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => _style.fixKind;
@@ -85,7 +86,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {
       await _forFlutterWidget(
-          fixContext: fixContext, classDeclaration: container);
+        fixContext: fixContext,
+        classDeclaration: container,
+      );
     } else {
       await _notFlutterWidget(
         fixContext: fixContext,
@@ -111,8 +114,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         }
         if (field.initializer == null) {
           var fieldName = field.name.lexeme;
-          var namedFormalParameterName =
-              _Field.computeNamedFormalParameterName(fieldName);
+          var namedFormalParameterName = _Field.computeNamedFormalParameterName(
+            fieldName,
+          );
           if (namedFormalParameterName == null) {
             return null;
           }
@@ -136,10 +140,14 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   }) async {
     if (unit.featureSet.isEnabled(Feature.super_parameters)) {
       await _forFlutterWithSuperParameters(
-          fixContext: fixContext, classDeclaration: classDeclaration);
+        fixContext: fixContext,
+        classDeclaration: classDeclaration,
+      );
     } else {
       await _forFlutterWithoutSuperParameters(
-          fixContext: fixContext, classDeclaration: classDeclaration);
+        fixContext: fixContext,
+        classDeclaration: classDeclaration,
+      );
     }
   }
 
@@ -241,9 +249,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
             builder.write(field.fieldName);
           } else {
             builder.write('required ');
-            builder.write(
-              utils.getNodeText(field.typeAnnotation),
-            );
+            builder.write(utils.getNodeText(field.typeAnnotation));
             builder.write(' ');
             builder.write(field.namedFormalParameterName);
             fieldsForInitializers.add(field);
@@ -253,9 +259,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write('})');
 
         if (fieldsForInitializers.isNotEmpty) {
-          var code = fieldsForInitializers.map((field) {
-            return '${field.fieldName} = ${field.namedFormalParameterName}';
-          }).join(', ');
+          var code = fieldsForInitializers
+              .map((field) {
+                return '${field.fieldName} = ${field.namedFormalParameterName}';
+              })
+              .join(', ');
           builder.write(' : $code');
         }
 
@@ -330,9 +338,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       return;
     }
 
-    var childrenLast = fields.stablePartition(
-      (field) => !field.isChild,
-    );
+    var childrenLast = fields.stablePartition((field) => !field.isChild);
 
     for (var field in childrenLast) {
       builder.write(', ');
@@ -407,15 +413,11 @@ enum _Style {
   requiredNamed(
     fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED,
   ),
-  requiredPositional(
-    fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS,
-  );
+  requiredPositional(fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS);
 
   final FixKind fixKind;
 
-  const _Style({
-    required this.fixKind,
-  });
+  const _Style({required this.fixKind});
 }
 
 extension on List<ClassMember> {

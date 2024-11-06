@@ -88,8 +88,13 @@ abstract class AbstractLspAnalysisServerTest
     plugin.ResponseResult? Function(plugin.RequestParams)? handler,
     Duration respondAfter = Duration.zero,
   }) {
-    var info = DiscoveredPluginInfo('a', 'b', 'c', server.notificationManager,
-        server.instrumentationService);
+    var info = DiscoveredPluginInfo(
+      'a',
+      'b',
+      'c',
+      server.notificationManager,
+      server.instrumentationService,
+    );
     pluginManager.plugins.add(info);
 
     if (handler != null) {
@@ -98,22 +103,26 @@ abstract class AbstractLspAnalysisServerTest
         return response == null
             ? null
             : <PluginInfo, Future<plugin.Response>>{
-                info: Future.delayed(respondAfter)
-                    .then((_) => response.toResponse('-', 1))
-              };
+              info: Future.delayed(
+                respondAfter,
+              ).then((_) => response.toResponse('-', 1)),
+            };
       };
     }
 
     if (respondWith != null) {
       pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-        info: Future.delayed(respondAfter)
-            .then((_) => respondWith.toResponse('-', 1))
+        info: Future.delayed(
+          respondAfter,
+        ).then((_) => respondWith.toResponse('-', 1)),
       };
     }
 
     if (notification != null) {
-      server.notificationManager
-          .handlePluginNotification(info.pluginId, notification);
+      server.notificationManager.handlePluginNotification(
+        info.pluginId,
+        notification,
+      );
     }
 
     return info;
@@ -129,8 +138,11 @@ abstract class AbstractLspAnalysisServerTest
   }) async {
     ApplyWorkspaceEditParams? editParams;
 
-    var commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
+    var commandResponse = await handleExpectedRequest<
+      Object?,
+      ApplyWorkspaceEditParams,
+      ApplyWorkspaceEditResult
+    >(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command, workDoneToken: workDoneToken),
@@ -156,19 +168,25 @@ abstract class AbstractLspAnalysisServerTest
     return LspChangeVerifier(this, edit);
   }
 
-  void expectContextBuilds() =>
-      expect(server.contextBuilds - _previousContextBuilds, greaterThan(0),
-          reason: 'Contexts should have been rebuilt');
+  void expectContextBuilds() => expect(
+    server.contextBuilds - _previousContextBuilds,
+    greaterThan(0),
+    reason: 'Contexts should have been rebuilt',
+  );
 
-  void expectNoContextBuilds() =>
-      expect(server.contextBuilds - _previousContextBuilds, equals(0),
-          reason: 'Contexts should not have been rebuilt');
+  void expectNoContextBuilds() => expect(
+    server.contextBuilds - _previousContextBuilds,
+    equals(0),
+    reason: 'Contexts should not have been rebuilt',
+  );
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   @override
   Future<T> expectSuccessfulResponseTo<T, R>(
-      RequestMessage request, T Function(R) fromJson) async {
+    RequestMessage request,
+    T Function(R) fromJson,
+  ) async {
     var resp = await sendRequestToServer(request);
     var error = resp.error;
     if (error != null) {
@@ -180,9 +198,10 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   List<TextDocumentEdit> extractTextDocumentEdits(
-          DocumentChanges documentChanges) =>
-      // Extract TextDocumentEdits from union of resource changes
-      documentChanges
+    DocumentChanges documentChanges,
+  ) =>
+          // Extract TextDocumentEdits from union of resource changes
+          documentChanges
           .map(
             (change) => change.map(
               (create) => null,
@@ -220,8 +239,7 @@ abstract class AbstractLspAnalysisServerTest
   Registration registrationForDart(
     List<Registration> registrations,
     Method method,
-  ) =>
-      registrationsForDart(registrations, method).single;
+  ) => registrationsForDart(registrations, method).single;
 
   /// Finds the registrations for a given LSP method with Dart in their
   /// documentSelector.
@@ -231,11 +249,14 @@ abstract class AbstractLspAnalysisServerTest
   ) {
     bool includesDart(Registration r) {
       var options = TextDocumentRegistrationOptions.fromJson(
-          r.registerOptions as Map<String, Object?>);
+        r.registerOptions as Map<String, Object?>,
+      );
 
-      return options.documentSelector?.any((selector) =>
-              selector.language == dartLanguageId ||
-              (selector.pattern?.contains('.dart') ?? false)) ??
+      return options.documentSelector?.any(
+            (selector) =>
+                selector.language == dartLanguageId ||
+                (selector.pattern?.contains('.dart') ?? false),
+          ) ??
           false;
     }
 
@@ -250,7 +271,8 @@ abstract class AbstractLspAnalysisServerTest
 
   @override
   Future<void> sendNotificationToServer(
-      NotificationMessage notification) async {
+    NotificationMessage notification,
+  ) async {
     channel.sendNotificationToServer(notification);
     await pumpEventQueue(times: 5000);
   }
@@ -272,24 +294,22 @@ abstract class AbstractLspAnalysisServerTest
 
     // Create an SDK in the mock file system.
     var sdkRoot = newFolder('/sdk');
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager();
     server = LspAnalysisServer(
-        channel,
-        resourceProvider,
-        serverOptions,
-        DartSdkManager(sdkRoot.path),
-        AnalyticsManager(NoOpAnalytics()),
-        CrashReportingAttachmentsBuilder.empty,
-        errorNotifier,
-        httpClient: httpClient,
-        processRunner: processRunner,
-        dartFixPromptManager: dartFixPromptManager);
+      channel,
+      resourceProvider,
+      serverOptions,
+      DartSdkManager(sdkRoot.path),
+      AnalyticsManager(NoOpAnalytics()),
+      CrashReportingAttachmentsBuilder.empty,
+      errorNotifier,
+      httpClient: httpClient,
+      processRunner: processRunner,
+      dartFixPromptManager: dartFixPromptManager,
+    );
     errorNotifier.server = server;
     server.pluginManager = pluginManager;
 
@@ -479,20 +499,22 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setApplyEditSupport([bool supported = true]) {
-    workspaceCapabilities = extendWorkspaceCapabilities(
-        workspaceCapabilities, {'applyEdit': supported});
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'applyEdit': supported,
+    });
   }
 
   void setChangeAnnotationSupport([bool supported = true]) {
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'workspaceEdit': {
-        'changeAnnotationSupport': supported
-            ? <String, Object?>{
-                // This is set to an empty object to indicate support. We don't
-                // currently use any of the child properties.
-              }
-            : null
-      }
+        'changeAnnotationSupport':
+            supported
+                ? <String, Object?>{
+                  // This is set to an empty object to indicate support. We don't
+                  // currently use any of the child properties.
+                }
+                : null,
+      },
     });
   }
 
@@ -501,92 +523,109 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setCompletionItemDeprecatedFlagSupport() {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItem': {'deprecatedSupport': true}
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItem': {'deprecatedSupport': true},
+        },
+      },
+    );
   }
 
   void setCompletionItemInsertReplaceSupport() {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItem': {'insertReplaceSupport': true}
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItem': {'insertReplaceSupport': true},
+        },
+      },
+    );
   }
 
   void setCompletionItemInsertTextModeSupport() {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItem': {
-          'insertTextModeSupport': {
-            'valueSet': [InsertTextMode.adjustIndentation, InsertTextMode.asIs]
-                .map((k) => k.toJson())
-                .toList()
-          }
-        }
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItem': {
+            'insertTextModeSupport': {
+              'valueSet':
+                  [
+                    InsertTextMode.adjustIndentation,
+                    InsertTextMode.asIs,
+                  ].map((k) => k.toJson()).toList(),
+            },
+          },
+        },
+      },
+    );
   }
 
   void setCompletionItemKinds(List<CompletionItemKind> kinds) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItemKind': {
-          'valueSet': kinds.map((k) => k.toJson()).toList()
-        }
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItemKind': {
+            'valueSet': kinds.map((k) => k.toJson()).toList(),
+          },
+        },
+      },
+    );
   }
 
   void setCompletionItemLabelDetailsSupport([bool supported = true]) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItem': {'labelDetailsSupport': supported}
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItem': {'labelDetailsSupport': supported},
+        },
+      },
+    );
   }
 
   void setCompletionItemSnippetSupport([bool supported = true]) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItem': {'snippetSupport': supported}
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItem': {'snippetSupport': supported},
+        },
+      },
+    );
   }
 
   void setCompletionItemTagSupport(List<CompletionItemTag> tags) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionItem': {
-          'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
-        }
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionItem': {
+            'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()},
+          },
+        },
+      },
+    );
   }
 
   void setCompletionListDefaults(List<String> defaults) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'completion': {
-        'completionList': {
-          'itemDefaults': defaults,
-        }
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionList': {'itemDefaults': defaults},
+        },
+      },
+    );
   }
 
   void setConfigurationSupport() {
-    workspaceCapabilities = extendWorkspaceCapabilities(
-        workspaceCapabilities, {'configuration': true});
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'configuration': true,
+    });
   }
 
   void setDartTextDocumentContentProviderSupport([bool supported = true]) {
@@ -602,32 +641,34 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setDiagnosticCodeDescriptionSupport() {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'publishDiagnostics': {
-        'codeDescriptionSupport': true,
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'publishDiagnostics': {'codeDescriptionSupport': true},
+      },
+    );
   }
 
   void setDiagnosticTagSupport(List<DiagnosticTag> tags) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'publishDiagnostics': {
-        'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'publishDiagnostics': {
+          'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()},
+        },
+      },
+    );
   }
 
   void setDidChangeConfigurationDynamicRegistration() {
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
-      'didChangeConfiguration': {'dynamicRegistration': true}
+      'didChangeConfiguration': {'dynamicRegistration': true},
     });
   }
 
   void setDocumentChangesSupport([bool supported = true]) {
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
-      'workspaceEdit': {'documentChanges': supported}
+      'workspaceEdit': {'documentChanges': supported},
     });
   }
 
@@ -638,29 +679,34 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setDocumentSymbolKinds(List<SymbolKind> kinds) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'documentSymbol': {
-        'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'documentSymbol': {
+          'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()},
+        },
+      },
+    );
   }
 
   void setFileCreateSupport([bool supported = true]) {
     if (supported) {
       setDocumentChangesSupport();
       workspaceCapabilities = _withResourceOperationKinds(
-          workspaceCapabilities, [ResourceOperationKind.Create]);
+        workspaceCapabilities,
+        [ResourceOperationKind.Create],
+      );
     } else {
-      workspaceCapabilities.workspaceEdit?.resourceOperations
-          ?.remove(ResourceOperationKind.Create);
+      workspaceCapabilities.workspaceEdit?.resourceOperations?.remove(
+        ResourceOperationKind.Create,
+      );
     }
   }
 
   void setFileOperationDynamicRegistration() {
     setWorkspaceDynamicRegistration('fileOperations');
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
-      'fileOperations': {'dynamicRegistration': true}
+      'fileOperations': {'dynamicRegistration': true},
     });
   }
 
@@ -668,25 +714,32 @@ mixin ClientCapabilitiesHelperMixin {
     if (supported) {
       setDocumentChangesSupport();
       workspaceCapabilities = _withResourceOperationKinds(
-          workspaceCapabilities, [ResourceOperationKind.Rename]);
+        workspaceCapabilities,
+        [ResourceOperationKind.Rename],
+      );
     } else {
-      workspaceCapabilities.workspaceEdit?.resourceOperations
-          ?.remove(ResourceOperationKind.Rename);
+      workspaceCapabilities.workspaceEdit?.resourceOperations?.remove(
+        ResourceOperationKind.Rename,
+      );
     }
   }
 
   void setHierarchicalDocumentSymbolSupport() {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'documentSymbol': {'hierarchicalDocumentSymbolSupport': true},
+      },
+    );
   }
 
   void setHoverContentFormat(List<MarkupKind> formats) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()},
+      },
+    );
   }
 
   void setHoverDynamicRegistration() {
@@ -694,30 +747,36 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setLineFoldingOnly() {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'foldingRange': {'lineFoldingOnly': true},
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'foldingRange': {'lineFoldingOnly': true},
+      },
+    );
   }
 
   void setLocationLinkSupport([bool supported = true]) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'definition': {'linkSupport': supported},
-      'typeDefinition': {'linkSupport': supported},
-      'implementation': {'linkSupport': supported}
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'definition': {'linkSupport': supported},
+        'typeDefinition': {'linkSupport': supported},
+        'implementation': {'linkSupport': supported},
+      },
+    );
   }
 
   void setSignatureHelpContentFormat(List<MarkupKind>? formats) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'signatureHelp': {
-        'signatureInformation': {
-          'documentationFormat': formats?.map((k) => k.toJson()).toList()
-        }
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'signatureHelp': {
+          'signatureInformation': {
+            'documentationFormat': formats?.map((k) => k.toJson()).toList(),
+          },
+        },
+      },
+    );
   }
 
   void setSnippetTextEditSupport([bool supported = true]) {
@@ -725,18 +784,21 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      'codeAction': {
-        'codeActionLiteralSupport': kinds != null
-            ? {
-                'codeActionKind': {
-                  'valueSet': kinds.map((k) => k.toJson()).toList()
-                }
-              }
-            : null,
-      }
-    });
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'codeAction': {
+          'codeActionLiteralSupport':
+              kinds != null
+                  ? {
+                    'codeActionKind': {
+                      'valueSet': kinds.map((k) => k.toJson()).toList(),
+                    },
+                  }
+                  : null,
+        },
+      },
+    );
   }
 
   void setSupportedCommandParameterKinds(Set<String>? kinds) {
@@ -745,21 +807,21 @@ mixin ClientCapabilitiesHelperMixin {
     };
   }
 
-  void setTextDocumentDynamicRegistration(
-    String name,
-  ) {
-    var json = name == 'semanticTokens'
-        ? SemanticTokensClientCapabilities(
-            dynamicRegistration: true,
-            requests: ClientSemanticTokensRequestOptions(),
-            formats: [],
-            tokenModifiers: [],
-            tokenTypes: []).toJson()
-        : {'dynamicRegistration': true};
-    textDocumentCapabilities =
-        extendTextDocumentCapabilities(textDocumentCapabilities, {
-      name: json,
-    });
+  void setTextDocumentDynamicRegistration(String name) {
+    var json =
+        name == 'semanticTokens'
+            ? SemanticTokensClientCapabilities(
+              dynamicRegistration: true,
+              requests: ClientSemanticTokensRequestOptions(),
+              formats: [],
+              tokenModifiers: [],
+              tokenTypes: [],
+            ).toJson()
+            : {'dynamicRegistration': true};
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {name: json},
+    );
   }
 
   void setTextSyncDynamicRegistration() {
@@ -767,13 +829,12 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setWorkDoneProgressSupport() {
-    windowCapabilities = extendWindowCapabilities(
-        windowCapabilities, {'workDoneProgress': true});
+    windowCapabilities = extendWindowCapabilities(windowCapabilities, {
+      'workDoneProgress': true,
+    });
   }
 
-  void setWorkspaceDynamicRegistration(
-    String name,
-  ) {
+  void setWorkspaceDynamicRegistration(String name) {
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       name: {'dynamicRegistration': true},
     });
@@ -788,13 +849,12 @@ mixin ClientCapabilitiesHelperMixin {
         'documentChanges':
             true, // docChanges aren't included in resourceOperations
         'resourceOperations': kinds.map((k) => k.toJson()).toList(),
-      }
+      },
     });
   }
 }
 
-mixin LspAnalysisServerTestMixin
-    on LspRequestHelpersMixin, LspEditHelpersMixin
+mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
@@ -862,7 +922,8 @@ mixin LspAnalysisServerTestMixin
 
   /// The URI for an augmentation for [mainFileUri].
   Uri get mainFileAugmentationUri => mainFileUri.replace(
-      path: mainFileUri.path.replaceFirst('.dart', '_augmentation.dart'));
+    path: mainFileUri.path.replaceFirst('.dart', '_augmentation.dart'),
+  );
 
   /// The URI for the macro-generated contents for [mainFileUri].
   Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
@@ -884,8 +945,10 @@ mixin LspAnalysisServerTestMixin
   /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
   Stream<OpenUriParams> get openUriNotifications => notificationsFromServer
       .where((notification) => notification.method == CustomMethods.openUri)
-      .map((message) =>
-          OpenUriParams.fromJson(message.params as Map<String, Object?>));
+      .map(
+        (message) =>
+            OpenUriParams.fromJson(message.params as Map<String, Object?>),
+      );
 
   path.Context get pathContext;
 
@@ -895,10 +958,15 @@ mixin LspAnalysisServerTestMixin
   /// A stream of diagnostic notifications from the server.
   Stream<PublishDiagnosticsParams> get publishedDiagnostics {
     return notificationsFromServer
-        .where((notification) =>
-            notification.method == Method.textDocument_publishDiagnostics)
-        .map((notification) => PublishDiagnosticsParams.fromJson(
-            notification.params as Map<String, Object?>));
+        .where(
+          (notification) =>
+              notification.method == Method.textDocument_publishDiagnostics,
+        )
+        .map(
+          (notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>,
+          ),
+        );
   }
 
   /// [pubspecFilePath] as a 'file:///' [Uri].
@@ -919,10 +987,14 @@ mixin LspAnalysisServerTestMixin
   /// A stream of [ShowMessageParams] for any `window/logMessage` notifications.
   Stream<ShowMessageParams> get showMessageNotifications =>
       notificationsFromServer
-          .where((notification) =>
-              notification.method == Method.window_showMessage)
-          .map((message) => ShowMessageParams.fromJson(
-              message.params as Map<String, Object?>));
+          .where(
+            (notification) => notification.method == Method.window_showMessage,
+          )
+          .map(
+            (message) => ShowMessageParams.fromJson(
+              message.params as Map<String, Object?>,
+            ),
+          );
 
   String get testPackageRootPath => projectFolderPath;
 
@@ -934,16 +1006,20 @@ mixin LspAnalysisServerTestMixin
     var notification = makeNotification(
       Method.textDocument_didChange,
       DidChangeTextDocumentParams(
-        textDocument:
-            VersionedTextDocumentIdentifier(version: newVersion, uri: uri),
+        textDocument: VersionedTextDocumentIdentifier(
+          version: newVersion,
+          uri: uri,
+        ),
         contentChanges: changes,
       ),
     );
     await sendNotificationToServer(notification);
   }
 
-  Future<void> changeWorkspaceFolders(
-      {List<Uri>? add, List<Uri>? remove}) async {
+  Future<void> changeWorkspaceFolders({
+    List<Uri>? add,
+    List<Uri>? remove,
+  }) async {
     var notification = makeNotification(
       Method.workspace_didChangeWorkspaceFolders,
       DidChangeWorkspaceFoldersParams(
@@ -960,13 +1036,15 @@ mixin LspAnalysisServerTestMixin
     var notification = makeNotification(
       Method.textDocument_didClose,
       DidCloseTextDocumentParams(
-          textDocument: TextDocumentIdentifier(uri: uri)),
+        textDocument: TextDocumentIdentifier(uri: uri),
+      ),
     );
     await sendNotificationToServer(notification);
   }
 
   Future<Object?> executeCodeAction(
-      Either2<Command, CodeAction> codeAction) async {
+    Either2<Command, CodeAction> codeAction,
+  ) async {
     var command = codeAction.map(
       (command) => command,
       (codeAction) => codeAction.command!,
@@ -982,8 +1060,10 @@ mixin LspAnalysisServerTestMixin
     var supportedCommands =
         _serverCapabilities?.executeCommandProvider?.commands ?? [];
     if (!supportedCommands.contains(command.command)) {
-      throw ArgumentError('Server does not support ${command.command}. '
-          'Is it missing from serverSupportedCommands?');
+      throw ArgumentError(
+        'Server does not support ${command.command}. '
+        'Is it missing from serverSupportedCommands?',
+      );
     }
     var request = makeRequest(
       Method.workspace_executeCommand,
@@ -994,7 +1074,9 @@ mixin LspAnalysisServerTestMixin
       ),
     );
     return expectSuccessfulResponseTo<T, Map<String, Object?>>(
-        request, decoder ?? (result) => result as T);
+      request,
+      decoder ?? (result) => result as T,
+    );
   }
 
   Future<ShowMessageParams> expectErrorNotification(
@@ -1012,7 +1094,8 @@ mixin LspAnalysisServerTestMixin
 
     expect(notificationFromServer, isNotNull);
     return ShowMessageParams.fromJson(
-        notificationFromServer.params as Map<String, Object?>);
+      notificationFromServer.params as Map<String, Object?>,
+    );
   }
 
   Future<T> expectNotification<T>(
@@ -1097,8 +1180,9 @@ mixin LspAnalysisServerTestMixin
     });
 
     // Handle the request from the server and send the response back.
-    var clientsResponse =
-        await handler(fromJson(incomingRequest.params as Map<String, Object?>));
+    var clientsResponse = await handler(
+      fromJson(incomingRequest.params as Map<String, Object?>),
+    );
     respondTo(incomingRequest, clientsResponse);
 
     // Return a future that completes when the response to the original request
@@ -1134,8 +1218,9 @@ mixin LspAnalysisServerTestMixin
 
     publishedDiagnostics.listen((diagnostics) {
       if (failTestOnErrorDiagnostic &&
-          diagnostics.diagnostics.any((diagnostic) =>
-              diagnostic.severity == DiagnosticSeverity.Error)) {
+          diagnostics.diagnostics.any(
+            (diagnostic) => diagnostic.severity == DiagnosticSeverity.Error,
+          )) {
         fail('Unexpected diagnostics: ${diagnostics.toJson()}');
       }
     });
@@ -1175,26 +1260,30 @@ mixin LspAnalysisServerTestMixin
       rootUri = pathContext.toUri(projectFolderPath);
     }
     var request = makeRequest(
-        Method.initialize,
-        InitializeParams(
-          rootPath: rootPath,
-          rootUri: rootUri,
-          initializationOptions:
-              initializationOptions ?? defaultInitializationOptions,
-          capabilities: clientCapabilities,
-          workspaceFolders: workspaceFolders?.map(toWorkspaceFolder).toList(),
-        ));
+      Method.initialize,
+      InitializeParams(
+        rootPath: rootPath,
+        rootUri: rootUri,
+        initializationOptions:
+            initializationOptions ?? defaultInitializationOptions,
+        capabilities: clientCapabilities,
+        workspaceFolders: workspaceFolders?.map(toWorkspaceFolder).toList(),
+      ),
+    );
     var response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
     var error = response.error;
     if (error == null) {
-      var result =
-          InitializeResult.fromJson(response.result as Map<String, Object?>);
+      var result = InitializeResult.fromJson(
+        response.result as Map<String, Object?>,
+      );
       _serverCapabilities = result.capabilities;
 
-      var notification =
-          makeNotification(Method.initialized, InitializedParams());
+      var notification = makeNotification(
+        Method.initialized,
+        InitializedParams(),
+      );
 
       var initializedNotification = sendNotificationToServer(notification);
       immediatelyAfterInitialized?.call();
@@ -1213,21 +1302,30 @@ mixin LspAnalysisServerTestMixin
       method: method,
       params: params,
       jsonrpc: jsonRpcVersion,
-      clientRequestTime: includeClientRequestTime
-          ? DateTime.now().millisecondsSinceEpoch
-          : null,
+      clientRequestTime:
+          includeClientRequestTime
+              ? DateTime.now().millisecondsSinceEpoch
+              : null,
     );
   }
 
   RequestMessage makeRenameRequest(
-      int? version, Uri uri, Position pos, String newName) {
-    var docIdentifier = version != null
-        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
-        : TextDocumentIdentifier(uri: uri);
+    int? version,
+    Uri uri,
+    Position pos,
+    String newName,
+  ) {
+    var docIdentifier =
+        version != null
+            ? VersionedTextDocumentIdentifier(version: version, uri: uri)
+            : TextDocumentIdentifier(uri: uri);
     var request = makeRequest(
       Method.textDocument_rename,
       RenameParams(
-          newName: newName, textDocument: docIdentifier, position: pos),
+        newName: newName,
+        textDocument: docIdentifier,
+        position: pos,
+      ),
     );
     return request;
   }
@@ -1252,11 +1350,10 @@ mixin LspAnalysisServerTestMixin
   Future<T> monitorDynamicReregistration<T>(
     List<Registration> registrations,
     Future<T> Function() f,
-  ) =>
-      monitorDynamicUnregistrations(
-        registrations,
-        () => monitorDynamicRegistrations(registrations, f),
-      );
+  ) => monitorDynamicUnregistrations(
+    registrations,
+    () => monitorDynamicRegistrations(registrations, f),
+  );
 
   /// Watches for `client/unregisterCapability` requests and updates
   /// `registrations`.
@@ -1269,9 +1366,11 @@ mixin LspAnalysisServerTestMixin
       UnregistrationParams.fromJson,
       f,
       handler: (unregistrationParams) {
-        registrations.removeWhere((element) => unregistrationParams
-            .unregisterations
-            .any((u) => u.id == element.id));
+        registrations.removeWhere(
+          (element) => unregistrationParams.unregisterations.any(
+            (u) => u.id == element.id,
+          ),
+        );
       },
     );
   }
@@ -1280,11 +1379,13 @@ mixin LspAnalysisServerTestMixin
     var notification = makeNotification(
       Method.textDocument_didOpen,
       DidOpenTextDocumentParams(
-          textDocument: TextDocumentItem(
-              uri: uri,
-              languageId: dartLanguageId,
-              version: version,
-              text: content)),
+        textDocument: TextDocumentItem(
+          uri: uri,
+          languageId: dartLanguageId,
+          version: version,
+          text: content,
+        ),
+      ),
     );
     await sendNotificationToServer(notification);
     await pumpEventQueue(times: 128);
@@ -1313,8 +1414,11 @@ mixin LspAnalysisServerTestMixin
     if (self is AbstractLspAnalysisServerTest) {
       self.setConfigurationSupport();
     }
-    return handleExpectedRequest<T, ConfigurationParams,
-        List<Map<String, Object?>>>(
+    return handleExpectedRequest<
+      T,
+      ConfigurationParams,
+      List<Map<String, Object?>>
+    >(
       Method.workspace_configuration,
       ConfigurationParams.fromJson,
       f,
@@ -1326,15 +1430,13 @@ mixin LspAnalysisServerTestMixin
         // config if it does not exist.
         var global = await globalConfig;
         var folders = await folderConfig;
-        return configurationParams.items.map(
-          (requestedConfig) {
-            var uri = requestedConfig.scopeUri;
-            var path = uri != null ? pathContext.fromUri(uri) : null;
-            // Use the config the test provided for this path, or fall back to
-            // global.
-            return (folders != null ? folders[path] : null) ?? global;
-          },
-        ).toList();
+        return configurationParams.items.map((requestedConfig) {
+          var uri = requestedConfig.scopeUri;
+          var path = uri != null ? pathContext.fromUri(uri) : null;
+          // Use the config the test provided for this path, or fall back to
+          // global.
+          return (folders != null ? folders[path] : null) ?? global;
+        }).toList();
       },
     );
   }
@@ -1402,21 +1504,23 @@ mixin LspAnalysisServerTestMixin
   }
 
   Future<void> replaceFile(int newVersion, Uri uri, String content) {
-    return changeFile(
-      newVersion,
-      uri,
-      [
-        TextDocumentContentChangeEvent.t2(
-            TextDocumentContentChangeWholeDocument(text: content))
-      ],
-    );
+    return changeFile(newVersion, uri, [
+      TextDocumentContentChangeEvent.t2(
+        TextDocumentContentChangeWholeDocument(text: content),
+      ),
+    ]);
   }
 
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
   void respondTo<T>(RequestMessage request, T responseParams) {
-    sendResponseToServer(ResponseMessage(
-        id: request.id, result: responseParams, jsonrpc: jsonRpcVersion));
+    sendResponseToServer(
+      ResponseMessage(
+        id: request.id,
+        result: responseParams,
+        jsonrpc: jsonRpcVersion,
+      ),
+    );
   }
 
   Future<ResponseMessage> sendDidChangeConfiguration() {
@@ -1461,22 +1565,20 @@ mixin LspAnalysisServerTestMixin
       );
 
   TextEdit toTextEdit(Either2<InsertReplaceEdit, TextEdit> edit) => edit.map(
-        (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
-        (e) => e,
-      );
+    (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
+    (e) => e,
+  );
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
-    return WorkspaceFolder(
-      uri: uri,
-      name: path.basename(uri.path),
-    );
+    return WorkspaceFolder(uri: uri, name: path.basename(uri.path));
   }
 
   /// Records the latest diagnostics for each file in [latestDiagnostics].
   ///
   /// [latestDiagnostics] maps from a URI to the set of current diagnostics.
   StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
-      Map<Uri, List<Diagnostic>> latestDiagnostics) {
+    Map<Uri, List<Diagnostic>> latestDiagnostics,
+  ) {
     return publishedDiagnostics.listen((diagnostics) {
       latestDiagnostics[diagnostics.uri] = diagnostics.diagnostics;
     });
@@ -1485,10 +1587,7 @@ mixin LspAnalysisServerTestMixin
   /// Tells the server the config has changed, and provides the supplied config
   /// when it requests the updated config.
   Future<ResponseMessage> updateConfig(Map<String, dynamic> config) {
-    return provideConfig(
-      sendDidChangeConfiguration,
-      config,
-    );
+    return provideConfig(sendDidChangeConfiguration, config);
   }
 
   Future<void> waitForAnalysisComplete() => waitForAnalysisStatus(false);
@@ -1500,22 +1599,26 @@ mixin LspAnalysisServerTestMixin
       if (message.method == CustomMethods.analyzerStatus) {
         if (_clientCapabilities!.window?.workDoneProgress == true) {
           throw Exception(
-              'Received ${CustomMethods.analyzerStatus} notification '
-              'but client supports workDoneProgress');
+            'Received ${CustomMethods.analyzerStatus} notification '
+            'but client supports workDoneProgress',
+          );
         }
 
         var params = AnalyzerStatusParams.fromJson(
-            message.params as Map<String, Object?>);
+          message.params as Map<String, Object?>,
+        );
         return params.isAnalyzing == analyzing;
       } else if (message.method == Method.progress) {
         if (_clientCapabilities!.window?.workDoneProgress != true) {
           throw Exception(
-              'Received ${CustomMethods.analyzerStatus} notification '
-              'but client supports workDoneProgress');
+            'Received ${CustomMethods.analyzerStatus} notification '
+            'but client supports workDoneProgress',
+          );
         }
 
-        var params =
-            ProgressParams.fromJson(message.params as Map<String, Object?>);
+        var params = ProgressParams.fromJson(
+          message.params as Map<String, Object?>,
+        );
 
         // Skip unrelated progress notifications.
         if (params.token != analyzingProgressToken) {
@@ -1523,10 +1626,16 @@ mixin LspAnalysisServerTestMixin
         }
 
         if (params.value is Map<String, dynamic>) {
-          var isDesiredStatusMessage = analyzing
-              ? WorkDoneProgressBegin.canParse(
-                  params.value, nullLspJsonReporter)
-              : WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter);
+          var isDesiredStatusMessage =
+              analyzing
+                  ? WorkDoneProgressBegin.canParse(
+                    params.value,
+                    nullLspJsonReporter,
+                  )
+                  : WorkDoneProgressEnd.canParse(
+                    params.value,
+                    nullLspJsonReporter,
+                  );
 
           return isDesiredStatusMessage;
         } else {
@@ -1543,7 +1652,8 @@ mixin LspAnalysisServerTestMixin
     await notificationsFromServer.firstWhere((message) {
       if (message.method == CustomMethods.publishClosingLabels) {
         closingLabelsParams = PublishClosingLabelsParams.fromJson(
-            message.params as Map<String, Object?>);
+          message.params as Map<String, Object?>,
+        );
 
         return closingLabelsParams.uri == uri;
       }
@@ -1564,7 +1674,8 @@ mixin LspAnalysisServerTestMixin
     await notificationsFromServer.firstWhere((message) {
       if (message.method == CustomMethods.publishFlutterOutline) {
         outlineParams = PublishFlutterOutlineParams.fromJson(
-            message.params as Map<String, Object?>);
+          message.params as Map<String, Object?>,
+        );
 
         return outlineParams.uri == uri;
       }
@@ -1578,7 +1689,8 @@ mixin LspAnalysisServerTestMixin
     await notificationsFromServer.firstWhere((message) {
       if (message.method == CustomMethods.publishOutline) {
         outlineParams = PublishOutlineParams.fromJson(
-            message.params as Map<String, Object?>);
+          message.params as Map<String, Object?>,
+        );
 
         return outlineParams.uri == uri;
       }
@@ -1588,12 +1700,15 @@ mixin LspAnalysisServerTestMixin
   }
 
   Future<void> _handleProgress(NotificationMessage request) async {
-    var params =
-        ProgressParams.fromJson(request.params as Map<String, Object?>);
+    var params = ProgressParams.fromJson(
+      request.params as Map<String, Object?>,
+    );
     if (params.token != clientProvidedTestWorkDoneToken &&
         !validProgressTokens.contains(params.token)) {
-      throw Exception('Server sent a progress notification for a token '
-          'that has not been created: ${params.token}');
+      throw Exception(
+        'Server sent a progress notification for a token '
+        'that has not been created: ${params.token}',
+      );
     }
 
     if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
@@ -1603,11 +1718,14 @@ mixin LspAnalysisServerTestMixin
 
   Future<void> _handleWorkDoneProgressCreate(RequestMessage request) async {
     if (_clientCapabilities!.window?.workDoneProgress != true) {
-      throw Exception('Server sent ${Method.window_workDoneProgress_create} '
-          'but client capabilities do not allow');
+      throw Exception(
+        'Server sent ${Method.window_workDoneProgress_create} '
+        'but client capabilities do not allow',
+      );
     }
     var params = WorkDoneProgressCreateParams.fromJson(
-        request.params as Map<String, Object?>);
+      request.params as Map<String, Object?>,
+    );
     if (validProgressTokens.contains(params.token)) {
       throw Exception('Server tried to create already-active progress token');
     }

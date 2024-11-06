@@ -167,13 +167,16 @@ class A {}
 var x = const [A(), if (true) [0] else [1]];
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 var x = [A(), if (true) const [0] else const [1]];
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void> test_implicitConst_listLiteral_sibling_instanceCreation() async {
@@ -187,7 +190,8 @@ class B {
 var x = const [A(), const B(), B()];
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 class B {
@@ -195,9 +199,11 @@ class B {
 }
 
 var x = [A(), const B(), const B()];
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void> test_implicitConst_listLiteral_sibling_listLiteral() async {
@@ -207,30 +213,36 @@ class A {}
 var x = const [A(), const [0], [1]];
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 var x = [A(), const [0], const [1]];
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void>
-      test_implicitConst_listLiteral_sibling_spreadElement_list() async {
+  test_implicitConst_listLiteral_sibling_spreadElement_list() async {
     await resolveTestCode('''
 class A {}
 
 var x = const [A(), ...const [0], ...[1]];
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 var x = [A(), ...const [0], ...const [1]];
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void> test_implicitConst_mapLiteral() async {
@@ -240,13 +252,16 @@ class A {}
 var x = const {0: A(), ...const {1: 2}, ...{3: 4}};
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 var x = {0: A(), ...const {1: 2}, ...const {3: 4}};
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void> test_implicitConst_setLiteral() async {
@@ -256,13 +271,16 @@ class A {}
 var x = const {A(), ...const {0}, ...{1}};
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 var x = {A(), ...const {0}, ...const {1}};
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void> test_implicitConst_variableDeclarationList() async {
@@ -272,13 +290,16 @@ class A {}
 const x = A(), y = [0];
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 var x = A(), y = const [0];
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 
   Future<void> test_implicitConst_variableDeclarationList_typed() async {
@@ -288,12 +309,15 @@ class A {}
 const Object x = A(), y = [0];
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {}
 
 Object x = A(), y = const [0];
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+      },
+    );
   }
 }

@@ -106,11 +106,14 @@ void f() { int x = 3; }
     expect(formatResult.edits, hasLength(1));
 
     var edit = formatResult.edits[0];
-    expect(edit.replacement, equals('''
+    expect(
+      edit.replacement,
+      equals('''
 void f() {
   int x = 3;
 }
-'''));
+'''),
+    );
     expect(formatResult.selectionOffset, equals(0));
     expect(formatResult.selectionLength, equals(0));
   }
@@ -126,11 +129,14 @@ void f() { int x = 3; }
     expect(formatResult.edits, hasLength(1));
 
     var edit = formatResult.edits[0];
-    expect(edit.replacement, equals('''
+    expect(
+      edit.replacement,
+      equals('''
 void f() {
   int x = 3;
 }
-'''));
+'''),
+    );
     expect(formatResult.selectionOffset, equals(0));
     expect(formatResult.selectionLength, equals(3));
   }
@@ -140,20 +146,30 @@ void f() {
 void f() { int x =
 ''');
     await waitForTasksFinished();
-    var request = EditFormatParams(testFile.path, 0, 3)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditFormatParams(
+      testFile.path,
+      0,
+      3,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     expect(response, isResponseFailure('0'));
   }
 
-  Future<EditFormatResult> _formatAt(int selectionOffset, int selectionLength,
-      {int? lineLength}) async {
+  Future<EditFormatResult> _formatAt(
+    int selectionOffset,
+    int selectionLength, {
+    int? lineLength,
+  }) async {
     var request = EditFormatParams(
-            testFile.path, selectionOffset, selectionLength,
-            lineLength: lineLength)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      testFile.path,
+      selectionOffset,
+      selectionLength,
+      lineLength: lineLength,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    return EditFormatResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    return EditFormatResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 }

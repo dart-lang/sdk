@@ -69,10 +69,7 @@ void f() {
 ^foo() {}
 ''';
 
-    await _checkRanges(
-      mainContent,
-      otherContent: otherContent,
-    );
+    await _checkRanges(mainContent, otherContent: otherContent);
   }
 
   Future<void> test_field_decalaration_getterSetter() async {

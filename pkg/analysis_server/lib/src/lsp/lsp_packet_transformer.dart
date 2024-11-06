@@ -38,34 +38,44 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) {
     LspHeaders? headersState;
     var buffer = <int>[];
-    var controller = MoreTypedStreamController<String,
-        _LspPacketTransformerListenData, _LspPacketTransformerPauseData>(
+    var controller = MoreTypedStreamController<
+      String,
+      _LspPacketTransformerListenData,
+      _LspPacketTransformerPauseData
+    >(
       onListen: (controller) {
-        var input = stream.expand((b) => b).listen(
-          (codeUnit) {
-            buffer.add(codeUnit);
-            var headers = headersState;
-            if (headers == null && _endsWithCrLfCrLf(buffer)) {
-              headersState = _parseHeaders(buffer);
-              buffer.clear();
-            } else if (headers != null &&
-                buffer.length >= headers.contentLength) {
-              // UTF-8 is the default - and only supported - encoding for LSP.
-              // The string 'utf8' is valid since it was published in the original spec.
-              // Any other encodings should be rejected with an error.
-              if ([null, 'utf-8', 'utf8']
-                  .contains(headers.encoding?.toLowerCase())) {
-                controller.add(utf8.decode(buffer));
-              } else {
-                controller.addError(InvalidEncodingError(headers.rawHeaders));
-              }
-              buffer.clear();
-              headersState = null;
-            }
-          },
-          onError: controller.addError,
-          onDone: controller.close,
-        );
+        var input = stream
+            .expand((b) => b)
+            .listen(
+              (codeUnit) {
+                buffer.add(codeUnit);
+                var headers = headersState;
+                if (headers == null && _endsWithCrLfCrLf(buffer)) {
+                  headersState = _parseHeaders(buffer);
+                  buffer.clear();
+                } else if (headers != null &&
+                    buffer.length >= headers.contentLength) {
+                  // UTF-8 is the default - and only supported - encoding for LSP.
+                  // The string 'utf8' is valid since it was published in the original spec.
+                  // Any other encodings should be rejected with an error.
+                  if ([
+                    null,
+                    'utf-8',
+                    'utf8',
+                  ].contains(headers.encoding?.toLowerCase())) {
+                    controller.add(utf8.decode(buffer));
+                  } else {
+                    controller.addError(
+                      InvalidEncodingError(headers.rawHeaders),
+                    );
+                  }
+                  buffer.clear();
+                  headersState = null;
+                }
+              },
+              onError: controller.addError,
+              onDone: controller.close,
+            );
         return _LspPacketTransformerListenData(input);
       },
       onPause: (listenData) {
@@ -102,11 +112,13 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     // Headers are specified as always ASCII in LSP.
     var asString = ascii.decode(buffer);
     var headers = asString.split('\r\n');
-    var lengthHeader =
-        headers.firstWhere((h) => h.startsWith('Content-Length'));
+    var lengthHeader = headers.firstWhere(
+      (h) => h.startsWith('Content-Length'),
+    );
     var length = lengthHeader.split(':').last.trim();
-    var contentTypeHeader =
-        headers.firstWhereOrNull((h) => h.startsWith('Content-Type'));
+    var contentTypeHeader = headers.firstWhereOrNull(
+      (h) => h.startsWith('Content-Type'),
+    );
     var encoding = _extractEncoding(contentTypeHeader);
     return LspHeaders(asString, int.parse(length), encoding);
   }

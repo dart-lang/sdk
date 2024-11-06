@@ -30,10 +30,12 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
     CancellationToken cancellationToken,
   ) async {
     if (parameters['path'] is! String) {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message: '$commandName requires a Map argument containing a "path"',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message: '$commandName requires a Map argument containing a "path"',
+        ),
+      );
     }
 
     // Get the version of the doc before we calculate edits so we can send it
@@ -120,8 +122,11 @@ class _FixAllOperation extends TemporaryOverlayOperation
       cancellationToken: cancellationToken,
     );
 
-    var changes = await processor.fixErrorsForFile(message.performance, path,
-        autoTriggered: autoTriggered);
+    var changes = await processor.fixErrorsForFile(
+      message.performance,
+      path,
+      autoTriggered: autoTriggered,
+    );
     if (changes.isEmpty) {
       return success(null);
     }
@@ -139,7 +144,10 @@ class _FixAllOperation extends TemporaryOverlayOperation
     await revertOverlays();
 
     var edit = createPlainWorkspaceEdit(
-        server, server.editorClientCapabilities!, changes);
+      server,
+      server.editorClientCapabilities!,
+      changes,
+    );
 
     return success(edit);
   }

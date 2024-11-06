@@ -16,7 +16,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    as protocol
     show Element, ElementKind;
 
 /// The name of the type `dynamic`;
@@ -130,28 +131,45 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
 
 /// Create a new protocol Element for inclusion in a completion suggestion.
 protocol.Element createLocalElement(
-    Source source, protocol.ElementKind kind, SimpleIdentifier id,
-    {String? parameters,
-    TypeAnnotation? returnType,
-    bool isAbstract = false,
-    bool isDeprecated = false}) {
+  Source source,
+  protocol.ElementKind kind,
+  SimpleIdentifier id, {
+  String? parameters,
+  TypeAnnotation? returnType,
+  bool isAbstract = false,
+  bool isDeprecated = false,
+}) {
   var name = id.name;
   // TODO(danrubel): use lineInfo to determine startLine and startColumn
-  var location = Location(source.fullName, id.offset, id.length, 0, 0,
-      endLine: 0, endColumn: 0);
+  var location = Location(
+    source.fullName,
+    id.offset,
+    id.length,
+    0,
+    0,
+    endLine: 0,
+    endColumn: 0,
+  );
   var flags = protocol.Element.makeFlags(
-      isAbstract: isAbstract,
-      isDeprecated: isDeprecated,
-      isPrivate: Identifier.isPrivateName(name));
-  return protocol.Element(kind, name, flags,
-      location: location,
-      parameters: parameters,
-      returnType: nameForType(id, returnType));
+    isAbstract: isAbstract,
+    isDeprecated: isDeprecated,
+    isPrivate: Identifier.isPrivateName(name),
+  );
+  return protocol.Element(
+    kind,
+    name,
+    flags,
+    location: location,
+    parameters: parameters,
+    returnType: nameForType(id, returnType),
+  );
 }
 
 /// Return a default argument value for the given [parameter].
 DefaultArgument? getDefaultStringParameterValue(
-    ParameterElement parameter, String quote) {
+  ParameterElement parameter,
+  String quote,
+) {
   var type = parameter.type;
   if (type is InterfaceType) {
     if (type.isDartCoreList) {
@@ -174,7 +192,9 @@ DefaultArgument? getDefaultStringParameterValue(
 
 /// Return a default argument value for the given [parameter].
 DefaultArgument? getDefaultStringParameterValue2(
-    FormalParameterElement parameter, String quote) {
+  FormalParameterElement parameter,
+  String quote,
+) {
   var type = parameter.type;
   if (type is InterfaceType) {
     if (type.isDartCoreList) {
@@ -221,7 +241,9 @@ String getTypeString(DartType type) {
 
 /// Instantiates the given [InterfaceElement]
 InterfaceType instantiateInstanceElement(
-    InterfaceElement element, NeverType neverType) {
+  InterfaceElement element,
+  NeverType neverType,
+) {
   var typeParameters = element.typeParameters;
   var typeArguments = const <DartType>[];
   if (typeParameters.isNotEmpty) {
@@ -284,10 +306,7 @@ class CompletionDefaultArgumentList {
   final String? text;
   final List<int>? ranges;
 
-  CompletionDefaultArgumentList({
-    required this.text,
-    required this.ranges,
-  });
+  CompletionDefaultArgumentList({required this.text, required this.ranges});
 }
 
 /// A tuple of text to insert and an (optional) location for the cursor.
