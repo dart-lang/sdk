@@ -537,7 +537,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   /// Handle a [request] that was read from the communication channel.
-  void handleRequest(Request request) {
+  void handleRequest(Request request, CancelableToken? cancellationToken) {
     var startTime = DateTime.now();
     performance.logRequestTiming(request.clientRequestTime);
 
@@ -556,12 +556,11 @@ class LegacyAnalysisServer extends AnalysisServer {
         );
         recentPerformance.requests.add(requestPerformance!);
 
-        var cancellationToken = CancelableToken();
-        cancellationTokens[request.id] = cancellationToken;
+        var token = cancellationToken ??= CancelableToken();
+        cancellationTokens[request.id] = token;
         var generator = requestHandlerGenerators[request.method];
         if (generator != null) {
-          var handler =
-              generator(this, request, cancellationToken, performance);
+          var handler = generator(this, request, token, performance);
           if (!handler.recordsOwnAnalytics) {
             analyticsManager.startedRequest(
                 request: request, startTime: startTime);
@@ -607,7 +606,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Handle a [request] that was read from the communication channel.
   void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
     if (requestOrResponse is Request) {
-      messageScheduler.add(LegacyMessage(request: requestOrResponse));
+      var cancellationToken = CancelableToken();
+      cancellationTokens[requestOrResponse.id] = cancellationToken;
+      messageScheduler.add(LegacyMessage(
+          request: requestOrResponse, cancellationToken: cancellationToken));
       messageScheduler.notify();
     } else if (requestOrResponse is Response) {
       handleResponse(requestOrResponse);

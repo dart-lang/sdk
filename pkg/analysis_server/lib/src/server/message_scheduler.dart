@@ -29,8 +29,9 @@ final class DtdMessage extends MessageObject {
 /// Represents a message in the Legacy protocol format.
 final class LegacyMessage extends MessageObject {
   final legacy.Request request;
+  CancelableToken? cancellationToken;
 
-  LegacyMessage({required this.request});
+  LegacyMessage({required this.request, this.cancellationToken});
 }
 
 /// Represents a message in the LSP protocol format.
@@ -81,7 +82,8 @@ final class MessageScheduler {
             cancellationToken: message.cancellationToken);
       case LegacyMessage():
         var request = message.request;
-        (server as LegacyAnalysisServer).handleRequest(request);
+        (server as LegacyAnalysisServer)
+            .handleRequest(request, message.cancellationToken);
       case DtdMessage():
         server.dtd!.processMessage(
             message.message, message.performance, message.completer);
