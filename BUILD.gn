@@ -86,7 +86,7 @@ group("run_ffi_unit_tests") {
 group("runtime_precompiled") {
   import("runtime/runtime_args.gni")
   deps = [
-    "runtime/bin:dartaotruntime",
+    "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:gen_snapshot",
     "runtime/bin:gen_snapshot($host_toolchain)",
     "runtime/bin:process_test",
@@ -110,15 +110,7 @@ group("create_platform_sdk") {
 }
 
 group("dart2js") {
-  import("runtime/runtime_args.gni")
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    deps = [
-      ":runtime_precompiled",
-      "utils/compiler:dart2js_sdk_aot",
-    ]
-  } else {
-    deps = [ "utils/compiler:dart2js" ]
-  }
+  deps = [ "utils/compiler:dart2js" ]
 }
 
 group("dart2wasm_platform") {
@@ -156,19 +148,7 @@ group("dartanalyzer") {
 }
 
 group("ddc") {
-  import("runtime/runtime_args.gni")
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    deps = [
-      ":runtime_precompiled",
-      "utils/bazel:kernel_worker_aot",
-      "utils/ddc:dartdevc_aot",
-    ]
-  } else {
-    deps = [
-      "utils/bazel:kernel_worker",
-      "utils/ddc:dartdevc",
-    ]
-  }
+  deps = [ "utils/ddc:dartdevc" ]
 }
 
 group("analysis_server") {
@@ -387,7 +367,7 @@ if (is_fuchsia) {
 
   test_binaries = [
     "dart",
-    "dartaotruntime",
+    "dart_precompiled_runtime",
     "run_vm_tests",
   ]
 

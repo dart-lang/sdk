@@ -1601,7 +1601,7 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
 
   String dartAotRuntime() => _useSdk
       ? '${_configuration.buildDirectory}/dart-sdk/bin/dartaotruntime'
-      : '${_configuration.buildDirectory}/dartaotruntime';
+      : '${_configuration.buildDirectory}/dart_precompiled_runtime';
 
   String dart2bytecodeSnapshot() => _useSdk
       ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dart2bytecode.dart.snapshot'
