@@ -490,9 +490,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       return;
     }
 
-    // Assign to break a possible infinite recursion during computing.
-    _constructors = const <ConstructorElementImpl>[];
-
     var superType = supertype;
     if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
@@ -502,6 +499,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       _constructors = <ConstructorElementImpl>[];
       return;
     }
+
+    // Assign to break a possible infinite recursion during computing.
+    _constructors = const <ConstructorElementImpl>[];
 
     var superElement = superType.element as ClassElementImpl;
 

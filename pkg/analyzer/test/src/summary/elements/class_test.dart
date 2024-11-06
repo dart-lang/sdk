@@ -26355,6 +26355,18 @@ library
 ''');
   }
 
+  test_classAlias_constructors_beforeOtherProperties() async {
+    // https://github.com/dart-lang/sdk/issues/57035
+    var library = await buildLibrary('''
+abstract mixin class A {}
+mixin M {}
+class X = A with M;
+''');
+
+    var X = library.getClass('X')!;
+    expect(X.constructors, hasLength(1));
+  }
+
   test_classAlias_constructors_default() async {
     var library = await buildLibrary('''
 class A {}
