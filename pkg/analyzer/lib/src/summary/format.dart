@@ -89,15 +89,15 @@ class AnalysisDriverExceptionContextBuilder extends Object
     this._stackTrace = value;
   }
 
-  AnalysisDriverExceptionContextBuilder(
-      {String? exception,
-      List<AnalysisDriverExceptionFileBuilder>? files,
-      String? path,
-      String? stackTrace})
-      : _exception = exception,
-        _files = files,
-        _path = path,
-        _stackTrace = stackTrace;
+  AnalysisDriverExceptionContextBuilder({
+    String? exception,
+    List<AnalysisDriverExceptionFileBuilder>? files,
+    String? path,
+    String? stackTrace,
+  }) : _exception = exception,
+       _files = files,
+       _path = path,
+       _stackTrace = stackTrace;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -136,8 +136,9 @@ class AnalysisDriverExceptionContextBuilder extends Object
     }
     var files = _files;
     if (!(files == null || files.isEmpty)) {
-      offset_files =
-          fbBuilder.writeList(files.map((b) => b.finish(fbBuilder)).toList());
+      offset_files = fbBuilder.writeList(
+        files.map((b) => b.finish(fbBuilder)).toList(),
+      );
     }
     var path = _path;
     if (path != null) {
@@ -165,7 +166,8 @@ class AnalysisDriverExceptionContextBuilder extends Object
 }
 
 idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(
-    List<int> buffer) {
+  List<int> buffer,
+) {
   fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverExceptionContextReader().read(rootRef, 0);
 }
@@ -176,8 +178,9 @@ class _AnalysisDriverExceptionContextReader
 
   @override
   _AnalysisDriverExceptionContextImpl createObject(
-          fb.BufferContext bc, int offset) =>
-      _AnalysisDriverExceptionContextImpl(bc, offset);
+    fb.BufferContext bc,
+    int offset,
+  ) => _AnalysisDriverExceptionContextImpl(bc, offset);
 }
 
 class _AnalysisDriverExceptionContextImpl extends Object
@@ -195,16 +198,19 @@ class _AnalysisDriverExceptionContextImpl extends Object
 
   @override
   String get exception {
-    return _exception ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _exception ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      1,
+      '',
+    );
   }
 
   @override
   List<idl.AnalysisDriverExceptionFile> get files {
     return _files ??= const fb.ListReader<idl.AnalysisDriverExceptionFile>(
-            _AnalysisDriverExceptionFileReader())
-        .vTableGet(
-            _bc, _bcOffset, 3, const <idl.AnalysisDriverExceptionFile>[]);
+      _AnalysisDriverExceptionFileReader(),
+    ).vTableGet(_bc, _bcOffset, 3, const <idl.AnalysisDriverExceptionFile>[]);
   }
 
   @override
@@ -214,8 +220,12 @@ class _AnalysisDriverExceptionContextImpl extends Object
 
   @override
   String get stackTrace {
-    return _stackTrace ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _stackTrace ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      2,
+      '',
+    );
   }
 }
 
@@ -245,11 +255,11 @@ mixin _AnalysisDriverExceptionContextMixin
 
   @override
   Map<String, Object?> toMap() => {
-        "exception": exception,
-        "files": files,
-        "path": path,
-        "stackTrace": stackTrace,
-      };
+    "exception": exception,
+    "files": files,
+    "path": path,
+    "stackTrace": stackTrace,
+  };
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -278,8 +288,8 @@ class AnalysisDriverExceptionFileBuilder extends Object
   }
 
   AnalysisDriverExceptionFileBuilder({String? content, String? path})
-      : _content = content,
-        _path = path;
+    : _content = content,
+      _path = path;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
@@ -318,8 +328,9 @@ class _AnalysisDriverExceptionFileReader
 
   @override
   _AnalysisDriverExceptionFileImpl createObject(
-          fb.BufferContext bc, int offset) =>
-      _AnalysisDriverExceptionFileImpl(bc, offset);
+    fb.BufferContext bc,
+    int offset,
+  ) => _AnalysisDriverExceptionFileImpl(bc, offset);
 }
 
 class _AnalysisDriverExceptionFileImpl extends Object
@@ -335,8 +346,12 @@ class _AnalysisDriverExceptionFileImpl extends Object
 
   @override
   String get content {
-    return _content ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _content ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      1,
+      '',
+    );
   }
 
   @override
@@ -362,10 +377,7 @@ mixin _AnalysisDriverExceptionFileMixin
   }
 
   @override
-  Map<String, Object?> toMap() => {
-        "content": content,
-        "path": path,
-      };
+  Map<String, Object?> toMap() => {"content": content, "path": path};
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -394,11 +406,11 @@ class AnalysisDriverResolvedUnitBuilder extends Object
     this._index = value;
   }
 
-  AnalysisDriverResolvedUnitBuilder(
-      {List<AnalysisDriverUnitErrorBuilder>? errors,
-      AnalysisDriverUnitIndexBuilder? index})
-      : _errors = errors,
-        _index = index;
+  AnalysisDriverResolvedUnitBuilder({
+    List<AnalysisDriverUnitErrorBuilder>? errors,
+    AnalysisDriverUnitIndexBuilder? index,
+  }) : _errors = errors,
+       _index = index;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -431,8 +443,9 @@ class AnalysisDriverResolvedUnitBuilder extends Object
     fb.Offset? offset_index;
     var errors = _errors;
     if (!(errors == null || errors.isEmpty)) {
-      offset_errors =
-          fbBuilder.writeList(errors.map((b) => b.finish(fbBuilder)).toList());
+      offset_errors = fbBuilder.writeList(
+        errors.map((b) => b.finish(fbBuilder)).toList(),
+      );
     }
     var index = _index;
     if (index != null) {
@@ -450,7 +463,8 @@ class AnalysisDriverResolvedUnitBuilder extends Object
 }
 
 idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(
-    List<int> buffer) {
+  List<int> buffer,
+) {
   fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverResolvedUnitReader().read(rootRef, 0);
 }
@@ -461,8 +475,9 @@ class _AnalysisDriverResolvedUnitReader
 
   @override
   _AnalysisDriverResolvedUnitImpl createObject(
-          fb.BufferContext bc, int offset) =>
-      _AnalysisDriverResolvedUnitImpl(bc, offset);
+    fb.BufferContext bc,
+    int offset,
+  ) => _AnalysisDriverResolvedUnitImpl(bc, offset);
 }
 
 class _AnalysisDriverResolvedUnitImpl extends Object
@@ -479,14 +494,17 @@ class _AnalysisDriverResolvedUnitImpl extends Object
   @override
   List<idl.AnalysisDriverUnitError> get errors {
     return _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(
-            _AnalysisDriverUnitErrorReader())
-        .vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
+      _AnalysisDriverUnitErrorReader(),
+    ).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
   }
 
   @override
   idl.AnalysisDriverUnitIndex? get index {
-    return _index ??= const _AnalysisDriverUnitIndexReader()
-        .vTableGetOrNull(_bc, _bcOffset, 1);
+    return _index ??= const _AnalysisDriverUnitIndexReader().vTableGetOrNull(
+      _bc,
+      _bcOffset,
+      1,
+    );
   }
 }
 
@@ -507,10 +525,7 @@ mixin _AnalysisDriverResolvedUnitMixin
   }
 
   @override
-  Map<String, Object?> toMap() => {
-        "errors": errors,
-        "index": index,
-      };
+  Map<String, Object?> toMap() => {"errors": errors, "index": index};
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -544,8 +559,8 @@ class AnalysisDriverSubtypeBuilder extends Object
   }
 
   AnalysisDriverSubtypeBuilder({List<int>? members, int? name})
-      : _members = members,
-        _name = name;
+    : _members = members,
+      _name = name;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
@@ -601,8 +616,12 @@ class _AnalysisDriverSubtypeImpl extends Object
 
   @override
   List<int> get members {
-    return _members ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    return _members ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      1,
+      const <int>[],
+    );
   }
 
   @override
@@ -627,10 +646,7 @@ mixin _AnalysisDriverSubtypeMixin implements idl.AnalysisDriverSubtype {
   }
 
   @override
-  Map<String, Object?> toMap() => {
-        "members": members,
-        "name": name,
-      };
+  Map<String, Object?> toMap() => {"members": members, "name": name};
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -697,19 +713,19 @@ class AnalysisDriverUnitErrorBuilder extends Object
     this._uniqueName = value;
   }
 
-  AnalysisDriverUnitErrorBuilder(
-      {List<DiagnosticMessageBuilder>? contextMessages,
-      String? correction,
-      int? length,
-      String? message,
-      int? offset,
-      String? uniqueName})
-      : _contextMessages = contextMessages,
-        _correction = correction,
-        _length = length,
-        _message = message,
-        _offset = offset,
-        _uniqueName = uniqueName;
+  AnalysisDriverUnitErrorBuilder({
+    List<DiagnosticMessageBuilder>? contextMessages,
+    String? correction,
+    int? length,
+    String? message,
+    int? offset,
+    String? uniqueName,
+  }) : _contextMessages = contextMessages,
+       _correction = correction,
+       _length = length,
+       _message = message,
+       _offset = offset,
+       _uniqueName = uniqueName;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -741,8 +757,9 @@ class AnalysisDriverUnitErrorBuilder extends Object
     fb.Offset? offset_uniqueName;
     var contextMessages = _contextMessages;
     if (!(contextMessages == null || contextMessages.isEmpty)) {
-      offset_contextMessages = fbBuilder
-          .writeList(contextMessages.map((b) => b.finish(fbBuilder)).toList());
+      offset_contextMessages = fbBuilder.writeList(
+        contextMessages.map((b) => b.finish(fbBuilder)).toList(),
+      );
     }
     var correction = _correction;
     if (correction != null) {
@@ -801,15 +818,19 @@ class _AnalysisDriverUnitErrorImpl extends Object
 
   @override
   List<idl.DiagnosticMessage> get contextMessages {
-    return _contextMessages ??=
-        const fb.ListReader<idl.DiagnosticMessage>(_DiagnosticMessageReader())
-            .vTableGet(_bc, _bcOffset, 5, const <idl.DiagnosticMessage>[]);
+    return _contextMessages ??= const fb.ListReader<idl.DiagnosticMessage>(
+      _DiagnosticMessageReader(),
+    ).vTableGet(_bc, _bcOffset, 5, const <idl.DiagnosticMessage>[]);
   }
 
   @override
   String get correction {
-    return _correction ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    return _correction ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      4,
+      '',
+    );
   }
 
   @override
@@ -819,8 +840,12 @@ class _AnalysisDriverUnitErrorImpl extends Object
 
   @override
   String get message {
-    return _message ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    return _message ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      3,
+      '',
+    );
   }
 
   @override
@@ -830,8 +855,12 @@ class _AnalysisDriverUnitErrorImpl extends Object
 
   @override
   String get uniqueName {
-    return _uniqueName ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uniqueName ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      2,
+      '',
+    );
   }
 }
 
@@ -869,13 +898,13 @@ mixin _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
 
   @override
   Map<String, Object?> toMap() => {
-        "contextMessages": contextMessages,
-        "correction": correction,
-        "length": length,
-        "message": message,
-        "offset": offset,
-        "uniqueName": uniqueName,
-      };
+    "contextMessages": contextMessages,
+    "correction": correction,
+    "length": length,
+    "message": message,
+    "offset": offset,
+    "uniqueName": uniqueName,
+  };
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -1128,49 +1157,49 @@ class AnalysisDriverUnitIndexBuilder extends Object
     this._usedNames = value;
   }
 
-  AnalysisDriverUnitIndexBuilder(
-      {List<String>? elementImportPrefixes,
-      List<idl.IndexSyntheticElementKind>? elementKinds,
-      List<int>? elementNameClassMemberIds,
-      List<int>? elementNameParameterIds,
-      List<int>? elementNameUnitMemberIds,
-      List<int>? elementUnits,
-      int? nullStringId,
-      List<String>? strings,
-      List<AnalysisDriverSubtypeBuilder>? subtypes,
-      List<int>? supertypes,
-      List<int>? unitLibraryUris,
-      List<int>? unitUnitUris,
-      List<bool>? usedElementIsQualifiedFlags,
-      List<idl.IndexRelationKind>? usedElementKinds,
-      List<int>? usedElementLengths,
-      List<int>? usedElementOffsets,
-      List<int>? usedElements,
-      List<bool>? usedNameIsQualifiedFlags,
-      List<idl.IndexRelationKind>? usedNameKinds,
-      List<int>? usedNameOffsets,
-      List<int>? usedNames})
-      : _elementImportPrefixes = elementImportPrefixes,
-        _elementKinds = elementKinds,
-        _elementNameClassMemberIds = elementNameClassMemberIds,
-        _elementNameParameterIds = elementNameParameterIds,
-        _elementNameUnitMemberIds = elementNameUnitMemberIds,
-        _elementUnits = elementUnits,
-        _nullStringId = nullStringId,
-        _strings = strings,
-        _subtypes = subtypes,
-        _supertypes = supertypes,
-        _unitLibraryUris = unitLibraryUris,
-        _unitUnitUris = unitUnitUris,
-        _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
-        _usedElementKinds = usedElementKinds,
-        _usedElementLengths = usedElementLengths,
-        _usedElementOffsets = usedElementOffsets,
-        _usedElements = usedElements,
-        _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
-        _usedNameKinds = usedNameKinds,
-        _usedNameOffsets = usedNameOffsets,
-        _usedNames = usedNames;
+  AnalysisDriverUnitIndexBuilder({
+    List<String>? elementImportPrefixes,
+    List<idl.IndexSyntheticElementKind>? elementKinds,
+    List<int>? elementNameClassMemberIds,
+    List<int>? elementNameParameterIds,
+    List<int>? elementNameUnitMemberIds,
+    List<int>? elementUnits,
+    int? nullStringId,
+    List<String>? strings,
+    List<AnalysisDriverSubtypeBuilder>? subtypes,
+    List<int>? supertypes,
+    List<int>? unitLibraryUris,
+    List<int>? unitUnitUris,
+    List<bool>? usedElementIsQualifiedFlags,
+    List<idl.IndexRelationKind>? usedElementKinds,
+    List<int>? usedElementLengths,
+    List<int>? usedElementOffsets,
+    List<int>? usedElements,
+    List<bool>? usedNameIsQualifiedFlags,
+    List<idl.IndexRelationKind>? usedNameKinds,
+    List<int>? usedNameOffsets,
+    List<int>? usedNames,
+  }) : _elementImportPrefixes = elementImportPrefixes,
+       _elementKinds = elementKinds,
+       _elementNameClassMemberIds = elementNameClassMemberIds,
+       _elementNameParameterIds = elementNameParameterIds,
+       _elementNameUnitMemberIds = elementNameUnitMemberIds,
+       _elementUnits = elementUnits,
+       _nullStringId = nullStringId,
+       _strings = strings,
+       _subtypes = subtypes,
+       _supertypes = supertypes,
+       _unitLibraryUris = unitLibraryUris,
+       _unitUnitUris = unitUnitUris,
+       _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
+       _usedElementKinds = usedElementKinds,
+       _usedElementLengths = usedElementLengths,
+       _usedElementOffsets = usedElementOffsets,
+       _usedElements = usedElements,
+       _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
+       _usedNameKinds = usedNameKinds,
+       _usedNameOffsets = usedNameOffsets,
+       _usedNames = usedNames;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -1391,29 +1420,34 @@ class AnalysisDriverUnitIndexBuilder extends Object
     var elementImportPrefixes = _elementImportPrefixes;
     if (!(elementImportPrefixes == null || elementImportPrefixes.isEmpty)) {
       offset_elementImportPrefixes = fbBuilder.writeList(
-          elementImportPrefixes.map((b) => fbBuilder.writeString(b)).toList());
+        elementImportPrefixes.map((b) => fbBuilder.writeString(b)).toList(),
+      );
     }
     var elementKinds = _elementKinds;
     if (!(elementKinds == null || elementKinds.isEmpty)) {
-      offset_elementKinds =
-          fbBuilder.writeListUint8(elementKinds.map((b) => b.index).toList());
+      offset_elementKinds = fbBuilder.writeListUint8(
+        elementKinds.map((b) => b.index).toList(),
+      );
     }
     var elementNameClassMemberIds = _elementNameClassMemberIds;
     if (!(elementNameClassMemberIds == null ||
         elementNameClassMemberIds.isEmpty)) {
-      offset_elementNameClassMemberIds =
-          fbBuilder.writeListUint32(elementNameClassMemberIds);
+      offset_elementNameClassMemberIds = fbBuilder.writeListUint32(
+        elementNameClassMemberIds,
+      );
     }
     var elementNameParameterIds = _elementNameParameterIds;
     if (!(elementNameParameterIds == null || elementNameParameterIds.isEmpty)) {
-      offset_elementNameParameterIds =
-          fbBuilder.writeListUint32(elementNameParameterIds);
+      offset_elementNameParameterIds = fbBuilder.writeListUint32(
+        elementNameParameterIds,
+      );
     }
     var elementNameUnitMemberIds = _elementNameUnitMemberIds;
     if (!(elementNameUnitMemberIds == null ||
         elementNameUnitMemberIds.isEmpty)) {
-      offset_elementNameUnitMemberIds =
-          fbBuilder.writeListUint32(elementNameUnitMemberIds);
+      offset_elementNameUnitMemberIds = fbBuilder.writeListUint32(
+        elementNameUnitMemberIds,
+      );
     }
     var elementUnits = _elementUnits;
     if (!(elementUnits == null || elementUnits.isEmpty)) {
@@ -1421,13 +1455,15 @@ class AnalysisDriverUnitIndexBuilder extends Object
     }
     var strings = _strings;
     if (!(strings == null || strings.isEmpty)) {
-      offset_strings = fbBuilder
-          .writeList(strings.map((b) => fbBuilder.writeString(b)).toList());
+      offset_strings = fbBuilder.writeList(
+        strings.map((b) => fbBuilder.writeString(b)).toList(),
+      );
     }
     var subtypes = _subtypes;
     if (!(subtypes == null || subtypes.isEmpty)) {
-      offset_subtypes = fbBuilder
-          .writeList(subtypes.map((b) => b.finish(fbBuilder)).toList());
+      offset_subtypes = fbBuilder.writeList(
+        subtypes.map((b) => b.finish(fbBuilder)).toList(),
+      );
     }
     var supertypes = _supertypes;
     if (!(supertypes == null || supertypes.isEmpty)) {
@@ -1444,13 +1480,15 @@ class AnalysisDriverUnitIndexBuilder extends Object
     var usedElementIsQualifiedFlags = _usedElementIsQualifiedFlags;
     if (!(usedElementIsQualifiedFlags == null ||
         usedElementIsQualifiedFlags.isEmpty)) {
-      offset_usedElementIsQualifiedFlags =
-          fbBuilder.writeListBool(usedElementIsQualifiedFlags);
+      offset_usedElementIsQualifiedFlags = fbBuilder.writeListBool(
+        usedElementIsQualifiedFlags,
+      );
     }
     var usedElementKinds = _usedElementKinds;
     if (!(usedElementKinds == null || usedElementKinds.isEmpty)) {
-      offset_usedElementKinds = fbBuilder
-          .writeListUint8(usedElementKinds.map((b) => b.index).toList());
+      offset_usedElementKinds = fbBuilder.writeListUint8(
+        usedElementKinds.map((b) => b.index).toList(),
+      );
     }
     var usedElementLengths = _usedElementLengths;
     if (!(usedElementLengths == null || usedElementLengths.isEmpty)) {
@@ -1467,13 +1505,15 @@ class AnalysisDriverUnitIndexBuilder extends Object
     var usedNameIsQualifiedFlags = _usedNameIsQualifiedFlags;
     if (!(usedNameIsQualifiedFlags == null ||
         usedNameIsQualifiedFlags.isEmpty)) {
-      offset_usedNameIsQualifiedFlags =
-          fbBuilder.writeListBool(usedNameIsQualifiedFlags);
+      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(
+        usedNameIsQualifiedFlags,
+      );
     }
     var usedNameKinds = _usedNameKinds;
     if (!(usedNameKinds == null || usedNameKinds.isEmpty)) {
-      offset_usedNameKinds =
-          fbBuilder.writeListUint8(usedNameKinds.map((b) => b.index).toList());
+      offset_usedNameKinds = fbBuilder.writeListUint8(
+        usedNameKinds.map((b) => b.index).toList(),
+      );
     }
     var usedNameOffsets = _usedNameOffsets;
     if (!(usedNameOffsets == null || usedNameOffsets.isEmpty)) {
@@ -1595,133 +1635,194 @@ class _AnalysisDriverUnitIndexImpl extends Object
 
   @override
   List<String> get elementImportPrefixes {
-    return _elementImportPrefixes ??=
-        const fb.ListReader<String>(fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 20, const <String>[]);
+    return _elementImportPrefixes ??= const fb.ListReader<String>(
+      fb.StringReader(),
+    ).vTableGet(_bc, _bcOffset, 20, const <String>[]);
   }
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
     return _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(
-            _IndexSyntheticElementKindReader())
-        .vTableGet(_bc, _bcOffset, 4, const <idl.IndexSyntheticElementKind>[]);
+      _IndexSyntheticElementKindReader(),
+    ).vTableGet(_bc, _bcOffset, 4, const <idl.IndexSyntheticElementKind>[]);
   }
 
   @override
   List<int> get elementNameClassMemberIds {
-    return _elementNameClassMemberIds ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    return _elementNameClassMemberIds ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      7,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get elementNameParameterIds {
-    return _elementNameParameterIds ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
+    return _elementNameParameterIds ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      8,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get elementNameUnitMemberIds {
-    return _elementNameUnitMemberIds ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
+    return _elementNameUnitMemberIds ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      6,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get elementUnits {
-    return _elementUnits ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    return _elementUnits ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      5,
+      const <int>[],
+    );
   }
 
   @override
   int get nullStringId {
-    return _nullStringId ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _nullStringId ??= const fb.Uint32Reader().vTableGet(
+      _bc,
+      _bcOffset,
+      1,
+      0,
+    );
   }
 
   @override
   List<String> get strings {
-    return _strings ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _strings ??= const fb.ListReader<String>(
+      fb.StringReader(),
+    ).vTableGet(_bc, _bcOffset, 0, const <String>[]);
   }
 
   @override
   List<idl.AnalysisDriverSubtype> get subtypes {
     return _subtypes ??= const fb.ListReader<idl.AnalysisDriverSubtype>(
-            _AnalysisDriverSubtypeReader())
-        .vTableGet(_bc, _bcOffset, 19, const <idl.AnalysisDriverSubtype>[]);
+      _AnalysisDriverSubtypeReader(),
+    ).vTableGet(_bc, _bcOffset, 19, const <idl.AnalysisDriverSubtype>[]);
   }
 
   @override
   List<int> get supertypes {
-    return _supertypes ??= const fb.Uint32ListReader()
-        .vTableGet(_bc, _bcOffset, 18, const <int>[]);
+    return _supertypes ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      18,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get unitLibraryUris {
-    return _unitLibraryUris ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+    return _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      2,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get unitUnitUris {
-    return _unitUnitUris ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    return _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      3,
+      const <int>[],
+    );
   }
 
   @override
   List<bool> get usedElementIsQualifiedFlags {
-    return _usedElementIsQualifiedFlags ??=
-        const fb.BoolListReader().vTableGet(_bc, _bcOffset, 13, const <bool>[]);
+    return _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      13,
+      const <bool>[],
+    );
   }
 
   @override
   List<idl.IndexRelationKind> get usedElementKinds {
-    return _usedElementKinds ??=
-        const fb.ListReader<idl.IndexRelationKind>(_IndexRelationKindReader())
-            .vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
+    return _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(
+      _IndexRelationKindReader(),
+    ).vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
   }
 
   @override
   List<int> get usedElementLengths {
-    return _usedElementLengths ??= const fb.Uint32ListReader()
-        .vTableGet(_bc, _bcOffset, 12, const <int>[]);
+    return _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      12,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get usedElementOffsets {
-    return _usedElementOffsets ??= const fb.Uint32ListReader()
-        .vTableGet(_bc, _bcOffset, 11, const <int>[]);
+    return _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      11,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get usedElements {
-    return _usedElements ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
+    return _usedElements ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      9,
+      const <int>[],
+    );
   }
 
   @override
   List<bool> get usedNameIsQualifiedFlags {
-    return _usedNameIsQualifiedFlags ??=
-        const fb.BoolListReader().vTableGet(_bc, _bcOffset, 17, const <bool>[]);
+    return _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      17,
+      const <bool>[],
+    );
   }
 
   @override
   List<idl.IndexRelationKind> get usedNameKinds {
-    return _usedNameKinds ??=
-        const fb.ListReader<idl.IndexRelationKind>(_IndexRelationKindReader())
-            .vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
+    return _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(
+      _IndexRelationKindReader(),
+    ).vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
   }
 
   @override
   List<int> get usedNameOffsets {
-    return _usedNameOffsets ??= const fb.Uint32ListReader()
-        .vTableGet(_bc, _bcOffset, 16, const <int>[]);
+    return _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      16,
+      const <int>[],
+    );
   }
 
   @override
   List<int> get usedNames {
-    return _usedNames ??= const fb.Uint32ListReader()
-        .vTableGet(_bc, _bcOffset, 14, const <int>[]);
+    return _usedNames ??= const fb.Uint32ListReader().vTableGet(
+      _bc,
+      _bcOffset,
+      14,
+      const <int>[],
+    );
   }
 }
 
@@ -1735,9 +1836,10 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_elementKinds = elementKinds;
     if (local_elementKinds.isNotEmpty) {
-      result["elementKinds"] = local_elementKinds
-          .map((value) => value.toString().split('.')[1])
-          .toList();
+      result["elementKinds"] =
+          local_elementKinds
+              .map((value) => value.toString().split('.')[1])
+              .toList();
     }
     var local_elementNameClassMemberIds = elementNameClassMemberIds;
     if (local_elementNameClassMemberIds.isNotEmpty) {
@@ -1786,9 +1888,10 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_usedElementKinds = usedElementKinds;
     if (local_usedElementKinds.isNotEmpty) {
-      result["usedElementKinds"] = local_usedElementKinds
-          .map((value) => value.toString().split('.')[1])
-          .toList();
+      result["usedElementKinds"] =
+          local_usedElementKinds
+              .map((value) => value.toString().split('.')[1])
+              .toList();
     }
     var local_usedElementLengths = usedElementLengths;
     if (local_usedElementLengths.isNotEmpty) {
@@ -1808,9 +1911,10 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     }
     var local_usedNameKinds = usedNameKinds;
     if (local_usedNameKinds.isNotEmpty) {
-      result["usedNameKinds"] = local_usedNameKinds
-          .map((value) => value.toString().split('.')[1])
-          .toList();
+      result["usedNameKinds"] =
+          local_usedNameKinds
+              .map((value) => value.toString().split('.')[1])
+              .toList();
     }
     var local_usedNameOffsets = usedNameOffsets;
     if (local_usedNameOffsets.isNotEmpty) {
@@ -1825,28 +1929,28 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
 
   @override
   Map<String, Object?> toMap() => {
-        "elementImportPrefixes": elementImportPrefixes,
-        "elementKinds": elementKinds,
-        "elementNameClassMemberIds": elementNameClassMemberIds,
-        "elementNameParameterIds": elementNameParameterIds,
-        "elementNameUnitMemberIds": elementNameUnitMemberIds,
-        "elementUnits": elementUnits,
-        "nullStringId": nullStringId,
-        "strings": strings,
-        "subtypes": subtypes,
-        "supertypes": supertypes,
-        "unitLibraryUris": unitLibraryUris,
-        "unitUnitUris": unitUnitUris,
-        "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
-        "usedElementKinds": usedElementKinds,
-        "usedElementLengths": usedElementLengths,
-        "usedElementOffsets": usedElementOffsets,
-        "usedElements": usedElements,
-        "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
-        "usedNameKinds": usedNameKinds,
-        "usedNameOffsets": usedNameOffsets,
-        "usedNames": usedNames,
-      };
+    "elementImportPrefixes": elementImportPrefixes,
+    "elementKinds": elementKinds,
+    "elementNameClassMemberIds": elementNameClassMemberIds,
+    "elementNameParameterIds": elementNameParameterIds,
+    "elementNameUnitMemberIds": elementNameUnitMemberIds,
+    "elementUnits": elementUnits,
+    "nullStringId": nullStringId,
+    "strings": strings,
+    "subtypes": subtypes,
+    "supertypes": supertypes,
+    "unitLibraryUris": unitLibraryUris,
+    "unitUnitUris": unitUnitUris,
+    "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
+    "usedElementKinds": usedElementKinds,
+    "usedElementLengths": usedElementLengths,
+    "usedElementOffsets": usedElementOffsets,
+    "usedElements": usedElements,
+    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
+    "usedNameKinds": usedNameKinds,
+    "usedNameOffsets": usedNameOffsets,
+    "usedNames": usedNames,
+  };
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -1883,13 +1987,13 @@ class AvailableFileBuilder extends Object
     this._parts = value;
   }
 
-  AvailableFileBuilder(
-      {DirectiveInfoBuilder? directiveInfo,
-      List<String>? exports,
-      List<String>? parts})
-      : _directiveInfo = directiveInfo,
-        _exports = exports,
-        _parts = parts;
+  AvailableFileBuilder({
+    DirectiveInfoBuilder? directiveInfo,
+    List<String>? exports,
+    List<String>? parts,
+  }) : _directiveInfo = directiveInfo,
+       _exports = exports,
+       _parts = parts;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -1935,13 +2039,15 @@ class AvailableFileBuilder extends Object
     }
     var exports = _exports;
     if (!(exports == null || exports.isEmpty)) {
-      offset_exports = fbBuilder
-          .writeList(exports.map((b) => fbBuilder.writeString(b)).toList());
+      offset_exports = fbBuilder.writeList(
+        exports.map((b) => fbBuilder.writeString(b)).toList(),
+      );
     }
     var parts = _parts;
     if (!(parts == null || parts.isEmpty)) {
-      offset_parts = fbBuilder
-          .writeList(parts.map((b) => fbBuilder.writeString(b)).toList());
+      offset_parts = fbBuilder.writeList(
+        parts.map((b) => fbBuilder.writeString(b)).toList(),
+      );
     }
     fbBuilder.startTable();
     if (offset_directiveInfo != null) {
@@ -1984,20 +2090,25 @@ class _AvailableFileImpl extends Object
 
   @override
   idl.DirectiveInfo? get directiveInfo {
-    return _directiveInfo ??=
-        const _DirectiveInfoReader().vTableGetOrNull(_bc, _bcOffset, 0);
+    return _directiveInfo ??= const _DirectiveInfoReader().vTableGetOrNull(
+      _bc,
+      _bcOffset,
+      0,
+    );
   }
 
   @override
   List<String> get exports {
-    return _exports ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _exports ??= const fb.ListReader<String>(
+      fb.StringReader(),
+    ).vTableGet(_bc, _bcOffset, 1, const <String>[]);
   }
 
   @override
   List<String> get parts {
-    return _parts ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _parts ??= const fb.ListReader<String>(
+      fb.StringReader(),
+    ).vTableGet(_bc, _bcOffset, 2, const <String>[]);
   }
 }
 
@@ -2022,10 +2133,10 @@ mixin _AvailableFileMixin implements idl.AvailableFile {
 
   @override
   Map<String, Object?> toMap() => {
-        "directiveInfo": directiveInfo,
-        "exports": exports,
-        "parts": parts,
-      };
+    "directiveInfo": directiveInfo,
+    "exports": exports,
+    "parts": parts,
+  };
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -2045,7 +2156,7 @@ class CiderUnitErrorsBuilder extends Object
   }
 
   CiderUnitErrorsBuilder({List<AnalysisDriverUnitErrorBuilder>? errors})
-      : _errors = errors;
+    : _errors = errors;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -2074,8 +2185,9 @@ class CiderUnitErrorsBuilder extends Object
     fb.Offset? offset_errors;
     var errors = _errors;
     if (!(errors == null || errors.isEmpty)) {
-      offset_errors =
-          fbBuilder.writeList(errors.map((b) => b.finish(fbBuilder)).toList());
+      offset_errors = fbBuilder.writeList(
+        errors.map((b) => b.finish(fbBuilder)).toList(),
+      );
     }
     fbBuilder.startTable();
     if (offset_errors != null) {
@@ -2111,8 +2223,8 @@ class _CiderUnitErrorsImpl extends Object
   @override
   List<idl.AnalysisDriverUnitError> get errors {
     return _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(
-            _AnalysisDriverUnitErrorReader())
-        .vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
+      _AnalysisDriverUnitErrorReader(),
+    ).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
   }
 }
 
@@ -2128,9 +2240,7 @@ mixin _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
   }
 
   @override
-  Map<String, Object?> toMap() => {
-        "errors": errors,
-      };
+  Map<String, Object?> toMap() => {"errors": errors};
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -2188,17 +2298,17 @@ class DiagnosticMessageBuilder extends Object
     this._url = value;
   }
 
-  DiagnosticMessageBuilder(
-      {String? filePath,
-      int? length,
-      String? message,
-      int? offset,
-      String? url})
-      : _filePath = filePath,
-        _length = length,
-        _message = message,
-        _offset = offset,
-        _url = url;
+  DiagnosticMessageBuilder({
+    String? filePath,
+    int? length,
+    String? message,
+    int? offset,
+    String? url,
+  }) : _filePath = filePath,
+       _length = length,
+       _message = message,
+       _offset = offset,
+       _url = url;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
@@ -2268,8 +2378,12 @@ class _DiagnosticMessageImpl extends Object
 
   @override
   String get filePath {
-    return _filePath ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _filePath ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      0,
+      '',
+    );
   }
 
   @override
@@ -2279,8 +2393,12 @@ class _DiagnosticMessageImpl extends Object
 
   @override
   String get message {
-    return _message ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _message ??= const fb.StringReader().vTableGet(
+      _bc,
+      _bcOffset,
+      2,
+      '',
+    );
   }
 
   @override
@@ -2323,12 +2441,12 @@ mixin _DiagnosticMessageMixin implements idl.DiagnosticMessage {
 
   @override
   Map<String, Object?> toMap() => {
-        "filePath": filePath,
-        "length": length,
-        "message": message,
-        "offset": offset,
-        "url": url,
-      };
+    "filePath": filePath,
+    "length": length,
+    "message": message,
+    "offset": offset,
+    "url": url,
+  };
 
   @override
   String toString() => convert.json.encode(toJson());
@@ -2356,10 +2474,11 @@ class DirectiveInfoBuilder extends Object
     this._templateValues = value;
   }
 
-  DirectiveInfoBuilder(
-      {List<String>? templateNames, List<String>? templateValues})
-      : _templateNames = templateNames,
-        _templateValues = templateValues;
+  DirectiveInfoBuilder({
+    List<String>? templateNames,
+    List<String>? templateValues,
+  }) : _templateNames = templateNames,
+       _templateValues = templateValues;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
@@ -2392,12 +2511,14 @@ class DirectiveInfoBuilder extends Object
     var templateNames = _templateNames;
     if (!(templateNames == null || templateNames.isEmpty)) {
       offset_templateNames = fbBuilder.writeList(
-          templateNames.map((b) => fbBuilder.writeString(b)).toList());
+        templateNames.map((b) => fbBuilder.writeString(b)).toList(),
+      );
     }
     var templateValues = _templateValues;
     if (!(templateValues == null || templateValues.isEmpty)) {
       offset_templateValues = fbBuilder.writeList(
-          templateValues.map((b) => fbBuilder.writeString(b)).toList());
+        templateValues.map((b) => fbBuilder.writeString(b)).toList(),
+      );
     }
     fbBuilder.startTable();
     if (offset_templateNames != null) {
@@ -2431,14 +2552,16 @@ class _DirectiveInfoImpl extends Object
 
   @override
   List<String> get templateNames {
-    return _templateNames ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _templateNames ??= const fb.ListReader<String>(
+      fb.StringReader(),
+    ).vTableGet(_bc, _bcOffset, 0, const <String>[]);
   }
 
   @override
   List<String> get templateValues {
-    return _templateValues ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _templateValues ??= const fb.ListReader<String>(
+      fb.StringReader(),
+    ).vTableGet(_bc, _bcOffset, 1, const <String>[]);
   }
 }
 
@@ -2459,9 +2582,9 @@ mixin _DirectiveInfoMixin implements idl.DirectiveInfo {
 
   @override
   Map<String, Object?> toMap() => {
-        "templateNames": templateNames,
-        "templateValues": templateValues,
-      };
+    "templateNames": templateNames,
+    "templateValues": templateValues,
+  };
 
   @override
   String toString() => convert.json.encode(toJson());

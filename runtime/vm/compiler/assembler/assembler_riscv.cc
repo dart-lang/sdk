@@ -394,7 +394,7 @@ void MicroAssembler::slli(Register rd, Register rs1, intptr_t shamt) {
   ASSERT((shamt > 0) && (shamt < XLEN));
   ASSERT(Supports(RV_I));
   if (Supports(RV_C)) {
-    if ((rd == rs1) && (shamt != 0) && IsCIImm(shamt)) {
+    if ((rd == rs1) && (rd != ZR) && IsCShamt(shamt)) {
       c_slli(rd, rs1, shamt);
       return;
     }
@@ -406,7 +406,7 @@ void MicroAssembler::srli(Register rd, Register rs1, intptr_t shamt) {
   ASSERT((shamt > 0) && (shamt < XLEN));
   ASSERT(Supports(RV_I));
   if (Supports(RV_C)) {
-    if ((rd == rs1) && IsCRs1p(rs1) && (shamt != 0) && IsCIImm(shamt)) {
+    if ((rd == rs1) && IsCRs1p(rs1) && IsCShamt(shamt)) {
       c_srli(rd, rs1, shamt);
       return;
     }
@@ -418,7 +418,7 @@ void MicroAssembler::srai(Register rd, Register rs1, intptr_t shamt) {
   ASSERT((shamt > 0) && (shamt < XLEN));
   ASSERT(Supports(RV_I));
   if (Supports(RV_C)) {
-    if ((rd == rs1) && IsCRs1p(rs1) && (shamt != 0) && IsCIImm(shamt)) {
+    if ((rd == rs1) && IsCRs1p(rs1) && IsCShamt(shamt)) {
       c_srai(rd, rs1, shamt);
       return;
     }
@@ -1885,22 +1885,20 @@ void MicroAssembler::c_addi4spn(Register rdp, Register rs1, intptr_t imm) {
 void MicroAssembler::c_slli(Register rd, Register rs1, intptr_t imm) {
   ASSERT(Supports(RV_C));
   ASSERT(rd == rs1);
-  ASSERT(imm != 0);
-  Emit16(C_SLLI | EncodeCRd(rd) | EncodeCIImm(imm));
+  ASSERT(rd != ZR);
+  Emit16(C_SLLI | EncodeCRd(rd) | EncodeCShamt(imm));
 }
 
 void MicroAssembler::c_srli(Register rd, Register rs1, intptr_t imm) {
   ASSERT(Supports(RV_C));
   ASSERT(rd == rs1);
-  ASSERT(imm != 0);
-  Emit16(C_SRLI | EncodeCRs1p(rd) | EncodeCIImm(imm));
+  Emit16(C_SRLI | EncodeCRs1p(rd) | EncodeCShamt(imm));
 }
 
 void MicroAssembler::c_srai(Register rd, Register rs1, intptr_t imm) {
   ASSERT(Supports(RV_C));
   ASSERT(rd == rs1);
-  ASSERT(imm != 0);
-  Emit16(C_SRAI | EncodeCRs1p(rd) | EncodeCIImm(imm));
+  Emit16(C_SRAI | EncodeCRs1p(rd) | EncodeCShamt(imm));
 }
 
 void MicroAssembler::c_andi(Register rd, Register rs1, intptr_t imm) {

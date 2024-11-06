@@ -88,33 +88,61 @@ g_001() {
   Expect.isTrue(closureC_011_class_3(C_011_class_3())(C_011_class_3()));
 
   Expect.equals(
-      closureC_001(C_001()).runtimeType.toString(), '(C_001) => bool');
-  Expect.equals(closureC_101_class_1(C_101_class_1()).runtimeType.toString(),
-      '(C_101_class_1) => bool');
-  Expect.equals(closureC_101_class_2(C_101_class_2()).runtimeType.toString(),
-      '(C_101_class_2) => bool');
-  Expect.equals(closureC_101_class_3(C_101_class_3()).runtimeType.toString(),
-      '(C_101_class_3) => bool');
-  Expect.equals(closureC_101_class_4(C_101_class_4()).runtimeType.toString(),
-      '(C_101_class_4) => bool');
-  Expect.equals(closureC_111_class_1(C_111_class_1()).runtimeType.toString(),
-      '(C_111_class_1) => bool');
-  Expect.equals(closureC_111_class_2(C_111_class_2()).runtimeType.toString(),
-      '(C_111_class_2) => bool');
-  Expect.equals(closureC_111_class_3(C_111_class_3()).runtimeType.toString(),
-      '(C_111_class_3) => bool');
-  Expect.equals(closureC_111_class_4(C_111_class_4()).runtimeType.toString(),
-      '(C_111_class_4) => bool');
-  Expect.equals(closureC_111_class_5(C_111_class_5()).runtimeType.toString(),
-      '(C_111_class_5) => bool');
-  Expect.equals(closureC_111_class_6(C_111_class_6()).runtimeType.toString(),
-      '(C_111_class_6) => bool');
-  Expect.equals(closureC_011_class_1(C_011_class_1()).runtimeType.toString(),
-      '(C_011_class_1) => bool');
-  Expect.equals(closureC_011_class_2(C_011_class_2()).runtimeType.toString(),
-      '(C_011_class_2) => bool');
-  Expect.equals(closureC_011_class_3(C_011_class_3()).runtimeType.toString(),
-      '(C_011_class_3) => bool');
+    closureC_001(C_001()).runtimeType.toString(),
+    '(C_001) => bool',
+  );
+  Expect.equals(
+    closureC_101_class_1(C_101_class_1()).runtimeType.toString(),
+    '(C_101_class_1) => bool',
+  );
+  Expect.equals(
+    closureC_101_class_2(C_101_class_2()).runtimeType.toString(),
+    '(C_101_class_2) => bool',
+  );
+  Expect.equals(
+    closureC_101_class_3(C_101_class_3()).runtimeType.toString(),
+    '(C_101_class_3) => bool',
+  );
+  Expect.equals(
+    closureC_101_class_4(C_101_class_4()).runtimeType.toString(),
+    '(C_101_class_4) => bool',
+  );
+  Expect.equals(
+    closureC_111_class_1(C_111_class_1()).runtimeType.toString(),
+    '(C_111_class_1) => bool',
+  );
+  Expect.equals(
+    closureC_111_class_2(C_111_class_2()).runtimeType.toString(),
+    '(C_111_class_2) => bool',
+  );
+  Expect.equals(
+    closureC_111_class_3(C_111_class_3()).runtimeType.toString(),
+    '(C_111_class_3) => bool',
+  );
+  Expect.equals(
+    closureC_111_class_4(C_111_class_4()).runtimeType.toString(),
+    '(C_111_class_4) => bool',
+  );
+  Expect.equals(
+    closureC_111_class_5(C_111_class_5()).runtimeType.toString(),
+    '(C_111_class_5) => bool',
+  );
+  Expect.equals(
+    closureC_111_class_6(C_111_class_6()).runtimeType.toString(),
+    '(C_111_class_6) => bool',
+  );
+  Expect.equals(
+    closureC_011_class_1(C_011_class_1()).runtimeType.toString(),
+    '(C_011_class_1) => bool',
+  );
+  Expect.equals(
+    closureC_011_class_2(C_011_class_2()).runtimeType.toString(),
+    '(C_011_class_2) => bool',
+  );
+  Expect.equals(
+    closureC_011_class_3(C_011_class_3()).runtimeType.toString(),
+    '(C_011_class_3) => bool',
+  );
 
   Set<String> uniques = {};
 

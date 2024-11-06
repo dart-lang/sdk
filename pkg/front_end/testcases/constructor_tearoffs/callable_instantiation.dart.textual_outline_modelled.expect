@@ -57,20 +57,21 @@ main() {}
 method<T extends Class, S extends int>(Class c, int i, T t, S s) {}
 
 test<T extends Class?, S extends int>(
-    Class? c1,
-    GetterCall c2,
-    int? i,
-    T t1,
-    T? t2,
-    S? s,
-    void Function<T>()? f1,
-    Never n,
-    dynamic d,
-    String a,
-    double b,
-    bool c,
-    FutureOr<Class> f2,
-    Function f3) {}
+  Class? c1,
+  GetterCall c2,
+  int? i,
+  T t1,
+  T? t2,
+  S? s,
+  void Function<T>()? f1,
+  Never n,
+  dynamic d,
+  String a,
+  double b,
+  bool c,
+  FutureOr<Class> f2,
+  Function f3,
+) {}
 
 var topLevel1 = c1<int>;
 

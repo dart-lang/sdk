@@ -74,11 +74,7 @@ ArgParser buildParser() {
       negatable: false,
       help: 'Show additional command output.',
     )
-    ..addFlag(
-      'version',
-      negatable: false,
-      help: 'Print the tool version.',
-    );
+    ..addFlag('version', negatable: false, help: 'Print the tool version.');
 }
 
 void printUsage(ArgParser argParser) {

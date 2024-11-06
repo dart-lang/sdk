@@ -631,6 +631,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
 class ClassElementImpl2 extends InterfaceElementImpl2
     implements AugmentedClassElement, ClassElement2 {
+  @override
   final Reference reference;
 
   @override
@@ -3426,6 +3427,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
 class EnumElementImpl2 extends InterfaceElementImpl2
     implements AugmentedEnumElement, EnumElement2 {
+  @override
   final Reference reference;
 
   @override
@@ -3776,6 +3778,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
 class ExtensionElementImpl2 extends InstanceElementImpl2
     implements AugmentedExtensionElement, ExtensionElement2 {
+  @override
   final Reference reference;
 
   @override
@@ -3877,6 +3880,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
 class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
     implements AugmentedExtensionTypeElement, ExtensionTypeElement2 {
+  @override
   final Reference reference;
 
   @override
@@ -5210,7 +5214,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   }
 }
 
-abstract class InstanceElementImpl2
+abstract class InstanceElementImpl2 extends ElementImpl2
     implements
         AugmentedInstanceElement,
         InstanceElement2,
@@ -5259,9 +5263,6 @@ abstract class InstanceElementImpl2
       .map((e) => e.asElement2 as GetterElement?)
       .nonNulls
       .toList();
-
-  @override
-  int get id => firstFragment.id;
 
   @override
   bool get isPrivate => firstFragment.isPrivate;
@@ -6356,13 +6357,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<ClassElement2> get classes {
-    var declarations = <ClassElement2>{};
-    for (var unit in units) {
-      declarations.addAll(
-          unit._classes.map((element) => element.augmented as ClassElement2));
-    }
-    return declarations.toList();
+  List<ClassElementImpl2> get classes {
+    return units
+        .expand((fragment) => fragment.classes)
+        .map((fragment) => fragment.element)
+        .toSet()
+        .toList();
   }
 
   @override
@@ -6398,13 +6398,12 @@ class LibraryElementImpl extends ElementImpl
       entryPoint as TopLevelFunctionElement?;
 
   @override
-  List<EnumElement2> get enums {
-    var declarations = <EnumElement2>{};
-    for (var unit in units) {
-      declarations.addAll(
-          unit._enums.map((element) => element.augmented as EnumElement2));
-    }
-    return declarations.toList();
+  List<EnumElementImpl2> get enums {
+    return units
+        .expand((fragment) => fragment.enums)
+        .map((fragment) => fragment.element)
+        .toSet()
+        .toList();
   }
 
   @override
@@ -6432,23 +6431,21 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<ExtensionElement2> get extensions {
-    var declarations = <ExtensionElement2>{};
-    for (var unit in units) {
-      declarations.addAll(unit._extensions
-          .map((element) => element.augmented as ExtensionElement2));
-    }
-    return declarations.toList();
+  List<ExtensionElementImpl2> get extensions {
+    return units
+        .expand((fragment) => fragment.extensions)
+        .map((fragment) => fragment.element)
+        .toSet()
+        .toList();
   }
 
   @override
-  List<ExtensionTypeElement2> get extensionTypes {
-    var declarations = <ExtensionTypeElement2>{};
-    for (var unit in units) {
-      declarations.addAll(unit._extensionTypes
-          .map((element) => element.augmented as ExtensionTypeElement2));
-    }
-    return declarations.toList();
+  List<ExtensionTypeElementImpl2> get extensionTypes {
+    return units
+        .expand((fragment) => fragment.extensionTypes)
+        .map((fragment) => fragment.element)
+        .toSet()
+        .toList();
   }
 
   /// Information about why non-promotable private fields in the library are not
@@ -6496,14 +6493,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<TopLevelFunctionElement> get functions {
-    var declarations = <TopLevelFunctionElement>{};
-    for (var unit in units) {
-      declarations.addAll(unit._functions.map((fragment) =>
-          (fragment as TopLevelFunctionFragment).element
-              as TopLevelFunctionElement));
-    }
-    return declarations.toList();
+  List<TopLevelFunctionElementImpl> get functions {
+    return units
+        .expand((fragment) => fragment.functions)
+        .map((fragment) => fragment.element as TopLevelFunctionElementImpl)
+        .toSet()
+        .toList();
   }
 
   @override
@@ -6593,13 +6588,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<MixinElement2> get mixins {
-    var declarations = <MixinElement2>{};
-    for (var unit in units) {
-      declarations.addAll(
-          unit._mixins.map((element) => element.augmented as MixinElement2));
-    }
-    return declarations.toList();
+  List<MixinElementImpl2> get mixins {
+    return units
+        .expand((fragment) => fragment.mixins)
+        .map((fragment) => fragment.element)
+        .toSet()
+        .toList();
   }
 
   @override
@@ -7778,6 +7772,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
 
 class MixinElementImpl2 extends InterfaceElementImpl2
     implements AugmentedMixinElement, MixinElement2 {
+  @override
   final Reference reference;
 
   @override
@@ -10149,7 +10144,7 @@ class TypeParameterElementImpl extends ElementImpl
     if (_element != null) {
       return _element!;
     }
-    TypeParameterFragment firstFragment = this;
+    var firstFragment = this;
     var previousFragment = firstFragment.previousFragment;
     while (previousFragment != null) {
       firstFragment = previousFragment;
@@ -10158,7 +10153,7 @@ class TypeParameterElementImpl extends ElementImpl
     // As a side-effect of creating the element, all of the fragments in the
     // chain will have their `_element` set to the newly created element.
     return TypeParameterElementImpl2(
-      wrappedElement: firstFragment as TypeParameterElementImpl,
+      firstFragment: firstFragment,
       name3: firstFragment.name,
       bound: firstFragment.bound,
     );
@@ -10189,11 +10184,11 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragment? get nextFragment => null;
+  TypeParameterElementImpl? get nextFragment => null;
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragment? get previousFragment => null;
+  TypeParameterElementImpl? get previousFragment => null;
 
   shared.Variance get variance {
     return _variance ?? shared.Variance.covariant;
@@ -10289,43 +10284,29 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
         FragmentedElementMixin<TypeParameterFragment>,
         _NonTopLevelVariableOrParameter
     implements TypeParameterElement2 {
-  final TypeParameterElementImpl wrappedElement;
+  @override
+  final TypeParameterElementImpl firstFragment;
 
   @override
   final String name3;
 
-  DartType? _bound;
-
-  /// When [firstFragment] is `null`, we still want to have some for the
-  /// old element model.
-  TypeParameterElementImpl? _syntheticFirstFragment;
+  @override
+  DartType? bound;
 
   TypeParameterElementImpl2({
-    required this.wrappedElement,
+    required this.firstFragment,
     required this.name3,
-    required DartType? bound,
-  }) : _bound = bound {
-    TypeParameterElementImpl? fragment = wrappedElement;
+    required this.bound,
+  }) {
+    TypeParameterElementImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
-      fragment = fragment.nextFragment as TypeParameterElementImpl?;
+      fragment = fragment.nextFragment;
     }
   }
 
   @override
   TypeParameterElement2 get baseElement => this;
-
-  @override
-  DartType? get bound => _bound;
-
-  set bound(DartType? value) {
-    _bound = value;
-    _syntheticFirstFragment?.bound = _bound;
-  }
-
-  @override
-  TypeParameterFragment get firstFragment =>
-      wrappedElement as TypeParameterFragment;
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
@@ -10334,7 +10315,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   LibraryElement2 get library2 => super.library2!;
 
   @override
-  Element? get _enclosingFunction => wrappedElement._enclosingElement3;
+  Element? get _enclosingFunction => firstFragment._enclosingElement3;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -10345,7 +10326,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterType instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return wrappedElement.instantiate(
+    return firstFragment.instantiate(
       nullabilitySuffix: nullabilitySuffix,
     );
   }

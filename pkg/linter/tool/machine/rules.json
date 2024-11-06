@@ -311,7 +311,7 @@
     "sets": [],
     "fixStatus": "noFix",
     "details": "**AVOID** using `FutureOr<void>` as the type of a result. This type is\nproblematic because it may appear to encode that a result is either a\n`Future<void>`, or the result should be discarded (when it is `void`).\nHowever, there is no safe way to detect whether we have one or the other\ncase (because an expression of type `void` can evaluate to any object\nwhatsoever, including a future of any type).\n\nIt is also conceptually unsound to have a type whose meaning is something\nlike \"ignore this object; also, take a look because it might be a future\".\n\nAn exception is made for contravariant occurrences of the type\n`FutureOr<void>` (e.g., for the type of a formal parameter), and no\nwarning is emitted for these occurrences. The reason for this exception\nis that the type does not describe a result, it describes a constraint\non a value provided by others. Similarly, an exception is made for type\nalias declarations, because they may well be used in a contravariant\nposition (e.g., as the type of a formal parameter). Hence, in type alias\ndeclarations, only the type parameter bounds are checked.\n\nA replacement for the type `FutureOr<void>` which is often useful is\n`Future<void>?`. This type encodes that the result is either a\n`Future<void>` or it is null, and there is no ambiguity at run time\nsince no object can have both types.\n\nIt may not always be possible to use the type `Future<void>?` as a\nreplacement for the type `FutureOr<void>`, because the latter is a\nsupertype of all types, and the former is not. In this case it may be a\nuseful remedy to replace `FutureOr<void>` by the type `void`.\n\n**BAD:**\n```dart\nFutureOr<void> m() {...}\n```\n\n**GOOD:**\n```dart\nFuture<void>? m() {...}\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/4622",
-    "sinceDartSdk": "3.6-wip"
+    "sinceDartSdk": "3.6"
   },
   {
     "name": "avoid_implementing_value_types",
@@ -378,7 +378,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DON'T** check for `null` in custom `==` operators.\n\nAs `null` is a special value, no instance of any class (other than `Null`) can\nbe equivalent to it.  Thus, it is redundant to check whether the other instance\nis `null`.\n\n**BAD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) =>\n      other != null && other is Person && name == other.name;\n}\n```\n\n**GOOD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) => other is Person && name == other.name;\n}\n```",
+    "details": "**NOTE:** This lint has been replaced by the\n`non_nullable_equals_parameter` warning and is deprecated.\nRemove all inclusions of this lint from your analysis options.\n\n**DON'T** check for `null` in custom `==` operators.\n\nAs `null` is a special value, no instance of any class (other than `Null`) can\nbe equivalent to it.  Thus, it is redundant to check whether the other instance\nis `null`.\n\n**BAD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) =>\n      other != null && other is Person && name == other.name;\n}\n```\n\n**GOOD:**\n```dart\nclass Person {\n  final String? name;\n\n  @override\n  operator ==(Object? other) => other is Person && name == other.name;\n}\n```",
     "sinceDartSdk": "2.0"
   },
   {
@@ -1544,7 +1544,8 @@
     "state": "stable",
     "incompatible": [
       "always_specify_types",
-      "specify_nonobvious_local_variable_types"
+      "specify_nonobvious_local_variable_types",
+      "specify_nonobvious_property_types"
     ],
     "sets": [],
     "fixStatus": "hasFix",
@@ -1564,7 +1565,22 @@
     "sets": [],
     "fixStatus": "hasFix",
     "details": "Don't type annotate initialized local variables when the type is obvious.\n\nLocal variables, especially in modern code where functions tend to be small,\nhave very little scope. Omitting the type focuses the reader's attention on the\nmore important *name* of the variable and its initialized value. Hence, local\nvariable type annotations that are obvious should be omitted.\n\n**BAD:**\n```dart\nList<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {\n  List<List<Ingredient>> desserts = <List<Ingredient>>[];\n  for (final List<Ingredient> recipe in cookbook) {\n    if (pantry.containsAll(recipe)) {\n      desserts.add(recipe);\n    }\n  }\n\n  return desserts;\n}\n\nconst cookbook = <List<Ingredient>>[....];\n```\n\n**GOOD:**\n```dart\nList<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {\n  var desserts = <List<Ingredient>>[];\n  for (final List<Ingredient> recipe in cookbook) {\n    if (pantry.containsAll(recipe)) {\n      desserts.add(recipe);\n    }\n  }\n\n  return desserts;\n}\n\nconst cookbook = <List<Ingredient>>[....];\n```\n\nSometimes the inferred type is not the type you want the variable to have. For\nexample, you may intend to assign values of other types later. You may also\nwish to write a type annotation explicitly because the type of the initializing\nexpression is non-obvious and it will be helpful for future readers of the\ncode to document this type. Or you may wish to commit to a specific type such\nthat future updates of dependencies (in nearby code, in imports, anywhere)\nwill not silently change the type of that variable, thus introducing\ncompile-time errors or run-time bugs in locations where this variable is used.\nIn those cases, go ahead and annotate the variable with the type you want.\n\n**GOOD:**\n```dart\nWidget build(BuildContext context) {\n  Widget result = someGenericFunction(42) ?? Text('You won!');\n  if (applyPadding) {\n    result = Padding(padding: EdgeInsets.all(8.0), child: result);\n  }\n  return result;\n}\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/3480.",
-    "sinceDartSdk": "3.6-wip"
+    "sinceDartSdk": "3.6"
+  },
+  {
+    "name": "omit_obvious_property_types",
+    "description": "Omit obvious type annotations for top-level and static variables.",
+    "categories": [
+      "style"
+    ],
+    "state": "experimental",
+    "incompatible": [
+      "always_specify_types"
+    ],
+    "sets": [],
+    "fixStatus": "needsEvaluation",
+    "details": "Don't type annotate initialized top-level or static variables when the type is\nobvious.\n\n**BAD:**\n```dart\nfinal int myTopLevelVariable = 7;\n\nclass A {\n  static String myStaticVariable = 'Hello';\n}\n```\n\n**GOOD:**\n```dart\nfinal myTopLevelVariable = 7;\n\nclass A {\n  static myStaticVariable = 'Hello';\n}\n```\n\nSometimes the inferred type is not the type you want the variable to have. For\nexample, you may intend to assign values of other types later. You may also\nwish to write a type annotation explicitly because the type of the initializing\nexpression is non-obvious and it will be helpful for future readers of the\ncode to document this type. Or you may wish to commit to a specific type such\nthat future updates of dependencies (in nearby code, in imports, anywhere)\nwill not silently change the type of that variable, thus introducing\ncompile-time errors or run-time bugs in locations where this variable is used.\nIn those cases, go ahead and annotate the variable with the type you want.\n\n**GOOD:**\n```dart\nfinal num myTopLevelVariable = 7;\n\nclass A {\n  static String? myStaticVariable = 'Hello';\n}\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/5101.",
+    "sinceDartSdk": "3.7-wip"
   },
   {
     "name": "one_member_abstracts",
@@ -2393,7 +2409,22 @@
     "sets": [],
     "fixStatus": "hasFix",
     "details": "Do type annotate initialized local variables when the type is non-obvious.\n\nType annotations on local variables can serve as a request for type inference,\ndocumenting the expected outcome of the type inference step, and declaratively\nallowing the compiler and analyzer to solve the possibly complex task of\nfinding type arguments and annotations in the initializing expression that\nyield the desired result.\n\nType annotations on local variables can also inform readers about the type\nof the initializing expression, which will allow them to proceed reading the\nsubsequent lines of code with known good information about the type of the\ngiven variable (which may not be immediately evident by looking at the\ninitializing expression).\n\nAn expression is considered to have a non-obvious type when it does not\nhave an obvious type.\n\nAn expression e has an obvious type in the following cases:\n\n- e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.\n- e is a collection literal with actual type arguments. For instance,\n  <int, bool>{}.\n- e is a list literal or a set literal where at least one element has an\n  obvious type, and all elements have the same type. For instance, [1, 2] and\n  { [true, false], [] }, but not [1, 1.5].\n- e is a map literal where all key-value pair have a key with an obvious type\n  and a value with an obvious type, and all keys have the same type, and all\n  values have the same type. For instance, { #a: <int>[] }, but not\n  {1: 1, 2: true}.\n- e is an instance creation expression whose class part is not raw. For\n  instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one\n  type argument, but not C(14) if C accepts one or more type arguments.\n- e is a cascade whose target has an obvious type. For instance,\n  1..isEven..isEven has an obvious type because 1 has an obvious type.\n- e is a type cast. For instance, myComplexExpression as int.\n\n**BAD:**\n```dart\nList<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {\n  var desserts = genericFunctionDeclaredFarAway(<num>[42], 'Something');\n  for (final recipe in cookbook) {\n    if (pantry.containsAll(recipe)) {\n      desserts.add(recipe);\n    }\n  }\n\n  return desserts;\n}\n\nconst List<List<Ingredient>> cookbook = ...;\n```\n\n**GOOD:**\n```dart\nList<List<Ingredient>> possibleDesserts(Set<Ingredient> pantry) {\n  List<List<Ingredient>> desserts = genericFunctionDeclaredFarAway(\n    <num>[42],\n    'Something',\n  );\n  for (final List<Ingredient> recipe in cookbook) {\n    if (pantry.containsAll(recipe)) {\n      desserts.add(recipe);\n    }\n  }\n\n  return desserts;\n}\n\nconst List<List<Ingredient>> cookbook = ...;\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/3480.",
-    "sinceDartSdk": "3.6-wip"
+    "sinceDartSdk": "3.6"
+  },
+  {
+    "name": "specify_nonobvious_property_types",
+    "description": "Specify non-obvious type annotations for local variables.",
+    "categories": [
+      "style"
+    ],
+    "state": "experimental",
+    "incompatible": [
+      "omit_local_variable_types"
+    ],
+    "sets": [],
+    "fixStatus": "needsEvaluation",
+    "details": "Do type annotate initialized top-level or static variables when the type is\nnon-obvious.\n\nType annotations on top-level or static variables can serve as a request for\ntype inference, documenting the expected outcome of the type inference step,\nand declaratively allowing the compiler and analyzer to solve the possibly \ncomplex task of finding type arguments and annotations in the initializing \nexpression that yield the desired result.\n\nType annotations on top-level or static variables can also inform readers about\nthe type of the initializing expression, which will allow them to proceed\nreading the locations in code where this variable is used with known good\ninformation about the type of the given variable (which may not be immediately\nevident by looking at the initializing expression).\n\nAn expression is considered to have a non-obvious type when it does not\nhave an obvious type.\n\nAn expression e has an obvious type in the following cases:\n\n- e is a non-collection literal. For instance, 1, true, 'Hello, $name!'.\n- e is a collection literal with actual type arguments. For instance,\n  <int, bool>{}.\n- e is a list literal or a set literal where at least one element has an\n  obvious type, and all elements have the same type. For instance, [1, 2] and\n  { [true, false], [] }, but not [1, 1.5].\n- e is a map literal where all key-value pair have a key with an obvious type\n  and a value with an obvious type, and all keys have the same type, and all\n  values have the same type. For instance, { #a: <int>[] }, but not\n  {1: 1, 2: true}.\n- e is an instance creation expression whose class part is not raw. For\n  instance C(14) if C is a non-generic class, or C<int>(14) if C accepts one\n  type argument, but not C(14) if C accepts one or more type arguments.\n- e is a cascade whose target has an obvious type. For instance,\n  1..isEven..isEven has an obvious type because 1 has an obvious type.\n- e is a type cast. For instance, myComplexpression as int.\n\n**BAD:**\n```dart\nfinal myTopLevelVariable =\n    genericFunctionWrittenByOtherFolks(with, args);\n\nclass A {\n  static var myStaticVariable =\n      myTopLevelVariable.update('foo', null);\n}\n```\n\n**GOOD:**\n```dart\nfinal Map<String, Widget?> myTopLevelVariable =\n    genericFunctionWrittenByOtherFolks(with, args);\n\nclass A {\n  static Map<String, Widget?> myStaticVariable =\n      myTopLevelVariable.update('foo', null);\n}\n```\n\n**This rule is experimental.** It is being evaluated, and it may be changed\nor removed. Feedback on its behavior is welcome! The main issue is here:\nhttps://github.com/dart-lang/linter/issues/5101.",
+    "sinceDartSdk": "3.7-wip"
   },
   {
     "name": "super_goes_last",
@@ -2897,7 +2928,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**AVOID**\n\n* assigning directly to the `href` field of an AnchorElement\n* assigning directly to the `src` field of an EmbedElement, IFrameElement, or\n  ScriptElement\n* assigning directly to the `srcdoc` field of an IFrameElement\n* calling the `createFragment` method of Element\n* calling the `open` method of Window\n* calling the `setInnerHtml` method of Element\n* calling the `Element.html` constructor\n* calling the `DocumentFragment.html` constructor\n\n\n**BAD:**\n```dart\nvar script = ScriptElement()..src = 'foo.js';\n```",
+    "details": "**NOTE:** This lint is deprecated and will be removed in a future release.\nRemove all inclusions of this lint from your analysis options.\n\n**AVOID**\n\n* assigning directly to the `href` field of an AnchorElement\n* assigning directly to the `src` field of an EmbedElement, IFrameElement, or\n  ScriptElement\n* assigning directly to the `srcdoc` field of an IFrameElement\n* calling the `createFragment` method of Element\n* calling the `open` method of Window\n* calling the `setInnerHtml` method of Element\n* calling the `Element.html` constructor\n* calling the `DocumentFragment.html` constructor\n\n\n**BAD:**\n```dart\nvar script = ScriptElement()..src = 'foo.js';\n```",
     "sinceDartSdk": "2.4"
   },
   {
@@ -3167,7 +3198,7 @@
     "sets": [],
     "fixStatus": "hasFix",
     "details": "**DO** use truncating division, '~/', instead of regular division ('/') followed\nby 'toInt()'.\n\nDart features a \"truncating division\" operator which is the same operation as\ndivision followed by truncation, but which is more concise and expressive, and\nmay be more performant on some platforms, for certain inputs.\n\n**BAD:**\n```dart\nvar x = (2 / 3).toInt();\n```\n\n**GOOD:**\n```dart\nvar x = 2 ~/ 3;\n```",
-    "sinceDartSdk": "3.6-wip"
+    "sinceDartSdk": "3.6"
   },
   {
     "name": "valid_regexps",

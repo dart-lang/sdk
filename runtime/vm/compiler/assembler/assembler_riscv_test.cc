@@ -5665,13 +5665,36 @@ ASSEMBLER_TEST_GENERATE(CompressedShiftLeftLogicalImmediate, assembler) {
 }
 ASSEMBLER_TEST_RUN(CompressedShiftLeftLogicalImmediate, test) {
   EXPECT_DISASSEMBLY(
-      "    050e slli a0, a0, 3\n"
+      "    050e slli a0, a0, 0x3\n"
       "    8082 ret\n");
   EXPECT_EQ(0, Call(test->entry(), 0));
   EXPECT_EQ(336, Call(test->entry(), 42));
   EXPECT_EQ(15872, Call(test->entry(), 1984));
   EXPECT_EQ(-336, Call(test->entry(), -42));
   EXPECT_EQ(-15872, Call(test->entry(), -1984));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedShiftLeftLogicalImmediate_Max, assembler) {
+  __ SetExtensions(RV_GC);
+  __ slli(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedShiftLeftLogicalImmediate_Max, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "    057e slli a0, a0, 0x1f\n"
+      "    8082 ret\n");
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(static_cast<intx_t>(0x80000000), Call(test->entry(), 1));
+  EXPECT_EQ(static_cast<intx_t>(0x80000000), Call(test->entry(), -1));
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "    157e slli a0, a0, 0x3f\n"
+      "    8082 ret\n");
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(static_cast<intx_t>(0x8000000000000000), Call(test->entry(), 1));
+  EXPECT_EQ(static_cast<intx_t>(0x8000000000000000), Call(test->entry(), -1));
+#endif
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedShiftRightLogicalImmediate, assembler) {
@@ -5681,7 +5704,7 @@ ASSEMBLER_TEST_GENERATE(CompressedShiftRightLogicalImmediate, assembler) {
 }
 ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate, test) {
   EXPECT_DISASSEMBLY(
-      "    810d srli a0, a0, 3\n"
+      "    810d srli a0, a0, 0x3\n"
       "    8082 ret\n");
   EXPECT_EQ(0, Call(test->entry(), 0));
   EXPECT_EQ(5, Call(test->entry(), 42));
@@ -5692,6 +5715,26 @@ ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate, test) {
             Call(test->entry(), -1984));
 }
 
+ASSEMBLER_TEST_GENERATE(CompressedShiftRightLogicalImmediate_Max, assembler) {
+  __ SetExtensions(RV_GC);
+  __ srli(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate_Max, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "    817d srli a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "    917d srli a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(1, Call(test->entry(), -1));
+}
+
 ASSEMBLER_TEST_GENERATE(CompressedShiftRightArithmeticImmediate, assembler) {
   __ SetExtensions(RV_GC);
   __ srai(A0, A0, 3);
@@ -5699,13 +5742,34 @@ ASSEMBLER_TEST_GENERATE(CompressedShiftRightArithmeticImmediate, assembler) {
 }
 ASSEMBLER_TEST_RUN(CompressedShiftRightArithmeticImmediate, test) {
   EXPECT_DISASSEMBLY(
-      "    850d srai a0, a0, 3\n"
+      "    850d srai a0, a0, 0x3\n"
       "    8082 ret\n");
   EXPECT_EQ(0, Call(test->entry(), 0));
   EXPECT_EQ(5, Call(test->entry(), 42));
   EXPECT_EQ(248, Call(test->entry(), 1984));
   EXPECT_EQ(-6, Call(test->entry(), -42));
   EXPECT_EQ(-248, Call(test->entry(), -1984));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedShiftRightArithmeticImmediate_Max,
+                        assembler) {
+  __ SetExtensions(RV_GC);
+  __ srai(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedShiftRightArithmeticImmediate_Max, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "    857d srai a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "    957d srai a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAndImmediate, assembler) {
@@ -7019,7 +7083,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt64, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_MinInt64, test) {
   EXPECT_DISASSEMBLY(
       "    557d li a0, -1\n"
-      "03f51513 slli a0, a0, 0x3f\n"
+      "    157e slli a0, a0, 0x3f\n"
       "    8082 ret\n");
   EXPECT_EQ(kMinInt64, Call(test->entry()));
 }
@@ -7033,11 +7097,11 @@ ASSEMBLER_TEST_RUN(LoadImmediate_Full, test) {
   EXPECT_DISASSEMBLY(
       "feaf3537 lui a0, -22073344\n"
       "6af5051b addiw a0, a0, 1711\n"
-      "    0532 slli a0, a0, 12\n"
+      "    0532 slli a0, a0, 0xc\n"
       "36b50513 addi a0, a0, 875\n"
-      "    053a slli a0, a0, 14\n"
+      "    053a slli a0, a0, 0xe\n"
       "cdb50513 addi a0, a0, -805\n"
-      "    0532 slli a0, a0, 12\n"
+      "    0532 slli a0, a0, 0xc\n"
       "bcd50513 addi a0, a0, -1075\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABCDABCDABCDABCD), Call(test->entry()));
@@ -7052,7 +7116,7 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LuiAddiwSlli, test) {
   EXPECT_DISASSEMBLY(
       "7bcdb537 lui a0, 2077077504\n"
       "bcd5051b addiw a0, a0, -1075\n"
-      "    0552 slli a0, a0, 20\n"
+      "    0552 slli a0, a0, 0x14\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0x7BCDABCD00000), Call(test->entry()));
 }
@@ -7065,7 +7129,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiSlli, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_LuiSlli, test) {
   EXPECT_DISASSEMBLY(
       "d5e6f537 lui a0, -706285568\n"
-      "02151513 slli a0, a0, 0x21\n"
+      "    1506 slli a0, a0, 0x21\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABCDE00000000000), Call(test->entry()));
 }
@@ -7078,7 +7142,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlli, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_LiSlli, test) {
   EXPECT_DISASSEMBLY(
       "2af00513 li a0, 687\n"
-      "02e51513 slli a0, a0, 0x2e\n"
+      "    153a slli a0, a0, 0x2e\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABC00000000000), Call(test->entry()));
 }
@@ -7091,7 +7155,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlliAddi, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
   EXPECT_DISASSEMBLY(
       "    557d li a0, -1\n"
-      "03851513 slli a0, a0, 0x38\n"
+      "    1562 slli a0, a0, 0x38\n"
       "0ff50513 addi a0, a0, 255\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xFF000000000000FF), Call(test->entry()));
@@ -7484,6 +7548,7 @@ TEST_ENCODING(intptr_t, CIImm)
 TEST_ENCODING(intptr_t, CUImm)
 TEST_ENCODING(intptr_t, CI16Imm)
 TEST_ENCODING(intptr_t, CI4SPNImm)
+TEST_ENCODING(intptr_t, CShamt)
 
 #undef TEST_ENCODING
 

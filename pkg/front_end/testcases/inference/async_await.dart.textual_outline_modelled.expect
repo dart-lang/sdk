@@ -7,13 +7,14 @@ abstract class MyFuture implements Future<int> {}
 main() {}
 
 void test(
-    int x0,
-    Future<int> x1,
-    Future<Future<int>> x2,
-    Future<FutureOr<int>> x3,
-    Future<MyFuture> x4,
-    FutureOr<int> x5,
-    FutureOr<Future<int>> x6,
-    FutureOr<FutureOr<int>> x7,
-    FutureOr<MyFuture> x8,
-    MyFuture x9) async {}
+  int x0,
+  Future<int> x1,
+  Future<Future<int>> x2,
+  Future<FutureOr<int>> x3,
+  Future<MyFuture> x4,
+  FutureOr<int> x5,
+  FutureOr<Future<int>> x6,
+  FutureOr<FutureOr<int>> x7,
+  FutureOr<MyFuture> x8,
+  MyFuture x9,
+) async {}

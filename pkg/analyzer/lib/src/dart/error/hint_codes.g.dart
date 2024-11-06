@@ -63,8 +63,8 @@ class HintCode extends AnalyzerErrorCode {
   ///
   ///  This code is deprecated in favor of the
   ///  'deprecated_member_from_same_package' lint rule, and will be removed.
-  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
-      HintCode(
+  static const HintCode
+  DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used. {1}",
     correctionMessage:
@@ -99,10 +99,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  Reported when the macro uses `Builder.report()` with `Severity.info`.
   ///  Parameters:
   ///  0: the message
-  static const HintCode MACRO_INFO = HintCode(
-    'MACRO_INFO',
-    "{0}",
-  );
+  static const HintCode MACRO_INFO = HintCode('MACRO_INFO', "{0}");
 
   ///  Parameters:
   ///  0: the URI that is not necessary
@@ -124,10 +121,10 @@ class HintCode extends AnalyzerErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'HintCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'HintCode.${uniqueName ?? name}',
+       );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
