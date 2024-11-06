@@ -112,7 +112,6 @@ class WasmTarget extends Target {
   Class? _closure;
   Class? _boxedInt;
   Class? _boxedDouble;
-  Class? _boxedBool;
   Map<String, Class>? _nativeClasses;
 
   @override
@@ -546,10 +545,6 @@ class WasmTarget extends Target {
   Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
       _boxedDouble ??=
           coreTypes.index.getClass("dart:_boxed_double", "BoxedDouble");
-
-  @override
-  Class concreteBoolLiteralClass(CoreTypes coreTypes, bool value) =>
-      _boxedBool ??= coreTypes.index.getClass("dart:_boxed_bool", "BoxedBool");
 
   @override
   DartLibrarySupport get dartLibrarySupport => CustomizedDartLibrarySupport(

@@ -240,7 +240,7 @@ class Translator with KernelNodes {
   late final Map<Class, Class> valueClasses = {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
-    boxedBoolClass: boxedBoolClass,
+    boxedBoolClass: coreTypes.boolClass,
     if (!options.jsCompatibility) ...{
       oneByteStringClass: stringBaseClass,
       twoByteStringClass: stringBaseClass

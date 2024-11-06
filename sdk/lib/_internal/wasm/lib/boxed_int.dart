@@ -7,13 +7,13 @@ import 'dart:_internal';
 import 'dart:_wasm';
 
 @pragma("wasm:entry-point")
-final class BoxedInt implements int {
+final class BoxedInt extends int {
   // A boxed int contains an unboxed int.
   @pragma("wasm:entry-point")
-  final int value;
+  int value = 0;
 
-  @pragma("wasm:entry-point")
-  BoxedInt._(this.value);
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory BoxedInt();
 
   external num operator +(num other);
   external num operator -(num other);

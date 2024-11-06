@@ -3,19 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @pragma("wasm:entry-point")
-final class BoxedBool implements bool {
+final class BoxedBool extends bool {
   // A boxed bool contains an unboxed bool.
   @pragma("wasm:entry-point")
-  final bool value;
+  bool value = false;
 
-  @pragma("wasm:entry-point")
-  BoxedBool._(this.value);
-
-  @override
-  int get hashCode => this ? 1231 : 1237;
-
-  @override
-  String toString() => this ? "true" : "false";
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory BoxedBool();
 
   @override
   bool operator ==(Object other) {
@@ -24,12 +18,7 @@ final class BoxedBool implements bool {
         : false;
   }
 
-  @override
   bool operator &(bool other) => this & other; // Intrinsic &
-
-  @override
   bool operator ^(bool other) => this ^ other; // Intrinsic ^
-
-  @override
   bool operator |(bool other) => this | other; // Intrinsic |
 }
