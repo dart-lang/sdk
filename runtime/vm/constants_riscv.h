@@ -1424,6 +1424,23 @@ inline intx_t DecodeCI4SPNImm(uint32_t encoding) {
   return imm;
 }
 
+inline bool IsCShamt(uint32_t imm) {
+  return imm < XLEN;
+}
+inline uint32_t EncodeCShamt(uint32_t imm) {
+  ASSERT(IsCShamt(imm));
+  uint32_t encoding = 0;
+  encoding |= ((imm >> 5) & 0x1) << 12;
+  encoding |= ((imm >> 0) & 0x1F) << 2;
+  return encoding;
+}
+inline uint32_t DecodeCShamt(uint32_t encoding) {
+  uint32_t imm = 0;
+  imm |= ((encoding >> 12) & 0x1) << 5;
+  imm |= ((encoding >> 2) & 0x1F) << 0;
+  return imm;
+}
+
 enum COpcode {
   C_OP_MASK = 0b1110000000000011,
 
@@ -1515,6 +1532,8 @@ class CInstr {
   intx_t u_imm() { return DecodeCUImm(encoding_); }
   intx_t i16_imm() { return DecodeCI16Imm(encoding_); }
   intx_t i4spn_imm() { return DecodeCI4SPNImm(encoding_); }
+
+  uint32_t shamt() { return DecodeCShamt(encoding_); }
 
  private:
   const uint16_t encoding_;
