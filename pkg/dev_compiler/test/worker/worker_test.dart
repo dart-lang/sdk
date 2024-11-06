@@ -25,19 +25,17 @@ void main() {
   var dartAotRuntime = p.absolute(
       sdkPath,
       Platform.isWindows
-          ? 'dartaotruntime_product.exe'
-          : 'dartaotruntime_product');
-  var snapshotName = _resolvePath('gen/dartdevc_aot_product.dart.snapshot');
+          ? 'dart_precompiled_runtime_product.exe'
+          : 'dart_precompiled_runtime_product');
   if (!File(dartAotRuntime).existsSync()) {
     dartAotRuntime = p.absolute(
         sdkPath,
         Platform.isWindows
-            ? 'dartaotruntime_product.exe'
-            : 'dartaotruntime_product');
-    snapshotName = _resolvePath('gen/dartdevc_aot.dart.snapshot');
+            ? 'dart_precompiled_runtime.exe'
+            : 'dart_precompiled_runtime');
   }
   final executableArgs = <String>[
-    snapshotName,
+    _resolvePath('gen/dartdevc_aot.dart.snapshot'),
     '--sound-null-safety',
     '--dart-sdk-summary',
     _resolvePath('ddc_outline.dill'),
