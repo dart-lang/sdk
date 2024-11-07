@@ -66,6 +66,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       required DartSdk sdk,
     })? updateAnalysisOptions2,
     MacroSupportFactory? macroSupportFactory,
+    bool enableLintRuleTiming = false,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -124,6 +125,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         infoDeclarationStore: infoDeclarationStore,
         macroSupport: macroSupport,
         ownedFiles: ownedFiles,
+        enableLintRuleTiming: enableLintRuleTiming,
       );
       contexts.add(context);
     }

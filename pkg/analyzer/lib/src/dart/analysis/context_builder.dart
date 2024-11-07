@@ -90,6 +90,7 @@ class ContextBuilderImpl {
     InfoDeclarationStore? infoDeclarationStore,
     MacroSupport? macroSupport,
     OwnedFiles? ownedFiles,
+    bool enableLintRuleTiming = false,
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
@@ -162,6 +163,7 @@ class ContextBuilderImpl {
       declaredVariables: declaredVariables,
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
       ownedFiles: ownedFiles,
+      enableLintRuleTiming: enableLintRuleTiming,
     );
 
     // AnalysisDriver reports results into streams.

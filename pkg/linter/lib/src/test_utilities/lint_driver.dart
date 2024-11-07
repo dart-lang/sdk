@@ -31,11 +31,13 @@ class LintDriver {
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
 
+    var filesPaths =
+        files.map((file) => _absoluteNormalizedPath(file.path)).toList();
+
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
       sdkPath: options.dartSdkPath,
-      includedPaths:
-          files.map((file) => _absoluteNormalizedPath(file.path)).toList(),
+      includedPaths: filesPaths,
       updateAnalysisOptions2: ({
         required analysisOptions,
         required contextRoot,
@@ -43,21 +45,17 @@ class LintDriver {
       }) {
         analysisOptions.lint = true;
         analysisOptions.warning = false;
-        analysisOptions.enableTiming = options.enableTiming;
         analysisOptions.lintRules =
             options.enabledRules.toList(growable: false);
       },
+      enableLintRuleTiming: options.enableTiming,
     );
 
-    for (io.File file in files) {
-      var path = _absoluteNormalizedPath(file.path);
-      _filesAnalyzed.add(path);
-    }
+    _filesAnalyzed.addAll(filesPaths);
 
     var result = <AnalysisErrorInfo>[];
     for (var path in _filesAnalyzed) {
-      var analysisContext = contextCollection.contextFor(path);
-      var analysisSession = analysisContext.currentSession;
+      var analysisSession = contextCollection.contextFor(path).currentSession;
       var errorsResult = await analysisSession.getErrors(path);
       if (errorsResult is ErrorsResult) {
         result.add(

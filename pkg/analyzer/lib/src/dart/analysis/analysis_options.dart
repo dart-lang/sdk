@@ -328,9 +328,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   List<PluginConfiguration> pluginConfigurations = [];
 
-  /// Whether timing data should be gathered during execution.
-  bool enableTiming = false;
-
   @override
   final List<ErrorProcessor> errorProcessors;
 
