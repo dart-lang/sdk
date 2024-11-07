@@ -6,32 +6,27 @@ import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
 // Adapted from:
-// https://github.com/dart-lang/sdk/blob/bf2fba78e006ce4feac43e514c0b8f3ea9e9fbb8/runtime/vm/isolate_reload_test.cc#L5793
+// https://github.com/dart-lang/sdk/blob/640ad1416eaa2779e33f19e11a3249bb4f9d13f9/runtime/vm/isolate_reload_test.cc#L5323
 
-class A {}
+class Super {
+  static var foo = 'right';
+}
 
-class B extends A {}
-
-class Foo {
-  List<A> x;
-  Foo(this.x);
+class Foo extends Super {
+  static var foo = 'wrong';
 }
 
 late Foo value;
-
-helper() {
-  value = Foo(List<B>.empty());
+String helper() {
+  value = Foo();
   return 'okay';
 }
 
 Future<void> main() async {
+  Expect.equals('right', Super.foo);
+  Expect.equals('wrong', Foo.foo);
   Expect.equals('okay', helper());
-  Expect.equals(0, hotReloadGeneration);
-
   await hotReload();
 
-  // B is no longer a subtype of A.
-  Expect.contains(
-      "type 'List<B>' is not a subtype of type 'List<A>'", helper());
-  Expect.equals(1, hotReloadGeneration);
+  Expect.equals('right', helper());
 }

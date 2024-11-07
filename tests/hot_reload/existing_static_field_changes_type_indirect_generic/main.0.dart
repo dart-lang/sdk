@@ -6,17 +6,16 @@ import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
 // Adapted from:
-// https://github.com/dart-lang/sdk/blob/a70adce28e53ff8bb3445fe96f3f1be951d8a417/runtime/vm/isolate_reload_test.cc#L5757
+// https://github.com/dart-lang/sdk/blob/63622f03eeaf72983b2f4957fa84da8062693f00/runtime/vm/isolate_reload_test.cc#L5841
 
 class A {}
 
 class B extends A {}
 
-A value = init();
+List<A> value = init();
+init() => List<B>.empty();
 
-init() => B();
-
-helper() {
+String helper() {
   try {
     return value.toString();
   } catch (e) {
@@ -25,11 +24,11 @@ helper() {
 }
 
 Future<void> main() async {
-  Expect.equals("Instance of 'B'", helper());
-  Expect.equals(0, hotReloadGeneration);
+  Expect.equals('[]', helper());
 
   await hotReload();
 
-  Expect.contains("type 'B' is not a subtype of type 'A'", helper());
-  Expect.equals(1, hotReloadGeneration);
+  // B is no longer a subtype of A.
+  Expect.contains(
+      "type 'List<B>' is not a subtype of type 'List<A>'", helper());
 }
