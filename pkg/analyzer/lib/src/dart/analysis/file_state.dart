@@ -403,9 +403,15 @@ abstract class FileKind {
       return;
     }
 
-    for (var reference in file.referencingFiles) {
+    // Take referencing files, stop potential recursion.
+    var referencingFiles = file.referencingFiles;
+    file.referencingFiles = {};
+
+    // Iterate and restore.
+    for (var reference in referencingFiles) {
       reference.kind.disposeLibraryCycle();
     }
+    file.referencingFiles = referencingFiles;
   }
 
   bool hasPart(PartFileKind partKind) {
@@ -529,7 +535,7 @@ class FileState {
   bool isMacroPart = false;
 
   /// Files that reference this file.
-  final Set<FileState> referencingFiles = {};
+  Set<FileState> referencingFiles = {};
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.

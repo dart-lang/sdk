@@ -3248,6 +3248,57 @@ elementFactory
 ''');
   }
 
+  test_newFile_partOfUri_cycle_importSelf() async {
+    // https://github.com/dart-lang/sdk/issues/57043
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import '';
+''');
+
+    fileStateFor(a);
+    var b_state = fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        partIncludes
+          partOfUriKnown_1
+        fileKinds: library_0 partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        libraryImports
+          notLibrary file_1
+      referencingFiles: file_0 file_1
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    // Should not recurse infinitely.
+    b_state.kind.disposeLibraryCycle();
+  }
+
   test_newFile_partOfUri_doesNotExist() async {
     var a = getFile('$testPackageLibPath/a.dart');
 
