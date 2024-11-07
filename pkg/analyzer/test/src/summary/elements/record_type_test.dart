@@ -66,6 +66,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
             get <null-name>
               reference: <testLibraryFragment>::@class::A::@getter::x
@@ -139,6 +140,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
             get <null-name>
               reference: <testLibraryFragment>::@class::A::@getter::x
@@ -204,6 +206,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -267,6 +270,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           methods
             foo @26
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -324,6 +328,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
   classes
     class A
       reference: <testLibrary>::@class::A

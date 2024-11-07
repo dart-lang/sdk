@@ -781,6 +781,7 @@ class LibraryReader {
       var reference = _readReference();
       var name = reference.elementName.ifEqualThen('new', '');
       var element = ConstructorElementImpl(name, -1);
+      element.typeName = _reader.readOptionalStringReference();
       element.name2 = _reader.readStringReference();
       var linkedData = ConstructorElementLinkedData(
         reference: reference,

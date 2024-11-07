@@ -185,6 +185,7 @@ class BundleWriter {
   void _writeConstructorElement(ConstructorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _sink._writeOptionalStringReference(element.typeName);
     _sink._writeStringReference(element.name2);
     ConstructorElementFlags.write(_sink, element);
     _writeAugmentationTargetAny(element);

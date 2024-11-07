@@ -314,6 +314,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             m @42
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -540,6 +541,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
         class B @64
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -547,6 +550,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -673,6 +677,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
       topLevelVariables
         v @62
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -916,6 +922,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1052,6 +1060,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1188,6 +1198,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1318,6 +1330,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -1461,6 +1475,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @31
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -1468,6 +1483,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0

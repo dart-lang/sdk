@@ -92,6 +92,8 @@ library
             new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 12
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -144,6 +146,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -251,6 +254,8 @@ library
             new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 12
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -307,6 +312,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             m @12
               reference: <testLibraryFragment>::@class::C::@method::m

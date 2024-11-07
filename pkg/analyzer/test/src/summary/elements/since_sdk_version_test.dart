@@ -82,6 +82,8 @@ library
               reference: dart:foo::<fragment>::@class::A::@constructor::named
               element: dart:foo::<fragment>::@class::A::@constructor::named#element
               sinceSdkVersion: 2.15.0
+              typeName: A
+              typeNameOffset: 53
               periodOffset: 54
         class B @73
           reference: dart:foo::<fragment>::@class::B
@@ -90,6 +92,8 @@ library
             named @81
               reference: dart:foo::<fragment>::@class::B::@constructor::named
               element: dart:foo::<fragment>::@class::B::@constructor::named#element
+              typeName: B
+              typeNameOffset: 79
               periodOffset: 80
   classes
     class A

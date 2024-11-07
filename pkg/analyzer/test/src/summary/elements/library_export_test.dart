@@ -254,6 +254,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
   classes
     class X
       reference: <testLibrary>::@class::X
@@ -474,6 +475,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
   classes
     class X
       reference: <testLibrary>::@class::X
@@ -813,6 +815,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -881,6 +884,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -949,6 +953,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
@@ -1067,6 +1072,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1082,6 +1088,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
+              typeName: B
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -1199,6 +1206,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
     <testLibrary>::@fragment::package:test/d.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1297,6 +1305,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1386,6 +1395,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1589,6 +1599,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -1601,6 +1612,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -1612,6 +1624,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new
               element: <testLibrary>::@fragment::package:test/b.dart::@class::B::@constructor::new#element
+              typeName: B
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1726,6 +1739,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
     <testLibrary>::@fragment::package:test/c.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>

@@ -3134,6 +3134,8 @@ library
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 55
               periodOffset: 56
               formalParameters
                 this.f @68
@@ -3241,6 +3243,8 @@ library
             named @57
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 55
               periodOffset: 56
               formalParameters
                 a @67
@@ -3338,6 +3342,8 @@ library
             new
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 55
               formalParameters
                 a @61
                   element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::new::@parameter::a#element
@@ -5772,11 +5778,15 @@ library
             named @131
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 129
               periodOffset: 130
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
             augment named @152
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 150
               periodOffset: 151
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
   classes
@@ -7375,6 +7385,8 @@ library
             new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 70
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -9902,6 +9914,8 @@ library
             new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 76
               macroDiagnostics
                 MacroDiagnostic
                   message: MacroDiagnosticMessage
@@ -10402,6 +10416,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -10463,6 +10478,7 @@ library
             synthetic const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -12491,6 +12507,8 @@ library
             external fromJson @177
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson#element
+              typeName: A
+              typeNameOffset: 175
               periodOffset: 176
               formalParameters
                 json @231
@@ -12499,6 +12517,8 @@ library
             augment fromJson @336
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson#element
+              typeName: A
+              typeNameOffset: 334
               periodOffset: 335
               formalParameters
                 json @390
@@ -17510,6 +17530,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -17521,6 +17542,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
+              typeName: MyClass
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -17609,6 +17631,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -17620,6 +17643,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
+              typeName: MyClass
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -17708,6 +17732,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -17719,6 +17744,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@constructor::new#element
+              typeName: MyClass
   classes
     class A
       reference: <testLibrary>::@class::A
