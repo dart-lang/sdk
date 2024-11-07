@@ -60,11 +60,30 @@ class FieldIndex {
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
-      assert(
-          translator.fieldIndex[
-                  cls.fields.firstWhere((f) => f.name.text == name)] ==
-              expectedIndex,
-          "Unexpected field index for ${cls.name}.$name");
+      Field? field;
+
+      for (Field clsField in cls.fields) {
+        if (clsField.name.text == name) {
+          field = clsField;
+          break;
+        }
+      }
+
+      if (field == null) {
+        throw AssertionError("$cls doesn't have field $name");
+      }
+
+      final actualIndex = translator.fieldIndex[field];
+
+      if (actualIndex == null) {
+        throw AssertionError("$cls field $name doesn't have an index assigned");
+      }
+
+      if (actualIndex != expectedIndex) {
+        throw AssertionError(
+            "$cls field $name expected index = $expectedIndex, "
+            "actual index = $actualIndex");
+      }
     }
 
     check(translator.asyncSuspendStateClass, "_resume",
@@ -510,7 +529,10 @@ class ClassInfoCollector {
     }
 
     // Validate that all internally used fields have the expected indices.
-    FieldIndex.validate(translator);
+    assert((() {
+      FieldIndex.validate(translator);
+      return true;
+    })());
   }
 }
 
