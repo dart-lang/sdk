@@ -1840,9 +1840,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'NullAwareElement_value';
     } else if (offset >= node.separator.end) {
       collector.completionLocation = 'MapLiteralEntry_value';
-      declarationHelper(
-        mustBeStatic: node.inStaticContext,
-      ).addLexicalDeclarations(node);
+      _forExpression(node, mustBeNonVoid: true);
     }
   }
 
