@@ -172,11 +172,10 @@ String ddcHtml(
   var hotReloadFormat = ddcModuleFormat && canaryMode;
 
   var sdkAndAsyncHelperSetup = """
-_isolate_helper.startRootIsolate(function() {}, []);
 _debugger.registerDevtoolsFormatter();
 
 testErrorToStackTrace = function(error) {
-  var stackTrace = runtime.stackTrace(error).toString();
+  var stackTrace = getStackTraceString(error);
 
   var lines = stackTrace.split("\\n");
 
@@ -194,19 +193,6 @@ testErrorToStackTrace = function(error) {
   // TODO(rnystrom): It would be nice to shorten the URLs of the remaining
   // lines too.
   return lines.join("\\n");
-};
-
-runtime.addAsyncCallback = function() {
-  expect.async_helper.asyncStart();
-};
-
-runtime.removeAsyncCallback = function() {
-  // removeAsyncCallback() is called *before* the async operation is
-  // performed, but we don't want to report the test as being done until
-  // after that operation completes, so wait for that callback to run.
-  setTimeout(() => {
-    expect.async_helper.asyncEnd();
-  }, 0);
 };
 """;
 
@@ -232,12 +218,11 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
     String libraryImports;
     String startCode;
     if (hotReloadFormat) {
-      var import = 'dartDevEmbedder.importLibrary';
       libraryImports = """
-        let runtime = $import("dart:_runtime");
-        let expect = $import("package:expect/async_helper.dart");
-        let _isolate_helper = $import("dart:_isolate_helper");
-        let _debugger = $import("dart:_debugger");
+        let _debugger = dartDevEmbedder.debugger;
+        let getStackTraceString = function(error) {
+          return _debugger.stackTrace(error);
+        }
       """;
       sdkFlagSetup = """
         let sdkOptions = {
@@ -255,8 +240,9 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
       libraryImports = """
         let sdk = dart_library.import("dart_sdk", "$appName");
         let runtime = sdk.dart;
-        let expect = dart_library.import("expect", "$appName");
-        let _isolate_helper = sdk._isolate_helper;
+        let getStackTraceString = function(error) {
+          return runtime.stackTrace(error).toString();
+        }
         let _debugger = sdk._debugger;
       """;
       startCode = """dart_library.start("$appName", "$uuid", "$testName",
@@ -305,10 +291,11 @@ $packagePaths
 <script type="text/javascript"
         src="/root_dart/third_party/requirejs/require.js"></script>
 <script type="text/javascript">
-requirejs(["$testName", "dart_sdk", "expect"],
-    function($testId, sdk, expect) {
+requirejs(["$testName", "dart_sdk"], function($testId, sdk) {
   let runtime = sdk.dart;
-  let _isolate_helper = sdk._isolate_helper;
+  let getStackTraceString = function(error) {
+    return runtime.stackTrace(error).toString();
+  }
   let _debugger = sdk._debugger;
 
   $sdkAndAsyncHelperSetup

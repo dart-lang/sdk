@@ -1909,6 +1909,18 @@ if (!self.deferred_loader) {
     get extensionNames() {
       return dartDeveloperLibrary()._extensions.keys().toList();
     }
+
+    /**
+     * Returns a Dart stack trace string given an error caught in JS. If the
+     * error is a Dart error or JS `Error`, we use the built-in stack. If the
+     * error is neither, we try to construct a stack trace if possible.
+     *
+     * @param {any} error The error for which a stack trace will be produced.
+     * @returns {String} The stringified stack trace.
+     */
+    stackTrace(error) {
+      return dartRuntimeLibrary().stackTrace(error).toString();
+    }
   }
 
   const debugger_ = new Debugger();
