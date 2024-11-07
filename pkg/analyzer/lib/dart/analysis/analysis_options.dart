@@ -73,11 +73,54 @@ abstract class AnalysisOptions {
   bool isLintEnabled(String name);
 }
 
+final class GitPluginSource implements PluginSource {
+  final String _url;
+
+  final String? _path;
+
+  final String? _ref;
+
+  GitPluginSource({required String url, String? path, String? ref})
+      : _url = url,
+        _path = path,
+        _ref = ref;
+
+  @override
+  String toYaml({required String name}) {
+    var buffer = StringBuffer()
+      ..writeln('  $name:')
+      ..writeln('    git:')
+      ..writeln('      url: $_url');
+    if (_ref != null) {
+      buffer.writeln('      ref: $_ref');
+    }
+    if (_path != null) {
+      buffer.writeln('      path: $_path');
+    }
+    return buffer.toString();
+  }
+}
+
+final class PathPluginSource implements PluginSource {
+  final String _path;
+
+  PathPluginSource({required String path}) : _path = path;
+
+  @override
+  String toYaml({required String name}) => '''
+  $name:
+    path: $_path
+''';
+}
+
 /// The configuration of a Dart Analysis Server plugin, as specified by
 /// analysis options.
 final class PluginConfiguration {
   /// The name of the plugin being configured.
   final String name;
+
+  /// The source of the plugin being configured.
+  final PluginSource source;
 
   /// The list of specified [DiagnosticConfig]s.
   final Map<String, DiagnosticConfig> diagnosticConfigs;
@@ -87,7 +130,34 @@ final class PluginConfiguration {
 
   PluginConfiguration({
     required this.name,
-    required this.diagnosticConfigs,
-    required this.isEnabled,
+    required this.source,
+    this.diagnosticConfigs = const {},
+    this.isEnabled = true,
   });
+
+  String sourceYaml() => source.toYaml(name: name);
+}
+
+/// A description of the source of a plugin.
+
+/// We support all of the source formats documented at
+/// https://dart.dev/tools/pub/dependencies.
+sealed class PluginSource {
+  /// Returns the YAML-formatted source, using [name] as a key, for writing into
+  /// a pubspec 'dependencies' section.
+  String toYaml({required String name});
+}
+
+/// A plugin source using a version constraint, hosted either at pub.dev or
+/// another host.
+// TODO(srawlins): Support a different 'hosted' URL.
+final class VersionedPluginSource implements PluginSource {
+  /// The specified version constraint.
+  final String _constraint;
+
+  VersionedPluginSource({required String constraint})
+      : _constraint = constraint;
+
+  @override
+  String toYaml({required String name}) => '  $name: $_constraint\n';
 }

@@ -542,7 +542,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
 
 DEFINE_NATIVE_ENTRY(Internal_loadDynamicModule, 0, 1) {
 #if defined(DART_DYNAMIC_MODULES)
-  GET_NON_NULL_NATIVE_ARGUMENT(TypedData, module_bytes,
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, module_bytes,
                                arguments->NativeArgAt(0));
 
   const intptr_t length = module_bytes.LengthInBytes();

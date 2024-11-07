@@ -41,8 +41,7 @@ class PluginWatcher implements DriverWatcher {
     var contextRoot = driver.analysisContext!.contextRoot;
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
-    var enabledPlugins = driver.enabledLegacyPluginNames;
-    for (var hostPackageName in enabledPlugins) {
+    for (var hostPackageName in driver.enabledLegacyPluginNames) {
       //
       // Determine whether the package exists and defines a plugin.
       //
@@ -66,6 +65,8 @@ class PluginWatcher implements DriverWatcher {
       manager.addPluginToContextRoot(
           driver.analysisContext!.contextRoot, pluginPath);
     }
+
+    // TODO(srawlins): Generate package for plugin configurations, with PluginPackageGenerator.
   }
 
   /// The context manager has just removed the given analysis [driver].

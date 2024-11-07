@@ -199,6 +199,7 @@ class PluginServerTest extends PluginServerTestBase {
     var buffer = StringBuffer('''
 plugins:
   no_literals:
+    path: some/path
     diagnostics:
 ''');
     for (var MapEntry(key: diagnosticName, value: isEnabled)
