@@ -22,6 +22,7 @@ lib/src/lsp/completion_utils.dart
 lib/src/lsp/handlers/code_actions/dart.dart
 lib/src/lsp/handlers/commands/abstract_refactor.dart
 lib/src/lsp/handlers/custom/abstract_go_to.dart
+lib/src/lsp/handlers/custom/handler_imports.dart
 lib/src/lsp/handlers/custom/handler_augmentation.dart
 lib/src/lsp/handlers/custom/handler_augmented.dart
 lib/src/lsp/handlers/custom/handler_super.dart

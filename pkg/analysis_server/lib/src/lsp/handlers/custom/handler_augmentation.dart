@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/abstract_go_to.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -18,7 +19,15 @@ class AugmentationHandler extends AbstractGoToHandler {
   bool get requiresTrustedCaller => false;
 
   @override
-  Element? findRelatedElement(Element element) {
-    return element.augmentation;
+  Either2<Location?, List<Location>> findRelatedLocations(
+      Element element,
+      ResolvedLibraryResult libraryResult,
+      ResolvedUnitResult unit,
+      String? prefix) {
+    // Although the base class supports returning multiple elements, this
+    // handler is documented to only return a single element.
+    // Changing this to return a list could be a breaking change for
+    // clients.
+    return Either2.t1(elementToLocation(element.augmentation));
   }
 }

@@ -184,6 +184,14 @@ Returns: `Location | null`
 
 Returns the location of the super definition of the class or method at the provided position or `null` if there isn't one.
 
+### dart/textDocument/imports Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `Location[] | null`
+
+Returns the location(s) of the import directive(s) that expose the element at the provided position or `null` if there isn't one.
+
 ### dart/textDocument/augmented Method
 
 Direction: Client -> Server

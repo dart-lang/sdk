@@ -549,6 +549,21 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<List<Location>?> getImports(
+    Uri uri,
+    Position pos,
+  ) {
+    var request = makeRequest(
+      CustomMethods.imports,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(Location.fromJson));
+  }
+
   Future<List<InlayHint>> getInlayHints(Uri uri, Range range) {
     var request = makeRequest(
       Method.textDocument_inlayHint,
