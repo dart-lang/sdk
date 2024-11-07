@@ -76,6 +76,8 @@ library
             const new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
               formalParameters
                 this.it @27
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -176,6 +178,8 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
               codeOffset: 16
               codeLength: 14
+              typeName: A
+              typeNameOffset: 15
               periodOffset: 16
               formalParameters
                 this.it @27
@@ -275,12 +279,16 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 15
               formalParameters
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 29
               periodOffset: 30
               formalParameters
                 this.it @42
@@ -385,12 +393,16 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 15
               formalParameters
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
             named @31
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 29
               periodOffset: 30
               formalParameters
                 this.it @46
@@ -507,12 +519,16 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 15
               formalParameters
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
             const named @37
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 35
               periodOffset: 36
               formalParameters
                 a @47
@@ -630,6 +646,8 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               codeOffset: 16
               codeLength: 8
+              typeName: A
+              typeNameOffset: 15
               formalParameters
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -720,6 +738,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 24
               formalParameters
                 this.it @30
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -1109,6 +1129,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 32
               formalParameters
                 this.it @43
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -2129,6 +2151,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 37
               formalParameters
                 this.it @43
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -2481,6 +2505,8 @@ library
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
               codeOffset: 16
               codeLength: 2
+              typeName: A
+              typeNameOffset: 15
               formalParameters
                 this.<null-name>
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::<empty>#element
@@ -3454,6 +3480,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 15
               formalParameters
                 this.it @45
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -3599,6 +3627,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -3769,6 +3799,8 @@ library
             augment new
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new#element
+              typeName: A
+              typeNameOffset: 59
               formalParameters
                 this.it @65
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new::@parameter::it#element
@@ -3914,6 +3946,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -3933,6 +3967,8 @@ library
             named @60
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 58
               periodOffset: 59
   extensionTypes
     extension type A
@@ -4067,6 +4103,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @40
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -4089,6 +4127,8 @@ library
             named @64
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 62
               periodOffset: 63
               formalParameters
                 a @73
@@ -4217,6 +4257,8 @@ library
             named @32
               reference: <testLibraryFragment>::@extensionType::A::@constructor::named
               element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 30
               periodOffset: 31
               formalParameters
                 this.it @42
@@ -4237,6 +4279,8 @@ library
             new
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 58
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -4397,6 +4441,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -4627,6 +4673,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 45
               formalParameters
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -4873,6 +4921,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 45
               formalParameters
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -5122,6 +5172,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 45
               formalParameters
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -5342,6 +5394,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -5532,6 +5586,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -5737,6 +5793,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -5955,6 +6013,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -6158,6 +6218,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @40
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -6359,6 +6421,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -6589,6 +6653,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 45
               formalParameters
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -6812,6 +6878,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -7024,6 +7092,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 45
               formalParameters
                 this.it @51
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -7479,6 +7549,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -7498,6 +7570,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
+              typeName: I1
+              typeNameOffset: 72
               formalParameters
                 this.it @79
                   element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
@@ -7527,6 +7601,8 @@ library
             new
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
+              typeName: I2
+              typeNameOffset: 101
               formalParameters
                 this.it @108
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
@@ -7554,6 +7630,8 @@ library
             new
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new
               element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new#element
+              typeName: I3
+              typeNameOffset: 83
               formalParameters
                 this.it @90
                   element: <testLibrary>::@fragment::package:test/b.dart::@extensionType::I3::@constructor::new::@parameter::it#element
@@ -7802,6 +7880,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -7821,6 +7901,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
+              typeName: I1
+              typeNameOffset: 75
               formalParameters
                 this.it @82
                   element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
@@ -7854,6 +7936,8 @@ library
             new
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
+              typeName: I2
+              typeNameOffset: 94
               formalParameters
                 this.it @104
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
@@ -8086,6 +8170,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -8105,6 +8191,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::I1::@constructor::new
               element: <testLibraryFragment>::@extensionType::I1::@constructor::new#element
+              typeName: I1
+              typeNameOffset: 75
               formalParameters
                 this.it @82
                   element: <testLibraryFragment>::@extensionType::I1::@constructor::new::@parameter::it#element
@@ -8140,6 +8228,8 @@ library
             new
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new#element
+              typeName: I2
+              typeNameOffset: 98
               formalParameters
                 this.it @108
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@constructor::new::@parameter::it#element
@@ -8318,6 +8408,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -8478,6 +8570,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -8665,6 +8759,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -8845,6 +8941,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -9015,6 +9113,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @39
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -9185,6 +9285,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -9378,6 +9480,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -9591,6 +9695,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element
@@ -9810,6 +9916,8 @@ library
             new
               reference: <testLibraryFragment>::@extensionType::A::@constructor::new
               element: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 30
               formalParameters
                 this.it @36
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it#element

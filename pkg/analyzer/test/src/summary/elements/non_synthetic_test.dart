@@ -81,6 +81,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           getters
             get <null-name>
               reference: <testLibraryFragment>::@class::C::@getter::foo
@@ -171,6 +172,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           getters
             get foo @20
               reference: <testLibraryFragment>::@class::C::@getter::foo
@@ -251,6 +253,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           setters
             set foo @16
               reference: <testLibraryFragment>::@class::C::@setter::foo
@@ -408,6 +411,7 @@ library
             synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              typeName: E
           getters
             get <null-name>
               reference: <testLibraryFragment>::@enum::E::@getter::a

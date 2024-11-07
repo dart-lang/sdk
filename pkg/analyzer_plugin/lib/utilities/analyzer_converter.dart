@@ -149,12 +149,12 @@ class AnalyzerConverter {
   /// error severity defined by the plugin API.
   plugin.AnalysisErrorSeverity convertErrorSeverity(
           analyzer.ErrorSeverity severity) =>
-      plugin.AnalysisErrorSeverity(severity.name);
+      plugin.AnalysisErrorSeverity.values.byName(severity.name);
 
   /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
-      plugin.AnalysisErrorType(type.name);
+      plugin.AnalysisErrorType.values.byName(type.name);
 
   /// Create a location based on an the given [element].
   // TODO(srawlins): Deprecate this.

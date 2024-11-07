@@ -227,6 +227,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isExternal = node.externalKeyword != null;
     element.isFactory = node.factoryKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
+    element.typeName = node.returnType.name;
+    element.typeNameOffset = node.returnType.offset;
     element.periodOffset = node.period?.offset;
     element.nameEnd = nameNode.end;
     if ((node.period, node.name) case (var _?, var name?)) {
@@ -1687,6 +1689,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..periodOffset = periodOffset
         ..nameEnd = nameEnd
         ..parameters = [formalParameterElement];
+      constructorElement.typeName = extensionElement.name2;
+      constructorElement.typeNameOffset = extensionElement.nameOffset2;
       if (representation.constructorName case var constructorName?) {
         constructorElement.name2 = constructorName.name.lexeme;
         constructorElement.nameOffset2 = constructorName.name.offset;

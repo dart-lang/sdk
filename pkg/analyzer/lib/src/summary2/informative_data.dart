@@ -306,6 +306,7 @@ class InformativeDataApplier {
       (element, info) {
         element as ConstructorElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
+        element.typeNameOffset = info.typeNameOffset;
         element.periodOffset = info.periodOffset;
         element.nameOffset = info.nameOffset;
         element.nameEnd = info.nameEnd;
@@ -462,6 +463,7 @@ class InformativeDataApplier {
         infoRep.constructorCodeOffset,
         infoRep.constructorCodeLength,
       );
+      primaryConstructor.typeNameOffset = infoRep.typeNameOffset;
       primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
       primaryConstructor.nameOffset = infoRep.constructorNameOffset;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
@@ -976,6 +978,7 @@ class _InfoCombinator {
 class _InfoConstructorDeclaration {
   final int codeOffset;
   final int codeLength;
+  final int? typeNameOffset;
   final int? periodOffset;
   final int nameOffset;
   final int? nameEnd;
@@ -988,6 +991,7 @@ class _InfoConstructorDeclaration {
     return _InfoConstructorDeclaration._(
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
+      typeNameOffset: reader.readUInt30(),
       periodOffset: reader.readOptionalUInt30(),
       nameOffset: reader.readUInt30(),
       nameEnd: reader.readOptionalUInt30(),
@@ -1003,6 +1007,7 @@ class _InfoConstructorDeclaration {
   _InfoConstructorDeclaration._({
     required this.codeOffset,
     required this.codeLength,
+    required this.typeNameOffset,
     required this.periodOffset,
     required this.nameOffset,
     required this.nameEnd,
@@ -1092,6 +1097,7 @@ class _InfoExtensionTypeDeclaration {
 class _InfoExtensionTypeRepresentation {
   final int constructorCodeOffset;
   final int constructorCodeLength;
+  final int? typeNameOffset;
   final int? constructorPeriodOffset;
   final int constructorNameOffset;
   final int? constructorNameEnd;
@@ -1106,6 +1112,7 @@ class _InfoExtensionTypeRepresentation {
     return _InfoExtensionTypeRepresentation._(
       constructorCodeOffset: reader.readUInt30(),
       constructorCodeLength: reader.readUInt30(),
+      typeNameOffset: reader.readOptionalUInt30(),
       constructorPeriodOffset: reader.readOptionalUInt30(),
       constructorNameOffset: reader.readUInt30(),
       constructorNameEnd: reader.readOptionalUInt30(),
@@ -1121,6 +1128,7 @@ class _InfoExtensionTypeRepresentation {
   _InfoExtensionTypeRepresentation._({
     required this.constructorCodeOffset,
     required this.constructorCodeLength,
+    required this.typeNameOffset,
     required this.constructorPeriodOffset,
     required this.constructorNameOffset,
     required this.constructorNameEnd,
@@ -1650,6 +1658,7 @@ class _InformativeDataWriter {
     sink.writeList2<ConstructorDeclaration>(members, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
+      sink.writeUInt30(node.returnType.offset);
       sink.writeOptionalUInt30(node.period?.offset);
       var nameNode = node.name ?? node.returnType;
       sink.writeUInt30(nameNode.offset);
@@ -1903,9 +1912,10 @@ class _InformativeDataWriter {
     // Constructor code range.
     sink.writeUInt30(node.offset);
     sink.writeUInt30(node.length);
+    sink.writeOptionalUInt30(declaration.name.offsetIfNotEmpty);
 
     var constructorName = node.constructorName;
-      if (constructorName != null) {
+    if (constructorName != null) {
       sink.writeOptionalUInt30(constructorName.period.offset);
       sink.writeUInt30(constructorName.name.offset);
       sink.writeOptionalUInt30(constructorName.name.end);

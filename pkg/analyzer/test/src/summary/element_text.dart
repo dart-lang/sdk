@@ -356,6 +356,11 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
+      _sink.writelnWithIndent('typeName: ${f.typeName}');
+      if (f.typeNameOffset case var typeNameOffset?) {
+        _sink.writelnWithIndent('typeNameOffset: $typeNameOffset');
+      }
+
       if (f.periodOffset case var periodOffset?) {
         _sink.writelnWithIndent('periodOffset: $periodOffset');
       }

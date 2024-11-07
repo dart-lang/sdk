@@ -250,22 +250,17 @@ abstract class AbstractNotificationManager {
   void setSubscriptions(
     Map<server.AnalysisService, Set<String>> newSubscriptions,
   ) {
-    /// Return the collector associated with the given service, or `null` if the
-    /// service is not handled by this manager.
+    /// Returns the collector associated with the given service, or `null` if
+    /// the service is not handled by this manager.
     ResultCollector<Object?>? collectorFor(server.AnalysisService service) {
-      switch (service) {
-        case server.AnalysisService.FOLDING:
-          return folding;
-        case server.AnalysisService.HIGHLIGHTS:
-          return highlights;
-        case server.AnalysisService.NAVIGATION:
-          return navigation;
-        case server.AnalysisService.OCCURRENCES:
-          return occurrences;
-        case server.AnalysisService.OUTLINE:
-          return outlines;
-      }
-      return null;
+      return switch (service) {
+        server.AnalysisService.FOLDING => folding,
+        server.AnalysisService.HIGHLIGHTS => highlights,
+        server.AnalysisService.NAVIGATION => navigation,
+        server.AnalysisService.OCCURRENCES => occurrences,
+        server.AnalysisService.OUTLINE => outlines,
+        _ => null,
+      };
     }
 
     Set<server.AnalysisService> services = HashSet<server.AnalysisService>();

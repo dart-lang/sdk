@@ -286,6 +286,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           getters
             get f @24
@@ -303,6 +304,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
           getters
             get f @64
               reference: <testLibraryFragment>::@class::D::@getter::f
@@ -2330,6 +2332,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       extensions
         extension E @21
           reference: <testLibraryFragment>::@extension::E
@@ -3422,6 +3425,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
       topLevelVariables
         const a @41
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -3648,6 +3653,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>

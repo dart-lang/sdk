@@ -5,7 +5,7 @@
 import 'dart:mirrors';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    hide DiagnosticMessage;
+    hide DiagnosticMessage, Enum;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
@@ -228,7 +228,7 @@ class EnumTest {
   void test_AnalysisErrorSeverity() {
     EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
       (engine.ErrorSeverity engineErrorSeverity) =>
-          AnalysisErrorSeverity(engineErrorSeverity.name),
+          AnalysisErrorSeverity.values.byName(engineErrorSeverity.name),
       exceptions: {engine.ErrorSeverity.NONE: null},
     );
   }
@@ -236,7 +236,7 @@ class EnumTest {
   void test_AnalysisErrorType() {
     EnumTester<engine.ErrorType, AnalysisErrorType>().run(
       (engine.ErrorType engineErrorType) =>
-          AnalysisErrorType(engineErrorType.name),
+          AnalysisErrorType.values.byName(engineErrorType.name),
     );
   }
 
@@ -310,14 +310,14 @@ class EnumTester<EngineEnum, ApiEnum> {
         if (expectedResult == null) {
           expect(() {
             convert(engineValue);
-          }, throwsException);
+          }, throwsArgumentError);
         } else {
           var apiValue = convert(engineValue);
           expect(apiValue, equals(expectedResult));
         }
       } else {
         var apiValue = convert(engineValue);
-        expect((apiValue as dynamic).name, equals(enumName));
+        expect((apiValue as Enum).name, equals(enumName));
       }
     });
   }

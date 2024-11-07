@@ -534,6 +534,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       var name = superclassConstructor.name;
       var implicitConstructor = ConstructorElementImpl(name, -1);
       implicitConstructor.isSynthetic = true;
+      implicitConstructor.typeName = name2;
       implicitConstructor.name = name;
       implicitConstructor.nameOffset = -1;
       implicitConstructor.name2 = superclassConstructor.name2;
@@ -1320,6 +1321,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
   List<ConstructorInitializer> _constantInitializers = const [];
+
+  @override
+  String? typeName;
+
+  @override
+  int? typeNameOffset;
 
   @override
   int? periodOffset;

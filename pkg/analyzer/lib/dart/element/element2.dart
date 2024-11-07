@@ -320,6 +320,21 @@ abstract class ConstructorFragment implements ExecutableFragment {
 
   @override
   ConstructorFragment? get previousFragment;
+
+  /// The specified name of the type (e.g. class).
+  ///
+  /// In valid code it is the name of the [enclosingFragment], however it
+  /// could be anything in invalid code, e.g. `class A { A2.named(); }`.
+  ///
+  /// If the fragment is synthetic, the type name is the name of the
+  /// enclosing type, which itself can be `null` if its name token is
+  /// synthetic.
+  String? get typeName;
+
+  /// The offset of the type (e.g. class) name.
+  ///
+  /// It is `null` if the fragment is synthetic.
+  int? get typeNameOffset;
 }
 
 /// The base class for all of the elements in the element model.

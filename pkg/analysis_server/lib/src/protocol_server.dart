@@ -219,8 +219,8 @@ AnalysisError newAnalysisError_fromEngine(
   errorSeverity ??= errorCode.errorSeverity;
 
   // done
-  var severity = AnalysisErrorSeverity(errorSeverity.name);
-  var type = AnalysisErrorType(errorCode.type.name);
+  var severity = AnalysisErrorSeverity.values.byName(errorSeverity.name);
+  var type = AnalysisErrorType.values.byName(errorCode.type.name);
   var message = error.message;
   var code = errorCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;

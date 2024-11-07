@@ -785,11 +785,6 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
     plugin.AnalysisErrorSeverity.ERROR => lsp.DiagnosticSeverity.Error,
     plugin.AnalysisErrorSeverity.WARNING => lsp.DiagnosticSeverity.Warning,
     plugin.AnalysisErrorSeverity.INFO => lsp.DiagnosticSeverity.Information,
-    // Note: LSP also supports "Hint", but they won't render in things like the
-    // VS Code errors list as they're apparently intended to communicate
-    // non-visible diagnostics back (for example, if you wanted to grey out
-    // unreachable code without producing an item in the error list).
-    _ => throw 'Unknown AnalysisErrorSeverity: $severity',
   };
 }
 

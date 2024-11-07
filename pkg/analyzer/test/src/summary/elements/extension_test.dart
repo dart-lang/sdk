@@ -477,6 +477,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       extensions
         extension E @50
           reference: <testLibraryFragment>::@extension::E

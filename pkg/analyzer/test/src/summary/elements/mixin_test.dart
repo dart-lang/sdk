@@ -143,6 +143,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @17
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -150,6 +151,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
         class C @28
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -157,6 +159,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
         class D @39
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -164,6 +167,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       mixins
         mixin M @51
           reference: <testLibraryFragment>::@mixin::M
@@ -705,6 +709,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @42
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -712,6 +717,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int}
@@ -839,6 +845,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @20
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -849,6 +856,7 @@ library
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -864,6 +872,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1016,6 +1025,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A1::@constructor::new
               element: <testLibraryFragment>::@class::A1::@constructor::new#element
+              typeName: A1
         class A2 @21
           reference: <testLibraryFragment>::@class::A2
           element: <testLibrary>::@class::A2
@@ -1026,6 +1036,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A2::@constructor::new
               element: <testLibraryFragment>::@class::A2::@constructor::new#element
+              typeName: A2
         class B @36
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -1036,6 +1047,7 @@ library
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1051,6 +1063,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::Base::@constructor::new
               element: <testLibraryFragment>::@class::Base::@constructor::new#element
+              typeName: Base
         class C @108
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1058,6 +1071,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1182,6 +1196,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class C @57
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1189,6 +1204,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
@@ -1295,6 +1311,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class C @57
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1302,6 +1319,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::A::@constructor::new
                 substitution: {T: List<int>}
@@ -1424,6 +1442,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
               element: <testLibraryFragment>::@class::I::@constructor::new#element
+              typeName: I
         class A @66
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
@@ -1431,6 +1450,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1572,6 +1592,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
               element: <testLibraryFragment>::@class::S::@constructor::new#element
+              typeName: S
         class X @78
           reference: <testLibraryFragment>::@class::X
           element: <testLibrary>::@class::X
@@ -1579,6 +1600,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::S::@constructor::new
                 substitution: {T3: String}
@@ -1728,6 +1750,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
               element: <testLibraryFragment>::@class::S::@constructor::new#element
+              typeName: S
         class X @104
           reference: <testLibraryFragment>::@class::X
           element: <testLibrary>::@class::X
@@ -1735,6 +1758,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
               superConstructor: ConstructorMember
                 base: <testLibraryFragment>::@class::S::@constructor::new
                 substitution: {T4: String}
@@ -2019,6 +2043,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       mixins
         mixin B @17
           reference: <testLibraryFragment>::@mixin::B
@@ -2879,6 +2904,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new#element
+              typeName: A
           methods
             foo1 @47
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
@@ -2891,6 +2917,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new#element
+              typeName: A
           methods
             foo2 @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
@@ -5530,6 +5557,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               element: <testLibraryFragment>::@class::I1::@constructor::new#element
+              typeName: I1
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
@@ -5546,6 +5574,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new#element
+              typeName: I2
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -5687,6 +5716,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               element: <testLibraryFragment>::@class::I1::@constructor::new#element
+              typeName: I1
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
@@ -5704,6 +5734,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new#element
+              typeName: I2
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -5721,6 +5752,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
               element: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new#element
+              typeName: I3
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
@@ -7029,6 +7061,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B1::@constructor::new
               element: <testLibraryFragment>::@class::B1::@constructor::new#element
+              typeName: B1
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
@@ -7045,6 +7078,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::B2::@constructor::new#element
+              typeName: B2
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -7180,6 +7214,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               element: <testLibraryFragment>::@class::I1::@constructor::new#element
+              typeName: I1
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
@@ -7197,6 +7232,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new#element
+              typeName: I2
       mixins
         mixin A @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -7214,6 +7250,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new
               element: <testLibrary>::@fragment::package:test/b.dart::@class::I3::@constructor::new#element
+              typeName: I3
       mixins
         mixin A @32
           reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
@@ -7321,6 +7358,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new#element
+              typeName: B
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -7427,6 +7465,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::I1::@constructor::new
               element: <testLibraryFragment>::@class::I1::@constructor::new#element
+              typeName: I1
       mixins
         mixin A @21
           reference: <testLibraryFragment>::@mixin::A
@@ -7449,6 +7488,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::I2::@constructor::new#element
+              typeName: I2
       mixins
         mixin A @35
           reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
@@ -7669,6 +7709,7 @@ library
             synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new#element
+              typeName: A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
@@ -8273,6 +8314,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
               element: <testLibraryFragment>::@class::I::@constructor::new#element
+              typeName: I
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A
@@ -8343,6 +8385,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
       mixins
         mixin A @6
           reference: <testLibraryFragment>::@mixin::A

@@ -1438,6 +1438,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::main::@constructor::new
               element: <testLibraryFragment>::@class::main::@constructor::new#element
+              typeName: main
   classes
     class main
       reference: <testLibrary>::@class::main
@@ -1506,6 +1507,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::main::@constructor::new
               element: <testLibraryFragment>::@class::main::@constructor::new#element
+              typeName: main
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1522,6 +1524,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
         class D @40
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -1529,6 +1532,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
   classes
     class alias main
       reference: <testLibrary>::@class::main
@@ -2112,6 +2116,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::foo::@constructor::new
               element: <testLibraryFragment>::@class::foo::@constructor::new#element
+              typeName: foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>
@@ -3159,6 +3164,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::foo::@constructor::new
               element: <testLibraryFragment>::@class::foo::@constructor::new#element
+              typeName: foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       previousFragment: <testLibraryFragment>

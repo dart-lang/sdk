@@ -72,6 +72,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           methods
             X @21
               reference: <testLibraryFragment>::@class::A::@method::X
@@ -201,6 +202,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
+              typeName: X
+              typeNameOffset: 82
               formalParameters
                 default this.f @90
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
@@ -361,6 +364,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
         class B @34
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -368,6 +373,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
           methods
             foo @45
               reference: <testLibraryFragment>::@class::B::@method::foo
@@ -841,6 +847,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       extensions
         extension E @21
           reference: <testLibraryFragment>::@extension::E
@@ -957,6 +964,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 26
         class C @39
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -964,6 +973,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             foo @50
               reference: <testLibraryFragment>::@class::C::@method::foo
@@ -1070,6 +1080,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 21
         class C @34
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1080,6 +1092,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 49
               formalParameters
                 default b @57
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::b#element
@@ -1195,6 +1209,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @29
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
@@ -1205,6 +1220,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 60
         class C @73
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1215,6 +1232,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 114
               formalParameters
                 default a @122
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
@@ -1323,6 +1342,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 21
       functions
         foo @33
           reference: <testLibraryFragment>::@function::foo
@@ -1434,6 +1455,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 21
         class C @34
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1441,6 +1464,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             foo @45
               reference: <testLibraryFragment>::@class::C::@method::foo
@@ -1563,6 +1587,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 26
         class C @39
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1573,6 +1599,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             foo @54
               reference: <testLibraryFragment>::@class::C::@method::foo
@@ -1691,6 +1718,8 @@ library
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 21
         class C @34
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1701,6 +1730,7 @@ library
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             foo @48
               reference: <testLibraryFragment>::@class::C::@method::foo

@@ -1800,7 +1800,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
   Future<void> generateContent(Map<String, String> params) async {
     // server domain
     h3('Server domain subscriptions');
-    ul(ServerService.VALUES, (item) {
+    ul(ServerService.values, (item) {
       if (server.serverServices.contains(item)) {
         buf.write('$item (has subscriptions)');
       } else {
@@ -1810,7 +1810,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
 
     // analysis domain
     h3('Analysis domain subscriptions');
-    for (var service in AnalysisService.VALUES) {
+    for (var service in AnalysisService.values) {
       buf.writeln('${service.name}<br>');
       ul(server.analysisServices[service] ?? {}, (item) {
         buf.write('$item');

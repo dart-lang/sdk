@@ -631,13 +631,13 @@ mixin OverrideTestCases on AbstractCompletionDriverTest {
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        switch (suggestion.kind) {
-          case CompletionSuggestionKind.IDENTIFIER:
-            return suggestion.completion == 'override';
-          case CompletionSuggestionKind.OVERRIDE:
-            return suggestion.completion.contains('foo0');
-        }
-        return false;
+        return switch (suggestion.kind) {
+          CompletionSuggestionKind.IDENTIFIER =>
+            suggestion.completion == 'override',
+          CompletionSuggestionKind.OVERRIDE =>
+            suggestion.completion.contains('foo0'),
+          _ => false,
+        };
       },
       withDisplayText: true,
     );
@@ -854,13 +854,13 @@ class A {
 ''');
 
     printerConfiguration.filter = (suggestion) {
-      switch (suggestion.kind) {
-        case CompletionSuggestionKind.IDENTIFIER:
-          return suggestion.completion == 'override';
-        case CompletionSuggestionKind.OVERRIDE:
-          return suggestion.completion.contains('==');
-      }
-      return false;
+      return switch (suggestion.kind) {
+        CompletionSuggestionKind.IDENTIFIER =>
+          suggestion.completion == 'override',
+        CompletionSuggestionKind.OVERRIDE =>
+          suggestion.completion.contains('=='),
+        _ => false,
+      };
     };
 
     assertResponse(r'''

@@ -11,7 +11,7 @@ class RequestConverter {
   plugin.AnalysisService convertAnalysisService(
     server.AnalysisService service,
   ) {
-    return plugin.AnalysisService(service.name);
+    return plugin.AnalysisService.values.byName(service.name);
   }
 
   plugin.AnalysisSetPriorityFilesParams convertAnalysisSetPriorityFilesParams(

@@ -1238,14 +1238,14 @@ class LspAnalysisServer extends AnalysisServer {
       // LSP we're supposed to have them available per request. Assume that
       // we'll only receive requests for files that are currently open.
       var pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
-        for (var service in plugin.AnalysisService.VALUES)
+        for (var service in plugin.AnalysisService.values)
           service: priorityFilesList,
       });
       pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
     }
 
     notificationManager.setSubscriptions({
-      for (var service in protocol.AnalysisService.VALUES)
+      for (var service in protocol.AnalysisService.values)
         service: priorityFiles,
     });
   }

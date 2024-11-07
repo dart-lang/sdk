@@ -38,6 +38,7 @@ import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
+import 'import_test.dart' as import_test;
 import 'initialization_test.dart' as initialization;
 import 'inlay_hint_test.dart' as inlay_hint;
 import 'mapping_test.dart' as mapping;
@@ -96,6 +97,7 @@ void main() {
     get_super.main();
     hover.main();
     implementation.main();
+    import_test.main();
     initialization.main();
     inlay_hint.main();
     lsp_packet_transformer.main();

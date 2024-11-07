@@ -239,9 +239,6 @@ abstract class ServerPlugin {
         case WatchEventType.REMOVE:
           // TODO(brianwilkerson): Handle the event.
           break;
-        default:
-          // Ignore unhandled watch event types.
-          break;
       }
     }
     return AnalysisHandleWatchEventsResult();

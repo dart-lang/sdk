@@ -1,6 +1,14 @@
 ## 0.12.0-dev
 - Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`
   and `replaceTypeWithFuture`.
+- Breaking changes to all classes in `lib/protocol/protocol_common.dart` and
+  `lib/protocol/protocol_generated.dart` that implement `Enum`: These classes
+  are all now proper Dart enums. Each such enum no longer has a static `VALUES`
+  field, no a public constructor. Each enum value also no longer has an
+  instance getter, `name` (though the `EnumName` extension in `dart:core`
+  provides a `name` instance getter). The instances of each enum are also now
+  considered exhaustive (which may trigger new diagnostics on existing switch
+  statements and switch expressions).
 
 ## 0.11.3
 

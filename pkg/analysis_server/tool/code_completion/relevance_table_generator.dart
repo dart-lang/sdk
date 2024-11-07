@@ -196,7 +196,7 @@ class RelevanceData {
         _Kind kind;
         var key = kindEntry.key;
         if (key.startsWith('e')) {
-          kind = _ElementKind(ElementKind(key.substring(1)));
+          kind = _ElementKind(ElementKind.values.byName(key.substring(1)));
         } else if (key.startsWith('k')) {
           kind = _Keyword(Keyword.keywords[key.substring(1)]!);
         } else {

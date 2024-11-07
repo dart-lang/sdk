@@ -180,6 +180,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
+      constructor.typeName = classElement.name2;
       constructor.name2 = 'new';
 
       classElement.constructors = [constructor].toFixedList();
@@ -252,6 +253,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
+      constructor.typeName = enumElement.name2;
       constructor.name2 = 'new';
 
       enumElement.constructors = [
