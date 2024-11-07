@@ -401,6 +401,30 @@ void main(List<String> args, SendPort sendPort) {
     expect(removeResult, isNotNull);
   }
 
+  Future<void> test_onRequest_analyzeFileIsNotContextConfused() async {
+    var plugin = this.plugin as _TestServerPlugin;
+    var confusedPaths = <String>[];
+    plugin.analyzeFileHandler = ({
+      required AnalysisContext analysisContext,
+      required String path,
+    }) {
+      // Test that path actually belongs to analysisContext
+      if (!analysisContext.contextRoot.isAnalyzed(path)) {
+        confusedPaths.add(
+          '$path analyzed in context for'
+          ' ${analysisContext.contextRoot.root.path}',
+        );
+      }
+    };
+
+    var result = await channel
+        .sendRequest(AnalysisSetPriorityFilesParams([filePath1, filePath2]));
+    expect(result, isNotNull);
+    await channel.sendRequest(
+        AnalysisSetContextRootsParams([contextRoot1, contextRoot2]));
+    expect(confusedPaths, []);
+  }
+
   Future<void> test_onRequest_completionGetSuggestions() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
