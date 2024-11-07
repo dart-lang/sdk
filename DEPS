@@ -176,8 +176,8 @@ vars = {
   "yaml_edit_rev": "3d1421b928ec62cf866ec3487940e560852c5c3b",
 
   # Windows deps
-  "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
-  "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
+  "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
+  "minichromium_rev": "203a01130fac64bfdcc8cab2e1798c7b2c0619bf",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 
   # Pinned browser versions used by the testing infrastructure. These are not
