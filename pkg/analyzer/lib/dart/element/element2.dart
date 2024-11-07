@@ -1927,8 +1927,10 @@ abstract class MultiplyDefinedElement2 implements Element2, FragmentedElement {
   MultiplyDefinedFragment get firstFragment;
 }
 
-/// The portion of a [MultiplyDefinedElement2] contributed by a single
-/// declaration.
+/// The fragment for a [MultiplyDefinedElement2].
+///
+/// It has no practical use, and exists for consistency, so that the
+/// corresponding element has a fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MultiplyDefinedFragment implements Fragment {
@@ -1936,10 +1938,10 @@ abstract class MultiplyDefinedFragment implements Fragment {
   MultiplyDefinedElement2 get element;
 
   @override
-  MultiplyDefinedFragment? get nextFragment;
+  Null get nextFragment;
 
   @override
-  MultiplyDefinedFragment? get previousFragment;
+  Null get previousFragment;
 }
 
 /// A pattern variable.

@@ -356,7 +356,7 @@ class LibraryFragmentScope implements Scope {
       parent: parent,
       fragment: fragment,
       noPrefixScope: PrefixScope(
-        libraryElement: fragment.library,
+        libraryFragment: fragment,
         parent: parent?.noPrefixScope,
         libraryImports: fragment.libraryImports,
         prefix: null,
@@ -372,7 +372,7 @@ class LibraryFragmentScope implements Scope {
     for (var prefix in fragment.libraryImportPrefixes) {
       _prefixElements[prefix.name] = prefix;
       prefix.scope = PrefixScope(
-        libraryElement: fragment.library,
+        libraryFragment: fragment,
         parent: _getParentPrefixScope(prefix),
         libraryImports: fragment.libraryImports,
         prefix: prefix,
@@ -515,7 +515,7 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final LibraryElementImpl libraryElement;
+  final CompilationUnitElementImpl libraryFragment;
   final PrefixScope? parent;
 
   final List<LibraryImportElementImpl> _importElements = [];
@@ -530,7 +530,7 @@ class PrefixScope implements Scope {
   ImportsTrackingOfPrefix? _importsTracking;
 
   PrefixScope({
-    required this.libraryElement,
+    required this.libraryFragment,
     required this.parent,
     required List<LibraryImportElementImpl> libraryImports,
     required PrefixElement? prefix,
@@ -560,6 +560,10 @@ class PrefixScope implements Scope {
         }
       }
     }
+  }
+
+  LibraryElementImpl get libraryElement {
+    return libraryFragment.element;
   }
 
   void importsTrackingDestroy() {
@@ -684,8 +688,7 @@ class PrefixScope implements Scope {
     _addElement(conflictingElements, other);
 
     return MultiplyDefinedElementImpl(
-      libraryElement.context,
-      libraryElement.session,
+      libraryFragment,
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );

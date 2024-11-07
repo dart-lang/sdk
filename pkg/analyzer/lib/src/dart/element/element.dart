@@ -7936,17 +7936,12 @@ enum Modifier {
 }
 
 /// A concrete implementation of a [MultiplyDefinedElement].
-class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
+class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /// The unique integer identifier of this element.
   @override
   final int id = ElementImpl._NEXT_ID++;
 
-  /// The analysis context in which the multiply defined elements are defined.
-  @override
-  final AnalysisContext context;
-
-  @override
-  final AnalysisSession session;
+  final CompilationUnitElementImpl libraryFragment;
 
   /// The name of the conflicting elements.
   @override
@@ -7958,16 +7953,18 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   /// Initialize a newly created element in the given [context] to represent
   /// the given non-empty [conflictingElements].
   MultiplyDefinedElementImpl(
-      this.context, this.session, this.name, this.conflictingElements);
-
-  @override
-  Element2? get baseElement => null;
+    this.libraryFragment,
+    this.name,
+    this.conflictingElements,
+  );
 
   @override
   List<Element> get children => const [];
 
   @override
-  List<Element2> get children2 => const [];
+  AnalysisContext get context {
+    return libraryFragment.context;
+  }
 
   @override
   Element? get declaration => null;
@@ -7977,9 +7974,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
 
   @override
   String? get documentationComment => null;
-
-  @override
-  Element2? get enclosingElement2 => null;
 
   @override
   Element? get enclosingElement3 => null;
@@ -8087,9 +8081,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   LibraryElement? get library => null;
 
   @override
-  LibraryElement2? get library2 => null;
-
-  @override
   Source? get librarySource => null;
 
   @override
@@ -8101,9 +8092,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   }
 
   @override
-  String get name3 => name;
-
-  @override
   int get nameLength => 0;
 
   @override
@@ -8113,7 +8101,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   Element get nonSynthetic => this;
 
   @override
-  Element2 get nonSynthetic2 => this;
+  AnalysisSession get session {
+    return libraryFragment.session;
+  }
 
   @override
   Version? get sinceSdkVersion => null;
@@ -8124,21 +8114,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
-
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) {
-    // TODO(scheglov): remove when separate elements and fragments
-    throw UnimplementedError();
-  }
-
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    // TODO(scheglov): implement displayString2
-    throw UnimplementedError();
-  }
 
   @override
   String getDisplayString({
@@ -8171,21 +8146,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
   }
 
   @override
-  bool isAccessibleIn2(LibraryElement2 library) {
-    // TODO(scheglov): implement isAccessibleIn2
-    throw UnimplementedError();
-  }
-
-  @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
-  ) {
-    return null;
-  }
-
-  @override
-  Element2? thisOrAncestorMatching2(
-    bool Function(Element2 p1) predicate,
   ) {
     return null;
   }
@@ -8199,11 +8161,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
 
   @override
   E? thisOrAncestorOfType<E extends Element>() => null;
-
-  @override
-  E? thisOrAncestorOfType2<E extends Element2>() {
-    return null;
-  }
 
   @override
   E? thisOrAncestorOfType3<E extends Element>() => null;
@@ -8239,11 +8196,172 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement, Element2 {
       child.accept(visitor);
     }
   }
+}
+
+class MultiplyDefinedElementImpl2 implements MultiplyDefinedElement2 {
+  @override
+  final int id = ElementImpl._NEXT_ID++;
+
+  final CompilationUnitElementImpl libraryFragment;
+
+  @override
+  final String name3;
+
+  @override
+  final List<Element2> conflictingElements2;
+
+  @override
+  late final firstFragment = MultiplyDefinedFragmentImpl(this);
+
+  MultiplyDefinedElementImpl2(
+    this.libraryFragment,
+    this.name3,
+    this.conflictingElements2,
+  );
+
+  MultiplyDefinedElementImpl get asElement {
+    return MultiplyDefinedElementImpl(
+      libraryFragment,
+      name3,
+      conflictingElements2.map((e) => e.asElement).nonNulls.toList(),
+    );
+  }
+
+  @override
+  MultiplyDefinedElementImpl2 get baseElement => this;
+
+  @override
+  List<Element2> get children2 => const [];
+
+  @override
+  String get displayName => name3;
+
+  @override
+  Null get enclosingElement2 => null;
+
+  @override
+  bool get isPrivate => false;
+
+  @override
+  bool get isPublic => true;
+
+  @override
+  bool get isSynthetic => true;
+
+  bool get isVisibleForTemplate => false;
+
+  bool get isVisibleOutsideTemplate => false;
+
+  @override
+  ElementKind get kind => ElementKind.ERROR;
+
+  @override
+  LibraryElement2 get library2 => libraryFragment.element;
+
+  @override
+  ElementLocation? get location => null;
+
+  @override
+  Element2 get nonSynthetic2 => this;
+
+  @override
+  AnalysisSession get session => libraryFragment.session;
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return visitor.visitMultiplyDefinedElement(this);
+  }
+
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    var elementsStr = conflictingElements2.map((e) {
+      return e.displayString2();
+    }).join(', ');
+    return '[$elementsStr]';
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement2 library) {
+    for (var element in conflictingElements2) {
+      if (element.isAccessibleIn2(library)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Element2? thisOrAncestorMatching2(
+    bool Function(Element2 p1) predicate,
+  ) {
+    return null;
+  }
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    return null;
+  }
+
+  @override
+  String toString() {
+    StringBuffer buffer = StringBuffer();
+    bool needsSeparator = false;
+    void writeList(List<Element2> elements) {
+      for (var element in elements) {
+        if (needsSeparator) {
+          buffer.write(", ");
+        } else {
+          needsSeparator = true;
+        }
+        buffer.write(
+          element.displayString2(),
+        );
+      }
+    }
+
+    buffer.write("[");
+    writeList(conflictingElements2);
+    buffer.write("]");
+    return buffer.toString();
+  }
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    // TODO(scheglov): remove when separate elements and fragments
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
   }
+}
+
+class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
+  @override
+  final MultiplyDefinedElementImpl2 element;
+
+  MultiplyDefinedFragmentImpl(this.element);
+
+  @override
+  List<Fragment> get children3 => [];
+
+  @override
+  LibraryFragment get enclosingFragment => element.libraryFragment;
+
+  @override
+  LibraryFragment get libraryFragment => enclosingFragment;
+
+  @override
+  String? get name2 => element.name3;
+
+  @override
+  Null get nameOffset2 => null;
+
+  @override
+  Null get nextFragment => null;
+
+  @override
+  Null get previousFragment => null;
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
