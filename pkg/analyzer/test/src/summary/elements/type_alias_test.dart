@@ -7176,6 +7176,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
@@ -7240,6 +7241,7 @@ library
           element: <testLibrary>::@function::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
@@ -7315,6 +7317,7 @@ library
           element: <testLibraryFragment>::@getter::A#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
@@ -7375,6 +7378,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
@@ -7453,6 +7457,7 @@ library
               element: <testLibraryFragment>::@setter::A::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37
@@ -7529,6 +7534,7 @@ library
           element: <testLibraryFragment>::@typeAlias::A#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       typeAliases
         A @37

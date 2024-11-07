@@ -763,9 +763,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writelnWithIndent(name);
       _sink.withIndent(() {
         for (var element in filtered) {
-          expect(element.enclosingFragment, expectedEnclosingFragment);
-          // TODO(brianwilkerson): Explicitly check the next/previous fragment
-          //  attributes and stop writing them to the dump.
+          if (expectedEnclosingFragment != null) {
+            expect(element.enclosingFragment, expectedEnclosingFragment);
+          }
           write(element);
         }
       });
@@ -1150,6 +1150,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
+      _writeFragmentReference('enclosingFragment', f.enclosingFragment);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
 

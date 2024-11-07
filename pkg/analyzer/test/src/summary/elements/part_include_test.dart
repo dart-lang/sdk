@@ -85,6 +85,7 @@ library
           element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/foo.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
@@ -173,6 +174,7 @@ library
           element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/foo_io.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
@@ -261,6 +263,7 @@ library
           element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/foo_io.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
@@ -349,6 +352,7 @@ library
           element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/foo_html.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
@@ -437,6 +441,7 @@ library
           element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/foo_html.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @27
@@ -492,10 +497,12 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
@@ -624,6 +631,7 @@ library
           element: <testLibrary>::@class::Z
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
@@ -632,6 +640,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/a11.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
@@ -640,6 +649,7 @@ library
           element: <testLibrary>::@class::A11
     <testLibrary>::@fragment::package:test/a12.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -648,10 +658,12 @@ library
           element: <testLibrary>::@class::A12
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b11.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
       nextFragment: <testLibrary>::@fragment::package:test/b12.dart
       classes
@@ -660,6 +672,7 @@ library
           element: <testLibrary>::@class::B11
     <testLibrary>::@fragment::package:test/b12.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/b11.dart
       classes
         class B12 @24
@@ -772,6 +785,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @22
@@ -855,6 +869,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @27
@@ -1045,10 +1060,12 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
 ''');
   }
@@ -1177,6 +1194,7 @@ library
           element: <testLibrary>::@class::Z
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
@@ -1185,6 +1203,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/a11.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
@@ -1193,6 +1212,7 @@ library
           element: <testLibrary>::@class::A11
     <testLibrary>::@fragment::package:test/a12.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -1201,10 +1221,12 @@ library
           element: <testLibrary>::@class::A12
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
     <testLibrary>::@fragment::package:test/b11.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
       nextFragment: <testLibrary>::@fragment::package:test/b12.dart
       classes
@@ -1213,6 +1235,7 @@ library
           element: <testLibrary>::@class::B11
     <testLibrary>::@fragment::package:test/b12.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/b11.dart
       classes
         class B12 @24

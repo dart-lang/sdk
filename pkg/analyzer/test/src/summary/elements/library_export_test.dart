@@ -1075,6 +1075,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -1209,10 +1210,12 @@ library
               typeName: X
     <testLibrary>::@fragment::package:test/d.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/e.dart
     <testLibrary>::@fragment::package:test/e.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/d.dart
   classes
     class X
@@ -1308,6 +1311,7 @@ library
               typeName: X
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
   classes
     class X
@@ -1398,6 +1402,7 @@ library
               typeName: X
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
   classes
     class X
@@ -1484,6 +1489,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       mixins
         mixin A @35
@@ -1602,6 +1608,7 @@ library
               typeName: C
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -1615,6 +1622,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class B @24
@@ -1742,10 +1750,12 @@ library
               typeName: X
     <testLibrary>::@fragment::package:test/c.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/d.dart
     <testLibrary>::@fragment::package:test/d.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/c.dart
       previousFragment: <testLibrary>::@fragment::package:test/c.dart
   classes
     class X
@@ -1823,6 +1833,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
         a @25
@@ -1918,6 +1929,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
         const a @27

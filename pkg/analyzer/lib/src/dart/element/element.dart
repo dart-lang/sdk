@@ -866,7 +866,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  LibraryFragment? get enclosingFragment => null;
+  CompilationUnitElementImpl? get enclosingFragment {
+    return enclosingElement3;
+  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
