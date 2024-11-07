@@ -18,11 +18,10 @@ import 'package:meta/meta.dart';
 /// a location to navigate to a particular kind of related element, such as
 /// Super, Augmentation Target or Augmentation.
 abstract class AbstractGoToHandler
-    extends
-        SharedMessageHandler<
-          TextDocumentPositionParams,
-          Either2<Location, List<Location>>?
-        > {
+        // TODO(dantup): Remove this class after https://dart-review.googlesource.com/c/sdk/+/393861
+        //  lands.
+        extends
+        SharedMessageHandler<TextDocumentPositionParams, Either2<Location, List<Location>>?> {
   AbstractGoToHandler(super.server);
 
   @override

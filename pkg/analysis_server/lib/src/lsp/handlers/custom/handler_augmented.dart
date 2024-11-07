@@ -4,34 +4,54 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/custom/abstract_go_to.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
-class AugmentedHandler extends AbstractGoToHandler {
+class AugmentedHandler
+    extends SharedMessageHandler<TextDocumentPositionParams, Location?> {
   AugmentedHandler(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.augmented;
 
   @override
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
+
+  @override
   bool get requiresTrustedCaller => false;
 
   @override
-  Either2<Location?, List<Location>> findRelatedLocations(
-      Element element,
-      ResolvedLibraryResult libraryResult,
-      ResolvedUnitResult unit,
-      String? prefix) {
-    // Although the base class supports returning multiple elements, this
-    // handler is documented to only return a single element.
-    // Changing this to return a list could be a breaking change for
-    // clients.
-    return Either2.t1(elementToLocation(switch (element) {
-      ExecutableElement element => element.augmentationTarget,
-      InstanceElement element => element.augmentationTarget,
-      PropertyInducingElement element => element.augmentationTarget,
-      _ => null,
-    }));
+  Future<ErrorOr<Location?>> handle(
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+
+    return (unit, offset).mapResultsSync((unit, offset) {
+      // Find the nearest node that could have fragments.
+      var node =
+          unit.unit
+              .nodeCovering(offset: offset)
+              ?.thisOrAncestorOfType<FragmentDeclaration>();
+
+      var location = fragmentToLocation(
+        uriConverter,
+        // Augmented = previous fragment.
+        node?.declaredFragment?.previousFragment,
+      );
+      return success(location);
+    });
   }
 }

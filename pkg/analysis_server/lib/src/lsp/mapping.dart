@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/completion/dart/feature_computer.da
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/line_info.dart';
@@ -494,6 +495,41 @@ lsp.SymbolKind elementKindToSymbolKind(
   return getKindPreferences().firstWhere(
     isSupported,
     orElse: () => lsp.SymbolKind.Obj,
+  );
+}
+
+lsp.Location? fragmentToLocation(
+  ClientUriConverter uriConverter,
+  Fragment? fragment,
+) {
+  if (fragment == null) {
+    return null;
+  }
+
+  var libraryFragment = fragment.libraryFragment;
+  var sourcePath = libraryFragment.source.fullName;
+
+  var nameOffset = fragment.nameOffset2;
+  var nameLength = fragment.name2?.length;
+
+  // For unnamed constructors, use the type name as the target location.
+  if (nameOffset == null && fragment is ConstructorFragment) {
+    nameOffset = fragment.typeNameOffset;
+    nameLength = fragment.typeName?.length;
+  }
+
+  if (nameOffset == null || nameLength == null) {
+    // This is some kind of synthetic fragment we can't navigate to.
+    return null;
+  }
+
+  return lsp.Location(
+    uri: uriConverter.toClientUri(sourcePath),
+    range: toRange(
+      libraryFragment.lineInfo,
+      nameOffset,
+      nameLength,
+    ),
   );
 }
 
