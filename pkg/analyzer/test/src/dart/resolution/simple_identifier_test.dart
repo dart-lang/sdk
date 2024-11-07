@@ -739,7 +739,7 @@ main() {
 SimpleIdentifier
   token: Never
   staticElement: Never@-1
-  element: Never@-1
+  element: Never
   staticType: Type
 ''');
   }

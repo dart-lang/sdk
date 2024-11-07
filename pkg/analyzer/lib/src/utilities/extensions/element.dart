@@ -153,7 +153,7 @@ extension ElementOrNullExtension on Element? {
         self.conflictingElements.map((e) => e.asElement2).nonNulls.toList(),
       );
     } else if (self is NeverElementImpl) {
-      return self;
+      return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
       // TODO(scheglov): we lose types here
       return self.declaration.asElement2;

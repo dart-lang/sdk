@@ -125,6 +125,8 @@ class ElementPrinter {
       case LocalVariableElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
         _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+      case NeverElementImpl2():
+        _sink.write('Never');
       case ClassElementImpl2 element:
         writeReference(element.reference);
       case EnumElementImpl2 element:

@@ -803,7 +803,7 @@ f(Never a) {}
 NamedType
   name: Never
   element: Never@-1
-  element2: Never@-1
+  element2: Never
   type: Never
 ''');
   }
